@@ -1,4 +1,4 @@
-;; This software is Copyright (c) 2012 Chris Bagley
+ ;; This software is Copyright (c) 2012 Chris Bagley
 ;; (techsnuffle<at>gmail<dot>com)
 ;; Chris Bagley grants you the rights to
 ;; distribute and use this software as governed
@@ -33,27 +33,27 @@
     :initform nil
     :reader code-type
     :writer (setf code-type))
-   (code
-    :initarg :code
+   (current-line
+    :initarg :current-line
     :initform nil
-    :reader code
-    :writer (setf code))
+    :reader current-line
+    :writer (setf current-line))
    (to-block
     :initarg :to-block
     :initform nil
-    :reader code-to-block
-    :writer (setf code-to-block))
+    :reader to-block
+    :writer (setf to-block))
    (to-top
     :initarg :to-top
     :initform nil
-    :reader code-to-top
-    :writer (setf code-to-top))))
+    :reader to-top
+    :writer (setf to-top))))
 
 (defmethod initialize-instance :after ((code-ob code) &key type code)
   (if (not (and type code))
-      (error "Type and Code Content must be specified when creating an instance of cglsl:code"))
+      (error "Type and Code Content must be specified when creating an instance of umbra:code"))
   (setf (slot-value code-ob 'type-spec) (flesh-out-type type)
-        (slot-value code-ob 'code) code))
+        (slot-value code-ob 'current-line) code))
 
 ;;------------------------------------------------------------
 ;; GLSL Types
@@ -87,9 +87,6 @@
 
 (defun func-body (x)
   (third x))
-
-(defun func-block (x)
-  (fourth x))
 
 (defun glsl-function (symbol)
   (gethash symbol *glsl-functions*))

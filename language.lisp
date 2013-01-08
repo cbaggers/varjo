@@ -9,27 +9,46 @@
 (in-package :umbra)
 
 (defparameter *glsl-functions* (make-hash-table))
+(defparameter *glsl-special-functions* (make-hash-table))
 (defparameter *glsl-substitutions* (make-hash-table))
-(defparameter *glsl-operators* '((+ . t) (- . t) (~ . t) (! . t) 
-				 (*) (/) (>>) (<<) (<>) (>=) (<=)
-				 (==) (!=) (&) (^) (\|) (&&) (^^)
-				 (||)))
 
-(defun glsl-defun (&key name in-args output-type transform
-		     (blockp nil))
+;; (defparameter *glsl-operators* '((+ . t) (- . t) (~ . t) (! . t) 
+;; 				 (*) (/) (>>) (<<) (<>) (>=) (<=)
+;; 				 (==) (!=) (&) (^) (\|) (&&) (^^)
+;; 				 (||)))
+
+(defun glsl-defun (&key name in-args output-type transform)
   (let* ((func-spec (list (mapcar #'flesh-out-type
 				  (mapcar #'second in-args))
 			  (flesh-out-type output-type)
-			  transform
-			  blockp)))
+			  transform)))
     (setf (gethash name *glsl-functions*) 
           (cons func-spec (gethash name *glsl-functions*)))))
 
-(defun glsl-operatorp (symbol) 
-  (not (null (assoc symbol *glsl-operators*))))
+(defun special-functionp (symbol)
+  (not (null (gethash symbol *glsl-special-functions*))))
 
-(defun glsl-unary-operator (symbol)
-  (cdr (assoc symbol *glsl-operators*)))
+(defun funcall-special (symbols arg-objs)
+  (funcall (gethash symbols *glsl-special-functions*)
+	   arg-objs))
+
+(defun register-special-function (symbol function)
+  (setf (gethash symbol *glsl-special-functions*) 
+	function))
+
+(defun umbra-type->glsl-type (type)
+  (let ((principle (first type))
+	(structure (second type))
+	(len (third type)))
+    (if (eq structure :array)
+	(format nil "~a[~a]" principle (if len len ""))
+	(format nil "~a" principle))))
+
+;; (defun glsl-operatorp (symbol) 
+;;   (not (null (assoc symbol *glsl-operators*))))
+
+;; (defun glsl-unary-operator (symbol)
+;;   (cdr (assoc symbol *glsl-operators*)))
 
 ;;------------------------------------------------------------
 ;; Core Language Definitions
@@ -148,10 +167,45 @@
             :transform "inversesqrt(~a)")
 
 ;;------------------------------------------------------------
-;; Operator Definitions
-;;----------------------
+;; Special Function
+;;------------------
+
+(register-special-function 
+ '%progn
+ (lambda (arg-objs)
+   (if (eq 1 (length arg-objs))
+       (car arg-objs)
+       (let ((last-arg (car (last arg-objs)))
+	     (args (subseq arg-objs 0 (- (length arg-objs) 1))))
+	 (make-instance 
+	  'code 
+	  :type (code-type last-arg)
+	  :current-line (current-line last-arg)
+	  :to-block (format nil "~{~%~s~%~s~}" 
+			    (append
+			     (mapcan #'(lambda (x) 
+					 (list (to-block x)
+					       (current-line x))) 
+				     args)
+			     (list (to-block last-arg))))
+	  :to-top (mapcan #'to-top arg-objs))))))
+
+(register-special-function 
+ '%typify
+ (lambda (arg-objs)
+   (if (> (length arg-objs) 1)
+       (error "Typify cannot take more than one arg")
+       (let* ((arg (car arg-objs))
+	      (type (code-type arg)))
+	 (make-instance 
+	  'code 
+	  :type type
+	  :current-line (format nil "~a ~s" 
+				(umbra-type->glsl-type type)
+				(current-line arg))
+	  :to-block (to-block arg)
+	  :to-top (to-top arg))))))
 
 ;;------------------------------------------------------------
 ;; Lisp Function Substitutions
 ;;-----------------------------
-

@@ -12,81 +12,65 @@
 ;; Translator
 ;;------------
 
-(defun translate-cglsl (cglsl-code)
-  (cglsl->glsl
+(defun translate-umbra (umbra-code)
+  (umbra->glsl
    (macroexpand-and-substitute
-    (replace-numbers cglsl-code))))
+    (replace-numbers umbra-code))))
 
-(defun cglsl->glsl (cglsl-code &optional (shader-type :vertex))
+(defun umbra->glsl (umbra-code &optional (shader-type :vertex))
   (cond 
-    ((null cglsl-code) nil)
-    ((typep cglsl-code 'code) cglsl-code)
-    ((atom cglsl-code) (error "'~s' is unidentified." cglsl-code))
-    ((special-funcp (first cglsl-code)) 
-     (call-special (first cglsl-code)))
-    ((glsl-function (first cglsl-code))
-     (glsl-compile-function
-      (first cglsl-code) (mapcar #'cglsl->glsl (rest cglsl-code))))
-    (t (error "Function '~s' is not available for ~A shaders in cglsl." (first cglsl-code) shader-type))))
+    ((null umbra-code) nil)
+    ((typep umbra-code 'code) umbra-code)
+    ((atom umbra-code) (error "'~s' is unidentified." umbra-code))
+    ((special-functionp (first umbra-code)) 
+     (call-special (first umbra-code) 
+		   (mapcar #'umbra->glsl (rest umbra-code))))
+    ((glsl-function (first umbra-code))
+     (compile-function (first umbra-code)
+		       (mapcar #'umbra->glsl (rest umbra-code))))
+    (t (error "Function '~s' is not available for ~A shaders in umbra." (first umbra-code) shader-type))))
 
 ;;------------------------------------------------------------
 
 ;; expects code objects 
-(defun glsl-compile-function (func-name arg-objs)
+(defun compile-function (func-name arg-objs)
   (let ((func-specs (gethash func-name *glsl-functions*)))
     (loop :for f-spec :in func-specs 
        :if (glsl-valid-function-args f-spec arg-objs )
        :return (make-instance 
                 'code 
                 :type (glsl-resolve-func-type f-spec arg-objs)
-                :code (apply #'format 
-                             (append (list nil (func-body f-spec))
-                                     (mapcar #'code arg-objs)))
-                :to-block  (mapcan #'code-to-block arg-objs)
-                :to-top (mapcan #'code-to-top arg-objs))
+                :current-line (apply #'format 
+				     (append 
+				      (list nil (func-body f-spec))
+				      (mapcar #'code arg-objs)))
+                :to-block  (mapcan #'to-block arg-objs)
+                :to-top (mapcan #'to-top arg-objs))
        :finally (error "There is no applicable method for the ~%glsl function '~s'~%when called with argument types: ~s " func-name (mapcar #'code-type arg-objs)))))
-
-(defun %progn (arg-objs)
-  (if (eq 1 (length arg-objs))
-      (car arg-objs)
-      (let ((last-arg (car (last arg-objs)))
-	    (args (subseq arg-objs 0 (- (length arg-objs) 1))))
-	(make-instance 
-	 'code 
-	 :type (glsl-resolve-func-type f-spec arg-objs)
-	 :code (code last-arg)
-	 :to-block (format nil "~{~%~s~%~s~}" 
-			   (append
-			    (mapcan #'(lambda (x) 
-					 (list (code-to-block x)
-					       (code x))) 
-				    args)
-			    (list (code-to-block last-arg))))
-	 :to-top (mapcan #'code-to-top arg-objs)))))
 
 ;;------------------------------------------------------------
 
-(defun macroexpand-and-substitute (cglsl-code)
-  (cond ((null cglsl-code) nil)
-	((listp cglsl-code) 
-	 (let ((sub (gethash (first cglsl-code)
+(defun macroexpand-and-substitute (umbra-code)
+  (cond ((null umbra-code) nil)
+	((listp umbra-code) 
+	 (let ((sub (gethash (first umbra-code)
 			     *glsl-substitutions*))) 
 	   (if sub
 	       (mapcar #'macroexpand-and-substitute
-		       (apply sub cglsl-code))
+		       (apply sub umbra-code))
 	       (mapcar #'macroexpand-and-substitute
-		       cglsl-code))))
-	(t cglsl-code)))
+		       umbra-code))))
+	(t umbra-code)))
 
-(defun replace-numbers (cglsl-code)
-  (cond ((null cglsl-code) nil)
-	((numberp cglsl-code) (make-instance 'code 
-				    :code cglsl-code
-				    :type (get-number-type 
-					   cglsl-code)))
-	((listp cglsl-code) (mapcar #'replace-numbers cglsl-code))
-	(t cglsl-code)))
+;; [TODO] How should we specify unsigned?
+(defun replace-numbers (umbra-code)
+  (cond ((null umbra-code) nil)
+	((numberp umbra-code) 
+	 (make-instance 'code :current-line umbra-code
+			      :type (get-number-type umbra-code)))
+	((listp umbra-code) (mapcar #'replace-numbers umbra-code))
+	(t umbra-code)))
 
 (defun get-number-type (x)
   (cond ((floatp x) '(:float nil nil))
-	(t '(:integer nil nil))))
+	(t '(:int nil nil))))
