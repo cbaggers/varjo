@@ -1,5 +1,5 @@
-### Umbra
-Umbra is a Lisp to GLSL Language translator. It will allow you to write vertex, fragment & geometry shaders for any version of glsl greater than or equal to 1.20 (opengl version 2.1).
+### Varjo
+Varjo is a Lisp to GLSL Language translator. It will allow you to write vertex, fragment & geometry shaders for any version of glsl greater than or equal to 1.20 (opengl version 2.1).
 
 This is currently WIP and is not ready for use.
 
