@@ -6,7 +6,7 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(in-package :umbra)
+(in-package :varjo)
 
 ;;------------------------------------------------------------
 ;; Handy Functions
@@ -51,7 +51,7 @@
 
 (defmethod initialize-instance :after ((code-ob code) &key type code)
   (if (not (and type code))
-      (error "Type and Code Content must be specified when creating an instance of umbra:code"))
+      (error "Type and Code Content must be specified when creating an instance of varjo:code"))
   (setf (slot-value code-ob 'type-spec) (flesh-out-type type)
         (slot-value code-ob 'current-line) code))
 

@@ -6,29 +6,29 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(in-package :umbra)
+(in-package :varjo)
 
 ;;------------------------------------------------------------
 ;; Translator
 ;;------------
 
-(defun translate-umbra (umbra-code)
-  (umbra->glsl
+(defun translate-varjo (varjo-code)
+  (varjo->glsl
    (macroexpand-and-substitute
-    (replace-numbers umbra-code))))
+    (replace-numbers varjo-code))))
 
-(defun umbra->glsl (umbra-code &optional (shader-type :vertex))
+(defun varjo->glsl (varjo-code &optional (shader-type :vertex))
   (cond 
-    ((null umbra-code) nil)
-    ((typep umbra-code 'code) umbra-code)
-    ((atom umbra-code) (error "'~s' is unidentified." umbra-code))
-    ((special-functionp (first umbra-code)) 
-     (call-special (first umbra-code) 
-		   (mapcar #'umbra->glsl (rest umbra-code))))
-    ((glsl-function (first umbra-code))
-     (compile-function (first umbra-code)
-		       (mapcar #'umbra->glsl (rest umbra-code))))
-    (t (error "Function '~s' is not available for ~A shaders in umbra." (first umbra-code) shader-type))))
+    ((null varjo-code) nil)
+    ((typep varjo-code 'code) varjo-code)
+    ((atom varjo-code) (error "'~s' is unidentified." varjo-code))
+    ((special-functionp (first varjo-code)) 
+     (call-special (first varjo-code) 
+		   (mapcar #'varjo->glsl (rest varjo-code))))
+    ((glsl-function (first varjo-code))
+     (compile-function (first varjo-code)
+		       (mapcar #'varjo->glsl (rest varjo-code))))
+    (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) shader-type))))
 
 ;;------------------------------------------------------------
 
@@ -50,26 +50,26 @@
 
 ;;------------------------------------------------------------
 
-(defun macroexpand-and-substitute (umbra-code)
-  (cond ((null umbra-code) nil)
-	((listp umbra-code) 
-	 (let ((sub (gethash (first umbra-code)
+(defun macroexpand-and-substitute (varjo-code)
+  (cond ((null varjo-code) nil)
+	((listp varjo-code) 
+	 (let ((sub (gethash (first varjo-code)
 			     *glsl-substitutions*))) 
 	   (if sub
 	       (mapcar #'macroexpand-and-substitute
-		       (apply sub umbra-code))
+		       (apply sub varjo-code))
 	       (mapcar #'macroexpand-and-substitute
-		       umbra-code))))
-	(t umbra-code)))
+		       varjo-code))))
+	(t varjo-code)))
 
 ;; [TODO] How should we specify unsigned?
-(defun replace-numbers (umbra-code)
-  (cond ((null umbra-code) nil)
-	((numberp umbra-code) 
-	 (make-instance 'code :current-line umbra-code
-			      :type (get-number-type umbra-code)))
-	((listp umbra-code) (mapcar #'replace-numbers umbra-code))
-	(t umbra-code)))
+(defun replace-numbers (varjo-code)
+  (cond ((null varjo-code) nil)
+	((numberp varjo-code) 
+	 (make-instance 'code :current-line varjo-code
+			      :type (get-number-type varjo-code)))
+	((listp varjo-code) (mapcar #'replace-numbers varjo-code))
+	(t varjo-code)))
 
 (defun get-number-type (x)
   (cond ((floatp x) '(:float nil nil))

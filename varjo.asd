@@ -1,9 +1,9 @@
-;;;; umbra.asd
+;;;; varjo.asd
 
-(asdf:defsystem #:umbra
+(asdf:defsystem #:varjo
   :serial t
   :components ((:file "package")
                (:file "base")
 	       (:file "language")
-               (:file "umbra")))
+               (:file "varjo")))
 

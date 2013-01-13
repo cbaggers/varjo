@@ -6,7 +6,7 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-(in-package :umbra)
+(in-package :varjo)
 
 (defparameter *glsl-functions* (make-hash-table))
 (defparameter *glsl-special-functions* (make-hash-table))
@@ -36,7 +36,7 @@
   (setf (gethash symbol *glsl-special-functions*) 
 	function))
 
-(defun umbra-type->glsl-type (type)
+(defun varjo-type->glsl-type (type)
   (let ((principle (first type))
 	(structure (second type))
 	(len (third type)))
@@ -201,7 +201,7 @@
 	  'code 
 	  :type type
 	  :current-line (format nil "~a ~s" 
-				(umbra-type->glsl-type type)
+				(varjo-type->glsl-type type)
 				(current-line arg))
 	  :to-block (to-block arg)
 	  :to-top (to-top arg))))))

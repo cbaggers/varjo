@@ -1,5 +1,5 @@
 ;;;; package.lisp
 
-(defpackage #:umbra
+(defpackage #:varjo
   (:use #:cl))
 
