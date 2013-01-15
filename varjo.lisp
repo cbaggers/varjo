@@ -20,31 +20,41 @@
     (out ((:gl gl-position) (* camera-to-clip-matrix temp))
      ((vec4 interpColor :smooth) color))))
 
-(defun translate (varjo-code)
-  (varjo->glsl
-   (macroexpand-and-substitute
-    (replace-numbers varjo-code))))
+(defun translate (varjo-code 
+		  &optional (shader-type :vertex) in-vars in-structs)
+  (declare (ignore in-structs))
+  (let ((*shader-type* shader-type)
+	(*glsl-variables* (append in-vars
+				  (assocr :core *built-in-vars*)
+				  (assocr shader-type 
+					  *built-in-vars*))))
+    (let ((compiled-obj (varjo->glsl
+			 (replace-numbers 
+			  (macroexpand-and-substitute varjo-code)))))
+      (format nil "~{~a~^~%~}" 
+	      (append (to-block compiled-obj)
+		      (list (current-line compiled-obj)))))))
 
 (defun instance-var (symbol)
   (let ((var-spec (assoc symbol *glsl-variables*)))
     (make-instance 'code
 		   :type (flesh-out-type (second var-spec))
-		   :current-line (format nil "~a" symbol))))
+		   :current-line (format nil "~a" (third var-spec)))))
 
-(defun varjo->glsl (varjo-code &optional (shader-type :vertex))
+(defun varjo->glsl (varjo-code)
   (cond 
     ((null varjo-code) nil)
     ((typep varjo-code 'code) varjo-code)
     ((atom varjo-code) 
      (if (assoc varjo-code *glsl-variables*)
 	 (instance-var varjo-code)
-	 (error "'~s' is unidentified." varjo-code)))
+	 (error "Varjo: '~s' is unidentified." varjo-code)))
     ((special-functionp (first varjo-code)) 
      (funcall-special (first varjo-code) (rest varjo-code)))
     ((glsl-function (first varjo-code))
      (compile-function (first varjo-code)
 		       (mapcar #'varjo->glsl (rest varjo-code))))
-    (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) shader-type))))
+    (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-type*))))
 
 ;;------------------------------------------------------------
 
@@ -74,7 +84,7 @@
 			     *glsl-substitutions*))) 
 	   (if sub
 	       (mapcar #'macroexpand-and-substitute
-		       (apply sub varjo-code))
+		       (apply sub (rest varjo-code)))
 	       (mapcar #'macroexpand-and-substitute
 		       varjo-code))))
 	(t varjo-code)))

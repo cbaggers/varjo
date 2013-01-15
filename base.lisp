@@ -1,4 +1,4 @@
- ;; This software is Copyright (c) 2012 Chris Bagley
+;; This software is Copyright (c) 2012 Chris Bagley
 ;; (techsnuffle<at>gmail<dot>com)
 ;; Chris Bagley grants you the rights to
 ;; distribute and use this software as governed
@@ -7,6 +7,63 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
+
+(defconstant *implicit-type-casts* 
+  '(((:float nil nil) (:int nil nil) (:uint nil nil))
+    ((:vec2 nil nil) (:ivec2 nil nil) (:uvec2 nil nil))
+    ((:vec3 nil nil) (:ivec3 nil nil) (:uvec3 nil nil))
+    ((:vec4 nil nil) (:ivec4 nil nil) (:uvec4 nil nil))))
+
+(defparameter *glsl-types* '((:void nil nil) (:bool nil nil) 
+			     (:int nil nil) (:uint nil nil)
+			     (:float nil nil) (:bvec2 nil nil) 
+			     (:bvec3 nil nil) (:bvec4 nil nil)
+			     (:uvec2 nil nil) (:uvec3 nil nil) 
+			     (:uvec4 nil nil) (:ivec2 nil nil)
+			     (:ivec3 nil nil) (:ivec4 nil nil)
+			     (:vec2 nil nil) (:vec3 nil nil)
+			     (:vec4 nil nil)))
+(defparameter *built-in-vars* 
+  '((:core ((max-clip-distances (:vec4 nil nil) 
+	     "gl_MaxClipDistances" t)
+	    (max-clip-planes (:vec4 nil nil) 
+	     "gl_MaxClipPlanes" t)
+	    (max-draw-buffers (:vec4 nil nil) 
+	     "gl_MaxDrawBuffers" t)
+	    (max-texture-units (:vec4 nil nil) 
+	     "gl_MaxTextureUnits" t)
+	    (max-texture-coords (:vec4 nil nil) 
+	     "gl_MaxTextureCoords" t)
+	    (max-geometry-texture-image-units (:vec4 nil nil) 
+	     "gl_MaxGeometryTextureImageUnits" t)
+	    (max-texture-image-units (:vec4 nil nil) 
+	     "gl_MaxTextureImageUnits" t)
+	    (max-vertex-attribs (:vec4 nil nil) 
+	     "gl_MaxVertexAttribs" t)
+	    (max-vertex-texture-image-units (:vec4 nil nil) 
+	     "gl_MaxVertexTextureImageUnits" t)
+	    (max-combined-texture-image-units (:vec4 nil nil) 
+	     "gl_MaxCombinesTextureImageUnits" t)
+	    (max-geometry-varying-components (:vec4 nil nil) 
+	     "gl_MaxGeometryVaryingComponents" t)
+	    (max-varying-floats (:vec4 nil nil) 
+	     "gl_MaxVaryingFloats" t)
+	    (max-geometry-output-vertices (:vec4 nil nil) 
+	     "gl_MaxGeometryOutputVertices" t)
+	    (max-fragment-uniform-components (:vec4 nil nil) 
+	    "gl_MaxFragmentUniformComponents" t)
+	    (max-geometry-total-output-components (:vec4 nil nil) 
+	    "gl_MaxGeometryTotalOutputComponents" t)
+	    (max-geometry-uniform-components (:vec4 nil nil) 
+	    "gl_MaxGeometryUniformComponents" t)
+	    (max-vertex-uniform-components (:vec4 nil nil) 
+	     "gl_MaxVertexUniformComponents" t)))
+    (:vertex )))
+(defparameter *glsl-variables* nil)
+(defparameter *glsl-functions* (make-hash-table))
+(defparameter *glsl-special-functions* (make-hash-table))
+(defparameter *glsl-substitutions* (make-hash-table))
+(defparameter *shader-type* nil)
 
 ;;------------------------------------------------------------
 ;; Handy Functions
@@ -46,6 +103,15 @@
 (defun equalp! (x)
   (lambda (val) (equal val x)))
 
+(let ((count 0))
+  (defun glsl-gensym (&optional (name "var"))
+    (setf count (+ 1 count))
+    (format nil "~a_varjo_~a" name count)))
+
+(defmacro assocr (item alist &key key (test nil testp) 
+			       (test-not nil notp))
+  `(cdr (assoc ,item ,alist :key ,key ,@(when testp (list test))
+	       ,@(when notp (list test-not)))))
 ;;------------------------------------------------------------
 ;; Code Class
 ;;------------
@@ -101,6 +167,29 @@
 (defun glsl-typep (object type)
   (glsl-valid-type (code-type object) type))
 
+(defun glsl-castablep (minor-type major-type)
+  "Returns whether the type minor-type can be cast up to type major-type"
+  (or (equal major-type minor-type)
+      (not (null (find minor-type (assoc major-type 
+					 *implicit-type-casts*
+					 :test #'equal)
+		       :test #'equal)))))
+
+(defun superior-type (&rest types)
+  "find the superior type, types are defined in order or superiority"
+  (let ((type-strengths (remove-if #'null 
+			       (mapcar (lambda (x) 
+					 (position x *glsl-types*
+						   :test #'equal))
+				       types))))
+    (when type-strengths
+      (elt *glsl-types* (apply #'max type-strengths)))))
+
+(defun types-compatiblep (&rest types)
+  "Make sure every type is or can be cast up to the superior type"
+  (let ((superior (apply #'superior-type types)))
+    (every #'(lambda (x) (glsl-castablep x superior)) types)))
+
 ;;------------------------------------------------------------
 ;; GLSL Functions
 ;;----------------
@@ -137,3 +226,27 @@
   (let ((in-types (mapcar #'code-type args)))
     (declare (ignore in-types))
     `(:implement :resolve-oper-type :now)))
+
+(defun oper-segment-list (list symbol)
+  (if (rest list) 
+      (list symbol 
+	    (first list) 
+	    (oper-segment-list (rest list) symbol)) 
+      (first list)))
+
+
+;;------------------------------------------------------------
+;; GLSL Variables
+;;----------------
+
+(defun var-name (var)
+  (first var))
+
+(defun var-type (var)
+  (second var))
+
+(defun var-gl-name (var)
+  (third var))
+
+(defun var-read-only (var)
+  (fourth var))
