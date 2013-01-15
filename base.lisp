@@ -23,6 +23,29 @@
 (defun printf (control-string &rest format-arguments)
   (apply #'format (append (list t control-string) format-arguments)))
 
+(defun group (source n)
+  "This takes a  flat list and emit a list of lists, each n long
+   containing the elements of the original list"
+  (if (zerop n) (error "zero length"))
+  (labels ((rec (source acc)
+	     (let ((rest (nthcdr n source)))
+	       (if (consp rest)
+		   (rec rest (cons (subseq source 0 n)
+				   acc))
+		   (nreverse (cons source acc))))))
+    (if source 
+	(rec source nil) 
+	nil)))
+
+(defun eqp! (x)
+  (lambda (val) (eq val x)))
+
+(defun eqlp! (x)
+  (lambda (val) (eql val x)))
+
+(defun equalp! (x)
+  (lambda (val) (equal val x)))
+
 ;;------------------------------------------------------------
 ;; Code Class
 ;;------------
@@ -49,20 +72,23 @@
     :reader to-top
     :writer (setf to-top))))
 
-(defmethod initialize-instance :after ((code-ob code) &key type code)
-  (if (not (and type code))
+(defmethod initialize-instance :after ((code-ob code) 
+				       &key type current-line)
+  (if (not (and type current-line))
       (error "Type and Code Content must be specified when creating an instance of varjo:code"))
   (setf (slot-value code-ob 'type-spec) (flesh-out-type type)
-        (slot-value code-ob 'current-line) code))
+        (slot-value code-ob 'current-line) current-line))
 
 ;;------------------------------------------------------------
 ;; GLSL Types
 ;;------------
 
 (defun flesh-out-type (type)
-  (if (> (length type) 3)
-      (error "Invalid GLSL Type Definition: ~s has more than 3 components." type)
-      (append type (make-list (- 3 (length type))))))
+  (if (listp type)
+      (if (> (length type) 3)
+	  (error "Invalid GLSL Type Definition: ~s has more than 3 components." type)
+	  (append type (make-list (- 3 (length type)))))
+      (flesh-out-type (list type))))
 
 ;; [TODO] Checking length should be a '<' not an eq 
 (defun glsl-valid-type (candidate spec)

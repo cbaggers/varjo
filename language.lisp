@@ -8,14 +8,10 @@
 
 (in-package :varjo)
 
+(defparameter *glsl-variables* nil)
 (defparameter *glsl-functions* (make-hash-table))
 (defparameter *glsl-special-functions* (make-hash-table))
 (defparameter *glsl-substitutions* (make-hash-table))
-
-;; (defparameter *glsl-operators* '((+ . t) (- . t) (~ . t) (! . t) 
-;; 				 (*) (/) (>>) (<<) (<>) (>=) (<=)
-;; 				 (==) (!=) (&) (^) (\|) (&&) (^^)
-;; 				 (||)))
 
 (defun glsl-defun (&key name in-args output-type transform)
   (let* ((func-spec (list (mapcar #'flesh-out-type
@@ -28,8 +24,8 @@
 (defun special-functionp (symbol)
   (not (null (gethash symbol *glsl-special-functions*))))
 
-(defun funcall-special (symbols arg-objs)
-  (funcall (gethash symbols *glsl-special-functions*)
+(defun funcall-special (symbol arg-objs)
+  (funcall (gethash symbol *glsl-special-functions*)
 	   arg-objs))
 
 (defun register-special-function (symbol function)
@@ -43,12 +39,6 @@
     (if (eq structure :array)
 	(format nil "~a[~a]" principle (if len len ""))
 	(format nil "~a" principle))))
-
-;; (defun glsl-operatorp (symbol) 
-;;   (not (null (assoc symbol *glsl-operators*))))
-
-;; (defun glsl-unary-operator (symbol)
-;;   (cdr (assoc symbol *glsl-operators*)))
 
 ;;------------------------------------------------------------
 ;; Core Language Definitions
@@ -172,39 +162,102 @@
 
 (register-special-function 
  '%progn
- (lambda (arg-objs)
-   (if (eq 1 (length arg-objs))
-       (car arg-objs)
-       (let ((last-arg (car (last arg-objs)))
-	     (args (subseq arg-objs 0 (- (length arg-objs) 1))))
-	 (make-instance 
-	  'code 
-	  :type (code-type last-arg)
-	  :current-line (current-line last-arg)
-	  :to-block (format nil "~{~%~s~%~s~}" 
-			    (append
-			     (mapcan #'(lambda (x) 
-					 (list (to-block x)
-					       (current-line x))) 
-				     args)
-			     (list (to-block last-arg))))
-	  :to-top (mapcan #'to-top arg-objs))))))
+ (lambda (varjo-code)
+   (let ((arg-objs (mapcar #'varjo->glsl varjo-code)))
+     (if (eq 1 (length arg-objs))
+	 (car arg-objs)
+	 (let ((last-arg (car (last arg-objs)))
+	       (args (subseq arg-objs 0 (- (length arg-objs) 1))))
+	   (make-instance 
+	    'code 
+	    :type (code-type last-arg)
+	    :current-line (current-line last-arg)
+	    :to-block (remove-if 
+		       #'null
+		       (append
+			(mapcan #'(lambda (x) 
+				    (list (to-block x)
+					  (current-line x))) 
+				args)
+			(list (to-block last-arg))))
+	    :to-top (mapcan #'to-top arg-objs)))))))
 
 (register-special-function 
  '%typify
- (lambda (arg-objs)
-   (if (> (length arg-objs) 1)
-       (error "Typify cannot take more than one arg")
-       (let* ((arg (car arg-objs))
-	      (type (code-type arg)))
-	 (make-instance 
-	  'code 
-	  :type type
-	  :current-line (format nil "~a ~s" 
-				(varjo-type->glsl-type type)
-				(current-line arg))
-	  :to-block (to-block arg)
-	  :to-top (to-top arg))))))
+ (lambda (varjo-code)
+   (let ((arg-objs (mapcar #'varjo->glsl varjo-code)))
+     (if (> (length arg-objs) 1)
+	 (error "Typify cannot take more than one arg")
+	 (let* ((arg (car arg-objs))
+		(type (code-type arg)))
+	   (make-instance 
+	    'code 
+	    :type type
+	    :current-line (format nil "~a ~a" 
+				  (varjo-type->glsl-type type)
+				  (current-line arg))
+	    :to-block (to-block arg)
+	    :to-top (to-top arg)))))))
+
+(register-special-function 
+ '%make-var
+ (lambda (varjo-code)
+   (if (> (length varjo-code) 1)
+       (error "Make-var cannot take more than one form")
+       (let* ((form (first varjo-code))
+	      (name (first form))
+	      (type (second form)))
+	 (make-instance 'code 
+			:type type
+			:current-line (format nil "~s" name))))))
+
+;; check for name clashes between forms
+;; create init forms, for each one 
+
+(register-special-function 
+ 'let
+ (lambda (varjo-code)
+   (labels ((compile-let-form (let-form)
+	      (varjo->glsl 
+	       `(%typify (setf (%make-var ,(car let-form))
+			       ,(cadr let-form))))))
+     (let* ((form-code (car varjo-code))
+	    (form-objs (mapcar #'compile-let-form form-code))
+	    (body-code (rest varjo-code)))
+       (let* ((*glsl-variables* (append (mapcar #'first form-code) 
+				       *glsl-variables*))
+	     (prog-ob (funcall-special '%progn body-code)))
+	 (make-instance 'code
+			:type (code-type prog-ob)
+			:current-line (current-line prog-ob)
+			:to-block (append 
+				   (mapcan #'to-block form-objs)
+				   (mapcar #'current-line form-objs)
+				   (to-block prog-ob))
+			:to-top (append 
+				 (mapcan #'to-top form-objs)
+				 (to-top prog-ob))))))))
+
+(register-special-function 
+ 'setf
+ (lambda (varjo-code)
+   (if (> (length varjo-code) 2)
+       (error "varjo setf can only set one var")
+       (let* ((setf-form (mapcar #'varjo->glsl varjo-code))
+	      (var (first setf-form))
+	      (val (second setf-form)))
+	 (if (equal (code-type var) (code-type val))
+	     (make-instance 'code
+			    :type (code-type var)
+			    :current-line (format nil "~a = ~a"
+						  (current-line var) 
+						  (current-line val))
+			    :to-block (mapcan #'to-block setf-form)
+			    :to-top (mapcan #'to-top setf-form))
+	     (error "Types of variable and value do not match ~s ~s"
+		    (code-type var) (code-type val)))))))
+
+
 
 ;;------------------------------------------------------------
 ;; Lisp Function Substitutions
