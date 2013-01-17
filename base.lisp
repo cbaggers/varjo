@@ -321,13 +321,18 @@
 	  (append type (make-list (- 2 (length type)))))
       (flesh-out-type (list type))))
 
-;; [TODO] Checking length should be a '<' not an eq 
 (defun glsl-valid-type (candidate spec)
-  (labels ((component-valid-p (c s) 
-	     (or (and (null c) (null s))
-		 (if (listp s) (find c s) (eq c s))
-		 (eq t s))))
-    (every #'component-valid-p candidate spec)))
+  (let ((type-s (first spec)) (type-c (first candidate))
+	(length-s (second spec)) (length-c (second candidate)))
+    (not
+     (null
+      (and (or (eq type-s t) (if (listp type-s) 
+				 (find type-c type-s) 
+				 (eq type-c type-s)))
+	   (or (eq length-c length-s)
+	       (and (eq length-s t) length-c)
+	       (when (and (numberp length-c) (numberp length-s))
+		 (<= length-c length-s))))))))
 
 (defun glsl-typep (object type)
   (glsl-valid-type (code-type object) type))
@@ -381,6 +386,9 @@
 
 (defun func-args-match (x)
   (fifth x))
+
+(defun func-place (x)
+  (sixth x))
 
 (defun glsl-valid-function-args (func args)
   (let ((in-spec (func-in-spec func))
@@ -464,11 +472,6 @@
 	  (format nil "    ~a ~a;" 
 		  principle name)))))
 
-;; (defun struct-macros (struct)
-;;   (let ((struct-name (first struct)))
-;;     (list (symb 'make struct-name) 
-;; 	  (LAMBDA () `(%instance-struct ,struct-name)))))
-
 (defun struct-funcs (struct)
   (let ((struct-name (first struct))
 	(slots (rest struct)))
@@ -498,4 +501,5 @@
 			 :output-type (second slot)
 			 :transform (format nil "~~a.~a" 
 					    (or (third slot)
-						(first slot)))))))))))
+						(first slot)))
+			 :place t))))))))

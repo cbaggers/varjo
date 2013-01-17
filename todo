@@ -11,20 +11,17 @@
 
 * create built in vars that are structs
 
-* read up on setting variables as invariant
-* write melm for varjo
-* write type casting functions
-* write if if-else and switch code
 * create for and while loops - note break and continue
+* create labels
 * work out how return will work
 * this will probably help with discard
 * add last few built-in functions
 * add all the texture lookup functions
-* add lisp macros wrappers for this functionality
+* use the 'place' flag as check for setf 
+* read up on setting variables as invariant
 * find out what the fuck centroid means
-* tidy up %make-var
-
 
 * add preprocessor extensions to translate function
 * check out _line_ _file_ and _version_ macros from glsl, are they
  used?
+* add lisp macros wrappers for this functionality

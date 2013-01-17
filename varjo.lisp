@@ -41,20 +41,12 @@
 
 (defun code-object-to-string (code-obj version in-structs)
   (format nil 
-	  "#version ~a~%~{~a~%~}~{~a~%~}~%void main() {~%~{    ~a~%~}}" 
+	  "#version ~a~%~%~{~a~%~}~{~a~%~}~%void main() {~%~{    ~a~%~}    ~a;~%}" 
 	  version
 	  (mapcar #'struct-init-form in-structs)
 	  (to-top code-obj)
-	  (append (to-block code-obj)
-		  (list (current-line code-obj)))))
-
-(defun instance-var (symbol)
-  (let ((var-spec (assoc symbol *glsl-variables*)))
-    (make-instance 'code
-		   :type (flesh-out-type (var-type var-spec))
-		   :current-line (format nil "~a" 
-					 (var-gl-name var-spec))
-		   :read-only (var-read-only var-spec))))
+	  (to-block code-obj)
+	  (current-line code-obj)))
 
 (defun varjo->glsl (varjo-code)
   (cond 
@@ -84,7 +76,8 @@
 				     (append 
 				      (list nil (func-body f-spec))
 				      (mapcar #'current-line
-					      arg-objs))))
+					      arg-objs)))
+		:place (func-place f-spec))
        :finally (error "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " func-name (mapcar #'code-type arg-objs)))))
 
 ;;------------------------------------------------------------
@@ -102,7 +95,13 @@
 
 ;; [TODO] How should we specify unsigned?
 (defun replace-numbers (varjo-code)
-  (cond ((null varjo-code) nil)
+  (when (null varjo-code) (print "wooo"))
+  (cond ((null varjo-code) 
+	 (make-instance 'code :current-line "false" 
+			      :type '(:bool nil)))	 
+	((eq t varjo-code) 
+	 (make-instance 'code :current-line "true" 
+			      :type '(:bool nil)))
 	((numberp varjo-code) 
 	 (make-instance 'code :current-line (format nil "~a" 
 						    varjo-code)
