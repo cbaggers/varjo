@@ -20,66 +20,66 @@
 		 (:mat4x2 . 8) (:mat4x3 . 12) (:mat4x4 . 16)))
 
 (defconstant *implicit-type-casts* 
-  '(((:float nil nil) (:int nil nil) (:uint nil nil))
-    ((:vec2 nil nil) (:ivec2 nil nil) (:uvec2 nil nil))
-    ((:vec3 nil nil) (:ivec3 nil nil) (:uvec3 nil nil))
-    ((:vec4 nil nil) (:ivec4 nil nil) (:uvec4 nil nil))))
+  '(((:float nil) (:int nil) (:uint nil))
+    ((:vec2 nil) (:ivec2 nil) (:uvec2 nil))
+    ((:vec3 nil) (:ivec3 nil) (:uvec3 nil))
+    ((:vec4 nil) (:ivec4 nil) (:uvec4 nil))))
 
-(defparameter *glsl-types* '((:void nil nil) (:bool nil nil) 
-			     (:int nil nil) (:uint nil nil)
-			     (:float nil nil) (:bvec2 nil nil) 
-			     (:bvec3 nil nil) (:bvec4 nil nil)
-			     (:uvec2 nil nil) (:uvec3 nil nil) 
-			     (:uvec4 nil nil) (:ivec2 nil nil)
-			     (:ivec3 nil nil) (:ivec4 nil nil)
-			     (:vec2 nil nil) (:vec3 nil nil)
-			     (:vec4 nil nil) 
-			     (:mat2 nil nil) (:mat3 nil nil)
-			     (:mat4 nil nil) (:mat2x2 nil nil)
-			     (:mat2x3 nil nil) (:mat2x4 nil nil)
-			     (:mat3x2 nil nil) (:mat3x3 nil nil)
-			     (:mat3x4 nil nil) (:mat4x2 nil nil)
-			     (:mat4x3 nil nil) (:mat4x4 nil nil)
-			     ;; (:ISAMPLER1D NIL NIL)
-			     ;; (:ISAMPLER1DARRAY NIL NIL)
-			     ;; (:ISAMPLER2D NIL NIL)
-			     ;; (:ISAMPLER2DARRAY NIL NIL)
-			     ;; (:ISAMPLER2DMS NIL NIL)
-			     ;; (:ISAMPLER2DMSARRAY NIL NIL)
-			     ;; (:ISAMPLER2DRECT NIL NIL)
-			     ;; (:ISAMPLER3D NIL NIL)
-			     ;; (:ISAMPLERBUFFER NIL NIL)
-			     ;; (:ISAMPLERCUBE NIL NIL)
-			     ;; (:ISAMPLERCUBEARRAY NIL NIL)
-			     ;; (:SAMPLER1D NIL NIL) 
-			     ;; (:SAMPLER1DARRAY NIL NIL)
-			     ;; (:SAMPLER1DARRAYSHADOW NIL NIL)
-			     ;; (:SAMPLER1DSHADOW NIL NIL) 
-			     ;; (:SAMPLER2D NIL NIL)
-			     ;; (:SAMPLER2DARRAY NIL NIL)
-			     ;; (:SAMPLER2DARRAYSHADOW NIL NIL)
-			     ;; (:SAMPLER2DMS NIL NIL)
-			     ;; (:SAMPLER2DMSARRAY NIL NIL)
-			     ;; (:SAMPLER2DRECT NIL NIL)
-			     ;; (:SAMPLER2DRECTSHADOW NIL NIL)
-			     ;; (:SAMPLER2DSHADOW NIL NIL)
-			     ;; (:SAMPLER3D NIL NIL)
-			     ;; (:SAMPLERBUFFER NIL NIL)
-			     ;; (:SAMPLERCUBE NIL NIL)
-			     ;; (:SAMPLERCUBEARRAY NIL NIL)
-			     ;; (:SAMPLERCUBEARRAYSHADOW NIL NIL)
-			     ;; (:SAMPLERCUBESHADOW NIL NIL)
-			     ;; (:USAMPLER1D NIL NIL)
-			     ;; (:USAMPLER1DARRAY NIL NIL)
-			     ;; (:USAMPLER2D NIL NIL)
-			     ;; (:USAMPLER2DARRAY NIL NIL)
-			     ;; (:USAMPLER2DMS NIL NIL)
-			     ;; (:USAMPLER2DMSARRAY NIL NIL)
-			     ;; (:USAMPLER2DRECT NIL NIL)
-			     ;; (:USAMPLER3D NIL NIL)
-			     ;; (:USAMPLERBUFFER NIL NIL)
-			     ;; (:USAMPLERCUBE NIL NIL)
-			     ;; (:USAMPLERCUBEARRAY NIL NIL)
+(defparameter *glsl-types* '((:void nil) (:bool nil) 
+			     (:int nil) (:uint nil)
+			     (:float nil) (:bvec2 nil) 
+			     (:bvec3 nil) (:bvec4 nil)
+			     (:uvec2 nil) (:uvec3 nil) 
+			     (:uvec4 nil) (:ivec2 nil)
+			     (:ivec3 nil) (:ivec4 nil)
+			     (:vec2 nil) (:vec3 nil)
+			     (:vec4 nil) 
+			     (:mat2 nil) (:mat3 nil)
+			     (:mat4 nil) (:mat2x2 nil)
+			     (:mat2x3 nil) (:mat2x4 nil)
+			     (:mat3x2 nil) (:mat3x3 nil)
+			     (:mat3x4 nil) (:mat4x2 nil)
+			     (:mat4x3 nil) (:mat4x4 nil)
+			     ;; (:ISAMPLER1D NIL)
+			     ;; (:ISAMPLER1DARRAY NIL)
+			     ;; (:ISAMPLER2D NIL)
+			     ;; (:ISAMPLER2DARRAY NIL)
+			     ;; (:ISAMPLER2DMS NIL)
+			     ;; (:ISAMPLER2DMSARRAY NIL)
+			     ;; (:ISAMPLER2DRECT NIL)
+			     ;; (:ISAMPLER3D NIL)
+			     ;; (:ISAMPLERBUFFER NIL)
+			     ;; (:ISAMPLERCUBE NIL)
+			     ;; (:ISAMPLERCUBEARRAY NIL)
+			     ;; (:SAMPLER1D NIL) 
+			     ;; (:SAMPLER1DARRAY NIL)
+			     ;; (:SAMPLER1DARRAYSHADOW NIL)
+			     ;; (:SAMPLER1DSHADOW NIL) 
+			     ;; (:SAMPLER2D NIL)
+			     ;; (:SAMPLER2DARRAY NIL)
+			     ;; (:SAMPLER2DARRAYSHADOW NIL)
+			     ;; (:SAMPLER2DMS NIL)
+			     ;; (:SAMPLER2DMSARRAY NIL)
+			     ;; (:SAMPLER2DRECT NIL)
+			     ;; (:SAMPLER2DRECTSHADOW NIL)
+			     ;; (:SAMPLER2DSHADOW NIL)
+			     ;; (:SAMPLER3D NIL)
+			     ;; (:SAMPLERBUFFER NIL)
+			     ;; (:SAMPLERCUBE NIL)
+			     ;; (:SAMPLERCUBEARRAY NIL)
+			     ;; (:SAMPLERCUBEARRAYSHADOW NIL)
+			     ;; (:SAMPLERCUBESHADOW NIL)
+			     ;; (:USAMPLER1D NIL)
+			     ;; (:USAMPLER1DARRAY NIL)
+			     ;; (:USAMPLER2D NIL)
+			     ;; (:USAMPLER2DARRAY NIL)
+			     ;; (:USAMPLER2DMS NIL)
+			     ;; (:USAMPLER2DMSARRAY NIL)
+			     ;; (:USAMPLER2DRECT NIL)
+			     ;; (:USAMPLER3D NIL)
+			     ;; (:USAMPLERBUFFER NIL)
+			     ;; (:USAMPLERCUBE NIL)
+			     ;; (:USAMPLERCUBEARRAY NIL)
 			     ))
 
 ;; [TODO] What the hell is with the multitexcoord (vertex)
@@ -129,7 +129,7 @@
     (:fragment 
      (frag-coord :vec4 "gl_FragCoord" t)
      (front-facing :bool  "gl_FrontFacing" t)
-     (clip-distance (:float :array t) "gl_ClipDistance" t)
+     (clip-distance (:float t) "gl_ClipDistance" t)
      (point-coord :vec2  "gl_PointCoord" t)
      (primitive-id :int "gl_PrimitiveID" t)
      (frag-depth :float "gl_FragDepth" nil))
@@ -231,38 +231,84 @@
     :initarg :read-only
     :initform nil
     :reader read-only
-    :writer (setf read-only))))
+    :writer (setf read-only))
+   (place
+    :initarg :place
+    :initform nil
+    :reader place
+    :writer (setf place))
+   (out-vars
+    :initarg :out-vars
+    :initform nil
+    :reader out-vars
+    :writer (setf out-vars))
+   (invariant
+    :initarg :invariant
+    :initform nil
+    :reader invariant
+    :writer (setf invariant))))
+
 
 (defmethod initialize-instance :after ((code-ob code) 
 				       &key type current-line)
   (if (not (and type current-line))
-      (error "Type and Code Content must be specified when creating an instance of varjo:code"))
+      (error "Type and current-line must be specified when creating an instance of varjo:code"))
   (setf (slot-value code-ob 'type-spec) (flesh-out-type type)
         (slot-value code-ob 'current-line) current-line))
 
-;; (defgeneric copy-code-ob (code-ob &key type current-line
-;; 				   to-block to-top read-only))
+(defgeneric merge-obs (objs &key type current-line to-block 
+			      to-top place out-vars invariant))
 
-;; (defmethod copy-code-ob ((obj code) &key (type nil set-type)
-;; 				   (current-line nil set-line)
-;; 				   (to-block nil set-block)
-;; 				   (to-top nil set-top)
-;; 				   (read-only nil read-only))
-;;     (make-instance 'code
-;; 		   :type (if set-type
-;; 			     type
-;; 			     (code-type obj))
-;; 		   :current-line (if set-line
-;; 				     current-line
-;; 				     (current-line obj))
-;; 		   :))
+(defmethod merge-obs ((objs list) &key type current-line 
+			 (to-block nil set-block)
+			 (to-top nil set-top)
+			 (place nil)
+			 (out-vars nil set-out-vars)
+			 (invariant nil))
+  (make-instance 'code
+		 :type (if type type (error "type is mandatory")) 
+		 :current-line 
+		 (if current-line current-line 
+		     (error "current-line is mandatory")) 
+		 :to-block (if set-block
+			       to-block
+			       (mapcan #'to-block objs))
+		 :to-top (if set-top
+			       to-top
+			       (mapcan #'to-top objs))
+		 :place place
+		 :out-vars (if set-out-vars
+			       out-vars
+			       (mapcan #'out-vars objs))
+		 :invariant invariant))
 
-;; (defmethod copy-code-ob ((obj list) &key (type nil set-type)
-;; 				      (current-line nil set-line)
-;; 				      (to-block nil set-block)
-;; 				      (to-top nil set-top)
-;; 				      (read-only nil read-only))
-;;   )
+(defmethod merge-obs ((objs code) 
+		      &key (type nil set-type)
+			(current-line nil set-current-line) 
+			(to-block nil set-block)
+			(to-top nil set-top)
+			(place nil)
+			(out-vars nil set-out-vars)
+			(invariant nil))
+  (make-instance 'code
+		 :type (if set-type
+			   type
+			   (code-type objs)) 
+		 :current-line (if set-current-line 
+				   current-line 
+				   (current-line objs)) 
+		 :to-block (if set-block
+			       to-block
+			       (to-block objs))
+		 :to-top (if set-top
+			       to-top
+			       (to-top objs))
+		 :place place
+		 :out-vars (if set-out-vars
+			       out-vars
+			       (out-vars objs))
+		 :invariant invariant))
+
 
 ;;------------------------------------------------------------
 ;; GLSL Types
@@ -270,9 +316,9 @@
 
 (defun flesh-out-type (type)
   (if (listp type)
-      (if (> (length type) 3)
-	  (error "Invalid GLSL Type Definition: ~s has more than 3 components." type)
-	  (append type (make-list (- 3 (length type)))))
+      (if (> (length type) 2)
+	  (error "Invalid GLSL Type Definition: ~s has more than 2 components." type)
+	  (append type (make-list (- 2 (length type)))))
       (flesh-out-type (list type))))
 
 ;; [TODO] Checking length should be a '<' not an eq 
@@ -308,6 +354,14 @@
   "Make sure every type is or can be cast up to the superior type"
   (let ((superior (apply #'superior-type types)))
     (every #'(lambda (x) (glsl-castablep x superior)) types)))
+
+(defun type-component-count (type-spec)
+  (let* ((full-type (flesh-out-type type-spec))
+	 (type (first full-type))
+	 (length (assocr type *glsl-component-counts*)))
+    (if length
+	length
+	(error "Type '~a' is not a vector or matrix componant type" type))))
 
 ;;------------------------------------------------------------
 ;; GLSL Functions
@@ -403,9 +457,8 @@
   (let ((name (or (third slot) (first slot)))
 	(type (flesh-out-type (second slot))))
     (let ((principle (first type))
-	  (structure (second type))
 	  (len (third type)))
-      (if (eq structure :array)
+      (if len
 	  (format nil "    ~a ~a[~a];" 
 		  principle name (if len len ""))
 	  (format nil "    ~a ~a;" 

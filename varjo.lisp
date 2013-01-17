@@ -20,11 +20,12 @@
     (out ((:gl gl-position) (* camera-to-clip-matrix temp))
      ((vec4 interpColor :smooth) color))))
 
-(defmacro translate->glsl (code &key shader-type in-vars in-structs)
+(defmacro t! (code &key shader-type in-vars in-structs)
   `(translate ',code :in-vars ,in-vars :shader-type ,shader-type
 	      :in-structs ,in-structs))
 
-(defun translate (varjo-code &key shader-type in-vars in-structs)
+(defun translate (varjo-code &key shader-type in-vars in-structs 
+			       (version :330))
   (let ((*shader-type* shader-type)
 	(*glsl-variables* (append in-vars
 				  (assocr :core *built-in-vars*)
@@ -33,13 +34,19 @@
 	(*glsl-functions* (append *glsl-functions*
 				  (mapcan #'struct-funcs
 					  in-structs))))
-    (let ((compiled-obj (varjo->glsl
-			 (replace-numbers 
-			  (macroexpand-and-substitute varjo-code)))))
-      (format nil "~{~a~%~}~%~{~a~^~%~}" 
-	      (mapcar #'struct-init-form in-structs)
-	      (append (to-block compiled-obj)
-		      (list (current-line compiled-obj)))))))
+    (let ((compiled-obj (varjo->glsl (replace-numbers 
+				      (macroexpand-and-substitute 
+				       varjo-code)))))
+      (code-object-to-string compiled-obj version in-structs))))
+
+(defun code-object-to-string (code-obj version in-structs)
+  (format nil 
+	  "#version ~a~%~{~a~%~}~{~a~%~}~%void main() {~%~{    ~a~%~}}" 
+	  version
+	  (mapcar #'struct-init-form in-structs)
+	  (to-top code-obj)
+	  (append (to-block code-obj)
+		  (list (current-line code-obj)))))
 
 (defun instance-var (symbol)
   (let ((var-spec (assoc symbol *glsl-variables*)))
@@ -60,27 +67,24 @@
     ((special-functionp (first varjo-code)) 
      (funcall-special (first varjo-code) (rest varjo-code)))
     ((vfunctionp (first varjo-code))
-     (compile-function (first varjo-code)
-		       (mapcar #'varjo->glsl (rest varjo-code))))
+     (compile-function (first varjo-code) (rest varjo-code)))
     (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-type*))))
 
 ;;------------------------------------------------------------
 
 ;; expects code objects 
-(defun compile-function (func-name arg-objs)
-  (let ((func-specs (func-specs func-name)))
+(defun compile-function (func-name args)
+  (let ((func-specs (func-specs func-name))
+	(arg-objs (mapcar #'varjo->glsl args)))
     (loop :for f-spec :in func-specs 
        :if (glsl-valid-function-args f-spec arg-objs )
-       :return (make-instance 
-                'code 
+       :return (merge-obs arg-objs
                 :type (glsl-resolve-func-type f-spec arg-objs)
                 :current-line (apply #'format 
 				     (append 
 				      (list nil (func-body f-spec))
 				      (mapcar #'current-line
-					      arg-objs)))
-                :to-block  (mapcan #'to-block arg-objs)
-                :to-top (mapcan #'to-top arg-objs))
+					      arg-objs))))
        :finally (error "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " func-name (mapcar #'code-type arg-objs)))))
 
 ;;------------------------------------------------------------
@@ -107,5 +111,5 @@
 	(t varjo-code)))
 
 (defun get-number-type (x)
-  (cond ((floatp x) '(:float nil nil))
-	(t '(:int nil nil))))
+  (cond ((floatp x) '(:float nil))
+	(t '(:int nil))))
