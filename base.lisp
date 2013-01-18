@@ -393,6 +393,9 @@
 (defun func-args-match (x)
   (fifth x))
 
+(defun func-restriction (x)
+  (sixth x))
+
 (defun glsl-valid-function-args (func args)
   (let ((in-spec (func-in-spec func))
 	(types (mapcar #'code-type args)))

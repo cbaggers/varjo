@@ -9,29 +9,39 @@
 (in-package :varjo)
 
 (defun vlambda (&key in-args compatible-args arg-types-match
-		  output-type transform)
+		  output-type transform context-restriction)
   (list (mapcar #'flesh-out-type
 		(mapcar #'second in-args))
 	(flesh-out-type output-type)
 	transform
 	compatible-args
-	arg-types-match))
+	arg-types-match
+	context-restriction))
 
 (defun glsl-defun (&key name in-args compatible-args 
 		     arg-types-match output-type
-		     transform)
+		     transform context-restriction)
   (let* ((func-spec (vlambda :in-args in-args 
 			     :compatible-args compatible-args 
 			     :arg-types-match arg-types-match
 			     :output-type output-type
-			     :transform transform)))
+			     :transform transform
+			     :context-restriction 
+			     context-restriction)))
     (setf *glsl-functions*
 	  (acons name (cons func-spec
 			    (assocr name *glsl-functions*))
 		 *glsl-functions*))))
 
 (defun func-specs (name)
-  (assocr name *glsl-functions*))
+  (let ((all-matching (assocr name *glsl-functions*)))
+    (remove-if 
+     #'null (loop for spec in all-matching
+		  :collect (if (func-restriction spec)
+			       (when (find *shader-type* 
+					   (func-restriction spec))
+				 spec)
+			       spec)))))
 
 (defun vfunctionp (name)
   (not (null (func-specs name))))
@@ -88,6 +98,13 @@
 ;;------------------------------------------------------------
 ;; Core Language Definitions
 ;;---------------------------
+
+(glsl-defun :name 'wah
+            :in-args '((x ((:double :float :int :uint :bool
+			    :bvec2 :bvec3 :bvec4))))
+            :output-type :bool
+            :transform "bool(~a)"
+	    :context-restriction '(:vertex))
 
 (glsl-defun :name 'bool
             :in-args '((x ((:double :float :int :uint :bool
@@ -504,6 +521,13 @@
             :output-type :vec4
             :transform "ftransform()")
 
+
+;;  vvvvvvvvv--HERE BITCHES
+;; (glsl-defun :name 'face-forward
+;;             :in-args '()
+;;             :output-type ()
+;;             :transform "faceforward(~a, ~a, ~a)")
+
 (glsl-defun :name '*
             :in-args '((x ((:int :float)))
 		       (y ((:int :float))))
@@ -850,31 +874,6 @@
 			    (mapcan #'to-top form-objs)
 			    (to-top prog-ob)))))))
 
-;; (vdefspecial setf (varjo-code)  
-;;   (if (> (length varjo-code) 2)
-;;       (error "varjo setf can only set one var")
-;;       (let* ((setf-objs (mapcar #'varjo->glsl varjo-code))
-;; 	     (var (first setf-objs))
-;; 	     (val (second setf-objs))
-;; 	     (line (if (> (length (current-line val)) 0)
-;; 		       (format nil "~a = ~a"
-;; 			       (current-line var) 
-;; 			       (current-line val))
-;; 		       (format nil "~a" (current-line var))))
-;; 	     (type (if (equal (code-type var) (code-type val))
-;; 		       (code-type var)
-;; 		       (if (glsl-typep var '(:unknown nil))
-;; 			   (code-type val)
-;; 			   (error "Types of variable and value do not match~%~s ~s" (code-type var) (code-type val))))))
-;; 	(if (read-only var)
-;; 	    (error "Varjo: ~s is read only" (current-line var))
-;; 	    (if (placep var) 
-;; 		(merge-obs setf-objs
-;; 			   :type type
-;; 			   :current-line line)
-;; 		(error "Varjo: Setf can only assign to places~%~a"
-;; 		       line))))))
-
 (vdefspecial out (varjo-code)
   (let* ((arg-obj (varjo->glsl (second varjo-code)))
 	 (out-var-name (first varjo-code))
@@ -917,7 +916,7 @@
 						 arg-objs)))
 	(error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
 
-(vdefspecial %/ (varjo-code)    
+(vdefspecial / (varjo-code)    
   (let* ((arg-objs (mapcar #'varjo->glsl varjo-code))
 	 (types (mapcar #'code-type arg-objs)))
     (if (apply #'types-compatiblep types)
@@ -1025,7 +1024,7 @@
   (oper-segment-list args '*))
 
 (vdefmacro / (&rest args)
-  (oper-segment-list args '%/))
+  (oper-segment-list args '/))
 
 (vdefmacro v! (&rest args)
   `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args))
