@@ -34,7 +34,7 @@
 	(*glsl-functions* (append *glsl-functions*
 				  (mapcan #'struct-funcs
 					  in-structs))))
-    (let ((compiled-obj (varjo->glsl (replace-numbers 
+    (let ((compiled-obj (varjo->glsl (replace-literals 
 				      (macroexpand-and-substitute 
 				       varjo-code)))))
       (code-object-to-string compiled-obj version in-structs))))
@@ -76,8 +76,7 @@
 				     (append 
 				      (list nil (func-body f-spec))
 				      (mapcar #'current-line
-					      arg-objs)))
-		:place (func-place f-spec))
+					      arg-objs))))
        :finally (error "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " func-name (mapcar #'code-type arg-objs)))))
 
 ;;------------------------------------------------------------
@@ -94,7 +93,7 @@
 	(t varjo-code)))
 
 ;; [TODO] How should we specify unsigned?
-(defun replace-numbers (varjo-code)
+(defun replace-literals (varjo-code)
   (when (null varjo-code) (print "wooo"))
   (cond ((null varjo-code) 
 	 (make-instance 'code :current-line "false" 
@@ -106,9 +105,11 @@
 	 (make-instance 'code :current-line (format nil "~a" 
 						    varjo-code)
 			      :type (get-number-type varjo-code)))
-	((listp varjo-code) (mapcar #'replace-numbers varjo-code))
+	((listp varjo-code) (mapcar #'replace-literals varjo-code))
 	(t varjo-code)))
 
 (defun get-number-type (x)
   (cond ((floatp x) '(:float nil))
-	(t '(:int nil))))
+	((integerp x) '(:int nil))
+	(t (error "Varjo: Do not know the type of the number '~s'"
+		  x))))

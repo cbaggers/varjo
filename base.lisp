@@ -20,26 +20,26 @@
 		 (:mat4x2 . 8) (:mat4x3 . 12) (:mat4x4 . 16)))
 
 (defconstant *implicit-type-casts* 
-  '(((:float nil) (:int nil) (:uint nil))
-    ((:vec2 nil) (:ivec2 nil) (:uvec2 nil))
-    ((:vec3 nil) (:ivec3 nil) (:uvec3 nil))
-    ((:vec4 nil) (:ivec4 nil) (:uvec4 nil))))
+  '(((:float nil nil) (:int nil nil) (:uint nil nil))
+    ((:vec2 nil nil) (:ivec2 nil nil) (:uvec2 nil nil))
+    ((:vec3 nil nil) (:ivec3 nil nil) (:uvec3 nil nil))
+    ((:vec4 nil nil) (:ivec4 nil nil) (:uvec4 nil nil))))
 
-(defparameter *glsl-types* '((:void nil) (:bool nil) 
-			     (:int nil) (:uint nil)
-			     (:float nil) (:bvec2 nil) 
-			     (:bvec3 nil) (:bvec4 nil)
-			     (:uvec2 nil) (:uvec3 nil) 
-			     (:uvec4 nil) (:ivec2 nil)
-			     (:ivec3 nil) (:ivec4 nil)
-			     (:vec2 nil) (:vec3 nil)
-			     (:vec4 nil) 
-			     (:mat2 nil) (:mat3 nil)
-			     (:mat4 nil) (:mat2x2 nil)
-			     (:mat2x3 nil) (:mat2x4 nil)
-			     (:mat3x2 nil) (:mat3x3 nil)
-			     (:mat3x4 nil) (:mat4x2 nil)
-			     (:mat4x3 nil) (:mat4x4 nil)
+(defparameter *glsl-types* '((:void nil nil) (:bool nil nil) 
+			     (:int nil nil) (:uint nil nil)
+			     (:float nil nil) (:bvec2 nil nil) 
+			     (:bvec3 nil nil) (:bvec4 nil nil)
+			     (:uvec2 nil nil) (:uvec3 nil nil) 
+			     (:uvec4 nil nil) (:ivec2 nil nil)
+			     (:ivec3 nil nil) (:ivec4 nil nil)
+			     (:vec2 nil nil) (:vec3 nil nil)
+			     (:vec4 nil nil) 
+			     (:mat2 nil nil) (:mat3 nil nil)
+			     (:mat4 nil nil) (:mat2x2 nil nil)
+			     (:mat2x3 nil nil) (:mat2x4 nil nil)
+			     (:mat3x2 nil nil) (:mat3x3 nil nil)
+			     (:mat3x4 nil nil) (:mat4x2 nil nil)
+			     (:mat4x3 nil nil) (:mat4x4 nil nil)
 			     ;; (:ISAMPLER1D NIL)
 			     ;; (:ISAMPLER1DARRAY NIL)
 			     ;; (:ISAMPLER2D NIL)
@@ -232,11 +232,6 @@
     :initform nil
     :reader read-only
     :writer (setf read-only))
-   (place
-    :initarg :place
-    :initform nil
-    :reader place
-    :writer (setf place))
    (out-vars
     :initarg :out-vars
     :initform nil
@@ -257,12 +252,11 @@
         (slot-value code-ob 'current-line) current-line))
 
 (defgeneric merge-obs (objs &key type current-line to-block 
-			      to-top place out-vars invariant))
+			      to-top out-vars invariant))
 
 (defmethod merge-obs ((objs list) &key type current-line 
 			 (to-block nil set-block)
 			 (to-top nil set-top)
-			 (place nil)
 			 (out-vars nil set-out-vars)
 			 (invariant nil))
   (make-instance 'code
@@ -276,7 +270,6 @@
 		 :to-top (if set-top
 			       to-top
 			       (mapcan #'to-top objs))
-		 :place place
 		 :out-vars (if set-out-vars
 			       out-vars
 			       (mapcan #'out-vars objs))
@@ -287,7 +280,6 @@
 			(current-line nil set-current-line) 
 			(to-block nil set-block)
 			(to-top nil set-top)
-			(place nil)
 			(out-vars nil set-out-vars)
 			(invariant nil))
   (make-instance 'code
@@ -303,7 +295,6 @@
 		 :to-top (if set-top
 			       to-top
 			       (to-top objs))
-		 :place place
 		 :out-vars (if set-out-vars
 			       out-vars
 			       (out-vars objs))
@@ -316,9 +307,9 @@
 
 (defun flesh-out-type (type)
   (if (listp type)
-      (if (> (length type) 2)
+      (if (> (length type) 3)
 	  (error "Invalid GLSL Type Definition: ~s has more than 2 components." type)
-	  (append type (make-list (- 2 (length type)))))
+	  (append type (make-list (- 3 (length type)))))
       (flesh-out-type (list type))))
 
 (defun glsl-valid-type (candidate spec)
@@ -334,22 +325,37 @@
 	       (when (and (numberp length-c) (numberp length-s))
 		 (<= length-c length-s))))))))
 
+(defun set-place-t (type)
+  (list (first type) (second type) t))
+
+(defun set-place-nil (type)
+  (list (first type) (second type) nil))
+
+(defun get-place (x)
+  (third x))
+
+(defun placep (object)
+  (get-place (code-type object)))
+
 (defun glsl-typep (object type)
   (glsl-valid-type (code-type object) type))
 
 (defun glsl-castablep (minor-type major-type)
   "Returns whether the type minor-type can be cast up to type major-type"
-  (or (equal major-type minor-type)
-      (not (null (find minor-type (assoc major-type 
-					 *implicit-type-casts*
-					 :test #'equal)
-		       :test #'equal)))))
+  (let ((minor-type (set-place-nil minor-type))
+	(major-type (set-place-nil major-type)))
+    (or (equal major-type minor-type)
+	(not (null (find minor-type (assoc major-type 
+					   *implicit-type-casts*
+					   :test #'equal)
+			 :test #'equal))))))
 
 (defun superior-type (&rest types)
   "find the superior type, types are defined in order or superiority"
   (let ((type-strengths (remove-if #'null 
 			       (mapcar (lambda (x) 
-					 (position x *glsl-types*
+					 (position (set-place-nil x) 
+						   *glsl-types*
 						   :test #'equal))
 				       types))))
     (when type-strengths
@@ -387,20 +393,23 @@
 (defun func-args-match (x)
   (fifth x))
 
-(defun func-place (x)
-  (sixth x))
-
 (defun glsl-valid-function-args (func args)
   (let ((in-spec (func-in-spec func))
 	(types (mapcar #'code-type args)))
     (and (eq (length args) (length in-spec))
+	 (every #'(lambda (c s) (if (get-place s)
+				    (get-place c)
+				    t)) types in-spec)
 	 (every #'(lambda (c s) (glsl-typep c s)) 
 		args in-spec)
 	 (if (func-compatible-args func)
 	     (apply #'types-compatiblep types)
 	     t)
 	 (if (func-args-match func)
-	     (every (equalp! (first types)) types)
+	     (every #'(lambda (x) 
+			(equal (set-place-nil x) (set-place-nil
+						  (first types))))
+		    types)
 	     t))))
 
 (defun glsl-resolve-func-type (func args)
@@ -411,21 +420,15 @@
   ;; to be compatible that means we need to take
   ;; it from the superior in-arg type
   (let ((in-types (mapcar #'code-type args)))
-    (loop :for i in (func-out-spec func)
-	  :for part from 0
-	  :collect (if (numberp i)
-		       (nth part (if (func-compatible-args func)
-				     (apply #'superior-type 
-					    in-types)
-				     (nth i in-types)))
-		       i))))
-
-
-;; (defun glsl-resolve-oper-type (oper args)
-;;   (declare (ignore oper))
-;;   (let ((in-types (mapcar #'code-type args)))
-;;     (declare (ignore in-types))
-;;     `(:implement :resolve-oper-type :now)))
+    (flesh-out-type
+     (loop :for i in (func-out-spec func)
+	   :for part from 0
+	   :collect (if (numberp i)
+			(nth part (if (func-compatible-args func)
+				      (apply #'superior-type 
+					     in-types)
+				      (nth i in-types)))
+			i)))))
 
 (defun oper-segment-list (list symbol)
   (if (rest list) 
@@ -501,5 +504,4 @@
 			 :output-type (second slot)
 			 :transform (format nil "~~a.~a" 
 					    (or (third slot)
-						(first slot)))
-			 :place t))))))))
+						(first slot)))))))))))

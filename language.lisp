@@ -9,22 +9,20 @@
 (in-package :varjo)
 
 (defun vlambda (&key in-args compatible-args arg-types-match
-		  place output-type transform)
+		  output-type transform)
   (list (mapcar #'flesh-out-type
 		(mapcar #'second in-args))
 	(flesh-out-type output-type)
 	transform
 	compatible-args
-	arg-types-match
-	place))
+	arg-types-match))
 
 (defun glsl-defun (&key name in-args compatible-args 
-		     arg-types-match place output-type
+		     arg-types-match output-type
 		     transform)
   (let* ((func-spec (vlambda :in-args in-args 
 			     :compatible-args compatible-args 
 			     :arg-types-match arg-types-match
-			     :place place
 			     :output-type output-type
 			     :transform transform)))
     (setf *glsl-functions*
@@ -81,11 +79,11 @@
 (defun instance-var (symbol)
   (let ((var-spec (assoc symbol *glsl-variables*)))
     (make-instance 'code
-		   :type (flesh-out-type (var-type var-spec))
+		   :type (set-place-t
+			  (flesh-out-type (var-type var-spec)))
 		   :current-line (format nil "~a" 
 					 (var-gl-name var-spec))
-		   :read-only (var-read-only var-spec)
-		   :place t)))
+		   :read-only (var-read-only var-spec))))
 
 ;;------------------------------------------------------------
 ;; Core Language Definitions
@@ -466,37 +464,40 @@
 (glsl-defun :name 'aref
             :in-args '((array (t t))
 		       (index ((:uint :int))))
-            :output-type '(0 nil)
-            :transform "~a[~a]"
-	    :place t)
+            :output-type '(0 nil t)
+            :transform "~a[~a]")
 
 (glsl-defun :name 'aref
             :in-args '((vector ((:vec2 :vec3 :vec4)))
 		       (index ((:uint :int))))
-            :output-type :float
-            :transform "~a[~a]"
-	    :place t)
+            :output-type '(:float 0 t)
+            :transform "~a[~a]")
 
 (glsl-defun :name 'aref
             :in-args '((vector ((:ivec2 :ivec3 :ivec4)))
 		       (index ((:uint :int))))
-            :output-type :int
-            :transform "~a[~a]"
-	    :place t)
+            :output-type '(:int 0 t)
+            :transform "~a[~a]")
 
 (glsl-defun :name 'aref
             :in-args '((vector ((:uvec2 :uvec3 :uvec4)))
 		       (index ((:uint :int))))
-            :output-type :uint
-            :transform "~a[~a]"
-	    :place t)
+            :output-type '(:uint 0 t)
+            :transform "~a[~a]")
 
-(glsl-defun :name 'hmm
-            :in-args '((x t)
-		       (y t))
+(glsl-defun :name 'setf
+            :in-args '((x (t nil t))
+		       (y (t nil nil)))
 	    :arg-types-match t
             :output-type '(0 0)
-            :transform "(~a = ~a)")
+            :transform "~a = ~a")
+
+(glsl-defun :name 'setf
+            :in-args '((x (t t t))
+		       (y (t t nil)))
+	    :arg-types-match t
+            :output-type '(0 0)
+            :transform "~a = ~a")
 
 (glsl-defun :name 'f-transform
             :in-args '()
@@ -767,9 +768,8 @@
   (let ((name (first varjo-code))
 	(type (second varjo-code)))
     (make-instance 'code 
-		   :type type
-		   :current-line (string name)
-		   :place t)))
+		   :type (set-place-t type)
+		   :current-line (string name))))
 
 (vdefspecial %make-array (varjo-code)  
   (let* ((type (first varjo-code))
@@ -850,30 +850,30 @@
 			    (mapcan #'to-top form-objs)
 			    (to-top prog-ob)))))))
 
-(vdefspecial setf (varjo-code)  
-  (if (> (length varjo-code) 2)
-      (error "varjo setf can only set one var")
-      (let* ((setf-objs (mapcar #'varjo->glsl varjo-code))
-	     (var (first setf-objs))
-	     (val (second setf-objs))
-	     (line (if (> (length (current-line val)) 0)
-		       (format nil "~a = ~a"
-			       (current-line var) 
-			       (current-line val))
-		       (format nil "~a" (current-line var))))
-	     (type (if (equal (code-type var) (code-type val))
-		       (code-type var)
-		       (if (glsl-typep var '(:unknown nil))
-			   (code-type val)
-			   (error "Types of variable and value do not match~%~s ~s" (code-type var) (code-type val))))))
-	(if (read-only var)
-	    (error "Varjo: ~s is read only" (current-line var))
-	    (if (place var) 
-		(merge-obs setf-objs
-			   :type type
-			   :current-line line)
-		(error "Varjo: Setf can only assign to places~%~a"
-		       line))))))
+;; (vdefspecial setf (varjo-code)  
+;;   (if (> (length varjo-code) 2)
+;;       (error "varjo setf can only set one var")
+;;       (let* ((setf-objs (mapcar #'varjo->glsl varjo-code))
+;; 	     (var (first setf-objs))
+;; 	     (val (second setf-objs))
+;; 	     (line (if (> (length (current-line val)) 0)
+;; 		       (format nil "~a = ~a"
+;; 			       (current-line var) 
+;; 			       (current-line val))
+;; 		       (format nil "~a" (current-line var))))
+;; 	     (type (if (equal (code-type var) (code-type val))
+;; 		       (code-type var)
+;; 		       (if (glsl-typep var '(:unknown nil))
+;; 			   (code-type val)
+;; 			   (error "Types of variable and value do not match~%~s ~s" (code-type var) (code-type val))))))
+;; 	(if (read-only var)
+;; 	    (error "Varjo: ~s is read only" (current-line var))
+;; 	    (if (placep var) 
+;; 		(merge-obs setf-objs
+;; 			   :type type
+;; 			   :current-line line)
+;; 		(error "Varjo: Setf can only assign to places~%~a"
+;; 		       line))))))
 
 (vdefspecial out (varjo-code)
   (let* ((arg-obj (varjo->glsl (second varjo-code)))
