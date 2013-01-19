@@ -44,21 +44,22 @@
   (not (null (func-specs name))))
 
 (defun special-functionp (symbol)
-  (not (null (gethash symbol *glsl-special-functions*))))
+  (not (null (find symbol *glsl-special-functions*))))
 
-(defun funcall-special (symbol arg-objs)
-  (funcall (gethash symbol *glsl-special-functions*)
-	   arg-objs))
+(defun apply-special (symbol arg-objs)
+  (if (special-functionp symbol)
+      (apply (symbol-function (symb symbol '%special)) arg-objs)
+      (error "Varjo: '~a' is not a special function" symbol)))
 
-(defun register-special-function (symbol function)
-  (setf (gethash symbol *glsl-special-functions*) 
-	function))
+(defun register-special-function (symbol)
+  (setf *glsl-special-functions* 
+	(cons symbol *glsl-special-functions*)))
 
-(defmacro vdefspecial (name (code-var) &body body)
-  `(register-special-function
-    ',name
-    (lambda (,code-var)
-      ,@body)))
+(defmacro vdefspecial (name args &body body)
+  (let ((new-name (symb name '%special)))
+    `(progn 
+       (defun ,new-name ,args ,@body)
+       (register-special-function ',name))))
 
 (defun register-substitution (symbol function)
   (setf *glsl-substitutions*
@@ -1030,8 +1031,8 @@
 ;; Special Function
 ;;------------------
 
-(vdefspecial progn (varjo-code)
-  (let ((arg-objs (mapcar #'varjo->glsl varjo-code)))
+(vdefspecial progn (&rest body)
+  (let ((arg-objs (mapcar #'varjo->glsl body)))
     (if (eq 1 (length arg-objs))
 	(car arg-objs)
 	(let ((last-arg (car (last arg-objs)))
@@ -1049,32 +1050,22 @@
 			       args)
 		       (list (to-block last-arg)))))))))
 
-(vdefspecial %typify (varjo-code)    
-  (let ((arg-objs (mapcar #'varjo->glsl varjo-code)))
-    (if (> (length arg-objs) 1)
-      (error "Typify cannot take more than one form")	
-	(let* ((arg (car arg-objs))
-	       (type (code-type arg)))
-	  (merge-obs arg :current-line 
-		     (format nil "~a ~a" 
-			     (varjo-type->glsl-type type)
-			     (current-line arg)))))))
+(vdefspecial %typify (form)  
+  (let* ((arg (varjo->glsl form))
+	 (type (code-type arg)))
+    (merge-obs arg :current-line 
+	       (format nil "~a ~a" (varjo-type->glsl-type type)
+		       (current-line arg)))))
 
 
-(vdefspecial %make-var (varjo-code)  
-  (let ((name (first varjo-code))
-	(type (second varjo-code)))
-    (make-instance 'code 
-		   :type (set-place-t type)
-		   :current-line (string name))))
+(vdefspecial %make-var (name type)    
+  (make-instance 'code :type (set-place-t type)
+		       :current-line (string name)))
 
-(vdefspecial %make-array (varjo-code)  
-  (let* ((type (first varjo-code))
-	 (literal-length (typep (second varjo-code) 'code))
-	 (length (if literal-length
-		     (second varjo-code)
-		     (varjo->glsl (second varjo-code))))
-	 (contents (mapcar #'varjo->glsl (third varjo-code))))
+(vdefspecial %make-array (type length &optional contents)
+  (let* ((literal-length (typep length 'code))
+	 (length (varjo->glsl length))
+	 (contents (mapcar #'varjo->glsl contents)))
     (merge-obs 
      (cons length contents)
      :type (flesh-out-type 
@@ -1086,10 +1077,10 @@
 			   (current-line length) 
 			   (mapcar #'current-line contents)))))
 
-(vdefspecial %init-vec-or-mat (varjo-code)
-  (let* ((target-type (flesh-out-type (first varjo-code)))
+(vdefspecial %init-vec-or-mat (type &rest args)
+  (let* ((target-type (flesh-out-type type))
 	 (target-length (type-component-count target-type))
-	 (arg-objs (mapcar #'varjo->glsl (rest varjo-code)))
+	 (arg-objs (mapcar #'varjo->glsl args))
 	 (types (mapcar #'code-type arg-objs))
 	 (lengths (mapcar #'type-component-count types)))
     (if (eq target-length (apply #'+ lengths))
@@ -1104,31 +1095,27 @@
 ;; check for name clashes between forms
 ;; create init forms, for each one 
 
-(vdefspecial let (varjo-code)
-  (let* ((form-code (first varjo-code))
-	 (body-code (rest varjo-code)))
-    (destructuring-bind (form-objs new-vars)
-	(compile-let-forms form-code)
-      (let* ((*glsl-variables* (append new-vars *glsl-variables*))
-	     (prog-ob (funcall-special 'progn body-code)))
-	(merge-obs (cons prog-ob form-objs)
-		   :type (code-type prog-ob)
-		   :current-line (current-line prog-ob)
-		   :to-block (append 
-			      (mapcan #'to-block form-objs)
-			      (mapcar (lambda (x)
-					(format nil "~a;"
-						(current-line x))) 
-				      form-objs)
-			      (to-block prog-ob))
-		   :to-top (append 
-			    (mapcan #'to-top form-objs)
-			    (to-top prog-ob)))))))
+(vdefspecial let (form-code &rest body-code)
+  (destructuring-bind (form-objs new-vars)
+      (compile-let-forms form-code)
+    (let* ((*glsl-variables* (append new-vars *glsl-variables*))
+	   (prog-ob (apply-special 'progn body-code)))
+      (merge-obs (cons prog-ob form-objs)
+		 :type (code-type prog-ob)
+		 :current-line (current-line prog-ob)
+		 :to-block (append 
+			    (mapcan #'to-block form-objs)
+			    (mapcar (lambda (x)
+				      (format nil "~a;"
+					      (current-line x))) 
+				    form-objs)
+			    (to-block prog-ob))
+		 :to-top (append 
+			  (mapcan #'to-top form-objs)
+			  (to-top prog-ob))))))
 
-(vdefspecial out (varjo-code)
-  (let* ((arg-obj (varjo->glsl (second varjo-code)))
-	 (out-var-name (first varjo-code))
-	 (qualifiers (subseq varjo-code 2)))
+(vdefspecial out (out-var-name form &rest qualifiers)
+  (let ((arg-obj (varjo->glsl form)))
     (if (assoc out-var-name *glsl-variables*)
 	(error "The variable name '~a' is already taken and so cannot be used~%for an out variable" out-var-name)
 	(make-instance 'code
@@ -1143,10 +1130,10 @@
 					      (code-type arg-obj))
 					     out-var-name)
 				     (to-top arg-obj))
-		       :out-vars (list varjo-code)))))
+		       :out-vars `(out-var-name form ,@qualifiers)))))
 
-(vdefspecial + (varjo-code)    
-  (let* ((arg-objs (mapcar #'varjo->glsl varjo-code))
+(vdefspecial + (&rest args)    
+  (let* ((arg-objs (mapcar #'varjo->glsl args))
 	 (types (mapcar #'code-type arg-objs)))
     (if (apply #'types-compatiblep types)
 	(merge-obs arg-objs
@@ -1156,8 +1143,8 @@
 						 arg-objs)))
 	(error "The types of object passed to + are not compatible~%~{~s~^ ~}" types))))
 
-(vdefspecial %- (varjo-code)    
-  (let* ((arg-objs (mapcar #'varjo->glsl varjo-code))
+(vdefspecial %- (&rest args)    
+  (let* ((arg-objs (mapcar #'varjo->glsl args))
 	 (types (mapcar #'code-type arg-objs)))
     (if (apply #'types-compatiblep types)
 	(merge-obs arg-objs
@@ -1167,8 +1154,8 @@
 						 arg-objs)))
 	(error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
 
-(vdefspecial / (varjo-code)    
-  (let* ((arg-objs (mapcar #'varjo->glsl varjo-code))
+(vdefspecial / (&rest args)    
+  (let* ((arg-objs (mapcar #'varjo->glsl args))
 	 (types (mapcar #'code-type arg-objs)))
     (if (apply #'types-compatiblep types)
 	(merge-obs arg-objs
@@ -1178,62 +1165,56 @@
 						 arg-objs)))
 	(error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
 
-(vdefspecial for (varjo-code)
-  (destructuring-bind (var-form condition update &rest body)
-      varjo-code
-    (if 
-     (consp (first var-form))
-     (error "for can only iterate over one variable")
-     (destructuring-bind (form-objs new-vars)
-	 (compile-let-forms (list var-form) nil)
-       (let* ((form-obj (first form-objs))
-	      (*glsl-variables* (append new-vars *glsl-variables*))
-	      (con-ob (varjo->glsl condition))
-	      (up-ob (varjo->glsl update))
-	      (prog-ob (funcall-special 'progn body)))
-	 (if (and (null (to-block con-ob)) (null (to-block up-ob)))
-	     (merge-obs (list prog-ob form-obj)
-			:type :none
-			:current-line nil
-			:to-block 
-			(list
-			 (format nil "~{~a~%~}for (~a;~a;~a) {~%~{~a~%~}~a;~%}"
-				 (to-block form-obj)
-				 (current-line form-obj)
-				 (current-line con-ob)
-				 (current-line up-ob)
-				 (to-block prog-ob)
-				 (current-line prog-ob))))
-	     (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop")))))))
+(vdefspecial for (var-form condition update &rest body)
+  (if 
+   (consp (first var-form))
+   (error "for can only iterate over one variable")
+   (destructuring-bind (form-objs new-vars)
+       (compile-let-forms (list var-form) nil)
+     (let* ((form-obj (first form-objs))
+	    (*glsl-variables* (append new-vars *glsl-variables*))
+	    (con-ob (varjo->glsl condition))
+	    (up-ob (varjo->glsl update))
+	    (prog-ob (apply-special 'progn body)))
+       (if (and (null (to-block con-ob)) (null (to-block up-ob)))
+	   (merge-obs (list prog-ob form-obj)
+		      :type :none
+		      :current-line nil
+		      :to-block 
+		      (list
+		       (format nil "~{~a~%~}for (~a;~a;~a) {~%~{~a~%~}~a;~%}"
+			       (to-block form-obj)
+			       (current-line form-obj)
+			       (current-line con-ob)
+			       (current-line up-ob)
+			       (to-block prog-ob)
+			       (current-line prog-ob))))
+	   (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
 
-(vdefspecial while (varjo-code)
-  (destructuring-bind (test &rest body)
-      varjo-code
-    (let* ((test-ob (varjo->glsl test))
-	   (prog-ob (funcall-special 'progn body)))
-      (merge-obs (list prog-ob test-ob)
-		 :type :none
-		 :current-line nil
-		 :to-block 
-		 (list
-		  (format nil "~{~a~%~}while (~a) {~%~{~a~%~}~a;~%}"
-			  (to-block test-ob)
-			  (current-line test-ob)
-			  (to-block prog-ob)
-			  (current-line prog-ob)))))))
+(vdefspecial while (test &rest body)
+  (let* ((test-ob (varjo->glsl test))
+	 (prog-ob (apply-special 'progn body)))
+    (merge-obs (list prog-ob test-ob)
+	       :type :none
+	       :current-line nil
+	       :to-block 
+	       (list
+		(format nil "~{~a~%~}while (~a) {~%~{~a~%~}~a;~%}"
+			(to-block test-ob)
+			(current-line test-ob)
+			(to-block prog-ob)
+			(current-line prog-ob))))))
 
-(vdefspecial %negate (varjo-code)  
-  (if (> (length varjo-code) 1)
-      (error "Negate cannot take more than one form")
-      (let* ((arg-obj (varjo->glsl (first varjo-code))))
-	(merge-obs arg-obj
-		   :current-line (format nil "-~a"
-					 (current-line arg-obj))))))
+(vdefspecial %negate (form)  
+  (let* ((arg-obj (varjo->glsl form)))
+    (merge-obs arg-obj
+	       :current-line (format nil "-~a"
+				     (current-line arg-obj)))))
 
-(vdefspecial if (varjo-code)  
-  (let* ((test (varjo->glsl (first varjo-code)))
-	 (t-obj (varjo->glsl (second varjo-code)))
-	 (nil-obj (varjo->glsl (third varjo-code)))
+(vdefspecial if (test-form then-form &optional else-form)  
+  (let* ((test (varjo->glsl test-form))
+	 (t-obj (varjo->glsl then-form))
+	 (nil-obj (varjo->glsl else-form))
 	 (arg-objs (remove-if #'null (list test t-obj nil-obj))))
     (if (glsl-typep test '(:bool nil))
 	(merge-obs 
@@ -1257,10 +1238,10 @@
 	(error "The result of the test must be a bool.~%~s"
 	       (code-type test)))))
 
-(vdefspecial ? (varjo-code)  
-  (let* ((test (varjo->glsl (first varjo-code)))
-	 (t-obj (varjo->glsl (second varjo-code)))
-	 (nil-obj (varjo->glsl (third varjo-code)))
+(vdefspecial ? (test-form then-form &optional else-form)
+  (let* ((test (varjo->glsl test-form))
+	 (t-obj (varjo->glsl then-form))
+	 (nil-obj (varjo->glsl else-form))
 	 (arg-objs (remove-if #'null (list test t-obj nil-obj))))
     (if (glsl-typep test '(:bool nil))
 	(if (equal (code-type nil-obj) (code-type t-obj))
@@ -1275,9 +1256,8 @@
 	(error "The result of the test must be a bool.~%~a"
 	       (code-type test)))))
 
-(vdefspecial switch (varjo-code)  
-  (let* ((test (varjo->glsl (first varjo-code)))
-	 (clauses (rest varjo-code))
+(vdefspecial switch (test-form &rest clauses)    
+  (let* ((test (varjo->glsl test-form))
 	 (keys (mapcar #'first clauses))
 	 (arg-objs (mapcar #'(lambda (x) (varjo->glsl (second x)))
 			   clauses))

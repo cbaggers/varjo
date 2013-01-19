@@ -144,7 +144,7 @@
 
 (defparameter *glsl-variables* nil)
 (defparameter *glsl-functions* nil)
-(defparameter *glsl-special-functions* (make-hash-table))
+(defparameter *glsl-special-functions* nil)
 (defparameter *glsl-substitutions* nil)
 (defparameter *shader-type* nil)
 

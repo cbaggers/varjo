@@ -1,4 +1,3 @@
-* change funcall-special for apply instead of funcall
 * create labels
 * create built in vars that are structs
 * work out how return will work

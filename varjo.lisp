@@ -57,7 +57,7 @@
 	 (instance-var varjo-code)
 	 (error "Varjo: '~s' is unidentified." varjo-code)))
     ((special-functionp (first varjo-code)) 
-     (funcall-special (first varjo-code) (rest varjo-code)))
+     (apply-special (first varjo-code) (rest varjo-code)))
     ((vfunctionp (first varjo-code))
      (compile-function (first varjo-code) (rest varjo-code)))
     (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-type*))))
