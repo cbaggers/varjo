@@ -193,6 +193,18 @@
 (defun equalp! (x)
   (lambda (val) (equal val x)))
 
+(defun eq-elements (list) 
+  (or (null list) (every (eqp! (car list)) list)))
+
+(defun eql-elements (list) 
+  (or (null list) (every (eqlp! (car list)) list)))
+
+(defun equal-elements (list) 
+  (or (null list) (every (equalp! (car list)) list)))
+
+(defun identity-filter (list t-map) 
+  (mapcan (lambda (x m) (when m (list x))) list t-map))
+
 (let ((count 0))
   (defun glsl-gensym (&optional (name "var"))
     (setf count (+ 1 count))
@@ -364,6 +376,7 @@
 (defun types-compatiblep (&rest types)
   "Make sure every type is or can be cast up to the superior type"
   (let ((superior (apply #'superior-type types)))
+    (printf "~s~%~s" types superior)
     (every #'(lambda (x) (glsl-castablep x superior)) types)))
 
 (defun type-component-count (type-spec)
@@ -405,15 +418,11 @@
 				    t)) types in-spec)
 	 (every #'(lambda (c s) (glsl-typep c s)) 
 		args in-spec)
-	 (if (func-compatible-args func)
-	     (apply #'types-compatiblep types)
-	     t)
-	 (if (func-args-match func)
-	     (every #'(lambda (x) 
-			(equal (set-place-nil x) (set-place-nil
-						  (first types))))
-		    types)
-	     t))))
+	 (apply #'types-compatiblep
+		(identity-filter types (func-compatible-args func)))
+	 (equal-elements 
+	  (mapcar #'set-place-nil 
+		  (identity-filter types (func-args-match func)))))))
 
 (defun glsl-resolve-func-type (func args)
   ;; return the output type spec except for where 

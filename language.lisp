@@ -8,22 +8,19 @@
 
 (in-package :varjo)
 
-(defun vlambda (&key in-args compatible-args arg-types-match
-		  output-type transform context-restriction)
+(defun vlambda (&key in-args output-type transform
+		  context-restriction)
   (list (mapcar #'flesh-out-type
 		(mapcar #'second in-args))
 	(flesh-out-type output-type)
 	transform
-	compatible-args
-	arg-types-match
+	(mapcar #'(lambda (x) (find :compatible x)) in-args)
+	(mapcar #'(lambda (x) (find :match x)) in-args)
 	context-restriction))
 
-(defun glsl-defun (&key name in-args compatible-args 
-		     arg-types-match output-type
+(defun glsl-defun (&key name in-args output-type
 		     transform context-restriction)
   (let* ((func-spec (vlambda :in-args in-args 
-			     :compatible-args compatible-args 
-			     :arg-types-match arg-types-match
 			     :output-type output-type
 			     :transform transform
 			     :context-restriction 
@@ -177,9 +174,8 @@
             :transform "acos(~a)")
 
 (glsl-defun :name 'atan
-            :in-args '((y ((:float :vec2 :vec3 :vec4)))
-		       (x ((:float :vec2 :vec3 :vec4))))
-	    :compatible-args t
+            :in-args '((y ((:float :vec2 :vec3 :vec4)) :compatible)
+		       (x ((:float :vec2 :vec3 :vec4)) :compatible))
             :output-type '(0 nil)
             :transform "atan(~a, ~a)")
 
@@ -305,11 +301,10 @@
 (glsl-defun :name 'min
             :in-args '((x ((:float :vec2 :vec3 :vec4
 			    :int :ivec2 :ivec3 :ivec4
-			    :uint :uvec2 :uvec3 :uvec4)))
+			    :uint :uvec2 :uvec3 :uvec4)) :match)
 		       (y ((:float :vec2 :vec3 :vec4
 			    :int :ivec2 :ivec3 :ivec4
-			    :uint :uvec2 :uvec3 :uvec4))))
-	    :arg-types-match t
+			    :uint :uvec2 :uvec3 :uvec4)) :match))
             :output-type '(0 nil)
             :transform "min(~a, ~a)")
 
@@ -334,11 +329,10 @@
 (glsl-defun :name 'max
             :in-args '((x ((:float :vec2 :vec3 :vec4
 			    :int :ivec2 :ivec3 :ivec4
-			    :uint :uvec2 :uvec3 :uvec4)))
+			    :uint :uvec2 :uvec3 :uvec4)) :match)
 		       (y ((:float :vec2 :vec3 :vec4
 			    :int :ivec2 :ivec3 :ivec4
-			    :uint :uvec2 :uvec3 :uvec4))))
-	    :arg-types-match t
+			    :uint :uvec2 :uvec3 :uvec4)) :match))
             :output-type '(0 nil)
             :transform "max(~a, ~a)")
 
@@ -363,46 +357,44 @@
 (glsl-defun :name 'clamp
             :in-args '((x ((:float :vec2 :vec3 :vec4
 			    :int :ivec2 :ivec3 :ivec4
-			    :uint :uvec2 :uvec3 :uvec4)))
+			    :uint :uvec2 :uvec3 :uvec4)) :match)
 		       (min-val ((:float :vec2 :vec3 :vec4
 				  :int :ivec2 :ivec3 :ivec4
-				  :uint :uvec2 :uvec3 :uvec4)))
+				  :uint :uvec2 :uvec3 :uvec4)) 
+			:match)
 		       (max-val ((:float :vec2 :vec3 :vec4
 				  :int :ivec2 :ivec3 :ivec4
-				  :uint :uvec2 :uvec3 :uvec4))))
-	    :arg-types-match t
+				  :uint :uvec2 :uvec3 :uvec4))
+			:match))
             :output-type '(0 nil)
             :transform "clamp(~a, ~a, ~a)")
 
 (glsl-defun :name 'clamp
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-		       (min-val :float)
-		       (max-val :float))
-	    :compatible-args t
+            :in-args '((x ((:float :vec2 :vec3 :vec4)) )
+		       (min-val :float )
+		       (max-val :float ))
             :output-type '(0 nil)
             :transform "clamp(~a, ~a, ~a)")
 
 (glsl-defun :name 'clamp
-            :in-args '((x ((:int :ivec2 :ivec3 :ivec4)))
-		       (min-val :int)
-		       (max-val :int))
-	    :compatible-args t
+            :in-args '((x ((:int :ivec2 :ivec3 :ivec4)) )
+		       (min-val :int )
+		       (max-val :int ))
             :output-type '(0 nil)
             :transform "clamp(~a, ~a, ~a)")
 
 (glsl-defun :name 'clamp
-            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)))
-		       (min-val :uint)
-		       (max-val :uint))
-	    :compatible-args t
+            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)) 
+			)
+		       (min-val :uint )
+		       (max-val :uint ))
             :output-type '(0 nil)
             :transform "clamp(~a, ~a, ~a)")
 
 (glsl-defun :name 'mix
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-		       (y ((:float :vec2 :vec3 :vec4)))
-		       (a ((:float :vec2 :vec3 :vec4))))
-	    :arg-types-match t
+            :in-args '((x ((:float :vec2 :vec3 :vec4)) :match)
+		       (y ((:float :vec2 :vec3 :vec4)) :match)
+		       (a ((:float :vec2 :vec3 :vec4)) :match))
             :output-type '(0 nil)
             :transform "mix(~a, ~a, ~a)")
 
@@ -414,10 +406,9 @@
             :transform "mix(~a, ~a, ~a)")
 
 (glsl-defun :name 'smooth-step
-            :in-args '((edge0 ((:float :vec2 :vec3 :vec4)))
-		       (edge1 ((:float :vec2 :vec3 :vec4)))
-		       (x ((:float :vec2 :vec3 :vec4))))
-	    :arg-types-match t
+            :in-args '((edge0 ((:float :vec2 :vec3 :vec4)) :match)
+		       (edge1 ((:float :vec2 :vec3 :vec4)) :match)
+		       (x ((:float :vec2 :vec3 :vec4)) :match))
             :output-type '(2 nil)
             :transform "smoothstep(~a, ~a, ~a)")
 
@@ -454,16 +445,14 @@
             :transform "length(~a)")
 
 (glsl-defun :name 'distance
-            :in-args '((p0 ((:float :vec2 :vec3 :vec4)))
-		       (p1 ((:float :vec2 :vec3 :vec4))))
-	    :arg-types-match t
+            :in-args '((p0 ((:float :vec2 :vec3 :vec4)) :match)
+		       (p1 ((:float :vec2 :vec3 :vec4)) :match))
             :output-type :float
             :transform "distance(~a, ~a)")
 
 (glsl-defun :name 'dot
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-		       (y ((:float :vec2 :vec3 :vec4))))
-	    :arg-types-match t
+            :in-args '((x ((:float :vec2 :vec3 :vec4)) :match)
+		       (y ((:float :vec2 :vec3 :vec4)) :match))
             :output-type :float
             :transform "dot(~a, ~a)")
 
@@ -503,16 +492,14 @@
             :transform "~a[~a]")
 
 (glsl-defun :name 'setf
-            :in-args '((x (t nil t))
-		       (y (t nil nil)))
-	    :arg-types-match t
+            :in-args '((x (t nil t) :match)
+		       (y (t nil nil) :match))
             :output-type '(0 0)
             :transform "~a = ~a")
 
 (glsl-defun :name 'setf
-            :in-args '((x (t t t))
-		       (y (t t nil)))
-	    :arg-types-match t
+            :in-args '((x (t t t) :match)
+		       (y (t t nil) :match))
             :output-type '(0 0)
             :transform "~a = ~a")
 
@@ -521,12 +508,12 @@
             :output-type :vec4
             :transform "ftransform()")
 
-
-;;  vvvvvvvvv--HERE BITCHES
-;; (glsl-defun :name 'face-forward
-;;             :in-args '()
-;;             :output-type ()
-;;             :transform "faceforward(~a, ~a, ~a)")
+(glsl-defun :name 'face-forward
+            :in-args '((n ((:float :vec2 :vec3 :vec4)) :match)
+		       (i ((:float :vec2 :vec3 :vec4)) :match)
+		       (nref ((:float :vec2 :vec3 :vec4)) :match))
+            :output-type '(0 0)
+            :transform "faceforward(~a, ~a, ~a)")
 
 (glsl-defun :name 'discard
             :in-args '()
@@ -537,7 +524,6 @@
 (glsl-defun :name '*
             :in-args '((x ((:int :float)))
 		       (y ((:int :float))))
-	    :compatible-args t
             :output-type '(0 nil)
             :transform "(~a * ~a)")
 
@@ -565,10 +551,9 @@
 
 (glsl-defun :name '*
             :in-args '((x ((:vec2 :vec3 :vec4
-			    :ivec2 :ivec3 :ivec4)))
+			    :ivec2 :ivec3 :ivec4)) :compatible)
 		       (y ((:vec2 :vec3 :vec4
-			    :ivec2 :ivec3 :ivec4))))
-	    :compatible-args t
+			    :ivec2 :ivec3 :ivec4)) :compatible))
             :output-type '(0 nil)
             :transform "(~a * ~a)")
 
@@ -595,7 +580,6 @@
             :in-args '((x ((:int :uint :ivec2 :uvec2 
 			    :ivec3 :uvec3 :ivec4 :uvec4)))
 		       (y ((:int :uint))))
-	    :compatible-args t
             :output-type '(0 nil)
             :transform "(~a % ~a)")
 
@@ -624,30 +608,26 @@
             :transform "(~a >= ~a)")
 
 (glsl-defun :name '==
-	    :in-args '((a (t t))
-		       (b (t t)))
-	    :compatible-args t
+	    :in-args '((a (t t) :compatible)
+		       (b (t t) :compatible))
 	    :output-type '(:bool nil)
 	    :transform "(~a == ~a)")
 
 (glsl-defun :name '!=
-	    :in-args '((a (t t))
-		       (b (t t)))
-	    :compatible-args t
+	    :in-args '((a (t t) :compatible)
+		       (b (t t) :compatible))
 	    :output-type '(:bool nil)
 	    :transform "(~a != ~a)")
 
 (glsl-defun :name '==
-	    :in-args '((a (t nil))
-		       (b (t nil)))
-	    :compatible-args t
+	    :in-args '((a (t nil) :compatible)
+		       (b (t nil) :compatible))
 	    :output-type '(:bool nil)
 	    :transform "(~a == ~a)")
 
 (glsl-defun :name '!=
-	    :in-args '((a (t nil))
-		       (b (t nil)))
-	    :compatible-args t
+	    :in-args '((a (t nil) :compatible)
+		       (b (t nil) :compatible))
 	    :output-type '(:bool nil)
 	    :transform "(~a != ~a)")
 
@@ -677,10 +657,9 @@
 
 (glsl-defun :name '<<
 	    :in-args '((a ((:ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil))
+			    :uvec2 :uvec3 :uvec4) nil) :compatible)
 		       (b ((:ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil)))
-	    :compatible-args t
+			    :uvec2 :uvec3 :uvec4) nil) :compatible))
 	    :output-type '(0 nil)
 	    :transform "(~a << ~a)")
 
@@ -699,43 +678,39 @@
 
 (glsl-defun :name '>>
 	    :in-args '((a ((:ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil))
+			    :uvec2 :uvec3 :uvec4) nil) :compatible)
 		       (b ((:ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil)))
-	    :compatible-args t
+			    :uvec2 :uvec3 :uvec4) nil) :compatible))
 	    :output-type '(0 nil)
 	    :transform "(~a >> ~a)")
 
 (glsl-defun :name '&
 	    :in-args '((a ((:int :uint
 			    :ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil))
+			    :uvec2 :uvec3 :uvec4) nil) :match)
 		       (b ((:int :uint
 			    :ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil)))
-	    :arg-types-match t
+			    :uvec2 :uvec3 :uvec4) nil) :match))
 	    :output-type '(0 nil)
 	    :transform "(~a & ~a)")
 
 (glsl-defun :name '^
 	    :in-args '((a ((:int :uint
 			    :ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil))
+			    :uvec2 :uvec3 :uvec4) nil) :match)
 		       (b ((:int :uint
 			    :ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil)))
-	    :arg-types-match t
+			    :uvec2 :uvec3 :uvec4) nil) :match))
 	    :output-type '(0 nil)
 	    :transform "(~a ^ ~a)")
 
 (glsl-defun :name 'pipe
 	    :in-args '((a ((:int :uint
 			    :ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil))
+			    :uvec2 :uvec3 :uvec4) nil) :match)
 		       (b ((:int :uint
 			    :ivec2 :ivec3 :ivec4
-			    :uvec2 :uvec3 :uvec4) nil)))
-	    :arg-types-match t
+			    :uvec2 :uvec3 :uvec4) nil) :match))
 	    :output-type '(0 nil)
 	    :transform "(~a | ~a)")
 
