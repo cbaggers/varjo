@@ -1,23 +1,9 @@
-* work out if we have to support parameter qualifiers (in out for 
-   funcs)...cant see why we would - WE WILL NOT SUPPORT THIS
-
-
-;;------------------------------------------------------
-
-* ternary ? must be special function - 
-* pipe | can't be a symbol in common lisp...why
-* no way to do modf...not lispt either...except with values
-* glsl-defun doesnt use the arg names we give it
-
-* create built in vars that are structs
-
+* add last few built-in functions
 * create for and while loops - note break and continue
 * create labels
+* create built in vars that are structs
 * work out how return will work
-* this will probably help with discard
-* add last few built-in functions
 * add all the texture lookup functions
-* use the 'place' flag as check for setf 
 * read up on setting variables as invariant
 * find out what the fuck centroid means
 
@@ -26,3 +12,4 @@
  used?
 * add lisp macros wrappers for this functionality
 * Massive cleanup of code
+* glsl-defun doesnt use the arg names we give it

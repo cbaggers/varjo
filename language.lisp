@@ -528,6 +528,12 @@
 ;;             :output-type ()
 ;;             :transform "faceforward(~a, ~a, ~a)")
 
+(glsl-defun :name 'discard
+            :in-args '()
+            :output-type :none
+            :transform "discard()"
+	    :context-restriction '(:fragment))
+
 (glsl-defun :name '*
             :in-args '((x ((:int :float)))
 		       (y ((:int :float))))
