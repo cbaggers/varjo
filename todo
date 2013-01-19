@@ -1,5 +1,4 @@
-* add last few built-in functions
-* create for and while loops - note break and continue
+* change funcall-special for apply instead of funcall
 * create labels
 * create built in vars that are structs
 * work out how return will work

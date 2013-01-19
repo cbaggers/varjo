@@ -23,7 +23,10 @@
   '(((:float nil nil) (:int nil nil) (:uint nil nil))
     ((:vec2 nil nil) (:ivec2 nil nil) (:uvec2 nil nil))
     ((:vec3 nil nil) (:ivec3 nil nil) (:uvec3 nil nil))
-    ((:vec4 nil nil) (:ivec4 nil nil) (:uvec4 nil nil))))
+    ((:vec4 nil nil) (:ivec4 nil nil) (:uvec4 nil nil))
+    ((:mat2 nil nil) (:mat2x2 nil nil))
+    ((:mat3 nil nil) (:mat3x3 nil nil))
+    ((:mat4 nil nil) (:mat4x4 nil nil))))
 
 (defparameter *glsl-types* '((:void nil nil) (:bool nil nil) 
 			     (:int nil nil) (:uint nil nil)
@@ -208,7 +211,12 @@
 (let ((count 0))
   (defun glsl-gensym (&optional (name "var"))
     (setf count (+ 1 count))
-    (format nil "_~a_~a" name count)))
+    (let ((safe-name (cl-ppcre:regex-replace-all "[^a-zA-Z0-9]"
+						 (string name)
+						 "_")))
+      (format nil "_~a_~a" safe-name count))))
+
+
 
 (defmacro assocr (item alist &key key (test nil testp) 
 			       (test-not nil notp))
@@ -256,9 +264,10 @@
     :writer (setf invariant))))
 
 
-(defmethod initialize-instance :after ((code-ob code) 
-				       &key type current-line)
-  (if (not (and type current-line))
+(defmethod initialize-instance :after 
+    ((code-ob code) &key (type nil set-type)
+		      (current-line nil set-current))
+  (if (not (and set-current set-type))
       (error "Type and current-line must be specified when creating an instance of varjo:code"))
   (setf (slot-value code-ob 'type-spec) (flesh-out-type type)
         (slot-value code-ob 'current-line) current-line))
@@ -273,9 +282,7 @@
 			 (invariant nil))
   (make-instance 'code
 		 :type (if type type (error "type is mandatory")) 
-		 :current-line 
-		 (if current-line current-line 
-		     (error "current-line is mandatory")) 
+		 :current-line current-line 
 		 :to-block (if set-block
 			       to-block
 			       (mapcan #'to-block objs))
@@ -376,7 +383,6 @@
 (defun types-compatiblep (&rest types)
   "Make sure every type is or can be cast up to the superior type"
   (let ((superior (apply #'superior-type types)))
-    (printf "~s~%~s" types superior)
     (every #'(lambda (x) (glsl-castablep x superior)) types)))
 
 (defun type-component-count (type-spec)
@@ -465,6 +471,35 @@
 
 (defun var-read-only (var)
   (fourth var))
+
+(defun compile-let-forms (let-forms &optional (typify t))
+  ;; takes forms and returns a list of two things
+  ;; the compiled forms and the variable forms which can be 
+  ;; appended to *glsl-variables*
+  (labels ((var-name (form) 
+	     (if (listp (first form)) (first (first form))
+		 (first form)))
+	   (var-type (form) 
+	     (when (listp (first form))
+	       (flesh-out-type (second (first form)))))
+	   (val (form) 
+	     (second form))
+	   (compile-form (name type value)
+	     (if typify
+		 (varjo->glsl `(%typify (setf (%make-var ,name ,type)
+					      ,value)))
+		 (varjo->glsl `(setf (%make-var ,name ,type) 
+				     ,value)))))
+    (let* ((val-objs (loop :for form in let-forms
+			   :collect (varjo->glsl (val form))))
+	   (var-names (mapcar #'var-name let-forms))
+	   (var-gl-names (mapcar #'glsl-gensym var-names))
+	   (var-types (loop :for form :in let-forms
+			    :for obj :in val-objs
+			    :collect (or (var-type form)
+					 (code-type obj)))))
+      (list (mapcar #'compile-form var-gl-names var-types val-objs)
+	    (mapcar #'list var-names var-types var-gl-names)))))
 
 ;;------------------------------------------------------------
 ;; GLSL Structs

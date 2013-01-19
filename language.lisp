@@ -96,13 +96,6 @@
 ;; Core Language Definitions
 ;;---------------------------
 
-(glsl-defun :name 'wah
-            :in-args '((x ((:double :float :int :uint :bool
-			    :bvec2 :bvec3 :bvec4))))
-            :output-type :bool
-            :transform "bool(~a)"
-	    :context-restriction '(:vertex))
-
 (glsl-defun :name 'bool
             :in-args '((x ((:double :float :int :uint :bool
 			    :bvec2 :bvec3 :bvec4))))
@@ -515,11 +508,310 @@
             :output-type '(0 0)
             :transform "faceforward(~a, ~a, ~a)")
 
+(glsl-defun :name 'reflect
+            :in-args '((i ((:float :vec2 :vec3 :vec4)) :match)
+		       (n ((:float :vec2 :vec3 :vec4)) :match))
+            :output-type '(0 0)
+            :transform "reflect(~a, ~a)")
+
+(glsl-defun :name 'refract
+            :in-args '((i ((:float :vec2 :vec3 :vec4)) :match)
+		       (n ((:float :vec2 :vec3 :vec4)) :match)
+		       (eta :float))
+            :output-type '(0 0)
+            :transform "reflect(~a, ~a, ~a)")
+
+(glsl-defun :name 'matrix-comp-mult
+            :in-args '((i ((:mat2 :mat3 :mat4 
+			    :mat2x2 :mat2x3 :mat2x4 
+			    :mat3x2 :mat3x3 :mat3x4 
+			    :mat4x2 :mat4x3 :mat4x4)) :compatible)
+		       (n ((:mat2 :mat3 :mat4 
+			    :mat2x2 :mat2x3 :mat2x4 
+			    :mat3x2 :mat3x3 :mat3x4 
+			    :mat4x2 :mat4x3 :mat4x4)) :compatible)
+		       (eta :float))
+            :output-type '(0 0)
+            :transform "matrixCompMult(~a, ~a)")
+
+(glsl-defun :name 'outer-product
+            :in-args '((i :vec2)
+		       (n :vec2))
+            :output-type :mat2
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((i :vec3)
+		       (n :vec3))
+            :output-type :mat3
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((i :vec4)
+		       (n :vec4))
+            :output-type :mat4
+            :transform "outerProduct(~a, ~a)")
+
+(glsl-defun :name 'outer-product
+            :in-args '((m :vec2)
+		       (n :vec3))
+            :output-type :mat3x2
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((m :vec2)
+		       (n :vec4))
+            :output-type :mat4x2
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((m :vec3)
+		       (n :vec2))
+            :output-type :mat2x3
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((m :vec3)
+		       (n :vec4))
+            :output-type :mat4x3
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((m :vec4)
+		       (n :vec2))
+            :output-type :mat2x4
+            :transform "outerProduct(~a, ~a)")
+(glsl-defun :name 'outer-product
+            :in-args '((m :vec4)
+		       (n :vec3))
+            :output-type :mat4x3
+            :transform "outerProduct(~a, ~a)")
+
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat2 :mat3 :mat4
+			    :mat2x2 :mat3x3 :mat4x4))))
+            :output-type 0
+            :transform "transpose(~a)")
+
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat2x3))))
+            :output-type :mat3x2
+            :transform "transpose(~a)")
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat2x4))))
+            :output-type :mat4x2
+            :transform "transpose(~a)")
+
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat3x2))))
+            :output-type :mat2x3 
+            :transform "transpose(~a)")
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat3x4))))
+            :output-type :mat4x3
+            :transform "transpose(~a)")
+
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat4x3))))
+            :output-type :mat3x4 
+            :transform "transpose(~a)")
+(glsl-defun :name 'transpose
+            :in-args '((m ((:mat4x2))))
+            :output-type :mat2x4 
+            :transform "transpose(~a)")
+
+(glsl-defun :name 'determinant
+            :in-args '((m ((:mat2 :mat3 :mat4 
+			    :mat2x2 :mat2x3 :mat2x4 
+			    :mat3x2 :mat3x3 :mat3x4 
+			    :mat4x2 :mat4x3 :mat4x4))))
+            :output-type :float
+            :transform "determinant(~a)")
+
+(glsl-defun :name 'inverse
+            :in-args '((m ((:mat2 :mat3 :mat4))))
+            :output-type 0
+            :transform "inverse(~a)")
+
+(glsl-defun :name 'less-than
+	    :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
+		       (y ((:vec2 :ivec2 :uvec2)) :compatible))
+	    :output-type :bvec2
+	    :transform "lessThan(~a, ~a)")
+(glsl-defun :name 'less-than
+	    :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
+		       (y ((:vec3 :ivec3 :uvec3)) :compatible))
+	    :output-type :bvec3
+	    :transform "lessThan(~a, ~a)")
+(glsl-defun :name 'less-than
+	    :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
+		       (y ((:vec4 :ivec4 :uvec4)) :compatible))
+	    :output-type :bvec4
+	    :transform "lessThan(~a, ~a)")
+
+(glsl-defun :name 'less-than-equal
+	    :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
+		       (y ((:vec2 :ivec2 :uvec2)) :compatible))
+	    :output-type :bvec2
+	    :transform "lessThanEqual(~a, ~a)")
+(glsl-defun :name 'less-than-equal
+	    :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
+		       (y ((:vec3 :ivec3 :uvec3)) :compatible))
+	    :output-type :bvec3
+	    :transform "lessThanEqual(~a, ~a)")
+(glsl-defun :name 'less-than-equal
+	    :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
+		       (y ((:vec4 :ivec4 :uvec4)) :compatible))
+	    :output-type :bvec4
+	    :transform "lessThanEqual(~a, ~a)")
+
+(glsl-defun :name 'greater-than
+	    :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
+		       (y ((:vec2 :ivec2 :uvec2)) :compatible))
+	    :output-type :bvec2
+	    :transform "greaterThan(~a, ~a)")
+(glsl-defun :name 'greater-than
+	    :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
+		       (y ((:vec3 :ivec3 :uvec3)) :compatible))
+	    :output-type :bvec3
+	    :transform "greaterThan(~a, ~a)")
+(glsl-defun :name 'greater-than
+	    :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
+		       (y ((:vec4 :ivec4 :uvec4)) :compatible))
+	    :output-type :bvec4
+	    :transform "greaterThan(~a, ~a)")
+
+(glsl-defun :name 'greater-than-equal
+	    :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
+		       (y ((:vec2 :ivec2 :uvec2)) :compatible))
+	    :output-type :bvec2
+	    :transform "greaterThanEqual(~a, ~a)")
+(glsl-defun :name 'greater-than-equal
+	    :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
+		       (y ((:vec3 :ivec3 :uvec3)) :compatible))
+	    :output-type :bvec3
+	    :transform "greaterThanEqual(~a, ~a)")
+(glsl-defun :name 'greater-than-equal
+	    :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
+		       (y ((:vec4 :ivec4 :uvec4)) :compatible))
+	    :output-type :bvec4
+	    :transform "greaterThanEqual(~a, ~a)")
+
+(glsl-defun :name 'equal
+	    :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
+		       (y ((:vec2 :ivec2 :uvec2)) :compatible))
+	    :output-type :bvec2
+	    :transform "equal(~a, ~a)")
+(glsl-defun :name 'equal
+	    :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
+		       (y ((:vec3 :ivec3 :uvec3)) :compatible))
+	    :output-type :bvec3
+	    :transform "equal(~a, ~a)")
+(glsl-defun :name 'equal
+	    :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
+		       (y ((:vec4 :ivec4 :uvec4)) :compatible))
+	    :output-type :bvec4
+	    :transform "equal(~a, ~a)")
+(glsl-defun :name 'equal
+	    :in-args '((x ((:bvec2 :bvec3 :bvec4)) :match)
+		       (y ((:bvec2 :bvec3 :bvec4)) :match))
+	    :output-type 0
+	    :transform "equal(~a, ~a)")
+
+(glsl-defun :name 'b-any
+	    :in-args '((x ((:bvec2 :bvec3 :bvec4))))
+	    :output-type :bool
+	    :transform "any(~a)")
+
+(glsl-defun :name 'b-all
+	    :in-args '((x ((:bvec2 :bvec3 :bvec4))))
+	    :output-type :bool
+	    :transform "all(~a)")
+
+(glsl-defun :name 'b-not
+	    :in-args '((x ((:bvec2 :bvec3 :bvec4))))
+	    :output-type 0
+	    :transform "not(~a)")
+
+(glsl-defun :name 'dfdx
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type 0
+            :transform "dFdx(~a)"
+	    :context-restriction '(:fragment))
+
+(glsl-defun :name 'dfdy
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type 0
+            :transform "dFdy(~a)"
+	    :context-restriction '(:fragment))
+
+(glsl-defun :name 'f-width
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type 0
+            :transform "fwidth(~a)"
+	    :context-restriction '(:fragment))
+
+(glsl-defun :name 'noise-1
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type :float
+            :transform "noise1(~a)")
+
+(glsl-defun :name 'noise-2
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type :vec2
+            :transform "noise2(~a)")
+
+(glsl-defun :name 'noise-3
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type :vec2
+            :transform "noise3(~a)")
+
+(glsl-defun :name 'noise-4
+            :in-args '((i ((:float :vec2 :vec3 :vec4))))
+            :output-type :vec2
+            :transform "noise4(~a)")
+
+(glsl-defun :name 'emit-vertex
+            :in-args nil
+            :output-type :void
+            :transform "EmitVertex()"
+	    :context-restriction '(:geometry))
+
+(glsl-defun :name 'end-primitive
+            :in-args nil
+            :output-type :void
+            :transform "EndPrimitive()"
+	    :context-restriction '(:geometry))
+
 (glsl-defun :name 'discard
             :in-args '()
             :output-type :none
             :transform "discard()"
 	    :context-restriction '(:fragment))
+
+(glsl-defun :name 'break
+            :in-args '()
+            :output-type :none
+            :transform "break")
+
+(glsl-defun :name 'continue
+            :in-args '()
+            :output-type :none
+            :transform "continue")
+
+(glsl-defun :name 'incf
+            :in-args '((x ((:int :uint :float) nil nil)))
+            :output-type 0
+            :transform "(~a++)")
+
+(glsl-defun :name 'decf
+            :in-args '((x ((:int :uint :float) nil nil)))
+            :output-type 0
+            :transform "(~a--)")
+
+(glsl-defun :name '++
+            :in-args '((x ((:int :uint :float) nil nil)))
+            :output-type 0
+            :transform "(++~a)")
+
+(glsl-defun :name '--
+            :in-args '((x ((:int :uint :float) nil nil)))
+            :output-type 0
+            :transform "(--~a)")
 
 (glsl-defun :name '*
             :in-args '((x ((:int :float)))
@@ -738,7 +1030,7 @@
 ;; Special Function
 ;;------------------
 
-(vdefspecial progn (varjo-code)    
+(vdefspecial progn (varjo-code)
   (let ((arg-objs (mapcar #'varjo->glsl varjo-code)))
     (if (eq 1 (length arg-objs))
 	(car arg-objs)
@@ -752,8 +1044,8 @@
 		      (append
 		       (mapcan #'(lambda (x) 
 				   (list (to-block x) 
-					 (format nil "~a;"
-					  (current-line x))))
+					 (format nil "~@[~a;~]"
+						 (current-line x))))
 			       args)
 		       (list (to-block last-arg)))))))))
 
@@ -813,34 +1105,12 @@
 ;; create init forms, for each one 
 
 (vdefspecial let (varjo-code)
-  (labels ((var-name (form) 
-	     (if (listp (first form)) (first (first form))
-		 (first form)))
-	   (var-type (form) 
-	     (when (listp (first form))
-	       (flesh-out-type (second (first form)))))
-	   (val (form) 
-	     (second form))
-	   (compile-form (name type value)
-	     (varjo->glsl `(%typify (setf (%make-var ,name ,type)
-					  ,value)))))
-    (let* ((form-code (first varjo-code))
-	   (body-code (rest varjo-code))	 
-	   (val-objs (loop :for form in form-code
-			   :collect (varjo->glsl (val form))))
-	   (var-names (mapcar #'var-name form-code))
-	   (var-gl-names (mapcar #'glsl-gensym var-names))
-	   (var-types (loop :for form :in form-code
-			    :for obj :in val-objs
-			    :collect (or (var-type form)
-					 (code-type obj))))
-	   (form-objs (mapcar #'compile-form 
-			      var-gl-names var-types val-objs))
-	   (*glsl-variables*
-	     (append (mapcar #'list 
-			     var-names var-types var-gl-names)
-		     *glsl-variables*)))
-      (let* ((prog-ob (funcall-special 'progn body-code)))
+  (let* ((form-code (first varjo-code))
+	 (body-code (rest varjo-code)))
+    (destructuring-bind (form-objs new-vars)
+	(compile-let-forms form-code)
+      (let* ((*glsl-variables* (append new-vars *glsl-variables*))
+	     (prog-ob (funcall-special 'progn body-code)))
 	(merge-obs (cons prog-ob form-objs)
 		   :type (code-type prog-ob)
 		   :current-line (current-line prog-ob)
@@ -850,7 +1120,7 @@
 					(format nil "~a;"
 						(current-line x))) 
 				      form-objs)
-				  (to-block prog-ob))
+			      (to-block prog-ob))
 		   :to-top (append 
 			    (mapcan #'to-top form-objs)
 			    (to-top prog-ob)))))))
@@ -907,6 +1177,50 @@
 					 (mapcar #'current-line 
 						 arg-objs)))
 	(error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
+
+(vdefspecial for (varjo-code)
+  (destructuring-bind (var-form condition update &rest body)
+      varjo-code
+    (if 
+     (consp (first var-form))
+     (error "for can only iterate over one variable")
+     (destructuring-bind (form-objs new-vars)
+	 (compile-let-forms (list var-form) nil)
+       (let* ((form-obj (first form-objs))
+	      (*glsl-variables* (append new-vars *glsl-variables*))
+	      (con-ob (varjo->glsl condition))
+	      (up-ob (varjo->glsl update))
+	      (prog-ob (funcall-special 'progn body)))
+	 (if (and (null (to-block con-ob)) (null (to-block up-ob)))
+	     (merge-obs (list prog-ob form-obj)
+			:type :none
+			:current-line nil
+			:to-block 
+			(list
+			 (format nil "~{~a~%~}for (~a;~a;~a) {~%~{~a~%~}~a;~%}"
+				 (to-block form-obj)
+				 (current-line form-obj)
+				 (current-line con-ob)
+				 (current-line up-ob)
+				 (to-block prog-ob)
+				 (current-line prog-ob))))
+	     (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop")))))))
+
+(vdefspecial while (varjo-code)
+  (destructuring-bind (test &rest body)
+      varjo-code
+    (let* ((test-ob (varjo->glsl test))
+	   (prog-ob (funcall-special 'progn body)))
+      (merge-obs (list prog-ob test-ob)
+		 :type :none
+		 :current-line nil
+		 :to-block 
+		 (list
+		  (format nil "~{~a~%~}while (~a) {~%~{~a~%~}~a;~%}"
+			  (to-block test-ob)
+			  (current-line test-ob)
+			  (to-block prog-ob)
+			  (current-line prog-ob)))))))
 
 (vdefspecial %negate (varjo-code)  
   (if (> (length varjo-code) 1)
@@ -992,6 +1306,7 @@
 	(error "The result of the test must be an int.~%~s"
 	       (code-type test)))))
 
+
 ;;------------------------------------------------------------
 ;; Lisp Function Substitutions
 ;;-----------------------------
@@ -1072,4 +1387,7 @@
 
 (vdefmacro mat4x4 (&rest args)
   `(%init-vec-or-mat :mat4x4 ,@args))
+
+(vdefmacro while (test &rest body)
+  `(while ,test (progn ,@body)))
 

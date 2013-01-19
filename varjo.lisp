@@ -41,7 +41,7 @@
 
 (defun code-object-to-string (code-obj version in-structs)
   (format nil 
-	  "#version ~a~%~%~{~a~%~}~{~a~%~}~%void main() {~%~{    ~a~%~}    ~a;~%}" 
+	  "#version ~a~%~%~{~a~%~}~{~a~%~}~%void main() {~%~{~a~%~}~@[~a;~%~]}" 
 	  version
 	  (mapcar #'struct-init-form in-structs)
 	  (to-top code-obj)
