@@ -34,19 +34,21 @@
 	(*glsl-functions* (append *glsl-functions*
 				  (mapcan #'struct-funcs
 					  in-structs))))
-    (let ((compiled-obj (varjo->glsl (replace-literals 
-				      (macroexpand-and-substitute 
-				       varjo-code)))))
+    (let ((compiled-obj (varjo->glsl 
+			 (replace-literals 
+			  (macroexpand-and-substitute 
+			   (list 'progn varjo-code))))))
       (code-object-to-string compiled-obj version in-structs))))
 
 (defun code-object-to-string (code-obj version in-structs)
-  (format nil 
-	  "#version ~a~%~%~{~a~%~}~{~a~%~}~%void main() {~%~{~a~%~}~@[~a;~%~]}" 
-	  version
-	  (mapcar #'struct-init-form in-structs)
-	  (to-top code-obj)
-	  (to-block code-obj)
-	  (current-line code-obj)))
+  (format 
+   nil 
+   "#version ~a~%~%~{~a~%~}~{~a~%~}~%void main() {~%~{~a~%~}~@[~a;~%~]}" 
+   version
+   (mapcar #'struct-init-form in-structs)
+   (to-top code-obj)
+   (to-block code-obj)
+   (current-line code-obj)))
 
 (defun varjo->glsl (varjo-code)
   (cond 

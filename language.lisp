@@ -8,16 +8,6 @@
 
 (in-package :varjo)
 
-(defun vlambda (&key in-args output-type transform
-		  context-restriction)
-  (list (mapcar #'flesh-out-type
-		(mapcar #'second in-args))
-	(flesh-out-type output-type)
-	transform
-	(mapcar #'(lambda (x) (find :compatible x)) in-args)
-	(mapcar #'(lambda (x) (find :match x)) in-args)
-	context-restriction))
-
 (defun glsl-defun (&key name in-args output-type
 		     transform context-restriction)
   (let* ((func-spec (vlambda :in-args in-args 
@@ -94,8 +84,30 @@
 		   :read-only (var-read-only var-spec))))
 
 ;;------------------------------------------------------------
+;; Built-in Structs
+;;------------------
+
+(vdefstruct gl-per-vertex-v (:slot-prefix per-vertex
+			     :context-restriction (:fragment))
+  (postion :vec4 "gl_Position")
+  (point-size :float "gl_PointSize")
+  (clip-distance (:float t) "gl_ClipDistance")
+  (clip-vertex :vec4 "gl_ClipVertex"))
+
+(vdefstruct gl-per-vertex-g (:slot-prefix per-vertex
+			     :context-restriction (:fragment))
+  (postion :vec4 "gl_Position")
+  (point-size :float "gl_PointSize")
+  (clip-distance (:float t) "gl_ClipDistance"))
+
+;;------------------------------------------------------------
 ;; Core Language Definitions
 ;;---------------------------
+
+(glsl-defun :name '%void
+            :in-args '()
+            :output-type :void
+            :transform "")
 
 (glsl-defun :name 'bool
             :in-args '((x ((:double :float :int :uint :bool
@@ -815,8 +827,8 @@
             :transform "(--~a)")
 
 (glsl-defun :name '*
-            :in-args '((x ((:int :float)))
-		       (y ((:int :float))))
+            :in-args '((x ((:int :float)) :compatible)
+		       (y ((:int :float)) :compatible))
             :output-type '(0 nil)
             :transform "(~a * ~a)")
 
@@ -1031,26 +1043,38 @@
 ;; Special Function
 ;;------------------
 
+(defgeneric indent (input))
+
+(defmethod indent ((input string))
+  (mapcar #'(lambda (x) (format nil "    ~a" x))
+	  (split-sequence:split-sequence #\newline input)))
+
+(defmethod indent ((input list))
+  (mapcan #'indent input))
+
+;; (vdefspecial %indent (form)
+;;   )
+
 (vdefspecial progn (&rest body)
   (let ((arg-objs (mapcar #'varjo->glsl body)))
     (if (eq 1 (length arg-objs))
-	(car arg-objs)
+	(let ((ob (first arg-objs)))
+	  (merge-obs ob :current-line 
+		     (first (indent (current-line ob)))))
 	(let ((last-arg (car (last arg-objs)))
 	      (args (subseq arg-objs 0 (- (length arg-objs) 1))))
 	  (merge-obs arg-objs
 	   :type (code-type last-arg)
 	   :current-line (current-line last-arg)
-	   :to-block (remove-if 
-		      #'null
-		      (append
-		       (mapcan #'(lambda (x) 
-				   (list (to-block x) 
-					 (format nil "~@[~a;~]"
-						 (current-line x))))
-			       args)
-		       (list (to-block last-arg)))))))))
+	   :to-block 
+	   (indent (list
+		    (mapcar #'to-block args)
+		    (mapcar #'(lambda (x) (format nil "~@[~a;~]"
+						  (current-line x)))
+			    args)
+		    (to-block last-arg))))))))
 
-(vdefspecial %typify (form)  
+(vdefspecial %typify (form)
   (let* ((arg (varjo->glsl form))
 	 (type (code-type arg)))
     (merge-obs arg :current-line 
@@ -1058,7 +1082,7 @@
 		       (current-line arg)))))
 
 
-(vdefspecial %make-var (name type)    
+(vdefspecial %make-var (name type)
   (make-instance 'code :type (set-place-t type)
 		       :current-line (string name)))
 
@@ -1113,6 +1137,12 @@
 		 :to-top (append 
 			  (mapcan #'to-top form-objs)
 			  (to-top prog-ob))))))
+
+(vdefspecial return (&optional (form '(%void)))
+  (let ((ob (varjo->glsl form)))
+    (merge-obs ob :current-line (format nil "return ~a" 
+					(current-line ob))
+		  :returns (list (code-type ob)))))
 
 (vdefspecial out (out-var-name form &rest qualifiers)
   (let ((arg-obj (varjo->glsl form)))
@@ -1190,6 +1220,58 @@
 			       (to-block prog-ob)
 			       (current-line prog-ob))))
 	   (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
+
+(vdefspecial labels (func-specs &rest body)
+  (let* ((*glsl-variables* (append (assocr :core *built-in-vars*)
+				   (assocr *shader-type*
+					   *built-in-vars*)))
+	 (func-objs (mapcar 
+		     #'(lambda (f) (varjo->glsl 
+				    (cons '%make-function f)))
+		     func-specs))
+	 (*glsl-functions* 
+	   (append 
+	    (loop for spec in func-specs
+		  for obj in func-objs
+		  :collect 
+		  (list
+		   (first spec)
+		   (vlambda :in-args (second spec)
+			    :output-type (code-type obj)
+			    :transform 
+			    (format nil"~a(~{~a~^,~^ ~})"
+				    (first spec)
+				    (loop for i below (length (second spec))
+					  :collect "~a")))))
+	    *glsl-functions*)))
+    (let ((prog-obj (apply-special 'progn body)))
+      (merge-obs (append func-objs (list prog-obj))
+		 :type (code-type prog-obj)
+		 :current-line (current-line prog-obj)))))
+
+(vdefspecial %make-function (name args 
+			     &rest body)
+  (destructuring-bind (form-objs new-vars)
+      (compile-let-forms (mapcar #'list args) nil)
+    (declare (ignore form-objs))
+    (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
+	   (body-obj (apply-special 'progn body))
+	   (name (if (eq name :main) :main (glsl-gensym name)))
+	   (returns (returns body-obj))
+	   (type (if (eq name :main) '(:void nil nil) 
+		     (code-type body-obj))))
+      (print returns)
+      (if (or (not returns) (every (equalp! type) returns)) 
+	  (make-instance 
+	   'code :type type
+		 :current-line nil
+		 :to-top (list (format nil "~a ~a(~{~{~a ~a~}~^,~^ ~}) {~%~{~a~%~}~@[~a;~%~]}~%"		       
+				       (varjo-type->glsl-type type)
+				       name 
+				       (mapcar #'reverse args)
+				       (to-block body-obj) 
+				       (current-line body-obj))))
+	  (error "Some of the return statements in function '~a' returns different types~%~a~%~a" name type returns)))))
 
 (vdefspecial while (test &rest body)
   (let* ((test-ob (varjo->glsl test))
@@ -1271,7 +1353,6 @@
 			(list (current-line key)
 				  (or (to-block obj) nil) 
 				  (current-line obj)))))))
-    (print format-clauses)
     (if (glsl-typep test '(:int nil))
 	(merge-obs 
 	 arg-objs
@@ -1370,4 +1451,3 @@
 
 (vdefmacro while (test &rest body)
   `(while ,test (progn ,@body)))
-

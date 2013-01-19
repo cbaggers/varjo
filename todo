@@ -1,6 +1,3 @@
-* create labels
-* create built in vars that are structs
-* work out how return will work
 * add all the texture lookup functions
 * read up on setting variables as invariant
 * find out what the fuck centroid means

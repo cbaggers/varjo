@@ -43,47 +43,46 @@
 			     (:mat3x2 nil nil) (:mat3x3 nil nil)
 			     (:mat3x4 nil nil) (:mat4x2 nil nil)
 			     (:mat4x3 nil nil) (:mat4x4 nil nil)
-			     ;; (:ISAMPLER1D NIL)
-			     ;; (:ISAMPLER1DARRAY NIL)
-			     ;; (:ISAMPLER2D NIL)
-			     ;; (:ISAMPLER2DARRAY NIL)
-			     ;; (:ISAMPLER2DMS NIL)
-			     ;; (:ISAMPLER2DMSARRAY NIL)
-			     ;; (:ISAMPLER2DRECT NIL)
-			     ;; (:ISAMPLER3D NIL)
-			     ;; (:ISAMPLERBUFFER NIL)
-			     ;; (:ISAMPLERCUBE NIL)
-			     ;; (:ISAMPLERCUBEARRAY NIL)
-			     ;; (:SAMPLER1D NIL) 
-			     ;; (:SAMPLER1DARRAY NIL)
-			     ;; (:SAMPLER1DARRAYSHADOW NIL)
-			     ;; (:SAMPLER1DSHADOW NIL) 
-			     ;; (:SAMPLER2D NIL)
-			     ;; (:SAMPLER2DARRAY NIL)
-			     ;; (:SAMPLER2DARRAYSHADOW NIL)
-			     ;; (:SAMPLER2DMS NIL)
-			     ;; (:SAMPLER2DMSARRAY NIL)
-			     ;; (:SAMPLER2DRECT NIL)
-			     ;; (:SAMPLER2DRECTSHADOW NIL)
-			     ;; (:SAMPLER2DSHADOW NIL)
-			     ;; (:SAMPLER3D NIL)
-			     ;; (:SAMPLERBUFFER NIL)
-			     ;; (:SAMPLERCUBE NIL)
-			     ;; (:SAMPLERCUBEARRAY NIL)
-			     ;; (:SAMPLERCUBEARRAYSHADOW NIL)
-			     ;; (:SAMPLERCUBESHADOW NIL)
-			     ;; (:USAMPLER1D NIL)
-			     ;; (:USAMPLER1DARRAY NIL)
-			     ;; (:USAMPLER2D NIL)
-			     ;; (:USAMPLER2DARRAY NIL)
-			     ;; (:USAMPLER2DMS NIL)
-			     ;; (:USAMPLER2DMSARRAY NIL)
-			     ;; (:USAMPLER2DRECT NIL)
-			     ;; (:USAMPLER3D NIL)
-			     ;; (:USAMPLERBUFFER NIL)
-			     ;; (:USAMPLERCUBE NIL)
-			     ;; (:USAMPLERCUBEARRAY NIL)
-			     ))
+			     (:ISAMPLER1D NIL)
+			     (:ISAMPLER1DARRAY NIL)
+			     (:ISAMPLER2D NIL)
+			     (:ISAMPLER2DARRAY NIL)
+			     (:ISAMPLER2DMS NIL)
+			     (:ISAMPLER2DMSARRAY NIL)
+			     (:ISAMPLER2DRECT NIL)
+			     (:ISAMPLER3D NIL)
+			     (:ISAMPLERBUFFER NIL)
+			     (:ISAMPLERCUBE NIL)
+			     (:ISAMPLERCUBEARRAY NIL)
+			     (:SAMPLER1D NIL) 
+			     (:SAMPLER1DARRAY NIL)
+			     (:SAMPLER1DARRAYSHADOW NIL)
+			     (:SAMPLER1DSHADOW NIL) 
+			     (:SAMPLER2D NIL)
+			     (:SAMPLER2DARRAY NIL)
+			     (:SAMPLER2DARRAYSHADOW NIL)
+			     (:SAMPLER2DMS NIL)
+			     (:SAMPLER2DMSARRAY NIL)
+			     (:SAMPLER2DRECT NIL)
+			     (:SAMPLER2DRECTSHADOW NIL)
+			     (:SAMPLER2DSHADOW NIL)
+			     (:SAMPLER3D NIL)
+			     (:SAMPLERBUFFER NIL)
+			     (:SAMPLERCUBE NIL)
+			     (:SAMPLERCUBEARRAY NIL)
+			     (:SAMPLERCUBEARRAYSHADOW NIL)
+			     (:SAMPLERCUBESHADOW NIL)
+			     (:USAMPLER1D NIL)
+			     (:USAMPLER1DARRAY NIL)
+			     (:USAMPLER2D NIL)
+			     (:USAMPLER2DARRAY NIL)
+			     (:USAMPLER2DMS NIL)
+			     (:USAMPLER2DMSARRAY NIL)
+			     (:USAMPLER2DRECT NIL)
+			     (:USAMPLER3D NIL)
+			     (:USAMPLERBUFFER NIL)
+			     (:USAMPLERCUBE NIL)
+			     (:USAMPLERCUBEARRAY NIL)))
 
 ;; [TODO] What the hell is with the multitexcoord (vertex)
 (defparameter *built-in-vars* 
@@ -122,7 +121,8 @@
      (normal :vec3 "gl_Normal" t)
      (vertex :vec4 "gl_Vertex" t)
      (fog-coord :float "gl_FogCoord" t)
-     (per-vertex :per-vertex-struct "gl_PerVertex" t)
+     (gl-in ('gl-per-vertex-v t) "gl_PerVertex" t)
+     (per-vertex 'gl-per-vertex-v "gl_PerVertex" t)
      (front-color :vec4 "gl_FrontColor")
      (back-color :vec4 "gl_BackColor")
      (front-secondary-color :vec4 "gl_FrontSecondaryColor")
@@ -138,7 +138,7 @@
      (frag-depth :float "gl_FragDepth" nil))
     (:geometry
      (primitive-id-in :int "gl_PrimitiveIDIn" t)
-     (per-vertex :per-vertex-struct "gl_PerVertex")
+     (per-vertex 'gl-per-vertex-g "gl_PerVertex")
      (primitive-id :int "gl_PrimitiveID")
      (layer :int "gl_Layer"))))
 
@@ -261,7 +261,12 @@
     :initarg :invariant
     :initform nil
     :reader invariant
-    :writer (setf invariant))))
+    :writer (setf invariant))
+   (returns
+    :initarg :returns
+    :initform nil
+    :reader returns
+    :writer (setf returns))))
 
 
 (defmethod initialize-instance :after 
@@ -273,13 +278,13 @@
         (slot-value code-ob 'current-line) current-line))
 
 (defgeneric merge-obs (objs &key type current-line to-block 
-			      to-top out-vars invariant))
+			      to-top out-vars invariant returns))
 
 (defmethod merge-obs ((objs list) &key type current-line 
 			 (to-block nil set-block)
 			 (to-top nil set-top)
 			 (out-vars nil set-out-vars)
-			 (invariant nil))
+			 (invariant nil) (returns nil set-returns))
   (make-instance 'code
 		 :type (if type type (error "type is mandatory")) 
 		 :current-line current-line 
@@ -292,7 +297,10 @@
 		 :out-vars (if set-out-vars
 			       out-vars
 			       (mapcan #'out-vars objs))
-		 :invariant invariant))
+		 :invariant invariant
+		 :returns (if set-returns
+			       returns
+			       (mapcan #'returns objs))))
 
 (defmethod merge-obs ((objs code) 
 		      &key (type nil set-type)
@@ -300,7 +308,7 @@
 			(to-block nil set-block)
 			(to-top nil set-top)
 			(out-vars nil set-out-vars)
-			(invariant nil))
+			(invariant nil) (returns nil set-returns))
   (make-instance 'code
 		 :type (if set-type
 			   type
@@ -317,7 +325,10 @@
 		 :out-vars (if set-out-vars
 			       out-vars
 			       (out-vars objs))
-		 :invariant invariant))
+		 :invariant invariant
+		 :returns (if set-returns
+			      returns
+			      (returns objs))))
 
 
 ;;------------------------------------------------------------
@@ -328,7 +339,7 @@
   (if (listp type)
       (if (> (length type) 3)
 	  (error "Invalid GLSL Type Definition: ~s has more than 2 components." type)
-	  (append type (make-list (- 3 (length type)))))
+	    (append type (make-list (- 3 (length type)))))
       (flesh-out-type (list type))))
 
 (defun glsl-valid-type (candidate spec)
@@ -397,6 +408,16 @@
 ;; GLSL Functions
 ;;----------------
 
+(defun vlambda (&key in-args output-type transform
+		  context-restriction)
+  (list (mapcar #'flesh-out-type
+		(mapcar #'second in-args))
+	(flesh-out-type output-type)
+	transform
+	(mapcar #'(lambda (x) (find :compatible x)) in-args)
+	(mapcar #'(lambda (x) (find :match x)) in-args)
+	context-restriction))
+
 (defun func-in-spec (x)
   (first x))
 
@@ -437,14 +458,17 @@
   ;; Note that in cases where the args are meant
   ;; to be compatible that means we need to take
   ;; it from the superior in-arg type
-  (let ((in-types (mapcar #'code-type args)))
+  (let* ((in-types (mapcar #'code-type args))
+	 (superior (apply #'superior-type 
+			 (identity-filter 
+			  in-types (func-compatible-args func)))))
     (flesh-out-type
      (loop :for i in (func-out-spec func)
+	   :for compatp in (func-compatible-args func)
 	   :for part from 0
 	   :collect (if (numberp i)
-			(nth part (if (func-compatible-args func)
-				      (apply #'superior-type 
-					     in-types)
+			(nth part (if compatp
+				      superior
 				      (nth i in-types)))
 			i)))))
 
@@ -485,11 +509,17 @@
 	   (val (form) 
 	     (second form))
 	   (compile-form (name type value)
-	     (if typify
-		 (varjo->glsl `(%typify (setf (%make-var ,name ,type)
-					      ,value)))
-		 (varjo->glsl `(setf (%make-var ,name ,type) 
-				     ,value)))))
+	     (if value
+		 (if typify
+		     (varjo->glsl `(%typify 
+				    (setf (%make-var ,name ,type)
+					  ,value)))
+		     (varjo->glsl `(setf (%make-var ,name ,type) 
+					 ,value)))
+		 (if typify
+		     (varjo->glsl `(%typify 
+				    (%make-var ,name ,type)))
+		     (varjo->glsl `(%make-var ,name ,type) )))))
     (let* ((val-objs (loop :for form in let-forms
 			   :collect (varjo->glsl (val form))))
 	   (var-names (mapcar #'var-name let-forms))
@@ -497,7 +527,10 @@
 	   (var-types (loop :for form :in let-forms
 			    :for obj :in val-objs
 			    :collect (or (var-type form)
-					 (code-type obj)))))
+					 (when obj 
+					   (code-type obj))))))
+      ;; THe above can be nil when the val half __^^^^^^
+      ;; of the let form is left blank
       (list (mapcar #'compile-form var-gl-names var-types val-objs)
 	    (mapcar #'list var-names var-types var-gl-names)))))
 
@@ -523,32 +556,35 @@
 		  principle name)))))
 
 (defun struct-funcs (struct)
-  (let ((struct-name (first struct))
-	(slots (rest struct)))
-    (if (not (keywordp struct-name))
-	(error "Struct names must be keywords")
-	(if (find struct-name *glsl-types*)
-	    (error "Type already exists (~a)" struct-name)
-	    (cons 
-	     (list 
-	      (symb 'make- struct-name)
-	      (vlambda :in-args nil
-		       :output-type struct-name
-		       :transform "")
-	      (vlambda :in-args (loop for slot in slots
-				      :collect (subseq slot 0 2))
-		       :output-type struct-name
-		       :transform (format nil "~a(~{~a~^,~^ ~})"
-					  struct-name
-					  (loop for slot in slots
-						collect "~a"))))
-	     (loop 
-	       :for slot :in slots 
-	       :collect
-	       (list
-		(symb struct-name '- (first slot))
-		(vlambda :in-args `((x (,struct-name)))
-			 :output-type (second slot)
-			 :transform (format nil "~~a.~a" 
-					    (or (third slot)
-						(first slot)))))))))))
+  (%struct-funcs (first struct) nil nil (rest struct)))
+
+(defun %struct-funcs (name slot-prefix context-restriction slots)
+  (if (find name *glsl-types*)
+      (error "Type already exists (~a)" name)
+      (cons 
+       (list 
+	(symb 'make- (or slot-prefix name))
+	(vlambda :in-args (loop for slot in slots
+				:collect (subseq slot 0 2))
+		 :output-type name
+		 :transform (format nil "~a(~{~a~^,~^ ~})"
+				    name
+				    (loop for slot in slots
+					  collect "~a"))
+		 :context-restriction context-restriction))
+       (loop :for slot :in slots 
+	     :collect
+	     (list
+	      (symb (or slot-prefix name) '- (first slot))
+	      (vlambda :in-args `((x (,name)))
+		       :output-type (second slot)
+		       :transform (format nil "~~a.~a" 
+					  (or (third slot)
+					      (first slot)))
+		       :context-restriction context-restriction))))))
+
+(defmacro vdefstruct (name (&key slot-prefix context-restriction) 
+		      &body slots)
+  `(setf *glsl-functions*
+	 (append *glsl-functions*
+		 ',(%struct-funcs name slot-prefix context-restriction slots))))
