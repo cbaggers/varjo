@@ -121,8 +121,8 @@
      (normal :vec3 "gl_Normal" t)
      (vertex :vec4 "gl_Vertex" t)
      (fog-coord :float "gl_FogCoord" t)
-     (gl-in ('gl-per-vertex-v t) "gl_PerVertex" t)
-     (per-vertex 'gl-per-vertex-v "gl_PerVertex" t)
+     (gl-in (gl-per-vertex-v t) "gl_PerVertex" t)
+     (per-vertex gl-per-vertex-v "gl_PerVertex" t)
      (front-color :vec4 "gl_FrontColor")
      (back-color :vec4 "gl_BackColor")
      (front-secondary-color :vec4 "gl_FrontSecondaryColor")
@@ -325,6 +325,7 @@
 		 :out-vars (if set-out-vars
 			       out-vars
 			       (out-vars objs))
+		 :read-only (read-only objs)
 		 :invariant invariant
 		 :returns (if set-returns
 			      returns
@@ -461,16 +462,23 @@
   (let* ((in-types (mapcar #'code-type args))
 	 (superior (apply #'superior-type 
 			 (identity-filter 
-			  in-types (func-compatible-args func)))))
-    (flesh-out-type
-     (loop :for i in (func-out-spec func)
-	   :for compatp in (func-compatible-args func)
-	   :for part from 0
-	   :collect (if (numberp i)
-			(nth part (if compatp
-				      superior
-				      (nth i in-types)))
-			i)))))
+			  in-types (func-compatible-args func))))
+	 (final-type
+	   (flesh-out-type
+	    (loop :for i in (func-out-spec func)
+		  :for part from 0
+		  :collect 
+		  (if (numberp i)
+		      (nth part (if (nth i (func-compatible-args
+					    func))
+				    superior
+				    (nth i in-types)))
+		      i)))))
+    ;; (print in-types)
+    ;; (print (func-out-spec func))
+    ;; (print (func-compatible-args func))
+    ;; (print final-type)
+    final-type))
 
 (defun oper-segment-list (list symbol)
   (if (rest list) 
@@ -577,14 +585,28 @@
 	     (list
 	      (symb (or slot-prefix name) '- (first slot))
 	      (vlambda :in-args `((x (,name)))
-		       :output-type (second slot)
+		       :output-type (set-place-t
+				     (flesh-out-type (second slot)))
 		       :transform (format nil "~~a.~a" 
 					  (or (third slot)
 					      (first slot)))
 		       :context-restriction context-restriction))))))
 
+
+(defun add-functions (functions a-list)
+  (if (null functions)
+      a-list
+      (let* ((func (first functions))
+	     (name (first func))
+	     (body (second func)))
+	(acons name
+	       (cons body (assocr name a-list))
+	       (add-functions (rest functions) a-list)))))
+
 (defmacro vdefstruct (name (&key slot-prefix context-restriction) 
 		      &body slots)
-  `(setf *glsl-functions*
-	 (append *glsl-functions*
-		 ',(%struct-funcs name slot-prefix context-restriction slots))))
+  `(setf *glsl-functions* 
+	 (add-functions ',(%struct-funcs name slot-prefix
+					context-restriction 
+					slots)
+			*glsl-functions*)))

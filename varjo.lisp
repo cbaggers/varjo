@@ -14,41 +14,63 @@
 ;; Translator
 ;;------------
 
-(defparameter *test-code* 
-  '(let (((temp :vec4) (m* world-to-camera-matrix 
-			(m*v model-to-world-matrix position))))
-    (out ((:gl gl-position) (* camera-to-clip-matrix temp))
-     ((vec4 interpColor :smooth) color))))
-
 (defmacro t! (code &key shader-type in-vars in-structs)
   `(translate ',code :in-vars ,in-vars :shader-type ,shader-type
 	      :in-structs ,in-structs))
 
+(defmacro defshader (name type (&rest in-vars) (&rest uniforms) 
+		     &body code)
+  (declare (ignore uniforms name))
+  `(translate '(progn ,@code) :in-vars ',in-vars :shader-type ,type))
+
 (defun translate (varjo-code &key shader-type in-vars in-structs 
 			       (version :330))
   (let ((*shader-type* shader-type)
-	(*glsl-variables* (append in-vars
+	(*glsl-variables* (append (mapcar #'flesh-out-var in-vars)
 				  (assocr :core *built-in-vars*)
 				  (assocr shader-type
 					  *built-in-vars*)))
-	(*glsl-functions* (append *glsl-functions*
-				  (mapcan #'struct-funcs
-					  in-structs))))
+	(*glsl-functions* (add-functions (mapcan #'struct-funcs
+						 in-structs)
+					 *glsl-functions*)))
     (let ((compiled-obj (varjo->glsl 
 			 (replace-literals 
 			  (macroexpand-and-substitute 
-			   (list 'progn varjo-code))))))
-      (code-object-to-string compiled-obj version in-structs))))
+			   `(%make-function :main () 
+					    ,varjo-code))))))
+      (code-object-to-string compiled-obj version in-structs
+			     in-vars))))
 
-(defun code-object-to-string (code-obj version in-structs)
-  (format 
-   nil 
-   "#version ~a~%~%~{~a~%~}~{~a~%~}~%void main() {~%~{~a~%~}~@[~a;~%~]}" 
-   version
-   (mapcar #'struct-init-form in-structs)
-   (to-top code-obj)
-   (to-block code-obj)
-   (current-line code-obj)))
+(defun flesh-out-var (var)
+  (if (null var)
+      (error "Cannot flesh out empty var")
+      (let ((template '(*no-name* (:void) nil t)))
+	(append var (subseq template (length var))))))
+
+(defun code-object-to-string (code-obj version in-structs in-vars)
+  
+  (if (or (to-block code-obj) (current-line code-obj))
+      (error "~%-------------~%~a~%~a~%-------------" 
+	     (to-block code-obj)
+	     (current-line code-obj))
+      (format 
+       nil 
+       "#version ~a~%~%~{~a~%~}~%~{~a~%~}~{~a~%~}" 
+       version
+       (mapcar #'struct-init-form in-structs)
+       (in-var-init-form in-vars)
+       (to-top code-obj))))
+
+(defun in-var-init-form (in-vars)
+  (let ((in-obs 
+	  (loop :for var in in-vars 
+		:collect 
+		(varjo->glsl 
+		 `(%in-typify (%make-var ,(first var)
+					 ,(flesh-out-type 
+					   (second var))))))))
+    (loop for ob in in-obs
+	  :collect (format nil "in ~a;" (current-line ob)))))
 
 (defun varjo->glsl (varjo-code)
   (cond 
@@ -96,10 +118,7 @@
 
 ;; [TODO] How should we specify unsigned?
 (defun replace-literals (varjo-code)
-  (when (null varjo-code) (print "wooo"))
-  (cond ((null varjo-code) 
-	 (make-instance 'code :current-line "false" 
-			      :type '(:bool nil)))	 
+  (cond ((null varjo-code) nil)	 
 	((eq t varjo-code) 
 	 (make-instance 'code :current-line "true" 
 			      :type '(:bool nil)))

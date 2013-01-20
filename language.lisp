@@ -67,20 +67,23 @@
     (lambda ,lambda-list
       ,@body)))
 
-(defun varjo-type->glsl-type (type)
-  (let ((principle (first type))
-	(len (second type)))
+(defun varjo-type->glsl-type (type-spec)
+  (let* ((type (flesh-out-type type-spec))
+	 (principle (first type))
+	 (len (second type)))
     (if len
 	(format nil "~a[~a]" principle (if (numberp len) len ""))
 	(format nil "~a" principle))))
 
 (defun instance-var (symbol)
-  (let ((var-spec (assoc symbol *glsl-variables*)))
+  
+  (let ((var-spec (assoc symbol *glsl-variables*)))<
     (make-instance 'code
 		   :type (set-place-t
 			  (flesh-out-type (var-type var-spec)))
 		   :current-line (format nil "~a" 
-					 (var-gl-name var-spec))
+					 (or (var-gl-name var-spec)
+					     (var-name var-spec)))
 		   :read-only (var-read-only var-spec))))
 
 ;;------------------------------------------------------------
@@ -88,15 +91,15 @@
 ;;------------------
 
 (vdefstruct gl-per-vertex-v (:slot-prefix per-vertex
-			     :context-restriction (:fragment))
-  (postion :vec4 "gl_Position")
+			     :context-restriction (:vertex))
+  (position :vec4 "gl_Position")
   (point-size :float "gl_PointSize")
   (clip-distance (:float t) "gl_ClipDistance")
   (clip-vertex :vec4 "gl_ClipVertex"))
 
 (vdefstruct gl-per-vertex-g (:slot-prefix per-vertex
 			     :context-restriction (:fragment))
-  (postion :vec4 "gl_Position")
+  (position :vec4 "gl_Position")
   (point-size :float "gl_PointSize")
   (clip-distance (:float t) "gl_ClipDistance"))
 
@@ -863,21 +866,27 @@
             :transform "(~a * ~a)")
 
 (glsl-defun :name '*
-            :in-args '((x ((:mat2x2 :mat2x3 :mat2x4)))
+            :in-args '((x ((:mat2 :mat2x2 :mat2x3 :mat2x4)))
 		       (y ((:vec2 :ivec2))))
-            :output-type '(0 nil)
+            :output-type '(1 nil)
             :transform "(~a * ~a)")
 
 (glsl-defun :name '*
-            :in-args '((x ((:mat3x2 :mat3x3 :mat3x4)))
+            :in-args '((x ((:mat3 :mat3x2 :mat3x3 :mat3x4)))
 		       (y ((:vec3 :ivec3))))
-            :output-type '(0 nil)
+            :output-type '(1 nil)
             :transform "(~a * ~a)")
 
 (glsl-defun :name '*
-            :in-args '((x ((:mat4x2 :mat4x3 :mat4x4)))
+            :in-args '((x ((:mat4 :mat4x2 :mat4x3 :mat4x4)))
 		       (y ((:vec4 :ivec4))))
-            :output-type '(0 nil)
+            :output-type '(1 nil)
+            :transform "(~a * ~a)")
+
+(glsl-defun :name '*
+            :in-args '((x ((:mat2 :mat3 :mat4)) :compatible)
+		       (y ((:mat2 :mat3 :mat4)) :compatible))
+            :output-type '(1 nil)
             :transform "(~a * ~a)")
 
 
@@ -1081,6 +1090,23 @@
 	       (format nil "~a ~a" (varjo-type->glsl-type type)
 		       (current-line arg)))))
 
+(vdefspecial %in-typify (form)
+  (let* ((arg (varjo->glsl form))
+	 (type (code-type arg)))
+    (merge-obs arg :current-line 
+	       (format nil "~a ~a~@[[~a]~]" 
+		       (varjo-type->glsl-type (first type))
+		       (current-line arg)
+		       (when (second type)
+			 (if (numberp (second type))
+			     (second type)
+			     ""))))))
+
+(vdefspecial %%typify (form)
+  (let* ((arg (varjo->glsl form))
+	 (type (code-type arg)))
+    (merge-obs arg :current-line 
+	       (format nil "<~a ~a>" type (current-line arg)))))
 
 (vdefspecial %make-var (name type)
   (make-instance 'code :type (set-place-t type)
@@ -1260,7 +1286,6 @@
 	   (returns (returns body-obj))
 	   (type (if (eq name :main) '(:void nil nil) 
 		     (code-type body-obj))))
-      (print returns)
       (if (or (not returns) (every (equalp! type) returns)) 
 	  (make-instance 
 	   'code :type type
