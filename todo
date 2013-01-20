@@ -1,4 +1,8 @@
-* look at in-vars properly
+* look at in-vars properly*
+* write the fake-structure code for vertex in-vars
+* in-vars can't be structures
+* uniforms can be structures
+* fragment in-cars can have qualifiers
 * add all the texture lookup functions
 * read up on setting variables as invariant
 * find out what the fuck centroid means

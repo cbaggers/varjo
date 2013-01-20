@@ -14,17 +14,60 @@
 ;; Translator
 ;;------------
 
-(defmacro t! (code &key shader-type in-vars in-structs)
-  `(translate ',code :in-vars ,in-vars :shader-type ,shader-type
-	      :in-structs ,in-structs))
+(defun parse-shader-args (args)
+  "Takes a list of arguments for a shader and extracts the
+   version, stream declarations and uniform declarations.
+   It also runs some sanity checks to make sure the contents
+   are well-formed."
+  ;; extract details
+  (let* ((uni-pos (position-if #'keywordp args))
+	 (version (when (keywordp (first args))
+		    (first args)))
+	 (start-index (if version 1 0))
+	 (streams (subseq args start-index uni-pos))
+	 (uniforms (when uni-pos
+		     (group (subseq args uni-pos) 2))))
+    ;; sanity check streams
+    (loop for stream in streams
+	  :do (when (or (not (eq 2 (length stream))))
+		(error "Stream declaration ~a is badly formed.~%Should be (-var-name- -var-type-)" stream)))
+    ;; sanity check uniforms
+    (loop for uniform in uniforms
+	  :do (when (or (not (eq 2 (length uniform)))
+			(and (not (keywordp (second uniform)))
+			     (not (consp (second uniform))))
+			(when (consp (second (second uniform)))
+			  (not (eq 2 (length (second
+					      (second uniform)))))))
+		(error "Uniform declaration ~a is badly formed.~%Should be (-uniform-name- -uniform-type-) or ~%(-uniform-name- (-default-value- -uniform-type-))" uniform)))
+    ;; thats all folks!
+    (list (or version -default-version-) streams uniforms)))
 
-(defmacro defshader (name type (&rest in-vars) (&rest uniforms) 
-		     &body code)
-  (declare (ignore uniforms name))
-  `(translate '(progn ,@code) :in-vars ',in-vars :shader-type ,type))
+(defmacro %defshader (name type (&rest args) &body code)
+  "The debugging version of defshader"
+  (declare (ignore name))
+  (destructuring-bind (version streams uniforms)
+      (parse-shader-args args)
+    `(translate '(progn ,@code) :in-vars ',streams 
+				:uniforms ',uniforms
+				:shader-type ,type
+				:version ,version)))
+
+(defmacro defshader (name type (&rest args) &body code)
+  (destructuring-bind (version streams uniforms)
+      (parse-shader-args args)
+    `(let ((source ',(translate `(progn ,@code) :in-vars streams 
+						:uniforms uniforms
+						:shader-type type
+						:version version)))
+       (defun ,name ()
+	 source))))
 
 (defun translate (varjo-code &key shader-type in-vars in-structs 
-			       (version :330))
+			       (version :330) uniforms)
+  (declare (ignore uniforms))
+  (when (not (find shader-type *shader-types*))
+    (error "Cannot create shader of type ~a.~%Must be one of the following: ~s" shader-type *shader-types*))
   (let ((*shader-type* shader-type)
 	(*glsl-variables* (append (mapcar #'flesh-out-var in-vars)
 				  (assocr :core *built-in-vars*)
@@ -38,8 +81,9 @@
 			  (macroexpand-and-substitute 
 			   `(%make-function :main () 
 					    ,varjo-code))))))
-      (code-object-to-string compiled-obj version in-structs
-			     in-vars))))
+      (list (code-object-to-string compiled-obj version in-structs
+				   in-vars)
+	    (out-vars compiled-obj)))))
 
 (defun flesh-out-var (var)
   (if (null var)

@@ -19,6 +19,11 @@
 		 (:mat3x2 . 6) (:mat3x3 . 9) (:mat3x4 . 12)
 		 (:mat4x2 . 8) (:mat4x3 . 12) (:mat4x4 . 16)))
 
+(defconstant *shader-types*
+  '(:vertex :fragment :geometry))
+
+(defconstant -default-version- :330)
+
 (defconstant *implicit-type-casts* 
   '(((:float nil nil) (:int nil nil) (:uint nil nil))
     ((:vec2 nil nil) (:ivec2 nil nil) (:uvec2 nil nil))

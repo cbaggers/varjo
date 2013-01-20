@@ -76,8 +76,7 @@
 	(format nil "~a" principle))))
 
 (defun instance-var (symbol)
-  
-  (let ((var-spec (assoc symbol *glsl-variables*)))<
+  (let ((var-spec (assoc symbol *glsl-variables*)))
     (make-instance 'code
 		   :type (set-place-t
 			  (flesh-out-type (var-type var-spec)))
@@ -1090,12 +1089,13 @@
 	       (format nil "~a ~a" (varjo-type->glsl-type type)
 		       (current-line arg)))))
 
-(vdefspecial %in-typify (form)
+(vdefspecial %in-typify (form &optional (qualifiers nil))
   (let* ((arg (varjo->glsl form))
 	 (type (code-type arg)))
     (merge-obs arg :current-line 
-	       (format nil "~a ~a~@[[~a]~]" 
+	       (format nil "~a ~{~a ~}~a~@[[~a]~]" 
 		       (varjo-type->glsl-type (first type))
+		       qualifiers
 		       (current-line arg)
 		       (when (second type)
 			 (if (numberp (second type))
@@ -1186,7 +1186,9 @@
 					      (code-type arg-obj))
 					     out-var-name)
 				     (to-top arg-obj))
-		       :out-vars `(out-var-name form ,@qualifiers)))))
+		       :out-vars `(,out-var-name 
+				   ,(code-type arg-obj)
+				   ,@qualifiers)))))
 
 (vdefspecial + (&rest args)    
   (let* ((arg-objs (mapcar #'varjo->glsl args))
@@ -1290,12 +1292,16 @@
 	  (make-instance 
 	   'code :type type
 		 :current-line nil
-		 :to-top (list (format nil "~a ~a(~{~{~a ~a~}~^,~^ ~}) {~%~{~a~%~}~@[~a;~%~]}~%"		       
-				       (varjo-type->glsl-type type)
-				       name 
-				       (mapcar #'reverse args)
-				       (to-block body-obj) 
-				       (current-line body-obj))))
+		 :to-top (append 
+			  (to-top body-obj)
+			  (list (format nil "~a ~a(~{~{~a ~a~}~^,~^ ~}) {~%~{~a~%~}~@[~a;~%~]}~%"		       
+					(varjo-type->glsl-type type)
+					name 
+					(mapcar #'reverse args)
+					(to-block body-obj) 
+					(current-line body-obj))))
+		 :out-vars (out-vars body-obj))
+	  
 	  (error "Some of the return statements in function '~a' returns different types~%~a~%~a" name type returns)))))
 
 (vdefspecial while (test &rest body)
