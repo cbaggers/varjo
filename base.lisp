@@ -185,6 +185,9 @@
 (defun kwd (name) 
   (intern (string name) 'keyword))
 
+(defun fmt (control-string &rest format-args) 
+	 (apply #'format `(nil ,control-string ,@format-args)))
+
 (defun print-hash (hash-table)
   (loop for x being the hash-keys of hash-table
      :do (print (format nil "~s -> ~s" x (gethash x hash-table))))
@@ -414,6 +417,30 @@
 (defun type-equal (a b)
   (equal (subseq a 0 2) (subseq b 0 2)))
 
+;;-----------
+(defun type-principle (type)
+  (first type))
+
+(defun type-arrayp (type)
+  (not (null (second type))))
+
+(defun type-array-length (type)
+  (second type))
+
+(defun type-place (type)
+  (third type))
+
+(defun type-placep (type)
+  (third type))
+
+(defun type-built-inp (type)
+  (not (null (assoc (type-priniciple type) *built-in-types*))))
+
+(defun built-in-vars (context)
+  (loop :for part :in context
+	:append (assocr part *built-in-vars*)))
+;;-----------
+
 (defun glsl-castablep (minor-type major-type)
   "Returns whether the type minor-type can be cast up to type major-type"
   (or (type-equal major-type minor-type)
@@ -606,6 +633,40 @@
 		  principle name (if len len ""))
 	  (format nil "    ~a ~a;" 
 		  principle name)))))
+
+(defun get-struct-definitions (types)
+  (remove-if #'null
+	     (loop for type in types 
+		   :collect (assoc type *struct-definitions*))))
+
+(defun fake-struct-vars (var-name struct-name)
+  (let ((slots (rest (first (get-struct-definitions 
+			     (list struct-name))))))
+    (if (not slots)
+	(error "Varjo: Struct ~a not valid" struct-name)
+	(loop for slot in slots
+	      :collect (list (format nil "_f_~a_~a" 
+				     var-name (var-name slot))
+			     (flesh-out-type (var-type slot)))))))
+
+(defun make-fake-struct (struct-name)
+  (let ((fake-type (symb '_f_ struct-name))
+	(slots (rest (first (get-struct-definitions 
+			     (list struct-name))))))
+    (if (not slots)
+	(error "Varjo: Struct ~a not valid" struct-name)
+	(list
+	 (list struct-name fake-type)
+	 (loop :for slot :in slots 
+	       :collect
+	       (list (symb struct-name '- (first slot))
+		     (vlambda :in-args `((x (,fake-type)))
+			      :output-type (set-place-t 
+					    (flesh-out-type 
+					     (second slot)))
+			      :transform (format nil "_f_~~a_~a" 
+						 (first slot)))))))))
+
 
 (defun struct-funcs (struct)
   (%struct-funcs (first struct) nil nil (rest struct)))

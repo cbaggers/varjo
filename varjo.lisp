@@ -12,26 +12,17 @@
 ;; Translator
 ;;------------
 
-(defun parse-shader-args (args)
-  "Takes a list of arguments for a shader and extracts the
-   version, stream declarations and uniform declarations.
-   It also runs some sanity checks to make sure the contents
-   are well-formed."
-  ;; extract details
-  (let* ((uni-pos (position-if #'keywordp args))
-	 (streams (subseq args 0 uni-pos))
-	 (uniforms (when uni-pos (group (subseq args uni-pos) 2))))
-    ;; sanity check streams
-    (loop for stream in streams
-	  :do (when (or (not (eq 2 (length stream))))
-		(error "Stream declaration ~a is badly formed.~%Should be (-var-name- -var-type-)" stream)))
-    ;; sanity check uniforms
-    (loop for uniform in uniforms
-	  :do (when (or (not (eq 2 (length uniform)))
-			(not (consp (second uniform))))
-		(error "Uniform declaration ~a is badly formed.~%Should be (-uniform-name- -uniform-type-) or ~%(-uniform-name- (-uniform-type- -default-value-))" uniform)))
-    ;; thats all folks!
-    (list streams uniforms)))
+(defun check-in-arg-forms (in-args)
+  (loop for stream in in-args
+	:do (when  (not (eq 2 (length stream)))
+	      (error "Stream declaration ~a is badly formed.~%Should be (-var-name- -var-type-)" stream)))
+  t)
+
+(defun check-uniform-forms (uniforms)
+  (loop for uniform in uniforms
+	:do (when (not (eq 2 (length uniform)))
+	      (error "Uniform declaration ~a is badly formed.~%Should be (-uniform-name- -uniform-type-) or ~%(-uniform-name- (-uniform-type- -default-value-))" uniform)))
+  t)
 
 (defun get-user-types-from-in-args (in-args)
   (remove-if #'null
@@ -57,90 +48,160 @@
 			 nil
 			 priniciple)))))
 
-(defun get-struct-definitions (types)
-  (remove-if #'null
-	     (loop for type in types 
-		   :collect (assoc type *struct-definitions*))))
-
-(defun uniform-spec-to-var (uniform)
-  (list (symb (first uniform)) 
-	(flesh-out-type (first (second uniform)))))
 
 (defmacro defshader (name type version (&rest args) &body code)  
-  (destructuring-bind (streams uniforms)
-      (parse-shader-args args)
-    (let* ((user-types 
-	     (remove-duplicates
-	      (append (get-user-types-from-in-args streams)
-		      (get-user-types-from-uniforms uniforms))))
-	   (struct-defs (get-struct-definitions user-types)))
-      `(let ((source (translate '(progn ,@code) 
-				:in-vars ',streams 
-				:uniforms ',uniforms
-				:shader-type ,type
-				:version ,version
-				:in-structs ',struct-defs)))
-	 ,(if (eq name :!test!)
-	      `(first source)
-	      (if (keywordp name)
-		  (error "Cannot define shader with keyword name")
-		  `(defun ,name ()
-		     source)))))))
+  `(let ((source (translate ,type ,version ',args ',code)))
+     ,(if (eq name :!test!)
+	  `(first source)
+	  (if (keywordp name)
+	      (error "Cannot define shader with keyword name")
+	      `(defun ,name ()
+		 source)))))
 
-(defun translate (varjo-code &key shader-type in-vars in-structs 
-			       (version :330) uniforms)
-  (when (not (find shader-type *shader-types*))
-    (error "Cannot create shader of type ~a.~%Must be one of the following: ~s" shader-type *shader-types*))
-  (let* ((*shader-context* (list :core shader-type))
-	 (*types* (acons-many 
-	 	   (mapcar (lambda (x) (flesh-out-type (first x)))
-	 		   in-structs)
-	 	   *built-in-types*))
-	 (compiled-in-vars (in-var-init-form in-vars))
-	 (*glsl-variables* (append in-vars
-				   (mapcar #'uniform-spec-to-var
-					   uniforms)
-	 			   (assocr :core *built-in-vars*)
-	 			   (assocr shader-type
-	 				   *built-in-vars*)))
-	 (*glsl-functions* (acons-many (mapcan #'struct-funcs
-	 				       in-structs)
-	 			       *glsl-functions*)))
-    (let ((compiled-obj (varjo->glsl 
-			 (replace-literals 
-			  (macroexpand-and-substitute 
-			   `(%make-function :main () 
-					    ,varjo-code))))))
-      (list (code-object-to-string compiled-obj version
-				   in-structs compiled-in-vars
-				   uniforms)	    
-	    (mapcar #'(lambda (form compiled-obj)
-			(list form (second compiled-obj)))
-		    in-vars compiled-in-vars)
-	    (out-vars compiled-obj)))))
+
+(defun parse-shader-args (args)
+  "Takes a list of arguments for a shader and extracts the
+   version, stream declarations and uniform declarations.
+   It also runs some sanity checks to make sure the contents
+   are well-formed."
+  ;; extract details
+  (let* ((uni-pos (position-if #'keywordp args))
+	 (in-vars (subseq args 0 uni-pos))
+	 (uniforms (when uni-pos (group (subseq args uni-pos) 2))))
+   (when (and (check-uniform-forms uniforms)
+	      (check-in-arg-forms in-vars))
+     (let* ((fleshed-out-in-vars (flesh-out-in-vars in-vars))
+	    (in-var-structs-and-types 
+	      (create-fake-structs-from-in-vars fleshed-out-in-vars))
+	    (in-var-struct-type-maps
+	      (mapcar #'first in-var-structs-and-types))
+	    (in-var-struct-types 
+	      (mapcar #'first in-var-struct-type-maps))
+	    (in-var-struct-functions
+	      (mapcan #'second in-var-structs-and-types))
+	    (fleshed-out-uniforms (flesh-out-uniforms uniforms))
+	    (uniform-struct-types (get-uniform-struct-types
+				   fleshed-out-uniforms))
+	    (uniform-struct-definitions 
+	      (get-struct-definitions uniform-struct-types))
+	    (uniform-struct-functions 
+	      (mapcan #'struct-funcs uniform-struct-definitions)))
+       (list (substitute-alternate-struct-types
+	      fleshed-out-in-vars in-var-struct-type-maps)
+	     (expand-struct-in-vars fleshed-out-in-vars)
+	     (uniform-specs-to-vars fleshed-out-uniforms)
+	     (append in-var-struct-functions
+		     uniform-struct-functions)
+	     uniform-struct-definitions
+	     (append in-var-struct-types
+		     uniform-struct-types))))))
+
+(defun flesh-out-in-vars (in-vars)
+  (loop for var in in-vars
+	:collect (list (var-name var)
+		       (flesh-out-type (var-type var)))))
+
+(defun flesh-out-uniforms (uniforms)
+  (loop for uniform in uniforms
+	:collect 
+	(list (symb (first uniform))
+	      (if (symbolp (second uniform))
+		  (list (flesh-out-type (second uniform)))
+		  (let ((form (second uniform)))
+		    (list (flesh-out-type (first form))
+			  (second form)))))))
+
+(defun uniform-specs-to-vars (uniforms)
+  (loop for u in uniforms :collect (list (uniform-name u)
+					 (uniform-type u))))
+
+(defun uniform-name (form)
+  (first form))
+(defun uniform-type (form)
+  (caadr form))
+(defun uniform-default-val (form)
+  (cadadr form))
+
+(defun get-uniform-struct-types (uniforms) 
+  (remove-duplicates
+   (loop for u in uniforms
+	 :if (not (type-built-inp (uniform-type u)))
+	   :collect (type-principle (uniform-type u)))))
+
+(defun translate (shader-type version args code)
+  (destructuring-bind (in-vars in-var-declarations uniform-vars
+		       struct-functions struct-definitions types)
+      (parse-shader-args args)
+    (let* ((*shader-context* (list :core shader-type))
+	   (*types* (acons-many (loop for i in types
+				      collect (list i nil)) 
+				*built-in-types*))
+	   (*glsl-variables* (append (built-in-vars *shader-context*)
+				     uniform-vars 
+				     in-vars))
+	   (*glsl-functions* (acons-many struct-functions 
+					 *glsl-functions*))
+	   (compiled-obj (compile-main code))
+	   (compiled-in-vars (compile-in-var-declarations
+			      in-var-declarations))
+	   (compiled-uniforms (compile-uniform-declarations 
+			       uniform-vars)))
+      (list
+       (write-output-string version struct-definitions compiled-obj
+			    compiled-in-vars compiled-uniforms)))))
+
+(defun write-output-string (version struct-definitions
+			    code in-vars uniforms)
+  
+  (if (or (to-block code) (current-line code))
+      (error "The following code not written to output.~%~a~%~a"
+	     (to-block code) (current-line code))
+      (format 
+       nil 
+       "#version ~a~% ~{~%~{~a~%~}~}" 
+       version
+       (list
+	(mapcar #'struct-init-form struct-definitions)
+	(mapcar #'(lambda (x) (current-line (first x))) in-vars)
+	(mapcar #'current-line uniforms)
+	(to-top code)))))
+
+(defun compile-main (code)
+  (varjo->glsl (replace-literals 
+		(macroexpand-and-substitute 
+		 `(%make-function :main () ,@code)))))
+
+(defun expand-struct-in-vars (in-vars)  
+  "Transforms struct invars into the component variables"
+  (loop for i in in-vars
+	:if (type-built-inp (var-type i))
+	  :collect i
+	:else
+	  :append (fake-struct-vars (var-name i) 
+				    (type-principle (var-type i)))))
+
+(defun create-fake-structs-from-in-vars (in-vars) 
+  "Transforms struct invars into the component variables"
+  (remove-duplicates
+   (loop for i in in-vars
+	 :if (not (type-built-inp (var-type i)))
+	   :collect (make-fake-struct (type-principle (var-type i))))
+   :test #'equal))
+
+(defun substitute-alternate-struct-types (in-vars type-alist)
+  (loop :for in-var in in-vars
+	:collect (list (var-name in-var)
+		       (or (first 
+			    (assocr 
+			     (type-principle (var-type in-var)) 
+			     type-alist))
+			   (var-type in-var)))))
 
 (defun flesh-out-var (var)
   (if (null var)
       (error "Cannot flesh out empty var")
       (let ((template '(*no-name* (:void) nil t)))
 	(append var (subseq template (length var))))))
-
-(defun code-object-to-string (code-obj version in-structs in-vars
-			      uniforms)
-  
-  (if (or (to-block code-obj) (current-line code-obj))
-      (error "~%-------------~%~a~%~a~%-------------" 
-	     (to-block code-obj)
-	     (current-line code-obj))
-      (format 
-       nil 
-       "#version ~a~% ~{~%~{~a~%~}~}" 
-       version
-       (list
-	(mapcar #'struct-init-form in-structs)
-	(mapcar #'(lambda (x) (current-line (first x))) in-vars)
-	(mapcar #'uniform-init-form uniforms)
-	(to-top code-obj)))))
 
 (defun compile-var (name type &rest qualifiers)
   (let ((ob (varjo->glsl
@@ -179,21 +240,17 @@
 				   qualifiers 
 				   (current-line obj))))
 
-(defun in-var-init-form (vars)
+(defun compile-in-var-declarations (vars)
   (add-layout-qualifiers-to-in-vars
    (loop for var in vars
-	 :collect (qualify 
-		   (compile-var (first var) 
-				(flesh-out-type (second var))) 
-		   :in))))
+	 :collect (qualify (compile-var (first var) (second var)) 
+			   :in))))
 
-(defun uniform-init-form (var)
-  (format nil "uniform ~a;" 
-	  (current-line 
-	   (varjo->glsl
-	    `(%in-typify
-	      (%make-var ,(first var)
-			 ,(flesh-out-type (first (second var)))))))))
+(defun compile-uniform-declarations (vars)
+  (loop for var in vars
+	:collect (qualify (compile-var (uniform-name var) 
+				       (uniform-type var)) 
+			  :uniform)))
 
 (defun varjo->glsl (varjo-code)
   (cond 
