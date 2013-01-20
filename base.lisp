@@ -19,12 +19,13 @@
 		 (:mat3x2 . 6) (:mat3x3 . 9) (:mat3x4 . 12)
 		 (:mat4x2 . 8) (:mat4x3 . 12) (:mat4x4 . 16)))
 
-(defconstant *shader-types*
+;; following 3 were constant
+(defparameter *shader-types*
   '(:vertex :fragment :geometry))
 
-(defconstant -default-version- :330)
+(defparameter -default-version- :330)
 
-(defconstant *implicit-type-casts* 
+(defparameter *implicit-type-casts*
   '(((:float nil nil) (:int nil nil) (:uint nil nil))
     ((:vec2 nil nil) (:ivec2 nil nil) (:uvec2 nil nil))
     ((:vec3 nil nil) (:ivec3 nil nil) (:uvec3 nil nil))
@@ -33,63 +34,68 @@
     ((:mat3 nil nil) (:mat3x3 nil nil))
     ((:mat4 nil nil) (:mat4x4 nil nil))))
 
-(defparameter *glsl-types* '((:void nil nil) (:bool nil nil) 
-			     (:int nil nil) (:uint nil nil)
-			     (:float nil nil) (:bvec2 nil nil) 
-			     (:bvec3 nil nil) (:bvec4 nil nil)
-			     (:uvec2 nil nil) (:uvec3 nil nil) 
-			     (:uvec4 nil nil) (:ivec2 nil nil)
-			     (:ivec3 nil nil) (:ivec4 nil nil)
-			     (:vec2 nil nil) (:vec3 nil nil)
-			     (:vec4 nil nil) 
-			     (:mat2 nil nil) (:mat3 nil nil)
-			     (:mat4 nil nil) (:mat2x2 nil nil)
-			     (:mat2x3 nil nil) (:mat2x4 nil nil)
-			     (:mat3x2 nil nil) (:mat3x3 nil nil)
-			     (:mat3x4 nil nil) (:mat4x2 nil nil)
-			     (:mat4x3 nil nil) (:mat4x4 nil nil)
-			     (:ISAMPLER1D NIL)
-			     (:ISAMPLER1DARRAY NIL)
-			     (:ISAMPLER2D NIL)
-			     (:ISAMPLER2DARRAY NIL)
-			     (:ISAMPLER2DMS NIL)
-			     (:ISAMPLER2DMSARRAY NIL)
-			     (:ISAMPLER2DRECT NIL)
-			     (:ISAMPLER3D NIL)
-			     (:ISAMPLERBUFFER NIL)
-			     (:ISAMPLERCUBE NIL)
-			     (:ISAMPLERCUBEARRAY NIL)
-			     (:SAMPLER1D NIL) 
-			     (:SAMPLER1DARRAY NIL)
-			     (:SAMPLER1DARRAYSHADOW NIL)
-			     (:SAMPLER1DSHADOW NIL) 
-			     (:SAMPLER2D NIL)
-			     (:SAMPLER2DARRAY NIL)
-			     (:SAMPLER2DARRAYSHADOW NIL)
-			     (:SAMPLER2DMS NIL)
-			     (:SAMPLER2DMSARRAY NIL)
-			     (:SAMPLER2DRECT NIL)
-			     (:SAMPLER2DRECTSHADOW NIL)
-			     (:SAMPLER2DSHADOW NIL)
-			     (:SAMPLER3D NIL)
-			     (:SAMPLERBUFFER NIL)
-			     (:SAMPLERCUBE NIL)
-			     (:SAMPLERCUBEARRAY NIL)
-			     (:SAMPLERCUBEARRAYSHADOW NIL)
-			     (:SAMPLERCUBESHADOW NIL)
-			     (:USAMPLER1D NIL)
-			     (:USAMPLER1DARRAY NIL)
-			     (:USAMPLER2D NIL)
-			     (:USAMPLER2DARRAY NIL)
-			     (:USAMPLER2DMS NIL)
-			     (:USAMPLER2DMSARRAY NIL)
-			     (:USAMPLER2DRECT NIL)
-			     (:USAMPLER3D NIL)
-			     (:USAMPLERBUFFER NIL)
-			     (:USAMPLERCUBE NIL)
-			     (:USAMPLERCUBEARRAY NIL)))
+(defparameter *types* nil)
 
-;; [TODO] What the hell is with the multitexcoord (vertex)
+(defparameter *struct-definitions* nil)
+
+(defparameter *built-in-types* '((:none nil)
+				 (:void nil) (:bool nil) 
+				 (:int nil) (:uint nil)
+				 (:float nil) (:double nil)
+				 (:bvec2 nil) 
+				 (:bvec3 nil) (:bvec4 nil)
+				 (:uvec2 nil) (:uvec3 nil) 
+				 (:uvec4 nil) (:ivec2 nil)
+				 (:ivec3 nil) (:ivec4 nil)
+				 (:vec2 nil) (:vec3 nil)
+				 (:vec4 nil) 
+				 (:mat2 nil) (:mat3 nil)
+				 (:mat4 nil) (:mat2x2 nil)
+				 (:mat2x3 nil) (:mat2x4 nil)
+				 (:mat3x2 nil) (:mat3x3 nil)
+				 (:mat3x4 nil) (:mat4x2 nil)
+				 (:mat4x3 nil) (:mat4x4 nil)
+				 (:isampler1d nil)
+				 (:isampler1darray nil)
+				 (:isampler2d nil)
+				 (:isampler2darray nil)
+				 (:isampler2dms nil)
+				 (:isampler2dmsarray nil)
+				 (:isampler2drect nil)
+				 (:isampler3d nil)
+				 (:isamplerbuffer nil)
+				 (:isamplercube nil)
+				 (:isamplercubearray nil)
+				 (:sampler1d nil) 
+				 (:sampler1darray nil)
+				 (:sampler1darrayshadow nil)
+				 (:sampler1dshadow nil) 
+				 (:sampler2d nil)
+				 (:sampler2darray nil)
+				 (:sampler2darrayshadow nil)
+				 (:sampler2dms nil)
+				 (:sampler2dmsarray nil)
+				 (:sampler2drect nil)
+				 (:sampler2drectshadow nil)
+				 (:sampler2dshadow nil)
+				 (:sampler3d nil)
+				 (:samplerbuffer nil)
+				 (:samplercube nil)
+				 (:samplercubearray nil)
+				 (:samplercubearrayshadow nil)
+				 (:samplercubeshadow nil)
+				 (:usampler1d nil)
+				 (:usampler1darray nil)
+				 (:usampler2d nil)
+				 (:usampler2darray nil)
+				 (:usampler2dms nil)
+				 (:usampler2dmsarray nil)
+				 (:usampler2drect nil)
+				 (:usampler3d nil)
+				 (:usamplerbuffer nil)
+				 (:usamplercube nil)
+				 (:usamplercubearray nil)))
+
 (defparameter *built-in-vars* 
   '((:core 
      (max-clip-distances :int "gl_MaxClipDistances" t)
@@ -151,11 +157,19 @@
 (defparameter *glsl-functions* nil)
 (defparameter *glsl-special-functions* nil)
 (defparameter *glsl-substitutions* nil)
-(defparameter *shader-type* nil)
+(defparameter *shader-context* nil)
 
 ;;------------------------------------------------------------
 ;; Handy Functions
 ;;-----------------
+
+(defun acons-many (data a-list)
+  (if data (let* ((func (first data))
+		  (name (first func))
+		  (body (second func)))
+	     (acons name (cons body (rest (assoc name a-list)))
+		    (acons-many (rest data) a-list)))
+      a-list))
 
 (defun kwd (name) 
   (intern (string name) 'keyword))
@@ -341,11 +355,21 @@
 ;; GLSL Types
 ;;------------
 
+(defun flesh-out-type-with-check (type)
+  (if (not (listp type))
+      (flesh-out-type-with-check (list type))
+      (if (if (consp (first type))
+	      (every #'(lambda (x) (assoc x *types*))
+		     (first type))
+	      (assoc (first type) *types*))
+	  (flesh-out-type type)
+	  (error "Varjo: '~s' is not a valid type in this context ~a" type *shader-context*))))
+
 (defun flesh-out-type (type)
-  (if (listp type)
+  (if (consp type)
       (if (> (length type) 3)
-	  (error "Invalid GLSL Type Definition: ~s has more than 2 components." type)
-	    (append type (make-list (- 3 (length type)))))
+	  (error "Invalid GLSL Type Definition: ~s has more than 3 components." type)
+	  (append type (make-list (- 3 (length type)))))
       (flesh-out-type (list type))))
 
 (defun glsl-valid-type (candidate spec)
@@ -376,26 +400,27 @@
 (defun glsl-typep (object type)
   (glsl-valid-type (code-type object) type))
 
+(defun type-equal (a b)
+  (equal (subseq a 0 2) (subseq b 0 2)))
+
 (defun glsl-castablep (minor-type major-type)
   "Returns whether the type minor-type can be cast up to type major-type"
-  (let ((minor-type (set-place-nil minor-type))
-	(major-type (set-place-nil major-type)))
-    (or (equal major-type minor-type)
-	(not (null (find minor-type (assoc major-type 
-					   *implicit-type-casts*
-					   :test #'equal)
-			 :test #'equal))))))
+  (or (type-equal major-type minor-type)
+      (not (null (find minor-type (assoc major-type 
+					 *implicit-type-casts*
+					 :test #'type-equal)
+		       :test #'type-equal)))))
 
 (defun superior-type (&rest types)
   "find the superior type, types are defined in order or superiority"
-  (let ((type-strengths (remove-if #'null 
-			       (mapcar (lambda (x) 
-					 (position (set-place-nil x) 
-						   *glsl-types*
-						   :test #'equal))
-				       types))))
+  (let ((type-strengths 
+	  (remove-if #'null 
+		     (mapcar (lambda (x) 
+			       (position x *types*
+					 :test #'type-equal))
+			     types))))
     (when type-strengths
-      (elt *glsl-types* (apply #'max type-strengths)))))
+      (elt *types* (apply #'max type-strengths)))))
 
 (defun types-compatiblep (&rest types)
   "Make sure every type is or can be cast up to the superior type"
@@ -453,9 +478,12 @@
 		args in-spec)
 	 (apply #'types-compatiblep
 		(identity-filter types (func-compatible-args func)))
-	 (equal-elements 
-	  (mapcar #'set-place-nil 
-		  (identity-filter types (func-args-match func)))))))
+	 (let* ((filtered-types (identity-filter 
+				 types (func-args-match func)))
+		(comp (first filtered-types)))
+	   (notany #'null (mapcar #'(lambda (x)
+				      (type-equal x comp)) 
+				  filtered-types))))))
 
 (defun glsl-resolve-func-type (func args)
   ;; return the output type spec except for where 
@@ -572,46 +600,48 @@
   (%struct-funcs (first struct) nil nil (rest struct)))
 
 (defun %struct-funcs (name slot-prefix context-restriction slots)
-  (if (find name *glsl-types*)
-      (error "Type already exists (~a)" name)
-      (cons 
-       (list 
-	(symb 'make- (or slot-prefix name))
-	(vlambda :in-args (loop for slot in slots
-				:collect (subseq slot 0 2))
-		 :output-type name
-		 :transform (format nil "~a(~{~a~^,~^ ~})"
-				    name
-				    (loop for slot in slots
-					  collect "~a"))
-		 :context-restriction context-restriction))
-       (loop :for slot :in slots 
-	     :collect
-	     (list
-	      (symb (or slot-prefix name) '- (first slot))
-	      (vlambda :in-args `((x (,name)))
-		       :output-type (set-place-t
-				     (flesh-out-type (second slot)))
-		       :transform (format nil "~~a.~a" 
-					  (or (third slot)
-					      (first slot)))
-		       :context-restriction context-restriction))))))
+  (cons 
+   (list (symb 'make- (or slot-prefix name))
+	 (vlambda :in-args (loop for slot in slots
+				 :collect (subseq slot 0 2))
+		  :output-type name
+		  :transform (format nil "~a(~{~a~^,~^ ~})"
+				     name
+				     (loop for slot in slots
+					   collect "~a"))
+		  :context-restriction context-restriction))
+   (loop :for slot :in slots 
+	 :collect
+	 (list (symb (or slot-prefix name) '- (first slot))
+	       (vlambda :in-args `((x (,name)))
+			:output-type (set-place-t 
+				      (flesh-out-type 
+				       (second slot)))
+			:transform (format nil "~~a.~a" 
+					   (or (third slot)
+					       (first slot)))
+			:context-restriction context-restriction)))))
 
+(defmacro vdefstruct (name &body slots)
+  (let ((*types* (cons (list name nil) *built-in-types*))) 
+    `(progn     
+       (setf *glsl-functions* 
+	     (acons-many ',(%struct-funcs name nil nil slots)
+			 *glsl-functions*))
+       (setf *struct-definitions*
+	     (acons ',name ',slots
+		    *struct-definitions*))
+       ',name)))
 
-(defun add-functions (functions a-list)
-  (if (null functions)
-      a-list
-      (let* ((func (first functions))
-	     (name (first func))
-	     (body (second func)))
-	(acons name
-	       (cons body (assocr name a-list))
-	       (add-functions (rest functions) a-list)))))
-
-(defmacro vdefstruct (name (&key slot-prefix context-restriction) 
-		      &body slots)
-  `(setf *glsl-functions* 
-	 (add-functions ',(%struct-funcs name slot-prefix
-					context-restriction 
-					slots)
-			*glsl-functions*)))
+(defmacro %vdefstruct (name (&key slot-prefix context-restriction)
+		       &body slots)
+  (let ((*types* (cons (list name nil) *built-in-types*))) 
+    `(progn
+       (setf *glsl-functions* 
+	     (acons-many ',(%struct-funcs name slot-prefix
+					  context-restriction 
+					  slots)
+			 *glsl-functions*))
+       (setf *built-in-types* 
+	     (acons ',name '(nil) *built-in-types*))
+       ',name)))

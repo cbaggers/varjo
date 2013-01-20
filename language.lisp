@@ -10,25 +10,36 @@
 
 (defun glsl-defun (&key name in-args output-type
 		     transform context-restriction)
-  (let* ((func-spec (vlambda :in-args in-args 
-			     :output-type output-type
-			     :transform transform
-			     :context-restriction 
-			     context-restriction)))
-    (setf *glsl-functions*
-	  (acons name (cons func-spec
-			    (assocr name *glsl-functions*))
-		 *glsl-functions*))))
+  (let ((*types* *built-in-types*))
+    (let* ((func-spec (vlambda :in-args in-args 
+			       :output-type output-type
+			       :transform transform
+			       :context-restriction 
+			       context-restriction)))
+      (setf *glsl-functions*
+	    (acons name (cons func-spec
+			      (assocr name *glsl-functions*))
+		   *glsl-functions*)))))
+
+(defun get-vars-for-context (context)
+  (loop for item in context
+	:append (assocr item *built-in-vars*)))
+
+(defun func-valid-for-contextp (context func)
+  (let ((restriction (func-restriction func)))
+    (if restriction
+	(when (loop for item in context
+		    :if (find item restriction)
+		      :collect t)
+	  func)
+	func)))
 
 (defun func-specs (name)
   (let ((all-matching (assocr name *glsl-functions*)))
     (remove-if 
      #'null (loop for spec in all-matching
-		  :collect (if (func-restriction spec)
-			       (when (find *shader-type* 
-					   (func-restriction spec))
-				 spec)
-			       spec)))))
+		  :collect (func-valid-for-contextp 
+			    *shader-context* spec)))))
 
 (defun vfunctionp (name)
   (not (null (func-specs name))))
@@ -89,15 +100,15 @@
 ;; Built-in Structs
 ;;------------------
 
-(vdefstruct gl-per-vertex-v (:slot-prefix per-vertex
+(%vdefstruct gl-per-vertex-v (:slot-prefix per-vertex
 			     :context-restriction (:vertex))
   (position :vec4 "gl_Position")
   (point-size :float "gl_PointSize")
   (clip-distance (:float t) "gl_ClipDistance")
   (clip-vertex :vec4 "gl_ClipVertex"))
 
-(vdefstruct gl-per-vertex-g (:slot-prefix per-vertex
-			     :context-restriction (:fragment))
+(%vdefstruct gl-per-vertex-g (:slot-prefix per-vertex
+			      :context-restriction (:fragment))
   (position :vec4 "gl_Position")
   (point-size :float "gl_PointSize")
   (clip-distance (:float t) "gl_ClipDistance"))
@@ -1060,27 +1071,28 @@
 (defmethod indent ((input list))
   (mapcan #'indent input))
 
-;; (vdefspecial %indent (form)
-;;   )
-
 (vdefspecial progn (&rest body)
   (let ((arg-objs (mapcar #'varjo->glsl body)))
-    (if (eq 1 (length arg-objs))
-	(let ((ob (first arg-objs)))
-	  (merge-obs ob :current-line 
-		     (first (indent (current-line ob)))))
-	(let ((last-arg (car (last arg-objs)))
-	      (args (subseq arg-objs 0 (- (length arg-objs) 1))))
-	  (merge-obs arg-objs
-	   :type (code-type last-arg)
-	   :current-line (current-line last-arg)
-	   :to-block 
-	   (indent (list
-		    (mapcar #'to-block args)
-		    (mapcar #'(lambda (x) (format nil "~@[~a;~]"
-						  (current-line x)))
-			    args)
-		    (to-block last-arg))))))))
+    (cond 
+      ((eq 0 (length arg-objs)) (make-none-ob))
+      ((eq 1 (length arg-objs))
+       (let ((ob (first arg-objs)))
+	 (merge-obs ob :current-line 
+		    (first (indent (current-line ob))))))
+      (t (let ((last-arg (car (last arg-objs)))
+	       (args (subseq arg-objs 0 (- (length arg-objs) 1))))
+	   (merge-obs arg-objs
+		      :type (code-type last-arg)
+		      :current-line (current-line last-arg)
+		      :to-block 
+		      (indent (list
+			       (mapcar #'to-block args)
+			       (mapcar #'(lambda (x) 
+					   (format 
+					    nil "~@[~a;~]"
+					    (current-line x)))
+				       args)
+			       (to-block last-arg)))))))))
 
 (vdefspecial %typify (form)
   (let* ((arg (varjo->glsl form))
@@ -1111,6 +1123,10 @@
 (vdefspecial %make-var (name type)
   (make-instance 'code :type (set-place-t type)
 		       :current-line (string name)))
+
+(defun make-none-ob ()
+  (make-instance 'code :type :none
+		       :current-line ""))
 
 (vdefspecial %make-array (type length &optional contents)
   (let* ((literal-length (typep length 'code))
@@ -1250,9 +1266,7 @@
 	   (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
 
 (vdefspecial labels (func-specs &rest body)
-  (let* ((*glsl-variables* (append (assocr :core *built-in-vars*)
-				   (assocr *shader-type*
-					   *built-in-vars*)))
+  (let* ((*glsl-variables* (get-vars-for-context *shader-context*))
 	 (func-objs (mapcar 
 		     #'(lambda (f) (varjo->glsl 
 				    (cons '%make-function f)))

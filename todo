@@ -1,3 +1,8 @@
+
+* ----------------change types to never use equal
+
+* need a way to specify other details like *layout-size*
+
 * look at in-vars properly*
 * write the fake-structure code for vertex in-vars
 * in-vars can't be structures
