@@ -8,6 +8,17 @@
 
 (in-package :varjo)
 
+(defparameter *glsl-type-sizes*
+	       '((:bool . 1) (:int . 1) (:uint . 1) (:float . 1)
+		 (:bvec2 . 1) (:bvec3 . 1) (:bvec4 . 1)
+		 (:uvec2 . 1) (:uvec3 . 1) (:uvec4 . 1)
+		 (:ivec2 . 1) (:ivec3 . 1) (:ivec4 . 1)
+		 (:vec2 . 1) (:vec3 . 1) (:vec4 . 1)
+		 (:mat2 . 1) (:mat3 . 3) (:mat4 . 4)
+		 (:mat2x2 . 2) (:mat2x3 . 2) (:mat2x4 . 2)
+		 (:mat3x2 . 3) (:mat3x3 . 3) (:mat3x4 . 3)
+		 (:mat4x2 . 4) (:mat4x3 . 4) (:mat4x4 . 4)))
+
 (defparameter *glsl-component-counts*
 	       '((:bool . 1) (:int . 1) (:uint . 1) (:float . 1)
 		 (:bvec2 . 2) (:bvec3 . 3) (:bvec4 . 4)

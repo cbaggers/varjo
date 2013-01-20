@@ -6,8 +6,6 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-;; (progn (ql:quickload :varjo) (in-package :varjo))
-
 (in-package :varjo)
 
 ;;------------------------------------------------------------
@@ -68,7 +66,7 @@
   (list (symb (first uniform)) 
 	(flesh-out-type (first (second uniform)))))
 
-(defmacro defshader (name type version (&rest args) &body code)
+(defmacro defshader (name type version (&rest args) &body code)  
   (destructuring-bind (streams uniforms)
       (parse-shader-args args)
     (let* ((user-types 
@@ -84,8 +82,10 @@
 				:in-structs ',struct-defs)))
 	 ,(if (eq name :!test!)
 	      `(first source)
-	      `(defun ,name ()
-		 source))))))
+	      (if (keywordp name)
+		  (error "Cannot define shader with keyword name")
+		  `(defun ,name ()
+		     source)))))))
 
 (defun translate (varjo-code &key shader-type in-vars in-structs 
 			       (version :330) uniforms)
@@ -96,6 +96,7 @@
 	 	   (mapcar (lambda (x) (flesh-out-type (first x)))
 	 		   in-structs)
 	 	   *built-in-types*))
+	 (compiled-in-vars (in-var-init-form in-vars))
 	 (*glsl-variables* (append in-vars
 				   (mapcar #'uniform-spec-to-var
 					   uniforms)
@@ -110,8 +111,12 @@
 			  (macroexpand-and-substitute 
 			   `(%make-function :main () 
 					    ,varjo-code))))))
-      (list (code-object-to-string compiled-obj version in-structs
-				   in-vars uniforms)
+      (list (code-object-to-string compiled-obj version
+				   in-structs compiled-in-vars
+				   uniforms)	    
+	    (mapcar #'(lambda (form compiled-obj)
+			(list form (second compiled-obj)))
+		    in-vars compiled-in-vars)
 	    (out-vars compiled-obj)))))
 
 (defun flesh-out-var (var)
@@ -133,16 +138,54 @@
        version
        (list
 	(mapcar #'struct-init-form in-structs)
-	(mapcar #'in-var-init-form in-vars)
+	(mapcar #'(lambda (x) (current-line (first x))) in-vars)
 	(mapcar #'uniform-init-form uniforms)
 	(to-top code-obj)))))
 
-(defun in-var-init-form (var)
-  (format nil "in ~a;" 
-	  (current-line 
-	   (varjo->glsl
-	    `(%in-typify (%make-var ,(first var)
-				    ,(flesh-out-type (second var))))))))
+(defun compile-var (name type &rest qualifiers)
+  (let ((ob (varjo->glsl
+	    `(%in-typify 
+	      (%make-var ,name ,(flesh-out-type type))))))
+    (merge-obs ob :current-line (format nil "~(~{~a ~}~)~a" 
+					qualifiers
+					(current-line ob)))))
+
+(defun struct-layout-size (struct)
+  (let ((slots (rest struct)))
+    (apply #'+ (mapcar #'(lambda (slot) 
+			   (glsl-layout-size (second slot)))
+		       slots))))
+
+(defun layout-size (type-spec)
+  (let* ((type (flesh-out-type type-spec))
+	 (principle (first type))
+	 (length (second type))
+	 (size (assocr principle *glsl-type-sizes*)))
+    (cond ((null length) size)
+	  ((integerp length) (* size length))
+	  (t (error "Cannot have array of unknown size as an input")))))
+
+(defun add-layout-qualifiers-to-in-vars (compiled-in-vars)
+  (loop for ob in compiled-in-vars
+	:with total = 0	
+	:collect (list (qualify ob (format nil "layout(location=~a)"
+					   total))
+		  total)
+	:do (setf total (+ total (layout-size (code-type ob))))))
+
+(defun qualify (obj &rest qualifiers)
+  (merge-obs obj
+	     :current-line (format nil "~(~{~a ~}~)~a" 
+				   qualifiers 
+				   (current-line obj))))
+
+(defun in-var-init-form (vars)
+  (add-layout-qualifiers-to-in-vars
+   (loop for var in vars
+	 :collect (qualify 
+		   (compile-var (first var) 
+				(flesh-out-type (second var))) 
+		   :in))))
 
 (defun uniform-init-form (var)
   (format nil "uniform ~a;" 
