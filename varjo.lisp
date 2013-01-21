@@ -78,8 +78,9 @@
 	    (fleshed-out-uniforms (flesh-out-uniforms uniforms))
 	    (uniform-struct-types (get-uniform-struct-types
 				   fleshed-out-uniforms))
-	    (uniform-struct-definitions 
-	      (get-struct-definitions uniform-struct-types))
+	    (uniform-struct-definitions
+	      (when uniform-struct-types
+		(get-struct-definitions uniform-struct-types)))
 	    (uniform-struct-functions 
 	      (mapcan #'struct-funcs uniform-struct-definitions)))
        (list (substitute-alternate-struct-types
@@ -91,6 +92,9 @@
 	     uniform-struct-definitions
 	     (append in-var-struct-types
 		     uniform-struct-types))))))
+
+(defun check-for-invalid-struct-types (types)
+  (if (notany '#null )))
 
 (defun flesh-out-in-vars (in-vars)
   (loop for var in in-vars
@@ -119,10 +123,11 @@
   (cadadr form))
 
 (defun get-uniform-struct-types (uniforms) 
-  (remove-duplicates
-   (loop for u in uniforms
-	 :if (not (type-built-inp (uniform-type u)))
-	   :collect (type-principle (uniform-type u)))))
+  (remove-if #'null
+   (remove-duplicates
+    (loop for u in uniforms
+	  :if (not (type-built-inp (uniform-type u)))
+	    :collect (type-principle (uniform-type u))))))
 
 (defun translate (shader-type version args code)
   (destructuring-bind (in-vars in-var-declarations uniform-vars

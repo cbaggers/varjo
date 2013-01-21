@@ -636,39 +636,42 @@
 		  principle name)))))
 
 (defun get-struct-definitions (types)
-  (remove-if #'null
-	     (loop for type in types 
-		   :collect (assoc type *struct-definitions*))))
+  (if (not types) 
+      (error "Varjo: get-struct-definitions called with no types")
+      (let* ((found (loop for type in types 
+			  :collect (assoc type
+					  *struct-definitions*)))
+	     (error-pos (position-if #'null found)))
+	(if (not error-pos)
+	    found
+	    (error "Varjo: Struct ~a does not exist" 
+		   (nth error-pos types))))))
 
 (defun fake-struct-vars (var-name struct-name)
   (let ((slots (rest (first (get-struct-definitions 
 			     (list struct-name))))))
-    (if (not slots)
-	(error "Varjo: Struct ~a not valid" struct-name)
-	(loop for slot in slots
-	      :collect (list (format nil "_f_~a_~a" 
-				     var-name (var-name slot))
-			     (flesh-out-type (var-type slot)))))))
+    (loop for slot in slots
+	  :collect (list (format nil "_f_~a_~a" 
+				 var-name (var-name slot))
+			 (flesh-out-type (var-type slot))))))
 
 (defun make-fake-struct (struct-name)
   (let ((fake-type (symb '_f_ struct-name))
 	(slots (rest (first (get-struct-definitions 
-			     (list struct-name))))))
-    (if (not slots)
-	(error "Varjo: Struct ~a not valid" struct-name)
-	(list
-	 (list struct-name fake-type)
-	 (loop :for slot :in slots 
-	       :collect
-	       (list (symb struct-name '- (first slot))
-		     (vlambda :in-args `((x (,fake-type)))
-			      :output-type
-			      (literal-number-output-type
-			       (set-place-t 
-				(flesh-out-type 
-				 (second slot))))
-			      :transform (format nil "_f_~~a_~a" 
-						 (first slot)))))))))
+			     (list struct-name))))))    
+    (list
+     (list struct-name fake-type)
+     (loop :for slot :in slots 
+	   :collect
+	   (list (symb struct-name '- (first slot))
+		 (vlambda :in-args `((x (,fake-type)))
+			  :output-type
+			  (literal-number-output-type
+			   (set-place-t 
+			    (flesh-out-type 
+			     (second slot))))
+			  :transform (format nil "_f_~~a_~a" 
+					     (first slot))))))))
 
 (defun literal-number-output-type (type)
   (loop for i in type :collect (if (numberp i) (list i) i)))
