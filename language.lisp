@@ -1196,7 +1196,7 @@
 					  (current-line arg-obj))
 		       :to-block (to-block arg-obj)
 		       :to-top (cons 
-				(fmt "~{~a ~}out ~a ~a;"
+				(fmt "~(~{~a ~}~)out ~a ~a;"
 				     qualifiers
 				     (varjo-type->glsl-type
 				      (code-type arg-obj))

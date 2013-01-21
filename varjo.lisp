@@ -206,12 +206,11 @@
 			   (var-type in-var)))))
 
 (defun compile-var (name type &rest qualifiers)
-  (let ((ob (varjo->glsl
-	    `(%in-typify 
-	      (%make-var ,name ,(flesh-out-type type))))))
-    (merge-obs ob :current-line (format nil "~(~{~a ~}~)~a" 
-					qualifiers
-					(current-line ob)))))
+  (apply #'qualify (cons (varjo->glsl 
+			  `(%in-typify (%make-var
+					,name 
+					,(flesh-out-type type))))
+			 qualifiers)))
 
 (defun struct-layout-size (struct)
   (let ((slots (rest struct)))
@@ -236,11 +235,13 @@
 		  total)
 	:do (setf total (+ total (layout-size (code-type ob))))))
 
+(defun %qualify (obj qualifiers)
+  (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a" 
+				       qualifiers 
+				       (current-line obj))))
+
 (defun qualify (obj &rest qualifiers)
-  (merge-obs obj
-	     :current-line (format nil "~(~{~a ~}~)~a" 
-				   qualifiers 
-				   (current-line obj))))
+  (%qualify obj qualifiers))
 
 (defun compile-in-var-declarations (vars)
   (add-layout-qualifiers-to-in-vars
