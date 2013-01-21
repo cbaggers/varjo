@@ -434,7 +434,7 @@
   (third type))
 
 (defun type-built-inp (type)
-  (not (null (assoc (type-priniciple type) *built-in-types*))))
+  (not (null (assoc (type-principle type) *built-in-types*))))
 
 (defun built-in-vars (context)
   (loop :for part :in context
@@ -534,20 +534,21 @@
 	 (superior (apply #'superior-type 
 			 (identity-filter 
 			  in-types (func-compatible-args func))))
-	 (final-type
-	   (flesh-out-type
-	    (loop :for i in (func-out-spec func)
-		  :for part from 0
-		  :collect 
-		  (if (numberp i)
-		      (nth part (if (nth i (func-compatible-args
-					    func))
-				    superior
-				    (nth i in-types)))
-		      i)))))
+	 (made-type
+	   (loop :for i in (func-out-spec func)
+		 :for part from 0
+		 :collect 
+		 (if (numberp i)
+		     (nth part (if (nth i (func-compatible-args
+					   func))
+				   superior
+				   (nth i in-types)))
+		     (if (consp i) (first i) i))))
+	 (final-type (flesh-out-type made-type)))
     ;; (print in-types)
     ;; (print (func-out-spec func))
     ;; (print (func-compatible-args func))
+    ;; (print made-type)
     ;; (print final-type)
     final-type))
 
@@ -661,12 +662,16 @@
 	       :collect
 	       (list (symb struct-name '- (first slot))
 		     (vlambda :in-args `((x (,fake-type)))
-			      :output-type (set-place-t 
-					    (flesh-out-type 
-					     (second slot)))
+			      :output-type
+			      (literal-number-output-type
+			       (set-place-t 
+				(flesh-out-type 
+				 (second slot))))
 			      :transform (format nil "_f_~~a_~a" 
 						 (first slot)))))))))
 
+(defun literal-number-output-type (type)
+  (loop for i in type :collect (if (numberp i) (list i) i)))
 
 (defun struct-funcs (struct)
   (%struct-funcs (first struct) nil nil (rest struct)))
@@ -686,9 +691,10 @@
 	 :collect
 	 (list (symb (or slot-prefix name) '- (first slot))
 	       (vlambda :in-args `((x (,name)))
-			:output-type (set-place-t 
-				      (flesh-out-type 
-				       (second slot)))
+			:output-type 
+			(literal-number-output-type
+			 (set-place-t (flesh-out-type 
+				       (second slot))))
 			:transform (format nil "~~a.~a" 
 					   (or (third slot)
 					       (first slot)))

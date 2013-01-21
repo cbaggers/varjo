@@ -60,11 +60,6 @@
 
 
 (defun parse-shader-args (args)
-  "Takes a list of arguments for a shader and extracts the
-   version, stream declarations and uniform declarations.
-   It also runs some sanity checks to make sure the contents
-   are well-formed."
-  ;; extract details
   (let* ((uni-pos (position-if #'keywordp args))
 	 (in-vars (subseq args 0 uni-pos))
 	 (uniforms (when uni-pos (group (subseq args uni-pos) 2))))
@@ -72,7 +67,8 @@
 	      (check-in-arg-forms in-vars))
      (let* ((fleshed-out-in-vars (flesh-out-in-vars in-vars))
 	    (in-var-structs-and-types 
-	      (create-fake-structs-from-in-vars fleshed-out-in-vars))
+	      (create-fake-structs-from-in-vars
+	       fleshed-out-in-vars))
 	    (in-var-struct-type-maps
 	      (mapcar #'first in-var-structs-and-types))
 	    (in-var-struct-types 
@@ -158,7 +154,7 @@
 	     (to-block code) (current-line code))
       (format 
        nil 
-       "#version ~a~% ~{~%~{~a~%~}~}" 
+       "#version ~a~%~{~%~{~a~%~}~}" 
        version
        (list
 	(mapcar #'struct-init-form struct-definitions)
@@ -196,12 +192,6 @@
 			     (type-principle (var-type in-var)) 
 			     type-alist))
 			   (var-type in-var)))))
-
-(defun flesh-out-var (var)
-  (if (null var)
-      (error "Cannot flesh out empty var")
-      (let ((template '(*no-name* (:void) nil t)))
-	(append var (subseq template (length var))))))
 
 (defun compile-var (name type &rest qualifiers)
   (let ((ob (varjo->glsl
@@ -243,7 +233,8 @@
 (defun compile-in-var-declarations (vars)
   (add-layout-qualifiers-to-in-vars
    (loop for var in vars
-	 :collect (qualify (compile-var (first var) (second var)) 
+	 :collect (qualify (compile-var (var-name var)
+					(var-type var)) 
 			   :in))))
 
 (defun compile-uniform-declarations (vars)
@@ -253,22 +244,19 @@
 			  :uniform)))
 
 (defun varjo->glsl (varjo-code)
-  (cond 
-    ((null varjo-code) nil)
-    ((typep varjo-code 'code) varjo-code)
-    ((atom varjo-code) 
-     (if (assoc varjo-code *glsl-variables*)
-	 (instance-var varjo-code)
-	 (error "Varjo: '~s' is unidentified." varjo-code)))
-    ((special-functionp (first varjo-code)) 
-     (apply-special (first varjo-code) (rest varjo-code)))
-    ((vfunctionp (first varjo-code))
-     (compile-function (first varjo-code) (rest varjo-code)))
-    (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-context*))))
+  (cond ((null varjo-code) nil)
+	((typep varjo-code 'code) varjo-code)
+	((atom varjo-code) 
+	 (if (assoc varjo-code *glsl-variables*)
+	     (instance-var varjo-code)
+	     (error "Varjo: '~s' is unidentified." varjo-code)))
+	((special-functionp (first varjo-code)) 
+	 (apply-special (first varjo-code) (rest varjo-code)))
+	((vfunctionp (first varjo-code))
+	 (compile-function (first varjo-code) (rest varjo-code)))
+	(t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-context*))))
 
-;;------------------------------------------------------------
 
-;; expects code objects 
 (defun compile-function (func-name args)
   (let ((func-specs (func-specs func-name))
 	(arg-objs (mapcar #'varjo->glsl args)))

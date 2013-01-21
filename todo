@@ -1,10 +1,6 @@
 
 * need a way to specify other details like *layout-size*
 
-* look at in-vars properly*
-* write the fake-structure code for vertex in-vars
-* in-vars can't be structures
-* uniforms can be structures
 * fragment in-cars can have qualifiers
 
 * add all the texture lookup functions
@@ -15,7 +11,12 @@
 * add lambda?
 * add preprocessor extensions to translate function
 * check out _line_ _file_ and _version_ macros from glsl, are they
- used?
+  used?
 * add lisp macros wrappers for this functionality
 * Massive cleanup of code
 * glsl-defun doesnt use the arg names we give it
+
+-----------------------------------------------------
+
+* labels appends it's functions (obviously dangerous)
+* 

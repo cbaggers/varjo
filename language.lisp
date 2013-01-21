@@ -1176,9 +1176,8 @@
 					      (current-line x))) 
 				    form-objs)
 			    (to-block prog-ob))
-		 :to-top (append 
-			  (mapcan #'to-top form-objs)
-			  (to-top prog-ob))))))
+		 :to-top (append (mapcan #'to-top form-objs)
+				 (to-top prog-ob))))))
 
 (vdefspecial return (&optional (form '(%void)))
   (let ((ob (varjo->glsl form)))
@@ -1496,3 +1495,8 @@
 
 (vdefmacro while (test &rest body)
   `(while ,test (progn ,@body)))
+
+(vdefmacro lambda (args &rest body)
+  (let ((name (glsl-gensym '_lamb)))
+    `(labels ((,name ,args ,@body))
+       (name ))))
