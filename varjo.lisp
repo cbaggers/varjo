@@ -49,8 +49,8 @@
 			 priniciple)))))
 
 
-(defmacro defshader (name type version (&rest args) &body code)  
-  `(let ((source (translate ,type ,version ',args ',code)))
+(defmacro defshader (name (&rest args) &body code)  
+  `(let ((source (translate ',args ',code)))
      ,(if (eq name :!test!)
 	  `(first source)
 	  (if (keywordp name)
@@ -61,41 +61,46 @@
 
 (defun parse-shader-args (args)
   (let* ((uni-pos (position '&uniform args))
+	 (context-pos (position '&context args))
 	 (in-vars (subseq args 0 uni-pos))
-	 (uniforms (when uni-pos (group (subseq args (1+ uni-pos)) 
-					2))))
-   (when (and (check-uniform-forms uniforms)
-	      (check-in-arg-forms in-vars))
-     (let* ((fleshed-out-in-vars (flesh-out-in-vars in-vars))
-	    (in-var-structs-and-types 
-	      (create-fake-structs-from-in-vars
-	       fleshed-out-in-vars))
-	    (in-var-struct-type-maps
-	      (mapcar #'first in-var-structs-and-types))
-	    (in-var-struct-types 
-	      (mapcar #'first in-var-struct-type-maps))
-	    (in-var-struct-functions
-	      (mapcan #'second in-var-structs-and-types))
-	    (fleshed-out-uniforms (flesh-out-uniforms uniforms))
-	    (uniform-struct-types (get-uniform-struct-types
-				   fleshed-out-uniforms))
-	    (uniform-struct-definitions
-	      (when uniform-struct-types
-		(get-struct-definitions uniform-struct-types)))
-	    (uniform-struct-functions 
-	      (mapcan #'struct-funcs uniform-struct-definitions)))
-       (list (substitute-alternate-struct-types
-	      fleshed-out-in-vars in-var-struct-type-maps)
-	     (expand-struct-in-vars fleshed-out-in-vars)
-	     (uniform-specs-to-vars fleshed-out-uniforms)
-	     (append in-var-struct-functions
-		     uniform-struct-functions)
-	     uniform-struct-definitions
-	     (append in-var-struct-types
-		     uniform-struct-types))))))
-
-(defun check-for-invalid-struct-types (types)
-  (if (notany '#null )))
+	 (uniforms (when uni-pos (group (subseq args (1+ uni-pos)
+						context-pos) 
+					2)))
+	 (context (when context-pos (subseq args 
+					    (1+ context-pos)))))
+    (destructuring-bind (&key (type :vertex) (version :330))
+	context
+      (when (and (check-uniform-forms uniforms)
+		 (check-in-arg-forms in-vars))
+	(let* ((fleshed-out-in-vars (flesh-out-in-vars in-vars))
+	       (in-var-structs-and-types 
+		 (create-fake-structs-from-in-vars
+		  fleshed-out-in-vars))
+	       (in-var-struct-type-maps
+		 (mapcar #'first in-var-structs-and-types))
+	       (in-var-struct-types 
+		 (mapcar #'first in-var-struct-type-maps))
+	       (in-var-struct-functions
+		 (mapcan #'second in-var-structs-and-types))
+	       (fleshed-out-uniforms (flesh-out-uniforms uniforms))
+	       (uniform-struct-types (get-uniform-struct-types
+				      fleshed-out-uniforms))
+	       (uniform-struct-definitions
+		 (when uniform-struct-types
+		   (get-struct-definitions uniform-struct-types)))
+	       (uniform-struct-functions 
+		 (mapcan #'struct-funcs 
+			 uniform-struct-definitions)))
+	  (list type version
+		(substitute-alternate-struct-types
+		 fleshed-out-in-vars in-var-struct-type-maps)
+		(expand-struct-in-vars fleshed-out-in-vars)
+		(uniform-specs-to-vars fleshed-out-uniforms)
+		(append in-var-struct-functions
+			uniform-struct-functions)
+		uniform-struct-definitions
+		(append in-var-struct-types
+			uniform-struct-types)))))))
 
 (defun flesh-out-in-vars (in-vars)
   (loop for var in in-vars
@@ -130,8 +135,9 @@
 	  :if (not (type-built-inp (uniform-type u)))
 	    :collect (type-principle (uniform-type u))))))
 
-(defun translate (shader-type version args code)
-  (destructuring-bind (in-vars in-var-declarations uniform-vars
+(defun translate (args code)
+  (destructuring-bind (shader-type version in-vars 
+		       in-var-declarations uniform-vars
 		       struct-functions struct-definitions types)
       (parse-shader-args args)
     (let* ((*shader-context* (list :core shader-type))

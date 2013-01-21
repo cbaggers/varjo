@@ -673,7 +673,7 @@
 			 (flesh-out-type (var-type slot))))))
 
 (defun make-fake-struct (struct-name)
-  (let ((fake-type (symb '_f_ struct-name))
+  (let ((fake-type (symb '-f- struct-name))
 	(slots (rest (first (get-struct-definitions 
 			     (list struct-name))))))    
     (list
