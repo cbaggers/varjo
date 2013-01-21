@@ -1265,8 +1265,7 @@
 	   (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
 
 (vdefspecial labels (func-specs &rest body)
-  (let* ((*glsl-variables* (get-vars-for-context *shader-context*))
-	 (func-objs (mapcar 
+  (let* ((func-objs (mapcar 
 		     #'(lambda (f) (varjo->glsl 
 				    (cons '%make-function f)))
 		     func-specs))
@@ -1293,11 +1292,11 @@
 (vdefspecial %make-function (name args 
 			     &rest body)
   (destructuring-bind (form-objs new-vars)
-      (compile-let-forms (mapcar #'list args) nil)
+      (compile-let-forms (mapcar #'list args) nil nil)
     (declare (ignore form-objs))
     (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
 	   (body-obj (apply-special 'progn body))
-	   (name (if (eq name :main) :main (glsl-gensym name)))
+	   (name (if (eq name :main) :main name))
 	   (returns (returns body-obj))
 	   (type (if (eq name :main) '(:void nil nil) 
 		     (code-type body-obj))))
@@ -1315,7 +1314,7 @@
 					(current-line body-obj))))
 		 :out-vars (out-vars body-obj))
 	  
-	  (error "Some of the return statements in function '~a' returns different types~%~a~%~a" name type returns)))))
+	  (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))
 
 (vdefspecial while (test &rest body)
   (let* ((test-ob (varjo->glsl test))

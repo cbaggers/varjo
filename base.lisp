@@ -576,7 +576,8 @@
 (defun var-read-only (var)
   (fourth var))
 
-(defun compile-let-forms (let-forms &optional (typify t))
+(defun compile-let-forms (let-forms &optional (typify t) 
+				      (gensym-vars t))
   ;; takes forms and returns a list of two things
   ;; the compiled forms and the variable forms which can be 
   ;; appended to *glsl-variables*
@@ -603,7 +604,9 @@
     (let* ((val-objs (loop :for form in let-forms
 			   :collect (varjo->glsl (val form))))
 	   (var-names (mapcar #'var-name let-forms))
-	   (var-gl-names (mapcar #'glsl-gensym var-names))
+	   (var-gl-names (if gensym-vars
+			     (mapcar #'glsl-gensym var-names)
+			     var-names))
 	   (var-types (loop :for form :in let-forms
 			    :for obj :in val-objs
 			    :collect (or (var-type form)
