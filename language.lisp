@@ -403,8 +403,7 @@
             :transform "clamp(~a, ~a, ~a)")
 
 (glsl-defun :name 'clamp
-            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)) 
-			)
+            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)))
 		       (min-val :uint )
 		       (max-val :uint ))
             :output-type '(0 nil)
@@ -484,7 +483,7 @@
 (glsl-defun :name 'normalize
             :in-args '((x ((:float :vec2 :vec3 :vec4))))
             :output-type '(0 nil)
-            :transform "cross(~a, ~a)")
+            :transform "normalize(~a)")
 
 (glsl-defun :name 'aref
             :in-args '((array (t t))

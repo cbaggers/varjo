@@ -20,4 +20,7 @@
 
 * labels appends it's functions (obviously dangerous)
 * progn indenting ""
-* safe-gl-name breaking for in-var structs 
+* We dont check for collisions between in-vars and in-built
+  for example: (defshader :!test! ((color :vec4)) color)
+   
+
