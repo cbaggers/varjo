@@ -80,11 +80,11 @@
 
 (defun varjo-type->glsl-type (type-spec)
   (let* ((type (flesh-out-type type-spec))
-	 (principle (first type))
+	 (type-name (or (type-gl-name type) (type-principle type)))
 	 (len (second type)))
     (if len
-	(format nil "~a[~a]" principle (if (numberp len) len ""))
-	(format nil "~a" principle))))
+	(format nil "~a[~a]" type-name (if (numberp len) len ""))
+	(format nil "~a" type-name))))
 
 (defun instance-var (symbol)
   (let ((var-spec (assoc symbol *glsl-variables*)))
@@ -1191,16 +1191,17 @@
 	(error "The variable name '~a' is already taken and so cannot be used~%for an out variable" out-var-name)
 	(make-instance 'code
 		       :type :void
-		       :current-line (format nil "~a = ~a" 
-					     out-var-name
-					     (current-line arg-obj))
+		       :current-line (fmt "~a = ~a" 
+					  (safe-gl-name out-var-name)
+					  (current-line arg-obj))
 		       :to-block (to-block arg-obj)
-		       :to-top (cons (format nil "~{~a ~}out ~a ~a;"
-					     qualifiers
-					     (varjo-type->glsl-type
-					      (code-type arg-obj))
-					     out-var-name)
-				     (to-top arg-obj))
+		       :to-top (cons 
+				(fmt "~{~a ~}out ~a ~a;"
+				     qualifiers
+				     (varjo-type->glsl-type
+				      (code-type arg-obj))
+				     (safe-gl-name out-var-name))
+				(to-top arg-obj))
 		       :out-vars `(,out-var-name 
 				   ,(code-type arg-obj)
 				   ,@qualifiers)))))
@@ -1280,7 +1281,7 @@
 			    :output-type (code-type obj)
 			    :transform 
 			    (format nil"~a(~{~a~^,~^ ~})"
-				    (first spec)
+				    (safe-gl-name '-f (first spec))
 				    (loop for i below (length (second spec))
 					  :collect "~a")))))
 	    *glsl-functions*)))
@@ -1291,30 +1292,33 @@
 
 (vdefspecial %make-function (name args 
 			     &rest body)
-  (destructuring-bind (form-objs new-vars)
-      (compile-let-forms (mapcar #'list args) nil nil)
-    (declare (ignore form-objs))
-    (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
-	   (body-obj (apply-special 'progn body))
-	   (name (if (eq name :main) :main name))
-	   (returns (returns body-obj))
-	   (type (if (eq name :main) '(:void nil nil) 
-		     (code-type body-obj))))
-      (if (or (not returns) (every (equalp! type) returns)) 
-	  (make-instance 
-	   'code :type type
-		 :current-line nil
-		 :to-top (append 
-			  (to-top body-obj)
-			  (list (format nil "~a ~a(~{~{~a ~a~}~^,~^ ~}) {~%~{~a~%~}~@[~a;~%~]}~%"		       
-					(varjo-type->glsl-type type)
-					name 
-					(mapcar #'reverse args)
-					(to-block body-obj) 
-					(current-line body-obj))))
-		 :out-vars (out-vars body-obj))
-	  
-	  (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))
+  (let ((name (if (eq name :main) :main (symb '-f name))))
+    (destructuring-bind (form-objs new-vars)
+	(compile-let-forms (mapcar #'list args) nil nil)
+      (declare (ignore form-objs))
+      (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
+	     (body-obj (apply-special 'progn body))
+	     (name (if (eq name :main) :main name))
+	     (returns (returns body-obj))
+	     (type (if (eq name :main) '(:void nil nil) 
+		       (code-type body-obj))))
+	(let ((name (safe-gl-name name)))
+	  (if (or (not returns) (every (equalp! type) returns)) 
+	      (make-instance 
+	       'code :type type
+		     :current-line nil
+		     :to-top (append 
+			      (to-top body-obj)
+			      (list (format 
+				     nil "~a ~a(~{~{~a ~a~}~^,~^ ~}) {~%~{~a~%~}~@[~a;~%~]}~%"		       
+				     (varjo-type->glsl-type type)
+				     name 
+				     (mapcar #'reverse args)
+				     (to-block body-obj) 
+				     (current-line body-obj))))
+		     :out-vars (out-vars body-obj))
+	      
+	      (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))))
 
 (vdefspecial while (test &rest body)
   (let* ((test-ob (varjo->glsl test))

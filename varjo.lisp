@@ -60,9 +60,10 @@
 
 
 (defun parse-shader-args (args)
-  (let* ((uni-pos (position-if #'keywordp args))
+  (let* ((uni-pos (position '&uniform args))
 	 (in-vars (subseq args 0 uni-pos))
-	 (uniforms (when uni-pos (group (subseq args uni-pos) 2))))
+	 (uniforms (when uni-pos (group (subseq args (1+ uni-pos)) 
+					2))))
    (when (and (check-uniform-forms uniforms)
 	      (check-in-arg-forms in-vars))
      (let* ((fleshed-out-in-vars (flesh-out-in-vars in-vars))

@@ -19,4 +19,5 @@
 -----------------------------------------------------
 
 * labels appends it's functions (obviously dangerous)
-* progn indenting "" 
+* progn indenting ""
+* safe-gl-name breaking for in-var structs 
