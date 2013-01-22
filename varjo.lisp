@@ -51,7 +51,7 @@
 
 (defmacro defshader (name (&rest args) &body code)  
   `(let ((source (translate ',args ',code)))
-     ,(if (eq name :!test!)
+     ,(if (eq name :test)
 	  `(first source)
 	  (if (keywordp name)
 	      (error "Cannot define shader with keyword name")
@@ -62,7 +62,7 @@
 (defun parse-shader-args (args)
   (let* ((uni-pos (position '&uniform args))
 	 (context-pos (position '&context args))
-	 (in-vars (subseq args 0 uni-pos))
+	 (in-vars (subseq args 0 (or uni-pos context-pos)))
 	 (uniforms (when uni-pos (group (subseq args (1+ uni-pos)
 						context-pos) 
 					2)))
