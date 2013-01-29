@@ -14,21 +14,29 @@
 		 (:uvec2 . 1) (:uvec3 . 1) (:uvec4 . 1)
 		 (:ivec2 . 1) (:ivec3 . 1) (:ivec4 . 1)
 		 (:vec2 . 1) (:vec3 . 1) (:vec4 . 1)
-		 (:mat2 . 1) (:mat3 . 3) (:mat4 . 4)
+		 (:mat2 . 2) (:mat3 . 3) (:mat4 . 4)
 		 (:mat2x2 . 2) (:mat2x3 . 2) (:mat2x4 . 2)
 		 (:mat3x2 . 3) (:mat3x3 . 3) (:mat3x4 . 3)
 		 (:mat4x2 . 4) (:mat4x3 . 4) (:mat4x4 . 4)))
 
 (defparameter *glsl-component-counts*
-	       '((:bool . 1) (:int . 1) (:uint . 1) (:float . 1)
-		 (:bvec2 . 2) (:bvec3 . 3) (:bvec4 . 4)
-		 (:uvec2 . 2) (:uvec3 . 3) (:uvec4 . 4)
+	       '((:vec2 . 2) (:vec3 . 3) (:vec4 . 4)
 		 (:ivec2 . 2) (:ivec3 . 3) (:ivec4 . 4)
-		 (:vec2 . 2) (:vec3 . 3) (:vec4 . 4)
+		 (:uvec2 . 2) (:uvec3 . 3) (:uvec4 . 4)
 		 (:mat2 . 4) (:mat3 . 9) (:mat4 . 16)
 		 (:mat2x2 . 4) (:mat2x3 . 6) (:mat2x4 . 8)
 		 (:mat3x2 . 6) (:mat3x3 . 9) (:mat3x4 . 12)
 		 (:mat4x2 . 8) (:mat4x3 . 12) (:mat4x4 . 16)))
+
+(defparameter *glsl-component-type*
+  '((:bvec2 . :bool)   (:bvec3 . :bool)   (:bvec4 . :bool)
+    (:uvec2 . :uint)   (:uvec3 . :uint)   (:uvec4 . :uint)
+    (:ivec2 . :int)    (:ivec3 . :int)    (:ivec4 . :int)
+    (:vec2 . :float)   (:vec3 . :float)   (:vec4 . :float)
+    (:mat2 . :float)   (:mat3 . :float)   (:mat4 . :float)
+    (:mat2x2 . :float) (:mat2x3 . :float) (:mat2x4 . :float)
+    (:mat3x2 . :float) (:mat3x3 . :float) (:mat3x4 . :float)
+    (:mat4x2 . :float) (:mat4x3 . :float) (:mat4x4 . :float)))
 
 ;; following 3 were constant
 (defparameter *shader-types*
@@ -479,13 +487,32 @@
   (let ((superior (apply #'superior-type types)))
     (every #'(lambda (x) (glsl-castablep x superior)) types)))
 
+(defun type-aggregate-p (type)
+  (let ((type (flesh-out-type type)))
+    (when (not (type-arrayp type))
+      (not (null (assocr (type-principle type)
+			 *glsl-component-counts*))))))
+
 (defun type-component-count (type-spec)
   (let* ((full-type (flesh-out-type type-spec))
-	 (type (first full-type))
+	 (type (type-principle full-type))
 	 (length (assocr type *glsl-component-counts*)))
     (if length
 	length
-	(error "Type '~a' is not a vector or matrix componant type" type))))
+	(error "Type '~a' is not a vector or matrix componant type" full-type))))
+
+(defun type-component-type (type)
+  (let* ((ftype (flesh-out-type type))
+	(ptype (type-principle ftype)))
+    (if (type-arrayp ftype) 
+	ptype
+	(if (assocr ptype *glsl-component-type*)
+	    (assocr ptype *glsl-component-type*)
+	    (error "Type '~s' is not a vector or matrix componant type" 
+		   ptype)))))
+
+(defun type-glsl-size (type)
+  (cdr (assoc (type-principle type) *glsl-type-sizes*)))
 
 ;;------------------------------------------------------------
 ;; GLSL Functions
@@ -631,6 +658,21 @@
       (list (mapcar #'compile-form var-gl-names var-types val-objs)
 	    (mapcar #'list var-names var-types var-gl-names)))))
 
+(defun var-existsp (name)
+  (not (null (assoc name *glsl-variables*))))
+
+;;probably redundant
+(defmacro add-vars ((var-declarations &optional (shadowing t))
+		    &body body)
+  
+  `(if (or ,shadowing 
+	   (notany #'(lambda (var) (var-existsp (var-name var)))
+		   ,var-declarations))
+       (let ((*glsl-variables* (append ,var-declarations 
+				       *glsl-variables*)))
+	 ,@body)
+       (error "Variable already defined and cannot be shadowed.~%~a~%~a" ,var-declarations *glsl-variables*)))
+
 ;;------------------------------------------------------------
 ;; GLSL Structs
 ;;--------------
@@ -638,7 +680,7 @@
 (defun struct-init-form (struct)
   (let* ((struct-name (first struct))
 	 (slots (rest struct)))
-    (format nil "struct ~a {~%~{~a~%~}};"
+    (format nil "struct ~(~a~) {~%~{~a~%~}};"
 	    struct-name (mapcar #'compile-struct-type slots))))
 
 (defun compile-struct-type (slot)
@@ -743,3 +785,185 @@
        (setf *built-in-types* 
 	     (acons ',name '(nil) *built-in-types*))
        ',name)))
+
+;;------------------------------------------------------------
+
+(defun varjo->glsl (varjo-code)
+  (cond ((null varjo-code) nil)
+	((typep varjo-code 'code) varjo-code)
+	((atom varjo-code) 
+	 (if (assoc varjo-code *glsl-variables*)
+	     (instance-var varjo-code)
+	     (error "Varjo: '~s' is unidentified." varjo-code)))
+	((special-functionp (first varjo-code)) 
+	 (apply-special (first varjo-code) (rest varjo-code)))
+	((vfunctionp (first varjo-code))
+	 (compile-function (first varjo-code) (rest varjo-code)))
+	(t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-context*))))
+
+
+(defun compile-function (func-name args)
+  (let ((func-specs (func-specs func-name))
+	(arg-objs (mapcar #'varjo->glsl args)))
+    (loop :for f-spec :in func-specs 
+       :if (glsl-valid-function-args f-spec arg-objs )
+       :return (merge-obs arg-objs
+                :type (glsl-resolve-func-type f-spec arg-objs)
+                :current-line (apply #'format 
+				     (append 
+				      (list nil (func-body f-spec))
+				      (mapcar #'current-line
+					      arg-objs))))
+       :finally (error "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " func-name (mapcar #'code-type arg-objs)))))
+
+(defun macroexpand-and-substitute (varjo-code)
+  (cond ((null varjo-code) nil)
+	((listp varjo-code) 
+	 (let ((sub (substitution (first varjo-code)))) 
+	   (if sub
+	       (mapcar #'macroexpand-and-substitute
+		       (apply sub (rest varjo-code)))
+	       (mapcar #'macroexpand-and-substitute
+		       varjo-code))))
+	(t varjo-code)))
+
+;; [TODO] How should we specify unsigned?
+(defun replace-literals (varjo-code)
+  (cond ((null varjo-code) nil)	 
+	((eq t varjo-code) 
+	 (make-instance 'code :current-line "true" 
+			      :type '(:bool nil)))
+	((numberp varjo-code) 
+	 (make-instance 'code :current-line (format nil "~a" 
+						    varjo-code)
+			      :type (get-number-type varjo-code)))
+	((listp varjo-code) (mapcar #'replace-literals varjo-code))
+	(t varjo-code)))
+
+(defun get-number-type (x)
+  (cond ((floatp x) '(:float nil))
+	((integerp x) '(:int nil))
+	(t (error "Varjo: Do not know the type of the number '~s'"
+		  x))))
+
+(defun compile-var (name type &rest qualifiers)
+  (%compile-var name type qualifiers))
+
+(defun %compile-var (name type &optional qualifiers)
+  (%qualify (varjo->glsl `(%in-typify (%make-var
+				       ,name 
+				       ,(flesh-out-type type))))
+	    qualifiers))
+
+(defun %qualify (obj qualifiers)
+  (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a" 
+				       qualifiers 
+				       (current-line obj))))
+
+(defun qualify (obj &rest qualifiers)
+  (%qualify obj qualifiers))
+
+;;---------------------------------------------------------------
+
+(defun glsl-defun (&key name in-args output-type
+		     transform context-restriction)
+  (let ((*types* *built-in-types*))
+    (let* ((func-spec (vlambda :in-args in-args 
+			       :output-type output-type
+			       :transform transform
+			       :context-restriction 
+			       context-restriction)))
+      (setf *glsl-functions*
+	    (acons name (cons func-spec
+			      (assocr name *glsl-functions*))
+		   *glsl-functions*)))))
+
+(defun get-vars-for-context (context)
+  (loop for item in context
+	:append (assocr item *built-in-vars*)))
+
+(defun func-valid-for-contextp (context func)
+  (let ((restriction (func-restriction func)))
+    (if restriction
+	(when (loop for item in context
+		    :if (find item restriction)
+		      :collect t)
+	  func)
+	func)))
+
+(defun func-specs (name)
+  (let ((all-matching (assocr name *glsl-functions*)))
+    (remove-if 
+     #'null (loop for spec in all-matching
+		  :collect (func-valid-for-contextp 
+			    *shader-context* spec)))))
+
+(defun vfunctionp (name)
+  (not (null (func-specs name))))
+
+(defun special-functionp (symbol)
+  (not (null (assoc symbol *glsl-special-functions*))))
+
+(defun apply-special (symbol arg-objs)
+  (if (special-functionp symbol)
+      (apply (assocr symbol *glsl-special-functions*) arg-objs)
+      (error "Varjo: '~a' is not a special function" symbol)))
+
+(defun register-special-function (symbol function)
+  (setf *glsl-special-functions* 
+	(cons (cons symbol function) *glsl-special-functions*)))
+
+(defmacro vdefspecial (name args &body body)
+  `(register-special-function ',name #'(lambda ,args ,@body)))
+
+(defun register-substitution (symbol function)
+  (setf *glsl-substitutions*
+	(acons symbol function *glsl-substitutions*)))
+
+(defun substitutionp (symbol)
+  (not (null (assoc symbol *glsl-substitutions*))))
+
+(defun substitution (symbol)
+  (assocr symbol *glsl-substitutions*))
+
+(defmacro vdefmacro (name lambda-list &body body)
+  `(register-substitution
+    ',name
+    (lambda ,lambda-list
+      ,@body)))
+
+(defun varjo-type->glsl-type (type-spec)
+  (let* ((type (flesh-out-type type-spec))
+	 (type-name (or (type-gl-name type) (type-principle type)))
+	 (len (second type)))
+    (if len
+	(format nil "~a[~a]" type-name (if (numberp len) len ""))
+	(format nil "~a" type-name))))
+
+(defun instance-var (symbol)
+  (let ((var-spec (assoc symbol *glsl-variables*)))
+    (make-instance 'code
+		   :type (set-place-t
+			  (flesh-out-type (var-type var-spec)))
+		   :current-line (format nil "~a" 
+					 (or (var-gl-name var-spec)
+					     (var-name var-spec)))
+		   :read-only (var-read-only var-spec))))
+
+
+(defgeneric indent (input))
+
+(defmethod indent ((input string))
+  (mapcar #'(lambda (x) (format nil "    ~a" x))
+	  (split-sequence:split-sequence #\newline input)))
+
+(defmethod indent ((input list))
+  (mapcan #'indent input))
+
+(defun make-none-ob ()
+  (make-instance 'code :type :none
+		       :current-line ""))
+
+(defun end-line (ob)
+  (merge-obs ob :current-line (format nil "~a;" (current-line ob))))
+

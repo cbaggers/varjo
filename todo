@@ -22,5 +22,4 @@
 * progn indenting ""
 * We dont check for collisions between in-vars and in-built
   for example: (defshader :!test! ((color :vec4)) color)
-   
-
+* Need to support nested structures for uniforms
