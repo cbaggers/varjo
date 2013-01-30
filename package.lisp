@@ -5,6 +5,8 @@
   (:export :defshader
 	   :flesh-out-type
            :glsl-defun
+	   :mat-typep
+	   :mat/vec-length
            :translate
 	   :type-aggregate-p
 	   :type-arrayp
@@ -15,9 +17,12 @@
 	   :type-place
            :type-array-length 
            :type-built-inp
+           :type-mat-col-to-vec
            :type-placep
            :type-principle
+           :type-vec-core-type
            :vdefmacro
 	   :vdefspecial
-	   :vdefstruct))
+	   :vdefstruct
+	   :vec-typep))
 

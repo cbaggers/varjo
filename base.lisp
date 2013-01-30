@@ -263,7 +263,9 @@
 	(error "Varjo: Names of variables and functions must be only contain alpha-numeric characters and the '-'~%~a" n)
 	(cl-ppcre:regex-replace-all "[-]" n "_"))))
 
-
+(defun symbol-name-position (symbol list)
+  (let ((symb-name (string-upcase symbol)))
+    (position-if #'(lambda (x) (when (symbolp x) (equal (symbol-name x) symb-name))) list)))
 
 (defmacro assocr (item alist &key key (test nil testp) 
 			       (test-not nil notp))
@@ -487,11 +489,11 @@
   (let ((superior (apply #'superior-type types)))
     (every #'(lambda (x) (glsl-castablep x superior)) types)))
 
-(defun type-aggregate-p (type)
-  (let ((type (flesh-out-type type)))
-    (when (not (type-arrayp type))
-      (not (null (assocr (type-principle type)
-			 *glsl-component-counts*))))))
+(defun type-aggregate-p (type-spec)
+  (let* ((full-type (flesh-out-type type-spec))
+         (type (type-principle full-type))
+         (length (rest (assoc type *glsl-component-counts*))))
+    (when length t)))
 
 (defun type-component-count (type-spec)
   (let* ((full-type (flesh-out-type type-spec))
@@ -511,8 +513,38 @@
 	    (error "Type '~s' is not a vector or matrix componant type" 
 		   ptype)))))
 
-(defun type-glsl-size (type)
-  (cdr (assoc (type-principle type) *glsl-type-sizes*)))
+(defun type-glsl-size (type-spec)
+  (let* ((full-type (flesh-out-type type-spec))
+         (type (type-principle full-type))
+         (length (rest (assoc type *glsl-type-sizes*))))
+    (if length
+        length
+        (error "Type '~a' is not a vector or matrix componant type" type))))
+
+(defun mat-typep (mat-type)
+  (equal "MAT" (subseq (symbol-name (type-principle (flesh-out-type mat-type))) 0 3)))
+
+(defun mat/vec-length (mat-type)
+  (let ((name (symbol-name (type-principle (flesh-out-type mat-type)))))
+    (parse-integer (string (elt name (1- (length name)))))))
+
+(defun vec-typep (mat-type)
+  (let ((name (symbol-name (type-principle (flesh-out-type mat-type)))))
+    (equal "VEC" (subseq name (max 0 (- (length name) 4)) (1- (length name))))))
+
+(defun type-mat-col-to-vec (mat-type)
+  (kwd (format nil "VEC~a" 
+	       (elt (symbol-name 
+		     (type-principle (flesh-out-type mat-type))) 
+		    3))))
+
+(defun type-vec-core-type (vec-type)
+  (let* ((name (symbol-name (type-principle (flesh-out-type vec-type))))
+         (id (elt name 0)))
+    (cond ((eq id #\V) :float)
+          ((eq id #\I) :int)
+          ((eq id #\U) :uint)
+          (t (error "unknown vector type")))))
 
 ;;------------------------------------------------------------
 ;; GLSL Functions

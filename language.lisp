@@ -1326,7 +1326,16 @@
   (oper-segment-list args '/))
 
 (vdefmacro v! (&rest args)
-  `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args))
+  (let ((len (length args)))
+    (when (or (>= len 2) (<= len 4)))
+    `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args)))
+
+(vdefmacro m! (&rest args)
+  (let ((len (length args)))
+    (if (or (eq len 4) (eq len 9) (eq len 16))
+	`(%init-vec-or-mat ,(kwd (symb :mat (floor (sqrt len))))
+			   ,@args)
+	(error "Invalid number of arguemnts for matrix"))))
 
 (vdefmacro vec2 (&rest args)
   `(%init-vec-or-mat :vec2 ,@args))

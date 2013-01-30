@@ -21,13 +21,10 @@
 	      `(defun ,name ()
 		 source)))))
 
-(defun symbol-name-equal (x y)
-  (equal (symbol-name x) (symbol-name y)))
-
 ;; [TODO] Position doesnt work if &uniform is in another package
 (defun parse-shader-args (args)
-  (let* ((uni-pos (position '&uniform args))
-	 (context-pos (position '&context args))
+  (let* ((uni-pos (symbol-name-position '&uniform args))
+	 (context-pos (symbol-name-position '&context args))
 	 (in-vars (subseq args 0 (or uni-pos context-pos)))
 	 (uniforms-raw (when uni-pos (subseq args (1+ uni-pos)
 					     context-pos)))
