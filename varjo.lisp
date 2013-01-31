@@ -15,7 +15,7 @@
 (defmacro defshader (name (&rest args) &body code)  
   `(let ((source (translate ',args ',code)))
      ,(if (eq name :test)
-	  `(first source)
+	  `source
 	  (if (keywordp name)
 	      (error "Cannot define shader with keyword name")
 	      `(defun ,name ()
@@ -89,9 +89,10 @@
 			       in-var-declarations '(:in))))
 	   (compiled-uniforms (compile-declarations uniform-vars
 						    '(:uniform))))
-      (list
-       (write-output-string version struct-definitions compiled-obj
-			    compiled-in-vars compiled-uniforms)))))
+      (list (write-output-string version struct-definitions
+				 compiled-obj compiled-in-vars
+				 compiled-uniforms)
+	    (out-vars compiled-obj)))))
 
 (defun compile-main (code)
   (varjo->glsl (replace-literals 

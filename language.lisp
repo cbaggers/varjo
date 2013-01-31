@@ -1208,9 +1208,9 @@
 					(safe-gl-name out-var-name)
 					(code-type arg-obj) :out)))
 				     (to-top arg-obj))
-		       :out-vars `(,out-var-name 
-				   ,(code-type arg-obj)
-				   ,@qualifiers)))))
+		       :out-vars `((,out-var-name 
+				    ,(code-type arg-obj)
+				    ,@qualifiers))))))
 
 (vdefspecial progn (&rest body)
   (let ((arg-objs (mapcar #'varjo->glsl body)))
