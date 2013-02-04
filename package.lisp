@@ -7,6 +7,9 @@
            :glsl-defun
 	   :mat-typep
 	   :mat/vec-length
+	   :rolling-translate
+	   :split-shader-args
+	   :struct-definition
            :translate
 	   :type-aggregate-p
 	   :type-arrayp

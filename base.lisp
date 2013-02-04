@@ -726,9 +726,15 @@
 	  (format nil "    ~a ~a;" 
 		  principle name)))))
 
+(defun struct-definition (type-name)
+  (let ((descrip (assoc type-name *struct-definitions*)))
+    (or (rest descrip) 
+	(error "Varjo: Struct ~a does not exist" type-name))))
+
 (defun get-struct-definitions (types)
   (if (not types) 
       (error "Varjo: get-struct-definitions called with no types")
+
       (let* ((found (loop for type in types 
 			  :collect (assoc type
 					  *struct-definitions*)))

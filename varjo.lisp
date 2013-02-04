@@ -21,52 +21,73 @@
 	      `(defun ,name ()
 		 source)))))
 
-;; [TODO] Position doesnt work if &uniform is in another package
-(defun parse-shader-args (args)
+(defun split-shader-args (args &optional default-version 
+				 default-type)
   (let* ((uni-pos (symbol-name-position '&uniform args))
-	 (context-pos (symbol-name-position '&context args))
-	 (in-vars (subseq args 0 (or uni-pos context-pos)))
-	 (uniforms-raw (when uni-pos (subseq args (1+ uni-pos)
-					     context-pos)))
-	 (uniforms (mapcar #'uniform->var uniforms-raw))
-	 (uniform-defaults (mapcar #'uniform-default-val 
-				   uniforms-raw))
-	 (context (when context-pos (subseq args 
-					    (1+ context-pos)))))
-    (declare (ignore uniform-defaults))
-    (destructuring-bind (&key (type :vertex) (version :330))
-	context
-      (when (and (check-arg-forms uniforms)
-		 (check-arg-forms in-vars))
-	(let* ((fleshed-out-in-vars (flesh-out-args in-vars))
-	       (in-var-structs-and-types 
-		 (create-fake-structs-from-in-vars
-		  fleshed-out-in-vars))
-	       (in-var-struct-type-maps
-		 (mapcar #'first in-var-structs-and-types))
-	       (in-var-struct-types 
-		 (mapcar #'first in-var-struct-type-maps))
-	       (in-var-struct-functions
-		 (mapcan #'second in-var-structs-and-types))
-	       (fleshed-out-uniforms (flesh-out-args uniforms))
-	       (uniform-struct-types (get-uniform-struct-types
-				      fleshed-out-uniforms))
-	       (uniform-struct-definitions
-		 (when uniform-struct-types
-		   (get-struct-definitions uniform-struct-types)))
-	       (uniform-struct-functions 
-		 (mapcan #'struct-funcs 
-			 uniform-struct-definitions)))
-	  (list type version
-		(substitute-alternate-struct-types
-		 fleshed-out-in-vars in-var-struct-type-maps)
-		(expand-struct-in-vars fleshed-out-in-vars)
-		fleshed-out-uniforms
-		(append in-var-struct-functions
-			uniform-struct-functions)
-		uniform-struct-definitions
-		(append in-var-struct-types
-			uniform-struct-types)))))))
+	  (context-pos (symbol-name-position '&context args))
+	  (in-vars (subseq args 0 (or uni-pos context-pos)))
+	  (uniforms-raw (when uni-pos (subseq args (1+ uni-pos)
+					      context-pos)))
+	  (uniforms (mapcar #'uniform->var uniforms-raw))
+	  (uniform-defaults (mapcar #'uniform-default-val 
+				    uniforms-raw))
+	  (context (when context-pos (subseq args 
+					     (1+ context-pos)))))
+    (when (and (check-arg-forms uniforms)
+	       (check-arg-forms in-vars))
+      (destructuring-bind 
+	  (&key (type default-type) (version default-version))
+	  context
+	(list in-vars uniforms uniform-defaults type version)))))
+
+;; [TODO] Position doesnt work if &uniform is in another package
+(defun parse-shader-args (args)    
+  (destructuring-bind (in-vars uniforms uniform-defaults type 
+		       version)
+      (split-shader-args args :330 :vertex)
+    (declare (ignore uniform-defaults))    
+    (let* ((fleshed-out-in-vars (flesh-out-args in-vars))
+	   (in-var-structs-and-types 
+	     (create-fake-structs-from-in-vars
+	      fleshed-out-in-vars))
+	   (in-var-struct-type-maps
+	     (mapcar #'first in-var-structs-and-types))
+	   (in-var-struct-types 
+	     (mapcar #'first in-var-struct-type-maps))
+	   (in-var-struct-functions
+	     (mapcan #'second in-var-structs-and-types))
+	   (fleshed-out-uniforms (flesh-out-args uniforms))
+	   (uniform-struct-types (get-uniform-struct-types
+				  fleshed-out-uniforms))
+	   (uniform-struct-definitions
+	     (when uniform-struct-types
+	       (get-struct-definitions uniform-struct-types)))
+	   (uniform-struct-functions 
+	     (mapcan #'struct-funcs 
+		     uniform-struct-definitions)))
+      (list type version
+	    (substitute-alternate-struct-types
+	     fleshed-out-in-vars in-var-struct-type-maps)
+	    (expand-struct-in-vars fleshed-out-in-vars)
+	    fleshed-out-uniforms
+	    (append in-var-struct-functions
+		    uniform-struct-functions)
+	    uniform-struct-definitions
+	    (append in-var-struct-types
+		    uniform-struct-types)))))
+
+(defun rolling-translate (in-vars uniforms sources &optional version accum)
+  (let ((source (first sources)))
+    (if source
+	(let ((type (first source)) (code (rest source)))
+	  (destructuring-bind (glsl out-vars)	
+	      (varjo:translate (append in-vars 
+				       (cons '&uniform uniforms) 
+				       `(&context :version ,version :type ,type))
+ 			       code)
+	    (rolling-translate out-vars uniforms (rest sources)
+			       version (cons glsl accum))))
+	(reverse accum))))
 
 (defun translate (args code)
   (destructuring-bind (shader-type version in-vars 
