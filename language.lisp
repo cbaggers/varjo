@@ -34,6 +34,86 @@
             :output-type :void
             :transform "")
 
+(glsl-defun :name 'x
+            :in-args '((vec ((:bvec2 :bvec3 :bvec4))))
+            :output-type :bool
+            :transform "~a.x")
+
+(glsl-defun :name 'x
+            :in-args '((vec ((:ivec2 :ivec3 :ivec4))))
+            :output-type :int
+            :transform "~a.x")
+
+(glsl-defun :name 'x
+            :in-args '((vec ((:uvec2 :uvec3 :uvec4))))
+            :output-type :uint
+            :transform "~a.x")
+
+(glsl-defun :name 'x
+            :in-args '((vec ((:vec2 :vec3 :vec4))))
+            :output-type :float
+            :transform "~a.x")
+
+(glsl-defun :name 'y
+            :in-args '((vec ((:bvec2 :bvec3 :bvec4))))
+            :output-type :bool
+            :transform "~a.y")
+
+(glsl-defun :name 'y
+            :in-args '((vec ((:ivec2 :ivec3 :ivec4))))
+            :output-type :int
+            :transform "~a.y")
+
+(glsl-defun :name 'y
+            :in-args '((vec ((:uvec2 :uvec3 :uvec4))))
+            :output-type :uint
+            :transform "~a.y")
+
+(glsl-defun :name 'y
+            :in-args '((vec ((:vec2 :vec3 :vec4))))
+            :output-type :float
+            :transform "~a.y")
+
+(glsl-defun :name 'z
+            :in-args '((vec ((:bvec3 :bvec4))))
+            :output-type :bool
+            :transform "~a.z")
+
+(glsl-defun :name 'z
+            :in-args '((vec ((:ivec3 :ivec4))))
+            :output-type :int
+            :transform "~a.z")
+
+(glsl-defun :name 'z
+            :in-args '((vec ((:uvec3 :uvec4))))
+            :output-type :uint
+            :transform "~a.z")
+
+(glsl-defun :name 'z
+            :in-args '((vec ((:vec3 :vec4))))
+            :output-type :float
+            :transform "~a.z")
+
+(glsl-defun :name 'w
+            :in-args '((vec :bvec4))
+            :output-type :bool
+            :transform "~a.w")
+
+(glsl-defun :name 'w
+            :in-args '((vec :ivec4))
+            :output-type :int
+            :transform "~a.w")
+
+(glsl-defun :name 'w
+            :in-args '((vec :uvec4))
+            :output-type :uint
+            :transform "~a.w")
+
+(glsl-defun :name 'w
+            :in-args '((vec :vec4))
+            :output-type :float
+            :transform "~a.w")
+
 (glsl-defun :name 'bool
             :in-args '((x ((:double :float :int :uint :bool
                                     :bvec2 :bvec3 :bvec4))))
@@ -1103,6 +1183,10 @@
                              (mapcar #'current-line arg-objs)))
           (error "The lengths of the types provided~%(~{~a~^,~^ ~})~%do not add up to the length of ~a" types target-type)))))
 
+
+;; [TODO] Preety sure this has a bug where if you use an in-built
+;;        type with upper and lower case, this will just write 
+;;        lower-case
 (vdefspecial labels (func-specs &rest body)
   (let* ((func-objs (mapcar 
                      #'(lambda (f) (varjo->glsl 
@@ -1162,8 +1246,7 @@
                            (current-line length) 
                            (mapcar #'current-line contents)))))
 
-(vdefspecial %make-function (name args 
-                                  &rest body)
+(vdefspecial %make-function (name args &rest body)
   (let ((name (if (eq name :main) :main (symb '-f name))))
     (destructuring-bind (form-objs new-vars)
         (compile-let-forms (mapcar #'list args) nil nil)
@@ -1202,21 +1285,28 @@
                :current-line (format nil "-~a"
                                      (current-line arg-obj)))))
 
-(vdefspecial out (out-var-name form &rest qualifiers)
-  (let ((arg-obj (varjo->glsl form)))
+(vdefspecial out (name-and-qualifiers form)
+  (let ((arg-obj (varjo->glsl form))
+	(out-var-name (if (consp name-and-qualifiers)
+			  (first name-and-qualifiers)
+			  name-and-qualifiers))
+	(qualifiers (when (consp name-and-qualifiers)
+		      (rest name-and-qualifiers))))
     (if (assoc out-var-name *glsl-variables*)
         (error "The variable name '~a' is already taken and so cannot be used~%for an out variable" out-var-name)
         (make-instance 'code
                        :type :void
-                       :current-line (fmt "~a = ~a" 
+                       :current-line (fmt "~a = ~a;" 
                                           (safe-gl-name out-var-name)
                                           (current-line arg-obj))
                        :to-block (to-block arg-obj)
                        :to-top (cons (current-line 
                                       (end-line
-                                       (compile-var 
+                                       (%compile-var
                                         (safe-gl-name out-var-name)
-                                        (code-type arg-obj) :out)))
+                                        (code-type arg-obj) 
+					(append qualifiers
+						'(:out)))))
                                      (to-top arg-obj))
                        :out-vars `((,out-var-name 
                                     ,(code-type arg-obj)
@@ -1323,96 +1413,91 @@
 ;; Lisp Function Substitutions
 ;;-----------------------------
 
-(vdefmacro - (&rest args)
+(%vdefmacro - t (&rest args)
   (if (eq 1 (length args))
       `(%negate ,@args)
       `(%- ,@args)))
 
-(vdefmacro * (&rest args)
+(%vdefmacro * t (&rest args)
   (oper-segment-list args '*))
 
-(vdefmacro / (&rest args)
+(%vdefmacro / t (&rest args)
   (oper-segment-list args '/))
 
-(vdefmacro v! (&rest args)
+(%vdefmacro v! t (&rest args)
   (let ((len (length args)))
     (when (or (>= len 2) (<= len 4)))
     `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args)))
 
-(vdefmacro m! (&rest args)
+(%vdefmacro m! t (&rest args)
   (let ((len (length args)))
     (if (or (eq len 4) (eq len 9) (eq len 16))
         `(%init-vec-or-mat ,(kwd (symb :mat (floor (sqrt len))))
                            ,@args)
         (error "Invalid number of arguemnts for matrix"))))
 
-(vdefmacro vec2 (&rest args)
+(%vdefmacro vec2 t (&rest args)
   `(%init-vec-or-mat :vec2 ,@args))
 
-(vdefmacro vec3 (&rest args)
+(%vdefmacro vec3 t (&rest args)
   `(%init-vec-or-mat :vec3 ,@args))
 
-(vdefmacro vec4 (&rest args)
+(%vdefmacro vec4 t (&rest args)
   `(%init-vec-or-mat :vec4 ,@args))
 
-(vdefmacro ivec2 (&rest args)
+(%vdefmacro ivec2 t (&rest args)
   `(%init-vec-or-mat :ivec2 ,@args))
 
-(vdefmacro ivec3 (&rest args)
+(%vdefmacro ivec3 t (&rest args)
   `(%init-vec-or-mat :ivec3 ,@args))
 
-(vdefmacro ivec4 (&rest args)
+(%vdefmacro ivec4 t (&rest args)
   `(%init-vec-or-mat :ivec4 ,@args))
 
-(vdefmacro uvec2 (&rest args)
+(%vdefmacro uvec2 t (&rest args)
   `(%init-vec-or-mat :uvec2 ,@args))
 
-(vdefmacro uvec3 (&rest args)
+(%vdefmacro uvec3 t (&rest args)
   `(%init-vec-or-mat :uvec3 ,@args))
 
-(vdefmacro uvec4 (&rest args)
+(%vdefmacro uvec4 t (&rest args)
   `(%init-vec-or-mat :uvec4 ,@args))
 
-(vdefmacro mat2 (&rest args)
+(%vdefmacro mat2 t (&rest args)
   `(%init-vec-or-mat :mat2 ,@args))
 
-(vdefmacro mat3 (&rest args)
+(%vdefmacro mat3 t (&rest args)
   `(%init-vec-or-mat :mat3 ,@args))
 
-(vdefmacro mat4 (&rest args)
+(%vdefmacro mat4 t (&rest args)
   `(%init-vec-or-mat :mat4 ,@args))
 
-(vdefmacro mat2x2 (&rest args)
+(%vdefmacro mat2x2 t (&rest args)
   `(%init-vec-or-mat :mat2x2 ,@args))
 
-(vdefmacro mat2x3 (&rest args)
+(%vdefmacro mat2x3 t (&rest args)
   `(%init-vec-or-mat :mat2x3 ,@args))
 
-(vdefmacro mat2x4 (&rest args)
+(%vdefmacro mat2x4 t (&rest args)
   `(%init-vec-or-mat :mat2x4 ,@args))
 
-(vdefmacro mat3x2 (&rest args)
+(%vdefmacro mat3x2 t (&rest args)
   `(%init-vec-or-mat :mat3x2 ,@args))
 
-(vdefmacro mat3x3 (&rest args)
+(%vdefmacro mat3x3 t (&rest args)
   `(%init-vec-or-mat :mat3x3 ,@args))
 
-(vdefmacro mat3x4 (&rest args)
+(%vdefmacro mat3x4 t (&rest args)
   `(%init-vec-or-mat :mat3x4 ,@args))
 
-(vdefmacro mat4x2 (&rest args)
+(%vdefmacro mat4x2 t (&rest args)
   `(%init-vec-or-mat :mat4x2 ,@args))
 
-(vdefmacro mat4x3 (&rest args)
+(%vdefmacro mat4x3 t (&rest args)
   `(%init-vec-or-mat :mat4x3 ,@args))
 
-(vdefmacro mat4x4 (&rest args)
+(%vdefmacro mat4x4 t (&rest args)
   `(%init-vec-or-mat :mat4x4 ,@args))
 
-(vdefmacro while (test &rest body)
+(%vdefmacro while t (test &rest body)
   `(while ,test (progn ,@body)))
-
-(vdefmacro lambda (args &rest body)
-  (let ((name (glsl-gensym '_lamb)))
-    `(labels ((,name ,args ,@body))
-       (name ))))
