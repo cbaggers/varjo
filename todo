@@ -1,14 +1,10 @@
 
 * need a way to specify other details like *layout-size*
 
-* fragment in-cars can have qualifiers
-
 * add all the texture lookup functions
 * read up on setting variables as invariant
 * find out what the fuck centroid means
-* fix read-only
 
-* add lambda?
 * add preprocessor extensions to translate function
 * check out _line_ _file_ and _version_ macros from glsl, are they
   used?
@@ -19,7 +15,13 @@
 -----------------------------------------------------
 
 * labels appends it's functions (obviously dangerous)
-* progn indenting ""
-* We dont check for collisions between in-vars and in-built
-  for example: (defshader :!test! ((color :vec4)) color)
 * Need to support nested structures for uniforms
+* out vars could legitimately have the same name if they
+  are used inside an if statement.
+
+* readonly not working
+(cgl:defprogram? test ((a :float) &uniform (b :float))
+         (:vertex (progn (if (> a 0)
+                             (+ 2 3))
+                         (setf b 1.0)))
+         (:fragment (out done (* b 1))))
