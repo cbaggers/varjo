@@ -26,27 +26,27 @@
   (let* ((uni-pos (symbol-name-position '&uniform args))
          (context-pos (symbol-name-position '&context args))
          (in-vars (subseq args 0 (or uni-pos context-pos)))
-         (uniforms-raw (when uni-pos (subseq args (1+ uni-pos)
-                                             context-pos)))
-         (uniforms (mapcar #'uniform->var uniforms-raw))
-         (uniform-defaults (mapcar #'uniform-default-val 
-                                   uniforms-raw))
+         (uniforms (when uni-pos (subseq args (1+ uni-pos)
+                                         context-pos)))
          (context (when context-pos (subseq args 
                                             (1+ context-pos)))))
     (when (and (check-arg-forms uniforms)
                (check-arg-forms in-vars)
                (check-for-dups in-vars uniforms))
       (destructuring-bind 
-	  (&key (type default-type) (version default-version))
+            (&key (type default-type) (version default-version))
           context
-        (list in-vars uniforms uniform-defaults type version)))))
+        (list in-vars uniforms type version)))))
+
+(defun extract-uniforms (args)
+  (let ((uni-pos (symbol-name-position '&uniform args)))
+    (when uni-pos (subseq args (1+ uni-pos) 
+                          (symbol-name-position '&context args)))))
 
 ;; [TODO] Position doesnt work if &uniform is in another package
 (defun parse-shader-args (args)    
-  (destructuring-bind (in-vars uniforms uniform-defaults type
-		       version)
+  (destructuring-bind (in-vars uniforms type version)
       (split-shader-args args :330 :vertex)
-    (declare (ignore uniform-defaults))    
     (let* ((in-qualifiers (mapcar #'cddr in-vars))
 	   (in-vars (mapcar #'(lambda (x) (subseq x 0 2)) in-vars))
 	   (fleshed-out-in-vars (flesh-out-args in-vars))
@@ -81,21 +81,20 @@
             (append in-var-struct-types
                     uniform-struct-types)))))
 
-(defun rolling-translate (in-vars uniforms sources 
-			  &optional version accum (first-shader t))
-  (let ((source (first sources)))
-    (if source
-        (let ((type (first source)) (code (rest source)))
-          (destructuring-bind (glsl out-vars)	
-              (varjo:translate 
-	       (append in-vars
-		       (cons '&uniform uniforms) 
-		       `(&context :version ,version :type ,type))
-	       code first-shader)
-            (rolling-translate out-vars uniforms (rest sources)
-                               version (cons glsl accum)
-			       nil)))
-        (reverse accum))))
+(defun rolling-translate (args shaders &optional accum (first-shader t))  
+  (if (find :type args)
+      (error "Varjo: It is invalid to specify a shader type in a program definition")
+      (if shaders
+          (let* ((shader (first shaders))
+                 (type (first shader)))
+            (destructuring-bind (glsl new-args)
+                (varjo:translate (if (find '&context args 
+                                           :test #'symbol-name-equal)
+                                     (append args `(:type ,type))
+                                     (append args `(&context :type ,type)))
+                                 (rest shader) first-shader)
+              (rolling-translate new-args (rest shaders) (cons glsl accum) nil)))
+          (progn (reverse accum)))))
 
 (defun translate (args code &optional first-shader)
   (destructuring-bind (shader-type version in-vars 
@@ -122,10 +121,15 @@
            (compiled-uniforms (compile-declarations 
 			       (mapcar #'list uniform-vars)
 			       :uniform)))
-      (list (write-output-string version struct-definitions
-                                 compiled-obj compiled-in-vars
-                                 compiled-uniforms)
-            (out-vars compiled-obj)))))
+      (list (list (kwd shader-type '-shader)
+                  (write-output-string version struct-definitions
+                                       compiled-obj compiled-in-vars
+                                       compiled-uniforms))
+            `(,@(out-vars compiled-obj)
+                ,@(when uniform-vars (cons '&uniform (mapcar #'(lambda (x) 
+                                                                 (subseq x 0 2))
+                                                             uniform-vars)))
+                &context :version ,version)))))
 
 (defun compile-main (code)
   (varjo->glsl (replace-literals 
@@ -161,11 +165,10 @@
 	      (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
   t)
 
-(defun check-for-dups (&rest lists)
-  (let ((names (mapcar #'first (apply #'append lists ))))
-    (if (lists-contain-duplicates-p names)
-        (error "Varjo: Duplicates names found between in-vars and uniforms")
-        t)))
+(defun check-for-dups (in-vars uniforms)  
+  (if (intersection (mapcar #'first in-vars) (mapcar #'first uniforms))
+      (error "Varjo: Duplicates names found between in-vars and uniforms")
+      t))
 
 (defun uniform-default-val (x)
   (when (consp (first x)) (second x)))
