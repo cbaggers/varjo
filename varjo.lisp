@@ -119,8 +119,9 @@
 	       (if first-shader
 		   (add-layout-qualifiers-to-in-vars compiled)
 		   (list compiled))))
-           (compiled-uniforms (compile-declarations uniform-vars
-						    :uniform)))
+           (compiled-uniforms (compile-declarations 
+			       (mapcar #'list uniform-vars)
+			       :uniform)))
       (list (write-output-string version struct-definitions
                                  compiled-obj compiled-in-vars
                                  compiled-uniforms)
@@ -144,7 +145,8 @@
        (remove-if #'null
                   (list
                    (mapcar #'struct-init-form struct-definitions)
-                   (mapcar #'(lambda (x) (current-line (first x))) in-vars)
+                   (mapcar #'(lambda (x) (current-line (first x))) 
+			   (remove-if #'null in-vars))
                    (mapcar #'current-line uniforms)
                    (to-top code))))))
 
