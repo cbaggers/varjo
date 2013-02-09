@@ -1084,7 +1084,7 @@
                    :current-line (format nil "(~{~a~^ ~^/~^ ~})"
                                          (mapcar #'current-line 
                                                  arg-objs)))
-        (error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
+        (error "The types of object passed to / are not compatible~%~{~s~^ ~}" types))))
 
 (vdefspecial ? (test-form then-form &optional else-form)
   (let* ((test (varjo->glsl test-form))

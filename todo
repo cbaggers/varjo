@@ -27,5 +27,7 @@
                          (setf b 1.0)))
          (:fragment (out done (* b 1))))
 
-* Need to fix make-gpu-array as it doesnt like :vec4 says no such
-  cffi type, which is logical
+* Need to fix make-gl-array as it doesnt like :vec4 says no such
+  cffi type, which is logical.
+  hmm well we need a fast way of getting the type-name.
+  also we need dpopulates for these aggregate types.
