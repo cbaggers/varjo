@@ -12,14 +12,18 @@
 ;; Translator
 ;;------------
 
+(defmacro defshader? (name (&rest args) &body code)  
+  (if (keywordp name)
+      (error "Cannot define shader with keyword name")
+      `(let ((source (translate ',args ',code)))
+	 source)))
+
 (defmacro defshader (name (&rest args) &body code)  
-  `(let ((source (translate ',args ',code)))
-     ,(if (eq name :test)
-          `source
-          (if (keywordp name)
-              (error "Cannot define shader with keyword name")
-              `(defun ,name ()
-                 source)))))
+  (if (keywordp name)
+      (error "Cannot define shader with keyword name")
+      `(let ((source (translate ',args ',code)))
+	 (defun ,name ()
+	   source))))
 
 (defun split-shader-args (args &optional default-version 
                                  default-type)

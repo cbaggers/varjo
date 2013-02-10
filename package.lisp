@@ -3,6 +3,7 @@
 (defpackage #:varjo
   (:use #:cl)
   (:export :defshader
+	   :defshader?
            :extract-uniforms
            :flesh-out-type
            :glsl-defun
