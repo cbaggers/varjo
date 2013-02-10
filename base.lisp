@@ -1040,8 +1040,10 @@
   (let ((var-spec (assoc symbol *glsl-variables*
 			 :test #'symbol-name-equal)))
     (make-instance 'code
-                   :type (set-place-t
-                          (flesh-out-type (var-type var-spec)))
+                   :type (let ((new-type (flesh-out-type (var-type var-spec))))
+			   (if (var-read-only var-spec)
+			       new-type
+			       (set-place-t new-type)))
                    :current-line (format nil "~a" 
                                          (or (var-gl-name var-spec)
                                              (var-name var-spec)))
