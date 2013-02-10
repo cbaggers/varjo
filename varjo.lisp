@@ -16,7 +16,8 @@
   (if (keywordp name)
       (error "Cannot define shader with keyword name")
       `(let ((source (translate ',args ',code)))
-	 source)))
+	 (print (cadar source))
+	 nil)))
 
 (defmacro defshader (name (&rest args) &body code)  
   (if (keywordp name)
@@ -153,8 +154,8 @@
        (remove-if #'null
                   (list
                    (mapcar #'struct-init-form struct-definitions)
-                   (mapcar #'(lambda (x) (current-line (first x))) 
-			   (remove-if #'null in-vars))
+                   (mapcar #'(lambda (x) (current-line x)) 
+			   (remove-if #'null (first in-vars)))
                    (mapcar #'current-line uniforms)
                    (to-top code))))))
 
