@@ -141,12 +141,9 @@
                 (macroexpand-and-substitute 
                  `(%make-function :main () ,@code)))))
 
-;;((#<VARJO::CODE {1005378713}> #<VARJO::CODE {1005379E83}>)) 
-;;((#<VARJO::CODE {1005332053}> 0) (#<VARJO::CODE {10053329F3}> 1))
 
 (defun write-output-string (version struct-definitions
                             code in-vars uniforms)
-  (print in-vars)
   (if (or (to-block code) (current-line code))
       (error "The following code not written to output.~%~a~%~a"
              (to-block code) (current-line code))
