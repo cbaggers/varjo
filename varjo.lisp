@@ -15,14 +15,14 @@
 (defmacro defshader? (name (&rest args) &body code)  
   (if (keywordp name)
       (error "Cannot define shader with keyword name")
-      `(let ((source (translate ',args ',code)))
+      `(let ((source (translate ',args ',code t)))
 	 (print (cadar source))
 	 nil)))
 
 (defmacro defshader (name (&rest args) &body code)  
   (if (keywordp name)
       (error "Cannot define shader with keyword name")
-      `(let ((source (translate ',args ',code)))
+      `(let ((source (translate ',args ',code t)))
 	 (defun ,name ()
 	   source))))
 
@@ -117,12 +117,12 @@
            (*glsl-functions* (acons-many struct-functions 
                                          *glsl-functions*))
            (compiled-obj (compile-main code))
-           (compiled-in-vars 
+           (compiled-in-vars
 	     (let ((compiled (compile-declarations
 			      in-var-declarations :in))) 
 	       (if first-shader
 		   (add-layout-qualifiers-to-in-vars compiled)
-		   (list compiled))))
+		   (mapcar #'list compiled))))
            (compiled-uniforms (compile-declarations 
 			       (mapcar #'list uniform-vars)
 			       :uniform)))
@@ -141,9 +141,12 @@
                 (macroexpand-and-substitute 
                  `(%make-function :main () ,@code)))))
 
+;;((#<VARJO::CODE {1005378713}> #<VARJO::CODE {1005379E83}>)) 
+;;((#<VARJO::CODE {1005332053}> 0) (#<VARJO::CODE {10053329F3}> 1))
+
 (defun write-output-string (version struct-definitions
                             code in-vars uniforms)
-  
+  (print in-vars)
   (if (or (to-block code) (current-line code))
       (error "The following code not written to output.~%~a~%~a"
              (to-block code) (current-line code))
@@ -154,8 +157,8 @@
        (remove-if #'null
                   (list
                    (mapcar #'struct-init-form struct-definitions)
-                   (mapcar #'(lambda (x) (current-line x)) 
-			   (remove-if #'null (first in-vars)))
+                   (mapcar #'(lambda (x) (current-line (first x))) 
+			   (remove-if #'null in-vars))
                    (mapcar #'current-line uniforms)
                    (to-top code))))))
 
