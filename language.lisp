@@ -1287,11 +1287,11 @@
 
 (vdefspecial out (name-and-qualifiers form)
   (let ((arg-obj (varjo->glsl form))
-	(out-var-name (if (consp name-and-qualifiers)
-			  (first name-and-qualifiers)
-			  name-and-qualifiers))
-	(qualifiers (when (consp name-and-qualifiers)
-		      (rest name-and-qualifiers))))
+        (out-var-name (if (consp name-and-qualifiers)
+                          (first name-and-qualifiers)
+                          name-and-qualifiers))
+        (qualifiers (when (consp name-and-qualifiers)
+                      (rest name-and-qualifiers))))
     (if (assoc out-var-name *glsl-variables*)
         (error "The variable name '~a' is already taken and so cannot be used~%for an out variable" out-var-name)
         (make-instance 'code
@@ -1305,8 +1305,7 @@
                                        (%compile-var
                                         (safe-gl-name out-var-name)
                                         (code-type arg-obj) 
-					(append qualifiers
-						'(:out)))))
+                                        (append qualifiers '(:out)))))
                                      (to-top arg-obj))
                        :out-vars `((,out-var-name 
                                     ,(code-type arg-obj)
@@ -1334,9 +1333,13 @@
 
 (vdefspecial return (&optional (form '(%void)))
   (let ((ob (varjo->glsl form)))
-    (merge-obs ob :current-line (format nil "return ~a" 
-                                        (current-line ob))
-               :returns (list (code-type ob)))))
+    (if (eq :none (code-type ob))
+        ob
+        (merge-obs ob
+                   :current-line (format nil "return ~a" 
+                                         (current-line ob))
+                   :type :none
+                   :returns (list (code-type ob))))))
 
 (vdefspecial switch (test-form &rest clauses)    
   (let* ((test (varjo->glsl test-form))

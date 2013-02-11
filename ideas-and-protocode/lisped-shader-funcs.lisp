@@ -1457,4 +1457,10 @@
     (eq #\g (elt string 0))))
 
 
+;; REALLY SHOULD USE THIS! vvvvvvvvv
 
+;; VARJO> (symbol-munger:camel-case->lisp-symbol "theNewThing")
+;; THE-NEW-THING
+;; NIL
+;; VARJO> (symbol-munger:lisp->camel-case 'the-dog-blah)
+;; "theDogBlah"

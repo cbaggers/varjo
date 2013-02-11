@@ -130,7 +130,7 @@
                   (write-output-string version struct-definitions
                                        compiled-obj compiled-in-vars
                                        compiled-uniforms))
-            `(,@(out-vars compiled-obj)
+            `(,@(remove-duplicates (out-vars compiled-obj) :test #'equal)
                 ,@(when uniform-vars (cons '&uniform (mapcar #'(lambda (x) 
                                                                  (subseq x 0 2))
                                                              uniform-vars)))
@@ -155,7 +155,7 @@
                   (list
                    (mapcar #'struct-init-form struct-definitions)
                    (mapcar #'(lambda (x) (current-line (first x))) 
-			   (remove-if #'null in-vars))
+                           (remove-if #'null in-vars))
                    (mapcar #'current-line uniforms)
                    (to-top code))))))
 

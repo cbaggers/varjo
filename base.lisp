@@ -322,11 +322,6 @@
     :initform nil
     :reader to-top
     :writer (setf to-top))
-   (read-only
-    :initarg :read-only
-    :initform nil
-    :reader read-only
-    :writer (setf read-only))
    (out-vars
     :initarg :out-vars
     :initform nil
@@ -400,7 +395,6 @@
                  :out-vars (if set-out-vars
                                out-vars
                                (out-vars objs))
-                 :read-only (read-only objs)
                  :invariant invariant
                  :returns (if set-returns
                               returns
@@ -1041,13 +1035,12 @@
 			 :test #'symbol-name-equal)))
     (make-instance 'code
                    :type (let ((new-type (flesh-out-type (var-type var-spec))))
-			   (if (var-read-only var-spec)
-			       new-type
-			       (set-place-t new-type)))
+                           (if (var-read-only var-spec)
+                               new-type
+                               (set-place-t new-type)))
                    :current-line (format nil "~a" 
                                          (or (var-gl-name var-spec)
-                                             (var-name var-spec)))
-                   :read-only (var-read-only var-spec))))
+                                             (var-name var-spec))))))
 
 
 (defgeneric indent (input))

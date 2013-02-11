@@ -12,13 +12,8 @@
 -----------------------------------------------------
 
 * Need to support nested structures for uniforms
+
 * out vars could legitimately have the same name if they
   are used inside an if statement.
-* if one not present, should auto-add return statement to functions
 
-* Where does the vec b go?
-(varjo:defshader? test ((a :int) (b :sampler-1d))
-   (texture-size b a))
-
-* is code-read-only neccesary? we use var -spec to set place to nil
-  to stop assignment
+* define proper conditionals and use them in our errors
