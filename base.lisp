@@ -741,9 +741,9 @@
             struct-name (mapcar #'compile-struct-type slots))))
 
 (defun compile-struct-type (slot)
-  (let ((name (or (third slot) (first slot)))
+  (let ((name (safe-gl-name (or (third slot) (first slot))))
         (type (flesh-out-type (second slot))))
-    (let ((principle (first type))
+    (let ((principle (varjo-type->glsl-type (first type)))
           (len (third type)))
       (if len
           (format nil "    ~a ~a[~a];" 
@@ -799,7 +799,10 @@
   (loop for i in type :collect (if (numberp i) (list i) i)))
 
 (defun struct-funcs (struct)
-  (%struct-funcs (first struct) nil nil (rest struct)))
+  (%struct-funcs (first struct) nil nil 
+		 (loop for slot in (rest struct)
+		       collect (list (safe-gl-name (first slot))
+				     (second slot)))))
 
 (defun %struct-funcs (name slot-prefix context-restriction slots)
   (cons 
@@ -821,8 +824,7 @@
                       (set-place-t (flesh-out-type 
                                     (second slot))))
                      :transform (format nil "~~a.~a" 
-                                        (or (third slot)
-                                            (first slot)))
+					(or (third slot) (first slot)))
                      :context-restriction context-restriction)))))
 
 (defmacro vdefstruct (name &body slots)

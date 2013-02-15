@@ -13,7 +13,7 @@
 ;;------------------
 
 (%vdefstruct vgl-per-vertex-v (:slot-prefix per-vertex
-                                           :context-restriction (:vertex))
+			       :context-restriction (:vertex))
   (position :vec4 "gl_Position")
   (point-size :float "gl_PointSize")
   (clip-distance (:float t) "gl_ClipDistance")
@@ -1300,15 +1300,9 @@
                                           (safe-gl-name out-var-name)
                                           (current-line arg-obj))
                        :to-block (to-block arg-obj)
-                       :to-top (cons (current-line 
-                                      (end-line
-                                       (%compile-var
-                                        (safe-gl-name out-var-name)
-                                        (code-type arg-obj) 
-                                        (append qualifiers '(:out)))))
-                                     (to-top arg-obj))
-                       :out-vars `((,out-var-name 
+                       :out-vars `((,out-var-name
                                     ,(code-type arg-obj)
+                                    ,(safe-gl-name out-var-name) 
                                     ,@qualifiers))))))
 
 (vdefspecial progn (&rest body)

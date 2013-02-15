@@ -13,7 +13,9 @@
 
 * Need to support nested structures for uniforms
 
-* out vars could legitimately have the same name if they
-  are used inside an if statement.
+done?* out vars could legitimately have the same name if they
+       are used inside an if statement.
 
 * define proper conditionals and use them in our errors
+
+* imported struct has incorrect case info

@@ -16,15 +16,15 @@
   (if (keywordp name)
       (error "Cannot define shader with keyword name")
       `(let ((source (translate ',args ',code t)))
-	 (print (cadar source))
-	 nil)))
+         (print (cadar source))
+         nil)))
 
 (defmacro defshader (name (&rest args) &body code)  
   (if (keywordp name)
       (error "Cannot define shader with keyword name")
       `(let ((source (translate ',args ',code t)))
-	 (defun ,name ()
-	   source))))
+         (defun ,name ()
+           source))))
 
 (defun split-shader-args (args &optional default-version 
                                  default-type)
@@ -53,32 +53,32 @@
   (destructuring-bind (in-vars uniforms type version)
       (split-shader-args args :330 :vertex)
     (let* ((in-qualifiers (mapcar #'cddr in-vars))
-	   (in-vars (mapcar #'(lambda (x) (subseq x 0 2)) in-vars))
-	   (fleshed-out-in-vars (flesh-out-args in-vars))
+           (in-vars (mapcar #'(lambda (x) (subseq x 0 2)) in-vars))
+           (fleshed-out-in-vars (flesh-out-args in-vars))
            (in-var-structs-and-types 
-	     (create-fake-structs-from-in-vars
-	      fleshed-out-in-vars))
+            (create-fake-structs-from-in-vars
+             fleshed-out-in-vars))
            (in-var-struct-type-maps
-	     (mapcar #'first in-var-structs-and-types))
+            (mapcar #'first in-var-structs-and-types))
            (in-var-struct-types 
-	     (mapcar #'first in-var-struct-type-maps))
+            (mapcar #'first in-var-struct-type-maps))
            (in-var-struct-functions
-	     (mapcan #'second in-var-structs-and-types))
+            (mapcan #'second in-var-structs-and-types))
            (fleshed-out-uniforms (flesh-out-args uniforms))
            (uniform-struct-types (get-uniform-struct-types
                                   fleshed-out-uniforms))
            (uniform-struct-definitions
-	     (when uniform-struct-types
-	       (get-struct-definitions uniform-struct-types)))
+            (when uniform-struct-types
+              (get-struct-definitions uniform-struct-types)))
            (uniform-struct-functions 
-	     (mapcan #'struct-funcs 
-		     uniform-struct-definitions)))
+            (mapcan #'struct-funcs 
+                    uniform-struct-definitions)))
       (list type
-	    version
+            version
             (substitute-alternate-struct-types
              fleshed-out-in-vars in-var-struct-type-maps) ;; in-var
             (expand-struct-in-vars fleshed-out-in-vars
-				   in-qualifiers) ;; in-var-dec
+                                   in-qualifiers) ;; in-var-dec
             fleshed-out-uniforms
             (append in-var-struct-functions
                     uniform-struct-functions)
@@ -103,12 +103,12 @@
 
 (defun translate (args code &optional first-shader)
   (destructuring-bind (shader-type version in-vars 
-		       in-var-declarations uniform-vars
-		       struct-functions struct-definitions types)
+                                   in-var-declarations uniform-vars
+                                   struct-functions struct-definitions types)
       (parse-shader-args args)
     (let* ((*shader-context* (list :core shader-type))
            (*types* (acons-many (loop for i in types
-				      collect (list i nil)) 
+                                   collect (list i nil)) 
                                 *built-in-types*))
            (*glsl-variables* (append (built-in-vars 
                                       *shader-context*)
@@ -117,24 +117,38 @@
            (*glsl-functions* (acons-many struct-functions 
                                          *glsl-functions*))
            (compiled-obj (compile-main code))
-           (compiled-in-vars
-	     (let ((compiled (compile-declarations
-			      in-var-declarations :in))) 
-	       (if first-shader
-		   (add-layout-qualifiers-to-in-vars compiled)
-		   (mapcar #'list compiled))))
+           (compiled-in-vars (let ((compiled (compile-declarations
+                                              in-var-declarations :in))) 
+                               (if first-shader
+                                   (add-layout-qualifiers-to-in-vars compiled)
+                                   (mapcar #'list compiled))))
            (compiled-uniforms (compile-declarations 
-			       (mapcar #'list uniform-vars)
-			       :uniform)))
+                               (mapcar #'list uniform-vars)
+                               :uniform))
+           (deduped-out-vars (check-and-dedup-out-vars (out-vars compiled-obj)))
+           (out-vars (loop for i in deduped-out-vars
+                          collect (subseq i 0 2)))
+           (compiled-out-vars (compile-declarations 
+                               (loop for var in deduped-out-vars
+                                  collect (list (subseq var 0 3)
+                                                (subseq var 3))) :out)))
       (list (list (kwd shader-type '-shader)
                   (write-output-string version struct-definitions
                                        compiled-obj compiled-in-vars
+                                       compiled-out-vars
                                        compiled-uniforms))
-            `(,@(remove-duplicates (out-vars compiled-obj) :test #'equal)
-                ,@(when uniform-vars (cons '&uniform (mapcar #'(lambda (x) 
-                                                                 (subseq x 0 2))
-                                                             uniform-vars)))
+            `(,@out-vars ,@(when uniform-vars 
+                                 (cons '&uniform (mapcar #'(lambda (x) 
+                                                             (subseq x 0 2))
+                                                         uniform-vars)))
                 &context :version ,version)))))
+
+(defun check-and-dedup-out-vars (out-vars)
+  (let* ((dedup (remove-duplicates out-vars :test #'equal))
+         (names (remove-duplicates (mapcar #'first dedup))))
+    (if (< (length names) (length dedup))
+        (error "Varjo: Sorry you can't have out variables~%that share a name but don't have the same type:~%~s " dedup)
+        dedup)))
 
 (defun compile-main (code)
   (varjo->glsl (replace-literals 
@@ -143,7 +157,7 @@
 
 
 (defun write-output-string (version struct-definitions
-                            code in-vars uniforms)
+                            code in-vars out-vars uniforms)
   (if (or (to-block code) (current-line code))
       (error "The following code not written to output.~%~a~%~a"
              (to-block code) (current-line code))
@@ -156,6 +170,8 @@
                    (mapcar #'struct-init-form struct-definitions)
                    (mapcar #'(lambda (x) (current-line (first x))) 
                            (remove-if #'null in-vars))
+                   (mapcar #'(lambda (x) (current-line x)) 
+                           (remove-if #'null out-vars))
                    (mapcar #'current-line uniforms)
                    (to-top code))))))
 
@@ -165,9 +181,9 @@
 
 (defun check-arg-forms (in-args)
   (loop for stream in in-args
-	:do (when (or (not (every #'keywordp (cddr stream)))
-		      (< (length stream) 2))
-	      (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
+     :do (when (or (not (every #'keywordp (cddr stream)))
+                   (< (length stream) 2))
+           (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
   t)
 
 (defun check-for-dups (in-vars uniforms)  
@@ -183,9 +199,9 @@
 
 (defun flesh-out-arg (var)
   (list (var-name var)
-	(flesh-out-type (var-type var))
-	(safe-gl-name (var-name var))
-	t))
+        (flesh-out-type (var-type var))
+        (safe-gl-name (var-name var))
+        t))
 
 (defun flesh-out-args (in-vars)
   "This fleshes out the type, adds a lowercase version
@@ -196,39 +212,39 @@
   (remove-if #'null
              (remove-duplicates
               (loop for u in uniforms
-		    :if (not (type-built-inp (var-type u)))
-		      :collect (type-principle (var-type u))))))
+                 :if (not (type-built-inp (var-type u)))
+                 :collect (type-principle (var-type u))))))
 
 (defun expand-struct-in-vars (in-vars qualifiers)  
   "Transforms struct invars into the component variables"
   (loop for i in in-vars
-	for q in qualifiers
-	:if (type-built-inp (var-type i))
-	  :collect (list i q)
-	:else
-	  :append 
-	  (mapcar #'list 
-		  (fake-struct-vars
-		   (var-name i) (type-principle (var-type i))))))
+     for q in qualifiers
+     :if (type-built-inp (var-type i))
+     :collect (list i q)
+     :else
+     :append 
+       (mapcar #'list 
+               (fake-struct-vars
+                (var-name i) (type-principle (var-type i))))))
 
 (defun create-fake-structs-from-in-vars (in-vars) 
   "Transforms struct invars into the component variables"
   (remove-duplicates
    (loop for i in in-vars
-	 :if (not (type-built-inp (var-type i)))
-	   :collect (make-fake-struct (type-principle (var-type i))))
+      :if (not (type-built-inp (var-type i)))
+      :collect (make-fake-struct (type-principle (var-type i))))
    :test #'equal))
 
 (defun substitute-alternate-struct-types (in-vars type-alist)
   (loop :for in-var in in-vars
-	:collect (list (var-name in-var)
-		       (or (first 
-			    (assocr 
-			     (type-principle (var-type in-var)) 
-			     type-alist))
-			   (var-type in-var))
-		       (var-gl-name in-var)
-		       (var-read-only in-var))))
+     :collect (list (var-name in-var)
+                    (or (first 
+                         (assocr 
+                          (type-principle (var-type in-var)) 
+                          type-alist))
+                        (var-type in-var))
+                    (var-gl-name in-var)
+                    (var-read-only in-var))))
 
 (defun layout-size (type-spec)
   (let* ((type (flesh-out-type type-spec))
@@ -241,15 +257,19 @@
 
 (defun add-layout-qualifiers-to-in-vars (compiled-in-vars)
   (loop for ob in compiled-in-vars
-	:with total = 0	
-	:collect (list 
-		  (qualify ob (fmt "layout(location=~a)" total))
-		  total)
-	:do (setf total (+ total (layout-size (code-type ob))))))
+     :with total = 0	
+     :collect (list 
+               (qualify ob (fmt "layout(location=~a)" total))
+               total)
+     :do (setf total (+ total (layout-size (code-type ob))))))
 
 (defun compile-declarations (vars &optional default-qualifier)
   (loop for (var qualifiers) in vars
-	:collect (end-line
-		  (%compile-var (var-gl-name var) (var-type var)
-				(append qualifiers
-					(list default-qualifier))))))
+     :collect (end-line
+               (%compile-var (var-gl-name var) (var-type var)
+                             (append qualifiers
+                                     (list default-qualifier))))))
+;; (cons (current-line (end-line (%compile-var (safe-gl-name out-var-name)
+;;                                             (code-type arg-obj) 
+;;                                             (append qualifiers '(:out)))))
+;;       (to-top arg-obj))
