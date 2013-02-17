@@ -751,6 +751,10 @@
           (format nil "    ~a ~a;" 
                   principle name)))))
 
+(defun type-struct-p (type)
+  (let ((ftype (flesh-out-type type)))
+    (not (null (assoc (type-principle ftype) *struct-definitions*)))))
+
 (defun struct-definition (type-name)
   (let ((descrip (assoc type-name *struct-definitions*)))
     (or (rest descrip) 
@@ -793,7 +797,7 @@
                          (flesh-out-type 
                           (second slot))))
                        :transform (format nil "_f_~~(~~a_~a~~)" 
-                                          (first slot))))))))
+                                          (safe-gl-name (first slot)))))))))
 
 (defun literal-number-output-type (type)
   (loop for i in type :collect (if (numberp i) (list i) i)))

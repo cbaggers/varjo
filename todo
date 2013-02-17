@@ -13,9 +13,10 @@
 
 * Need to support nested structures for uniforms
 
-done?* out vars could legitimately have the same name if they
-       are used inside an if statement.
-
 * define proper conditionals and use them in our errors
 
 * imported struct has incorrect case info
+
+* smooth out not becoming smooth in
+
+* float * vec4 = float?

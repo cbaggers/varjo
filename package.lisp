@@ -25,6 +25,7 @@
            :type-mat-col-to-vec
            :type-placep
            :type-principle
+	   :type-struct-p
            :type-vec-core-type
            :vdefmacro
            :vdefspecial
