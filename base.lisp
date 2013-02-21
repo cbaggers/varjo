@@ -673,6 +673,9 @@
 (defun var-read-only (var)
   (fourth var))
 
+(defun var-restriction (var)
+  (fifth var))
+
 (defun compile-let-forms (let-forms &optional (typify t) 
                                       (gensym-vars t))
   ;; takes forms and returns a list of two things
@@ -961,12 +964,13 @@
      :append (assocr item *built-in-vars*
 		     :test #'symbol-name-equal)))
 
+
 (defun func-valid-for-contextp (context func)
   (let ((restriction (func-restriction func)))
     (if restriction
-        (when (loop for item in context
-                 :if (find item restriction)
-                 :collect t)
+        (when (every #'identity
+                     (loop for item in restriction
+                        :collect (find item context)))
           func)
         func)))
 
