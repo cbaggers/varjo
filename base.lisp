@@ -792,7 +792,7 @@
      (list struct-name fake-type)
      (loop :for slot :in slots 
         :collect
-        (list (symb struct-name '- (first slot))
+        (list (or (fifth slot) (symb struct-name '- (first slot)))
               (vlambda :in-args `((x (,fake-type)))
                        :output-type
                        (literal-number-output-type
@@ -824,7 +824,8 @@
                   :context-restriction context-restriction))
    (loop :for slot :in slots 
       :collect
-      (list (symb (or slot-prefix name) '- (first slot))
+      (list (or (fifth slot)
+                (symb (or slot-prefix name) '- (first slot)))
             (vlambda :in-args `((x (,name)))
                      :output-type 
                      (literal-number-output-type
