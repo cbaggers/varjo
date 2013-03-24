@@ -380,6 +380,24 @@
                         (to-block prog-ob)
                         (current-line prog-ob))))))
 
+(vdefspecial swizzle (vec-form components)
+  (let* ((vec-ob (varjo->glsl vec-form))
+         (vec-type (code-type vec-ob))
+         (vec-ptype (type-principle vec-type)))
+    (if (type-vec-core-type vec-type)
+        (let* ((comp (string-downcase (string (if (listp components)
+                                                  (cadr components)
+                                                  components))))
+               (len (length comp)))
+          (if (<= len 4)
+              (merge-obs (list vec-ob)	
+                         :type (change-vec-length vec-ptype len)
+                         :current-line (format nil "~a.~a"
+                                               (current-line vec-ob)
+                                               comp))
+              (error "Varjo: Invlaid length of components for swizzle")))
+        (error "Varjo: Trying to swizzle a non vector: ~a" vec-type))))
+
 ;;------------------------------------------------------------
 ;; Core Language Definitions
 ;;---------------------------
