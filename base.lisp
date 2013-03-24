@@ -568,10 +568,12 @@
           (t (error "unknown vector type")))))
 
 (defun change-vec-length (vec-type length)
-  (let* ((type (string vec-type))
-         (len (length type))
-         (base (subseq type 0 (1- len))))
-    (utils:kwd base length)))
+  (if (type-arrayp vec-type)
+      (error "Varjo: Expected vector, got vector array")
+      (let* ((type (string (type-principle vec-type)))
+             (len (length type))
+             (base (subseq type 0 (1- len))))
+        (flesh-out-type (kwd base length)))))
 
 ;;------------------------------------------------------------
 ;; GLSL Functions
