@@ -9,6 +9,8 @@
 * Massive cleanup of code
 * glsl-defun doesnt use the arg names we give it
 
+* add decent swizzle function
+
 -----------------------------------------------------
 
 * Need to support nested structures for uniforms
