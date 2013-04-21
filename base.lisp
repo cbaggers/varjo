@@ -854,6 +854,7 @@
                     *struct-definitions*))
        ',name)))
 
+;; [TODO] context-restriction limits functions but type?
 (defmacro %vdefstruct (name (&key slot-prefix context-restriction)
                        &body slots)
   (let ((*types* (cons (list name nil) *built-in-types*))) 
@@ -978,8 +979,12 @@
   (let ((restriction (func-restriction func)))
     (if restriction
         (when (every #'identity
-                     (loop for item in restriction
-                        :collect (find item context)))
+                     (loop :for item :in restriction :collect
+                          (if (listp item)
+                              (some #'identity 
+                                    (loop :for sub-item :in item :collect
+                                       (find sub-item context)))
+                              (find item context))))
           func)
         func)))
 
