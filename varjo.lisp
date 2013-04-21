@@ -152,9 +152,8 @@
         dedup)))
 
 (defun compile-main (code)
-  (varjo->glsl (replace-literals 
-                (macroexpand-and-substitute 
-                 `(%make-function :main () ,@code)))))
+  (varjo->glsl (macroexpand-and-substitute 
+                `(%make-function :main () ,@code))))
 
 
 (defun write-output-string (version struct-definitions

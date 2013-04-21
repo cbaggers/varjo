@@ -1,6 +1,6 @@
 
 * read up on setting variables as invariant
-* find out what the fuck centroid means
+* find out what centroid means
 
 * add preprocessor extensions to translate function
 * check out _line_ _file_ and _version_ macros from glsl, are they

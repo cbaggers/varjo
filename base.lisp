@@ -287,11 +287,11 @@
     (position-if #'(lambda (x) (when (symbolp x) (equal (symbol-name x) symb-name))) list)))
 
 (defmacro assocr (item alist &key (key nil keyp) 
-			       (test nil testp) 
+                               (test nil testp) 
                                (test-not nil notp))
   `(cdr (assoc ,item ,alist 
-	       ,@(when keyp (list :key key)) 
-	       ,@(when testp (list :test test))
+               ,@(when keyp (list :key key)) 
+               ,@(when testp (list :test test))
                ,@(when notp (list test-not)))))
 
 (defun lists-contain-duplicates-p (&rest lists)
@@ -483,7 +483,7 @@
 (defun built-in-vars (context)
   (loop :for part :in context
      :append (assocr part *built-in-vars*
-		     :test #'symbol-name-equal)))
+                     :test #'symbol-name-equal)))
 ;;-----------
 
 (defun glsl-castablep (minor-type major-type)
@@ -727,7 +727,7 @@
 
 (defun var-existsp (name)
   (not (null (assoc name *glsl-variables*
-		    :test #'symbol-name-equal))))
+                    :test #'symbol-name-equal))))
 
 ;;probably redundant
 (defmacro add-vars ((var-declarations &optional (shadowing t))
@@ -789,8 +789,8 @@
                              (list struct-name))))))
     (loop for slot in slots
        :collect `(,(symb '-f- var-name '- (var-name slot))
-		  ,(flesh-out-type (var-type slot))
-		  ,(safe-gl-name '-f- var-name '- (var-name slot))))))
+                   ,(flesh-out-type (var-type slot))
+                   ,(safe-gl-name '-f- var-name '- (var-name slot))))))
 
 (defun make-fake-struct (struct-name)
   (let ((fake-type (symb '-f- struct-name))
@@ -815,9 +815,9 @@
 
 (defun struct-funcs (struct)
   (%struct-funcs (first struct) nil nil 
-		 (loop for slot in (rest struct)
-		       collect (list (safe-gl-name (first slot))
-				     (second slot)))))
+                 (loop for slot in (rest struct)
+                    collect (list (safe-gl-name (first slot))
+                                  (second slot)))))
 
 (defun %struct-funcs (name slot-prefix context-restriction slots)
   (cons 
@@ -840,7 +840,7 @@
                       (set-place-t (flesh-out-type 
                                     (second slot))))
                      :transform (format nil "~~a.~a" 
-					(or (third slot) (first slot)))
+                                        (or (third slot) (first slot)))
                      :context-restriction context-restriction)))))
 
 (defmacro vdefstruct (name &body slots)
@@ -870,19 +870,29 @@
 
 ;;------------------------------------------------------------
 
+;; [TODO] How should we specify numbers unsigned?
 (defun varjo->glsl (varjo-code)
-  (cond ((null varjo-code) nil)
-        ((typep varjo-code 'code) varjo-code)
-        ((atom varjo-code) 
-         (if (assoc varjo-code *glsl-variables*
-		    :test #'symbol-name-equal)
-             (instance-var varjo-code)
-             (error "Varjo: '~s' is unidentified." varjo-code)))
-        ((special-functionp (first varjo-code)) 
-         (apply-special (first varjo-code) (rest varjo-code)))
-        ((vfunctionp (first varjo-code))
-         (compile-function (first varjo-code) (rest varjo-code)))
-        (t (error "Function '~s' is not available for ~A shaders in varjo." (first varjo-code) *shader-context*))))
+  (labels ((num-suffix (type)
+             (or (assocr (type-principle type) '((:float . "f") (:uint . "u")))
+                 "")))
+    (cond ((null varjo-code) nil)
+          ((eq t varjo-code) (make-instance 'code :current-line "true" 
+                                            :type '(:bool nil)))
+          ((numberp varjo-code) 
+           (let ((num-type (get-number-type varjo-code)))
+             (make-instance 'code :current-line 
+                            (format nil "~a~a" varjo-code (num-suffix num-type))
+                            :type num-type)))
+          ((atom varjo-code) 
+           (if (assoc varjo-code *glsl-variables* :test #'symbol-name-equal)
+               (instance-var varjo-code)
+               (error "Varjo: '~s' is unidentified." varjo-code)))
+          ((special-functionp (first varjo-code)) 
+           (apply-special (first varjo-code) (rest varjo-code)))
+          ((vfunctionp (first varjo-code))
+           (compile-function (first varjo-code) (rest varjo-code)))
+          (t (error "Function '~s' is not available for ~A shaders in varjo." 
+                    (first varjo-code) *shader-context*)))))
 
 
 (defun compile-function (func-name args)
@@ -909,26 +919,6 @@
                (mapcar #'macroexpand-and-substitute
                        varjo-code))))
         (t varjo-code)))
-
-;; [TODO] How should we specify unsigned?
-(defun replace-literals (varjo-code)
-  (labels ((num-suffix (type)
-	     (or (assocr (type-principle type) 
-			 '((:float . "f") (:uint . "u")))
-		 "")))
-    (cond ((null varjo-code) nil)	 
-	  ((eq t varjo-code) 
-	   (make-instance 'code :current-line "true" 
-				:type '(:bool nil)))
-	  ((numberp varjo-code) 
-	   (let ((num-type (get-number-type varjo-code)))
-	     (make-instance 'code :current-line 
-			    (format nil "~a~a" varjo-code
-				    (num-suffix num-type))
-				  :type num-type)))
-	  ((listp varjo-code) (mapcar #'replace-literals
-				      varjo-code))
-	  (t varjo-code))))
 
 (defun get-number-type (x)
   (cond ((floatp x) '(:float nil))
@@ -966,13 +956,13 @@
       (setf *glsl-functions*
             (acons name (cons func-spec
                               (assocr name *glsl-functions*
-				      :test #'symbol-name-equal))
+                                      :test #'symbol-name-equal))
                    *glsl-functions*)))))
 
 (defun get-vars-for-context (context)
   (loop for item in context
      :append (assocr item *built-in-vars*
-		     :test #'symbol-name-equal)))
+                     :test #'symbol-name-equal)))
 
 
 (defun func-valid-for-contextp (context func)
@@ -980,17 +970,17 @@
     (if restriction
         (when (every #'identity
                      (loop :for item :in restriction :collect
-                          (if (listp item)
-                              (some #'identity 
-                                    (loop :for sub-item :in item :collect
-                                       (find sub-item context)))
-                              (find item context))))
+                        (if (listp item)
+                            (some #'identity 
+                                  (loop :for sub-item :in item :collect
+                                     (find sub-item context)))
+                            (find item context))))
           func)
         func)))
 
 (defun func-specs (name)
   (let ((all-matching (assocr name *glsl-functions* 
-			      :test #'symbol-name-equal)))
+                              :test #'symbol-name-equal)))
     (remove-if 
      #'null (loop for spec in all-matching
                :collect (func-valid-for-contextp 
@@ -1001,12 +991,12 @@
 
 (defun special-functionp (symbol)
   (not (null (assoc symbol *glsl-special-functions*
-		    :test #'symbol-name-equal))))
+                    :test #'symbol-name-equal))))
 
 (defun apply-special (symbol arg-objs)
   (if (special-functionp symbol)
       (apply (assocr symbol *glsl-special-functions*
-		     :test #'symbol-name-equal) arg-objs)
+                     :test #'symbol-name-equal) arg-objs)
       (error "Varjo: '~a' is not a special function" symbol)))
 
 (defun register-special-function (symbol function)
@@ -1017,21 +1007,21 @@
   `(register-special-function ',name #'(lambda ,args ,@body)))
 
 (defun register-substitution (symbol function 
-			      &optional (packageless nil))
+                              &optional (packageless nil))
   (setf *glsl-substitutions*
         (acons symbol (list function packageless)
-	       *glsl-substitutions*)))
+               *glsl-substitutions*)))
 
 (defun substitutionp (symbol)
   (let ((sub (assoc symbol *glsl-substitutions*
-		     :test #'symbol-name-equal)))
+                    :test #'symbol-name-equal)))
     (and (not (null sub))
-	 (or (third sub) (eq symbol (first sub))))))
+         (or (third sub) (eq symbol (first sub))))))
 
 (defun substitution (symbol)
   (when (substitutionp symbol)
     (first (assocr symbol *glsl-substitutions*
-		   :test #'symbol-name-equal))))
+                   :test #'symbol-name-equal))))
 
 (defmacro vdefmacro (name lambda-list &body body)
   `(register-substitution
@@ -1056,7 +1046,7 @@
 
 (defun instance-var (symbol)
   (let ((var-spec (assoc symbol *glsl-variables*
-			 :test #'symbol-name-equal)))
+                         :test #'symbol-name-equal)))
     (make-instance 'code
                    :type (let ((new-type (flesh-out-type (var-type var-spec))))
                            (if (var-read-only var-spec)
