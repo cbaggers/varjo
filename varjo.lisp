@@ -269,7 +269,3 @@
                (%compile-var (var-gl-name var) (var-type var)
                              (append qualifiers
                                      (list default-qualifier))))))
-;; (cons (current-line (end-line (%compile-var (safe-gl-name out-var-name)
-;;                                             (code-type arg-obj) 
-;;                                             (append qualifiers '(:out)))))
-;;       (to-top arg-obj))
