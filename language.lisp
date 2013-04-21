@@ -406,7 +406,7 @@
             :in-args '()
             :output-type :void
             :transform ""
-            :context-restrictionstriction nil)
+            :context-restriction nil)
 
 (glsl-defun :name 'x
             :in-args '((vec ((:bvec2 :bvec3 :bvec4))))

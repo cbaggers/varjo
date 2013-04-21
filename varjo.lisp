@@ -106,7 +106,7 @@
                                    in-var-declarations uniform-vars
                                    struct-functions struct-definitions types)
       (parse-shader-args args)
-    (let* ((*shader-context* (list :core shader-type))
+    (let* ((*shader-context* (list :core shader-type version))
            (*types* (acons-many (loop for i in types
                                    collect (list i nil)) 
                                 *built-in-types*))
