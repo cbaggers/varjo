@@ -1334,7 +1334,7 @@
                                   :mat2x2 :mat2x3 :mat2x4
                                   :mat3x2 :mat3x3 :mat3x4
                                   :mat4x2 :mat4x3 :mat4x4))))
-            :output-type '(0 nil)
+            :output-type '(1 nil)
             :transform "(~a * ~a)"
             :context-restriction '((:330)))
 

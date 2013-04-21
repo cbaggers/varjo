@@ -21,11 +21,7 @@
 
 * smooth out not becoming smooth in
 
-* float * vec4 = float?
-
 * add constants
-
-* add versions requirements to all functions (eek!)
 
 * how do we handle ARBs?
 
@@ -34,6 +30,6 @@
 * remove all funcs from compatibility profile, we should be enforcing new style to as early
   a version of glsl as possible. We need to have :context-restriction for built in vars
 
-* Need to change name of substitution to macro
-
 * change substitution to have :context-restriction
+
+* add correct versions to all functions
