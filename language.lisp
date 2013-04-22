@@ -1571,93 +1571,93 @@
 ;; Lisp Function Substitutions
 ;;-----------------------------
 
-(%vdefmacro - t (&rest args)
+(%vdefmacro - t nil (&rest args)
   (if (eq 1 (length args))
       `(%negate ,@args)
       `(%- ,@args)))
 
-(%vdefmacro * t (&rest args)
+(%vdefmacro * t nil (&rest args)
   (oper-segment-list args '*))
 
-(%vdefmacro / t (&rest args)
+(%vdefmacro / t nil (&rest args)
   (oper-segment-list args '/))
 
-(%vdefmacro v! t (&rest args)
+(%vdefmacro v! t nil (&rest args)
   (let ((len (length args)))
     (when (or (>= len 2) (<= len 4)))
     `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args)))
 
-(%vdefmacro m! t (&rest args)
+(%vdefmacro m! t nil (&rest args)
   (let ((len (length args)))
     (if (or (eq len 4) (eq len 9) (eq len 16))
         `(%init-vec-or-mat ,(kwd (symb :mat (floor (sqrt len))))
                            ,@args)
         (error "Invalid number of arguemnts for matrix"))))
 
-(%vdefmacro vec2 t (&rest args)
+(%vdefmacro vec2 t nil (&rest args)
   `(%init-vec-or-mat :vec2 ,@args))
 
-(%vdefmacro vec3 t (&rest args)
+(%vdefmacro vec3 t nil (&rest args)
   `(%init-vec-or-mat :vec3 ,@args))
 
-(%vdefmacro vec4 t (&rest args)
+(%vdefmacro vec4 t nil (&rest args)
   `(%init-vec-or-mat :vec4 ,@args))
 
-(%vdefmacro ivec2 t (&rest args)
+(%vdefmacro ivec2 t nil (&rest args)
   `(%init-vec-or-mat :ivec2 ,@args))
 
-(%vdefmacro ivec3 t (&rest args)
+(%vdefmacro ivec3 t nil (&rest args)
   `(%init-vec-or-mat :ivec3 ,@args))
 
-(%vdefmacro ivec4 t (&rest args)
+(%vdefmacro ivec4 t nil (&rest args)
   `(%init-vec-or-mat :ivec4 ,@args))
 
-(%vdefmacro uvec2 t (&rest args)
+(%vdefmacro uvec2 t nil (&rest args)
   `(%init-vec-or-mat :uvec2 ,@args))
 
-(%vdefmacro uvec3 t (&rest args)
+(%vdefmacro uvec3 t nil (&rest args)
   `(%init-vec-or-mat :uvec3 ,@args))
 
-(%vdefmacro uvec4 t (&rest args)
+(%vdefmacro uvec4 t nil (&rest args)
   `(%init-vec-or-mat :uvec4 ,@args))
 
-(%vdefmacro mat2 t (&rest args)
+(%vdefmacro mat2 t nil (&rest args)
   `(%init-vec-or-mat :mat2 ,@args))
 
-(%vdefmacro mat3 t (&rest args)
+(%vdefmacro mat3 t nil (&rest args)
   `(%init-vec-or-mat :mat3 ,@args))
 
-(%vdefmacro mat4 t (&rest args)
+(%vdefmacro mat4 t nil (&rest args)
   `(%init-vec-or-mat :mat4 ,@args))
 
-(%vdefmacro mat2x2 t (&rest args)
+(%vdefmacro mat2x2 t nil (&rest args)
   `(%init-vec-or-mat :mat2x2 ,@args))
 
-(%vdefmacro mat2x3 t (&rest args)
+(%vdefmacro mat2x3 t nil (&rest args)
   `(%init-vec-or-mat :mat2x3 ,@args))
 
-(%vdefmacro mat2x4 t (&rest args)
+(%vdefmacro mat2x4 t nil (&rest args)
   `(%init-vec-or-mat :mat2x4 ,@args))
 
-(%vdefmacro mat3x2 t (&rest args)
+(%vdefmacro mat3x2 t nil (&rest args)
   `(%init-vec-or-mat :mat3x2 ,@args))
 
-(%vdefmacro mat3x3 t (&rest args)
+(%vdefmacro mat3x3 t nil (&rest args)
   `(%init-vec-or-mat :mat3x3 ,@args))
 
-(%vdefmacro mat3x4 t (&rest args)
+(%vdefmacro mat3x4 t nil (&rest args)
   `(%init-vec-or-mat :mat3x4 ,@args))
 
-(%vdefmacro mat4x2 t (&rest args)
+(%vdefmacro mat4x2 t nil (&rest args)
   `(%init-vec-or-mat :mat4x2 ,@args))
 
-(%vdefmacro mat4x3 t (&rest args)
+(%vdefmacro mat4x3 t nil (&rest args)
   `(%init-vec-or-mat :mat4x3 ,@args))
 
-(%vdefmacro mat4x4 t (&rest args)
+(%vdefmacro mat4x4 t nil (&rest args)
   `(%init-vec-or-mat :mat4x4 ,@args))
 
-(%vdefmacro while t (test &rest body)
+(%vdefmacro while t nil (test &rest body)
   `(while ,test (progn ,@body)))
 
 ;;------------------------------------------------------------

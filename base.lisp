@@ -964,17 +964,18 @@
      :append (assocr item *built-in-vars*
                      :test #'symbol-name-equal)))
 
+(defun context-ok-given-restriction (context restriction)
+  (every #'identity
+         (loop :for item :in restriction :collect
+            (if (listp item)
+                (some #'identity (loop :for sub-item :in item :collect
+                                    (find sub-item context)))
+                (find item context)))))
 
 (defun func-valid-for-contextp (context func)
   (let ((restriction (func-restriction func)))
     (if restriction
-        (when (every #'identity
-                     (loop :for item :in restriction :collect
-                        (if (listp item)
-                            (some #'identity 
-                                  (loop :for sub-item :in item :collect
-                                     (find sub-item context)))
-                            (find item context))))
+        (when (context-ok-given-restriction context restriction)
           func)
         func)))
 
@@ -1007,16 +1008,20 @@
   `(register-special-function ',name #'(lambda ,args ,@body)))
 
 (defun register-substitution (symbol function 
-                              &optional (packageless nil))
+                              &optional packageless context-restrictions)
   (setf *glsl-substitutions*
-        (acons symbol (list function packageless)
+        (acons symbol (list function packageless context-restrictions)
                *glsl-substitutions*)))
 
+;;*shader-context*
 (defun substitutionp (symbol)
   (let ((sub (assoc symbol *glsl-substitutions*
                     :test #'symbol-name-equal)))
     (and (not (null sub))
-         (or (third sub) (eq symbol (first sub))))))
+         (or (third sub) (eq symbol (first sub)))
+         (if (fourth sub) 
+             (context-ok-given-restriction *shader-context* (fourth sub))
+             t))))
 
 (defun substitution (symbol)
   (when (substitutionp symbol)
@@ -1029,12 +1034,13 @@
     (lambda ,lambda-list
       ,@body)))
 
-(defmacro %vdefmacro (name packageless lambda-list &body body)
+(defmacro %vdefmacro (name packageless context-restriction lambda-list &body body)
   `(register-substitution
     ',name
     (lambda ,lambda-list
       ,@body)
-    ,packageless))
+    ,packageless
+    ,context-restriction))
 
 (defun varjo-type->glsl-type (type-spec)
   (let* ((type (flesh-out-type type-spec))

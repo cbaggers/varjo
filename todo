@@ -9,8 +9,6 @@
 * Massive cleanup of code
 * glsl-defun doesnt use the arg names we give it
 
-* add decent swizzle function
-
 -----------------------------------------------------
 
 * Need to support nested structures for uniforms
@@ -19,7 +17,7 @@
 
 * imported struct has incorrect case info
 
-* smooth out not becoming smooth in
+* smooth out not becoming smooth in (really?)
 
 * add constants
 
@@ -29,7 +27,5 @@
 
 * remove all funcs from compatibility profile, we should be enforcing new style to as early
   a version of glsl as possible. We need to have :context-restriction for built in vars
-
-* change substitution to have :context-restriction
 
 * add correct versions to all functions
