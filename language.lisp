@@ -358,7 +358,7 @@
          (type (code-type arg)))
     (merge-obs arg :current-line 
                (format nil "~a ~{~a ~}~a~@[[~a]~]" 
-                       (varjo-type->glsl-type (first type))
+                       (varjo-type->glsl-type type)
                        qualifiers
                        (current-line arg)
                        (when (second type)
@@ -1660,6 +1660,14 @@
 (%vdefmacro while t nil (test &rest body)
   `(while ,test (progn ,@body)))
 
+(%vdefmacro let* t nil (bindings &rest body)
+  (let* ((bindings (reverse bindings))
+         (result `(let (,(first bindings))
+                    ,@body)))
+    (loop for binding in (rest bindings) do
+         (setf result `(let (,binding) ,result)))
+    result))
+
 ;;------------------------------------------------------------
 ;; Texture Lookup Functions
 ;;-------------------------
@@ -1919,343 +1927,343 @@
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d) (P :float) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-1d) (P :float) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-1d) (P :float) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d) (P :float))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-1d) (P :float))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-1d) (P :float))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d) (P :vec2) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec3") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-2d) (P :vec2) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-2d) (P :vec2) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-2d) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-2d) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-3d) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-3d) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-3d) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-3d) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-3d) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-3d) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-cube) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-cube) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-cube) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-cube) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-cube) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-cube) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d-shadow) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d-shadow) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-shadow) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-shadow) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-cube-shadow) (P :vec4) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-cube-shadow) (P :vec4)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d-array) (P :vec2) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-1d-array) (P :vec2) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-1d-array) (P :vec2) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d-array) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-1d-array) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-1d-array) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-array) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-2d-array) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-2d-array) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-array) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-2d-array) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-2d-array) (P :vec3))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d-array-shadow) (P :vec3) (bias :float)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-1d-array-shadow) (P :vec3)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-array-shadow) (P :vec4)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-rect) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :isampler-2d-rect) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :usampler-2d-rect) (P :vec2))
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 
 (glsl-defun 
  :name 'texture 
  :in-args '((sampler :sampler-2d-rect-shadow) (P :vec3)) 
- :output-type '(:int nil nil "int") 
+ :output-type '(:vec4 nil nil "vec4") 
  :transform "texture(~a, ~a)"
  :context-restriction '((:330)))
 

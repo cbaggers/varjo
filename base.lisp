@@ -57,7 +57,7 @@
 
 (defparameter *struct-definitions* nil)
 
-(defparameter *built-in-types* 
+(defparameter *built-in-types*
   `((vgl-per-vertex-g nil nil "gl_per_vertex_g")
     (vgl-per-vertex-v nil nil "gl_per_vertex_v")
     (:none nil nil "none") (:void nil nil "void") 
@@ -115,6 +115,9 @@
     (:usampler-Buffer nil nil "usamplerBuffer")
     (:usampler-Cube nil nil "usamplerCube")
     (:usampler-Cube-Array nil nil "usamplerCubeArray")))
+
+(defun expand-built-in-type (type)
+  (assoc type *built-in-types*))
 
 (defparameter *built-in-vars* 
   '((:core 
@@ -441,10 +444,10 @@
                  (<= length-c length-s))))))))
 
 (defun set-place-t (type)
-  (list (first type) (second type) t))
+  (list (first type) (second type) t (fourth type)))
 
 (defun set-place-nil (type)
-  (list (first type) (second type) nil))
+  (list (first type) (second type) nil (fourth type)))
 
 (defun get-place (x)
   (third x))
@@ -746,7 +749,7 @@
 ;;--------------
 
 (defun struct-init-form (struct)
-  (let* ((struct-name (first struct))
+  (let* ((struct-name (safe-gl-name (first struct)))
          (slots (rest struct)))
     (format nil "struct ~(~a~) {~%~{~a~%~}};"
             struct-name (mapcar #'compile-struct-type slots))))
@@ -876,6 +879,7 @@
              (or (assocr (type-principle type) '((:float . "f") (:uint . "u")))
                  "")))
     (cond ((null varjo-code) nil)
+          ((typep varjo-code 'code) varjo-code) 
           ((eq t varjo-code) (make-instance 'code :current-line "true" 
                                             :type '(:bool nil)))
           ((numberp varjo-code) 
