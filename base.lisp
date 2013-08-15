@@ -949,6 +949,21 @@
 
 ;;---------------------------------------------------------------
 
+(defun glsl-multi-defun (&key name specs transform context-restriction)
+  (let ((*types* *built-in-types*))
+    (loop :for spec :in specs :do
+       (destructuring-bind (&key in out) spec
+         (let* ((func-spec (vlambda :in-args in
+                                    :output-type out
+                                    :transform transform
+                                    :context-restriction 
+                                    context-restriction)))
+           (setf *glsl-functions*
+                 (acons name (cons func-spec
+                                   (assocr name *glsl-functions*
+                                           :test #'symbol-name-equal))
+                        *glsl-functions*)))))))
+
 (defun glsl-defun (&key name in-args output-type
                      transform context-restriction)
   (let ((*types* *built-in-types*))
