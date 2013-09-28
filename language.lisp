@@ -80,6 +80,8 @@
         (error "The result of the test must be a bool.~%~a"
                (code-type test)))))
 
+
+;; [TODO] double check implications of typify in compile-let-forms
 (vdefspecial for (var-form condition update &rest body)
   "(for (a 0) (< a 10) (++ a)
      (* a 2))"
@@ -87,7 +89,7 @@
    (consp (first var-form))
    (error "for can only iterate over one variable")
    (destructuring-bind (form-objs new-vars)
-       (compile-let-forms (list var-form) nil)
+       (compile-let-forms (list var-form) t)
      (let* ((form-obj (first form-objs))
             (*glsl-variables* (append new-vars *glsl-variables*))
             (con-ob (varjo->glsl condition))
@@ -201,7 +203,7 @@
                  :to-block (append 
                             (mapcan #'to-block form-objs)
                             (mapcar (lambda (x) 
-                                      (current-line (end-line x))) 
+                                      (current-line (end-line x)))
                                     form-objs)
                             (to-block prog-ob))
                  :to-top (append (mapcan #'to-top form-objs)
@@ -222,6 +224,7 @@
                            (current-line length) 
                            (mapcar #'current-line contents)))))
 
+;;[TODO] arg names arent always safe (try anything with a hyphon)
 (vdefspecial %make-function (name args &rest body)
   (let ((name (if (eq name :main) :main (symb '-f name))))
     (destructuring-bind (form-objs new-vars)
@@ -232,9 +235,10 @@
              (name (if (eq name :main) :main name))
              (returns (returns body-obj))
              (type (if (eq name :main) '(:void nil nil) 
-                       (code-type body-obj))))
+                       (first returns))))
         (let ((name (safe-gl-name name)))
-          (if (or (not returns) (every (equalp! type) returns)) 
+          (format t "~s ~s" name returns)
+          (if (or (not returns) (loop for r in returns always (equal r (first returns))))
               (make-instance 
                'code :type type
                :current-line nil
@@ -247,8 +251,8 @@
                                (mapcar #'reverse args)
                                (to-block body-obj) 
                                (current-line (end-line body-obj)))))
+
                :out-vars (out-vars body-obj))
-              
               (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))))
 
 (vdefspecial %make-var (name type)
@@ -301,12 +305,13 @@
                                          collect (current-line j))
                                       (to-block last-arg)))))))))
 
+;; [TODO] why does this need semicolon?
 (vdefspecial return (&optional (form '(%void)))
   (let ((ob (varjo->glsl form)))
     (if (eq :none (code-type ob))
         ob
         (merge-obs ob
-                   :current-line (format nil "return ~a" 
+                   :current-line (format nil "return ~a;" 
                                          (current-line ob))
                    :type :none
                    :returns (list (code-type ob))))))
@@ -1283,10 +1288,11 @@
             :transform "discard()"
             :context-restriction '(:fragment))
 
+;; [TODO] why does this need semicolon?
 (glsl-defun :name 'break
             :in-args '()
             :output-type :none
-            :transform "break"
+            :transform "break;"
             :context-restriction '((:330)))
 
 (glsl-defun :name 'continue
