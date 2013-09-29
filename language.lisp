@@ -237,7 +237,6 @@
              (type (if (eq name :main) '(:void nil nil) 
                        (first returns))))
         (let ((name (safe-gl-name name)))
-          (format t "~s ~s" name returns)
           (if (or (not returns) (loop for r in returns always (equal r (first returns))))
               (make-instance 
                'code :type type
