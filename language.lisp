@@ -161,34 +161,39 @@
                              (mapcar #'current-line arg-objs)))
           (error "The lengths of the types provided~%(~{~a~^,~^ ~})~%do not add up to the length of ~a" types target-type)))))
 
-
-;; [TODO] Preety sure this has a bug where if you use an in-built
+;; [TODO] Pretty sure this has a bug where if you use an in-built
 ;;        type with upper and lower case, this will just write 
 ;;        lower-case
 (vdefspecial labels (func-specs &rest body)
-  (let* ((func-objs (mapcar 
-                     #'(lambda (f) (varjo->glsl 
-                                    (cons '%make-function f)))
-                     func-specs))
-         (*glsl-functions* 
-          (acons-many
-           (loop for spec in func-specs
-              for obj in func-objs
-              :collect 
-                (list
-                 (first spec)
-                 (vlambda :in-args (second spec)
-                          :output-type (code-type obj)
-                          :transform 
-                          (format nil"~a(~{~a~^,~^ ~})"
-                                  (safe-gl-name '-f (first spec))
-                                  (loop for i below (length (second spec))
-                                     :collect "~a")))))
-           *glsl-functions*)))
-    (let ((prog-obj (apply-special 'progn body)))
-      (merge-obs (append func-objs (list prog-obj))
-                 :type (code-type prog-obj)
-                 :current-line (current-line prog-obj)))))
+  (let ((func-objs) (processed nil) (todo func-specs) (count 0))
+    (loop :until (or (not todo) (>= count (length todo))) :do
+       (let* ((*glsl-functions* (acons-many processed *glsl-functions*))
+              (spec (first todo))
+              (obj (handler-case (varjo->glsl (cons '%make-function spec))
+                     (missing-function-error ()
+                       (progn (setf todo `(,@(rest todo) ,(first todo)))
+                              (incf count)
+                              nil)))))
+         (when obj
+           (setf count 0)
+           (push obj func-objs)
+           (pop todo)
+           (push (list (first spec) 
+                       (vlambda :in-args (second spec)
+                                :output-type (code-type obj)
+                                :transform 
+                                (format nil "~a(~{~a~^,~^ ~})"
+                                        (safe-gl-name '-f (first spec))
+                                        (loop for i below (length (second spec))
+                                           :collect "~a"))))
+                 processed))))
+    (if todo
+        (error "Functions unresolvable in labels block~{~%~s~}" todo)
+        (let ((*glsl-functions* (acons-many processed *glsl-functions*)))
+          (let ((prog-obj (apply-special 'progn body)))
+            (merge-obs (append func-objs (list prog-obj))
+                       :type (code-type prog-obj)
+                       :current-line (current-line prog-obj)))))))
 
 (vdefspecial let (form-code &rest body-code)
   ;; check for name clashes between forms

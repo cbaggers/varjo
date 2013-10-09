@@ -873,6 +873,15 @@
 
 ;;------------------------------------------------------------
 
+;;------------------------------------------------------------
+;; Errors
+;;--------
+
+(define-condition missing-function-error (error)
+  ((text :initarg :text :reader text)))
+
+;;------------------------------------------------------------
+
 ;; [TODO] How should we specify numbers unsigned?
 (defun varjo->glsl (varjo-code)
   (labels ((num-suffix (type)
@@ -895,8 +904,10 @@
            (apply-special (first varjo-code) (rest varjo-code)))
           ((vfunctionp (first varjo-code))
            (compile-function (first varjo-code) (rest varjo-code)))
-          (t (error "Function '~s' is not available for ~A shaders in varjo." 
-                    (first varjo-code) *shader-context*)))))
+          (t (let ((error-message 
+                    (format nil "Function '~s' is not available for ~A shaders in varjo."
+                            (first varjo-code) *shader-context*)))
+               (error 'missing-function-error :text error-message))))))
 
 
 (defun compile-function (func-name args)
