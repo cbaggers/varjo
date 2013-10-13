@@ -197,7 +197,7 @@
 (defun uniform->var (x)
   (if (uniform-default-val x) (first x) x))
 
-(defun flesh-out-arg (var)  
+(defun flesh-out-arg (var)
   (list (var-name var)
         (flesh-out-type (or (expand-built-in-type (var-type var))
                             (var-type var)))

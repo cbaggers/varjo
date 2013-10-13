@@ -653,11 +653,6 @@
                                (nth i in-types)))
                  (if (consp i) (first i) i))))
          (final-type (flesh-out-type made-type)))
-    ;; (print in-types)
-    ;; (print (func-out-spec func))
-    ;; (print (func-compatible-args func))
-    ;; (print made-type)
-    ;; (print final-type)
     final-type))
 
 (defun oper-segment-list (list symbol)
@@ -840,8 +835,7 @@
             (vlambda :in-args `((x (,name)))
                      :output-type 
                      (literal-number-output-type
-                      (set-place-t (flesh-out-type 
-                                    (second slot))))
+                      (set-place-t (flesh-out-type (second slot))))
                      :transform (format nil "~~a.~a" 
                                         (or (third slot) (first slot)))
                      :context-restriction context-restriction)))))
@@ -853,7 +847,11 @@
              (acons-many ',(%struct-funcs name nil nil slots)
                          *glsl-functions*))
        (setf *struct-definitions*
-             (acons ',name ',slots
+             (acons ',name 
+                    ',(loop :for (name vtype gl-name read-only restriction) 
+                         :in slots :collect (list name vtype
+                                                  (safe-gl-name name)
+                                                  read-only restriction))
                     *struct-definitions*))
        ',name)))
 
