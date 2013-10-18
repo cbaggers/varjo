@@ -127,8 +127,8 @@
                                :uniform))
            (deduped-out-vars (check-and-dedup-out-vars (out-vars compiled-obj)))
            (out-vars (loop for i in deduped-out-vars
-                          collect (append (subseq i 0 2) 
-                                          (cdddr i))))
+                        :collect `(,(first i) ,(set-place-nil (second i))
+                                    ,@(cdddr i))))
            (compiled-out-vars (compile-declarations 
                                (loop for var in deduped-out-vars
                                   collect (list (subseq var 0 3)
