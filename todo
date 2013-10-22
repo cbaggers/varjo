@@ -1,4 +1,53 @@
 
+restructure
+-----------
+- all helper functions to utils.lisp
+- the eq-* functions could probably be easily replaced
+- language becomes folder
+- split language into groups (textures, shaders, etc)
+- types.lisp for all type functions
+- the glsl types can be put in the languages folder.
+- pull together all compiler functions into compile.lisp
+- NO.. compiler can be a directory arg parsing should be its own lisp file
+- the actual string generating parts should be in functions in to-string.lisp
+- remove rolling-translate and fluffy stuff defshader example
+- keep front end file for translate itself...hmmm, maybe rolling translate. it is pretty cool
+- errors need their own file so we will actually make them!
+
+ultimately we need the following
+* when you see 'object' below, think struct. Structs with generics when needed
+* replace types lists with gl-type object
+* probably stop using dynamic var and make expicit environment object
+* glsl-gensym only make ugly name if name taken
+* safe-gl-name could possibly be replaced by cffi name functiions
+* merge-obs needs a new name
+* Type trees
+* Have types that cannot end up in code this like 'matrix as parent for all matricies/
+  or user defined types for things like lists of functions.
+* mat/vec-length should use the component length table
+* What is change-vec-length for?
+* Are vlambdas used in labels? If nnot do we need this? - they are also in struct accessors
+* function defintions could be objects
+* oper-segment-list need a better name.. it turns this (+ 1 2 3) to this (+ 1 (+ 2 (+ 3)))
+* do we use oper-segment-list?
+* variables should be objects
+* compile-let-forms is a nightmare. Fix this shit
+* literal-number-output-type...what the fuck?
+* Kill the weird substitute terminology and call it macros
+* Use package namesspaces as much as possible. e.g. vfuncs:functionp
+* 'special function' seems odd too....arent these macros too?
+* unfuck identation
+* Why is argument processing so hard? It should be possible to shrink this
+* Translate function is ugly, break this process down and compose the functions together
+* I have underestimated #'equal, use it more. if it is literals it is excellent
+* The struct replacements for strings we define must have a (thing-equal a b) to make
+  later stuff easier.
+
+* Write tour guide
+
+-----------
+
+
 * read up on setting variables as invariant
 * find out what centroid means
 

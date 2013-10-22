@@ -936,8 +936,7 @@
 (defun get-number-type (x)
   (cond ((floatp x) '(:float nil))
         ((integerp x) '(:int nil))
-        (t (error "Varjo: Do not know the type of the number '~s'"
-                  x))))
+        (t (error "Varjo: Do not know the type of the number '~s'" x))))
 
 (defun compile-var (name type &rest qualifiers)
   (%compile-var name type qualifiers))
