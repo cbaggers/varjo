@@ -16,7 +16,6 @@
                (:file "compiler/compiler")
                (:file "compiler/string-generation")
                ;;-v-v-v----old----v-v-v-;
-               (:file "base")
                (:file "language")
                (:file "varjo")))
 
