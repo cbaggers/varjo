@@ -1,6 +1,5 @@
 (in-package :varjo)
 
-
 ;;*shader-context*
 (defun substitutionp (symbol)
   (let ((sub (assoc symbol *glsl-substitutions*

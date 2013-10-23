@@ -2,9 +2,7 @@
 
 (defpackage #:varjo
   (:use #:cl)
-  (:export :defshader
-	   :defshader?
-           :extract-uniforms
+  (:export :extract-uniforms
            :flesh-out-type
            :glsl-defun
            :mat-typep
@@ -25,7 +23,7 @@
            :type-mat-col-to-vec
            :type-placep
            :type-principle
-	   :type-struct-p
+           :type-struct-p
            :type-vec-core-type
            :vdefmacro
            :vdefspecial

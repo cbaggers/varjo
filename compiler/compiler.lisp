@@ -1,5 +1,9 @@
 (in-package :varjo)
 
+(defun compile-main (code)
+  (varjo->glsl (macroexpand-and-substitute 
+                `(%make-function :main () ,@code))))
+
 ;; [TODO] How should we specify numbers unsigned?
 (defun varjo->glsl (varjo-code)
   (labels ((num-suffix (type)

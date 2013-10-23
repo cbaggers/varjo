@@ -129,3 +129,14 @@
        (setf *built-in-types* 
              (acons ',name '(nil) *built-in-types*))
        ',name)))
+
+(defun substitute-alternate-struct-types (in-vars type-alist)
+  (loop :for in-var in in-vars
+     :collect (list (var-name in-var)
+                    (or (first 
+                         (assocr 
+                          (type-principle (var-type in-var)) 
+                          type-alist))
+                        (var-type in-var))
+                    (var-gl-name in-var)
+                    (var-read-only in-var))))

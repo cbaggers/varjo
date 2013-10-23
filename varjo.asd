@@ -11,12 +11,17 @@
                (:file "compiler/types")
                (:file "compiler/functions")
                (:file "compiler/variables")
+               (:file "compiler/macros")
                (:file "compiler/structs")
                (:file "compiler/errors")
                (:file "compiler/compiler")
                (:file "compiler/string-generation")
-               ;;-v-v-v----old----v-v-v-;
-               (:file "language")
-               (:file "varjo")))
+               (:file "language/types")
+               (:file "language/special")
+               (:file "language/functions")
+               (:file "language/macros")
+               (:file "language/textures")
+               (:file "front-end/arguments")
+               (:file "front-end/front-end")))
 
 
