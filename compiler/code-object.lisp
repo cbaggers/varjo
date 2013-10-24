@@ -1,42 +1,13 @@
 (in-package :varjo)
 
-(defclass code ()
-  ((type-spec
-    :initarg :type
-    :initform nil
-    :reader code-type
-    :writer (setf code-type))
-   (current-line
-    :initarg :current-line
-    :initform nil
-    :reader current-line
-    :writer (setf current-line))
-   (to-block
-    :initarg :to-block
-    :initform nil
-    :reader to-block
-    :writer (setf to-block))
-   (to-top
-    :initarg :to-top
-    :initform nil
-    :reader to-top
-    :writer (setf to-top))
-   (out-vars
-    :initarg :out-vars
-    :initform nil
-    :reader out-vars
-    :writer (setf out-vars))
-   (invariant
-    :initarg :invariant
-    :initform nil
-    :reader invariant
-    :writer (setf invariant))
-   (returns
-    :initarg :returns
-    :initform nil
-    :reader returns
-    :writer (setf returns))))
-
+;; (defclass code ()
+;;   ((type-spec :initarg :type :initform nil :accessor code-type)
+;;    (current-line :initarg :current-line :initform nil :accessor current-line)
+;;    (to-block :initarg :to-block :initform nil :accessor to-block)
+;;    (to-top :initarg :to-top :initform nil :accessor to-top)
+;;    (out-vars :initarg :out-vars :initform nil :accessor out-vars)
+;;    (invariant :initarg :invariant :initform nil :accessor invariant)
+;;    (returns :initarg :returns :initform nil :accessor returns)))
 
 (defmethod initialize-instance :after 
     ((code-ob code) &key (type nil set-type)

@@ -1,20 +1,8 @@
 
 restructure
 -----------
-- all helper functions to utils.lisp
-- the eq-* functions could probably be easily replaced
-- language becomes folder
-- split language into groups (textures, shaders, etc)
-- types.lisp for all type functions
-- the glsl types can be put in the languages folder.
-- pull together all compiler functions into compile.lisp
-- NO.. compiler can be a directory arg parsing should be its own lisp file
-- the actual string generating parts should be in functions in to-string.lisp
-- remove rolling-translate and fluffy stuff defshader example
-- keep front end file for translate itself...hmmm, maybe rolling translate. it is pretty cool
-- errors need their own file so we will actually make them!
 
-ultimately we need the following
+* the eq-* functions could probably be easily replaced
 * when you see 'object' below, think struct. Structs with generics when needed
 * replace types lists with gl-type object
 * probably stop using dynamic var and make expicit environment object

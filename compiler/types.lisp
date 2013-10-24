@@ -1,5 +1,91 @@
 (in-package :varjo)
 
+;; (defclass varjo-type () 
+;;   ((principle :initform nil :initarg :principle :accessor principle)
+;;    (array-length :initform nil :initarg :array-length :accessor array-length)
+;;    (place :initform nil :initarg :place :accessor v-place)
+;;    (gl-name :initform nil :initarg :gl-name :accessor gl-name)))
+
+(defmethod v-nativep ((x varjo-type))
+  (not (null (assoc (principle x) *built-in-types*))))
+
+(defmethod v-placep ((x varjo-type))
+  (v-place x))
+
+(defmethod v-arrayp ((x varjo-type))
+  (not (null (array-length x))))
+
+(defun v-type-equal (x y)
+  (with-slots (principle-a array-length-a place-a gl-name-a) x
+    (with-slots (principle-b array-length-b place-b gl-name-b) y
+      (and (equal principle-b principle-a)
+           (equal array-length-b array-length-a)
+           (equal place-b place-a)
+           (equal gl-name-b gl-name-a)))))
+
+(defmethod v-typep ((x code) (y varjo-type))
+  (v-type-equal (code-type x) y))
+
+;;----------v-v-v-old-v-v-v-----------;
+;;[TODO] What is this for?
+(defun built-in-vars (context)
+  (loop :for part :in context
+     :append (assocr part *built-in-vars*
+                     :test #'symbol-name-equal)))
+
+;; (defun type-principle (type)
+;;   (first type))
+
+;; (defun type-arrayp (type)
+;;   (not (null (second type))))
+
+;; (defun type-array-length (type)
+;;   (second type))
+
+;; (defun type-place (type)
+;;   (third type))
+
+;; (defun type-placep (type)
+;;   (third type))
+
+;; (defun type-gl-name (type)
+;;   (fourth type))
+
+;; (defun type-built-inp (type)
+;;   (not (null (assoc (type-principle type) *built-in-types*))))
+
+;; (defun set-place-t (type)
+;;   (list (first type) (second type) t (fourth type)))
+
+;; (defun set-place-nil (type)
+;;   (list (first type) (second type) nil (fourth type)))
+
+;; (defun get-place (x)
+;;   (third x))
+
+;; (defun placep (object)
+;;   (get-place (code-type object)))
+
+(defun glsl-typep (object type)
+  (glsl-valid-type (code-type object) type))
+
+;; this is used for function type matching...not sure thsi hsould live here
+(defun glsl-valid-type (candidate spec)
+  (let ((type-s (first spec)) (type-c (first candidate))
+        (length-s (second spec)) (length-c (second candidate)))
+    (not
+     (null
+      (and (or (eq type-s t) (if (listp type-s) 
+                                 (find type-c type-s) 
+                                 (eq type-c type-s)))
+           (or (eq length-c length-s)
+               (and (eq length-s t) length-c)
+               (when (and (numberp length-c) (numberp length-s))
+                 (<= length-c length-s))))))))
+
+;; [TODO] why only first 2?
+;; (defun type-equal (a b)
+;;   (equal (subseq a 0 2) (subseq b 0 2)))
 
 (defun flesh-out-type-with-check (type)
   (if (not (listp type))
@@ -23,64 +109,9 @@
                       (safe-gl-name (type-principle type-spec))))))
       (flesh-out-type (list type-spec))))
 
-(defun glsl-valid-type (candidate spec)
-  (let ((type-s (first spec)) (type-c (first candidate))
-        (length-s (second spec)) (length-c (second candidate)))
-    (not
-     (null
-      (and (or (eq type-s t) (if (listp type-s) 
-                                 (find type-c type-s) 
-                                 (eq type-c type-s)))
-           (or (eq length-c length-s)
-               (and (eq length-s t) length-c)
-               (when (and (numberp length-c) (numberp length-s))
-                 (<= length-c length-s))))))))
 
-(defun set-place-t (type)
-  (list (first type) (second type) t (fourth type)))
 
-(defun set-place-nil (type)
-  (list (first type) (second type) nil (fourth type)))
 
-(defun get-place (x)
-  (third x))
-
-(defun placep (object)
-  (get-place (code-type object)))
-
-(defun glsl-typep (object type)
-  (glsl-valid-type (code-type object) type))
-
-(defun type-equal (a b)
-  (equal (subseq a 0 2) (subseq b 0 2)))
-
-;;-----------
-(defun type-principle (type)
-  (first type))
-
-(defun type-arrayp (type)
-  (not (null (second type))))
-
-(defun type-array-length (type)
-  (second type))
-
-(defun type-place (type)
-  (third type))
-
-(defun type-placep (type)
-  (third type))
-
-(defun type-gl-name (type)
-  (fourth type))
-
-(defun type-built-inp (type)
-  (not (null (assoc (type-principle type) *built-in-types*))))
-
-(defun built-in-vars (context)
-  (loop :for part :in context
-     :append (assocr part *built-in-vars*
-                     :test #'symbol-name-equal)))
-;;-----------
 
 (defun glsl-castablep (minor-type major-type)
   "Returns whether the type minor-type can be cast up to type major-type"
