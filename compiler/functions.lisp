@@ -1,39 +1,92 @@
 (in-package :varjo)
 
-;;------------------------------------------------------------
-;; GLSL Functions
-;;----------------
+;; (glsl-defun :name 'atan
+;;             :in-args '((y ((:float :vec2 :vec3 :vec4)) :compatible)
+;;                        (x ((:float :vec2 :vec3 :vec4)) :compatible))
+;;             :output-type '(0 nil)
+;;             :transform "atan(~a, ~a)"
+;;             :context-restriction '((:330)))
 
-(defun vlambda (&key in-args output-type transform
+;; reasons for match
+;; two situations
+;; 1 - two arguments that allow (int or vec) now is that something compat with 
+;;     int and then something compat with vec OR
+;; 2 - two things either int or vec but not combo
+;; Address with NORMAL type declarations
+
+
+(defun old-flesh-out-type (type-spec)
+  (if (consp type-spec)
+      (if (> (length type-spec) 4)
+          (error "Invalid GLSL Type Definition: ~s has more than 4 components." type-spec)
+          (list (first type-spec)
+                (second type-spec)
+                (third type-spec)
+                (or (first type-spec)
+                    (when (symbolp (first type-spec))
+                      (safe-gl-name (first type-spec))))))
+      (old-flesh-out-type (list type-spec))))
+
+(defun old-vlambda (&key in-args output-type transform
                   context-restriction (packageless t))
-  (list (mapcar #'flesh-out-type
+  (declare (ignore packageless))
+  (list (mapcar #'old-flesh-out-type
                 (mapcar #'second in-args))
-        (flesh-out-type output-type)
+        (old-flesh-out-type output-type)
         transform
         (mapcar #'(lambda (x) (find :compatible x)) in-args)
         (mapcar #'(lambda (x) (find :match x)) in-args)
         context-restriction))
 
-(defun func-in-spec (x)
-  (first x))
+(defun glsl-defun (&key name in-args output-type
+                     transform context-restriction)
+  (let* ((func-spec (old-vlambda :in-args in-args 
+                                 :output-type output-type
+                                 :transform transform
+                                 :context-restriction 
+                                 context-restriction)))
+    (setf *old-funcs*
+          (acons name (cons func-spec
+                            (assocr name *old-funcs*
+                                    :test #'symbol-name-equal))
+                 *old-funcs*))))
 
-(defun func-out-spec (x)
-  (second x))
+;;------------------------------------------------------------
+;; GLSL Functions
+;;----------------
 
-(defun func-body (x)
-  (third x))
+(defun vlambda (&key arg-spec return-spec code context-restriction place)
+  (make-instance 'v-function :arg-spec arg-spec :return-spec return-spec
+                 :code code :restriction context-restriction :place place)) 
 
-(defun func-compatible-args (x)
-  (fourth x))
+(defmacro v-defun (name args &body body)
+  (let* ((context-pos (position '&jam args :test #'symbol-name-equal))
+         (context (subseq args (1+ context-pos)))
+         (args (subseq args 0 context-pos)))
+    (if (stringp (first body))
+        (destructuring-bind (transform arg-types return-spec &key place) body
+          `(setf (gethash ',name (v-functions *global-env*)) 
+                 '(,transform '(,args ,arg-types) ,return-spec ,context ,place)))
+        `(setf (gethash ',name (v-functions *global-env*)) 
+               (lambda ,args ,@body) ,context))))
 
-(defun func-args-match (x)
-  (fifth x))
 
-(defun func-restriction (x)
-  (sixth x))
+(defun glsl-multi-defun (&key name specs transform context-restriction)
+  (let ((*types* *built-in-types*))
+    (loop :for spec :in specs :do
+       (destructuring-bind (&key in out) spec
+         (let* ((func-spec (vlambda :in-args in
+                                    :output-type out
+                                    :transform transform
+                                    :context-restriction 
+                                    context-restriction)))
+           (setf *glsl-functions*
+                 (acons name (cons func-spec
+                                   (assocr name *glsl-functions*
+                                           :test #'symbol-name-equal))
+                        *glsl-functions*)))))))
 
-(defun func-packageless (x)
-  (seventh x))
+;;------------------------------------------------------------
 
 (defun glsl-valid-function-args (func args)
   (let ((in-spec (func-in-spec func))
@@ -77,45 +130,7 @@
          (final-type (flesh-out-type made-type)))
     final-type))
 
-(defun oper-segment-list (list symbol)
-  (if (rest list) 
-      (list symbol 
-            (first list) 
-            (oper-segment-list (rest list) symbol)) 
-      (first list)))
-
-
-
-(defun glsl-multi-defun (&key name specs transform context-restriction)
-  (let ((*types* *built-in-types*))
-    (loop :for spec :in specs :do
-       (destructuring-bind (&key in out) spec
-         (let* ((func-spec (vlambda :in-args in
-                                    :output-type out
-                                    :transform transform
-                                    :context-restriction 
-                                    context-restriction)))
-           (setf *glsl-functions*
-                 (acons name (cons func-spec
-                                   (assocr name *glsl-functions*
-                                           :test #'symbol-name-equal))
-                        *glsl-functions*)))))))
-
-(defun glsl-defun (&key name in-args output-type
-                     transform context-restriction)
-  (let ((*types* *built-in-types*))
-    (let* ((func-spec (vlambda :in-args in-args 
-                               :output-type output-type
-                               :transform transform
-                               :context-restriction 
-                               context-restriction)))
-      (setf *glsl-functions*
-            (acons name (cons func-spec
-                              (assocr name *glsl-functions*
-                                      :test #'symbol-name-equal))
-                   *glsl-functions*)))))
-
-
+;;------------------------------------------------------------
 
 (defun context-ok-given-restriction (context restriction)
   (every #'identity
@@ -128,9 +143,10 @@
 (defun func-valid-for-contextp (context func)
   (let ((restriction (func-restriction func)))
     (if restriction
-        (when (context-ok-given-restriction context restriction)
-          func)
+        (when (context-ok-given-restriction context restriction) func)
         func)))
+
+;;------------------------------------------------------------
 
 (defun func-specs (name)
   (let ((all-matching (assocr name *glsl-functions* 
@@ -140,7 +156,7 @@
                :collect (func-valid-for-contextp 
                          *shader-context* spec)))))
 
-(defun vfunctionp (name)
+(defun vfunctionp (name env)
   (not (null (func-specs name))))
 
 (defun special-functionp (symbol)

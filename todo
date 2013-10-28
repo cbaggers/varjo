@@ -16,8 +16,6 @@ restructure
 * What is change-vec-length for?
 * Are vlambdas used in labels? If nnot do we need this? - they are also in struct accessors
 * function defintions could be objects
-* oper-segment-list need a better name.. it turns this (+ 1 2 3) to this (+ 1 (+ 2 (+ 3)))
-* do we use oper-segment-list?
 * variables should be objects
 * compile-let-forms is a nightmare. Fix this shit
 * literal-number-output-type...what the fuck?

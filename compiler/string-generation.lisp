@@ -31,3 +31,10 @@
                            (remove-if #'null out-vars))
                    (mapcar #'current-line uniforms)
                    (to-top code))))))
+
+;;----v-v-v-new-v-v-v----;;
+(defmethod v-type->string ((type v-type))
+  (format nil "~a" (v-glsl-string type)))
+
+(defmethod v-type->string ((type v-array))
+  (format nil "~a[~a]" (v-glsl-string type) (v-length type)))

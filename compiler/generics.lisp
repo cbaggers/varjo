@@ -1,15 +1,24 @@
 (in-package :varjo)
 
-(defgeneric v-nativep (x))
-(defgeneric v-arrayp (x))
-(defgeneric v-typep (x))
+;;types
+(defclass v-type () 
+  ((core :initform nil :reader core-typep)
+   (place :initform nil :reader v-placep)
+   (glsl-string :initform "<invalid>" :reader v-glsl-string)
+   (glsl-size :initform 1)
+   (casts-to :initform nil)))
 
-(defclass varjo-type () 
-  ((principle :initform nil :initarg :principle :accessor principle)
-   (array-length :initform nil :initarg :array-length :accessor array-length)
-   (place :initform nil :initarg :place :accessor v-place)
-   (gl-name :initform nil :initarg :gl-name :accessor gl-name)))
+(defgeneric v-glsl-size (type))
+(defgeneric v-casts-to-p (from-type to-type))
 
+;; environment
+(defclass environment () 
+  ((variables :initform nil :initarg :variables :accessor v-variables)
+   (functions :initform nil :initarg :functions :accessor v-functions)
+   (macros :initform nil :initarg :macros :accessor v-macros)
+   (types :initform nil :initarg :types :accessor v-types)))
+
+;; code
 (defclass code ()
   ((type-spec :initarg :type :initform nil :accessor code-type)
    (current-line :initarg :current-line :initform nil :accessor current-line)
@@ -19,3 +28,11 @@
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)))
 
+(defgeneric merge-obs (objs &key type current-line to-block 
+                              to-top out-vars invariant returns))
+
+;; functions
+
+
+;; string generation
+(defgeneric v-type->string (x))

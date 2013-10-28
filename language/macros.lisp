@@ -8,16 +8,22 @@
 
 (in-package :varjo)
 
+(defun segment-arg-list (list symbol)
+  "Takes a form like \(+ 1 2 3 4\) and returns \(+ 1 \(+ 2 \(+ 3 4\)\)\)"
+  (if (rest list) 
+      (list symbol (first list) (segment-arg-list (rest list) symbol)) 
+      (first list)))
+
 (%vdefmacro - t nil (&rest args)
   (if (eq 1 (length args))
       `(%negate ,@args)
       `(%- ,@args)))
 
 (%vdefmacro * t nil (&rest args)
-  (oper-segment-list args '*))
+  (segment-arg-list args '*))
 
 (%vdefmacro / t nil (&rest args)
-  (oper-segment-list args '/))
+  (segment-arg-list args '/))
 
 (%vdefmacro v! t nil (&rest args)
   (let ((len (length args)))
