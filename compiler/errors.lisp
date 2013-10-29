@@ -17,6 +17,7 @@
      (,@(loop :for arg :in args :collect
            `(,arg :initarg ,(kwd arg) :reader ,arg)))
      (:report (lambda (condition stream)
+                (declare (ignorable condition))
                 (format stream ,error-string ,@body)))))
 
 ;-----------------------------;
@@ -31,3 +32,6 @@
 
 (deferror invalid-function-return-spec (func spec)
     "Outbound spec of function ~a is invalid:~%~a" func spec)
+
+(deferror clone-global-env-error ()
+    "Cannot clone the global environment")

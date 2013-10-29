@@ -11,6 +11,67 @@
 (defparameter *global-env-external-funcs* (make-hash-table))
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
+(defparameter *global-env-macros* (make-hash-table))
+
+;;-------------------------------------------------------------------------
+
+(defmethod clone-environment ((env (eql :-genv-)))
+  (error 'clone-global-env-error))
+
+(defmethod clone-environment ((env environment))
+  (make-instance 'environment :variables (copy-list (v-variables env))
+                 :functions (copy-list (v-functions env))
+                 :macros (copy-list (v-macros env))
+                 :types (copy-list (v-types env))
+                 :context (copy-list (v-context env))))
+
+;;-------------------------------------------------------------------------
+
+(defmethod add-macro (macro-name (macro function) (env (eql :-genv-)))
+  (setf (gethash macro-name *global-env-macros*) macro))
+
+(defmethod add-macro (macro-name (macro function) (env environment))
+  (let ((env (clone-environment env)))
+    (setf (gethash macro-name (v-macros env)) macro)))
+
+(defmethod add-macros (macro-name (macros list) (env environment))
+  (let ((env (clone-environment env)))
+    (loop :for macro :in macros :do (setf (gethash macro-name (v-macros env)) macro))))
+
+(defgeneric get-macro (macro-name env))
+(defmethod get-macro (macro-name (env (eql :-genv-)))
+  (gethash macro-name *global-env-macros*))
+
+(defmethod get-macro (macro-name (env environment))
+  (or (gethash macro-name (v-macros env))
+      (get-macro macro-name *global-env*)))
+
+(defmethod v-mboundp (macro-name (env environment))
+  (not (null (get-macro macro-name env))))
+
+;;-------------------------------------------------------------------------
+
+(defmethod add-var (var-name (val v-value) (env (eql :-genv-)))
+  (setf (gethash var-name *global-env-vars*) val))
+
+(defmethod add-var (var-name (val v-value) (env environment))
+  (let ((env (clone-environment env)))
+    (setf (gethash var-name (v-variables env)) val)))
+
+(defmethod add-vars (var-name (vals list) (env environment))
+  (let ((env (clone-environment env)))
+    (loop :for val :in vals :do (setf (gethash var-name (v-variables env)) val))))
+
+(defgeneric get-var (var-name env))
+(defmethod get-var (var-name (env (eql :-genv-)))
+  (gethash var-name *global-env-vars*))
+
+(defmethod get-var (var-name (env environment))
+  (or (gethash var-name (v-variables env))
+      (get-var var-name *global-env*)))
+
+(defmethod v-boundp (var-name (env environment))
+  (not (null (get-var var-name env))))
 
 ;;-------------------------------------------------------------------------
 
@@ -19,16 +80,27 @@
         (cons func-spec (gethash func-name *global-env-funcs*))))
 
 (defmethod add-function (func-name (func-spec v-function) (env environment))
-  (setf (gethash func-name (v-functions env))
-        (cons func-spec (gethash func-name (v-functions env)))))
+  (let ((env (clone-environment env)))
+    (setf (gethash func-name (v-functions env))
+          (cons func-spec (gethash func-name (v-functions env))))))
+
+(defmethod add-functions (func-name (func-specs list) (env environment))
+  (let ((env (clone-environment env)))
+    (loop :for func-spec :in func-specs :do
+       (setf (gethash func-name (v-functions env))
+             (cons func-spec (gethash func-name (v-functions env)))))))
 
 ;; loop and instanstiate
 (defmethod get-function (func-name (env (eql :-genv-)))
   (mapcar #'func-spec->function (gethash func-name *global-env-funcs*)))
 
-(defmethod get-function (func-name (env environment))
-  (append (gethash func-name *global-env-funcs*)
-          (get-function-definitions func-name *global-env*)))
+(defmethod get-function (func-name (env environment))  
+  (append (loop :for func :in (gethash func-name (v-functions env)) 
+             :if (valid-for-contextp func env) :collect func)
+          (get-function func-name *global-env*)))
+
+(defmethod v-fboundp (func-name (env environment))
+  (not (null (get-function func-name env))))
 
 (defun func-spec->function (spec)
   (destructuring-bind (transform arg-spec return-spec context place) spec

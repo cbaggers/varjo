@@ -59,9 +59,11 @@
        (or (position y order-or-superiority) -1))))
 
 (defun v-superior-type (&rest types)
-  (first (sort mutual-casts #'v-superior)))
+  (first (sort types #'v-superior)))
 
 (defclass v-none () ())
+
+(defclass v-stream (v-type) ())
 
 (defclass v-function (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
@@ -70,6 +72,11 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (place :initform nil :initarg :place :accessor v-placep)))
+
+(defclass v-struct (v-type)
+  ((restriction :initform nil :initarg :restriction :accessor v-restriction)
+   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
+   (slots :initform nil :initarg :slots :reader v-slots)))
 
 (defgeneric v-special-functionp (func))
 (defmethod v-special-functionp ((func function))

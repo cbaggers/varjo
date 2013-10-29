@@ -4,44 +4,52 @@
 ;; GLSL Structs
 ;;--------------
 
-(defun struct-init-form (struct)
-  (let* ((struct-name (safe-gl-name (first struct)))
-         (slots (rest struct)))
-    (format nil "struct ~(~a~) {~%~{~a~%~}};"
-            struct-name (mapcar #'compile-struct-type slots))))
+;; (vdefstruct thing ()
+;;   (a v-float)
+;;   (to-long-to-blah v-int :accessor b))
 
-(defun compile-struct-type (slot)
-  (let ((name (safe-gl-name (or (third slot) (first slot))))
-        (type (flesh-out-type (second slot))))
-    (let ((principle (varjo-type->glsl-type (first type)))
-          (len (third type)))
-      (if len
+(defmacro vdefstruct (name context &body slots)
+  `(progn 
+     (defclass ,name (v-struct) 
+       ((glsl-string :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
+                                        name (mapcar #'gen-slot-string slots))
+                     :initarg :glsl-string :reader v-glsl-string)
+        (slots :initform ',slots :reader v-slots)))
+     (v-defun ,(symb 'make- name) 
+         ,(append (loop :for slot :in slots :collect (first slot))
+                  (when context `(&context ,@context)))
+       ,(format nil "~a(~{~a~^,~^ ~})" name 
+                (loop :for slot :in slots :collect "~a"))
+       ,(loop :for slot :in slots :collect (second slot))
+       ,name :place nil)
+     ,@(loop :for (slot-name slot-type . acc) :in slots :collect
+          (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
+            `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
+               ,(concatenate 'string "~a." (string slot-name))
+               (,name) ,slot-type :place t)))))
+
+(defun gen-slot-string (slot)
+  (destructuring-bind (slot-name slot-type &key accessor) slot
+    (let ((name (or accessor slot-name))
+          (type-obj (type-spec->type slot-type)))
+      (if (typep type-obj 'v-array)
           (format nil "    ~a ~a[~a];" 
-                  principle name len)
+                  (v-glsl-string (v-element-type type-obj)) 
+                  name 
+                  (v-dimensions type-obj))
           (format nil "    ~a ~a;" 
-                  principle name)))))
+                  (v-glsl-string type-obj) name)))))
 
-(defun type-struct-p (type)
-  (let ((ftype (flesh-out-type type)))
-    (not (null (assoc (type-principle ftype) *struct-definitions*)))))
-
-(defun struct-definition (type-name)
-  (let ((descrip (assoc type-name *struct-definitions*)))
-    (or (rest descrip) 
-        (error "Varjo: Struct ~a does not exist" type-name))))
-
-(defun get-struct-definitions (types)
-  (if (not types) 
-      (error "Varjo: get-struct-definitions called with no types")
-
-      (let* ((found (loop for type in types 
-                       :collect (assoc type
-                                       *struct-definitions*)))
-             (error-pos (position-if #'null found)))
-        (if (not error-pos)
-            found
-            (error "Varjo: Struct ~a does not exist" 
-                   (nth error-pos types))))))
+(defmethod make-fake-struct (type (env environment))
+  (let* ((type (if (typep type 'v-struct) type (type-spec->type type)))
+         (slots (v-slots type)))    
+    (loop :for (slot-name slot-type . acc) :in slots :collect
+       (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
+         (add-function accessor 
+                       (v-make-f-spec (concatenate 'string "~a." 
+                                                   (string slot-name))
+                                      '(obj) '(v-struct) slot-type nil)
+                       env)))))
 
 (defun fake-struct-vars (var-name struct-name)
   (let ((slots (rest (first (get-struct-definitions 
@@ -69,74 +77,4 @@
                        :transform (format nil "_f_~~(~~a_~a~~)" 
                                           (safe-gl-name (first slot)))))))))
 
-(defun literal-number-output-type (type)
-  (loop for i in type :collect (if (numberp i) (list i) i)))
 
-(defun struct-funcs (struct)
-  (%struct-funcs (first struct) nil nil 
-                 (loop for slot in (rest struct)
-                    collect (list (safe-gl-name (first slot))
-                                  (second slot)))))
-
-(defun %struct-funcs (name slot-prefix context-restriction slots)
-  (cons 
-   (list (symb 'make- (or slot-prefix name))
-         (vlambda :in-args (loop for slot in slots
-                              :collect (subseq slot 0 2))
-                  :output-type name
-                  :transform (format nil "~a(~{~a~^,~^ ~})"
-                                     name
-                                     (loop for slot in slots
-                                        collect "~a"))
-                  :context-restriction context-restriction))
-   (loop :for slot :in slots 
-      :collect
-      (list (or (fifth slot)
-                (symb (or slot-prefix name) '- (first slot)))
-            (vlambda :in-args `((x (,name)))
-                     :output-type 
-                     (literal-number-output-type
-                      (set-place-t (flesh-out-type (second slot))))
-                     :transform (format nil "~~a.~a" 
-                                        (or (third slot) (first slot)))
-                     :context-restriction context-restriction)))))
-
-(defmacro vdefstruct (name &body slots)
-  (let ((*types* (cons (list name nil) *built-in-types*))) 
-    `(progn     
-       (setf *glsl-functions* 
-             (acons-many ',(%struct-funcs name nil nil slots)
-                         *glsl-functions*))
-       (setf *struct-definitions*
-             (acons ',name 
-                    ',(loop :for (name vtype gl-name read-only restriction) 
-                         :in slots :collect (list name vtype
-                                                  (safe-gl-name name)
-                                                  read-only restriction))
-                    *struct-definitions*))
-       ',name)))
-
-;; [TODO] context-restriction limits functions but type?
-(defmacro %vdefstruct (name (&key slot-prefix context-restriction)
-                       &body slots)
-  (let ((*types* (cons (list name nil) *built-in-types*))) 
-    `(progn
-       (setf *glsl-functions* 
-             (acons-many ',(%struct-funcs name slot-prefix
-                                          context-restriction 
-                                          slots)
-                         *glsl-functions*))
-       (setf *built-in-types* 
-             (acons ',name '(nil) *built-in-types*))
-       ',name)))
-
-(defun substitute-alternate-struct-types (in-vars type-alist)
-  (loop :for in-var in in-vars
-     :collect (list (var-name in-var)
-                    (or (first 
-                         (assocr 
-                          (type-principle (var-type in-var)) 
-                          type-alist))
-                        (var-type in-var))
-                    (var-gl-name in-var)
-                    (var-read-only in-var))))

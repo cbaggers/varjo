@@ -4,6 +4,13 @@
 ;; GLSL Functions
 ;;----------------
 
+(defun v-make-f-spec (transform args arg-types return-spec &key place)
+  (let* ((context-pos (position '&context args :test #'symbol-name-equal))
+         (context (when context-pos (subseq args (1+ context-pos))))
+         (args (if context-pos (subseq args 0 context-pos) args)))
+    (declare (ignore args))
+    `(,transform ,arg-types ,return-spec ,context ,place)))
+
 ;; 3 kinds of function
 ;;  wrapper - first line is a string template for a glsl function
 ;;            the rest defines the params. This is stored as list spec
@@ -12,14 +19,14 @@
 ;; :inject - The function is implemented in varjo lisp to be injected 
 ;;           into the body if it is used by a shader
 (defmacro v-defun (name args &body body)
-  (let* ((context-pos (position '&jam args :test #'symbol-name-equal))
-         (context (subseq args (1+ context-pos)))
-         (args (subseq args 0 context-pos)))
+  (let* ((context-pos (position '&context args :test #'symbol-name-equal))
+         (context (when context-pos (subseq args (1+ context-pos))))
+         (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
     (cond ((stringp (first body))
            (destructuring-bind (transform arg-types return-spec &key place) body
              `(setf (gethash ',name (v-functions *global-env*)) 
-                    '(,transform ',arg-types ,return-spec ,context ,place))))
+                    '(,transform ,arg-types ,return-spec ,context ,place))))
           ((eq (first body) :inject) `(error "injected function not implemented"))
           (t (destructuring-bind (&key args return) body
                  `(setf (gethash ',name (v-functions *global-env*)) 
@@ -52,7 +59,7 @@
           ((functionp spec) (apply spec args))
           ((and (listp spec) (eq (first spec) :element))
            (v-element-type (nth (second spec) arg-types)))
-          ((listp spec) (type-spec->type spec))
+          ((or (symbolp spec) (listp spec)) (type-spec->type spec))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
 
 ;;------------------------------------------------------------
