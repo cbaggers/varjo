@@ -22,13 +22,15 @@
         (cons func-spec (gethash func-name (v-functions env)))))
 
 ;; loop and instanstiate
-(defmethod get-function-definitions (func-name (env (eql :-genv-)))
-  (append (gethash func-name *global-env-funcs*)
-          (gethash (kwd func-name) *global-env-funcs*)))
+(defmethod get-function (func-name (env (eql :-genv-)))
+  (mapcar #'
+   (gethash func-name *global-env-funcs*)))
 
-(defmethod get-function-definitions (func-name (env environment))
+(defun init-spec->function (spec)
+  (make-instance ))
+
+(defmethod get-function (func-name (env environment))
   (append (gethash func-name *global-env-funcs*)
-          (gethash (kwd func-name) *global-env-funcs*)
           (get-function-definitions func-name *global-env*)))
 
 (defmethod v-functions ((env (eql :-genv-)))

@@ -15,49 +15,9 @@
 ;; Address with NORMAL type declarations
 
 
-(defun old-flesh-out-type (type-spec)
-  (if (consp type-spec)
-      (if (> (length type-spec) 4)
-          (error "Invalid GLSL Type Definition: ~s has more than 4 components." type-spec)
-          (list (first type-spec)
-                (second type-spec)
-                (third type-spec)
-                (or (first type-spec)
-                    (when (symbolp (first type-spec))
-                      (safe-gl-name (first type-spec))))))
-      (old-flesh-out-type (list type-spec))))
-
-(defun old-vlambda (&key in-args output-type transform
-                  context-restriction (packageless t))
-  (declare (ignore packageless))
-  (list (mapcar #'old-flesh-out-type
-                (mapcar #'second in-args))
-        (old-flesh-out-type output-type)
-        transform
-        (mapcar #'(lambda (x) (find :compatible x)) in-args)
-        (mapcar #'(lambda (x) (find :match x)) in-args)
-        context-restriction))
-
-(defun glsl-defun (&key name in-args output-type
-                     transform context-restriction)
-  (let* ((func-spec (old-vlambda :in-args in-args 
-                                 :output-type output-type
-                                 :transform transform
-                                 :context-restriction 
-                                 context-restriction)))
-    (setf *old-funcs*
-          (acons name (cons func-spec
-                            (assocr name *old-funcs*
-                                    :test #'symbol-name-equal))
-                 *old-funcs*))))
-
 ;;------------------------------------------------------------
 ;; GLSL Functions
 ;;----------------
-
-(defun vlambda (&key arg-spec return-spec code context-restriction place)
-  (make-instance 'v-function :arg-spec arg-spec :return-spec return-spec
-                 :code code :restriction context-restriction :place place)) 
 
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&jam args :test #'symbol-name-equal))
@@ -70,41 +30,15 @@
         `(setf (gethash ',name (v-functions *global-env*)) 
                (lambda ,args ,@body) ,context))))
 
-
-(defun glsl-multi-defun (&key name specs transform context-restriction)
-  (let ((*types* *built-in-types*))
-    (loop :for spec :in specs :do
-       (destructuring-bind (&key in out) spec
-         (let* ((func-spec (vlambda :in-args in
-                                    :output-type out
-                                    :transform transform
-                                    :context-restriction 
-                                    context-restriction)))
-           (setf *glsl-functions*
-                 (acons name (cons func-spec
-                                   (assocr name *glsl-functions*
-                                           :test #'symbol-name-equal))
-                        *glsl-functions*)))))))
-
 ;;------------------------------------------------------------
 
-(defun glsl-valid-function-args (func args)
-  (let ((in-spec (func-in-spec func))
-        (types (mapcar #'code-type args)))
-    (and (eq (length args) (length in-spec))
-         (every #'(lambda (c s) (if (get-place s)
-                                    (get-place c)
-                                    t)) types in-spec)
-         (every #'(lambda (c s) (glsl-typep c s)) 
-                args in-spec)
-         (apply #'types-compatiblep
-                (identity-filter types (func-compatible-args func)))
-         (let* ((filtered-types (identity-filter 
-                                 types (func-args-match func)))
-                (comp (first filtered-types)))
-           (notany #'null (mapcar #'(lambda (x)
-                                      (type-equal x comp)) 
-                                  filtered-types))))))
+(defun find-function-for-args (func-name args env)
+  (let ((arg-len (length args)))
+    (loop :for func :in (get-function func-name env) 
+       :if (and (eql arg-len (length (v-argument-spec func)))
+                (loop :for arg :in args :for arg-type :in (v-argument-spec func)
+                   :always (v-casts-to-p (code-type arg) arg-type)))
+       :collect func)))
 
 (defun glsl-resolve-func-type (func args)
   ;; return the output type spec except for where 

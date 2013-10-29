@@ -49,10 +49,10 @@
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2 
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
                               v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
-                              v-mat4x4)))
-  (defun v-superior (x y) 
-    (< (or (position x order-or-superiority) -1)
-       (or (position y order-or-superiority) -1))))
+                              v-mat4x4))))
+(defun v-superior (x y) 
+  (< (or (position x order-or-superiority) -1)
+     (or (position y order-or-superiority) -1)))
 
 (defclass v-none () ())
 

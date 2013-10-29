@@ -20,7 +20,7 @@
 
 ;; code
 (defclass code ()
-  ((type-spec :initarg :type :initform nil :accessor code-type)
+  ((type :initarg :type :initform nil :accessor code-type)
    (current-line :initarg :current-line :initform nil :accessor current-line)
    (to-block :initarg :to-block :initform nil :accessor to-block)
    (to-top :initarg :to-top :initform nil :accessor to-top)
