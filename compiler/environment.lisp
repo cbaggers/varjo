@@ -12,6 +12,7 @@
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 
+;;-------------------------------------------------------------------------
 
 (defmethod add-function (func-name (func-spec list) (env (eql :-genv-)))
   (setf (gethash func-name *global-env-funcs*)
@@ -23,20 +24,22 @@
 
 ;; loop and instanstiate
 (defmethod get-function (func-name (env (eql :-genv-)))
-  (mapcar #'
-   (gethash func-name *global-env-funcs*)))
-
-(defun init-spec->function (spec)
-  (make-instance ))
+  (mapcar #'func-spec->function (gethash func-name *global-env-funcs*)))
 
 (defmethod get-function (func-name (env environment))
   (append (gethash func-name *global-env-funcs*)
           (get-function-definitions func-name *global-env*)))
 
+(defun func-spec->function (spec)
+  (destructuring-bind (transform arg-spec return-spec context place) spec
+    (make-instance 'v-function :glsl-string transform :arg-spec arg-spec
+                   :return-spec return-spec :restriction context :place place)))
+
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))
   *global-env-funcs*)
 
+;;-------------------------------------------------------------------------
 
 (defun wipe-global-environment ()
   (loop :for f :being :the :hash-key :of *global-env-funcs* :do

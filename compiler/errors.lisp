@@ -28,3 +28,6 @@
   "Type ~a is not a core type and thus cannot end up in glsl src code
    It must end up being used or converted to something that resolves 
    to a glsl type." type-name)
+
+(deferror invalid-function-return-spec (func spec)
+    "Outbound spec of function ~a is invalid:~%~a" func spec)

@@ -10,6 +10,10 @@
 (defmethod v-type-name ((type v-type))
   (class-name (class-of type)))
 
+(defclass v-array (v-container) 
+  ((element-type :initform nil :initarg :element-type :reader v-element-type)
+   (dimensions :initform nil :initarg :dimensions :reader v-dimensions)))
+
 (defun type-spec->type (spec)  
   (if (symbolp spec)
       (make-instance (if (keywordp spec) (symb 'v- spec) spec))
@@ -44,15 +48,18 @@
     (destructuring-bind (mutual-casts . other-cast-lists) casts
       (loop :for casts :in other-cast-lists :do
          (setf mutual-casts (intersection mutual-casts casts)))
-      (sort mutual-casts #'v-superior))))
+      (first (sort mutual-casts #'v-superior)))))
 
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2 
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
                               v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
-                              v-mat4x4))))
-(defun v-superior (x y) 
-  (< (or (position x order-or-superiority) -1)
-     (or (position y order-or-superiority) -1)))
+                              v-mat4x4)))
+  (defun v-superior (x y) 
+    (< (or (position x order-or-superiority) -1)
+       (or (position y order-or-superiority) -1))))
+
+(defun v-superior-type (&rest types)
+  (first (sort mutual-casts #'v-superior)))
 
 (defclass v-none () ())
 
@@ -63,6 +70,10 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (place :initform nil :initarg :place :accessor v-placep)))
+
+(defgeneric v-special-functionp (func))
+(defmethod v-special-functionp ((func function))
+  (eq :special (v-glsl-string func)))
 
 (defclass v-void () 
   ((core :initform t :reader core-typep)
@@ -95,10 +106,6 @@
 (defclass v-container (v-type)
   ((element-type :initform nil :reader v-element-type)
    (dimensions :initform nil :reader v-dimensions)))
-
-(defclass v-array (v-container) 
-  ((element-type :initform nil :initarg :element-type :reader v-element-type)
-   (dimensions :initform nil :initarg :dimensions :reader v-dimensions)))
 
 (defclass v-matrix (v-container) ())
 (defclass v-mat2 (v-matrix) 
