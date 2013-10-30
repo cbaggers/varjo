@@ -72,10 +72,9 @@
                :types (mapcar #'code-type arg-objs)))))
 
 (defun varjo->glsl (code env)
-  (cond ((or (null code) (eq t code)) (compile-bool code env))
-        ((numberp code) (compile-number code env))
-        ((symbolp code) (compile-symbol code env))
-        ((listp (first code)) (compile-form code env))
-        (t (error 'cannot-compile :code code))))
-
-
+  (values (cond ((or (null code) (eq t code)) (compile-bool code env))
+                ((numberp code) (compile-number code env))
+                ((symbolp code) (compile-symbol code env))
+                ((listp (first code)) (compile-form code env))
+                (t (error 'cannot-compile :code code)))
+          env))

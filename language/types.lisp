@@ -14,3 +14,7 @@
   (clip-distance (:float t) "gl_ClipDistance"))
 
 
+;; new format
+;; (vdefstruct thing ()
+;;   (a v-float)
+;;   (to-long-to-blah v-int :accessor b))
