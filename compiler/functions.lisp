@@ -34,6 +34,7 @@
 
 ;;------------------------------------------------------------
 
+;; NEED ONE
 (defun find-function-for-args (func-name args env)
   (let ((arg-len (length args)))
     (loop :for func :in (get-function func-name env)
@@ -61,22 +62,5 @@
            (v-element-type (nth (second spec) arg-types)))
           ((or (symbolp spec) (listp spec)) (type-spec->type spec))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
-
-;;------------------------------------------------------------
-
-(defun context-ok-given-restriction (context restriction)
-  (every #'identity
-         (loop :for item :in restriction :collect
-            (if (listp item)
-                (some #'identity (loop :for sub-item :in item :collect
-                                    (find sub-item context)))
-                (find item context)))))
-
-(defmethod valid-for-contextp ((func function) (env environment))
-  (let ((restriction (v-restriction func))
-        (context (v-context env)))
-    (if restriction
-        (when (context-ok-given-restriction context restriction) func)
-        func)))
 
 ;;------------------------------------------------------------

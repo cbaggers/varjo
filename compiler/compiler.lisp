@@ -1,85 +1,81 @@
 (in-package :varjo)
 
-(defun compile-main (code)
-  (varjo->glsl (macroexpand-and-substitute 
-                `(%make-function :main () ,@code))))
+(defun find-injected-functions (code env)
+  (cond ((atom code) code)
+        (t (let* ((head (first code))
+                  (f (get-external-function head *global-env*)))
+             (append (when f `(,head ,f))
+                     (loop :for c :in code :if (listp c) :collect
+                        (find-injected-functions c env)))))))
 
-;; [TODO] How should we specify numbers unsigned?
-(defun varjo->glsl (varjo-code)
-  (labels ((num-suffix (type)
-             (or (assocr (type-principle type) '((:float . "f") (:uint . "u")))
-                 "")))
-    (cond ((null varjo-code) nil)
-          ((typep varjo-code 'code) varjo-code) 
-          ((eq t varjo-code) (make-instance 'code :current-line "true" 
-                                            :type '(:bool nil)))
-          ((numberp varjo-code) 
-           (let ((num-type (get-number-type varjo-code)))
-             (make-instance 'code :current-line 
-                            (format nil "~a~a" varjo-code (num-suffix num-type))
-                            :type num-type)))
-          ((atom varjo-code) 
-           (if (assoc varjo-code *glsl-variables* :test #'symbol-name-equal)
-               (instance-var varjo-code)
-               (error "Varjo: '~s' is unidentified." varjo-code)))
-          ((special-functionp (first varjo-code)) 
-           (apply-special (first varjo-code) (rest varjo-code)))
-          ((vfunctionp (first varjo-code))
-           (compile-function (first varjo-code) (rest varjo-code)))
-          (t (let ((error-message 
-                    (format nil "Function '~s' is not available for ~A shaders in varjo."
-                            (first varjo-code) *shader-context*)))
-               (error 'missing-function-error :text error-message))))))
+(defun inject-functions-pass (code env)
+  (let ((injected-funcs (find-injected-functions code env)))
+    (values `(labels (,@(loop :for (name f) :in injected-funcs :collect 
+                           `(,name ,(v-glsl-string f))))
+               ,@code)
+            env)))
 
+;;----------------------------------------------------------------------
 
-(defun compile-function (func-name args)
-  (let ((func-specs (func-specs func-name))
-        (arg-objs (mapcar #'varjo->glsl args)))
-    (loop :for f-spec :in func-specs 
-       :if (glsl-valid-function-args f-spec arg-objs )
-       :return (merge-obs arg-objs
-                          :type (glsl-resolve-func-type f-spec arg-objs)
-                          :current-line (apply #'format 
-                                               (append 
-                                                (list nil (func-body f-spec))
-                                                (mapcar #'current-line
-                                                        arg-objs))))
-       :finally (error "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " func-name (mapcar #'code-type arg-objs)))))
+(defun v-macroexpand-all (code env)
+  (cond ((atom code) code)
+        (t (let* ((head (first code))
+                  (m (get-macro head env))
+                  (code (if m (apply m code) code)))
+             (loop :for c :in code :collect (v-macroexpand-all c env))))))
 
-(defun macroexpand-and-substitute (varjo-code)
-  (cond ((null varjo-code) nil)
-        ((listp varjo-code) 
-         (let ((sub (substitution (first varjo-code)))) 
-           (if sub
-               (mapcar #'macroexpand-and-substitute
-                       (apply sub (rest varjo-code)))
-               (mapcar #'macroexpand-and-substitute
-                       varjo-code))))
-        (t varjo-code)))
+(defun macroexpand-pass (code env)
+  (values (v-macroexpand-all code env) env))
+
+;;----------------------------------------------------------------------
+
+(defun compile-bool (code env)
+  (declare (ignore env))
+  (if code
+      (make-instance 'code :current-line "true" :type '(:bool nil))
+      (make-instance 'code :current-line "false" :type '(:bool nil))))
 
 (defun get-number-type (x)
-  (cond ((floatp x) '(:float nil))
-        ((integerp x) '(:int nil))
+  ;; [TODO] How should we specify numbers unsigned?
+  (cond ((floatp x) (type-spec->type :float))
+        ((integerp x) (type-spec->type :int))
         (t (error "Varjo: Do not know the type of the number '~s'" x))))
 
-(defun compile-var (name type &rest qualifiers)
-  (%compile-var name type qualifiers))
+(defun compile-number (code env)
+  (declare (ignore env))
+  (let ((num-type (get-number-type code)))
+    (make-instance 'code 
+                   :current-line (gen-number-string code num-type)
+                   :type num-type)))
 
-(defun %compile-var (name type &optional qualifiers)
-  (%qualify (varjo->glsl `(%in-typify (%make-var
-                                       ,name 
-                                       ,(flesh-out-type type))))
-            qualifiers))
+(defun v-variable->code-obj (var-name v-value)
+  (make-instance 'code :type (v-type v-value)
+                 :current-line (gen-variable-string var-name)))
 
-(defun %qualify (obj qualifiers)
-  (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a" 
-                                       qualifiers 
-                                       (current-line obj))))
+(defun compile-symbol (code env)
+  (let* ((var-name code)
+         (v-value (get-var var-name env)))
+    (if v-value
+        (v-variable->code-obj var-name v-value)
+        (error "Varjo: '~s' is unidentified." code))))
 
-(defun qualify (obj &rest qualifiers)
-  (%qualify obj qualifiers))
+(defun compile-form (code env)
+  (let* ((func-name (first code)) 
+         (args (rest code))
+         (arg-objs (loop :for a :in args :collect (varjo->glsl a env)))
+         (func (find-function-for-args func-name arg-objs env)))
+    (if func
+        (merge-obs arg-objs
+                   :type (glsl-resolve-func-type func args)
+                   :current-line (gen-function-string func arg-objs))
+        (error 'no-valid-function :name func-name 
+               :types (mapcar #'code-type arg-objs)))))
 
-(defun get-vars-for-context (context)
-  (loop for item in context
-     :append (assocr item *built-in-vars*
-                     :test #'symbol-name-equal)))
+(defun varjo->glsl (code env)
+  (cond ((or (null code) (eq t code)) (compile-bool code env))
+        ((numberp code) (compile-number code env))
+        ((symbolp code) (compile-symbol code env))
+        ((listp (first code)) (compile-form code env))
+        (t (error 'cannot-compile :code code))))
+
+

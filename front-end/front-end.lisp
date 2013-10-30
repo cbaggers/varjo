@@ -8,6 +8,9 @@
 
 (in-package :varjo)
 
+(defun compile-main (code env)
+  (varjo->glsl `(%make-function :main () ,@code) env))
+
 (defun rolling-translate (args shaders &optional accum (first-shader t))  
   (if (find :type args)
       (error "Varjo: It is invalid to specify a shader type in a program definition")
@@ -72,3 +75,4 @@
     (if (< (length names) (length dedup))
         (error "Varjo: Sorry you can't have out variables~%that share a name but don't have the same type:~%~s " dedup)
         dedup)))
+

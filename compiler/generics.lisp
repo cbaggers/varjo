@@ -36,9 +36,7 @@
 (defclass v-value ()
   ((type :initarg :type :initform nil :accessor v-type)
    (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
-   (inferring :initarg :inferring :initform nil :accessor v-inferringpsli)))
-
-
+   (inferring :initarg :inferring :initform nil :accessor v-inferringp)))
 
 ;; string generation
 (defgeneric v-type->string (x))

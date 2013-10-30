@@ -25,6 +25,9 @@
 (define-condition missing-function-error (error)
   ((text :initarg :text :reader text)))
 
+(deferror cannot-compile (code)
+  "Cannot compile the following code:~%~a" code)
+
 (deferror not-core-type-error (type-name)
   "Type ~a is not a core type and thus cannot end up in glsl src code
    It must end up being used or converted to something that resolves 
@@ -35,3 +38,6 @@
 
 (deferror clone-global-env-error ()
     "Cannot clone the global environment")
+
+(deferror no-valid-function (name types)
+    "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)

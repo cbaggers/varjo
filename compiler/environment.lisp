@@ -27,23 +27,41 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-macro (macro-name (macro function) (env (eql :-genv-)))
-  (setf (gethash macro-name *global-env-macros*) macro))
+(defun context-ok-given-restriction (context restriction)
+  (every #'identity
+         (loop :for item :in restriction :collect
+            (if (listp item)
+                (some #'identity (loop :for sub-item :in item :collect
+                                    (find sub-item context)))
+                (find item context)))))
 
-(defmethod add-macro (macro-name (macro function) (env environment))
-  (let ((env (clone-environment env)))
-    (setf (gethash macro-name (v-macros env)) macro)))
+(defmethod valid-for-contextp ((func list) (env environment))
+  (let ((restriction (second func))
+        (context (v-context env)))
+    (if restriction
+        (when (context-ok-given-restriction context restriction) func)
+        func)))
 
-(defmethod add-macros (macro-name (macros list) (env environment))
+;;-------------------------------------------------------------------------
+
+(defmethod add-macro (macro-name (macro function) (context list) 
+                      (env (eql :-genv-)))
+  (setf (gethash macro-name *global-env-macros*) `(,macro ,context)))
+
+(defmethod add-macro (macro-name (macro function) (context list)
+                      (env environment))
   (let ((env (clone-environment env)))
-    (loop :for macro :in macros :do (setf (gethash macro-name (v-macros env)) macro))))
+    (setf (gethash macro-name (v-macros env)) `(,macro ,context))))
 
 (defgeneric get-macro (macro-name env))
+
 (defmethod get-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-macros*))
+  (let ((spec (gethash macro-name *global-env-macros*)))
+    (when (and spec (valid-for-contextp spec env)) (first spec))))
 
 (defmethod get-macro (macro-name (env environment))
-  (or (gethash macro-name (v-macros env))
+  (or (let ((spec (gethash macro-name (v-macros env))))
+        (when (and spec (valid-for-contextp spec env)) (first spec)))
       (get-macro macro-name *global-env*)))
 
 (defmethod v-mboundp (macro-name (env environment))
@@ -75,6 +93,13 @@
 
 ;;-------------------------------------------------------------------------
 
+(defmethod valid-for-contextp ((func v-function) (env environment))
+  (let ((restriction (v-restriction func))
+        (context (v-context env)))
+    (if restriction
+        (when (context-ok-given-restriction context restriction) func)
+        func)))
+
 (defmethod add-function (func-name (func-spec list) (env (eql :-genv-)))
   (setf (gethash func-name *global-env-funcs*)
         (cons func-spec (gethash func-name *global-env-funcs*))))
@@ -91,12 +116,18 @@
              (cons func-spec (gethash func-name (v-functions env)))))))
 
 ;; loop and instanstiate
-(defmethod get-function (func-name (env (eql :-genv-)))
-  (mapcar #'func-spec->function (gethash func-name *global-env-funcs*)))
+(defmethod get-external-function (func-name (env (eql :-genv-)))
+  (let ((f (gethash func-name *global-env-external-funcs*)))
+    (when f (func-spec->function f))))
+
+(defmethod get-function (func-name (env (eql :-genv-)))  
+  (loop :for func :in (mapcar #'func-spec->function 
+                              (gethash func-name *global-env-funcs*))
+     :if (and func (valid-for-contextp func env)) :collect func))
 
 (defmethod get-function (func-name (env environment))  
   (append (loop :for func :in (gethash func-name (v-functions env)) 
-             :if (valid-for-contextp func env) :collect func)
+             :if (and func (valid-for-contextp func env)) :collect func)
           (get-function func-name *global-env*)))
 
 (defmethod v-fboundp (func-name (env environment))
