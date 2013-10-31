@@ -1,0 +1,424 @@
+in gl_PerVertex {
+    vec4	 gl_Position;
+    float	 gl_PointSize;
+    float	 gl_ClipDistance[];
+} gl_in[gl_MaxPatchVertices];
+
+
+in	 int	 gl_PatchVerticesIn;
+in	 int	 gl_PrimitiveID;
+in	 int	 gl_InvocationID;
+out gl_PerVertex {
+vec4	 gl_Position;
+float	 gl_PointSize;
+float	 gl_ClipDistance[];
+} gl_out[];
+patch	 out	 float	 gl_TessLevelOuter[4];
+patch	 out	 float	 gl_TessLevelInner[2];
+
+in gl_PerVertex {
+    vec4	 gl_Position;
+    float	 gl_PointSize;
+    float	 gl_ClipDistance[];
+} gl_in[gl_MaxPatchVertices];
+in int gl_PatchVerticesIn;
+in int gl_PrimitiveID;
+in vec3 gl_TessCoord;
+patch in	float gl_TessLevelOuter[4];
+patch in	float gl_TessLevelInner[2];
+out gl_PerVertex {
+	 vec4	 gl_Position;
+	 float	 gl_PointSize;
+	 float	 gl_ClipDistance[];
+};
+
+out gl_PerVertex {
+	 vec4	 gl_Position;
+	 float	 gl_PointSize;
+	 float	 gl_ClipDistance[];
+};
+
+in int gl_PrimitiveIDIn;
+in int gl_InvocationID;
+out gl_PerVertex {
+    vec4 gl_Position;
+    float gl_PointSize;
+    float	 gl_ClipDistance[];
+};
+out		 int	 gl_PrimitiveID;
+out		 int	 gl_Layer;
+out		 int gl_ViewportIndex;
+
+in 	int 	 gl_VertexID;
+in 	int 	 gl_InstanceID;
+in gl_PerVertex {
+    vec4	 gl_Position;
+    float	 gl_PointSize;
+    float	 gl_ClipDistance[];
+} gl_in[];
+
+in	 vec4	 gl_FragCoord;
+in	 bool	 gl_FrontFacing;
+in	 float	 gl_ClipDistance[];
+in	 vec2	 gl_PointCoord;
+in	 int	 gl_PrimitiveID;
+in	 int	 gl_SampleID;
+in	 vec2	 gl_SamplePosition;
+in	 int	 gl_SampleMaskIn[];
+in	 int	 gl_Layer;
+in	 int	 gl_ViewportIndex;
+
+Geometry Language
+out	 float	 gl_FragDepth;
+out	 int	 gl_SampleMask[];
+
+Compute Language
+in uvec3 gl_NumWorkGroups;
+const uvec3 gl_WorkGroupSize;
+in uvec3 gl_LocalGroupSize;
+
+Work group and invocation IDs
+in uvec3 gl_WorkGroupID;
+in uvec3 gl_LocalInvocationID;
+Derived variables
+in uvec3 gl_GlobalInvocationID;
+in uint gl_LocalInvocationIndex;
+
+
+
+
+
+mat2(vec2, vec2); 	
+mat2x3(vec2, float, vec2, float);	 // col. 2
+dmat2(dvec2, dvec2);	
+dmat3(dvec3, dvec3, dvec3);	
+
+
+Examples of operations on matrices and vectors:
+m = f * m;	 // scalar * matrix component-wise
+v = f * v;	 // scalar * vector component-wise
+v = v * v;	// vector * vector component-wise
+m = m +/- m;	// matrix +/- matrix comp.-wise
+m = m * m;	// linear algebraic multiply
+f = dot(v, v);	// vector dot product
+v = cross(v, v); 	// vector cross product
+
+== != equality
+= assignment
+
+
+indexing (arrays only) []
+const float c[3];
+c.length()
+
+.length() for structures returns number of members
+struct light {members; };
+light lightVar = light(3.0, vec3(1.0, 2.0, 3.0));
+
+.length() for matrices returns number of columns
+.length() for vectors returns number of components
+
+Examples of access components of a matrix with Array elements
+are accessed using the array array subscripting syntax:
+subscript operator ( [ ] ), e.g.:
+
+mat4 m;	// m is a matrix
+m[1] = vec4(2.0);	 // sets 2nd col. to all 2.0
+diffuseColor += lightIntensity[3]*NdotL;
+m[0][0] = 1.0; 	
+m[2][3] = 2.0; 	
+
+
+
+
+;; Built-In Constants [7.3]
+;; The following are provided to all shaders. The
+;; actual values are implementation-dependent, but
+;; must be at least the value shown.
+const	 ivec3 gl_MaxComputeWorkGroupCount = {65535, 65535, 65535} ;
+const	 ivec3 gl_MaxComputeWorkGroupSize[] = {1024, 1024, 64};
+const	 int gl_MaxComputeUniformComponents = 1024;
+const	 int gl_MaxComputeTextureImageUnits = 16;
+const	 int gl_MaxComputeImageUniforms = 8;
+const	 int gl_MaxComputeAtomicCounters = 8;
+const	 int gl_MaxComputeAtomicCounterBuffers = 1;
+const	 int	gl_MaxVertexAttribs = 16;
+const	 int	gl_MaxVertexUniformComponents = 1024;
+const	 int	gl_MaxVaryingComponents= 60;
+const	 int	gl_MaxVertexOutputComponents = 64;
+const	 int	gl_MaxGeometryInputComponents = 64;
+const	 int	gl_MaxGeometryOutputComponents = 128;
+const	 int	gl_MaxFragmentInputComponents = 128;
+const	 int	gl_MaxVertexTextureImageUnits = 16;
+const	 int	gl_MaxCombinedTextureImageUnits = 80;
+const	 int	gl_MaxTextureImageUnits = 16;
+const	 int	gl_MaxImageUnits = 8;
+const	 int	 gl_MaxCombinedImageUnitsAndFragment Outputs = 8;
+const	 int	gl_MaxImageSamples = 0;
+const	 int	gl_MaxVertexImageUniforms= 0;
+const	 int	gl_MaxTessControlImageUniforms = 0;
+const	 int	gl_MaxTessEvaluationImageUniforms = 0;
+const	 int	gl_MaxGeometryImageUniforms = 0;
+const	 int	gl_MaxFragmentImageUniforms = 8;
+const	 int	gl_MaxCombinedImageUniforms = 8;
+const	 int	gl_MaxFragmentUniformComponents = 1024;
+const	 int	gl_MaxDrawBuffers = 8;
+const	 int	gl_MaxClipDistances = 8;
+const	 int	gl_MaxGeometryTextureImageUnits = 16;
+const	 int	gl_MaxGeometryOutputVertices = 256;
+
+const	 int	 gl_MaxGeometryTotalOutputComponents = 1024;
+const	 int	gl_MaxGeometryUniformComponents = 1024;
+const	 int	gl_MaxGeometryVaryingComponents = 64;
+const	 int	gl_MaxTessControlInputComponents = 128;
+const	 int	gl_MaxTessControlOutputComponents = 128;
+const	 int	gl_MaxTessControlTextureImageUnits = 16;
+const	 int	gl_MaxTessControlUniformComponents = 1024;
+const	 int	 gl_MaxTessControlTotalOutputComponents = 4096;
+const	 int	gl_MaxTessEvaluationInputComponents = 128;
+const	 int	gl_MaxTessEvaluationOutputComponents = 128;
+const	 int	gl_MaxTessEvaluationTextureImageUnits = 16;
+const	 int	 gl_MaxTessEvaluationUniformComponents = 1024;
+const	 int	gl_MaxTessPatchComponents = 120;
+const	 int	gl_MaxPatchVertices = 32;
+const	 int	gl_MaxTessGenLevel = 64;
+const	 int	gl_MaxViewports = 16;
+const	 int	gl_MaxVertexUniformVectors = 256;
+const	 int	gl_MaxFragmentUniformVectors = 256;
+const	 int	gl_MaxVaryingVectors = 15;
+const	 int	gl_MaxVertexAtomicCounters = 0;
+const	 int	gl_MaxTessControlAtomicCounters = 0;
+const	 int	gl_MaxTessEvaluationAtomicCounters = 0;
+const	 int	gl_MaxGeometryAtomicCounters = 0;
+const	 int	gl_MaxFragmentAtomicCounters = 8;
+const	 int	gl_MaxCombinedAtomicCounters = 8;
+const	 int	gl_MaxAtomicCounterBindings = 1;
+const	 int	gl_MaxVertexAtomicCounterBuffers = 0;
+const	 int	gl_MaxTessControlAtomicCounterBuffers = 0;
+const	 int	gl_MaxTessEvaluationAtomicCounterBuffers = 0;
+const	 int	gl_MaxGeometryAtomicCounterBuffers = 0;
+const	 int	gl_MaxFragmentAtomicCounterBuffers = 1;
+const	 int	gl_MaxCombinedAtomicCounterBuffers = 1;
+const	 int	gl_MaxAtomicCounterBufferSize = 32;
+const	 int	gl_MinProgramTexelOffset = -8;
+const	 int	gl_MaxProgramTexelOffset = 7;
+const int gl_MaxTransformFeedbackBuffers = 4;
+const int gl_MaxTransformFeedbackInterleaved Components = 64;
+
+www.opengl.org/registry
+
+OpenGL Shading Language 4.40 Reference Card
+
+Type Abbreviations for Built-in Functions:
+In vector types, n is 2, 3, or 4.
+Tf=float, vecn. Td =double, dvecn. Tfd= float, vecn, double, dvecn. Tb= bool, bvecn.
+Tu=uint, uvecn. Ti=int, ivecn. Tiu=int, ivecn, uint, uvecn. Tvec=vecn, uvecn, ivecn.
+Within any one function, type sizes and dimensionality must correspond after implicit type
+conversions. For example, float round(float) is supported, but float round(vec4) is not.
+gimage1D image, int P
+gimage2D image, ivec2 P
+gimage3D image, ivec3 P
+gimage2DRect image, ivec2 P
+gimageCube image, ivec3 P
+gimageBuffer image, int P
+gimage1DArray image, ivec2 P
+gimage2DArray image, ivec3 P
+gimageCubeArray image, ivec3 P
+gimage2DMS image, ivec2 P, int sample
+gimage2DMSArray image, ivec3 P, int sample
+
+;; other things
+break
+continue
+return
+discard // Fragment shader only
+
+for (;;) { break, continue }
+while ( ) { break, continue }
+do { break, continue } while ( );
+if ( ) { }
+if ( ) { } else { }
+switch ( ) { case integer: … break; … default: … }
+
+returnType functionName(type0 arg0, type1 arg1, ..., typen argn){ ... }
+
+;;Built-In Functions
+(Tb isinf (Tfd x))
+(Tb isnan (Tfd x))
+(Td clamp (Td x) (double minVal) (double maxVal))
+(Td max (Td x) (double y))
+(Td min (Td x) (double y))
+(Td mix (Td x) (Td y) (double a))
+(Td mod (Td x) (double y))
+(Td smoothstep (double edge0) (double edge1) (Td x))
+(Td step (double edge) (Td x))
+(Tf clamp (Tf x) (float minVal) (float maxVal))
+(Tf max (Tf x) (float y))
+(Tf min (Tf x) (float y))
+(Tf mix (Tf x) (Tf y) (float a))
+(Tf mod (Tf x) (float y))
+(Tf acos (Tf x))
+(Tf acosh (Tf x))
+(Tf asin (Tf x))
+(Tf asinh (Tf x))
+(Tf atan (Tf y) (Tf x))
+(Tf atan (Tf y_over_x))
+(Tf atanh (Tf x))
+(Tf cos (Tf angle))
+(Tf cosh (Tf x))
+(Tf dFdx (Tf p))
+(Tf dFdy (Tf p))
+(Tf degrees (Tf radians))
+(Tf exp (Tf x))
+(Tf exp2 (Tf x))
+(Tf fwidth (Tf p))
+(Tf intBitsToFloat (Ti value)) Tf uintBitsToFloat (Tu value))
+(Tf interpolateAtCentroid (Tf interpolant))
+(Tf interpolateAtOffset (Tf interpolant) (vec2 offset))
+(Tf interpolateAtSample (Tf interpolant) (int sample))
+(Tf log (Tf x))
+(Tf log2 (Tf x))
+(Tf pow (Tf x) (Tf y))
+(Tf radians (Tf degrees))
+(Tf sin (Tf angle))
+(Tf sinh (Tf x))
+(Tf smoothstep (float edge0) (float edge1) (Tf x))
+(Tf step (float edge) (Tf x))
+(Tf tan (Tf angle))
+(Tf tanh (Tf x))
+(Tfd clamp (Tfd x) (Tfd minVal) (Tfd maxVal))
+(Tfd abs (Tfd x))
+(Tfd ceil (Tfd x))
+(Tfd floor (Tfd x))
+(Tfd fract (Tfd x))
+(Tfd max (Tfd x) (Tfd y))
+(Tfd min (Tfd x) (Tfd y))
+(Tfd mix (Tfd x) (Tfd y) (Tb a))
+(Tfd mix (Tfd x) (Tfd y) (Tfd a))
+(Tfd mod (Tfd x) (Tfd y))
+(Tfd round (Tfd x))
+(Tfd roundEven (Tfd x))
+(Tfd sign (Tfd x))
+(Tfd trunc (Tfd x))
+(Tfd faceforward (Tfd N) (Tfd I) (Tfd Nref))
+(Tfd fma (Tfd a) (Tfd b) (Tfd c))
+(Tfd inversesqrt (Tfd x))
+(Tfd ldexp (Tfd x) (in Ti exp))
+(Tfd normalize (Tfd x))
+(Tfd reflect (Tfd I) (Tfd N))
+(Tfd refract (Tfd I) (Tfd N) (float eta))
+(Tfd smoothstep (Tfd edge0) (Tfd edge1) (Tfd x))
+(Tfd sqrt (Tfd x))
+(Tfd step (Tfd edge) (Tfd x))
+(Ti abs (Ti x))
+(Ti clamp (Ti x) (int minVal) (int maxVal))
+(Ti max (Ti x) (int y))
+(Ti min (Ti x) (int y))
+(Ti sign (Ti x))
+(Ti bitCount (Tiu value))
+(Ti findLSB (Tiu value))
+(Ti findMSB (Tiu value))
+(Ti floatBitsToInt (Tf value))
+(Tiu clamp (Tiu x) (Tiu minVal) (Tiu maxVal))
+(Tiu max (Tiu x) (Tiu y))
+(Tiu min (Tiu x) (Tiu y))
+(Tiu bitfieldExtract (Tiu value) (int offset) (int bits))
+(Tiu bitfieldInsert (Tiu base) (Tiu insert) (int offset) (int bits))
+(Tiu bitfieldReverse (Tiu value))
+(Tu clamp (Tu x) (uint minVal) (uint maxVal))
+(Tu max (Tu x) (uint y))
+(Tu min (Tu x) (uint y))
+(Tu floatBitsToUint (Tf value))
+(bool all (bvecn x))
+(bool any (bvecn x))
+(bvecn equal (Tvec x) (Tvec y))
+(bvecn equal (bvecn x) (bvecn y))
+(bvecn greaterThan (Tvec x) (Tvec y))
+(bvecn greaterThanEqual (Tvec x) (Tvec y))
+(bvecn lessThan (Tvec x) (Tvec y))
+(bvecn lessThanEqual (Tvec x) (Tvec y))
+(bvecn not (bvecn x))
+(bvecn notEqual (Tvec x) (Tvec y))
+(bvecn notEqual (bvecn x) (bvecn y))
+(cross product
+(dmat matrixCompMult (dmat x) (dmat y)) multiply
+(dmatN inverse (dmatN m))
+(dmatN outerProduct (dvecN c) (dvecN r)) (where N != M))
+(dmatN transpose (dmatN m))
+(dmatNxM outerProduct (dvecM c) (dvecN r))
+(dmatNxM transpose (dmatMxN m))
+(double determinant (dmatN m))
+(double distance (Td p0) (Td p1))
+(double dot (Td x) (Td y))
+(double length (Td x))
+(double packDouble2x32 (uvec2 v))
+(dvec3 cross (dvec3 x) (dvec3 y))
+(float determinant (matN m))
+(float distance (Tf p0) (Tf p1))
+(float dot (Tf x) (Tf y))
+(float length (Tf x))
+(float noise1 (Tf x))
+(gvec4 imageLoad (readonly IMAGE_PARAMS))
+(int imageAtomicAdd (IMAGE_PARAMS) (int data))
+(int imageAtomicAnd (IMAGE_PARAMS) (int data))
+(int imageAtomicCompSwap (IMAGE_PARAMS) (int compare) (int data))
+(int imageAtomicExchange (IMAGE_PARAMS) (int data))
+(int imageAtomicMax (IMAGE_PARAMS) (int data))
+(int imageAtomicMin (IMAGE_PARAMS) (int data))
+(int imageAtomicOr (IMAGE_PARAMS) (int data))
+(int imageAtomicXor (IMAGE_PARAMS) (int data))
+(int imageSize (gimage{1D) (Buffer} image))
+(ivec2 imageSize (gimage{2D) (Cube) (Rect) (1DArray) (2DMS} image))
+(ivec3 imageSize (gimage{Cube) (2D) (2DMS}Array image))
+(mat matrixCompMult (mat x) (mat y))
+(matN inverse (matN m))
+(matN outerProduct (vecN c) (vecN r))
+(matN transpose (matN m))
+(matNxM outerProduct (vecM c) (vecN r))
+(matNxM transpose (matMxN m))
+(uint atomicCounter (atomic_uint c))
+(uint atomicCounterDecrement (atomic_uint c))
+(uint atomicCounterIncrement (atomic_uint c))
+(uint imageAtomicAdd (IMAGE_PARAMS) (uint data))
+(uint imageAtomicAnd (IMAGE_PARAMS) (uint data))
+(uint imageAtomicCompSwap (IMAGE_PARAMS) (uint compare) (uint data))
+(uint imageAtomicExchange (IMAGE_PARAMS) (uint data))
+(uint imageAtomicMax (IMAGE_PARAMS) (uint data))
+(uint imageAtomicMin (IMAGE_PARAMS) (uint data))
+(uint imageAtomicOr (IMAGE_PARAMS) (uint data))
+(uint imageAtomicXor (IMAGE_PARAMS) (uint data))
+(uint packHalf2x16 (vec2 v))
+(uint packSnorm2x16 (vec2 v))
+(uint packSnorm4x8 (vec4 v))
+(uint packUnorm2x16 (vec2 v))
+(uint packUnorm4x8 (vec4 v))
+(uvec2 unpackDouble2x32 (double v))
+(vec2 unpackHalf2x16 (uint v))
+(vec2 unpackSnorm2x16 (uint p))
+(vec2 unpackUnorm2x16 (uint p))
+(vec3 cross (vec3 x) (vec3 y))
+(vec3 imageSize (gimage3D image))
+(vec4 unpackSnorm4x8 (uint p))
+(vec4 unpackUnorm4x8 (uint p))
+(vecn noisen (Tf x))
+(void EmitStreamVertex (int stream))
+(void EmitVertex ())
+(void EndPrimitive ())
+(void EndStreamPrimitive (int stream))
+(void barrier ())
+(void groupMemoryBarrier ())
+(void imageStore (writeonly IMAGE_PARAMS) (gvec4 data))
+(void memoryBarrier ())
+(void memoryBarrierAtomicCounter ())
+(void memoryBarrierBuffer ())
+(void memoryBarrierImage ())
+(void memoryBarrierShared ())
+
+(void imulExtended (Ti x) (Ti y) (out Ti msb) (out Ti lsb))
+(void umulExtended (Tu x) (Tu y) (out Tu msb) (out Tu lsb))
+(Tfd modf (Tfd x) (out Tfd i))
+(Tfd frexp (Tfd x) (out Ti exp))
+(Tu uaddCarry (Tu x) (Tu y) (out Tu carry))
+(Tu usubBorrow (Tu x) (Tu y) (out Tu borrow))
+(int atomicOP (inout int mem) (int data))
+(uint atomicOP (inout uint mem) (uint data))

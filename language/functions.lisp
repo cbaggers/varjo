@@ -7,637 +7,179 @@
 ;; known as the LLGPL.
 
 ;; [TODO] (break) needs a semicolon, fix this!
-
+;; [TODO] setf coudl change type, how do we handle this?
 (in-package :varjo)
 
-(:name 'pow :in-args '((x 'all-floats) (y 'all-floats)) :output-type '(0 nil) :transform "pow(~a, ~a)" :context-restriction '((:330)))
-
-(glsl-defun :name 'mod
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-                       (y ((:float :vec2 :vec3 :vec4))))
-            :output-type '(0 nil)
-            :transform "mod(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'min
-            :in-args '((x ((:float :vec2 :vec3 :vec4
-                                   :int :ivec2 :ivec3 :ivec4
-                                   :uint :uvec2 :uvec3 :uvec4)) :match)
-                       (y ((:float :vec2 :vec3 :vec4
-                                   :int :ivec2 :ivec3 :ivec4
-                                   :uint :uvec2 :uvec3 :uvec4)) :match))
-            :output-type '(0 nil)
-            :transform "min(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'min
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-                       (y :float))
-            :output-type '(0 nil)
-            :transform "min(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'min
-            :in-args '((x ((:int :ivec2 :ivec3 :ivec4)))
-                       (y :int))
-            :output-type '(0 nil)
-            :transform "min(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'min
-            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)))
-                       (y :uint))
-            :output-type '(0 nil)
-            :transform "min(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'max
-            :in-args '((x ((:float :vec2 :vec3 :vec4
-                                   :int :ivec2 :ivec3 :ivec4
-                                   :uint :uvec2 :uvec3 :uvec4)) :match)
-                       (y ((:float :vec2 :vec3 :vec4
-                                   :int :ivec2 :ivec3 :ivec4
-                                   :uint :uvec2 :uvec3 :uvec4)) :match))
-            :output-type '(0 nil)
-            :transform "max(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'max
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-                       (y :float))
-            :output-type '(0 nil)
-            :transform "max(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'max
-            :in-args '((x ((:int :ivec2 :ivec3 :ivec4)))
-                       (y :int))
-            :output-type '(0 nil)
-            :transform "max(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'max
-            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)))
-                       (y :uint))
-            :output-type '(0 nil)
-            :transform "max(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'clamp
-            :in-args '((x ((:float :vec2 :vec3 :vec4
-                                   :int :ivec2 :ivec3 :ivec4
-                                   :uint :uvec2 :uvec3 :uvec4)) :match)
-                       (min-val ((:float :vec2 :vec3 :vec4
-                                         :int :ivec2 :ivec3 :ivec4
-                                         :uint :uvec2 :uvec3 :uvec4)) 
-                        :match)
-                       (max-val ((:float :vec2 :vec3 :vec4
-                                         :int :ivec2 :ivec3 :ivec4
-                                         :uint :uvec2 :uvec3 :uvec4))
-                        :match))
-            :output-type '(0 nil)
-            :transform "clamp(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'clamp
-            :in-args '((x ((:float :vec2 :vec3 :vec4)) )
-                       (min-val :float )
-                       (max-val :float ))
-            :output-type '(0 nil)
-            :transform "clamp(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'clamp
-            :in-args '((x ((:int :ivec2 :ivec3 :ivec4)) )
-                       (min-val :int )
-                       (max-val :int ))
-            :output-type '(0 nil)
-            :transform "clamp(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'clamp
-            :in-args '((x ((:uint :uvec2 :uvec3 :uvec4)))
-                       (min-val :uint )
-                       (max-val :uint ))
-            :output-type '(0 nil)
-            :transform "clamp(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'mix
-            :in-args '((x ((:float :vec2 :vec3 :vec4)) :match)
-                       (y ((:float :vec2 :vec3 :vec4)) :match)
-                       (a ((:float :vec2 :vec3 :vec4)) :match))
-            :output-type '(0 nil)
-            :transform "mix(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'mix
-            :in-args '((x ((:float :vec2 :vec3 :vec4)))
-                       (y ((:float :vec2 :vec3 :vec4)))
-                       (a ((:float :bvec2 :bvec3 :bvec4 :bool))))
-            :output-type '(0 nil)
-            :transform "mix(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'smooth-step
-            :in-args '((edge0 ((:float :vec2 :vec3 :vec4)) :match)
-                       (edge1 ((:float :vec2 :vec3 :vec4)) :match)
-                       (x ((:float :vec2 :vec3 :vec4)) :match))
-            :output-type '(2 nil)
-            :transform "smoothstep(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'smooth-step
-            :in-args '((edge0 :float)
-                       (edge1 :float)
-                       (x ((:float :vec2 :vec3 :vec4))))
-            :output-type '(2 nil)
-            :transform "smoothstep(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-
-
-(glsl-defun :name 'distance
-            :in-args '((p0 ((:float :vec2 :vec3 :vec4)) :match)
-                       (p1 ((:float :vec2 :vec3 :vec4)) :match))
-            :output-type :float
-            :transform "distance(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'dot
-            :in-args '((x ((:float :vec2 :vec3 :vec4)) :match)
-                       (y ((:float :vec2 :vec3 :vec4)) :match))
-            :output-type :float
-            :transform "dot(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'cross
-            :in-args '((x :vec3)
-                       (y :vec3))
-            :output-type :vec3
-            :transform "cross(~a, ~a)"
-            :context-restriction '((:330)))
-
-
-
-(glsl-defun :name 'aref
-            :in-args '((array (t t))
-                       (index ((:uint :int))))
-            :output-type '(0 nil t)
-            :transform "~a[~a]"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'aref
-            :in-args '((vector ((:vec2 :vec3 :vec4)))
-                       (index ((:uint :int))))
-            :output-type '(:float 0 t)
-            :transform "~a[~a]"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'aref
-            :in-args '((vector ((:ivec2 :ivec3 :ivec4)))
-                       (index ((:uint :int))))
-            :output-type '(:int 0 t)
-            :transform "~a[~a]"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'aref
-            :in-args '((vector ((:uvec2 :uvec3 :uvec4)))
-                       (index ((:uint :int))))
-            :output-type '(:uint 0 t)
-            :transform "~a[~a]"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'setf
-            :in-args '((x (t nil t) :match)
-                       (y (t nil nil) :match))
-            :output-type '(0 0)
-            :transform "~a = ~a"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'setf
-            :in-args '((x (t t t) :match)
-                       (y (t t nil) :match))
-            :output-type '(0 0)
-            :transform "~a = ~a"
-            :context-restriction '((:330)))
-
-
-
-(glsl-defun :name 'face-forward
-            :in-args '((n ((:float :vec2 :vec3 :vec4)) :match)
-                       (i ((:float :vec2 :vec3 :vec4)) :match)
-                       (nref ((:float :vec2 :vec3 :vec4)) :match))
-            :output-type '(0 0)
-            :transform "faceforward(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'reflect
-            :in-args '((i ((:float :vec2 :vec3 :vec4)) :match)
-                       (n ((:float :vec2 :vec3 :vec4)) :match))
-            :output-type '(0 0)
-            :transform "reflect(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'refract
-            :in-args '((i ((:float :vec2 :vec3 :vec4)) :match)
-                       (n ((:float :vec2 :vec3 :vec4)) :match)
-                       (eta :float))
-            :output-type '(0 0)
-            :transform "reflect(~a, ~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'matrix-comp-mult
-            :in-args '((i ((:mat2 :mat3 :mat4 
-                                  :mat2x2 :mat2x3 :mat2x4 
-                                  :mat3x2 :mat3x3 :mat3x4 
-                                  :mat4x2 :mat4x3 :mat4x4)) :compatible)
-                       (n ((:mat2 :mat3 :mat4 
-                                  :mat2x2 :mat2x3 :mat2x4 
-                                  :mat3x2 :mat3x3 :mat3x4 
-                                  :mat4x2 :mat4x3 :mat4x4)) :compatible)
-                       (eta :float))
-            :output-type '(0 0)
-            :transform "matrixCompMult(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'outer-product
-            :in-args '((i :vec2)
-                       (n :vec2))
-            :output-type :mat2
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((i :vec3)
-                       (n :vec3))
-            :output-type :mat3
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((i :vec4)
-                       (n :vec4))
-            :output-type :mat4
-            :transform "outerProduct(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'outer-product
-            :in-args '((m :vec2)
-                       (n :vec3))
-            :output-type :mat3x2
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((m :vec2)
-                       (n :vec4))
-            :output-type :mat4x2
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((m :vec3)
-                       (n :vec2))
-            :output-type :mat2x3
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((m :vec3)
-                       (n :vec4))
-            :output-type :mat4x3
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((m :vec4)
-                       (n :vec2))
-            :output-type :mat2x4
-            :transform "outerProduct(~a, ~a)")
-(glsl-defun :name 'outer-product
-            :in-args '((m :vec4)
-                       (n :vec3))
-            :output-type :mat4x3
-            :transform "outerProduct(~a, ~a)"
-            :context-restriction '((:330)))
-
-
-
-(glsl-defun :name 'less-than
-            :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
-                       (y ((:vec2 :ivec2 :uvec2)) :compatible))
-            :output-type :bvec2
-            :transform "lessThan(~a, ~a)")
-(glsl-defun :name 'less-than
-            :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
-                       (y ((:vec3 :ivec3 :uvec3)) :compatible))
-            :output-type :bvec3
-            :transform "lessThan(~a, ~a)")
-(glsl-defun :name 'less-than
-            :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
-                       (y ((:vec4 :ivec4 :uvec4)) :compatible))
-            :output-type :bvec4
-            :transform "lessThan(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'less-than-equal
-            :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
-                       (y ((:vec2 :ivec2 :uvec2)) :compatible))
-            :output-type :bvec2
-            :transform "lessThanEqual(~a, ~a)")
-(glsl-defun :name 'less-than-equal
-            :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
-                       (y ((:vec3 :ivec3 :uvec3)) :compatible))
-            :output-type :bvec3
-            :transform "lessThanEqual(~a, ~a)")
-(glsl-defun :name 'less-than-equal
-            :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
-                       (y ((:vec4 :ivec4 :uvec4)) :compatible))
-            :output-type :bvec4
-            :transform "lessThanEqual(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'greater-than
-            :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
-                       (y ((:vec2 :ivec2 :uvec2)) :compatible))
-            :output-type :bvec2
-            :transform "greaterThan(~a, ~a)")
-(glsl-defun :name 'greater-than
-            :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
-                       (y ((:vec3 :ivec3 :uvec3)) :compatible))
-            :output-type :bvec3
-            :transform "greaterThan(~a, ~a)")
-(glsl-defun :name 'greater-than
-            :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
-                       (y ((:vec4 :ivec4 :uvec4)) :compatible))
-            :output-type :bvec4
-            :transform "greaterThan(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'greater-than-equal
-            :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
-                       (y ((:vec2 :ivec2 :uvec2)) :compatible))
-            :output-type :bvec2
-            :transform "greaterThanEqual(~a, ~a)")
-(glsl-defun :name 'greater-than-equal
-            :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
-                       (y ((:vec3 :ivec3 :uvec3)) :compatible))
-            :output-type :bvec3
-            :transform "greaterThanEqual(~a, ~a)")
-(glsl-defun :name 'greater-than-equal
-            :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
-                       (y ((:vec4 :ivec4 :uvec4)) :compatible))
-            :output-type :bvec4
-            :transform "greaterThanEqual(~a, ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'equal
-            :in-args '((x ((:vec2 :ivec2 :uvec2)) :compatible)
-                       (y ((:vec2 :ivec2 :uvec2)) :compatible))
-            :output-type :bvec2
-            :transform "equal(~a, ~a)")
-(glsl-defun :name 'equal
-            :in-args '((x ((:vec3 :ivec3 :uvec3)) :compatible)
-                       (y ((:vec3 :ivec3 :uvec3)) :compatible))
-            :output-type :bvec3
-            :transform "equal(~a, ~a)")
-(glsl-defun :name 'equal
-            :in-args '((x ((:vec4 :ivec4 :uvec4)) :compatible)
-                       (y ((:vec4 :ivec4 :uvec4)) :compatible))
-            :output-type :bvec4
-            :transform "equal(~a, ~a)")
-(glsl-defun :name 'equal
-            :in-args '((x ((:bvec2 :bvec3 :bvec4)) :match)
-                       (y ((:bvec2 :bvec3 :bvec4)) :match))
-            :output-type 0
-            :transform "equal(~a, ~a)"
-            :context-restriction '((:330)))
-
-
-
-
-
-(glsl-defun :name '*
-            :in-args '((x ((:int :float)) :compatible)
-                       (y ((:int :float)) :compatible))
-            :output-type '(0 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:int :float)))
-                       (y ((:vec2 :vec3 :vec4
-                                  :ivec2 :ivec3 :ivec4
-                                  :mat2 :mat3 :mat4 
-                                  :mat2x2 :mat2x3 :mat2x4
-                                  :mat3x2 :mat3x3 :mat3x4
-                                  :mat4x2 :mat4x3 :mat4x4))))
-            :output-type '(1 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:vec2 :vec3 :vec4
-                                  :ivec2 :ivec3 :ivec4
-                                  :mat2 :mat3 :mat4 
-                                  :mat2x2 :mat2x3 :mat2x4
-                                  :mat3x2 :mat3x3 :mat3x4
-                                  :mat4x2 :mat4x3 :mat4x4)))
-                       (y ((:int :float))))
-            :output-type '(0 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:vec2 :vec3 :vec4
-                                  :ivec2 :ivec3 :ivec4)) :compatible)
-                       (y ((:vec2 :vec3 :vec4
-                                  :ivec2 :ivec3 :ivec4)) :compatible))
-            :output-type '(0 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:mat2 :mat2x2 :mat2x3 :mat2x4)))
-                       (y ((:vec2 :ivec2))))
-            :output-type '(1 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:mat3 :mat3x2 :mat3x3 :mat3x4)))
-                       (y ((:vec3 :ivec3))))
-            :output-type '(1 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:mat4 :mat4x2 :mat4x3 :mat4x4)))
-                       (y ((:vec4 :ivec4))))
-            :output-type '(1 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '*
-            :in-args '((x ((:mat2 :mat3 :mat4)) :compatible)
-                       (y ((:mat2 :mat3 :mat4)) :compatible))
-            :output-type '(1 nil)
-            :transform "(~a * ~a)"
-            :context-restriction '((:330)))
-
-
-(glsl-defun :name '%
-            :in-args '((x ((:int :uint :ivec2 :uvec2 
-                                 :ivec3 :uvec3 :ivec4 :uvec4)))
-                       (y ((:int :uint))))
-            :output-type '(0 nil)
-            :transform "(~a % ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '<
-            :in-args '((x ((:float :int)))
-                       (y ((:float :int))))
-            :output-type '(:bool nil)
-            :transform "(~a < ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '>
-            :in-args '((x ((:float :int)))
-                       (y ((:float :int))))
-            :output-type '(:bool nil)
-            :transform "(~a > ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '<=
-            :in-args '((x ((:float :int)))
-                       (y ((:float :int))))
-            :output-type '(:bool nil)
-            :transform "(~a <= ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '>=
-            :in-args '((x ((:float :int)))
-                       (y ((:float :int))))
-            :output-type '(:bool nil)
-            :transform "(~a >= ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '==
-            :in-args '((a (t t) :compatible)
-                       (b (t t) :compatible))
-            :output-type '(:bool nil)
-            :transform "(~a == ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '!=
-            :in-args '((a (t t) :compatible)
-                       (b (t t) :compatible))
-            :output-type '(:bool nil)
-            :transform "(~a != ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '==
-            :in-args '((a (t nil) :compatible)
-                       (b (t nil) :compatible))
-            :output-type '(:bool nil)
-            :transform "(~a == ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '!=
-            :in-args '((a (t nil) :compatible)
-                       (b (t nil) :compatible))
-            :output-type '(:bool nil)
-            :transform "(~a != ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '<<
-            :in-args '((a ((:int :uint :float) nil))
-                       (b ((:int :uint :float) nil)))
-            :output-type '(0 nil)
-            :transform "(~a << ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '<<
-            :in-args '((a ((:ivec2 :ivec3 :ivec4
-                                   :uvec2 :uvec3 :uvec4) nil))
-                       (b ((:int :uint :float) nil)))
-            :output-type '(0 nil)
-            :transform "(~a << ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '<<
-            :in-args '((a ((:ivec2 :ivec3 :ivec4
-                                   :uvec2 :uvec3 :uvec4) nil) :compatible)
-                       (b ((:ivec2 :ivec3 :ivec4
-                                   :uvec2 :uvec3 :uvec4) nil) :compatible))
-            :output-type '(0 nil)
-            :transform "(~a << ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '>>
-            :in-args '((a ((:int :uint :float) nil))
-                       (b ((:int :uint :float) nil)))
-            :output-type '(0 nil)
-            :transform "(~a >> ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '>>
-            :in-args '((a ((:ivec2 :ivec3 :ivec4
-                                   :uvec2 :uvec3 :uvec4) nil))
-                       (b ((:int :uint :float) nil)))
-            :output-type '(0 nil)
-            :transform "(~a >> ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '>>
-            :in-args '((a ((:ivec2 :ivec3 :ivec4
-                                   :uvec2 :uvec3 :uvec4) nil) :compatible)
-                       (b ((:ivec2 :ivec3 :ivec4
-                                   :uvec2 :uvec3 :uvec4) nil) :compatible))
-            :output-type '(0 nil)
-            :transform "(~a >> ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '&
-            :in-args '((a ((:int :uint
-                                 :ivec2 :ivec3 :ivec4
-                                 :uvec2 :uvec3 :uvec4) nil) :match)
-                       (b ((:int :uint
-                                 :ivec2 :ivec3 :ivec4
-                                 :uvec2 :uvec3 :uvec4) nil) :match))
-            :output-type '(0 nil)
-            :transform "(~a & ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '^
-            :in-args '((a ((:int :uint
-                                 :ivec2 :ivec3 :ivec4
-                                 :uvec2 :uvec3 :uvec4) nil) :match)
-                       (b ((:int :uint
-                                 :ivec2 :ivec3 :ivec4
-                                 :uvec2 :uvec3 :uvec4) nil) :match))
-            :output-type '(0 nil)
-            :transform "(~a ^ ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name 'pipe
-            :in-args '((a ((:int :uint
-                                 :ivec2 :ivec3 :ivec4
-                                 :uvec2 :uvec3 :uvec4) nil) :match)
-                       (b ((:int :uint
-                                 :ivec2 :ivec3 :ivec4
-                                 :uvec2 :uvec3 :uvec4) nil) :match))
-            :output-type '(0 nil)
-            :transform "(~a | ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '&&
-            :in-args '((a (:bool nil))
-                       (b (:bool nil)))
-            :output-type '(0 nil)
-            :transform "(~a && ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '^^
-            :in-args '((a (:bool nil))
-                       (b (:bool nil)))
-            :output-type '(0 nil)
-            :transform "(~a && ~a)"
-            :context-restriction '((:330)))
-
-(glsl-defun :name '||
-            :in-args '((a (:bool nil))
-                       (b (:bool nil)))
-            :output-type '(0 nil)
-            :transform "(~a && ~a)"
-            :context-restriction '((:330)))
-
+;; (V-DEFUN ISINF (X &CONTEXT (:330 :440)) "isinf(~a)" (TFD) (#'TB 0) :PLACE NIL) 
+;; (V-DEFUN ISNAN (X &CONTEXT (:330 :440)) "isnan(~a)" (TFD) (#'TB 0) :PLACE NIL) 
+;; (V-DEFUN MIX (X Y A &CONTEXT (:330 :440)) "mix(~a,~a,~a)" (TD TD DOUBLE) (#'TD 0) :PLACE NIL) 
+;; (V-DEFUN MIX (X Y A &CONTEXT (:330 :440)) "mix(~a,~a,~a)" (TF TF FLOAT) (#'TF 0) :PLACE NIL) 
+;; (V-DEFUN ATAN (Y X &CONTEXT (:330 :440)) "atan(~a,~a)" (TF TF) (#'TF 0) :PLACE NIL) 
+;; (V-DEFUN POW (X Y &CONTEXT (:330 :440)) "pow(~a,~a)" (TF TF) (#'TF 0) :PLACE NIL) 
+;; (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440)) "clamp(~a,~a,~a)" (TFD TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN MAX (X Y &CONTEXT (:330 :440)) "max(~a,~a)" (TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN MIN (X Y &CONTEXT (:330 :440)) "min(~a,~a)" (TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN MIX (X Y A &CONTEXT (:330 :440)) "mix(~a,~a,~a)" (TFD TFD TB) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN MIX (X Y A &CONTEXT (:330 :440)) "mix(~a,~a,~a)" (TFD TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN MOD (X Y &CONTEXT (:330 :440)) "mod(~a,~a)" (TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN FACEFORWARD (N I NREF &CONTEXT (:330 :440)) "faceforward(~a,~a,~a)" (TFD TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN FMA (A B C &CONTEXT (:330 :440)) "fma(~a,~a,~a)" (TFD TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN REFLECT (I N &CONTEXT (:330 :440)) "reflect(~a,~a)" (TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN REFRACT (I N ETA &CONTEXT (:330 :440)) "refract(~a,~a,~a)" (TFD TFD FLOAT) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN SMOOTHSTEP (EDGE0 EDGE1 X &CONTEXT (:330 :440)) "smoothstep(~a,~a,~a)" (TFD TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN STEP (EDGE X &CONTEXT (:330 :440)) "step(~a,~a)" (TFD TFD) (#'TFD 0) :PLACE NIL) 
+;; (V-DEFUN BIT-COUNT (VALUE &CONTEXT (:330 :440)) "bitCount(~a)" (TIU) (#'TI 0) :PLACE NIL) 
+;; (V-DEFUN FIND-L-S-B (VALUE &CONTEXT (:330 :440)) "findLSB(~a)" (TIU) (#'TI 0) :PLACE NIL) 
+;; (V-DEFUN FIND-M-S-B (VALUE &CONTEXT (:330 :440)) "findMSB(~a)" (TIU) (#'TI 0) :PLACE NIL) 
+;; (V-DEFUN FLOAT-BITS-TO-INT (VALUE &CONTEXT (:330 :440)) "floatBitsToInt(~a)" (TF) (#'TI 0) :PLACE NIL) 
+;; (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440)) "clamp(~a,~a,~a)" (TIU TIU TIU) (#'TIU 0) :PLACE NIL) 
+;; (V-DEFUN MAX (X Y &CONTEXT (:330 :440)) "max(~a,~a)" (TIU TIU) (#'TIU 0) :PLACE NIL) 
+;; (V-DEFUN MIN (X Y &CONTEXT (:330 :440)) "min(~a,~a)" (TIU TIU) (#'TIU 0) :PLACE NIL) 
+;; (V-DEFUN BITFIELD-INSERT (BASE INSERT OFFSET BITS &CONTEXT (:330 :440)) "bitfieldInsert(~a,~a,~a,~a)" (TIU TIU INT INT) (#'TIU 0) :PLACE NIL) 
+;; (V-DEFUN FLOAT-BITS-TO-UINT (VALUE &CONTEXT (:330 :440)) "floatBitsToUint(~a)" (TF) (#'TU 0) :PLACE NIL) 
+;; (V-DEFUN EQUAL (X Y &CONTEXT (:330 :440)) "equal(~a,~a)" (TVEC TVEC) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN EQUAL (X Y &CONTEXT (:330 :440)) "equal(~a,~a)" (BVECN BVECN) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN GREATER-THAN (X Y &CONTEXT (:330 :440)) "greaterThan(~a,~a)" (TVEC TVEC) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN GREATER-THAN-EQUAL (X Y &CONTEXT (:330 :440)) "greaterThanEqual(~a,~a)" (TVEC TVEC) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN LESS-THAN (X Y &CONTEXT (:330 :440)) "lessThan(~a,~a)" (TVEC TVEC) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN LESS-THAN-EQUAL (X Y &CONTEXT (:330 :440)) "lessThanEqual(~a,~a)" (TVEC TVEC) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440)) "notEqual(~a,~a)" (TVEC TVEC) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440)) "notEqual(~a,~a)" (BVECN BVECN) (#'BVECN 0) :PLACE NIL) 
+;; (V-DEFUN NOISEN (X &CONTEXT (:330 :440)) "noisen(~a)" (TF) (#'VECN 0) :PLACE NIL) 
+;; (V-DEFUN INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
+;; (V-DEFUN UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
+
+;;--------------------------------------------------------------------------------
+
+(V-DEFUN ABS (X &CONTEXT (:330 :440)) "abs(~a)" (TFD) 0 :PLACE NIL) 
+(V-DEFUN ABS (X &CONTEXT (:330 :440)) "abs(~a)" (TI) 0 :PLACE NIL) 
+(V-DEFUN ACOS (X &CONTEXT (:330 :440)) "acos(~a)" (TF) 0 :PLACE NIL) 
+(V-DEFUN ACOSH (X &CONTEXT (:330 :440)) "acosh(~a)" (TF) 0 :PLACE NIL) 
+(V-DEFUN ALL (X &CONTEXT (:330 :440)) "all(~a)" (BVECN) V-BOOL :PLACE NIL) 
+(V-DEFUN ANY (X &CONTEXT (:330 :440)) "any(~a)" (BVECN) V-BOOL :PLACE NIL) 
+(V-DEFUN ASIN (X &CONTEXT (:330 :440)) "asin(~a)" (TF) 0 :PLACE NIL) 
+(V-DEFUN ASINH (X &CONTEXT (:330 :440)) "asinh(~a)" (TF) 0 :PLACE NIL) 
+(V-DEFUN ATAN (Y_OVER_X &CONTEXT (:330 :440)) "atan(~a)" (TF) 0 :PLACE NIL) 
+(V-DEFUN ATANH (X &CONTEXT (:330 :440)) "atanh(~a)" (TF) 0 :PLACE NIL) 
+(V-DEFUN ATOMIC-COUNTER (C &CONTEXT (:330 :440)) "atomicCounter(~a)" (ATOMIC_UINT) V-UINT :PLACE NIL) 
+(V-DEFUN ATOMIC-COUNTER-DECREMENT (C &CONTEXT (:330 :440)) "atomicCounterDecrement(~a)" (ATOMIC_UINT) V-UINT :PLACE NIL) 
+(V-DEFUN ATOMIC-COUNTER-INCREMENT (C &CONTEXT (:330 :440)) "atomicCounterIncrement(~a)" (ATOMIC_UINT) V-UINT :PLACE NIL) 
+(V-DEFUN BARRIER (&CONTEXT (:330 :440)) "barrier()" NIL V-VOID :PLACE NIL) 
+(V-DEFUN BITFIELD-EXTRACT (VALUE OFFSET BITS &CONTEXT (:330 :440)) "bitfieldExtract(~a,~a,~a)" (TIU INT INT) 0 :PLACE NIL) 
+(V-DEFUN BITFIELD-REVERSE (VALUE &CONTEXT (:330 :440)) "bitfieldReverse(~a)" (TIU) 0 :PLACE NIL) 
+;; (V-DEFUN CEIL (X &CONTEXT (:330 :440)) "ceil(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440)) "clamp(~a,~a,~a)" (TD DOUBLE DOUBLE) 0 :PLACE NIL) 
+;; (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440)) "clamp(~a,~a,~a)" (TF FLOAT FLOAT) 0 :PLACE NIL) 
+;; (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440)) "clamp(~a,~a,~a)" (TI INT INT) 0 :PLACE NIL) 
+;; (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440)) "clamp(~a,~a,~a)" (TU UINT UINT) 0 :PLACE NIL)
+;; (V-DEFUN COS (ANGLE &CONTEXT (:330 :440)) "cos(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN COSH (X &CONTEXT (:330 :440)) "cosh(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN CROSS (X Y &CONTEXT (:330 :440)) "cross(~a,~a)" (DVEC3 DVEC3) V-DVEC3 :PLACE NIL) 
+;; (V-DEFUN CROSS (X Y &CONTEXT (:330 :440)) "cross(~a,~a)" (VEC3 VEC3) V-VEC3 :PLACE NIL) 
+;; (V-DEFUN D-FDX (P &CONTEXT (:330 :440)) "dFdx(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN D-FDY (P &CONTEXT (:330 :440)) "dFdy(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN DEGREES (RADIANS &CONTEXT (:330 :440)) "degrees(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN DETERMINANT (M &CONTEXT (:330 :440)) "determinant(~a)" (DMATN) V-DOUBLE :PLACE NIL) 
+;; (V-DEFUN DETERMINANT (M &CONTEXT (:330 :440)) "determinant(~a)" (MATN) V-FLOAT :PLACE NIL) 
+;; (V-DEFUN DISTANCE (P0 P1 &CONTEXT (:330 :440)) "distance(~a,~a)" (TD TD) V-DOUBLE :PLACE NIL) 
+;; (V-DEFUN DISTANCE (P0 P1 &CONTEXT (:330 :440)) "distance(~a,~a)" (TF TF) V-FLOAT :PLACE NIL) 
+;; (V-DEFUN DOT (X Y &CONTEXT (:330 :440)) "dot(~a,~a)" (TD TD) V-DOUBLE :PLACE NIL) 
+;; (V-DEFUN DOT (X Y &CONTEXT (:330 :440)) "dot(~a,~a)" (TF TF) V-FLOAT :PLACE NIL) 
+;; (V-DEFUN EMIT-STREAM-VERTEX (STREAM &CONTEXT (:330 :440)) "EmitStreamVertex(~a)" (INT) V-VOID :PLACE NIL) 
+;; (V-DEFUN EMIT-VERTEX (&CONTEXT (:330 :440)) "EmitVertex()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN END-PRIMITIVE (&CONTEXT (:330 :440)) "EndPrimitive()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN END-STREAM-PRIMITIVE (STREAM &CONTEXT (:330 :440)) "EndStreamPrimitive(~a)" (INT) V-VOID :PLACE NIL) 
+;; (V-DEFUN EXP (X &CONTEXT (:330 :440)) "exp(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN EXP-2 (X &CONTEXT (:330 :440)) "exp2(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN FLOOR (X &CONTEXT (:330 :440)) "floor(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN FRACT (X &CONTEXT (:330 :440)) "fract(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN FWIDTH (P &CONTEXT (:330 :440)) "fwidth(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN GROUP-MEMORY-BARRIER (&CONTEXT (:330 :440)) "groupMemoryBarrier()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-ADD (NIL DATA &CONTEXT (:330 :440)) "imageAtomicAdd(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-ADD (NIL DATA &CONTEXT (:330 :440)) "imageAtomicAdd(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-AND (NIL DATA &CONTEXT (:330 :440)) "imageAtomicAnd(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-AND (NIL DATA &CONTEXT (:330 :440)) "imageAtomicAnd(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-COMP-SWAP (NIL COMPARE DATA &CONTEXT (:330 :440)) "imageAtomicCompSwap(~a,~a,~a)" (IMAGE_PARAMS INT INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-COMP-SWAP (NIL COMPARE DATA &CONTEXT (:330 :440)) "imageAtomicCompSwap(~a,~a,~a)" (IMAGE_PARAMS UINT UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-EXCHANGE (NIL DATA &CONTEXT (:330 :440)) "imageAtomicExchange(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-EXCHANGE (NIL DATA &CONTEXT (:330 :440)) "imageAtomicExchange(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-MAX (NIL DATA &CONTEXT (:330 :440)) "imageAtomicMax(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-MAX (NIL DATA &CONTEXT (:330 :440)) "imageAtomicMax(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-MIN (NIL DATA &CONTEXT (:330 :440)) "imageAtomicMin(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-MIN (NIL DATA &CONTEXT (:330 :440)) "imageAtomicMin(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-OR (NIL DATA &CONTEXT (:330 :440)) "imageAtomicOr(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-OR (NIL DATA &CONTEXT (:330 :440)) "imageAtomicOr(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-XOR (NIL DATA &CONTEXT (:330 :440)) "imageAtomicXor(~a,~a)" (IMAGE_PARAMS INT) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-ATOMIC-XOR (NIL DATA &CONTEXT (:330 :440)) "imageAtomicXor(~a,~a)" (IMAGE_PARAMS UINT) V-UINT :PLACE NIL) 
+;; (V-DEFUN IMAGE-LOAD (IMAGE_PARAMS &CONTEXT (:330 :440)) "imageLoad(~a)" (READONLY) V-GVEC4 :PLACE NIL) 
+;; (V-DEFUN IMAGE-SIZE (IMAGE &CONTEXT (:330 :440)) "imageSize(~a)" (GIMAGE3D) V-VEC3 :PLACE NIL) 
+;; (V-DEFUN IMAGE-SIZE (NIL IMAGE &CONTEXT (:330 :440)) "imageSize(~a,~a)" (GIMAGE{1D BUFFER}) V-INT :PLACE NIL) 
+;; (V-DEFUN IMAGE-SIZE (NIL NIL IMAGE &CONTEXT (:330 :440)) "imageSize(~a,~a,~a)" (GIMAGE{CUBE2D 2DMS}ARRAY) V-IVEC3 :PLACE NIL) 
+;; (V-DEFUN IMAGE-SIZE (NIL NIL NIL NIL IMAGE &CONTEXT (:330 :440)) "imageSize(~a,~a,~a,~a,~a)" (GIMAGE{2D CUBE RECT 1DARRAY 2DMS}) V-IVEC2 :PLACE NIL) 
+;; (V-DEFUN IMAGE-STORE (IMAGE_PARAMS DATA &CONTEXT (:330 :440)) "imageStore(~a,~a)" (WRITEONLY GVEC4) V-VOID :PLACE NIL) 
+;; (V-DEFUN INTERPOLATE-AT-CENTROID (INTERPOLANT &CONTEXT (:330 :440)) "interpolateAtCentroid(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN INTERPOLATE-AT-OFFSET (INTERPOLANT OFFSET &CONTEXT (:330 :440)) "interpolateAtOffset(~a,~a)" (TF VEC2) 0 :PLACE NIL) 
+;; (V-DEFUN INTERPOLATE-AT-SAMPLE (INTERPOLANT SAMPLE &CONTEXT (:330 :440)) "interpolateAtSample(~a,~a)" (TF INT) 0 :PLACE NIL) 
+;; (V-DEFUN INVERSE (M &CONTEXT (:330 :440)) "inverse(~a)" (DMATN) V-DMATN :PLACE NIL) 
+;; (V-DEFUN INVERSE (M &CONTEXT (:330 :440)) "inverse(~a)" (MATN) V-MATN :PLACE NIL) 
+;; (V-DEFUN INVERSESQRT (X &CONTEXT (:330 :440)) "inversesqrt(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN LDEXP (X TI &CONTEXT (:330 :440)) "ldexp(~a,~a)" (TFD IN) 0 :PLACE NIL) 
+;; (V-DEFUN LENGTH (X &CONTEXT (:330 :440)) "length(~a)" (TD) V-DOUBLE :PLACE NIL) 
+;; (V-DEFUN LENGTH (X &CONTEXT (:330 :440)) "length(~a)" (TF) V-FLOAT :PLACE NIL) 
+;; (V-DEFUN LOG (X &CONTEXT (:330 :440)) "log(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN LOG-2 (X &CONTEXT (:330 :440)) "log2(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN MATRIX-COMP-MULT (X Y &CONTEXT (:330 :440)) "matrixCompMult(~a,~a)" (DMAT DMAT) V-DMAT :PLACE NIL) 
+;; (V-DEFUN MATRIX-COMP-MULT (X Y &CONTEXT (:330 :440)) "matrixCompMult(~a,~a)" (MAT MAT) V-MAT :PLACE NIL) 
+;; (V-DEFUN MAX (X Y &CONTEXT (:330 :440)) "max(~a,~a)" (TD DOUBLE) 0 :PLACE NIL) 
+;; (V-DEFUN MAX (X Y &CONTEXT (:330 :440)) "max(~a,~a)" (TF FLOAT) 0 :PLACE NIL) 
+;; (V-DEFUN MAX (X Y &CONTEXT (:330 :440)) "max(~a,~a)" (TI INT) 0 :PLACE NIL) 
+;; (V-DEFUN MAX (X Y &CONTEXT (:330 :440)) "max(~a,~a)" (TU UINT) 0 :PLACE NIL) 
+;; (V-DEFUN MEMORY-BARRIER (&CONTEXT (:330 :440)) "memoryBarrier()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN MEMORY-BARRIER-ATOMIC-COUNTER (&CONTEXT (:330 :440)) "memoryBarrierAtomicCounter()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN MEMORY-BARRIER-BUFFER (&CONTEXT (:330 :440)) "memoryBarrierBuffer()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN MEMORY-BARRIER-IMAGE (&CONTEXT (:330 :440)) "memoryBarrierImage()" NIL V-VOID :PLACE NIL) 
+;; (V-DEFUN MEMORY-BARRIER-SHARED (&CONTEXT (:330 :440)) "memoryBarrierShared()" NIL V-VOID :PLACE NIL)
+;; (V-DEFUN MIN (X Y &CONTEXT (:330 :440)) "min(~a,~a)" (TD DOUBLE) 0 :PLACE NIL) 
+;; (V-DEFUN MIN (X Y &CONTEXT (:330 :440)) "min(~a,~a)" (TF FLOAT) 0 :PLACE NIL) 
+;; (V-DEFUN MIN (X Y &CONTEXT (:330 :440)) "min(~a,~a)" (TI INT) 0 :PLACE NIL) 
+;; (V-DEFUN MIN (X Y &CONTEXT (:330 :440)) "min(~a,~a)" (TU UINT) 0 :PLACE NIL) 
+;; (V-DEFUN MOD (X Y &CONTEXT (:330 :440)) "mod(~a,~a)" (TD DOUBLE) 0 :PLACE NIL) 
+;; (V-DEFUN MOD (X Y &CONTEXT (:330 :440)) "mod(~a,~a)" (TF FLOAT) 0 :PLACE NIL) 
+;; (V-DEFUN NOISE-1 (X &CONTEXT (:330 :440)) "noise1(~a)" (TF) V-FLOAT :PLACE NIL) 
+;; (V-DEFUN NORMALIZE (X &CONTEXT (:330 :440)) "normalize(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN NOT (X &CONTEXT (:330 :440)) "not(~a)" (BVECN) 0 :PLACE NIL) 
+;; (V-DEFUN OUTER-PRODUCT (C R &CONTEXT (:330 :440)) "outerProduct(~a,~a)" (DVECM DVECN) V-DMATNXM :PLACE NIL) 
+;; (V-DEFUN OUTER-PRODUCT (C R &CONTEXT (:330 :440)) "outerProduct(~a,~a)" (DVECN DVECN) V-DMATN :PLACE NIL) 
+;; (V-DEFUN OUTER-PRODUCT (C R &CONTEXT (:330 :440)) "outerProduct(~a,~a)" (VECM VECN) V-MATNXM :PLACE NIL) 
+;; (V-DEFUN OUTER-PRODUCT (C R &CONTEXT (:330 :440)) "outerProduct(~a,~a)" (VECN VECN) V-MATN :PLACE NIL) 
+;; (V-DEFUN PACK-DOUBLE-2X-3-2 (V &CONTEXT (:330 :440)) "packDouble2x32(~a)" (UVEC2) V-DOUBLE :PLACE NIL) 
+;; (V-DEFUN PACK-HALF-2X-1-6 (V &CONTEXT (:330 :440)) "packHalf2x16(~a)" (VEC2) V-UINT :PLACE NIL) 
+;; (V-DEFUN PACK-SNORM-2X-1-6 (V &CONTEXT (:330 :440)) "packSnorm2x16(~a)" (VEC2) V-UINT :PLACE NIL) 
+;; (V-DEFUN PACK-SNORM-4X-8 (V &CONTEXT (:330 :440)) "packSnorm4x8(~a)" (VEC4) V-UINT :PLACE NIL) 
+;; (V-DEFUN PACK-UNORM-2X-1-6 (V &CONTEXT (:330 :440)) "packUnorm2x16(~a)" (VEC2) V-UINT :PLACE NIL) 
+;; (V-DEFUN PACK-UNORM-4X-8 (V &CONTEXT (:330 :440)) "packUnorm4x8(~a)" (VEC4) V-UINT :PLACE NIL) 
+;; (V-DEFUN RADIANS (DEGREES &CONTEXT (:330 :440)) "radians(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN ROUND (X &CONTEXT (:330 :440)) "round(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN ROUND-EVEN (X &CONTEXT (:330 :440)) "roundEven(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN SIGN (X &CONTEXT (:330 :440)) "sign(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN SIGN (X &CONTEXT (:330 :440)) "sign(~a)" (TI) 0 :PLACE NIL) 
+;; (V-DEFUN SIN (ANGLE &CONTEXT (:330 :440)) "sin(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN SINH (X &CONTEXT (:330 :440)) "sinh(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN SMOOTHSTEP (EDGE0 EDGE1 X &CONTEXT (:330 :440)) "smoothstep(~a,~a,~a)" (DOUBLE DOUBLE TD) 2 :PLACE NIL) 
+;; (V-DEFUN SMOOTHSTEP (EDGE0 EDGE1 X &CONTEXT (:330 :440)) "smoothstep(~a,~a,~a)" (FLOAT FLOAT TF) 2 :PLACE NIL) 
+;; (V-DEFUN SQRT (X &CONTEXT (:330 :440)) "sqrt(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN STEP (EDGE X &CONTEXT (:330 :440)) "step(~a,~a)" (DOUBLE TD) 1 :PLACE NIL) 
+;; (V-DEFUN STEP (EDGE X &CONTEXT (:330 :440)) "step(~a,~a)" (FLOAT TF) 1 :PLACE NIL) 
+;; (V-DEFUN TAN (ANGLE &CONTEXT (:330 :440)) "tan(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN TANH (X &CONTEXT (:330 :440)) "tanh(~a)" (TF) 0 :PLACE NIL) 
+;; (V-DEFUN TRANSPOSE (M &CONTEXT (:330 :440)) "transpose(~a)" (DMATMXN) V-DMATNXM :PLACE NIL) 
+;; (V-DEFUN TRANSPOSE (M &CONTEXT (:330 :440)) "transpose(~a)" (DMATN) V-DMATN :PLACE NIL) 
+;; (V-DEFUN TRANSPOSE (M &CONTEXT (:330 :440)) "transpose(~a)" (MATMXN) V-MATNXM :PLACE NIL) 
+;; (V-DEFUN TRANSPOSE (M &CONTEXT (:330 :440)) "transpose(~a)" (MATN) V-MATN :PLACE NIL) 
+;; (V-DEFUN TRUNC (X &CONTEXT (:330 :440)) "trunc(~a)" (TFD) 0 :PLACE NIL) 
+;; (V-DEFUN UNPACK-DOUBLE-2X-3-2 (V &CONTEXT (:330 :440)) "unpackDouble2x32(~a)" (DOUBLE) V-UVEC2 :PLACE NIL) 
+;; (V-DEFUN UNPACK-HALF-2X-1-6 (V &CONTEXT (:330 :440)) "unpackHalf2x16(~a)" (UINT) V-VEC2 :PLACE NIL) 
+;; (V-DEFUN UNPACK-SNORM-2X-1-6 (P &CONTEXT (:330 :440)) "unpackSnorm2x16(~a)" (UINT) V-VEC2 :PLACE NIL) 
+;; (V-DEFUN UNPACK-SNORM-4X-8 (P &CONTEXT (:330 :440)) "unpackSnorm4x8(~a)" (UINT) V-VEC4 :PLACE NIL) 
+;; (V-DEFUN UNPACK-UNORM-2X-1-6 (P &CONTEXT (:330 :440)) "unpackUnorm2x16(~a)" (UINT) V-VEC2 :PLACE NIL) 
+;; (V-DEFUN UNPACK-UNORM-4X-8 (P &CONTEXT (:330 :440)) "unpackUnorm4x8(~a)" (UINT) V-VEC4 :PLACE NIL) 

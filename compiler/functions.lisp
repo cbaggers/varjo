@@ -16,8 +16,8 @@
 ;;            the rest defines the params. This is stored as list spec
 ;;            in the global environment
 ;;  special - The arg check and type resolution is implemented in lisp
-;; :inject - The function is implemented in varjo lisp to be injected 
-;;           into the body if it is used by a shader
+;;  :inject - The function is implemented in varjo lisp to be injected 
+;;            into the body if it is used by a shader
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
@@ -34,7 +34,7 @@
 
 ;;------------------------------------------------------------
 
-;; NEED ONE
+;;[TODO] add logic for choosing
 (defun find-function-for-args (func-name args env)
   (let ((arg-len (length args)))
     (loop :for func :in (get-function func-name env)
@@ -42,9 +42,10 @@
                 (or (and (v-special-functionp func)
                          (funcall (v-argument-spec func) args))
                     (and (eql arg-len (length (v-argument-spec func)))
-                         (loop :for arg :in args 
-                            :for arg-type :in (v-argument-spec func)
-                            :always (v-casts-to-p (code-type arg) arg-type)))))
+                         (and (loop :for arg :in args 
+                                 :for arg-type :in (v-argument-spec func)
+                                 :always (v-casts-to-p (code-type arg) arg-type))
+                              (multiple-type-equivilent )))))
        :collect func)))
 
 (defun glsl-resolve-func-type (func args)
