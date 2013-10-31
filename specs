@@ -1,0 +1,3463 @@
+OpenGL 4.4 API Reference Card	
+
+Page 1
+
+OpenGL® is the only cross-platform graphics API that enables developers of
+software for PC, workstation, and supercomputing hardware to create highperformance, visually-compelling graphics software applications, in markets
+such as CAD, content creation, energy, entertainment, game development,
+manufacturing, medical, and virtual reality. Specifications are available at
+www.opengl.org/registry
+• see FunctionName refers to functions on this reference card.
+• [n.n.n] and [Table n.n] refer to sections and tables in the OpenGL 4.4 core specification.
+• [n.n.n] refers to sections in the OpenGL Shading Language 4.40 specification.
+
+OpenGL Errors [2.3.1]
+
+enum GetError(void);
+
+OpenGL Operation
+Floating-Point Numbers [2.3.3]
+16-Bit
+Unsigned 11-Bit
+Unsigned 10-Bit
+
+1-bit sign, 5-bit exponent,
+10-bit mantissa
+no sign bit, 5-bit exponent,
+6-bit mantissa
+no sign bit, 5-bit exponent,
+5-bit mantissa
+
+Returns the numeric error code.
+
+Command Letters [Tables 2.1, 2.2]
+
+Where a letter from the table below is used to
+denote type in a function name, T within the
+prototype is the same type.
+b -	 byte (8 bits)
+ub -	 ubyte (8 bits)
+s -	 short (16 bits)
+us -	 ushort (16 bits)
+i -	 int (32 bits)
+ui -	 uint (32 bits)
+i64 -	 int64 (64 bits)
+ui64 -	 uint64 (64 bits)
+f -	 float (32 bits)
+d -	 double (64 bits)
+
+OpenGL Command Syntax [2.2]
+GL commands are formed from a return type, a name, and optionally up to 4 characters
+(or character pairs) from the Command Letters table (to the left), as shown by the prototype:
+return-type Name{1234}{b s i i64 f d ub us ui ui64}{v} ([args ,] T arg1 , . . . , T argN [, args]);
+The arguments enclosed in brackets ([args ,] and [, args]) may or may not be present.
+The argument type T and the number N of arguments may be indicated by the command name
+suffixes. N is 1, 2, 3, or 4 if present. If “v” is present, an array of N items is passed by a pointer.
+For brevity, the OpenGL documentation and this reference may omit the standard prefixes.
+The actual names are of the forms:
+
+glFunctionName(), GL_CONSTANT, GLtype
+
+Asynchronous Queries [4.2, 4.2.1]
+void GenQueries(sizei n, uint *ids);
+void DeleteQueries(sizei n, const uint *ids);
+void BeginQuery(enum target, uint id);
+target: ANY_SAMPLES_PASSED[_CONSERVATIVE],
+PRIMITIVES_GENERATED,
+SAMPLES_PASSED, TIME_ELAPSED,
+TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN
+
+void BeginQueryIndexed(enum target,
+uint index, uint id);
+target: see BeginQuery
+
+Synchronization
+
+Waiting for Sync Objects [4.1.1]
+
+Flush and Finish [2.3.2]
+
+enum ClientWaitSync(sync sync,
+bitfield flags, uint64 timeout_ns);
+
+Sync Objects and Fences [4.1]
+
+void WaitSync(sync sync, bitfield flags,
+uint64 timeout);
+
+void Flush(void);	
+void Finish(void);
+
+void DeleteSync(sync sync);
+sync FenceSync(enum condition,
+bitfield flags);
+
+condition: SYNC_GPU_COMMANDS_COMPLETE
+flags: must be 0
+
+boolean IsSync(sync sync);
+
+Buffer Objects [6]
+void GenBuffers(sizei n, uint *buffers);
+void DeleteBuffers(sizei n,
+const uint *buffers);
+Create and Bind Buffer Objects[6.1]
+void BindBuffer(enum target, uint buffer);
+target: [Table 6.1] {ARRAY, UNIFORM}_BUFFER,
+ATOMIC_COUNTER_BUFFER,
+COPY_{READ, WRITE}_BUFFER,
+{DISPATCH, DRAW}_INDIRECT_BUFFER,
+ELEMENT_ARRAY_BUFFER,
+PIXEL_[UN]PACK_BUFFER,
+{QUERY, TEXTURE}_BUFFER,
+SHADER_STORAGE_BUFFER,
+TRANSFORM_FEEDBACK_BUFFER
+
+void BindBufferRange(enum target,
+uint index, uint buffer, intptr offset,
+sizeiptr size);
+target: ATOMIC_COUNTER_BUFFER,
+{SHADER_STORAGE, UNIFORM}_BUFFER,
+TRANSFORM_FEEDBACK_BUFFER
+
+void BindBufferBase(enum target,
+uint index, uint buffer);
+target: see BindBufferRange
+
+void BindBuffersRange(enum target,
+uint first, sizei count, const uint *buffers,
+const intptr *offsets, const sizeiptr *size);
+
+flags: SYNC_FLUSH_COMMANDS_BIT, or zero
+timeout: TIMEOUT_IGNORED
+
+Sync Object Queries [4.1.3]
+
+void GetSynciv(sync sync, enum pname,
+sizei bufSize, sizei *length, int *values);
+pname: OBJECT_TYPE,
+SYNC_{STATUS, CONDITION, FLAGS}
+
+void BindBuffersBase(enum target,
+uint first, sizei count, const uint *buffers);
+target: see BindBufferRange
+
+Create, Modify Buffer Object Data [6.2]
+void BufferStorage(enum target,
+sizeiptr size, const void *data,
+bitfield flags);
+
+target: see BindBuffer
+flags: Bitwise OR of MAP_{READ, WRITE}_BIT,
+{DYNAMIC, CLIENT}_STORAGE_BIT,
+MAP_{COHERENT, PERSISTENT}_BIT
+
+Shader Objects [7.1-2]
+
+uint CreateShader(enum type);
+
+type:
+{COMPUTE, FRAGMENT}_SHADER,
+{GEOMETRY, VERTEX}_SHADER,
+TESS_{EVALUATION, CONTROL}_SHADER
+
+void ShaderSource(uint shader, sizei count,
+const char * const * string,
+const int *length);
+void CompileShader(uint shader);
+void ReleaseShaderCompiler(void);
+void DeleteShader(uint shader);
+boolean IsShader(uint shader);
+void ShaderBinary(sizei count,
+const uint *shaders, enum binaryformat,
+const void *binary, sizei length);
+©2013 Khronos Group - Rev. 0713
+
+Timer Queries [4.3]
+
+target: see BindBuffer
+internalformat: see TexBuffer on pg. 3 of this card
+
+void ClearBufferData(enum target,
+enum internalformat, enum format,
+enum type, const void *data);
+target, internalformat, format: see
+ClearBufferSubData
+
+Map/Unmap Buffer Data [6.3]
+
+access: The logical OR of MAP_X_BIT, where X may
+be READ, WRITE, PERSISTENT, COHERENT,
+INVALIDATE_{BUFFER, RANGE},
+FLUSH_EXPLICIT, UNSYNCHRONIZED
+target: see BindBuffer
+access: see MapBufferRange
+
+void DeleteProgram(uint program);
+boolean IsProgram(uint program);
+
+boolean IsBuffer(uint buffer);
+void GetBufferParameteriv(enum target,
+enum pname, int *data);
+
+target: see BindBuffer
+pname: [Table 6.2] BUFFER_SIZE, BUFFER_USAGE,
+BUFFER_{ACCESS[_FLAGS], BUFFER_MAPPED,
+BUFFER_MAP_{OFFSET, LENGTH},
+BUFFER_IMMUTABLE_STORAGE,
+BUFFER_ACCESS_FLAGS
+
+void GetBufferParameteri64v(enum target,
+enum pname, int64 *data);
+target: see BindBuffer
+pname: see GetBufferParameteriv
+
+void GetBufferSubData(enum target,
+intptr offset, sizeiptr size, void *data);
+
+boolean UnmapBuffer(enum target);
+
+void GetBufferPointerv(enum target,
+enum pname, const void **params);
+
+target: see BindBuffer
+target: see BindBuffer
+
+Invalidate Buffer Data [6.5]
+
+Program Interfaces [7.3.1]
+uint CreateProgram(void);
+void GetProgramInterfaceiv(uint program,
+enum programInterface, enum pname,
+void AttachShader(uint program, uint shader);
+int *params);
+void DetachShader(uint program,
+programInterface:
+uint shader);
+ATOMIC_COUNTER_BUFFER, BUFFER_VARIABLE,
+UNIFORM[_BLOCK], PROGRAM_{INPUT, OUTPUT},
+void LinkProgram(uint program);
+SHADER_STORAGE_BLOCK,
+void UseProgram(uint program);
+{GEOMETRY, VERTEX}_SUBROUTINE,
+TESS_{CONTROL, EVALUATION}_SUBROUTINE,
+uint CreateShaderProgramv(enum type,
+{FRAGMENT, COMPUTE}_SUBROUTINE,
+sizei count, const char * const * strings);
+TESS_CONTROL_SUBROUTINE_UNIFORM,
+TESS_EVALUATION_SUBROUTINE_UNIFORM,
+void ProgramParameteri(uint program,
+enum pname, int value);
+{GEOMETRY, VERTEX}_SUBROUTINE_UNIFORM,
+pname: PROGRAM_SEPARABLE,
+PROGRAM_BINARY_RETRIEVABLE_HINT
+value: TRUE, FALSE
+
+readtarget and writetarget: see BindBuffer
+
+Buffer Object Queries [6, 6.7]
+
+void FlushMappedBufferRange(
+enum target, intptr offset, sizeiptr length);
+
+void InvalidateBufferSubData(uint buffer,
+intptr offset, sizeiptr length);
+
+Program Objects [7.3]
+
+pname: QUERY_RESULT{_AVAILABLE},
+QUERY_RESULT_NO_WAIT
+
+void InvalidateBufferData(uint buffer);
+Copy Between Buffers [6.6]
+void CopyBufferSubData(enum readtarget,
+enum writetarget, intptr readoffset,
+intptr writeoffset, sizeiptr size);
+
+void *MapBuffer(enum target,
+enum access);
+
+void ClearBufferSubData(enum target,
+enum internalFormat, intptr offset,
+sizeiptr size, enum format, enum type,
+const void *data);
+
+void GetQueryObjectiv(uint id,
+enum pname, int *params);
+void GetQueryObjectuiv(uint id,
+enum pname, uint *params);
+void GetQueryObjecti64v(uint id,
+enum pname, int64 *params);
+void GetQueryObjectui64v(uint id,
+enum pname, uint64 *params);
+
+format: RED, GREEN, BLUE, RG, RGB, RGBA, BGR,
+BGRA,{RED, GREEN, BLUE, RG, RGB}_INTEGER,
+{RGBA, BGR, BGRA} _INTEGER, STENCIL_INDEX,
+DEPTH_{COMPONENT, STENCIL}
+
+void BufferSubData(enum target,
+intptr offset, sizeiptr size,
+const void *data);
+target: see BindBuffer
+
+target: see BeginQuery
+pname: CURRENT_QUERY,
+QUERY_COUNTER_BITS
+
+void QueryCounter(uint id, TIMESTAMP);
+void GetInteger64v(TIMESTAMP, int64 *data);
+
+void *MapBufferRange(enum target,
+intptr offset, sizeiptr length,
+bitfield access);
+
+target: see BindBuffer
+usage: DYNAMIC_{DRAW, READ, COPY},
+STATIC_{DRAW, READ, COPY},
+STREAM_{DRAW, READ, COPY}
+
+void GetQueryIndexediv(enum target,
+uint index, enum pname, int *params);
+
+Timer queries use query objects to track the
+amount of time needed to fully complete a set
+of GL commands.
+
+void BufferData(enum target, sizeiptr size,
+const void *data, enum usage);
+
+target: see BindBufferRange
+
+Shaders and Programs
+
+void EndQuery(enum target);
+void EndQueryIndexed(enum target,
+uint index);
+boolean IsQuery(uint id);
+void GetQueryiv(enum target, enum pname,
+int *params);
+
+target: see BeginQuery, plus TIMESTAMP
+pname: CURRENT_QUERY, QUERY_COUNTER_BITS
+
+target: see BindBuffer
+
+target: see BindBuffer
+pname: BUFFER_MAP_POINTER
+
+uint GetProgramResourceIndex(
+uint program, enum programInterface,
+const char *name);
+void GetProgramResourceName(
+uint program, enum programInterface,
+uint index, sizei bufSize, sizei *length,
+char *name);
+void GetProgramResourceiv(uint program,
+enum programInterface, uint index,
+sizei propCount, const enum *props,
+sizei bufSize, sizei *length, int *params);
+*props: [see Table 7.2]
+
+int GetProgramResourceLocation(
+uint program, enum programInterface,
+{FRAGMENT, COMPUTE}_SUBROUTINE_UNIFORM,
+const char *name);
+TRANSFORM_FEEDBACK_{BUFFER, VARYING}
+pname: ACTIVE_RESOURCES, MAX_NAME_LENGTH, int GetProgramResourceLocationIndex(
+MAX_NUM_ACTIVE_VARIABLES,
+uint program, enum programInterface,
+MAX_NUM_COMPATIBLE_SUBROUTINES
+const char *name);
+(Continued on next page >)
+
+
+
+www.opengl.org/registry
+
+Page 2	
+Shaders and Programs (cont.)
+Program Pipeline Objects [7.4]
+
+void GenProgramPipelines(sizei n,
+uint *pipelines);
+void DeleteProgramPipelines(sizei n,
+const uint *pipelines);
+boolean IsProgramPipeline(uint pipeline);
+void BindProgramPipeline(uint pipeline);
+void UseProgramStages(uint pipeline,
+bitfield stages, uint program);
+
+OpenGL 4.4 API Reference Card
+void GetActiveUniformBlockName(
+uint program, uint uniformBlockIndex,
+sizei bufSize, sizei length,
+char *uniformBlockName);
+void GetActiveUniformBlockiv(
+uint program, uint uniformBlockIndex,
+enum pname, int *params);
+
+pname: UNIFORM_BLOCK_{BINDING, DATA_SIZE},
+UNIFORM_BLOCK_NAME_LENGTH,
+UNIFORM_BLOCK_ACTIVE_UNIFORMS[_INDICES],
+UNIFORM_BLOCK_REFERENCED_BY_X_SHADER,
+where X may be one of VERTEX, FRAGMENT,
+COMPUTE, GEOMETRY, TESS_CONTROL, or
+TESS_EVALUATION [Table 7.7]
+
+Shader Buffer Variables [7.8]
+
+void ShaderStorageBlockBinding(
+uint program, uint storageBlockIndex,
+uint storageBlockBinding);
+
+Subroutine Uniform Variables [7.9]
+
+Parameter shadertype for the functions in this
+section may be one of
+TESS_{CONTROL, EVALUATION}_SHADER,
+{COMPUTE, VERTEX}_SHADER,
+{FRAGMENT, GEOMETRY}_SHADER
+
+
+
+int GetSubroutineUniformLocation(
+uint program, enum shadertype,
+const char *name);
+stages: ALL_SHADER_BITS or the bitwise OR of
+TESS_{CONTROL, EVALUATION}_SHADER_BIT,
+void GetActiveAtomicCounterBufferiv(
+uint
+GetSubroutineIndex(uint program,
+{VERTEX, GEOMETRY, FRAGMENT}_SHADER_BIT,
+uint program, uint bufferIndex,
+enum shadertype, const char *name);
+COMPUTE_SHADER_BIT
+enum pname, int *params);
+void GetActiveSubroutineName(
+pname: see GetActiveUniformBlockiv, however
+void ActiveShaderProgram(uint pipeline,
+uint program, enum shadertype,
+replace the prefix UNIFORM_BLOCK_ with
+uint program);
+uint index, sizei bufsize, sizei *length,
+ATOMIC_COUNTER_BUFFER_
+char *name);
+Program Binaries [7.5]
+Load Uniform Vars. In Default Uniform Block void GetActiveSubroutineUniformName(
+void GetProgramBinary(uint program,
+void Uniform{1234}{i f d ui}(int location,
+sizei bufSize, sizei *length,
+uint program, enum shadertype,
+T value);
+enum *binaryFormat, void *binary);
+uint index, sizei bufsize, sizei *length,
+char *name);
+void Uniform{1234}{i f d ui}v(int location,
+void ProgramBinary(uint program,
+sizei count, const T *value);
+enum binaryFormat, const void *binary,
+void GetActiveSubroutineUniformiv(
+sizei length);
+uint program, enum shadertype,
+void UniformMatrix{234}{f d}v(
+uint index, enum pname, int *values);
+int location, sizei count, boolean transpose,
+Uniform Variables [7.6]
+pname: [NUM_]COMPATIBLE_SUBROUTINES
+const float *value);
+int GetUniformLocation(uint program,
+void UniformSubroutinesuiv(
+const char *name);
+void UniformMatrix{2x3,3x2,2x4,4x2,3x4,
+enum shadertype, sizei count,
+4x3}{fd}v(int location, sizei count,
+void GetActiveUniformName(uint program,
+const uint *indices);
+boolean
+transpose,
+const
+float
+*value);
+uint uniformIndex, sizei bufSize,
+sizei *length, char *uniformName);
+Shader Memory Access [7.12.2]
+void ProgramUniform{1234}{i f d}(
+uint program, int location, T value);
+See diagram on page 6 for more information.
+void GetUniformIndices(uint program,
+sizei uniformCount,
+void ProgramUniform{1234}{i f d}v(
+void MemoryBarrier(bitfield barriers);
+const char **uniformNames,
+uint program, int location, sizei count,
+barriers: ALL_BARRIER_BITS or the OR of
+uint *uniformIndices);
+const T *value);
+X_BARRIER_BIT where X may be:
+VERTEX_ATTRIB_ARRAY, ELEMENT_ARRAY,
+void GetActiveUniform(uint program,
+void ProgramUniform{1234}uiv(
+UNIFORM, TEXTURE_FETCH, BUFFER_UPDATE,
+uint index, sizei bufSize, sizei *length,
+uint program, int location, sizei count,
+SHADER_IMAGE_ACCESS, COMMAND,
+int *size, enum *type, char *name);
+const T *value);
+PIXEL_BUFFER, TEXTURE_UPDATE, FRAMEBUFFER,
+*type returns: DOUBLE_{VECn, MATn, MATmxn},
+void
+ProgramUniform{1234}ui(
+TRANSFORM_FEEDBACK, ATOMIC_COUNTER,
+DOUBLE, FLOAT_{VECn, MATn, MATmxn}, FLOAT,
+uint
+program,
+int
+location,
+T
+value);
+SHADER_STORAGE, CLIENT_MAPPED_BUFFER,
+INT, INT_VECn, UNSIGNED_INT{_VECn}, BOOL,
+QUERY_BUFFER
+BOOL_VECn, or any value in [Table 7.3]
+void ProgramUniformMatrix{234}{f d}v(
+uint
+program,
+int
+location,
+sizei
+count,
+Shader|Program
+Queries [7.13]
+void GetActiveUniformsiv(uint program,
+boolean transpose, const T *value);
+void GetShaderiv(uint shader, enum pname,
+sizei uniformCount,
+int *params);
+const uint *uniformIndices, enum pname, void ProgramUniformMatrixf{2x3,3x2,2x4,
+int *params);
+4x2, 3x4, 4x3}{f d}v(
+pname: SHADER_TYPE, INFO_LOG_LENGTH, {DELETE,
+uint program, int location, sizei count,
+pname: [Table 7.6] UNIFORM_{NAME_LENGTH, TYPE},
+COMPILE}_STATUS, COMPUTE_SHADER, SHADER_
+boolean transpose, const T *value);
+UNIFORM_{SIZE, BLOCK_INDEX, UNIFORM_OFFSET},
+SOURCE_LENGTH
+UNIFORM_{ARRAY, MATRIX}_STRIDE,
+UNIFORM_IS_ROW_MAJOR,
+UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX
+
+uint GetUniformBlockIndex(uint program,
+const char *uniformBlockName);
+
+Textures and Samplers [8]
+void ActiveTexture(enum texture);
+
+texture: TEXTUREi (where i is
+[0, max(MAX_TEXTURE_COORDS,
+MAX_COMBINED_TEXTURE_IMAGE_UNITS)-1])
+
+Texture Objects [8.1]
+
+void GenTextures(sizei n, uint *textures);
+void BindTexture(enum target, uint texture);
+target: TEXTURE_{1D, 2D}[_ARRAY],
+TEXTURE_{3D, RECTANGLE, BUFFER},
+TEXTURE_CUBE_MAP[_ARRAY],
+TEXTURE_2D_MULTISAMPLE[_ARRAY]
+
+void GenSamplers(sizei count, uint *samplers);
+void BindSampler(uint unit, uint sampler);
+void BindSamplers(uint first, sizei count,
+const uint *samplers);
+
+void GetAttachedShaders(uint program,
+sizei maxCount, sizei *count,
+uint *shaders);
+void GetShaderInfoLog(uint shader,
+sizei bufSize, sizei *length, char *infoLog);
+void GetProgramInfoLog(uint program,
+sizei bufSize, sizei *length, char *infoLog);
+void GetProgramPipelineInfoLog(
+uint pipeline, sizei bufSize,
+sizei *length, char *infoLog);
+void GetShaderSource(uint shader,
+sizei bufSize, sizei *length, char *source);
+void GetShaderPrecisionFormat(
+enum shadertype, enum precisiontype,
+int *range, int *precision);
+shadertype: {VERTEX, FRAGMENT}_SHADER
+precisiontype: {LOW, MEDIUM, HIGH}_{FLOAT, INT}
+
+void GetUniform{f d i ui}v(uint program,
+int location, T *params);
+void GetUniformSubroutineuiv(
+enum shadertype, int location,
+uint *params);
+void GetProgramStageiv(uint program,
+enum shadertype, enum pname,
+int *values);
+
+void SamplerParameter{i f}v(uint sampler,
+enum pname, const T *param);
+
+internalformat: STENCIL_INDEX, RED,
+void CopyTexImage1D(enum target,
+DEPTH_{COMPONENT, STENCIL}, RG, RGB, RGBA,
+int level, enum internalformat, int x,
+COMPRESSED_{RED, RG, RGB, RGBA, SRGB,
+int y, sizei width, int border);
+SRGB_ALPHA), a sized internal format from [Tables target: TEXTURE_1D
+8.12 - 8.13], or a specific compressed format in
+internalformat: see TexImage3D
+[Table 8.14]
+void TexSubImage3D(enum target, int level,
+format: DEPTH_{COMPONENT, STENCIL}, RED,
+GREEN, BLUE, RG, RGB, RGBA, BGR, BGRA,
+int xoffset, int yoffset, int zoffset,
+{BGRA, RED, GREEN, BLUE}_INTEGER,
+sizei width, sizei height, sizei depth,
+{RG, RGB, RGBA, BGR}_INTEGER,
+enum format, enum type,
+STENCIL_INDEX, [Table 8.3]
+const void *data);
+type: [UNSIGNED_]{BYTE, SHORT, INT},
+target: TEXTURE_3D, TEXTURE_2D_ARRAY,
+[HALF_]FLOAT, or a value from [Table 8.2]
+TEXTURE_CUBE_MAP_ARRAY
+format, type: see TexImage3D
+void TexImage2D(enum target, int level,
+
+pname: see SamplerParameter{if}
+
+void SamplerParameterI{i ui}v(uint sampler,
+enum pname, const T *params);
+pname: see SamplerParameter{if}
+
+void DeleteSamplers(sizei count,
+const uint *samplers);
+boolean IsSampler(uint sampler);
+
+Sampler Queries [8.3]
+
+void GetSamplerParameter{i f}v(
+uint sampler, enum pname, T *params);
+
+int internalformat, sizei width,
+sizei height, int border, enum format,
+enum type, const void *data);
+
+target: [PROXY_]TEXTURE_{2D, RECTANGLE},
+[PROXY_]TEXTURE_1D_ARRAY,
+PROXY_TEXTURE_CUBE_MAP
+TEXTURE_CUBE_MAP_POSITIVE_{X, Y, Z},
+TEXTURE_CUBE_MAP_NEGATIVE_{X, Y, Z}
+internalformat, format, type: see TexImage3D
+
+pname: [Tables 8.1, 18.1] [UN]PACK_X where X may be
+void TexImage1D(enum target, int level,
+SWAP_BYTES, LSB_FIRST, ROW_LENGTH,
+int internalformat, sizei width, int border,
+SKIP_{IMAGES, PIXELS, ROWS}, ALIGNMENT,
+enum format, enum type,
+IMAGE_HEIGHT, COMPRESSED_BLOCK_WIDTH,
+const void *data);
+COMPRESSED_BLOCK_{HEIGHT, DEPTH, SIZE}
+target: TEXTURE_1D, PROXY_TEXTURE_1D
+type, internalformat, format: see TexImage3D
+Texture Image Spec. [8.5]
+
+Alternate Texture Image Spec. [8.6]
+void TexImage3D(enum target, int level,
+int internalformat, sizei width, sizei height, void CopyTexImage2D(enum target,
+int level, enum internalformat, int x,
+sizei depth, int border, enum format,
+pname: TEXTURE_x where x may be WRAP_{S, T, R},
+int y, sizei width, sizei height, int border);
+enum type, const void *data);
+{MIN, MAG}_FILTER, {MIN, MAX}_LOD,
+
+©2013 Khronos Group - Rev. 0713
+
+pname: ACTIVE_PROGRAM, VALIDATE_STATUS,
+{VERTEX, FRAGMENT, GEOMETRY}_SHADER,
+TESS_{CONTROL, EVALUATION}_SHADER,
+INFO_LOG_LENGTH, COMPUTE_SHADER
+
+void GetProgramiv(uint program,
+enum pname, int *params);
+
+void UniformBlockBinding(uint program,
+uint uniformBlockIndex,
+uint uniformBlockBinding);
+
+void SamplerParameter{i f}(uint sampler,
+enum pname, T param);
+BORDER_COLOR, LOD_BIAS,
+COMPARE_{MODE, FUNC} [Table 23.18]
+
+void GetProgramPipelineiv(uint pipeline,
+enum pname, int *params);
+
+Uniform Buffer Object Bindings
+
+void BindTextures(uint first, sizei count, const pname: see SamplerParameter{if}
+uint *textures);
+void GetSamplerParameterI{i ui}v(
+target: see BindTexture
+uint sampler, enum pname, T *params);
+pname: see SamplerParameter{if}
+void DeleteTextures(sizei n,
+const uint *textures);
+Pixel Storage Modes [8.4.1]
+boolean IsTexture(uint texture);
+void PixelStore{i f}(enum pname, T param);
+
+Sampler Objects [8.2]
+
+pname: ACTIVE_ATOMIC_COUNTER_BUFFERS,
+ACTIVE_ATTRIBUTES,
+ACTIVE_ATTRIBUTE_MAX_LENGTH,
+ACTIVE_UNIFORMS, ACTIVE_UNIFORM_BLOCKS,
+ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH,
+ACTIVE_UNIFORM_MAX_LENGTH,
+ATTACHED_SHADERS,
+COMPUTE_WORK_GROUP_SIZE, DELETE_STATUS,
+GEOMETRY_{INPUT, OUTPUT}_TYPE,
+GEOMETRY_SHADER_INVOCATIONS,
+GEOMETRY_VERTICES_OUT, INFO_LOG_LENGTH,
+LINK_STATUS, PROGRAM_SEPARABLE,
+PROGRAM_BINARY_RETRIEVABLE_HINT,
+TESS_CONTROL_OUTPUT_VERTICES,
+TESS_GEN_{MODE, SPACING},
+TESS_GEN_{VERTEX_ORDER, POINT_MODE},
+TRANSFORM_FEEDBACK_BUFFER_MODE,
+TRANSFORM_FEEDBACK_VARYINGS,
+TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH,
+VALIDATE_STATUS
+
+target: [PROXY_]TEXTURE_CUBE_MAP_ARRAY,
+[PROXY_]TEXTURE_3D, [PROXY_]TEXTURE_2D_ARRAY
+
+target: TEXTURE_{2D, RECTANGLE, 1D_ARRAY},
+TEXTURE_CUBE_MAP_{POSITIVE, NEGATIVE}_{X, Y, Z}
+internalformat: see TexImage3D
+
+pname: ACTIVE_SUBROUTINES,
+ACTIVE_SUBROUTINES_X where X may be
+UNIFORMS, MAX_LENGTH, UNIFORM_LOCATIONS,
+UNIFORM_MAX_LENGTH
+
+void TexSubImage2D(enum target, int level,
+int xoffset, int yoffset, sizei width,
+sizei height, enum format, enum type,
+const void *data);
+target: see CopyTexImage2D
+format, type: see TexImage3D
+
+void TexSubImage1D(enum target, int level,
+int xoffset, sizei width, enum format,
+enum type, const void *data);
+target: TEXTURE_1D
+format, type: see TexImage3D
+
+void CopyTexSubImage3D(enum target,
+int level, int xoffset, int yoffset, int zoffset,
+int x, int y, sizei width, sizei height);
+target: see TexSubImage3D
+
+void CopyTexSubImage2D(enum target,
+int level, int xoffset, int yoffset, int x,
+int y, sizei width, sizei height);
+target: see TexImage2D
+
+(Continued on next page >)
+
+
+
+www.opengl.org/registry
+
+OpenGL 4.4 API Reference Card	
+Textures and Samplers (cont.)
+void CopyTexSubImage1D(enum target,
+int level, int xoffset, int x, int y, sizei width);
+
+
+
+target: see TexSubImage1D
+
+Compressed Texture Images [8.7]
+
+void CompressedTexImage3D(enum target,
+int level, enum internalformat, sizei width,
+sizei height, sizei depth, int border,
+sizei imageSize, const void *data);
+target: see TexImage3D
+internalformat: COMPRESSED_X where X may be
+[SIGNED_]RED_RGTC1, [SIGNED_]RG_RGTC2,
+{RGBA, SRGB_ALPHA}_BPTC_UNORM,
+RGB_BPTC_{SIGNED, UNSIGNED}_FLOAT
+
+void CompressedTexImage2D(enum target,
+int level, enum internalformat,
+sizei width, sizei height, int border,
+sizei imageSize, const void *data);
+
+target: see TexImage2D, omitting compressed
+rectangular texture formats
+internalformat: see CompressedTexImage3D,
+plus COMPRESSED_X where X may be
+{RGB8, SRGB8}_ETC2,
+{RGB8, SRGB8}_PUNCHTHROUGH_ALPHA1_ETC2,
+{RGBA8, SRGB8_ALPHA8}_ETC2_EAC,
+[SIGNED_]R11_EAC, [SIGNED_]RG11_EAC
+
+void CompressedTexImage1D(enum target,
+int level, enum internalformat,
+sizei width, int border, sizei imageSize,
+const void *data);
+target: TEXTURE_1D, PROXY_TEXTURE_1D
+
+void CompressedTexSubImage3D(
+enum target, int level, int xoffset,
+int yoffset, int zoffset, sizei width,
+sizei height, sizei depth, enum format,
+sizei imageSize, const void *data);
+target: see TexSubImage3D
+format: see internalformat for
+CompressedTexImage3D
+
+void CompressedTexSubImage2D(
+enum target, int level, int xoffset,
+int yoffset, sizei width, sizei height,
+enum format, sizei imageSize,
+cont void *data);
+target: see TexSubImage2D
+format: see internalformat for
+CompressedTexImage2D
+
+target: [PROXY_]TEXTURE_2D_MULTISAMPLE_ARRAY
+internalformat: RED, RG, RGB, RGBA,
+STENCIL_INDEX, DEPTH_{COMPONENT, STENCIL},
+or sized internal formats corresponding to these
+base formats
+
+void TexImage2DMultisample(enum target,
+sizei samples, int internalformat,
+sizei width, sizei height,
+boolean fixedsamplelocations);
+target: [PROXY_]TEXTURE_2D_MULTISAMPLE
+internalformat: see TexImage3DMultisample
+
+Buffer Textures [8.9]
+
+void TexBufferRange(enum target,
+enum internalFormat, uint buffer,
+intptr offset, sizeiptr size);
+void TexBuffer(enum target,
+enum internalformat, uint buffer);
+
+target: TEXTURE_BUFFER
+internalformat: [Table 8.15] R8, R8{I, UI}, R16,
+R16{F, I, UI}, R32{F, I, UI}, RG8, RG8{I, UI}, RG16,
+RG16{F, I, UI}, RG32{F, I, UI}, RGB32F, RGB32{I, UI},
+RGBA8, RGBA8{I, UI}, RGBA16, RGBA16{F, I, UI},
+RGBA32{F, I, UI}
+
+Texture Parameters [8.10]
+
+Page 3
+[PROXY_]TEXTURE_{1D, 2D,CUBE_MAP}_ARRAY,
+target: TEXTURE_1D, PROXY_TEXTURE_1D
+[PROXY_]TEXTURE_RECTANGLE,
+internalformat: any of the sized internal color, depth,
+TEXTURE_CUBE_MAP_NEGATIVE_{X, Y, Z},
+and stencil formats in [Tables 8.18-20]
+TEXTURE_CUBE_MAP_POSITIVE_{X, Y, Z},
+void TexStorage2D(enum target,
+[PROXY_]TEXTURE_2D_MULTISAMPLE[_ARRAY]
+sizei levels, enum internalformat,
+value: TEXTURE_{WIDTH, HEIGHT, DEPTH},
+sizei width, sizei height);
+TEXTURE_{SAMPLES, FIXED_SAMPLE_LOCATIONS},
+target: [PROXY_]TEXTURE_{RECTANGLE, CUBE_MAP},
+TEXTURE_{INTERNAL_FORMAT, SHARED_SIZE},
+[PROXY_]TEXTURE_{1D_ARRAY, 2D}
+TEXTURE_COMPRESSED[_IMAGE_SIZE],
+internalformat: see TexStorage1D
+TEXTURE_BUFFER_DATA_STORE_BINDING,
+TEXTURE_BUFFER_{OFFSET, SIZE},
+void TexStorage3D(enum target,
+TEXTURE_STENCIL_SIZE, TEXTURE_ X_{SIZE, TYPE}
+sizei levels, enum internalformat,
+sizei width, sizei height, sizei depth);
+where X can be RED, GREEN, BLUE, ALPHA, DEPTH
+target: TEXTURE_3D, PROXY_TEXTURE_3D,
+void GetTexImage(enum tex, int lod,
+[PROXY_]TEXTURE_{CUBE_MAP, 2D}[_ARRAY]
+enum format, enum type, void *img);
+internalformat: see TexStorage1D
+tex: TEXTURE_{1, 2}D[_ARRAY],
+void TexStorage2DMultisample(
+TEXTURE_{3D, RECTANGLE, CUBE_MAP_ARRAY},
+enum target, sizei samples,
+TEXTURE_CUBE_MAP_NEGATIVE_{X, Y, Z},
+enum internalformat, sizei width,
+TEXTURE_CUBE_MAP_POSITIVE_{X, Y, Z}
+sizei height, boolean fixedsamplelocations);
+format: see ClearBufferSubData, pg 1 this card
+target: [PROXY_]TEXTURE_2D_MULTISAMPLE
+type: [UNSIGNED_]BYTE, SHORT, INT,
+[HALF_]FLOAT, or a value from [Table 8.2]
+void TexStorage3DMultisample(
+
+void GetCompressedTexImage(enum target,
+int lod, void *img);
+target: see tex for GetTexImage
+
+void TexParameter{i f}(enum target,
+enum pname, T param);
+
+Cube Map Texture Select [8.13.1]
+
+void TexParameter{i f}v(enum target,
+enum pname, const T *params);
+
+Manual Mipmap Generation [8.14.4]
+
+target: see BindTexture
+
+target: see BindTexture
+
+void TexParameterI{i ui}v(enum target,
+enum pname, const T *params);
+
+target: see BindTexture
+pname: DEPTH_STENCIL_TEXTURE_MODE or
+TEXTURE_X where X may be one of
+WRAP_{S, T, R}, BORDER_COLOR,
+{MIN, MAG}_FILTER, LOD_BIAS,{MIN, MAX}_LOD,
+{BASE, MAX}_LEVEL, SWIZZLE_{R, G, B, A, RGBA},
+COMPARE_{MODE, FUNC} [Table 8.16]
+
+Enumerated Queries [8.11]
+
+void GetTexParameter{if}v(enum target,
+enum value, T data);
+target: see BindTexture
+value: see GetTexParameterI
+
+Enable/Disable/IsEnabled(
+TEXTURE_CUBE_MAP_SEAMLESS);
+void GenerateMipmap(enum target);
+target: TEXTURE_{1D, 2D, 3D},
+TEXTURE_{1D, 2D}_ARRAY,
+TEXTURE_CUBE_MAP[_ARRAY]
+
+Texture Views [8.18]
+
+void TextureView(uint texture, enum target,
+uint origtexture, enum internalformat,
+uint minlevel, uint numlevels,
+uint minlayer, uint numlayers);
+
+target: TEXTURE_{1D, 2D,CUBE_MAP}[_ARRAY],
+TEXTURE_3D, TEXTURE_RECTANGLE,
+TEXTURE_2D_MULTISAMPLE[_ARRAY]
+internalformat: [Table 8.21] R8{UI, I}, R8[_SNORM],
+RG8{F, UI, I}, RG8[_SNORM], RGB8[_SNORM],
+RGBA8{UI, I}, RGBA8[_SNORM], SRGB8[UI, I],
+SRGB8_ALPHA8, RGB9_E5, RGB10_A2[UI],
+R11F_G11F_B10F, RGBA16{F, UI, I},
+RGBA16[_SNORM], RGB16{F, UI, I},
+RGB16[_SNORM], RG16{F, UI, I}, RG16[_SNORM],
+R16{F, UI, I}, R16[_SNORM], RGBA32{F, UI, I},
+RGB32{F, UI, I} , RG32{F, UI, I}, R32{F, UI, I};
+COMPRESSED_X where X may be
+[SIGNED]_RED_RGTC1, [SIGNED]_RG_RGTC2,
+{RGBA, SRGB_ALPHA}_BPTC_UNORM,
+RGB_BPTC_[UN]SIGNED_FLOAT
+
+void CompressedTexSubImage1D(
+enum target, int level, int xoffset,
+sizei width, enum format, sizei imageSize,
+const void *data);
+
+void GetTexParameterI{i ui}v(enum target,
+enum value, T data);
+
+Multisample Textures [8.8]
+
+void GetTexLevelParameter{i f}v(enum target,
+Immutable-Format Tex. Images [8.19]
+int lod, enum value, T data);
+void TexStorage1D(enum target, sizei levels,
+target: [PROXY_]TEXTURE_{1D, 2D, 3D},
+enum internalformat, sizei width);
+TEXTURE_BUFFER, PROXY_TEXTURE_CUBE_MAP,
+
+target: see TexSubImage1D
+format: see internalformat for
+CompressedTexImage1D
+
+void TexImage3DMultisample(enum target,
+sizei samples, int internalformat,
+sizei width, sizei height, sizei depth,
+boolean fixedsamplelocations);
+
+Framebuffer Objects
+
+Binding and Managing [9.2]
+
+void BindFramebuffer(enum target,
+uint framebuffer);
+target: [DRAW_, READ_]FRAMEBUFFER
+
+void GenFramebuffers(sizei n,
+uint *framebuffers);
+void DeleteFramebuffers(sizei n,
+const uint *framebuffers);
+boolean IsFramebuffer(uint framebuffer);
+
+Framebuffer Object Parameters [9.2.1]
+
+void FramebufferParameteri(
+enum target, enum pname, int param);
+
+target: [DRAW_, READ_]FRAMEBUFFER
+pname: FRAMEBUFFER_DEFAULT_X where X may be
+WIDTH, HEIGHT, FIXED_SAMPLE_LOCATIONS,
+SAMPLES, LAYERS
+
+Framebuffer Object Queries [9.2.3]
+
+void GetFramebufferParameteriv(
+enum target, enum pname, int *params);
+target, pname: see FramebufferParameteri
+
+void GetFramebufferAttachmentParameteriv(
+enum target, enum attachment,
+enum pname, int *params);
+©2013 Khronos Group - Rev. 0713
+
+target: see BindTexture
+value: see pname for TexParameterI{i ui}v,
+plus IMAGE_FORMAT_COMPATIBILITY_TYPE,
+TEXTURE_IMMUTABLE_{FORMAT, LEVELS},
+TEXTURE_VIEW_NUM_{LEVELS, LAYERS},
+TEXTURE_VIEW_MIN_{LEVEL, LAYER} [Table 8.16]
+
+target: [DRAW_, READ_]FRAMEBUFFER
+attachment: DEPTH, FRONT_{LEFT, RIGHT}, STENCIL,
+BACK_{LEFT, RIGHT}, COLOR_ATTACHMENTi,
+{DEPTH, STENCIL, DEPTH_STENCIL}_ATTACHMENT
+pname: FRAMEBUFFER_ATTACHMENT_ X where X
+may be OBJECT_{TYPE, NAME},
+COMPONENT_TYPE, {RED, GREEN, BLUE}_SIZE,
+{ALPHA, DEPTH, STENCIL}_SIZE,
+COLOR_ENCODING, TEXTURE_{LAYER, LEVEL},
+LAYERED, TEXTURE_CUBE_MAP_FACE
+
+Attaching Images [9.2.4]
+
+void BindRenderbuffer(enum target,
+uint renderbuffer);
+target: RENDERBUFFER
+
+void GenRenderbuffers(sizei n,
+uint *renderbuffers);
+void DeleteRenderbuffers(sizei n,
+const uint *renderbuffers);
+boolean IsRenderbuffer(uint renderbuffer);
+void RenderbufferStorageMultisample(
+enum target, sizei samples,
+enum internalformat, sizei width,
+sizei height);
+target: RENDERBUFFER
+internalformat: see TexImage3DMultisample
+
+void RenderbufferStorage(enum target,
+enum internalformat, sizei width,
+sizei height);
+
+target: RENDERBUFFER
+internalformat: see TexImage3DMultisample
+
+Renderbuffer Object Queries [9.2.6]
+void GetRenderbufferParameteriv(
+enum target, enum pname, int *params);
+
+target: RENDERBUFFER
+pname: [Table 23.27]
+RENDERBUFFER_X where X may be WIDTH,
+HEIGHT, INTERNAL_FORMAT, SAMPLES,
+{RED, GREEN, BLUE, ALPHA, DEPTH, STENCIL}_SIZE
+
+Attaching Renderbuffer Images [9.2.7]
+void FramebufferRenderbuffer(
+enum target, enum attachment,
+enum renderbuffertarget,
+uint renderbuffer);
+
+enum target, sizei samples,
+enum internalformat, sizei width,
+sizei height, sizei depth,
+boolean fixedsamplelocations);
+
+target: [PROXY_]TEXTURE_2D_MULTISAMPLE_ARRAY
+
+Invalidate Texture Image Data [8.20]
+
+void InvalidateTexSubImage(uint texture,
+int level, int xoffset, int yoffset, int zoffset,
+sizei width, sizei height, sizei depth);
+void InvalidateTexImage(uint texture,
+int level);
+
+Clear Texture Image Data [8.21]
+
+void ClearTexSubImage(uint texture,
+int level, int xoffset, int yoffset, int zoffset,
+sizei width, sizei height, sizei depth,
+enum format, enum type,
+const void *data);
+format, type: see TexImage3D, pg 2 this card
+
+void ClearTexImage(uint texture, int level,
+enum format, enum type,
+const void *data);
+format, type: see TexImage3D, pg 2 this card
+
+Texture Image Loads/Stores [8.26]
+
+void BindImageTexture(uint index,
+uint texture, int level, boolean layered,
+int layer, enum access, enum format);
+
+access: READ_ONLY, WRITE_ONLY, READ_WRITE
+format: RGBA{32,16}F, RG{32,16}F, R11F_G11F_B10F,
+R{32,16}F, RGBA{32,16,8}UI, RGB10_A2UI,
+RG{32,16,8}UI, R{32,16,8}UI, RGBA{32,16,8}I,
+RG{32,16,8}I, R{32,16,8}I, RGBA{16,8}, RGB10_A2,
+RG{16,8}, R{16,8}, RGBA{16,8}_SNORM,
+RG{16,8}_SNORM, R{16,8}_SNORM [Table 8.25]
+
+void BindImageTextures(uint first,
+sizei count, const uint *textures);
+void FramebufferTexture1D(enum target,
+enum attachment, enum textarget,
+uint texture, int level);
+
+textarget: TEXTURE_1D
+target, attachment: see FramebufferRenderbuffer
+
+void FramebufferTexture2D(enum target,
+enum attachment, enum textarget,
+uint texture, int level);
+
+textarget: TEXTURE_CUBE_MAP_POSITIVE_{X, Y, Z},
+TEXTURE_CUBE_MAP_NEGATIVE_{X, Y, Z},
+TEXTURE_{2D, RECTANGLE, 2D_MULTISAMPLE}
+target, attachment: see FramebufferRenderbuffer
+
+void FramebufferTexture3D(enum target,
+enum attachment, enum textarget,
+uint texture, int level, int layer);
+
+textarget: TEXTURE_3D
+target, attachment: see FramebufferRenderbuffer
+
+target: [DRAW_, READ_]FRAMEBUFFER
+void FramebufferTextureLayer(enum target,
+attachment: [Table 9.2]
+enum attachment, uint texture,
+{DEPTH, STENCIL, DEPTH_STENCIL}_ATTACHMENT,
+int level, int layer);
+COLOR_ATTACHMENTi where i is
+target, attachment: see FramebufferRenderbuffer
+[0, MAX_COLOR_ATTACHMENTS - 1]
+renderbuffertarget: RENDERBUFFER
+Framebuffer Completeness [9.4.2]
+
+Attaching Texture Images [9.2.8]
+
+void FramebufferTexture(enum target,
+enum attachment, uint texture, int level);
+target: [DRAW_, READ_]FRAMEBUFFER
+attachment: see FramebufferRenderbuffer
+
+enum CheckFramebufferStatus(enum target);
+target: [DRAW_, READ_]FRAMEBUFFER
+returns: FRAMEBUFFER_COMPLETE or a constant
+indicating the violating value
+
+www.opengl.org/registry
+
+Page 4	
+Vertices
+Separate Patches [10.1.15]
+
+void PatchParameteri(enum pname,
+int value);
+pname: PATCH_VERTICES
+
+Current Vertex Attribute Values [10.2]
+Specify generic attributes with components
+of type float (VertexAttrib*), int or uint
+(VertexAttribI*), or double (VertexAttribL*).
+
+Vertex Arrays
+Generic Vertex Attribute Arrays [10.3.1]
+void VertexAttribFormat(uint attribindex,
+int size, enum type, boolean normalized,
+unit relativeoffset);
+
+type: [UNSIGNED_]BYTE, [UNSIGNED_]SHORT,
+[UNSIGNED_]INT, [HALF_]FLOAT, DOUBLE, FIXED,
+[UNSIGNED_]INT_2_10_10_10_REV,
+UNSIGNED_INT_10F_11F_11F_REV
+
+void VertexAttribIFormat(uint attribindex,
+int size, enum type, unit relativeoffset);
+type: [UNSIGNED_]BYTE, [UNSIGNED_]SHORT,
+[UNSIGNED_]INT
+
+void VertexAttribLFormat(uint attribindex,
+int size, enum type, unit relativeoffset);
+type: DOUBLE
+
+void BindVertexBuffer(uint bindingindex,
+uint buffer, intptr offset, sizei stride);
+void BindVertexBuffers(uint first,
+sizei count, const uint *buffers,
+const intptr *offsets, const sizei *strides);
+void VertexAttribBinding(uint attribindex,
+uint bindingindex);
+void VertexAttribPointer(uint index, int size,
+enum type, boolean normalized,
+sizei stride, const void *pointer);
+type: see VertexAttribFormat
+
+void VertexAttribIPointer(uint index,
+int size, enum type, sizei stride,
+const void *pointer);
+
+OpenGL 4.4 API Reference Card
+void VertexAttrib{1234}{s f d}(uint index,
+T values);
+void VertexAttrib{123}{s f d}v(uint index,
+const T *values);
+void VertexAttrib4{b s i f d ub us ui}v(
+uint index, const T *values);
+void VertexAttrib4Nub(uint index, T values);
+void VertexAttrib4N{b s i ub us ui}v(
+uint index, const T *values);
+
+void VertexAttribI{1234}{i ui}(uint index,
+T values);
+void VertexAttribI{1234}{i ui}v(uint index,
+const T *values);
+void VertexAttribI4{b s ub us}v(uint index,
+const T *values);
+void VertexAttribL{1234}d(uint index,
+T values);
+
+void EnableVertexAttribArray(uint index);
+void DisableVertexAttribArray(uint index);
+
+void DrawArraysIndirect(enum mode,
+const void *indirect);
+
+index: [0, MAX_VERTEX_ATTRIBS - 1]
+
+Vertex Attribute Divisors [10.3.2]
+
+void VertexBindingDivisor(uint bindingindex, void MultiDrawArraysIndirect(enum mode,
+uint divisor);
+const void *indirect, sizei drawcount,
+sizei stride);
+void VertexAttribDivisor(uint index,
+uint divisor);
+void DrawElements(enum mode, sizei count,
+enum type, const void *indices);
+Primitive Restart [10.3.5]
+Enable/Disable/IsEnabled(target);
+void DrawElementsInstancedBaseInstance(
+target: PRIMITIVE_RESTART{_FIXED_INDEX}
+enum mode, sizei count, enum type,
+const void *indices, sizei instancecount,
+void PrimitiveRestartIndex(uint index);
+uint baseinstance);
+Vertex Array Objects [10.4]
+void DrawElementsInstanced(enum mode,
+All states related to definition of data used by
+sizei count, enum type, const void *indices,
+vertex processor is in a vertex array object.
+sizei instancecount);
+void GenVertexArrays(sizei n, uint *arrays); void MultiDrawElements(enum mode,
+const sizei *count, enum type,
+void DeleteVertexArrays(sizei n,
+const void * const *indices,
+const uint *arrays);
+sizei drawcount);
+void BindVertexArray(uint array);
+void DrawRangeElements(enum mode,
+boolean IsVertexArray(uint array);
+uint start, uint end, sizei count,
+enum type, const void *indices);
+Drawing Commands [10.5]
+void DrawElementsBaseVertex(enum mode,
+For all the functions in this section:
+sizei count, enum type, const void *indices,
+mode: POINTS, LINE_STRIP, LINE_LOOP, LINES,
+int basevertex);
+TRIANGLE_{STRIP, FAN}, TRIANGLES, PATCHES,
+
+Vertex Attributes [11.1.1]
+
+Vertex shaders operate on array of
+4-component items numbered from slot 0 to
+MAX_VERTEX_ATTRIBS - 1.
+
+void BindAttribLocation(uint program,
+uint index, const char *name);
+void GetActiveAttrib(uint program,
+uint index, sizei bufSize, sizei *length,
+int *size, enum *type, char *name);
+int GetAttribLocation(uint program,
+const char *name);
+
+Transform Feedback Variables [11.1.2]
+void TransformFeedbackVaryings(
+uint program, sizei count,
+const char * const *varyings, enum
+bufferMode);
+
+bufferMode: {INTERLEAVED, SEPARATE}_ATTRIBS
+
+void GetTransformFeedbackVarying(
+uint program, uint index, sizei bufSize,
+sizei *length, sizei *size, enum *type,
+char *name);
+*type returns NONE, FLOAT[_VECn],
+DOUBLE[_VECn], [UNSIGNED_]INT,
+[UNSIGNED_]INT_VECn, MATnxm,
+{FLOAT, DOUBLE}_{MATn, MATnxm}
+
+Shader Execution [11.1.3]
+
+void ValidateProgram(uint program);
+void ValidateProgramPipeline(uint pipeline);
+
+Tessellation Control Shaders [11.2.2]
+void PatchParameterfv(enum pname,
+const float *values);
+
+pname: PATCH_DEFAULT_{INNER, OUTER}_LEVEL
+
+©2013 Khronos Group - Rev. 0713
+
+type: [UNSIGNED_]INT_2_10_10_10_REV,
+UNSIGNED_INT_10F_11F_11F_REV
+
+void DrawElementsInstancedBaseVertexBaseInstance(enum mode,
+sizei count, enum type,
+const void *indices, sizei instancecount,
+int basevertex, uint baseinstance);
+void DrawElementsIndirect(enum mode,
+enum type, const void *indirect);
+void MultiDrawElementsIndirect(
+enum mode, enum type,
+const void *indirect, sizei drawcount,
+sizei stride);
+void MultiDrawElementsBaseVertex(
+enum mode, const sizei *count,
+enum type, const void *const *indices,
+sizei drawcount, const int *basevertex);
+
+Vertex Array Queries [10.6]
+
+void GetVertexAttrib{d f i}v(uint index,
+enum pname, T *params);
+
+pname: CURRENT_VERTEX_ATTRIB or
+VERTEX_ATTRIB_ARRAY_X where X is one of
+BUFFER_BINDING, DIVISOR, ENABLED, INTEGER,
+LONG, NORMALIZED, SIZE, STRIDE, or TYPE
+
+void GetVertexAttribI{i ui}v(uint index,
+enum pname, T *params);
+pname: see GetVertexAttrib{d f i}v
+
+void GetVertexAttribLdv(uint index,
+enum pname, double *params);
+
+pname: see GetVertexAttrib{d f i}v
+LINES_ADJACENCY, TRIANGLES_ADJACENCY, {LINE, void DrawRangeElementsBaseVertex(
+void
+GetVertexAttribPointerv(uint index,
+TRIANGLE}_STRIP_ADJACENCY,
+enum mode, uint start, uint end,
+enum pname, const void **pointer);
+type: UNSIGNED_{BYTE, SHORT, INT}
+sizei count, enum type, const void *indices,
+pname: VERTEX_ATTRIB_ARRAY_POINTER
+int basevertex);
+
+void DrawArrays(enum mode, int first,
+sizei count);
+void DrawArraysInstancedBaseInstance(
+void VertexAttribLPointer(uint index, int size,
+enum mode, int first, sizei count,
+enum type, sizei stride, const void*pointer); sizei instancecount, uint baseinstance);
+type: DOUBLE
+void DrawArraysInstanced(enum mode,
+index: [0, MAX_VERTEX_ATTRIBS - 1]
+int first, sizei count, sizei instancecount);
+type: see VertexAttribIFormat
+index: [0, MAX_VERTEX_ATTRIBS - 1]
+
+void MultiDrawArrays(enum mode,
+const int *first, const sizei *count,
+sizei drawcount);
+
+void VertexAttribL{1234}dv(uint index,
+const T *values);
+void VertexAttribP{1234}ui(uint index,
+enum type, boolean normalized,
+uint value);
+void VertexAttribP{1234}uiv(uint index,
+enum type, boolean normalized,
+const uint *value);
+
+Vertex Post-Processing [13]
+Transform Feedback [13.2]
+
+void GenTransformFeedbacks(sizei n,
+uint *ids);
+void DeleteTransformFeedbacks(sizei n,
+const uint *ids);
+boolean IsTransformFeedback(uint id);
+void BindTransformFeedback(
+enum target, uint id);
+target: TRANSFORM_FEEDBACK
+
+void BeginTransformFeedback(
+enum primitiveMode);
+
+primitiveMode: TRIANGLES, LINES, POINTS
+
+void EndTransformFeedback(void);
+void PauseTransformFeedback(void);
+void ResumeTransformFeedback(void);
+
+Rasterization [13.4, 14]
+Enable/Disable/IsEnabled(target);
+target: RASTERIZER_DISCARD
+
+Multisampling [14.3.1]
+
+Use to antialias points, and lines.
+
+Enable/Disable/IsEnabled(target);
+
+target: MULTISAMPLE, SAMPLE_SHADING
+
+void GetMultisamplefv(enum pname,
+uint index, float *val);
+pname: SAMPLE_POSITION
+
+void MinSampleShading(float value);
+
+void DrawElementsInstancedBaseVertex(
+enum mode, sizei count, enum type,
+const void *indices, sizei instancecount,
+int basevertex);
+
+Conditional Rendering [10.10]
+
+void BeginConditionalRender(uint id,
+enum mode);
+
+mode: {QUERY_BY_REGION, QUERY}_{WAIT,
+NO_WAIT}
+
+void EndConditionalRender(void);
+
+Transform Feedback Drawing [13.2.3]
+void DrawTransformFeedback(
+enum mode, uint id);
+
+mode: see Drawing Commands [10.5] above
+
+target: DEPTH_CLAMP, CLIP_DISTANCEi where
+i = [0..MAX_CLIP_DISTANCES - 1]
+
+Controlling Viewport [13.6.1]
+
+void DepthRangeArrayv(uint first,
+sizei count, const double *v);
+void DepthRangeIndexed(uint index,
+double n, double f);
+void DepthRange(double n, double f);
+void DepthRangef(float n, float f);
+void ViewportArrayv(uint first, sizei count,
+const float *v);
+void ViewportIndexedf(uint index, float x,
+float y, float w, float h);
+Flatshading [13.4]
+void ProvokingVertex(enum provokeMode);
+void ViewportIndexedfv(uint index,
+provokeMode: {FIRST, LAST}_VERTEX_CONVENTION
+const float *v);
+void Viewport(int x, int y, sizei w, sizei h);
+Primitive Clipping [13.5]
+Enable/Disable/IsEnabled(target);
+void DrawTransformFeedbackInstanced(
+enum mode, uint id,
+sizei instancecount);
+void DrawTransformFeedbackStream(
+enum mode, uint id, uint stream);
+void
+DrawTransformFeedbackStreamInstanced(
+enum mode, uint id, uint stream,
+sizei instancecount);
+
+Points [14.4]
+
+void PointSize(float size);
+void PointParameter{i f}(enum pname,
+T param);
+pname, param: see PointParameter{if}v
+
+Enable/Disable/IsEnabled(target);
+target: PROGRAM_POINT_SIZE
+
+Line Segments [14.5]
+
+Enable/Disable/IsEnabled(target);
+target: LINE_SMOOTH
+
+void PointParameter{i f}v(enum pname, const void LineWidth(float width);
+T *params);
+Polygons [14.6, 14.6.1]
+pname: POINT_FADE_THRESHOLD_SIZE,
+POINT_SPRITE_COORD_ORIGIN
+Enable/Disable/IsEnabled(target);
+param, params: The fade threshold if pname is
+POINT_FADE_THRESHOLD_SIZE;
+{LOWER, UPPER}_LEFT if pname is
+POINT_SPRITE_COORD_ORIGIN.
+
+target: POLYGON_SMOOTH, CULL_FACE
+
+void FrontFace(enum dir);
+dir: CCW, CW
+
+(Continued on next page >)
+
+
+
+www.opengl.org/registry
+
+OpenGL 4.4 API Reference Card	
+Rasterization (cont.)
+void CullFace(enum mode);
+
+mode: FRONT, BACK, FRONT_AND_BACK
+
+face: FRONT_AND_BACK
+mode: POINT, LINE, FILL
+
+void PolygonOffset(float factor, float units);
+Enable/Disable/IsEnabled(target);
+
+
+
+Polygon Rast. & Depth Offset [14.6.4-5] target: POLYGON_OFFSET_{POINT, LINE, FILL}
+void PolygonMode(enum face, enum
+mode);
+
+Per-Fragment Operations
+Scissor Test [17.3.2]
+
+Enable/Disable/IsEnabled(target);
+
+target: SAMPLE_ALPHA_TO_{COVERAGE, ONE},
+SAMPLE_COVERAGE, SAMPLE_MASK
+
+void SampleCoverage(float value,
+boolean invert);
+void SampleMaski(uint maskNumber,
+bitfield mask);
+
+target: SAMPLES_PASSED, ANY_SAMPLES_
+PASSED, ANY_SAMPLES_PASSED_
+CONSERVATIVE
+
+Blending [17.3.8]
+
+Enable/Disable/IsEnabled(BLEND);
+Enablei/Disablei/IsEnabledi(BLEND,
+uint index);	
+
+Stencil Test [17.3.5]
+
+Enable/Disable/IsEnabled(STENCIL_TEST);
+void StencilFunc(enum func, int ref,
+uint mask);
+
+Enable/Disable/IsEnabled(SCISSOR_TEST);
+Enablei/Disablei/IsEnabledi(SCISSOR_TEST, func: NEVER, ALWAYS, LESS, GREATER, EQUAL,
+LEQUAL, GEQUAL, NOTEQUAL
+uint index);
+void StencilFuncSeparate(enum face,
+void ScissorArrayv(uint first, sizei count,
+enum func, int ref, uint mask);
+const int *v);
+func: see StencilFunc
+void ScissorIndexed(uint index, int left,
+void StencilOp(enum sfail, enum dpfail,
+int bottom, sizei width, sizei height);
+enum dppass);
+void ScissorIndexedv(uint index, int *v);
+void StencilOpSeparate(enum face,
+void Scissor(int left, int bottom, sizei width,
+enum sfail, enum dpfail, enum dppass);
+sizei height);
+face: FRONT, BACK, FRONT_AND_BACK
+
+Multisample Fragment Ops. [17.3.3]
+
+Page 5
+
+sfail, dpfail, dppass: KEEP, ZERO, REPLACE, INCR,
+DECR, INVERT, INCR_WRAP, DECR_WRAP
+
+Depth Buffer Test [17.3.6]
+
+Enable/Disable/IsEnabled(DEPTH_TEST);
+void DepthFunc(enum func);
+func: see StencilFunc
+
+Occlusion Queries [17.3.7]
+
+BeginQuery(enum target, uint id);
+EndQuery(enum target);
+
+void BlendEquation(enum mode);
+void BlendEquationSeparate(enum
+modeRGB, enum modeAlpha);
+
+mode, modeRGB, modeAlpha: MIN, MAX ,
+FUNC_{ADD, SUBTRACT, REVERSE_SUBTRACT}
+
+void BlendEquationi(uint buf, enum
+mode);
+void BlendEquationSeparatei(uint buf,
+enum modeRGB, enum modeAlpha);
+mode, modeRGB, modeAlpha:
+see BlendEquationSeparate
+
+void BlendFunc(enum src, enum dst);
+src, dst: see BlendFuncSeparate
+
+void BlendFuncSeparate(enum srcRGB,
+enum dstRGB, enum srcAlpha,
+enum dstAlpha);
+
+src, dst, srcRGB, dstRGB, srcAlpha, dstAlpha:
+ZERO, ONE, SRC_ALPHA_SATURATE,
+{SRC, SRC1, DST, CONSTANT}_{COLOR, ALPHA},
+ONE_MINUS_{SRC, SRC1}_{COLOR, ALPHA},
+ONE_MINUS_{DST, CONSTANT}_{COLOR, ALPHA}
+
+void BlendFunci(uint buf, enum src,
+enum dst);
+src, dst: see BlendFuncSeparate
+
+void BlendFuncSeparatei(uint buf,
+enum srcRGB, enum dstRGB,
+enum srcAlpha, enum dstAlpha);
+dstRGB, dstAlpha, srcRGB, srcAlpha:
+see BlendFuncSeparate
+
+void BlendColor(float red, float green, float
+blue, float alpha);
+
+Dithering [17.3.10]
+
+Enable/Disable/IsEnabled(DITHER);
+
+Logical Operation [17.3.11]
+
+Enable/Disable/IsEnabled(COLOR_LOGIC_OP);
+void LogicOp(enum op);
+op: CLEAR, AND, AND_REVERSE, COPY,
+AND_INVERTED, NOOP, XOR, OR, NOR,
+EQUIV, INVERT, OR_REVERSE, COPY_INVERTED,
+OR_INVERTED, NAND, SET
+
+Fragment Shaders [15.2]
+void BindFragDataLocationIndexed(
+uint program, uint colorNumber,
+uint index, const char *name);
+void BindFragDataLocation(uint program,
+uint colorNumber, const char *name);
+int GetFragDataLocation(uint program,
+const char *name);
+int GetFragDataIndex(uint program,
+const char *name);
+
+Reading and Copying Pixels
+Reading Pixels [18.2]
+
+Whole Framebuffer
+
+Selecting a Buffer for Writing [17.4.1]
+void DrawBuffer(enum buf);
+
+buf: [Tables 17.4-5] NONE,
+{FRONT, BACK}_{LEFT, RIGHT}, FRONT, BACK,
+LEFT, RIGHT, FRONT_AND_BACK,
+COLOR_ATTACHMENTi (i = [0,
+MAX_COLOR_ATTACHMENTS - 1 ])
+
+void DrawBuffers(sizei n, const enum *bufs);
+bufs: [Tables 17.5-6] {FRONT, BACK}_{LEFT, RIGHT},
+NONE, COLOR_ATTACHMENTi (i = [0,
+MAX_COLOR_ATTACHMENTS - 1 ])
+
+Fine Control of Buffer Updates [17.4.2]
+void ColorMask(boolean r, boolean g,
+boolean b, boolean a);
+void ColorMaski(uint buf, boolean r,
+boolean g, boolean b, boolean a);
+
+Debug Output [20]
+Enable/Disable/IsEnabled(
+DEBUG_OUTPUT);
+
+Debug Message Callback [20.2]
+
+void DebugMessageCallback(
+DEBUGPROC callback, void *userParam);
+callback: has the prototype:
+
+void callback(enum source, enum type,
+uint id, enum severity, sizei length,
+const char *message, void *userParam);
+
+source: DEBUG_SOURCE_X where X may be API,
+SHADER_COMPILER, WINDOW_SYSTEM,
+THIRD_PARTY, APPLICATION, OTHER
+type: DEBUG_TYPE_X where X may be ERROR,
+MARKER, OTHER, DEPRECATED_BEHAVIOR,
+UNDEFINED_BEHAVIOR, PERFORMANCE,
+PORTABILITY, {PUSH, POP}_GROUP
+severity: DEBUG_SEVERITY_{HIGH, MEDIUM},
+DEBUG_SEVERITY_{LOW, NOTIFICATION}
+
+Controlling Debug Messages [20.4]
+
+void DebugMessageControl(enum source,
+enum type, enum severity, sizei count,
+const uint *ids, boolean enabled);
+source, type, severity: see callback (above),
+plus DONT_CARE
+
+Externally Generated Messages [20.5]
+void DebugMessageInsert(enum source,
+enum type, uint id, enum severity,
+int length, const char *buf);
+
+source: DEBUG_SOURCE_{APPLICATION, THIRD_PARTY}
+type, severity: see DebugMessageCallback
+
+©2013 Khronos Group - Rev. 0713
+
+void DepthMask(boolean mask);
+void StencilMask(uint mask);
+void StencilMaskSeparate(enum face,
+uint mask);
+face: FRONT, BACK, FRONT_AND_BACK
+
+Clearing the Buffers [17.4.3]
+void Clear(bitfield buf);
+
+buf: 0 or the OR of
+{COLOR, DEPTH, STENCIL}_BUFFER_BIT
+
+void ClearBufferfi(enum buffer,
+int drawbuffer, float depth, int stencil);
+buffer: DEPTH_STENCIL
+drawbuffer: 0
+
+Invalidating Framebuffers [17.4.4]
+
+void InvalidateSubFramebuffer(
+enum target, sizei numAttachments,
+const enum *attachments, int x, int y,
+sizei width, sizei height);
+target: [DRAW_ , READ_]FRAMEBUFFER
+
+void ClearColor(float r, float g, float b, float a); attachments: COLOR_ATTACHMENTi, DEPTH,
+{DEPTH, STENCIL}_ATTACHMENT,
+void ClearDepth(double d);
+DEPTH_STENCIL_ATTACHMENT, COLOR,
+{FRONT, BACK}_{LEFT, RIGHT}, STENCIL
+void ClearDepthf(float d);
+void InvalidateFramebuffer(
+void ClearStencil(int s);
+enum target, sizei numAttachments,
+void ClearBuffer{i f ui}v(enum buffer,
+const enum *attachments);
+int drawbuffer, const T *value);
+buffer: COLOR, DEPTH, STENCIL
+
+Debug Groups [20.6]
+
+void PushDebugGroup(enum source,
+uint id, sizei length, const char *message);
+source: see DebugMessageInsert
+
+void PopDebugGroup(void);
+
+Debug Labels [20.7]
+
+void ObjectLabel(enum identiﬁer,
+uint name, sizei length, const char *label);
+identifier: BUFFER, FRAMEBUFFER,
+RENDERBUFFER, PROGRAM_PIPELINE,
+PROGRAM, QUERY, SAMPLER, SHADER,
+TEXTURE, TRANSFORM_FEEDBACK,
+VERTEX_ARRAY
+
+void ObjectPtrLabel(void* ptr, sizei length,
+const char *label);
+
+Synchronous Debug Output [20.8]
+Enable/Disable/IsEnabled(
+DEBUG_OUTPUT_SYNCHRONOUS);
+
+Debug Output Queries [20.9]
+
+uint GetDebugMessageLog(uint count,
+sizei bufSize, enum *sources,
+enum *types, uint *ids,
+enum *severities, sizei *lengths,
+char *messageLog);
+void GetObjectLabel(enum identiﬁer,
+uint name, sizei bufSize, sizei *length,
+char *label);
+void GetObjectPtrLabel(void* ptr,
+sizei bufSize, sizei *length, char *label);
+
+target, attachment: see InvalidateSubFramebuffer
+
+Compute Shaders [19]
+void DispatchCompute(
+uint num_groups_x,
+uint num_groups_y,
+uint num_groups_z);
+void DispatchComputeIndirect(
+intptr indirect);
+
+Hints [21.5]
+void Hint(enum target, enum hint);
+
+target: FRAGMENT_SHADER_DERIVATIVE_HINT,
+TEXTURE_COMPRESSION_HINT,
+{LINE, POLYGON}_SMOOTH_HINT
+hint: FASTEST, NICEST, DONT_CARE
+
+State and State Requests
+
+void ReadPixels(int x, int y, sizei width,
+sizei height, enum format, enum type,
+void *data);
+
+format: STENCIL_INDEX, RED, GREEN, BLUE, RG, RGB,
+RGBA, BGR, DEPTH_{COMPONENT, STENCIL},
+{RED, GREEN, BLUE, RG, RGB}_INTEGER,
+{RGBA, BGR, BGRA}_INTEGER, BGRA [Table 8.3]
+type: [HALF_]FLOAT, [UNSIGNED_]BYTE,
+[UNSIGNED_]SHORT, [UNSIGNED_]INT,
+FLOAT_32_UNSIGNED_INT_24_8_REV,
+UNSIGNED_{BYTE, SHORT, INT}_* values in
+[Table 8.2]
+
+void ReadBuffer(enum src);
+
+src: NONE, {FRONT, BACK}_{LEFT, RIGHT}, FRONT,
+BACK, LEFT, RIGHT, FRONT_AND_BACK,
+COLOR_ATTACHMENTi (i =
+[0, MAX_COLOR_ATTACHMENTS - 1 ])
+
+Final Conversion [18.2.6]
+
+void ClampColor(enum target, enum clamp);
+target: CLAMP_READ_COLOR
+clamp: TRUE, FALSE, FIXED_ONLY
+
+Copying Pixels [18.3]
+void BlitFramebuffer(int srcX0, int srcY0,
+int srcX1, int srcY1, int dstX0, int dstY0,
+int dstX1, int dstY1, bitfield mask,
+enum filter);
+mask: Bitwise OR of
+{COLOR, DEPTH, STENCIL}_BUFFER_BIT or 0
+filter: LINEAR, NEAREST
+
+void CopyImageSubData(uint srcName,
+enum srcTarget, int srcLevel, int srcX,
+int srcY, int srcZ, uint dstName,
+enum dstTarget, int dstLevel, int dstX,
+int dstY, int dstZ, sizei srcWidth,
+sizei srcHeight, sizei srcDepth);
+
+srcTarget, dstTarget: see target for BindTexture in
+section [8.1] on this card, plus GL_RENDERTARGET
+
+A complete list of symbolic constants for states is void GetDoublev(enum pname,
+shown in the tables in [23].
+double *data);
+
+Simple Queries [22.1]
+
+void GetBooleanv(enum pname,
+boolean *data);
+void GetIntegerv(enum pname, int *data);
+void GetInteger64v(enum pname,
+int64 *data);
+void GetFloatv(enum pname, float *data);
+
+void GetDoublei_v(enum target, uint index,
+double *data);
+void GetBooleani_v(enum target,
+uint index, boolean *data);
+void GetIntegeri_v(enum target, uint index,
+int *data);
+void GetFloati_v(enum target, uint index,
+float *data);
+(Continued on next page >)
+
+
+
+www.opengl.org/registry
+
+Page 6	
+
+OpenGL 4.4 API Reference Card
+
+States (cont.)
+
+Internal Format Queries [22.3]
+
+void GetInteger64i_v(enum target,
+uint index, int64 *data);
+boolean IsEnabled(enum cap);
+boolean IsEnabledi(enum target, uint index);
+
+void GetInternalformati64v(enum target,
+enum internalformat, enum pname,
+sizei bufSize, int64 *params);
+
+
+
+target: [Table 22.2]
+TEXTURE_{1D, 2D, 3D, CUBE_MAP}[_ARRAY],
+TEXTURE_2D_MULTISAMPLE[_ARRAY],
+TEXTURE_{BUFFER, RECTANGLE}, RENDERBUFFER
+String Queries [22.2]
+internalformat: any value
+void GetPointerv(enum pname,
+pname:
+void **params);
+CLEAR_{BUFFER, TEXTURE}, COLOR_ENCODING,
+ubyte *GetString(enum name);
+COLOR_{COMPONENTS, RENDERABLE},
+name: RENDERER, VENDOR, VERSION,
+COMPUTE_TEXTURE,
+SHADING_LANGUAGE_VERSION
+DEPTH_{COMPONENTS, RENDERABLE},
+FILTER, FRAMEBUFFER_BLEND,
+ubyte *GetStringi(enum name, uint index);
+FRAMEBUFFER_RENDERABLE[_LAYERED],
+name: EXTENSIONS, SHADING_LANGUAGE_VERSION
+{FRAGMENT, GEOMETRY}_TEXTURE,
+index: EXTENSIONS range = [0, NUM_EXTENSIONS - 1]
+[MANUAL_GENERATE_]MIPMAP,
+SHADING_LANGUAGE_VERSION range = [0, NUM_
+IMAGE_COMPATIBILITY_CLASS,
+SHADING_LANGUAGE_VERSIONS-1]
+IMAGE_PIXEL_{FORMAT, TYPE},
+
+IMAGE_FORMAT_COMPATIBILITY_TYPE,
+IMAGE_TEXEL_SIZE,
+INTERNALFORMAT_{PREFERRED, SUPPORTED},
+INTERNALFORMAT_{RED, GREEN, BLUE}_SIZE,
+INTERNALFORMAT_{DEPTH, STENCIL}_SIZE,
+INTERNALFORMAT_{ALPHA, SHARED}_SIZE,
+INTERNALFORMAT_{RED, GREEN}_TYPE,
+INTERNALFORMAT_{BLUE, ALPHA}_TYPE,
+INTERNALFORMAT_{DEPTH, STENCIL}_TYPE,
+MAX_COMBINED_DIMENSIONS,
+MAX_{WIDTH, HEIGHT, DEPTH, LAYERS},
+NUM_SAMPLE_COUNTS,
+READ_PIXELS[_FORMAT, _TYPE],
+SAMPLES, SHADER_IMAGE_ATOMIC,
+SHADER_IMAGE_{LOAD, STORE},
+SIMULTANEOUS_TEXTURE_AND_DEPTH_TEST,
+SIMULTANEOUS_TEXTURE_AND_DEPTH_WRITE,
+SIMULTANEOUS_TEXTURE_AND_STENCIL_TEST,
+SIMULTANEOUS_TEXTURE_AND_STENCIL_WRITE,
+SRGB_{READ, WRITE},
+STENCIL_COMPONENTS,
+
+STENCIL_RENDERABLE,
+TESS_CONTROL_TEXTURE,
+TESS_EVALUATION_TEXTURE,
+TEXTURE_COMPRESSED,
+TEXTURE_COMPRESSED_BLOCK_HEIGHT,
+TEXTURE_COMPRESSED_BLOCK_WIDTH,
+TEXTURE_COMPRESSED_BLOCK_SIZE,
+TEXTURE_GATHER[_SHADOW],
+[GET_]TEXTURE_IMAGE_FORMAT,
+[GET_]TEXTURE_IMAGE_TYPE,
+TEXTURE_SHADOW,
+TEXTURE_VIEW,
+VERTEX_TEXTURE,
+VIEW_COMPATIBILITY_CLASS
+
+void GetInternalformativ(enum target,
+enum internalformat, enum pname,
+sizei bufSize, int *params);
+target, pname, internalformat:
+see GetInternalformati64v,
+
+OpenGL Compute Programming Model and Compute Memory Hierarchy
+
+		
+
+Use the barrier function to synchronize invocations in a work group:
+void barrier();
+
+gl_NumWorkGroups = (4,2,0)
+
+Use the memoryBarrier* or groupMemoryBarrier functions to order
+reads/writes accessible to other invocations:
+void memoryBarrier();
+void memoryBarrierAtomicCounter();
+void memoryBarrierBuffer();
+void memoryBarrierImage();
+void memoryBarrierShared();	
+// Only for compute shaders
+void groupMemoryBarrier();	
+// Only for compute shaders
+
+		
+gl_WorkGroupSize = (4,2,0)
+		
+gl_WorkGroupID = (2,0,0)
+Use the compute shader built-in variables to specifiy work groups and invocations:
+		
+gl_LocalInvocationID = (1,0,0)
+in vec3 gl_NumWorkGroups;	
+// Number of workgroups dispatched
+		
+gl_GlobalInvocationID = (9,0,0)
+const vec3 gl_WorkGroupSize;	
+// Size of each work group for current shader
+in vec3 gl_WorkGroupID;		
+// Index of current work group being executed
+in vec3 gl_LocalInvocationID;	 // index of current invocation in a work group
+in vec3 gl_GlobalInvocationID;	 // Unique ID across all work groups and threads. (gl_GlobalInvocationID = gl_WorkGroupID * gl_WorkGroupSize + gl_LocalInvocationID)
+
+OpenGL Texture Views and Texture Object State
+
+		
+
+T
+
+Texture state set with TextureView()
+
+enum internalformat // base internal format	
+uint minlevel
+// first level of mipmap	
+uint minlayer
+// first layer of array texture	
+
+Sampler Parameters (mutable)
+TEXTURE_BORDER_COLOR
+TEXTURE_COMPARE_{FUNC,MODE}
+TEXTURE_LOD_BIAS
+TEXTURE_{MAX,MIN}_LOD
+TEXTURE_{MAG,MIN}_FILTER
+TEXTURE_SRGB_DECODE
+TEXTURE_WRAP_{S,T,R}
+
+©2013 Khronos Group - Rev. 0713
+
+enum target	
+// texture target
+uint numlevels	 // number of mipmap levels
+uint numlayers	 // number of layers in array
+
+Texture Parameters (immutable)
+
+TEXTURE_WIDTH	TEXTURE_HEIGHT	
+TEXTURE_DEPTH	TEXTURE_FIXED_SAMPLE_LOCATIONS
+TEXTURE_COMPRESSED	TEXTURE_COMPRESSED_IMAGE_SIZE
+TEXTURE_IMMUTABLE_FORMAT	TEXTURE_SAMPLES
+
+Texture Parameters (mutable)
+
+TEXTURE_SWIZZLE_{R,G,B,A}	TEXTURE_MAX_LEVEL
+TEXTURE_BASE_LEVEL	DEPTH_STENCIL_TEXTURE_MODE
+
+Texture View Parameters (immutable)
+
+<target>
+TEXTURE_INTERNAL_FORMAT	TEXTURE_SHARED_SIZE
+TEXTURE_VIEW_{MIN,NUM}_LEVEL	TEXTURE_VIEW_{MIN,NUM}_LAYER
+TEXTURE_IMMUTABLE_LEVELS	IMAGE_FORMAT_COMPATIBILITY_TYPE
+TEXTURE_{RED,GREEN,BLUE,ALPHA,DEPTH}_TYPE
+TEXTURE_{RED,GREEN,BLUE,ALPHA,DEPTH,STENCIL}_SIZE
+
+www.opengl.org/registry
+
+OpenGL 4.4 API Reference Card	
+
+Page 7
+
+OpenGL Pipeline
+A typical program that uses OpenGL
+begins with calls to open a window into
+the framebuffer into which the program
+will draw. Calls are made to allocate a GL
+context which is then associated with the
+window, then OpenGL commands can be
+issued.
+The heavy black arrows in this illustration
+show the OpenGL pipeline and indicate
+data flow.
+Blue blocks indicate various buffers
+that feed or get fed by the OpenGL
+pipeline.
+Green blocks indicate fixed function
+stages.
+Yellow blocks indicate programmable
+stages.
+T Texture binding
+B Buffer binding
+
+Vertex & Tessellation Details
+Each vertex is processed either by a vertex shader
+or fixed-function vertex processing (compatibility
+only) to generate a transformed vertex, then
+assembled into primitives. Tessellation (if enabled)
+operates on patch primitives, consisting of a fixedsize collection of vertices, each with per-vertex
+attributes and associated per-patch attributes.
+Tessellation control shaders (if enabled) transform
+an input patch and compute per-vertex and perpatch attributes for a new output patch.
+A fixed-function primitive generator
+subdivides the patch according to
+tessellation levels computed in the
+tessellation control shaders or specified
+as fixed values in the API (TCS disabled).
+The tessellation evaluation shader
+computes the position and attributes of
+each vertex produced by the tessellator.
+Orange blocks indicate features of the Core
+specification.
+Purple blocks indicate features of the
+Compatibility specification.
+Green blocks indicate features new or
+significantly changed with OpenGL 4.x.
+
+Geometry & Follow-on Details
+Geometry shaders (if enabled) consume
+individual primitives built in previous primitive
+assembly stages. For each input primitive,
+the geometry shader can output zero or more
+vertices, with each vertex directed at a specific
+vertex stream. The vertices emitted to each
+stream are assembled into primitives according
+to the geometry shader’s output primitive type.
+Transform feedback (if active) writes selected
+vertex attributes of the primitives of all vertex
+streams into buffer objects attached to one or
+more binding points.
+Primitives on vertex stream zero are then
+processed by fixed-function stages, where they
+are clipped and prepared for rasterization.
+Orange blocks indicate features of the Core
+specification.
+Purple blocks indicate features of the
+Compatibility specification.
+Green blocks indicate features new or
+significantly changed with OpenGL 4.x.
+
+©2013 Khronos Group - Rev. 0713
+
+www.opengl.org/registry
+
+Page 8	
+
+OpenGL Shading Language 4.40 Reference Card
+
+The OpenGL® Shading Language is used to create
+shaders for each of the programmable processors
+contained in the OpenGL processing pipeline.
+The OpenGL Shading Language is actually several
+closely related languages. Currently, these
+processors are the vertex, tessellation control,
+tessellation evaluation, geometry, fragment, and
+compute shaders.
+[n.n.n] and [Table n.n] refer to sections and
+tables in the OpenGL Shading Language 4.40
+specification at www.opengl.org/registry
+
+Operators and Expressions [5.1]
+
+The following operators are numbered in order
+of precedence. Relational and equality operators
+evaluate to Boolean. Also see lessThan(), equal().
+1.
+
+()
+
+2.
+
+[]
+()
+.
+++ --
+
+parenthetical grouping
+array subscript
+function call, constructor, structure
+field, selector, swizzle
+postfix increment and decrement
+
+Types [4.1]
+
+3.
+4.
+5.
+6.
+7.
+8.
+9.
+10.
+
+Preprocessor [3.3]
+
+Preprocessor Directives
+#
+#extension
+#error
+
+#define
+#version
+#pragma
+
+Predefined Macros
+#elif
+#ifdef
+#line
+
+#version 440
+#version 440 profile
+#extension
+extension_name : behavior
+#extension all : behavior
+
+prefix increment and decrement
+unary
+*/%
+multiplicative
++additive
+<< >>
+bit-wise shift
+< > <= >= relational
+== !=
+equality
+&
+bit-wise and
+bit-wise exclusive or
+
+Floating-Point Opaque Types
+
+Transparent Types
+
+sampler{1D,2D,3D}
+image{1D,2D,3D}
+samplerCube
+imageCube
+sampler2DRect
+image2DRect
+sampler{1D,2D}Array
+image{1D,2D}Array
+samplerBuffer
+imageBuffer
+sampler2DMS
+image2DMS
+sampler2DMSArray
+image2DMSArray
+samplerCubeArray
+imageCubeArray
+sampler1DShadow
+sampler2DShadow
+sampler2DRectShadow
+sampler1DArrayShadow
+sampler2DArrayShadow
+samplerCubeShadow
+
+1D, 2D, or 3D texture
+
+void
+
+no function return value
+
+bool
+
+Boolean
+
+int, uint
+
+signed/unsigned integers
+
+float
+
+single-precision floating-point
+1D or 2D array texture
+scalar
+double-precision floating scalar
+buffer texture
+floating point vector
+2D multi-sample texture
+double precision floating-point
+vectors
+2D multi-sample array
+Boolean vectors
+texture
+signed and unsigned integer
+cube map array texture
+vectors
+2x2, 3x3, 4x4 float matrix
+1D or 2D depth texture
+with comparison
+2-column float matrix of
+2, 3, or 4 rows
+rectangular tex. / compare
+3-column float matrix of
+1D or 2D array depth
+2, 3, or 4 rows
+texture with comparison
+cube map depth texture
+4-column float matrix of
+with comparison
+2, 3, or 4 rows
+samplerCubeArrayShadow cube map array depth
+2x2, 3x3, 4x4 double-precision
+texture with comparison
+float matrix
+2-col. double-precision float
+Signed Integer Opaque Types
+matrix of 2, 3, 4 rows
+isampler[1,2,3]D
+integer 1D, 2D, or 3D texture
+3-col. double-precision float
+iimage[1,2,3]D
+integer 1D, 2D, or 3D image
+matrix of 2, 3, 4 rows
+isamplerCube
+integer cube mapped texture
+4-column double-precision float iimageCube
+integer cube mapped image
+matrix of 2, 3, 4 rows
+int. 2D rectangular texture
+isampler2DRect
+Continue 
+
+double
+vec2, vec3, vec4
+dvec2, dvec3, dvec4
+bvec2, bvec3, bvec4
+ivec2, ivec3, ivec4
+uvec2, uvec3, uvec4
+mat2, mat3, mat4
+mat2x2, mat2x3,
+mat2x4
+mat3x2, mat3x3,
+mat3x4
+mat4x2, mat4x3,
+mat4x4
+dmat2, dmat3,
+dmat4
+dmat2x2, dmat2x3,
+dmat2x4
+dmat3x2, dmat3x3,
+dmat3x4
+dmat4x2, dmat4x3,
+dmat4x4
+
+Qualifiers
+
+Storage Qualifiers [4.3]
+
+Declarations may have one storage qualifier.
+(default) local read/write memory,
+none
+or input parameter
+const
+read-only variable
+in
+linkage into shader from previous stage
+out
+linkage out of a shader to next stage
+uniform
+buffer
+shared
+
+linkage between a shader, OpenGL,
+and the application
+accessible by shaders and OpenGL API
+compute shader only, shared among work
+items in a local work group
+
+Auxiliary Storage Qualifiers
+Use to qualify some input and output variables:
+centroid
+
+centroid-based interpolation
+
+sampler
+
+per-sample interpolation
+
+patch
+
+per-tessellation-patch attributes
+
+cube mapped texture
+rectangular texture
+
+uniform Transform {
+mat4 ModelViewMatrix;
+// allowed restatement qualifier
+uniform mat3 NormalMatrix;
+};
+
+Layout Qualifiers [4.4]
+
+	 layout(layout-qualifiers) block-declaration
+	 layout(layout-qualifiers) in/out/uniform
+	 layout(layout-qualifiers) in/out/uniform
+declaration
+
+INPIT/OUTPUT layout qualifier for all shader
+stages except compute:
+location = integer-constant-expression
+component = integer-constant-expression
+
+Tessellation
+INPUT: triangles, quads, equal_spacing,
+isolines, fractional_{even,odd}_spacing,
+cw, ccw, point_mode
+OUTPUT:
+vertices = integer-constant-expression
+
+Geometry Shader
+INPUT: points, lines, triangles,
+Interface Blocks [4.3.9]
+{lines,triangles}_adjacency,
+In, out, uniform, and buffer variable declarations
+invocations = integer-constant-expression
+can be grouped. For example:
+©2013 Khronos Group - Rev. 0713
+
+#else
+#undef
+
+__LINE__
+
+__FILE__
+
+Decimal integer constants. __FILE__ says
+which source string is being processed.
+
+__VERSION__
+
+Decimal integer, e.g.: 440
+
+GL_core_profile
+
+Defined as 1
+
+Required when using version 4.40.
+profile is core, compatibility, or es.
+
+GL_es_profile
+
+1 if the implementation supports the es
+profile
+
+•	behavior: require, enable, warn,
+disable
+•	extension_name: extension
+supported by compiler, or “all”
+
+GL_compatibility_profile
+
+Defined as 1 if the implementation
+supports the compatibility profile.
+
+Preprocessor Operators
+
+++ -+-~!
+
+^
+
+#if
+#ifndef
+#endif
+
+|
+&&
+^^
+||
+?:
+= += -=
+*= /=
+16.
+%= <<= >>=
+&= ^= |=
+17.
+,
+11.
+12.
+13.
+14.
+15.
+
+bit-wise inclusive or
+logical and
+logical exclusive or
+logical inclusive or
+selects an entire operand
+
+Vector & Scalar Components [5.5]
+In addition to array numeric subscript syntax,
+names of vector and scalar components are
+denoted by a single letter. Components can be
+swizzled and replicated. Scalars have only an x, r,
+or s component.
+
+assignment
+arithmetic assignments
+
+{x, y, z, w}
+
+Points or normals
+
+{r, g, b, a}
+
+Colors
+
+sequence
+
+{s, t, p, q}
+
+Texture coordinates
+
+Signed Integer Opaque Types (cont’d)
+iimage2DRect
+isampler[1,2]DArray
+iimage[1,2]DArray
+isamplerBuffer
+iimageBuffer
+isampler2DMS
+iimage2DMS
+isampler2DMSArray
+iimage2DMSArray
+isamplerCubeArray
+iimageCubeArray
+
+int. 2D rectangular image
+integer 1D, 2D array texture
+integer 1D, 2D array image
+integer buffer texture
+integer buffer image
+int. 2D multi-sample texture
+int. 2D multi-sample image
+int. 2D multi-sample array tex.
+int. 2D multi-sample array image
+int. cube map array texture
+int. cube map array image
+
+Unsigned Integer Opaque Types
+atomic_uint
+usampler[1,2,3]D
+uimage[1,2,3]D
+usamplerCube
+uimageCube
+usampler2DRect
+uimage2DRect
+usampler[1,2]DArray
+uimage[1,2]DArray
+usamplerBuffer
+uimageBuffer
+usampler2DMS
+uimage2DMS
+usampler2DMSArray
+
+uint atomic counter
+uint 1D, 2D, or 3D texture
+uint 1D, 2D, or 3D image
+uint cube mapped texture
+uint cube mapped image
+uint rectangular texture
+uint rectangular image
+1D or 2D array texture
+1D or 2D array image
+uint buffer texture
+uint buffer image
+uint 2D multi-sample texture
+uint 2D multi-sample image
+uint 2D multi-sample array tex.
+Continue 
+
+OUTPUT:
+points, line_strip, triangle_strip,
+max_vertices = integer-constant-expression
+stream = integer-constant-expression
+
+Unsigned Integer Opaque Types (cont’d)
+uimage2DMSArray uint 2D multi-sample array image
+usamplerCubeArray uint cube map array texture
+uimageCubeArray uint cube map array image
+
+Implicit Conversions
+int	
+int, uint	
+int, uint, float	
+ivec2	
+ivec3	
+ivec4	
+ivec2	
+ivec3	
+ivec4	
+uvec2	
+uvec3	
+uvec4	
+ivec2	
+ivec3	
+ivec4	
+
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+->	
+->	
+->	
+->	
+->	
+->	
+->	
+->	
+->	
+
+uint
+float
+double
+uvec2
+uvec3
+uvec4
+vec2
+vec3
+vec4
+vec2
+vec3
+vec4
+dvec2
+dvec3
+dvec4
+
+uvec2	
+uvec3	
+uvec4	
+vec2	
+vec3	
+vec4	
+mat2	
+mat3	
+mat4	
+mat2x3	
+mat2x4	
+mat3x2	
+mat3x4	
+mat4x2	
+mat4x3	
+
+->	
+->	
+->	
+->	
+->	
+->	
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+-> 	
+
+dvec2
+dvec3
+dvec4
+dvec2
+dvec3
+dvec4
+dmat2
+dmat3
+dmat4
+dmat2x3
+dmat2x4
+dmat3x2
+dmat3x4
+dmat4x2
+dmat4x4
+
+Aggregation of Basic Types
+Arrays
+
+float[3] foo; float foo[3]; int a [3][2];
+
+// Structures, blocks, and structure members
+// can be arrays. Arrays of arrays supported.
+
+Structures struct type-name {
+members
+} struct-name[];
+Blocks
+
+// optional variable declaration
+
+in/out/uniform block-name {
+
+// interface matching by block name
+
+optionally-qualified members
+} instance-name[];	
+
+// optional instance name, optionally an array
+
+xfb_buffer = integer-constant-expression
+xfb_offset = integer-constant-expression
+xfb_stride = integer-constant-expression
+
+Uniform Variable Layout Qualifiers [4.4.3]
+Fragment Shader
+location = integer-constant-expression
+INPUT: For redeclaring built-in variable
+Subroutine
+Function Layout Qualifiers [4.4.4]
+gl_FragCoord: origin_upper_left,
+pixel_center_integer.
+index = integer-constant-expression
+For in only (not with variable declarations):
+Uniform/Storage Block Layout Qualifiers [4.4.5]
+early_fragment_tests.
+Layout qualifier identifiers for uniform blocks:
+OUTPUT: gl_FragDepth may be redeclared
+shared, packed, std140, std340,
+using: depth_any, depth_greater,
+{row, column}_major,
+depth_less, depth_unchanged.
+Additional qualifier for Fragment Shaders:
+binding = integer-constant-expression
+index = integer-constant-expression
+offset = integer-constant-expression
+align = integer-constant-expression
+Compute Shader
+INPUT:
+Opaque Uniform Layout Qualifiers [4.4.6]
+local_size_x = integer-constant-expression Used to bind opaque uniform variables to
+local_size_y = integer-constant-expression specific buffers or units.
+local_size_z = integer-constant-expression
+binding = integer-constant-expression
+Additional Output Layout Qualifiers [4.4.2]
+Layout qualifiers for Transform Feedback:
+The vertex, tessellation, and geometry stages
+allow the following on output declarations:
+
+Atomic Counter Layout Qualifiers
+binding = integer-constant-expression
+offset = integer-constant-expression
+(Continued on next page >)
+
+
+
+www.opengl.org/registry
+
+OpenGL Shading Language 4.40 Reference Card	
+Qualifiers (continued)
+Format Layout Qualifiers
+
+One qualifier may be used with variables
+declared as “image” to specify the image format.
+
+
+
+For tessellation control shaders:
+binding = integer-constant-expression,
+rgba{32,16}f, rg{32,16}f, r{32,16}f,
+rgba{16,8}, r11f_g11f_b10f, rgb10_a2{ui},
+rg{16,8}, r{16,8}, rgba{32,16,8}i, rg{32,16,8}i,
+r{32,16,8}i, rgba{32,16,8}ui, rg{32,16,8}ui,
+r{32,16,8}ui, rgba{16,8}_snorm,
+rg{16,8}_snorm, r{16,8}_snorm
+
+Interpolation Qualifiers [4.5]
+
+Qualify outputs from vertex shader and inputs
+to fragment shader.
+smooth
+perspective correct interpolation
+flat
+no interpolation
+noperspective linear interpolation
+
+Parameter Qualifiers [4.6]
+
+Input values copied in at function call time,
+output values copied out at function return.
+none
+in
+const
+out
+
+(default) same as in
+for function parameters passed into
+function
+for function parameters that cannot be
+written to
+for function parameters passed back out of
+function, but not initialized when passed in
+for function parameters passed both into
+and out of a function
+
+Invariant Qualifiers Examples [4.8]
+
+These are for vertex, tessellation, geometry,
+and fragment languages.
+#pragma STDGL
+force all output variables
+invariant(all)
+to be invariant
+invariant gl_Position;
+
+qualify a previously
+declared variable
+
+invariant centroid out
+vec3 Color;
+
+qualify as part of a
+variable declaration
+
+Precise Qualifier [4.9]
+
+Ensures that operations are executed in stated
+order with operator consistency. For example,
+a fused multiply-add cannot be used in the
+following; it requires two identical multiplies,
+followed by an add.
+precise out vec4 Position = a * b + c * d;
+
+Memory Qualifiers [4.10]
+
+Variables qualified as “image” can have one or
+more memory qualifiers.
+coherent reads and writes are coherent with
+other shader invocations
+volatile
+underlying values may be changed by
+other sources
+restrict
+won’t be accessed by other code
+readonly read only
+writeonly write only
+
+Order of Qualification [4.11]
+
+When multiple qualifiers are present in a
+declaration they may appear in any order, but
+inout
+must all appear before the type.
+The layout qualifier is the only qualifier that can
+appear more than once. Further, a declaration
+Precision Qualifiers [4.7]
+can have at most one storage qualifier, at most
+Qualify individual variables:
+one auxiliary storage qualifier, and at most one
+{highp, mediump, lowp} variable-declaration; interpolation qualifier.
+Multiple memory qualifiers can be used. Any
+Establish a default precision qualifier:
+precision {highp, mediump, lowp} {int, float}; violation of these rules will cause a compiletime error.
+
+Inputs
+
+in gl_PerVertex {
+vec4	 gl_Position;
+float	 gl_PointSize;
+float	 gl_ClipDistance[];
+} gl_in[gl_MaxPatchVertices];
+
+Outputs
+
+Tessellation Control Language
+
+in	 int	 gl_PatchVerticesIn;
+in	 int	 gl_PrimitiveID;
+in	 int	 gl_InvocationID;
+out gl_PerVertex {
+vec4	 gl_Position;
+float	 gl_PointSize;
+float	 gl_ClipDistance[];
+} gl_out[];
+patch	 out	 float	 gl_TessLevelOuter[4];
+patch	 out	 float	 gl_TessLevelInner[2];
+
+Outputs
+
+Inputs
+
+Tessellation Evaluation Language
+in gl_PerVertex {
+vec4	 gl_Position;
+float	 gl_PointSize;
+float	 gl_ClipDistance[];
+} gl_in[gl_MaxPatchVertices];
+in int gl_PatchVerticesIn;
+in int gl_PrimitiveID;
+in vec3 gl_TessCoord;
+patch in	float gl_TessLevelOuter[4];
+patch in	float gl_TessLevelInner[2];
+out gl_PerVertex {
+	 vec4	 gl_Position;
+	 float	 gl_PointSize;
+	 float	 gl_ClipDistance[];
+};
+
+©2013 Khronos Group - Rev. 0713
+
+Inputs
+Outputs
+
+out gl_PerVertex {
+	 vec4	 gl_Position;
+	 float	 gl_PointSize;
+	 float	 gl_ClipDistance[];
+};
+
+in int gl_PrimitiveIDIn;
+in int gl_InvocationID;
+out gl_PerVertex {
+vec4 gl_Position;
+float gl_PointSize;
+float	 gl_ClipDistance[];
+};
+out		 int	 gl_PrimitiveID;
+out		 int	 gl_Layer;
+out		 int gl_ViewportIndex;
+
+Fragment Language
+
+Inputs
+
+Inputs
+
+in 	int 	 gl_VertexID;
+in 	int 	 gl_InstanceID;
+
+Outputs
+
+Vertex Language
+
+in gl_PerVertex {
+vec4	 gl_Position;
+float	 gl_PointSize;
+float	 gl_ClipDistance[];
+} gl_in[];
+
+in	 vec4	 gl_FragCoord;
+in	 bool	 gl_FrontFacing;
+in	 float	 gl_ClipDistance[];
+in	 vec2	 gl_PointCoord;
+in	 int	 gl_PrimitiveID;
+in	 int	 gl_SampleID;
+in	 vec2	 gl_SamplePosition;
+in	 int	 gl_SampleMaskIn[];
+in	 int	 gl_Layer;
+in	 int	 gl_ViewportIndex;
+
+Outputs
+
+Shaders communicate with fixed-function
+OpenGL pipeline stages and other shader
+executables through built-in variables.
+
+Geometry Language
+
+out	 float	 gl_FragDepth;
+out	 int	 gl_SampleMask[];
+
+Compute Language
+
+More information in diagram on page 6.
+Work group dimensions
+in uvec3 gl_NumWorkGroups;
+const uvec3 gl_WorkGroupSize;
+in uvec3 gl_LocalGroupSize;
+Inputs
+
+Built-In Variables [7]
+
+Work group and invocation IDs
+in uvec3 gl_WorkGroupID;
+in uvec3 gl_LocalInvocationID;
+Derived variables
+in uvec3 gl_GlobalInvocationID;
+in uint gl_LocalInvocationIndex;
+
+Page 9
+Operations and Constructors
+
+Vector & Matrix [5.4.2]
+
+.length() for matrices returns number of columns
+.length() for vectors returns number of components
+mat2(vec2, vec2); 	
+// 1 col./arg.
+mat2x3(vec2, float, vec2, float);	 // col. 2
+dmat2(dvec2, dvec2);	
+// 1 col./arg.
+dmat3(dvec3, dvec3, dvec3);	
+// 1 col./arg.
+
+Structure Example [5.4.3]
+
+.length() for structures returns number of members
+
+	 struct light {members; };
+	 light lightVar = light(3.0, vec3(1.0, 2.0, 3.0));
+
+Array Example [5.4.4]
+	
+	
+
+const float c[3];
+c.length()
+
+// will return the integer 3
+
+Matrix Examples [5.6]
+
+Examples of operations on matrices and vectors:
+m = f * m;	
+v = f * v;	
+v = v * v;	
+m = m +/- m;	
+m = m * m;	
+f = dot(v, v);	
+v = cross(v, v); 	
+
+// scalar * matrix component-wise
+// scalar * vector component-wise
+// vector * vector component-wise
+// matrix +/- matrix comp.-wise
+// linear algebraic multiply
+// vector dot product
+// vector cross product
+
+Structure & Array Operations [5.7]
+
+Select structure fields or length() method of an
+array using the period (.) operator. Other operators:
+.
+
+field or method selector
+
+== != equality
+
+=
+
+assignment
+
+[]
+
+indexing (arrays only)
+
+Examples of access components of a matrix with
+Array elements are accessed using the array
+array subscripting syntax:
+subscript operator ( [ ] ), e.g.:
+mat4 m;	
+// m is a matrix
+m[1] = vec4(2.0);	 // sets 2nd col. to all 2.0
+	 diffuseColor += lightIntensity[3]*NdotL;
+m[0][0] = 1.0; 	
+m[2][3] = 2.0; 	
+
+// sets upper left element to 1.0
+// sets 4th element of 3rd col. to 2.0
+
+Statements and Structure
+
+Subroutines [6.1.2]
+
+Subroutine type variables are assigned to functions
+through the UniformSubroutinesuiv command in the
+OpenGL API.
+Declare types with the subroutine keyword:
+
+Declare subroutine type variables with a specific
+subroutine type in a subroutine uniform variable
+declaration:
+subroutine uniform subroutineTypeName
+subroutineVarName;
+
+Iteration and Jumps [6.3-4]
+
+subroutine returnType subroutineTypeName(type0
+arg0,
+type1 arg1, ..., typen argn);
+
+Function
+Iteration
+
+Associate functions with subroutine types of
+matching declarations by defining the functions
+with the subroutine keyword and a list of
+subroutine types the function matches:
+
+Selection
+
+subroutine(subroutineTypeName0, ...,
+subroutineTypeNameN)
+returnType functionName(type0 arg0,
+type1 arg1, ..., typen argn){ ... }
+// function body
+
+Built-In Constants [7.3]
+
+The following are provided to all shaders. The
+actual values are implementation-dependent, but
+must be at least the value shown.
+const	 ivec3 gl_MaxComputeWorkGroupCount =
+{65535, 65535, 65535} ;
+const	 ivec3 gl_MaxComputeWorkGroupSize[] =
+{1024, 1024, 64};
+const	 int gl_MaxComputeUniformComponents = 1024;
+const	 int gl_MaxComputeTextureImageUnits = 16;
+const	 int gl_MaxComputeImageUniforms = 8;
+const	 int gl_MaxComputeAtomicCounters = 8;
+const	 int gl_MaxComputeAtomicCounterBuffers = 1;
+const	 int	gl_MaxVertexAttribs = 16;
+const	 int	gl_MaxVertexUniformComponents = 1024;
+const	 int	gl_MaxVaryingComponents= 60;
+const	 int	gl_MaxVertexOutputComponents = 64;
+const	 int	gl_MaxGeometryInputComponents = 64;
+const	 int	gl_MaxGeometryOutputComponents = 128;
+const	 int	gl_MaxFragmentInputComponents = 128;
+const	 int	gl_MaxVertexTextureImageUnits = 16;
+const	 int	gl_MaxCombinedTextureImageUnits = 80;
+const	 int	gl_MaxTextureImageUnits = 16;
+const	 int	gl_MaxImageUnits = 8;
+const	 int	 gl_MaxCombinedImageUnitsAndFragment Outputs = 8;
+const	 int	gl_MaxImageSamples = 0;
+const	 int	gl_MaxVertexImageUniforms= 0;
+const	 int	gl_MaxTessControlImageUniforms = 0;
+const	 int	gl_MaxTessEvaluationImageUniforms = 0;
+const	 int	gl_MaxGeometryImageUniforms = 0;
+const	 int	gl_MaxFragmentImageUniforms = 8;
+const	 int	gl_MaxCombinedImageUniforms = 8;
+const	 int	gl_MaxFragmentUniformComponents = 1024;
+const	 int	gl_MaxDrawBuffers = 8;
+const	 int	gl_MaxClipDistances = 8;
+const	 int	gl_MaxGeometryTextureImageUnits = 16;
+const	 int	gl_MaxGeometryOutputVertices = 256;
+
+Entry
+
+call by value-return
+for (;;) { break, continue }
+while ( ) { break, continue }
+do { break, continue } while ( );
+if ( ) { }
+if ( ) { } else { }
+switch ( ) { case integer: … break; …
+default: … }
+void main()
+
+Jump
+
+break, continue, return
+(There is no ‘goto’)
+
+Exit
+
+return in main()
+discard // Fragment shader only
+
+const	 int	 gl_MaxGeometryTotalOutputComponents = 1024;
+const	 int	gl_MaxGeometryUniformComponents = 1024;
+const	 int	gl_MaxGeometryVaryingComponents = 64;
+const	 int	gl_MaxTessControlInputComponents = 128;
+const	 int	gl_MaxTessControlOutputComponents = 128;
+const	 int	gl_MaxTessControlTextureImageUnits = 16;
+const	 int	gl_MaxTessControlUniformComponents = 1024;
+const	 int	 gl_MaxTessControlTotalOutputComponents = 4096;
+const	 int	gl_MaxTessEvaluationInputComponents = 128;
+const	 int	gl_MaxTessEvaluationOutputComponents = 128;
+const	 int	gl_MaxTessEvaluationTextureImageUnits = 16;
+const	 int	 gl_MaxTessEvaluationUniformComponents = 1024;
+const	 int	gl_MaxTessPatchComponents = 120;
+const	 int	gl_MaxPatchVertices = 32;
+const	 int	gl_MaxTessGenLevel = 64;
+const	 int	gl_MaxViewports = 16;
+const	 int	gl_MaxVertexUniformVectors = 256;
+const	 int	gl_MaxFragmentUniformVectors = 256;
+const	 int	gl_MaxVaryingVectors = 15;
+const	 int	gl_MaxVertexAtomicCounters = 0;
+const	 int	gl_MaxTessControlAtomicCounters = 0;
+const	 int	gl_MaxTessEvaluationAtomicCounters = 0;
+const	 int	gl_MaxGeometryAtomicCounters = 0;
+const	 int	gl_MaxFragmentAtomicCounters = 8;
+const	 int	gl_MaxCombinedAtomicCounters = 8;
+const	 int	gl_MaxAtomicCounterBindings = 1;
+const	 int	gl_MaxVertexAtomicCounterBuffers = 0;
+const	 int	gl_MaxTessControlAtomicCounterBuffers = 0;
+const	 int	gl_MaxTessEvaluationAtomicCounterBuffers = 0;
+const	 int	gl_MaxGeometryAtomicCounterBuffers = 0;
+const	 int	gl_MaxFragmentAtomicCounterBuffers = 1;
+const	 int	gl_MaxCombinedAtomicCounterBuffers = 1;
+const	 int	gl_MaxAtomicCounterBufferSize = 32;
+const	 int	gl_MinProgramTexelOffset = -8;
+const	 int	gl_MaxProgramTexelOffset = 7;
+const int gl_MaxTransformFeedbackBuffers = 4;
+const int gl_MaxTransformFeedbackInterleaved Components = 64;
+
+www.opengl.org/registry
+
+OpenGL Shading Language 4.40 Reference Card
+
+Type Abbreviations for Built-in Functions:
+In vector types, n is 2, 3, or 4.
+Tf=float, vecn. Td =double, dvecn. Tfd= float, vecn, double, dvecn. Tb= bool, bvecn.
+Tu=uint, uvecn. Ti=int, ivecn. Tiu=int, ivecn, uint, uvecn. Tvec=vecn, uvecn, ivecn.
+Within any one function, type sizes and dimensionality must correspond after implicit type
+conversions. For example, float round(float) is supported, but float round(vec4) is not.
+gimage1D image, int P
+gimage2D image, ivec2 P
+gimage3D image, ivec3 P
+gimage2DRect image, ivec2 P
+gimageCube image, ivec3 P
+gimageBuffer image, int P
+gimage1DArray image, ivec2 P
+gimage2DArray image, ivec3 P
+gimageCubeArray image, ivec3 P
+gimage2DMS image, ivec2 P, int sample
+gimage2DMSArray image, ivec3 P, int sample
+
+Built-In Functions
+
+Tb isinf(Tfd x)
+Tb isnan(Tfd x)
+Td	 clamp(Td x, double minVal, double maxVal)
+Td	 max(Td x, double y)
+Td	 min(Td x, double y)
+Td	 mix(Td x, Td y, double a)
+Td	 mod(Td x, double y)
+Td smoothstep(double edge0, double edge1, Td x)
+Td step(double edge, Td x)
+Tf	 clamp(Tf x, float minVal, float maxVal)
+Tf	 max(Tf x, float y)
+Tf	 min(Tf x, float y)
+Tf	 mix(Tf x, Tf y, float a)
+Tf	 mod(Tf x, float y)
+Tf acos(Tf x)
+Tf acosh(Tf x)
+Tf asin(Tf x)
+Tf asinh(Tf x)
+Tf atan(Tf y, Tf x)
+Tf atan(Tf y_over_x)
+Tf atanh(Tf x)
+Tf cos(Tf angle)
+Tf cosh(Tf x)
+Tf dFdx(Tf p)
+Tf dFdy(Tf p)
+Tf degrees(Tf radians)
+Tf exp(Tf x)
+Tf exp2(Tf x)
+Tf fwidth(Tf p)
+Tf intBitsToFloat(Ti value) Tf uintBitsToFloat(Tu value)
+Tf interpolateAtCentroid(Tf interpolant)
+Tf interpolateAtOffset(Tf interpolant, vec2 offset)
+Tf interpolateAtSample(Tf interpolant, int sample)
+Tf log(Tf x)
+Tf log2(Tf x)
+Tf pow(Tf x, Tf y)
+Tf radians(Tf degrees)
+Tf sin(Tf angle)
+Tf sinh(Tf x)
+Tf smoothstep(float edge0, float edge1, Tf x)
+Tf step(float edge, Tf x)
+Tf tan(Tf angle)
+Tf tanh(Tf x)
+Tfd	 clamp(Tfd x, Tfd minVal, Tfd maxVal)
+Tfd	abs(Tfd x)
+Tfd	ceil(Tfd x)
+Tfd	floor(Tfd x)
+Tfd	fract(Tfd x)
+Tfd	max(Tfd x, Tfd y)
+Tfd	min(Tfd x, Tfd y)
+Tfd	mix(Tfd x, Tfd y, Tb a)
+Tfd	mix(Tfd x, Tfd y, Tfd a)
+Tfd	mod(Tfd x, Tfd y)
+Tfd	modf(Tfd x, out Tfd i)
+Tfd	round(Tfd x)
+Tfd	roundEven(Tfd x)
+Tfd	sign(Tfd x)
+Tfd	trunc(Tfd x)
+Tfd faceforward(Tfd N, Tfd I, Tfd Nref)
+Tfd fma(Tfd a, Tfd b, Tfd c)
+Tfd frexp(Tfd x, out Ti exp)
+Tfd inversesqrt(Tfd x)
+Tfd ldexp(Tfd x, in Ti exp)
+Tfd normalize(Tfd x)
+Tfd reflect(Tfd I, Tfd N)
+Tfd refract(Tfd I, Tfd N, float eta)
+Tfd smoothstep(Tfd edge0, Tfd edge1, Tfd x)
+Tfd sqrt(Tfd x)
+Tfd step(Tfd edge, Tfd x)
+Ti	 abs(Ti x)
+Ti	 clamp(Ti x, int minVal, int maxVal)
+Ti	 max(Ti x, int y)
+Ti	 min(Ti x, int y)
+Ti	 sign(Ti x)
+Ti bitCount(Tiu value)
+Ti findLSB(Tiu value)
+Ti findMSB(Tiu value)
+Ti floatBitsToInt(Tf value)
+Tiu	 clamp(Tiu x, Tiu minVal, Tiu maxVal)
+Tiu	max(Tiu x, Tiu y)
+Tiu	min(Tiu x, Tiu y)
+Tiu bitfieldExtract(Tiu value, int offset, int bits)
+Tiu bitfieldInsert(Tiu base, Tiu insert, int offset, int bits)
+Tiu bitfieldReverse(Tiu value)
+Tu	 clamp(Tu x, uint minVal, uint maxVal)
+Tu	 max(Tu x, uint y)
+Tu	 min(Tu x, uint y)
+Tu floatBitsToUint(Tf value)
+Tu uaddCarry(Tu x, Tu y, out Tu carry)
+Tu usubBorrow(Tu x, Tu y, out Tu borrow)
+bool all(bvecn x)
+bool any(bvecn x)
+bvecn equal(Tvec x, Tvec y)
+bvecn equal(bvecn x, bvecn y)
+bvecn greaterThan(Tvec x, Tvec y)
+bvecn greaterThanEqual(Tvec x, Tvec y)
+bvecn lessThan(Tvec x, Tvec y)
+bvecn lessThanEqual(Tvec x, Tvec y)
+bvecn not(bvecn x)
+bvecn notEqual(Tvec x, Tvec y)
+bvecn notEqual(bvecn x, bvecn y)
+cross product
+dmat matrixCompMult(dmat x, dmat y) multiply
+dmatN inverse(dmatN m)
+dmatN outerProduct(dvecN c, dvecN r) (where N != M)
+dmatN transpose(dmatN m)
+dmatNxM outerProduct(dvecM c, dvecN r)
+dmatNxM transpose(dmatMxN m)
+double determinant(dmatN m)
+double distance(Td p0, Td p1)
+double dot(Td x, Td y)
+double length(Td x)
+double packDouble2x32(uvec2 v)
+dvec3 cross(dvec3 x, dvec3 y)
+float determinant(matN m)
+float distance(Tf p0, Tf p1)
+float dot(Tf x, Tf y)
+float length(Tf x)
+float noise1(Tf x)
+gvec4 imageLoad(readonly IMAGE_PARAMS)
+int atomicOP(inout int mem, int data)
+int imageAtomicAdd(IMAGE_PARAMS, int data)
+int imageAtomicAnd(IMAGE_PARAMS, int data)
+int imageAtomicCompSwap(IMAGE_PARAMS, int compare,int data)
+int imageAtomicExchange(IMAGE_PARAMS, int data)
+int imageAtomicMax(IMAGE_PARAMS, int data)
+int imageAtomicMin(IMAGE_PARAMS, int data)
+int imageAtomicOr(IMAGE_PARAMS, int data)
+int imageAtomicXor(IMAGE_PARAMS, int data)
+int imageSize(gimage{1D,Buffer} image)
+ivec2 imageSize(gimage{2D,Cube,Rect,1DArray,2DMS} image)
+ivec3 imageSize(gimage{Cube,2D,2DMS}Array image)
+mat matrixCompMult(mat x, mat y)
+matN inverse(matN m)
+matN outerProduct(vecN c, vecN r)
+matN transpose(matN m)
+matNxM outerProduct(vecM c, vecN r)
+matNxM transpose(matMxN m)
+uint atomicCounter(atomic_uint c)
+uint atomicCounterDecrement(atomic_uint c)
+uint atomicCounterIncrement(atomic_uint c)
+uint atomicOP(inout uint mem, uint data)
+uint imageAtomicAdd(IMAGE_PARAMS, uint data)
+uint imageAtomicAnd(IMAGE_PARAMS, uint data)
+uint imageAtomicCompSwap(IMAGE_PARAMS, uint compare, uint data)
+uint imageAtomicExchange(IMAGE_PARAMS, uint data)
+uint imageAtomicMax(IMAGE_PARAMS, uint data)
+uint imageAtomicMin(IMAGE_PARAMS, uint data)
+uint imageAtomicOr(IMAGE_PARAMS, uint data)
+uint imageAtomicXor(IMAGE_PARAMS, uint data)
+uint packHalf2x16(vec2 v)
+uint packSnorm2x16(vec2 v)
+uint packSnorm4x8(vec4 v)
+uint packUnorm2x16(vec2 v)
+uint packUnorm4x8(vec4 v)
+uvec2 unpackDouble2x32(double v)
+vec2 unpackHalf2x16(uint v)
+vec2 unpackSnorm2x16(uint p)
+vec2 unpackUnorm2x16(uint p)
+vec3 cross(vec3 x, vec3 y)
+vec3 imageSize(gimage3D image)
+vec4 unpackSnorm4x8(uint p)
+vec4 unpackUnorm4x8(uint p)
+vecn noisen(Tf x)
+void EmitStreamVertex(int stream)
+void EmitVertex()
+void EndPrimitive()
+void EndStreamPrimitive(int stream)
+void barrier()
+void groupMemoryBarrier()
+void imageStore(writeonly IMAGE_PARAMS, gvec4 data)
+void imulExtended(Ti x, Ti y, out Ti msb, out Ti lsb)
+void memoryBarrier()
+void memoryBarrierAtomicCounter()
+void memoryBarrierBuffer()
+void memoryBarrierImage()
+void memoryBarrierShared()
+void umulExtended(Tu x, Tu y, out Tu msb, out Tu lsb)
