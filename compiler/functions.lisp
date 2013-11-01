@@ -4,29 +4,24 @@
 ;; GLSL Functions
 ;;----------------
 
-(defun v-make-f-spec (transform args arg-types return-spec &key place)
+(defun v-make-f-spec (transform args arg-types return-spec 
+                      &key place glsl-spec-matching)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
-    `(,transform ,arg-types ,return-spec ,context ,place)))
-
-;; 3 kinds of function
-;;  wrapper - first line is a string template for a glsl function
-;;            the rest defines the params. This is stored as list spec
-;;            in the global environment
-;;  special - The arg check and type resolution is implemented in lisp
-;;  :inject - The function is implemented in varjo lisp to be injected 
-;;            into the body if it is used by a shader
+    `(,transform ,arg-types ,return-spec ,context ,place ,glsl-spec-matching)))
+;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
     (cond ((stringp (first body))
-           (destructuring-bind (transform arg-types return-spec &key place) body
-             `(setf (gethash ',name (v-functions *global-env*)) 
-                    '(,transform ,arg-types ,return-spec ,context ,place))))
+           (destructuring-bind (transform arg-types return-spec 
+                                          &key place glsl-spec-matching) body
+             `(add-function ',name '(,transform ,arg-types ,return-spec
+                                     ,context ,place ,glsl-spec-matching) *global-env*)))
           ((eq (first body) :inject) `(error "injected function not implemented"))
           (t (destructuring-bind (&key args return) body
                  `(setf (gethash ',name (v-functions *global-env*)) 

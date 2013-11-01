@@ -71,7 +71,8 @@
    (code :initform nil :initarg :code :accessor v-code)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (place :initform nil :initarg :place :accessor v-placep)))
+   (place :initform nil :initarg :place :accessor v-placep)
+   (glsl-spec-matching :initform nil :initarg :glsl-spec-matching :reader v-glsl-spec-matchingp)))
 
 (defclass v-struct (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
