@@ -34,7 +34,12 @@
 
 ;;------------------------------------------------------------
 
+;;[TODO] if type specifiers are same in in-args then the args passed in must 
+;;       be compatible
 ;;[TODO] add logic for choosing
+;;[TODO] We need to prioritise matches that dont require casting
+;;[TODO] We need to collect the new type (in case of casting) and the number of
+;;       casts[?] or some priority of results
 (defun find-function-for-args (func-name args env)
   (let ((arg-len (length args)))
     (loop :for func :in (get-function func-name env)

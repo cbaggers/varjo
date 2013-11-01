@@ -82,15 +82,14 @@
 (defmethod v-special-functionp ((func function))
   (eq :special (v-glsl-string func)))
 
-(defclass tfd () ())
-(defclass tf (tfd) ()) ;; float vec*
-(defclass td (tfd) ()) ;; double dvec*
-(defclass tb () ()) ;; bool bvec*
-(defclass tiu () ())
-(defclass ti (tiu) ()) ;; int ivec*
-(defclass tu (tiu) ()) ;; uint uvec*
-(defclass tvec () ()) ;;vec* uvec* ivec* [notice no dvec]
-
+(defclass v-tfd () ())
+(defclass v-tf (v-tfd) ()) ;; floav-t vec*
+(defclass v-td (v-tfd) ()) ;; double dvec*
+(defclass v-tb () ()) ;; bool bvec*
+(defclass v-tiu () ())
+(defclass v-ti (v-tiu) ()) ;; int ivec*
+(defclass v-tu (v-tiu) ()) ;; uint uvec*
+(defclass v-tvec () ()) ;;vec* uvec* ivec* [notice no dvec]
 
 (defclass v-void () 
   ((core :initform t :reader core-typep)
