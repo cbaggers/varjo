@@ -35,8 +35,9 @@
 ;;------------------------------------------------------------
 
 ;;[TODO] if type specifiers are same in in-args then the args passed in must 
-;;       be compatible
-;;[TODO] add logic for choosing
+;;       be compatible (maybe only if :spec-match is true
+;;[TODO] for special funcs this can involve walking the rest of a tree, we dont 
+;;       want to do this twice
 ;;[TODO] We need to prioritise matches that dont require casting
 ;;[TODO] We need to collect the new type (in case of casting) and the number of
 ;;       casts[?] or some priority of results
