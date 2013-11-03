@@ -1,5 +1,18 @@
 (in-package :varjo)
 
+(defmacro pipe-> (args &body stages)
+  "\(pipe-> \(1 2 3\) #'a #'b #'c #'d\)
+   Calls first function with args provided and uses result as 
+   arguments for next function. Uses multiple-value-call so you
+   can use (values) to specify complex lambda-args."
+  (let ((stages (reverse stages)))
+    (when stages
+      (let ((stage (first stages)))
+        `(multiple-value-call ,stage
+           ,(if (rest stages)
+                `(call-> ,args ,@(reverse (rest stages)))
+                `(values ,@args))))))))
+
 ;; [TODO] should dissapear as refactor goes on
 (defun acons-many (data a-list)
   (if data (let* ((func (first data))
@@ -8,7 +21,6 @@
              (acons name (cons body (rest (assoc name a-list)))
                     (acons-many (rest data) a-list)))
       a-list))
-
 
 (defun kwd (&rest args) 
   (intern (format nil "~{~a~}" args) 'keyword))

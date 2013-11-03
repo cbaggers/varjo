@@ -42,6 +42,13 @@
         (when (context-ok-given-restriction context restriction) func)
         func)))
 
+(defmethod valid-for-contextp ((func v-function) (env environment))
+  (let ((restriction (v-restriction func))
+        (context (v-context env)))
+    (if restriction
+        (when (context-ok-given-restriction context restriction) func)
+        func)))
+
 ;;-------------------------------------------------------------------------
 
 (defmethod add-macro (macro-name (macro function) (context list) 

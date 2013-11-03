@@ -19,7 +19,7 @@
                (:file "compiler/string-generation")
                (:file "compiler/compiler")
                ;; (:file "language/types")
-               (:file "language/special")
+               ;; (:file "language/special")
                (:file "language/functions")
                ;; (:file "language/macros")
                ;; (:file "language/textures")
