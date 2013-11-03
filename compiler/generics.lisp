@@ -13,7 +13,10 @@
 
 ;; environment
 (defclass environment () 
-  ((variables :initform nil :initarg :variables :accessor v-variables)
+  ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
+   (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
+   (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
+   (variables :initform nil :initarg :variables :accessor v-variables)
    (functions :initform nil :initarg :functions :accessor v-functions)
    (macros :initform nil :initarg :macros :accessor v-macros)
    (types :initform nil :initarg :types :accessor v-types)

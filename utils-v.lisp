@@ -11,7 +11,7 @@
         `(multiple-value-call ,stage
            ,(if (rest stages)
                 `(call-> ,args ,@(reverse (rest stages)))
-                `(values ,@args))))))))
+                `(values ,@args)))))))
 
 ;; [TODO] should dissapear as refactor goes on
 (defun acons-many (data a-list)

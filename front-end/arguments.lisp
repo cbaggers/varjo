@@ -8,22 +8,56 @@
 
 (in-package :varjo)
 
-(defun split-shader-args (args &optional default-version 
-                                 default-type)
+;;----------------------------------------------------------------------
+
+(defun check-arg-forms (in-args)
+  (loop for stream in in-args :do 
+       (when (or (not (every #'keywordp (cddr stream))) (< (length stream) 2))
+         (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
+  t)
+
+(defun check-for-dups (in-vars uniforms)  
+  (if (intersection (mapcar #'first in-vars) (mapcar #'first uniforms))
+      (error "Varjo: Duplicates names found between in-vars and uniforms")
+      t))
+
+(defun split-input-into-env (args body env)
   (let* ((uni-pos (symbol-name-position '&uniform args))
          (context-pos (symbol-name-position '&context args))
          (in-vars (subseq args 0 (or uni-pos context-pos)))
-         (uniforms (when uni-pos (subseq args (1+ uni-pos)
-                                         context-pos)))
-         (context (when context-pos (subseq args 
-                                            (1+ context-pos)))))
-    (when (and (check-arg-forms uniforms)
-               (check-arg-forms in-vars)
+         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
+         (context (when context-pos (subseq args (1+ context-pos)))))
+    (when (and (check-arg-forms uniforms) (check-arg-forms in-vars)
                (check-for-dups in-vars uniforms))
-      (destructuring-bind 
-            (&key (type default-type) (version default-version))
-          context
-        (list in-vars uniforms type version)))))
+      (setf (v-raw-in-args env) in-vars)
+      (setf (v-raw-uniforms env) uniforms)
+      (setf (v-raw-context env) context)
+      (values body env))))
+
+;;----------------------------------------------------------------------
+
+(defun process-in-args (code env)
+  (let ((args (v-raw-in-args env)))
+    ))
+
+(defun old-process-args (code env)    
+  (let* (()
+         (in-qualifiers (mapcar #'cddr in-vars))
+         (in-vars (mapcar #'(lambda (x) (subseq x 0 2)) in-vars))
+         (fleshed-out-in-vars (mapcar #'type-spec->type ))
+         (in-var-structs-and-types (create-fake-structs-from-in-vars fleshed-out-in-vars))
+         (in-var-struct-type-maps (mapcar #'first in-var-structs-and-types))
+         (in-var-struct-types (mapcar #'first in-var-struct-type-maps))
+         (in-var-struct-functions (mapcan #'second in-var-structs-and-types)))
+    (list type
+          version
+          (substitute-alternate-struct-types
+           fleshed-out-in-vars in-var-struct-type-maps) ;; in-var
+          (expand-struct-in-vars fleshed-out-in-vars in-qualifiers) ;; in-var-dec
+          fleshed-out-uniforms
+          (append in-var-struct-functions uniform-struct-functions)
+          uniform-struct-definitions
+          (append in-var-struct-types uniform-struct-types))))
 
 (defun extract-uniforms (args)
   (let ((uni-pos (symbol-name-position '&uniform args)))
@@ -67,18 +101,6 @@
             uniform-struct-definitions
             (append in-var-struct-types
                     uniform-struct-types)))))
-
-(defun check-arg-forms (in-args)
-  (loop for stream in in-args
-     :do (when (or (not (every #'keywordp (cddr stream)))
-                   (< (length stream) 2))
-           (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
-  t)
-
-(defun check-for-dups (in-vars uniforms)  
-  (if (intersection (mapcar #'first in-vars) (mapcar #'first uniforms))
-      (error "Varjo: Duplicates names found between in-vars and uniforms")
-      t))
 
 (defun uniform-default-val (x)
   (when (consp (first x)) (second x)))

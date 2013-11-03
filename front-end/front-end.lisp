@@ -76,17 +76,19 @@
         (error "Varjo: Sorry you can't have out variables~%that share a name but don't have the same type:~%~s " dedup)
         dedup)))
 
-(defun new-translate (args body context)
+;; remember that args has context in it
+(defun new-translate (args body)
   (let ((env (make-instance 'environment)))
-    (pipe-> ((list args body context) env)
-            #'split-args-into-env
-            #'process-in-args
-            #'macro-expand-pass
-            #'external-function-inject-pass
-            #'compile-pass
-            #'gen-in-arg-strings
-            #'final-uniform-strings
-            #'final-string-compose
-            #'process-output
-            #'code-obj->result-object)))
+    (pipe-> (args body context env)
+      #'split-input-into-env
+      #'process-in-args
+      #'process-uniforms      
+      #'macro-expand-pass
+      #'external-function-inject-pass
+      #'compile-pass
+      #'gen-in-arg-strings
+      #'final-uniform-strings
+      #'final-string-compose
+      #'process-output
+      #'code-obj->result-object)))
 
