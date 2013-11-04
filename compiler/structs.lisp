@@ -40,46 +40,23 @@
           (format nil "    ~a ~a;" 
                   (v-glsl-string type-obj) name)))))
 
-;;[TODO] Need to make fake type
-;;       a bit tricky as how do we define this new type?
-;;       we need the functions to specialise on it.
-;;       we cnat defclass at runtime, so we could have a fake-struct type
-;;       and special logic in the get-functions code to handle it. 
-;;       Fake-struct types should have a name slot which must match
-(defmethod make-fake-struct (type (env environment))
-  (let* ((type (if (typep type 'v-struct) type (type-spec->type type)))
-         (slots (v-slots type)))
+;;[TODO] I think there will be a problem if you let a in-arg
+;;       it will end up with the wrong name in the resulting glsl code
+(defmethod make-fake-struct ((type v-struct) (env environment))
+  (let* ((name (gensym (format nil "fake-~s" (v-type-name type))))
+         (slots (v-slots type))
+         (fake-type (make-instance 'v-fake-struct :slots slots
+                                   :fake-type-name name 
+                                   :glsl-string (v-glsl-string type))))
     (loop :for (slot-name slot-type . acc) :in slots :collect
        (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
-         (add-function accessor
-                       (v-make-f-spec (concatenate 'string "~a." 
-                                                   (string slot-name))
-                                      '(obj) '(v-struct) slot-type :place nil)
-                       env)))))
+         (add-function 
+          accessor
+          (func-spec->function (v-make-f-spec
+                                (concatenate 'string "~a_" 
+                                             (fake-slot-name slot-name))
+                                '(obj) (list name) slot-type :place nil))
+          env)))
+    fake-type))
 
-;; (defun fake-struct-vars (var-name struct-name)
-;;   (let ((slots (rest (first (get-struct-definitions (list struct-name))))))
-;;     (loop for slot in slots
-;;        :collect `(,(symb '-f- var-name '- (var-name slot))
-;;                    ,(flesh-out-type (var-type slot))
-;;                    ,(safe-gl-name '-f- var-name '- (var-name slot))))))
-
-;; (defun make-fake-struct (struct-name)
-;;   (let ((fake-type (symb '-f- struct-name))
-;;         (slots (rest (first (get-struct-definitions 
-;;                              (list struct-name))))))    
-;;     (list
-;;      (list struct-name fake-type)
-;;      (loop :for slot :in slots 
-;;         :collect
-;;         (list (or (fifth slot) (symb struct-name '- (first slot)))
-;;               (vlambda :in-args `((x (,fake-type)))
-;;                        :output-type
-;;                        (literal-number-output-type
-;;                         (set-place-t 
-;;                          (flesh-out-type 
-;;                           (second slot))))
-;;                        :transform (format nil "_f_~~(~~a_~a~~)" 
-;;                                           (safe-gl-name (first slot)))))))))
-
-
+(defun fake-slot-name (slot-name) (string slot-name))

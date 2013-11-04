@@ -1,34 +1,5 @@
 (in-package :varjo)
 
-(defun find-injected-functions (code env)
-  (cond ((atom code) code)
-        (t (let* ((head (first code))
-                  (f (get-external-function head *global-env*)))
-             (append (when f `(,head ,f))
-                     (loop :for c :in code :if (listp c) :collect
-                        (find-injected-functions c env)))))))
-
-(defun inject-functions-pass (code env)
-  (let ((injected-funcs (find-injected-functions code env)))
-    (values `(labels (,@(loop :for (name f) :in injected-funcs :collect 
-                           `(,name ,(v-glsl-string f))))
-               ,@code)
-            env)))
-
-;;----------------------------------------------------------------------
-
-(defun v-macroexpand-all (code env)
-  (cond ((atom code) code)
-        (t (let* ((head (first code))
-                  (m (get-macro head env))
-                  (code (if m (apply m code) code)))
-             (loop :for c :in code :collect (v-macroexpand-all c env))))))
-
-(defun macroexpand-pass (code env)
-  (values (v-macroexpand-all code env) env))
-
-;;----------------------------------------------------------------------
-
 (defun compile-bool (code env)
   (declare (ignore env))
   (if code

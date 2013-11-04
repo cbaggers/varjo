@@ -10,97 +10,10 @@
 
 ;;----------------------------------------------------------------------
 
-(defun check-arg-forms (in-args)
-  (loop for stream in in-args :do 
-       (when (or (not (every #'keywordp (cddr stream))) (< (length stream) 2))
-         (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
-  t)
-
-(defun check-for-dups (in-vars uniforms)  
-  (if (intersection (mapcar #'first in-vars) (mapcar #'first uniforms))
-      (error "Varjo: Duplicates names found between in-vars and uniforms")
-      t))
-
-(defun split-input-into-env (args body env)
-  (let* ((uni-pos (symbol-name-position '&uniform args))
-         (context-pos (symbol-name-position '&context args))
-         (in-vars (subseq args 0 (or uni-pos context-pos)))
-         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
-         (context (when context-pos (subseq args (1+ context-pos)))))
-    (when (and (check-arg-forms uniforms) (check-arg-forms in-vars)
-               (check-for-dups in-vars uniforms))
-      (setf (v-raw-in-args env) in-vars)
-      (setf (v-raw-uniforms env) uniforms)
-      (setf (v-raw-context env) context)
-      (values body env))))
-
-;;----------------------------------------------------------------------
-
-(defun process-in-args (code env)
-  (let ((args (v-raw-in-args env)))
-    ))
-
-(defun old-process-args (code env)    
-  (let* (()
-         (in-qualifiers (mapcar #'cddr in-vars))
-         (in-vars (mapcar #'(lambda (x) (subseq x 0 2)) in-vars))
-         (fleshed-out-in-vars (mapcar #'type-spec->type ))
-         (in-var-structs-and-types (create-fake-structs-from-in-vars fleshed-out-in-vars))
-         (in-var-struct-type-maps (mapcar #'first in-var-structs-and-types))
-         (in-var-struct-types (mapcar #'first in-var-struct-type-maps))
-         (in-var-struct-functions (mapcan #'second in-var-structs-and-types)))
-    (list type
-          version
-          (substitute-alternate-struct-types
-           fleshed-out-in-vars in-var-struct-type-maps) ;; in-var
-          (expand-struct-in-vars fleshed-out-in-vars in-qualifiers) ;; in-var-dec
-          fleshed-out-uniforms
-          (append in-var-struct-functions uniform-struct-functions)
-          uniform-struct-definitions
-          (append in-var-struct-types uniform-struct-types))))
-
 (defun extract-uniforms (args)
   (let ((uni-pos (symbol-name-position '&uniform args)))
     (when uni-pos (subseq args (1+ uni-pos) 
                           (symbol-name-position '&context args)))))
-
-;; [TODO] Position doesnt work if &uniform is in another package
-(defun parse-shader-args (args)    
-  (destructuring-bind (in-vars uniforms type version)
-      (split-shader-args args :330 :vertex)
-    (let* ((in-qualifiers (mapcar #'cddr in-vars))
-           (in-vars (mapcar #'(lambda (x) (subseq x 0 2)) in-vars))
-           (fleshed-out-in-vars (flesh-out-args in-vars))
-           (in-var-structs-and-types 
-            (create-fake-structs-from-in-vars
-             fleshed-out-in-vars))
-           (in-var-struct-type-maps
-            (mapcar #'first in-var-structs-and-types))
-           (in-var-struct-types 
-            (mapcar #'first in-var-struct-type-maps))
-           (in-var-struct-functions
-            (mapcan #'second in-var-structs-and-types))
-           (fleshed-out-uniforms (flesh-out-args uniforms))
-           (uniform-struct-types (get-uniform-struct-types
-                                  fleshed-out-uniforms))
-           (uniform-struct-definitions
-            (when uniform-struct-types
-              (get-struct-definitions uniform-struct-types)))
-           (uniform-struct-functions 
-            (mapcan #'struct-funcs 
-                    uniform-struct-definitions)))
-      (list type
-            version
-            (substitute-alternate-struct-types
-             fleshed-out-in-vars in-var-struct-type-maps) ;; in-var
-            (expand-struct-in-vars fleshed-out-in-vars
-                                   in-qualifiers) ;; in-var-dec
-            fleshed-out-uniforms
-            (append in-var-struct-functions
-                    uniform-struct-functions)
-            uniform-struct-definitions
-            (append in-var-struct-types
-                    uniform-struct-types)))))
 
 (defun uniform-default-val (x)
   (when (consp (first x)) (second x)))
@@ -121,7 +34,8 @@
   (mapcar #'flesh-out-arg in-vars))
 
 (defun get-uniform-struct-types (uniforms) 
-  (remove-if #'null
+  (remove-i
+f #'null
              (remove-duplicates
               (loop for u in uniforms
                  :if (not (type-built-inp (var-type u)))
@@ -171,3 +85,73 @@
                              (append qualifiers
                                      (list default-qualifier))))))
 
+
+;;----------------------------------------------------------------------
+
+(defun compile-main (code env)
+  (varjo->glsl `(%make-function :main () ,@code) env))
+
+(defun rolling-translate (args shaders &optional accum (first-shader t))  
+  (if (find :type args)
+      (error "Varjo: It is invalid to specify a shader type in a program definition")
+      (if shaders
+          (let* ((shader (first shaders))
+                 (type (first shader)))
+            (destructuring-bind (glsl new-args)
+                (varjo:translate (if (find '&context args 
+                                           :test #'symbol-name-equal)
+                                     (append args `(:type ,type))
+                                     (append args `(&context :type ,type)))
+                                 (rest shader) first-shader)
+              (rolling-translate new-args (rest shaders) (cons glsl accum) nil)))
+          (progn (reverse accum)))))
+
+(defun translate (args code &optional first-shader)
+  (destructuring-bind (shader-type version in-vars 
+                                   in-var-declarations uniform-vars
+                                   struct-functions struct-definitions types)
+      (parse-shader-args args)
+    (let* ((*shader-context* (list :core shader-type version))
+           (*types* (acons-many (loop for i in types
+                                   collect (list i nil)) 
+                                *built-in-types*))
+           (*glsl-variables* (append (built-in-vars 
+                                      *shader-context*)
+                                     uniform-vars 
+                                     in-vars))
+           (*glsl-functions* (acons-many struct-functions 
+                                         *glsl-functions*))
+           (compiled-obj (compile-main code))
+           (compiled-in-vars (let ((compiled (compile-declarations
+                                              in-var-declarations :in))) 
+                               (if first-shader
+                                   (add-layout-qualifiers-to-in-vars compiled)
+                                   (mapcar #'list compiled))))
+           (compiled-uniforms (compile-declarations 
+                               (mapcar #'list uniform-vars)
+                               :uniform))
+           (deduped-out-vars (check-and-dedup-out-vars (out-vars compiled-obj)))
+           (out-vars (loop for i in deduped-out-vars
+                        :collect `(,(first i) ,(set-place-nil (second i))
+                                    ,@(cdddr i))))
+           (compiled-out-vars (compile-declarations 
+                               (loop for var in deduped-out-vars
+                                  collect (list (subseq var 0 3)
+                                                (subseq var 3))) :out)))
+      (list (list (kwd shader-type '-shader)
+                  (write-output-string version struct-definitions
+                                       compiled-obj compiled-in-vars
+                                       compiled-out-vars
+                                       compiled-uniforms))
+            `(,@out-vars ,@(when uniform-vars 
+                                 (cons '&uniform (mapcar #'(lambda (x) 
+                                                             (subseq x 0 2))
+                                                         uniform-vars)))
+                &context :version ,version)))))
+
+(defun check-and-dedup-out-vars (out-vars)
+  (let* ((dedup (remove-duplicates out-vars :test #'equal))
+         (names (remove-duplicates (mapcar #'first dedup))))
+    (if (< (length names) (length dedup))
+        (error "Varjo: Sorry you can't have out variables~%that share a name but don't have the same type:~%~s " dedup)
+        dedup)))

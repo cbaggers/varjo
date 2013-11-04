@@ -8,83 +8,15 @@
 
 (in-package :varjo)
 
-(defun compile-main (code env)
-  (varjo->glsl `(%make-function :main () ,@code) env))
-
-(defun rolling-translate (args shaders &optional accum (first-shader t))  
-  (if (find :type args)
-      (error "Varjo: It is invalid to specify a shader type in a program definition")
-      (if shaders
-          (let* ((shader (first shaders))
-                 (type (first shader)))
-            (destructuring-bind (glsl new-args)
-                (varjo:translate (if (find '&context args 
-                                           :test #'symbol-name-equal)
-                                     (append args `(:type ,type))
-                                     (append args `(&context :type ,type)))
-                                 (rest shader) first-shader)
-              (rolling-translate new-args (rest shaders) (cons glsl accum) nil)))
-          (progn (reverse accum)))))
-
-(defun translate (args code &optional first-shader)
-  (destructuring-bind (shader-type version in-vars 
-                                   in-var-declarations uniform-vars
-                                   struct-functions struct-definitions types)
-      (parse-shader-args args)
-    (let* ((*shader-context* (list :core shader-type version))
-           (*types* (acons-many (loop for i in types
-                                   collect (list i nil)) 
-                                *built-in-types*))
-           (*glsl-variables* (append (built-in-vars 
-                                      *shader-context*)
-                                     uniform-vars 
-                                     in-vars))
-           (*glsl-functions* (acons-many struct-functions 
-                                         *glsl-functions*))
-           (compiled-obj (compile-main code))
-           (compiled-in-vars (let ((compiled (compile-declarations
-                                              in-var-declarations :in))) 
-                               (if first-shader
-                                   (add-layout-qualifiers-to-in-vars compiled)
-                                   (mapcar #'list compiled))))
-           (compiled-uniforms (compile-declarations 
-                               (mapcar #'list uniform-vars)
-                               :uniform))
-           (deduped-out-vars (check-and-dedup-out-vars (out-vars compiled-obj)))
-           (out-vars (loop for i in deduped-out-vars
-                        :collect `(,(first i) ,(set-place-nil (second i))
-                                    ,@(cdddr i))))
-           (compiled-out-vars (compile-declarations 
-                               (loop for var in deduped-out-vars
-                                  collect (list (subseq var 0 3)
-                                                (subseq var 3))) :out)))
-      (list (list (kwd shader-type '-shader)
-                  (write-output-string version struct-definitions
-                                       compiled-obj compiled-in-vars
-                                       compiled-out-vars
-                                       compiled-uniforms))
-            `(,@out-vars ,@(when uniform-vars 
-                                 (cons '&uniform (mapcar #'(lambda (x) 
-                                                             (subseq x 0 2))
-                                                         uniform-vars)))
-                &context :version ,version)))))
-
-(defun check-and-dedup-out-vars (out-vars)
-  (let* ((dedup (remove-duplicates out-vars :test #'equal))
-         (names (remove-duplicates (mapcar #'first dedup))))
-    (if (< (length names) (length dedup))
-        (error "Varjo: Sorry you can't have out variables~%that share a name but don't have the same type:~%~s " dedup)
-        dedup)))
-
 ;; remember that args has context in it
 (defun new-translate (args body)
   (let ((env (make-instance 'environment)))
-    (pipe-> (args body context env)
+    (pipe-> (args body env)
       #'split-input-into-env
       #'process-in-args
       #'process-uniforms      
       #'macro-expand-pass
-      #'external-function-inject-pass
+      #'inject-functions-pass
       #'compile-pass
       #'gen-in-arg-strings
       #'final-uniform-strings
@@ -92,3 +24,103 @@
       #'process-output
       #'code-obj->result-object)))
 
+
+;;----------------------------------------------------------------------
+
+;;[TODO] Move these errors
+(defun check-arg-forms (in-args)
+  (loop for stream in in-args :do 
+       (when (or (not (every #'keywordp (cddr stream))) (< (length stream) 2))
+         (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
+  t)
+
+(defun check-for-dups (in-vars uniforms)  
+  (if (intersection (mapcar #'first in-vars) (mapcar #'first uniforms))
+      (error "Varjo: Duplicates names found between in-vars and uniforms")
+      t))
+
+(defun split-input-into-env (args body env)
+  (let* ((uni-pos (symbol-name-position '&uniform args))
+         (context-pos (symbol-name-position '&context args))
+         (in-vars (subseq args 0 (or uni-pos context-pos)))
+         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
+         (context (when context-pos (subseq args (1+ context-pos)))))
+    (when (and (check-arg-forms uniforms) (check-arg-forms in-vars)
+               (check-for-dups in-vars uniforms))
+      (setf (v-raw-in-args env) in-vars)
+      (setf (v-raw-uniforms env) uniforms)
+      (setf (v-raw-context env) context)
+      (values body env))))
+
+;;----------------------------------------------------------------------
+
+(defun process-in-args (code env)
+  "Populate in-args and create fake-structs where they are needed"
+  (let ((in-args (v-raw-in-args env)))
+    (loop :for (name type . qualifiers) :in in-args :do
+       (let* ((type-obj (type-spec->type type))
+              (fake-struct (when (typep type 'v-struct)
+                             (make-fake-struct type-obj env))))
+         (add-var name
+                  (make-instance 'v-value :type (if fake-struct 
+                                                    'v-fake-struct
+                                                    type))
+                  env)
+         (if fake-struct
+             (loop :for (slot-name slot-type . acc) :in (v-slots fake-struct) 
+                :do (push `(,(fake-slot-name slot-name) ,slot-type ,qualifiers) 
+                          (v-in-args env)))
+             (push `(,name ,(v-type-name type-obj) ,qualifiers) 
+                   (v-in-args env)))))
+    (values code env)))
+
+;;----------------------------------------------------------------------
+
+(defun process-uniforms (code env)
+  (let ((uniforms (v-raw-uniforms env)))
+    (loop :for (name type) :in uniforms :do
+       (add-var name (make-instance 'v-value :type type) env))
+    (values code env)))
+
+;;----------------------------------------------------------------------
+
+(defun v-macroexpand-all (code env)
+  (cond ((atom code) code)
+        (t (let* ((head (first code))
+                  (m (get-macro head env))
+                  (code (if m (apply m code) code)))
+             (loop :for c :in code :collect (v-macroexpand-all c env))))))
+
+(defun macroexpand-pass (code env)
+  (values (v-macroexpand-all code env) env))
+
+;;----------------------------------------------------------------------
+
+(defun find-injected-functions (code env)
+  (cond ((atom code) code)
+        (t (let* ((head (first code))
+                  (f (get-external-function head *global-env*)))
+             (append (when f `(,head ,f))
+                     (loop :for c :in code :if (listp c) :collect
+                        (find-injected-functions c env)))))))
+
+(defun inject-functions-pass (code env)
+  (let ((injected-funcs (find-injected-functions code env)))
+    (values `(labels (,@(loop :for (name f) :in injected-funcs :collect 
+                           `(,name ,(v-glsl-string f))))
+               ,@code)
+            env)))
+
+;;----------------------------------------------------------------------
+
+(defun compile-pass (code env)  
+  (values (varjo->glsl `(%make-function :main () ,@code) env)
+          env))
+
+;;----------------------------------------------------------------------
+
+(defun gen-in-arg-strings () (values code env))
+(defun final-uniform-strings () (values code env))
+(defun final-string-compose () (values code env))
+(defun process-output () (values code env))
+(defun code-obj->result-object () (values code env))

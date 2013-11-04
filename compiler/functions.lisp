@@ -29,6 +29,7 @@
 
 ;;------------------------------------------------------------
 
+;;[TODO] Need to handle fake-structs
 ;;[TODO] if type specifiers are same in in-args then the args passed in must 
 ;;       be compatible (maybe only if :spec-match is true
 ;;[TODO] for special funcs this can involve walking the rest of a tree, we dont 

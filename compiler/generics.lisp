@@ -16,6 +16,8 @@
   ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
    (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
    (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
+   (in-args :initform nil :initarg :in-args :accessor v-in-args)
+   (uniforms :initform nil :initarg :in-args :accessor v-uniforms)
    (variables :initform nil :initarg :variables :accessor v-variables)
    (functions :initform nil :initarg :functions :accessor v-functions)
    (macros :initform nil :initarg :macros :accessor v-macros)

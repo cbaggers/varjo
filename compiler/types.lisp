@@ -79,6 +79,12 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
+(defclass v-fake-struct (v-type)
+  ((fake-type-name :initform nil :initarg :fake-type-name :accessor v-fake-type-name)
+   (restriction :initform nil :initarg :restriction :accessor v-restriction)
+   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
+   (slots :initform nil :initarg :slots :reader v-slots)))
+
 (defgeneric v-special-functionp (func))
 (defmethod v-special-functionp ((func function))
   (eq :special (v-glsl-string func)))
