@@ -164,15 +164,14 @@
   (let ((f (gethash func-name *global-env-external-funcs*)))
     (when f (func-spec->function f))))
 
-(defmethod get-function (func-name (env (eql :-genv-)))  
-  (loop :for func :in (mapcar #'func-spec->function 
-                              (gethash func-name *global-env-funcs*))
-     :if (and func (valid-for-contextp func env)) :collect func))
+(defmethod get-function (func-name (env (eql :-genv-)))
+  (remove nil (mapcar #'func-spec->function 
+                      (gethash func-name *global-env-funcs*))))
 
 (defmethod get-function (func-name (env environment))  
-  (append (loop :for func :in (gethash func-name (v-functions env)) 
-             :if (and func (valid-for-contextp func env)) :collect func)
-          (get-function func-name *global-env*)))
+  (loop :for func :in (append (gethash func-name (v-functions env))
+                              (get-function func-name *global-env*)) 
+     :if (and func (valid-for-contextp func env)) :collect func))
 
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function func-name env))))

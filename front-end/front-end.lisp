@@ -76,7 +76,9 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (loop :for (name type) :in uniforms :do
-       (add-var name (make-instance 'v-value :type type) env))
+       (add-var name (make-instance 'v-value :type (type-spec->type type)) 
+                env t)
+       (push (list name type) (v-uniforms env)))
     (values code env)))
 
 ;;----------------------------------------------------------------------
