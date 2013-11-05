@@ -59,18 +59,14 @@
   (let ((in-args (v-raw-in-args env)))
     (loop :for (name type . qualifiers) :in in-args :do
        (let* ((type-obj (type-spec->type type))
-              (fake-struct (when (typep type 'v-struct)
+              (fake-struct (when (typep type-obj 'v-struct)
                              (make-fake-struct type-obj env))))
-         (format t "~{~a ~}" (list name type))
-         (add-var name
-                  (make-instance 'v-value :type (if fake-struct 
-                                                    'v-fake-struct
-                                                    type))
-                  env)
+         (add-var name (make-instance 'v-value :type (or fake-struct type-obj))
+                  env t)
          (if fake-struct
              (loop :for (slot-name slot-type . acc) :in (v-slots fake-struct) 
                 :do (push `(,(fake-slot-name slot-name) ,slot-type ,qualifiers) 
-                          (v-in-args env)))
+                             (v-in-args env)))
              (push `(,name ,(v-type-name type-obj) ,qualifiers) 
                    (v-in-args env)))))
     (values code env)))

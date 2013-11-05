@@ -8,7 +8,7 @@
 ;;   (a v-float)
 ;;   (to-long-to-blah v-int :accessor b))
 
-(defmacro vdefstruct (name context &body slots)
+(defmacro v-defstruct (name context &body slots)
   `(progn 
      (defclass ,name (v-struct) 
        ((glsl-string :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
@@ -26,7 +26,8 @@
           (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
             `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
                ,(concatenate 'string "~a." (string slot-name))
-               (,name) ,slot-type :place t)))))
+               (,name) ,slot-type :place t)))
+     ',name))
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
@@ -55,8 +56,9 @@
           (func-spec->function (v-make-f-spec
                                 (concatenate 'string "~a_" 
                                              (fake-slot-name slot-name))
-                                '(obj) (list name) slot-type :place nil))
-          env)))
+                                '(obj) (list name) (type-spec->type slot-type)
+                                :place nil))
+          env t)))
     fake-type))
 
 (defun fake-slot-name (slot-name) (string slot-name))
