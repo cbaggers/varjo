@@ -9,13 +9,13 @@
 (in-package :varjo)
 
 ;; remember that args has context in it
-(defun new-translate (args body)
+(defun translate (args body)
   (let ((env (make-instance 'environment)))
     (pipe-> (args body env)
       #'split-input-into-env
       #'process-in-args
       #'process-uniforms      
-      #'macro-expand-pass
+      #'macroexpand-pass
       #'inject-functions-pass
       #'compile-pass
       #'gen-in-arg-strings
@@ -61,6 +61,7 @@
        (let* ((type-obj (type-spec->type type))
               (fake-struct (when (typep type 'v-struct)
                              (make-fake-struct type-obj env))))
+         (format t "~{~a ~}" (list name type))
          (add-var name
                   (make-instance 'v-value :type (if fake-struct 
                                                     'v-fake-struct
@@ -113,14 +114,35 @@
 
 ;;----------------------------------------------------------------------
 
-(defun compile-pass (code env)  
-  (values (varjo->glsl `(%make-function :main () ,@code) env)
-          env))
+(defun compile-pass (code env)
+  (error "This isnt an error! It's time to look at what we have ~a" 
+         (list code env))
+  ;; (values (varjo->glsl `(%make-function :main () ,@code) env)
+  ;;         env)
+  )
 
 ;;----------------------------------------------------------------------
 
-(defun gen-in-arg-strings () (values code env))
-(defun final-uniform-strings () (values code env))
-(defun final-string-compose () (values code env))
-(defun process-output () (values code env))
-(defun code-obj->result-object () (values code env))
+(defun gen-in-arg-strings (code env) 
+  (values code env))
+
+;;----------------------------------------------------------------------
+
+(defun final-uniform-strings (code env) 
+  (values code env))
+
+;;----------------------------------------------------------------------
+
+(defun final-string-compose (code env) 
+  (values code env))
+
+;;----------------------------------------------------------------------
+
+(defun process-output (code env) 
+  (values code env))
+
+;;----------------------------------------------------------------------
+
+(defun code-obj->result-object (code env) 
+  (values code env))
+

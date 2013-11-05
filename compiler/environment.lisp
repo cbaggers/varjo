@@ -52,13 +52,16 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-macro (macro-name (macro function) (context list) 
-                      (env (eql :-genv-)))
-  (setf (gethash macro-name *global-env-macros*) `(,macro ,context)))
+                      (env (eql :-genv-)) &optional modify-env)
+  (declare (ignore modify-env))
+  (setf (gethash macro-name *global-env-macros*) `(,macro ,context))
+  *global-env*)
 
 (defmethod add-macro (macro-name (macro function) (context list)
-                      (env environment))
-  (let ((env (clone-environment env)))
-    (setf (gethash macro-name (v-macros env)) `(,macro ,context))))
+                      (env environment) &optional modify-env)
+  (let ((env (if modify-env (clone-environment env) env)))
+    (setf (gethash macro-name (v-macros env)) `(,macro ,context))
+    env))
 
 (defgeneric get-macro (macro-name env))
 
@@ -76,16 +79,21 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-var (var-name (val v-value) (env (eql :-genv-)))
-  (setf (gethash var-name *global-env-vars*) val))
+(defmethod add-var (var-name (val v-value) (env (eql :-genv-)) 
+                    &optional modify-env)
+  (declare (ignore modify-env))
+  (setf (gethash var-name *global-env-vars*) val)
+  *global-env*)
 
 (defmethod add-var (var-name (val v-value) (env environment))
   (let ((env (clone-environment env)))
-    (setf (gethash var-name (v-variables env)) val)))
+    (setf (gethash var-name (v-variables env)) val)
+    env))
 
 (defmethod add-vars (var-name (vals list) (env environment))
   (let ((env (clone-environment env)))
-    (loop :for val :in vals :do (setf (gethash var-name (v-variables env)) val))))
+    (loop :for val :in vals :do (setf (gethash var-name (v-variables env)) val))
+    env))
 
 (defgeneric get-var (var-name env))
 (defmethod get-var (var-name (env (eql :-genv-)))
@@ -107,20 +115,27 @@
         (when (context-ok-given-restriction context restriction) func)
         func)))
 
-(defmethod add-function (func-name (func-spec list) (env (eql :-genv-)))
+(defmethod add-function (func-name (func-spec list) (env (eql :-genv-))
+                         &optional modify-env)
+  (declare (ignore modify-env))
   (setf (gethash func-name *global-env-funcs*)
-        (cons func-spec (gethash func-name *global-env-funcs*))))
+        (cons func-spec (gethash func-name *global-env-funcs*)))
+  *global-env*)
 
-(defmethod add-function (func-name (func-spec v-function) (env environment))
-  (let ((env (clone-environment env)))
+(defmethod add-function (func-name (func-spec v-function) (env environment)
+                         &optional modify-env)
+  (let ((env (if modify-env (clone-environment env) env)))
     (setf (gethash func-name (v-functions env))
-          (cons func-spec (gethash func-name (v-functions env))))))
+          (cons func-spec (gethash func-name (v-functions env))))
+    env))
 
-(defmethod add-functions (func-name (func-specs list) (env environment))
-  (let ((env (clone-environment env)))
+(defmethod add-functions (func-name (func-specs list) (env environment)
+                          &optional modify-env)
+  (let ((env (if modify-env (clone-environment env) env)))
     (loop :for func-spec :in func-specs :do
        (setf (gethash func-name (v-functions env))
-             (cons func-spec (gethash func-name (v-functions env)))))))
+             (cons func-spec (gethash func-name (v-functions env)))))
+    env))
 
 ;; loop and instanstiate
 (defmethod get-external-function (func-name (env (eql :-genv-)))

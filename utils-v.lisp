@@ -10,7 +10,7 @@
       (let ((stage (first stages)))
         `(multiple-value-call ,stage
            ,(if (rest stages)
-                `(call-> ,args ,@(reverse (rest stages)))
+                `(pipe-> ,args ,@(reverse (rest stages)))
                 `(values ,@args)))))))
 
 ;; [TODO] should dissapear as refactor goes on

@@ -88,10 +88,7 @@ f #'null
 
 ;;----------------------------------------------------------------------
 
-(defun compile-main (code env)
-  (varjo->glsl `(%make-function :main () ,@code) env))
-
-(defun rolling-translate (args shaders &optional accum (first-shader t))  
+(defun rolling-translate (args shaders &optional accum (first-shader t))
   (if (find :type args)
       (error "Varjo: It is invalid to specify a shader type in a program definition")
       (if shaders
