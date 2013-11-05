@@ -99,15 +99,14 @@
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (f (get-external-function head *global-env*)))
-             (append (when f `(,head ,f))
+             (append (when f `(,head ,@f))
                      (loop :for c :in code :if (listp c) :collect
                         (find-injected-functions c env)))))))
 
 (defun inject-functions-pass (code env)
-  (let ((injected-funcs (find-injected-functions code env)))
-    (values `(labels (,@(loop :for (name f) :in injected-funcs :collect 
-                           `(,name ,(v-glsl-string f))))
-               ,@code)
+  (let ((injected-funcs (remove nil (find-injected-functions code env))))
+    (values `(labels (,@injected-funcs)
+               ,code)
             env)))
 
 ;;----------------------------------------------------------------------

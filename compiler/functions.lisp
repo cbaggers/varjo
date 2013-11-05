@@ -11,21 +11,28 @@
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
     `(,transform ,arg-types ,return-spec ,context ,place ,glsl-spec-matching)))
+;;
 ;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
+;;
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
-    (declare (ignore args))
     (cond ((stringp (first body))
            (destructuring-bind (transform arg-types return-spec 
                                           &key place glsl-spec-matching) body
-             `(add-function ',name '(,transform ,arg-types ,return-spec
-                                     ,context ,place ,glsl-spec-matching) *global-env*)))
-          ((eq (first body) :inject) `(error "injected function not implemented"))
+             `(progn (add-function ',name '(,transform ,arg-types ,return-spec
+                                            ,context ,place ,glsl-spec-matching)
+                                   *global-env*)
+                     ',name)))
+          ((eq (first body) :inject)
+           `(progn (setf (gethash ',name (v-external-functions *global-env*))
+                         '(,args ,@(rest body)))
+                   ',name))
           (t (destructuring-bind (&key args return) body
-                 `(setf (gethash ',name (v-functions *global-env*)) 
-                        '(:special ,args ,return ,context nil)))))))
+               `(progn (setf (gethash ',name (v-functions *global-env*)) 
+                             '(:special ,args ,return ,context nil))
+                       ',name))))))
 
 ;;------------------------------------------------------------
 

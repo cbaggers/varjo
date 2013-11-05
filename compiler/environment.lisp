@@ -8,7 +8,7 @@
 (in-package :varjo)
 
 (defparameter *global-env* :-genv-)
-(defparameter *global-env-external-funcs* (make-hash-table))
+(defparameter global-env-external-funcs* (make-hash-table))
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
@@ -84,7 +84,7 @@
     (when (and spec (valid-for-contextp spec env)) (first spec))))
 
 (defmethod get-macro (macro-name (env environment))
-  (or (let ((spec (gethash macro-name (v-macros env))))
+  (or (let ((spec (a-get macro-name (v-macros env))))
         (when (and spec (valid-for-contextp spec env)) (first spec)))
       (get-macro macro-name *global-env*)))
 
@@ -116,7 +116,7 @@
   (gethash var-name *global-env-vars*))
 
 (defmethod get-var (var-name (env environment))
-  (or (gethash var-name (v-variables env))
+  (or (a-get var-name (v-variables env))
       (get-var var-name *global-env*)))
 
 (defmethod v-boundp (var-name (env environment))
@@ -159,17 +159,21 @@
        (a-add func-name func-spec (v-functions env)))
     env))
 
+(defmethod v-external-functions ((env (eql :-genv-)))
+  *global-env-external-funcs*)
+
 ;; loop and instanstiate
 (defmethod get-external-function (func-name (env (eql :-genv-)))
   (let ((f (gethash func-name *global-env-external-funcs*)))
-    (when f (func-spec->function f))))
+    ;;(when f (func-spec->function f))
+    f))
 
 (defmethod get-function (func-name (env (eql :-genv-)))
   (remove nil (mapcar #'func-spec->function 
                       (gethash func-name *global-env-funcs*))))
 
 (defmethod get-function (func-name (env environment))  
-  (loop :for func :in (append (gethash func-name (v-functions env))
+  (loop :for func :in (append (a-get func-name (v-functions env))
                               (get-function func-name *global-env*)) 
      :if (and func (valid-for-contextp func env)) :collect func))
 
