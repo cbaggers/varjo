@@ -66,7 +66,7 @@
          (if fake-struct
              (loop :for (slot-name slot-type . acc) :in (v-slots fake-struct) 
                 :do (push `(,(fake-slot-name slot-name) ,slot-type ,qualifiers) 
-                             (v-in-args env)))
+                          (v-in-args env)))
              (push `(,name ,(v-type-name type-obj) ,qualifiers) 
                    (v-in-args env)))))
     (values code env)))
@@ -95,19 +95,23 @@
 
 ;;----------------------------------------------------------------------
 
-(defun find-injected-functions (code env)
-  (cond ((atom code) code)
-        (t (let* ((head (first code))
-                  (f (get-external-function head *global-env*)))
-             (append (when f `(,head ,@f))
-                     (loop :for c :in code :if (listp c) :collect
-                        (find-injected-functions c env)))))))
+(defun find-injected-functions (code env &optional seen)
+  (remove 
+   nil
+   (unless (atom code)
+     (let* ((head (first code))
+            (f (unless (find head seen) 
+                 (get-external-function head *global-env*))))
+       (append (when f (cons `(,head ,@f) 
+                             (remove nil (find-injected-functions 
+                                          (rest f) env (cons head seen)))))
+               (loop :for c :in code :if (listp c) :append
+                  (remove nil (find-injected-functions
+                               c env (if f (cons head seen) seen)))))))))
 
 (defun inject-functions-pass (code env)
   (let ((injected-funcs (remove nil (find-injected-functions code env))))
-    (values `(labels (,@injected-funcs)
-               ,code)
-            env)))
+    (values `((labels ,injected-funcs ,@code)) env)))
 
 ;;----------------------------------------------------------------------
 

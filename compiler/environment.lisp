@@ -8,7 +8,7 @@
 (in-package :varjo)
 
 (defparameter *global-env* :-genv-)
-(defparameter global-env-external-funcs* (make-hash-table))
+(defparameter *global-env-external-funcs* (make-hash-table))
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
