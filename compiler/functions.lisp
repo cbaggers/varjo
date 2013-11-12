@@ -25,37 +25,80 @@
                                             ,context ,place ,glsl-spec-matching)
                                    *global-env*)
                      ',name)))
-          ((eq (first body) :inject)
-           `(progn (setf (gethash ',name (v-external-functions *global-env*))
+          ((eq (first body) :special)
+           (destructuring-bind (&key context place args-valid return) body
+             `(progn (add-function ',name (list :special
+                                                (lambda ,args 
+                                                  (let ((res ,args-valid)) 
+                                                    (when res (list res 0))))
+                                                (lambda ,args ,return)
+                                                ,context ,place)
+                                   *global-env*)
+                     ',name)))
+          (t `(progn (setf (gethash ',name (v-external-functions *global-env*))
                          '(,args ,@(rest body)))
-                   ',name))
-          (t (destructuring-bind (&key args return) body
-               `(progn (setf (gethash ',name (v-functions *global-env*)) 
-                             '(:special ,args ,return ,context nil))
-                       ',name))))))
+                   ',name)))))
+;; [TODO] ^^^^- we use setf rather than add for extended functions...this seems 
+;;              dumb as it means we can have generic externals which are chosen
+;;              based on usage. This also means some level of checking to see 
+;;              if the arg spec matches.
 
 ;;------------------------------------------------------------
 
+;; (and (eql arg-len (length (v-argument-spec func)))
+;;             (and (loop :for arg :in args 
+;;                     :for arg-type :in (v-argument-spec func)
+;;                     :always (v-casts-to-p h(code-type arg) arg-type))
+;;                  (multiple-type-equivilent )))
+
 ;;[TODO] Need to handle fake-structs
 ;;[TODO] if type specifiers are same in in-args then the args passed in must 
+
 ;;       be compatible (maybe only if :spec-match is true
 ;;[TODO] for special funcs this can involve walking the rest of a tree, we dont 
 ;;       want to do this twice
 ;;[TODO] We need to prioritise matches that dont require casting
 ;;[TODO] We need to collect the new type (in case of casting) and the number of
 ;;       casts[?] or some priority of results
+
+(defun try-compile-arg (arg env)
+  (handler-case (varjo->glsl arg env)
+    (error () (make-instance 'code :type (make-instance 'v-error)))))
+
+(defun special-arg-match (arg-code arg-objs arg-types any-errors)
+  nil)
+
+(defun glsl-arg-match (func arg-types)
+  nil)
+
+(defun basic-arg-match (func arg-types)
+  nil)
+
+(defun find-functions-for-args (func-name args-code env)
+  (let* ((arg-objs (loop :for i :in args-code :collect (try-compile-arg i env)))
+         (arg-types (mapcar #'code-type arg-objs))
+         (any-errors (some #'v-errorp arg-types)))
+    (loop :for func :in (get-function func-name env) 
+       :for candidate =
+       (if (v-special-functionp func) 
+           (special-arg-match args-code arg-objs arg-types any-errors)
+           (when (not any-errors)
+             (if (v-glsl-spec-matchingp func)
+                 (glsl-arg-match func arg-types)
+                 (basic-arg-match func arg-types))))
+       :if candidate :collect candidate)))
+
 (defun find-function-for-args (func-name args env)
-  (let ((arg-len (length args)))
-    (loop :for func :in (get-function func-name env)
-       :if (and (valid-for-contextp func env)
-                (or (and (v-special-functionp func)
-                         (funcall (v-argument-spec func) args))
-                    (and (eql arg-len (length (v-argument-spec func)))
-                         (and (loop :for arg :in args 
-                                 :for arg-type :in (v-argument-spec func)
-                                 :always (v-casts-to-p (code-type arg) arg-type))
-                              (multiple-type-equivilent )))))
-       :collect func)))
+  "Find the function that best matches the name and arg spec given
+   the current environment. This process simply involves finding the 
+   functions and then sorting them by their appropriateness score,
+   the lower the better. We then take the first one and return that
+   as the function to use."
+  (let ((functions (find-functions-for-args func-name args env)))
+    (destructuring-bind (score function arg-objs score)
+        (first (sort functions #'< :key #'second))
+      (declare (ignore score))
+      (list function arg-objs))))
 
 (defun glsl-resolve-func-type (func args)
   "nil - superior type

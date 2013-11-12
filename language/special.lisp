@@ -8,6 +8,14 @@
 
 (in-package :varjo)
 
+(v-defun + (&rest numbers)
+  :special
+  :args #'args-compatible
+  :return (merge-obs numbers
+                     :type (apply #'superior-type (mapcar #'v-type numbers))
+                     :current-line (format nil "(~{~a~^ ~^+~^ ~})"
+                                           (mapcar #'current-line arg-objs))))
+
 (vdefspecial + (&rest args)    
   (let* ((arg-objs (mapcar #'varjo->glsl args))
          (types (mapcar #'code-type arg-objs)))

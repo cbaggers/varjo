@@ -95,6 +95,7 @@
 
 ;;----------------------------------------------------------------------
 
+;; [TODO] prehaps reverse (,head <@f) and the dependencies
 (defun find-injected-functions (code env &optional seen)
   (remove 
    nil
@@ -118,9 +119,8 @@
 (defun compile-pass (code env)
   (error "This isnt an error! It's time to look at what we have ~a" 
          (list code env))
-  ;; (values (varjo->glsl `(%make-function :main () ,@code) env)
-  ;;         env)
-  )
+  (values (varjo->glsl `(%make-function :main () ,@code) env)
+          env))
 
 ;;----------------------------------------------------------------------
 

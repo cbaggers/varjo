@@ -98,6 +98,9 @@
 (defclass v-tu (v-tiu) ()) ;; uint uvec*
 (defclass v-tvec () ()) ;;vec* uvec* ivec* [notice no dvec]
 
+(defclass v-error () ())
+(defun v-errorp (obj) (typep obj 'v-error))
+
 (defclass v-void () 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "" :reader v-glsl-string)))

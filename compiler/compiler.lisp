@@ -30,6 +30,10 @@
         (v-variable->code-obj var-name v-value)
         (error "Varjo: '~s' is unidentified." code))))
 
+;; [TODO] ok so how do we handle situations where we have both special 
+;;        and normal as candidates? 
+;;        Don't?...prehaps thats it
+;;        that seems to be a cop out
 (defun compile-form (code env)
   (let* ((func-name (first code)) 
          (args (rest code))
@@ -46,6 +50,6 @@
   (values (cond ((or (null code) (eq t code)) (compile-bool code env))
                 ((numberp code) (compile-number code env))
                 ((symbolp code) (compile-symbol code env))
-                ((listp (first code)) (compile-form code env))
+                ((listp code) (compile-form code env))
                 (t (error 'cannot-compile :code code)))
           env))
