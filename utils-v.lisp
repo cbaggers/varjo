@@ -1,5 +1,11 @@
 (in-package :varjo)
 
+;; [TODO] fully implement positions-if to match position-if spec
+;; [TODO] also add positions-if-not and positions: could be all be useful
+(defun positions-if (predicate sequence)
+  (loop :for element :in sequence :for i :from 0
+     :if (funcall predicate element) :collect i))
+
 (defmacro pipe-> (args &body stages)
   "\(pipe-> \(1 2 3\) #'a #'b #'c #'d\)
    Calls first function with args provided and uses result as 

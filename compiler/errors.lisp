@@ -25,6 +25,9 @@
 (define-condition missing-function-error (error)
   ((text :initarg :text :reader text)))
 
+(deferror problem-with-the-compiler ()
+  "This shouldnt have been possible so this needs a bug report. Sorry about that")
+
 (deferror cannot-compile (code)
   "Cannot compile the following code:~%~a" code)
 
@@ -41,3 +44,14 @@
 
 (deferror no-valid-function (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
+
+;-----------------------------;
+
+(defclass deferred-error ()
+  ((error-name :initform nil :initarg :error-name :reader error-name)
+   (error-args :initform nil :initarg :error-args :reader error-args)))
+
+(defmethod raise-deffered-error ((error deferred-error))
+  (if (error-name error)
+      (apply #'error (cons (error-name error) (error-args error)))
+      (apply #'error (error-args error))))

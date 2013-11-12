@@ -7,14 +7,12 @@
 ;; known as the LLGPL.
 (in-package :varjo)
 
+;; [TODO] ensure all cast lists have the correct order.
+
 (defmethod v-type-name ((type v-type))
   (class-name (class-of type)))
-
-(defmethod v-typep ((a v-type) (b v-type))
-  (eq (v-type-name a) (v-type-name b)))
-
-(defmethod v-typep ((a v-type) b)
-  (eq (v-type-name a) (v-type-name (type-spec->type b))))
+(defmethod v-type-name ((type v-spec-type))
+  (class-name (class-of type)))
 
 (defclass v-array (v-container) 
   ((element-type :initform nil :initarg :element-type :reader v-element-type)
@@ -36,14 +34,21 @@
   (* (apply #'* (v-dimensions type)) 
      (slot-value (v-element-type type) 'glsl-size)))
 
-(defmethod v-casts-to-p ((from-type v-type) (to-type v-type))
-  (or (typep from-type to-type)      
-      (when (slot-exists-p from-type 'casts-to)
-        (loop :for cast :in (slot-value from-type 'casts-to) :thereis
-           (typep (type-spec->type cast) to-type)))))
+(defmethod v-typep ((a v-type) (b v-type))
+  (typep a (v-type-name b)))
+(defmethod v-typep ((a v-type) b)
+  (typep a (v-type-name (type-spec->type b))))
 
-(defmethod v-casts-to-p ((from-type symbol) (to-type symbol))
-  (v-casts-to-p (type-spec->type from-type) to-type))
+(defmethod v-casts-to-p (from-type to-type)
+  (not (null (v-casts-to from-type to-type))))
+
+(defmethod v-casts-to ((from-type v-type) (to-type symbol))
+  (if (typep from-type to-type)
+      from-type
+      (when (slot-exists-p from-type 'casts-to)
+        (loop :for cast :in (slot-value from-type 'casts-to)
+           :for cast-type = (type-spec->type cast)
+           :if (typep cast-type to-type) :return cast-type))))
 
 (defun find-mutual-cast-type (&rest types)
   (let ((casts (loop :for type :in types :collect 
@@ -92,17 +97,24 @@
    (slots :initform nil :initarg :slots :reader v-slots)))
 
 (defgeneric v-special-functionp (func))
-(defmethod v-special-functionp ((func function))
+(defmethod v-special-functionp ((func v-function))
   (eq :special (v-glsl-string func)))
 
-(defclass v-tfd () ())
-(defclass v-tf (v-tfd) ()) ;; floav-t vec*
+;; spec types are to handle the manifest ugliness of the glsl spec.
+;; dear god just one txt file with every permutation of every glsl
+;; function would have save me so many hours work.
+(defclass v-spec-type () ())
+(defclass v-tfd (v-spec-type) ())
+(defclass v-tf (v-tfd) ()) ;; float vec*
 (defclass v-td (v-tfd) ()) ;; double dvec*
-(defclass v-tb () ()) ;; bool bvec*
-(defclass v-tiu () ())
+(defclass v-tb (v-spec-type) ()) ;; bool bvec*
+(defclass v-tiu (v-spec-type) ())
 (defclass v-ti (v-tiu) ()) ;; int ivec*
 (defclass v-tu (v-tiu) ()) ;; uint uvec*
-(defclass v-tvec () ()) ;;vec* uvec* ivec* [notice no dvec]
+(defclass v-tvec (v-spec-type) ()) ;;vec* uvec* ivec* [notice no dvec]
+(defun v-spec-typep (obj)
+  (and (typep obj 'v-spec-type)
+       (not (typep obj 'v-type))))
 
 (defclass v-error () ())
 (defun v-errorp (obj) (typep obj 'v-error))
@@ -111,27 +123,27 @@
   ((core :initform t :reader core-typep)
    (glsl-string :initform "" :reader v-glsl-string)))
 
-(defclass v-bool (v-type) 
+(defclass v-bool (v-type v-tb) 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bool" :reader v-glsl-string)))
 
 (defclass v-number (v-type) ())
-(defclass v-int (v-number)
+(defclass v-int (v-number v-ti)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "int" :reader v-glsl-string)
    (casts-to :initform '(v-uint v-float v-double))))
-(defclass v-uint (v-number)
+(defclass v-uint (v-number v-tu)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uint" :reader v-glsl-string)
    (casts-to :initform '(v-float v-double))))
-(defclass v-float (v-number)
+(defclass v-float (v-number v-tf)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "float" :reader v-glsl-string)
    (casts-to :initform '(v-double))))
 (defclass v-short-float (v-number) 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "short-float" :reader v-glsl-string)))
-(defclass v-double (v-number) 
+(defclass v-double (v-number v-td) 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "double" :reader v-glsl-string)))
 
@@ -223,7 +235,7 @@
    (glsl-size :initform 4)))
 
 (defclass v-vector (v-container) ())
-(defclass v-fvector (v-vector) ())
+(defclass v-fvector (v-vector v-tf v-tvec) ())
 
 (defclass v-vec2 (v-fvector) 
   ((core :initform t :reader core-typep)
@@ -244,7 +256,7 @@
    (dimensions :initform '(4) :reader v-dimensions)
    (casts-to :initform '(v-dvec4))))
 
-(defclass v-bvector (v-vector) ())
+(defclass v-bvector (v-vector v-tb) ())
 (defclass v-bvec2 (v-bvector) 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bvec2" :reader v-glsl-string)
@@ -261,8 +273,8 @@
    (element-type :initform 'v-bool :reader v-element-type)
    (dimensions :initform '(4) :reader v-dimensions)))
 
-(defclass v-uvector (v-vector) ())
-(defclass v-uvec2 (v-uvector)
+(defclass v-uvector (v-vector v-tu) ())
+(defclass v-uvec2 (v-uvector v-tvec)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uvec2" :reader v-glsl-string)
    (element-type :initform 'v-uint :reader v-element-type)
@@ -281,8 +293,8 @@
    (dimensions :initform '(4) :reader v-dimensions)
    (casts-to :initform '(v-dvec4 v-vec4))))
 
-(defclass v-ivector (v-vector) ())
-(defclass v-ivec2 (v-ivector) 
+(defclass v-ivector (v-vector v-ti) ())
+(defclass v-ivec2 (v-ivector v-tvec) 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec2" :reader v-glsl-string)
    (element-type :initform 'v-int :reader v-element-type)
@@ -302,7 +314,7 @@
    (casts-to :initform '(v-uvec4 v-vec4 v-dvec4))))
 
 (defclass v-dvector (v-vector) ())
-(defclass v-dvec2 (v-dvector) 
+(defclass v-dvec2 (v-dvector v-td) 
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec2" :reader v-glsl-string)
    (element-type :initform 'v-dnt :reader v-element-type)

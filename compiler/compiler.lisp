@@ -30,21 +30,17 @@
         (v-variable->code-obj var-name v-value)
         (error "Varjo: '~s' is unidentified." code))))
 
-;; [TODO] ok so how do we handle situations where we have both special 
-;;        and normal as candidates? 
-;;        Don't?...prehaps thats it
-;;        that seems to be a cop out
 (defun compile-form (code env)
   (let* ((func-name (first code)) 
-         (args (rest code))
-         (arg-objs (loop :for a :in args :collect (varjo->glsl a env)))
-         (func (find-function-for-args func-name arg-objs env)))
-    (if func
-        (merge-obs arg-objs
-                   :type (glsl-resolve-func-type func args)
-                   :current-line (gen-function-string func arg-objs))
-        (error 'no-valid-function :name func-name 
-               :types (mapcar #'code-type arg-objs)))))
+         (args-code (rest code))
+         (f-result (find-function-for-args func-name args-code env)))
+    (cond ((listp f-result)
+           (destructuring-bind (func args) f-result
+             (merge-obs args
+                        :type (glsl-resolve-func-type func args)
+                        :current-line (gen-function-string func args))))
+          ((typep f-result 'deferred-error) (raise-deffered-error f-result)
+           (error 'problem-with-the-compiler)))))
 
 (defun varjo->glsl (code env)
   (values (cond ((or (null code) (eq t code)) (compile-bool code env))

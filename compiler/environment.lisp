@@ -13,6 +13,9 @@
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
 
+(defun test-env (&rest context)
+  (make-instance 'environment :context (or context '(:330))))
+
 ;;-------------------------------------------------------------------------
 
 (defun a-get (name list)
@@ -170,14 +173,12 @@
 
 (defmethod get-function (func-name (env (eql :-genv-)))
   (loop :for func-spec :in (gethash func-name *global-env-funcs*)
-     :for func = (func-spec->function func-spec) 
-     :if (valid-for-contextp func env)
-     :collect func))
+     :collect (func-spec->function func-spec)))
 
 (defmethod get-function (func-name (env environment))
-  (append (loop :for func :in (a-get func-name (v-functions env))     
-             :if (and func (valid-for-contextp func env)) :collect func)
-          (get-function func-name *global-env*)))
+  (loop :for func :in (append (a-get func-name (v-functions env))
+                              (get-function func-name *global-env*))
+     :if (and func (valid-for-contextp func env)) :collect func))
 
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function func-name env))))

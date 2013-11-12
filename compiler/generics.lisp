@@ -10,6 +10,7 @@
 
 (defgeneric v-glsl-size (type))
 (defgeneric v-casts-to-p (from-type to-type))
+(defgeneric v-casts-to (from-type to-type))
 
 ;; environment
 (defclass environment () 
@@ -27,7 +28,7 @@
 ;; code
 (defclass code ()
   ((type :initarg :type :initform nil :accessor code-type)
-   (current-line :initarg :current-line :initform nil :accessor current-line)
+   (current-line :initarg :current-line :initform "" :accessor current-line)
    (to-block :initarg :to-block :initform nil :accessor to-block)
    (to-top :initarg :to-top :initform nil :accessor to-top)
    (out-vars :initarg :out-vars :initform nil :accessor out-vars)

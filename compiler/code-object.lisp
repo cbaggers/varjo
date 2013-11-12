@@ -7,14 +7,31 @@
 ;; known as the LLGPL.
 (in-package :varjo)
 
-(defmethod initialize-instance :after 
-    ((code-ob code) &key (type nil set-type)
-                      (current-line nil set-current))
-  (if (not (and set-current set-type))
-      (error "Type and current-line must be specified when creating an instance of varjo:code"))
-  (setf (slot-value code-ob 'type-spec) (flesh-out-type type)
-        (slot-value code-ob 'current-line) current-line))
+;; [TODO] Proper error needed here
+(defmethod initialize-instance :after
+    ((code-ob code) &key (type nil set-type))
+  (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
+  (setf (slot-value code-ob 'type) 
+        (if (typep type 'v-type) type (type-spec->type type))))
 
+;; [TODO] this doesnt work (properly) yet but is a fine starting point
+(defgeneric copy-code (code-obj &key type current-line to-block to-top 
+                                  out-vars invariant returns))
+(defmethod copy-code ((code-obj code) 
+                      &key type current-line 
+                        (to-block nil set-block)
+                        (to-top nil set-top)
+                        (out-vars nil set-out-vars)
+                        (invariant nil) (returns nil set-returns))
+  (make-instance 'code 
+                 :type (if type type (code-type code-obj)) 
+                 :current-line (if current-line current-line 
+                                   (current-line code-obj)) 
+                 :to-block (if set-block to-block (to-block code-obj))
+                 :to-top (if set-top to-top (to-top code-obj))
+                 :out-vars (if set-out-vars out-vars (out-vars code-obj))
+                 :invariant (if invariant invariant (invariant code-obj))
+                 :returns (if set-returns returns (returns code-obj))))
 
 (defmethod merge-obs ((objs list) &key type current-line 
                                     (to-block nil set-block)

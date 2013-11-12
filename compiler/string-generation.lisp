@@ -1,5 +1,7 @@
 (in-package :varjo)
 
+;; [TODO] name generation MUST take reserver glsl names into account.
+
 ;; (defgeneric indent (input))
 
 ;; (defmethod indent ((input string))

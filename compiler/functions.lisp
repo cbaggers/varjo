@@ -48,7 +48,7 @@
 ;; (and (eql arg-len (length (v-argument-spec func)))
 ;;             (and (loop :for arg :in args 
 ;;                     :for arg-type :in (v-argument-spec func)
-;;                     :always (v-casts-to-p h(code-type arg) arg-type))
+;;                     :always (v-casts-to h(code-type arg) arg-type))
 ;;                  (multiple-type-equivilent )))
 
 ;;[TODO] Need to handle fake-structs
@@ -61,50 +61,79 @@
 ;;[TODO] We need to collect the new type (in case of casting) and the number of
 ;;       casts[?] or some priority of results
 
+;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
     (error () (make-instance 'code :type (make-instance 'v-error)))))
 
-(defun special-arg-match (arg-code arg-objs arg-types any-errors)
-  nil)
+(defun special-arg-matchp (func arg-code arg-objs arg-types any-errors)
+  (print "special match")
+  (let ((method (v-argument-spec func)))
+    (if (eq method t)
+        (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
+        (handler-case (list 0 func (apply method arg-code)) 
+          (error () nil)))))
 
-(defun glsl-arg-match (func arg-types)
-  nil)
+(defun glsl-arg-matchp (func arg-types arg-objs)
+  (print "spec match")
+  (let* ((spec-types (v-argument-spec func))
+         (spec-generics (positions-if #'v-spec-typep spec-types))
+         (g-dim (when spec-generics 
+                  (v-dimensions (nth (first spec-generics) arg-types)))))
+    (when (or (null g-dim)
+              (loop :for i :in spec-generics :always 
+                 (equal (v-dimensions (nth i arg-types)) g-dim)))
+      (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
+          (list 0 func arg-objs)
+          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
+                             :collect (v-casts-to a s))))
+            (when (not (some #'null cast-types))
+              (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
+                              :collect (copy-code obj :type type)))))))))
 
-(defmacro if-it (test then else)
-  `(let ((it ,test))
-     (if it ,then ,else)))
-
-(defun basic-arg-match (func arg-types arg-objs)
+;; [TODO] should this always copy the arg-objs?
+(defun basic-arg-matchp (func arg-types arg-objs)
+  (print "basic match")
   (let ((spec-types (v-argument-spec func)))
-    (if (loop :for a :in arg-types :for s in spec-types :always (v-typep a s))
-        (list 0 func arg-objs))))
+    (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
+        (list 0 func arg-objs)
+        (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
+                             :collect (v-casts-to a s))))
+          (when (not (some #'null cast-types))
+            (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
+                            :collect (copy-code obj :type type))))))))
 
-(defun find-functions-for-args (func-name args-code env)
-  (let* ((arg-objs (loop :for i :in args-code :collect (try-compile-arg i env)))
-         (arg-types (mapcar #'code-type arg-objs))
+(defun find-functions-for-args (func-name args-code arg-objs env)
+  (print args-code)
+  (let* ((arg-types (mapcar #'code-type arg-objs))
          (any-errors (some #'v-errorp arg-types)))
     (loop :for func :in (get-function func-name env) 
        :for candidate =
        (if (v-special-functionp func) 
-           (special-arg-match args-code arg-objs arg-types any-errors)
+           (special-arg-matchp func args-code arg-objs arg-types any-errors)
            (when (not any-errors)
              (if (v-glsl-spec-matchingp func)
-                 (glsl-arg-match func arg-types)
-                 (basic-arg-match func arg-types))))
+                 (glsl-arg-matchp func arg-types arg-objs)
+                 (basic-arg-matchp func arg-types arg-objs))))
        :if candidate :collect candidate)))
 
-(defun find-function-for-args (func-name args env)
+(defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
    the current environment. This process simply involves finding the 
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
-  (let ((functions (find-functions-for-args func-name args env)))
-    (destructuring-bind (score function arg-objs score)
-        (first (sort functions #'< :key #'second))
-      (declare (ignore score))
-      (list function arg-objs))))
+  (let* ((arg-objs (loop :for i :in args-code :collect (try-compile-arg i env)))
+         (functions (find-functions-for-args func-name args-code arg-objs env)))
+    (if functions
+        (destructuring-bind (score function arg-objs)
+            (first (sort functions #'< :key #'second))
+          (declare (ignore score))
+          (list function arg-objs))
+        (make-instance 'deferred-error :error-name 'no-valid-function 
+                       :error-args `(:name ,func-name :types
+                                           ,(loop :for obj :in arg-objs
+                                               :collect (code-type obj)))))))
 
 (defun glsl-resolve-func-type (func args)
   "nil - superior type
