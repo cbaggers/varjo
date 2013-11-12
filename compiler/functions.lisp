@@ -71,8 +71,14 @@
 (defun glsl-arg-match (func arg-types)
   nil)
 
-(defun basic-arg-match (func arg-types)
-  nil)
+(defmacro if-it (test then else)
+  `(let ((it ,test))
+     (if it ,then ,else)))
+
+(defun basic-arg-match (func arg-types arg-objs)
+  (let ((spec-types (v-argument-spec func)))
+    (if (loop :for a :in arg-types :for s in spec-types :always (v-typep a s))
+        (list 0 func arg-objs))))
 
 (defun find-functions-for-args (func-name args-code env)
   (let* ((arg-objs (loop :for i :in args-code :collect (try-compile-arg i env)))

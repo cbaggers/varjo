@@ -10,6 +10,12 @@
 (defmethod v-type-name ((type v-type))
   (class-name (class-of type)))
 
+(defmethod v-typep ((a v-type) (b v-type))
+  (eq (v-type-name a) (v-type-name b)))
+
+(defmethod v-typep ((a v-type) b)
+  (eq (v-type-name a) (v-type-name (type-spec->type b))))
+
 (defclass v-array (v-container) 
   ((element-type :initform nil :initarg :element-type :reader v-element-type)
    (dimensions :initform nil :initarg :dimensions :reader v-dimensions)))
