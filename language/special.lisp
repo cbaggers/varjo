@@ -8,12 +8,14 @@
 
 (in-package :varjo)
 
-(v-defun edd ((a v-int) (b v-float))
+(v-defun tested ((a v-int) (b v-float))
   :special 
   :return (make-instance 'code :current-line "booyah!" 
                          :type (make-instance 'v-int)))
 
-
+;; [TODO] first argument should always be the environment
+;;        or maybe that is implicitly available
+;; [TODO] work out if we need to care about &optional &rest etc
 
 (vdefspecial ? (test-form then-form &optional else-form)
   (let* ((test (varjo->glsl test-form))

@@ -62,22 +62,6 @@
 
 ;;------------------------------------------------------------
 
-;; (and (eql arg-len (length (v-argument-spec func)))
-;;             (and (loop :for arg :in args 
-;;                     :for arg-type :in (v-argument-spec func)
-;;                     :always (v-casts-to h(code-type arg) arg-type))
-;;                  (multiple-type-equivilent )))
-
-;;[TODO] Need to handle fake-structs
-;;[TODO] if type specifiers are same in in-args then the args passed in must 
-
-;;       be compatible (maybe only if :spec-match is true
-;;[TODO] for special funcs this can involve walking the rest of a tree, we dont 
-;;       want to do this twice
-;;[TODO] We need to prioritise matches that dont require casting
-;;[TODO] We need to collect the new type (in case of casting) and the number of
-;;       casts[?] or some priority of results
-
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
