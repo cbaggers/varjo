@@ -14,6 +14,10 @@
 ;;
 ;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
 ;;
+;;[TODO] split each case into a different macro and use this as core
+;;[TODO] use make-func-spec so we have only one place where the spec
+;;       is defined, this will lower the number of errors once we start
+;;       editting things in the future
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
@@ -80,7 +84,6 @@
     (error () (make-instance 'code :type (make-instance 'v-error)))))
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors)
-  (print "special match")
   (let ((method (v-argument-spec func)))
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
@@ -88,7 +91,6 @@
           (error () nil)))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs)
-  (print "spec match")
   (let* ((spec-types (v-argument-spec func))
          (spec-generics (positions-if #'v-spec-typep spec-types))
          (g-dim (when spec-generics 
@@ -106,7 +108,6 @@
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs)
-  (print "basic match")
   (let ((spec-types (v-argument-spec func)))
     (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
         (list 0 func arg-objs)
@@ -117,7 +118,6 @@
                             :collect (copy-code obj :type type))))))))
 
 (defun find-functions-for-args (func-name args-code arg-objs env)
-  (print args-code)
   (let* ((arg-types (mapcar #'code-type arg-objs))
          (any-errors (some #'v-errorp arg-types)))
     (loop :for func :in (get-function func-name env) 
