@@ -18,10 +18,12 @@
 ;;[TODO] use make-func-spec so we have only one place where the spec
 ;;       is defined, this will lower the number of errors once we start
 ;;       editting things in the future
+;;[TODO] This is the ugliest part of varjo now....sort it out!
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
-         (args (if context-pos (subseq args 0 context-pos) args)))
+         (args (if context-pos (subseq args 0 context-pos) args))
+         (arg-names (lambda-list-get-names args)))
     (cond ((stringp (first body))
            (destructuring-bind (transform arg-types return-spec 
                                           &key place glsl-spec-matching) body
@@ -32,26 +34,38 @@
           ((eq (first body) :special)
            (destructuring-bind (&key context place args-valid return)
                (rest body)
-             (if args-valid
+             (if (eq args-valid t)
                  `(progn 
-                    (add-function ',name (list :special 
-                                               (lambda ,args
-                                                 (declare (ignorable ,@args))
-                                                 (let ((res ,args-valid)) 
-                                                   (when res (list res 0))))
-                                               (lambda ,args ,return)
-                                               ,context ,place nil)
-                                  *global-env*)
-                    ',name)
-                 `(progn
-                    (add-function ',name (list :special 
-                                               ',(mapcar #'second args)
-                                               (lambda ,(mapcar #'first args)
-                                                 (declare (ignorable ,@(mapcar #'first args)))
-                                                 ,return)
-                                               ,context ,place nil)
-                                  *global-env*)
-                    ',name))))
+                        (add-function ',name (list :special 
+                                                   t
+                                                   (lambda ,args 
+                                                     (declare (ignorable ,@arg-names)) 
+                                                     ,return)                                               
+                                                   ,context ,place nil)
+                                      *global-env*)
+                        ',name)
+                 (if args-valid
+                     `(progn 
+                        (add-function ',name (list :special 
+                                                   (lambda ,args
+                                                     (declare (ignorable ,@arg-names))
+                                                     (let ((res ,args-valid)) 
+                                                       (when res (list res 0))))
+                                                   (lambda ,args 
+                                                     (declare (ignorable ,@arg-names)) 
+                                                     ,return)                                               
+                                                   ,context ,place nil)
+                                      *global-env*)
+                        ',name)
+                     `(progn
+                        (add-function ',name (list :special 
+                                                   ',(mapcar #'second args)
+                                                   (lambda ,(mapcar #'first args)
+                                                     (declare (ignorable ,@arg-names))
+                                                     ,return)
+                                                   ,context ,place nil)
+                                      *global-env*)
+                        ',name)))))
           (t `(progn (setf (gethash ',name (v-external-functions *global-env*))
                          '(,args ,@(rest body)))
                    ',name)))))
@@ -69,10 +83,13 @@
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors)
   (let ((method (v-argument-spec func)))
+    (print "method") (print method)
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
-        (handler-case (list 0 func (apply method arg-code)) 
-          (error () nil)))))
+        (if (eq method t)
+            (print (list 0 func arg-code))
+            (handler-case (list 0 func (apply method arg-code)) 
+              (error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs)
   (let* ((spec-types (v-argument-spec func))

@@ -1,5 +1,12 @@
 (in-package :varjo)
 
+(defun lambda-list-get-names (l-list)
+  (let ((keywords '(&allow-other-keys &environment &rest &aux &key &whole &body
+                    &optional)))
+    (loop :for i :in l-list
+       :if (not (member i keywords))
+       :collect (if (listp i) (first i) i))))
+
 ;; [TODO] fully implement positions-if to match position-if spec
 ;; [TODO] also add positions-if-not and positions: could be all be useful
 (defun positions-if (predicate sequence)

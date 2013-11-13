@@ -13,6 +13,11 @@
   :return (make-instance 'code :current-line "booyah!" 
                          :type (make-instance 'v-int)))
 
+(v-defun %make-function (name args &rest body)
+  :special
+  :args-valid t
+  :return (format nil "name:~s args:~s body:~s" name args body))
+
 ;; [TODO] first argument should always be the environment
 ;;        or maybe that is implicitly available
 ;; [TODO] work out if we need to care about &optional &rest etc

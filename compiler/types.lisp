@@ -9,68 +9,25 @@
 
 ;; [TODO] ensure all cast lists have the correct order.
 
-(defmethod v-type-name ((type v-type))
-  (class-name (class-of type)))
-(defmethod v-type-name ((type v-spec-type))
-  (class-name (class-of type)))
+;; spec types are to handle the manifest ugliness of the glsl spec.
+;; dear god just one txt file with every permutation of every glsl
+;; function would have save me so many hours work.
+(defclass v-spec-type () ())
+(defclass v-tfd (v-spec-type) ())
+(defclass v-tf (v-tfd) ()) ;; float vec*
+(defclass v-td (v-tfd) ()) ;; double dvec*
+(defclass v-tb (v-spec-type) ()) ;; bool bvec*
+(defclass v-tiu (v-spec-type) ())
+(defclass v-ti (v-tiu) ()) ;; int ivec*
+(defclass v-tu (v-tiu) ()) ;; uint uvec*
+(defclass v-tvec (v-spec-type) ()) ;;vec* uvec* ivec* [notice no dvec]
+(defun v-spec-typep (obj)
+  (and (typep obj 'v-spec-type)
+       (not (typep obj 'v-type))))
 
 (defclass v-array (v-container) 
   ((element-type :initform nil :initarg :element-type :reader v-element-type)
    (dimensions :initform nil :initarg :dimensions :reader v-dimensions)))
-
-(defun type-spec->type (spec)  
-  (if (symbolp spec)
-      (make-instance (if (keywordp spec) (symb 'v- spec) spec))
-      (destructuring-bind (type dimensions) spec
-        (make-instance 'v-array :element-type (if (keywordp spec) 
-                                                  (symb 'v- type)
-                                                  type)
-                       :dimensions dimensions))))
-
-(defmethod v-glsl-size ((type t))
-  (slot-value type 'glsl-size))
-
-(defmethod v-glsl-size ((type v-array))
-  (* (apply #'* (v-dimensions type)) 
-     (slot-value (v-element-type type) 'glsl-size)))
-
-(defmethod v-typep ((a v-type) (b v-type))
-  (typep a (v-type-name b)))
-(defmethod v-typep ((a v-type) b)
-  (typep a (v-type-name (type-spec->type b))))
-
-(defmethod v-casts-to-p (from-type to-type)
-  (not (null (v-casts-to from-type to-type))))
-
-(defmethod v-casts-to ((from-type v-type) (to-type symbol))
-  (if (typep from-type to-type)
-      from-type
-      (when (slot-exists-p from-type 'casts-to)
-        (loop :for cast :in (slot-value from-type 'casts-to)
-           :for cast-type = (type-spec->type cast)
-           :if (typep cast-type to-type) :return cast-type))))
-
-(defun find-mutual-cast-type (&rest types)
-  (let ((casts (loop :for type :in types :collect 
-                  (if (symbolp type) 
-                      (cons type (slot-value (make-instance type) 'casts-to)) 
-                      (cons (v-type-name type) 
-                            (slot-value type 'casts-to))))))
-    (destructuring-bind (mutual-casts . other-cast-lists) casts
-      (loop :for casts :in other-cast-lists :do
-         (setf mutual-casts (intersection mutual-casts casts)))
-      (first (sort mutual-casts #'v-superior)))))
-
-(let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2 
-                              v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
-                              v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
-                              v-mat4x4)))
-  (defun v-superior (x y) 
-    (< (or (position x order-or-superiority) -1)
-       (or (position y order-or-superiority) -1))))
-
-(defun v-superior-type (&rest types)
-  (first (sort types #'v-superior)))
 
 (defclass v-none () ())
 
@@ -96,28 +53,7 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
-(defgeneric v-special-functionp (func))
-(defmethod v-special-functionp ((func v-function))
-  (eq :special (v-glsl-string func)))
-
-;; spec types are to handle the manifest ugliness of the glsl spec.
-;; dear god just one txt file with every permutation of every glsl
-;; function would have save me so many hours work.
-(defclass v-spec-type () ())
-(defclass v-tfd (v-spec-type) ())
-(defclass v-tf (v-tfd) ()) ;; float vec*
-(defclass v-td (v-tfd) ()) ;; double dvec*
-(defclass v-tb (v-spec-type) ()) ;; bool bvec*
-(defclass v-tiu (v-spec-type) ())
-(defclass v-ti (v-tiu) ()) ;; int ivec*
-(defclass v-tu (v-tiu) ()) ;; uint uvec*
-(defclass v-tvec (v-spec-type) ()) ;;vec* uvec* ivec* [notice no dvec]
-(defun v-spec-typep (obj)
-  (and (typep obj 'v-spec-type)
-       (not (typep obj 'v-type))))
-
-(defclass v-error () ())
-(defun v-errorp (obj) (typep obj 'v-error))
+(defclass v-error (v-type) ())
 
 (defclass v-void () 
   ((core :initform t :reader core-typep)
@@ -499,8 +435,70 @@
    (glsl-string :initform "usampler-Cube-Array" :reader V-glsl-string)
    (element-type :initform 'V-VEC4 :reader V-element-type)))
 
-;;----------v-v-v-old-v-v-v-----------;
-;; [TODO] why only first 2?
-;; (defun type-equal (a b)
-;;   (equal (subseq a 0 2) (subseq b 0 2)))
+;;----------------------------------------------------------------------
 
+(defmethod v-type-name ((type v-type))
+  (class-name (class-of type)))
+(defmethod v-type-name ((type v-spec-type))
+  (class-name (class-of type)))
+
+(defun type-spec->type (spec)  
+  (if (symbolp spec)
+      (make-instance (if (keywordp spec) (symb 'v- spec) spec))
+      (destructuring-bind (type dimensions) spec
+        (make-instance 'v-array :element-type (if (keywordp spec)
+                                                  (symb 'v- type)
+                                                  type)
+                       :dimensions dimensions))))
+
+(defmethod v-glsl-size ((type t))
+  (slot-value type 'glsl-size))
+
+(defmethod v-glsl-size ((type v-array))
+  (* (apply #'* (v-dimensions type)) 
+     (slot-value (v-element-type type) 'glsl-size)))
+
+(defmethod v-typep ((a v-type) (b v-type))
+  (typep a (v-type-name b)))
+(defmethod v-typep ((a v-type) b)
+  (typep a (v-type-name (type-spec->type b))))
+
+(defmethod v-casts-to-p (from-type to-type)
+  (not (null (v-casts-to from-type to-type))))
+
+(defmethod v-casts-to ((from-type v-type) (to-type symbol))
+  (if (typep from-type to-type)
+      from-type
+      (when (slot-exists-p from-type 'casts-to)
+        (loop :for cast :in (slot-value from-type 'casts-to)
+           :for cast-type = (type-spec->type cast)
+           :if (typep cast-type to-type) :return cast-type))))
+
+(defun find-mutual-cast-type (&rest types)
+  (let ((casts (loop :for type :in types :collect 
+                  (if (symbolp type) 
+                      (cons type (slot-value (make-instance type) 'casts-to)) 
+                      (cons (v-type-name type) 
+                            (slot-value type 'casts-to))))))
+    (destructuring-bind (mutual-casts . other-cast-lists) casts
+      (loop :for casts :in other-cast-lists :do
+         (setf mutual-casts (intersection mutual-casts casts)))
+      (first (sort mutual-casts #'v-superior)))))
+
+(let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2 
+                              v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
+                              v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
+                              v-mat4x4)))
+  (defun v-superior (x y) 
+    (< (or (position x order-or-superiority) -1)
+       (or (position y order-or-superiority) -1))))
+
+(defun v-superior-type (&rest types)
+  (first (sort types #'v-superior)))
+
+(defgeneric v-special-functionp (func))
+
+(defmethod v-special-functionp ((func v-function))
+  (eq :special (v-glsl-string func)))
+
+(defun v-errorp (obj) (typep obj 'v-error))
