@@ -26,15 +26,28 @@
                                    *global-env*)
                      ',name)))
           ((eq (first body) :special)
-           (destructuring-bind (&key context place args-valid return) body
-             `(progn (add-function ',name (list :special
-                                                (lambda ,args 
-                                                  (let ((res ,args-valid)) 
-                                                    (when res (list res 0))))
-                                                (lambda ,args ,return)
-                                                ,context ,place)
-                                   *global-env*)
-                     ',name)))
+           (destructuring-bind (&key context place args-valid return)
+               (rest body)
+             (if args-valid
+                 `(progn 
+                    (add-function ',name (list :special 
+                                               (lambda ,args
+                                                 (declare (ignorable ,@args))
+                                                 (let ((res ,args-valid)) 
+                                                   (when res (list res 0))))
+                                               (lambda ,args ,return)
+                                               ,context ,place nil)
+                                  *global-env*)
+                    ',name)
+                 `(progn
+                    (add-function ',name (list :special 
+                                               ',(mapcar #'second args)
+                                               (lambda ,(mapcar #'first args)
+                                                 (declare (ignorable ,@(mapcar #'first args)))
+                                                 ,return)
+                                               ,context ,place nil)
+                                  *global-env*)
+                    ',name))))
           (t `(progn (setf (gethash ',name (v-external-functions *global-env*))
                          '(,args ,@(rest body)))
                    ',name)))))
@@ -69,7 +82,7 @@
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors)
   (print "special match")
   (let ((method (v-argument-spec func)))
-    (if (eq method t)
+    (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
         (handler-case (list 0 func (apply method arg-code)) 
           (error () nil)))))
@@ -127,7 +140,7 @@
          (functions (find-functions-for-args func-name args-code arg-objs env)))
     (if functions
         (destructuring-bind (score function arg-objs)
-            (first (sort functions #'< :key #'second))
+            (first (sort functions #'< :key #'first))
           (declare (ignore score))
           (list function arg-objs))
         (make-instance 'deferred-error :error-name 'no-valid-function 
@@ -150,5 +163,9 @@
            (v-element-type (nth (second spec) arg-types)))
           ((or (symbolp spec) (listp spec)) (type-spec->type spec))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
+
+(defun glsl-resolve-special-func-type (func args)
+  (handler-case (apply (v-return-spec func) args)
+    (error () (error 'problem-with-the-compiler))))
 
 ;;------------------------------------------------------------

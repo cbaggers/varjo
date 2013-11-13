@@ -36,9 +36,10 @@
          (f-result (find-function-for-args func-name args-code env)))
     (cond ((listp f-result)
            (destructuring-bind (func args) f-result
-             (merge-obs args
-                        :type (glsl-resolve-func-type func args)
-                        :current-line (gen-function-string func args))))
+             (if (v-special-functionp func)                 
+                 (glsl-resolve-special-func-type func args)
+                 (merge-obs args :type (glsl-resolve-func-type func args)
+                            :current-line (gen-function-string func args)))))
           ((typep f-result 'deferred-error) (raise-deffered-error f-result)
            (error 'problem-with-the-compiler)))))
 

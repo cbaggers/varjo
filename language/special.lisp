@@ -8,46 +8,12 @@
 
 (in-package :varjo)
 
-(v-defun + (&rest numbers)
-  :special
-  :args #'args-compatible
-  :return (merge-obs numbers
-                     :type (apply #'superior-type (mapcar #'v-type numbers))
-                     :current-line (format nil "(~{~a~^ ~^+~^ ~})"
-                                           (mapcar #'current-line arg-objs))))
+(v-defun edd ((a v-int) (b v-float))
+  :special 
+  :return (make-instance 'code :current-line "booyah!" 
+                         :type (make-instance 'v-int)))
 
-(vdefspecial + (&rest args)    
-  (let* ((arg-objs (mapcar #'varjo->glsl args))
-         (types (mapcar #'code-type arg-objs)))
-    (if (apply #'types-compatiblep types)
-        (merge-obs arg-objs
-                   :type (apply #'superior-type types)
-                   :current-line (format nil "(~{~a~^ ~^+~^ ~})"
-                                         (mapcar #'current-line 
-                                                 arg-objs)))
-        (error "The types of object passed to + are not compatible~%~{~s~^ ~}" types))))
 
-(vdefspecial %- (&rest args)    
-  (let* ((arg-objs (mapcar #'varjo->glsl args))
-         (types (mapcar #'code-type arg-objs)))
-    (if (apply #'types-compatiblep types)
-        (merge-obs arg-objs
-                   :type (apply #'superior-type types)
-                   :current-line (format nil "(~{~a~^ ~^-~^ ~})"
-                                         (mapcar #'current-line 
-                                                 arg-objs)))
-        (error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
-
-(vdefspecial / (&rest args)    
-  (let* ((arg-objs (mapcar #'varjo->glsl args))
-         (types (mapcar #'code-type arg-objs)))
-    (if (apply #'types-compatiblep types)
-        (merge-obs arg-objs
-                   :type (apply #'superior-type types)
-                   :current-line (format nil "(~{~a~^ ~^/~^ ~})"
-                                         (mapcar #'current-line 
-                                                 arg-objs)))
-        (error "The types of object passed to / are not compatible~%~{~s~^ ~}" types))))
 
 (vdefspecial ? (test-form then-form &optional else-form)
   (let* ((test (varjo->glsl test-form))
@@ -393,3 +359,44 @@
                                                comp))
               (error "Varjo: Invlaid length of components for swizzle")))
         (error "Varjo: Trying to swizzle a non vector: ~a" vec-type))))
+
+(v-defun + (&rest numbers)
+  :special
+  :args-valid #'args-compatible
+  :return (merge-obs numbers
+                     :type (apply #'superior-type (mapcar #'v-type numbers))
+                     :current-line (format nil "(~{~a~^ ~^+~^ ~})"
+                                           (mapcar #'current-line arg-objs))))
+
+(vdefspecial + (&rest args)    
+  (let* ((arg-objs (mapcar #'varjo->glsl args))
+         (types (mapcar #'code-type arg-objs)))
+    (if (apply #'types-compatiblep types)
+        (merge-obs arg-objs
+                   :type (apply #'superior-type types)
+                   :current-line (format nil "(~{~a~^ ~^+~^ ~})"
+                                         (mapcar #'current-line 
+                                                 arg-objs)))
+        (error "The types of object passed to + are not compatible~%~{~s~^ ~}" types))))
+
+(vdefspecial %- (&rest args)    
+  (let* ((arg-objs (mapcar #'varjo->glsl args))
+         (types (mapcar #'code-type arg-objs)))
+    (if (apply #'types-compatiblep types)
+        (merge-obs arg-objs
+                   :type (apply #'superior-type types)
+                   :current-line (format nil "(~{~a~^ ~^-~^ ~})"
+                                         (mapcar #'current-line 
+                                                 arg-objs)))
+        (error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
+
+(vdefspecial / (&rest args)    
+  (let* ((arg-objs (mapcar #'varjo->glsl args))
+         (types (mapcar #'code-type arg-objs)))
+    (if (apply #'types-compatiblep types)
+        (merge-obs arg-objs
+                   :type (apply #'superior-type types)
+                   :current-line (format nil "(~{~a~^ ~^/~^ ~})"
+                                         (mapcar #'current-line 
+                                                 arg-objs)))
+        (error "The types of object passed to / are not compatible~%~{~s~^ ~}" types))))
