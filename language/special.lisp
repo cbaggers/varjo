@@ -8,15 +8,97 @@
 
 (in-package :varjo)
 
-(v-defun tested ((a v-int) (b v-float))
-  :special 
-  :return (make-instance 'code :current-line "booyah!" 
-                         :type (make-instance 'v-int)))
+;; special functions need to specify:
+;; :args-valid 
+;;  * if not present then the types from the arguments are used 
+;;    with basic type checking. the args are then populated with 
+;;    the compiled code-objects for the :return section
+;;  * if set to t any arguments are accepted and the raw code is 
+;;    passed to the :return section. 
+;;  * you can specify code here and it will be used to validate the 
+;;    arguments, you must return a list of compiled arg objects if successfull
+;;    and you MUST throw an error if not.
+;; Finally if you modify the environment in :return you must return the new 
+;; environment in the second value position
+
+;; example for case 1
+;; (v-defun test-1 ((a v-int) (b v-float))
+;;   :special 
+;;   :return (make-instance 'code :current-line "booyah!" 
+;;                          :type (make-instance 'v-int)))
+
+;; example for case 2
+;; (v-defun test-2 (name args &rest body)
+;;   :special
+;;   :args-valid t
+;;   :return (progn (format nil "name:~s args:~s body:~s" name args body)
+;;                  (make-instance 'code :current-line "booyah!" 
+;;                                 :type (make-instance 'v-int))))
+
+
+(v-defun %defvar (name type &key qualifiers)
+  )
+
+
+(v-defun %make-var (name type &optional place))
+
+(vdefspecial %make-var (name type)
+  (make-instance 'code :type (set-place-t type)
+                 :current-line (string name)))
+
+(vdefspecial %typify (form)
+  (let* ((arg (varjo->glsl form))
+         (type (code-type arg)))
+    (merge-obs arg :current-line 
+               (format nil "~a ~a" (varjo-type->glsl-type type)
+                       (current-line arg)))))
+
+(vdefspecial %in-typify (form &optional (qualifiers nil))
+  (let* ((arg (varjo->glsl form))
+         (type (code-type arg)))
+    (merge-obs arg :current-line 
+               (format nil "~a ~{~a ~}~a~@[[~a]~]" 
+                       (varjo-type->glsl-type type)
+                       qualifiers
+                       (current-line arg)
+                       (when (second type)
+                         (if (numberp (second type))
+                             (second type)
+                             ""))))))
 
 (v-defun %make-function (name args &rest body)
   :special
   :args-valid t
-  :return (format nil "name:~s args:~s body:~s" name args body))
+  :return (progn ))
+
+(vdefspecial %make-function (name args &rest body)
+  (let ((name (if (eq name :main) :main (symb '-f name))))
+    (destructuring-bind (form-objs new-vars)
+        (compile-let-forms (mapcar #'list args) nil nil)
+      (declare (ignore form-objs))
+      (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
+             (body-obj (indent-ob (apply-special 'progn body)))
+             (name (if (eq name :main) :main name))
+             (returns (returns body-obj))
+             (type (if (eq name :main) '(:void nil nil) 
+                       (first returns))))
+        (let ((name (safe-gl-name name)))
+          (if (or (not returns) (loop for r in returns always (equal r (first returns))))
+              (make-instance 
+               'code :type type
+               :current-line nil
+               :to-top (append 
+                        (to-top body-obj)
+                        (list (format 
+                               nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
+                               (varjo-type->glsl-type type)
+                               name 
+                               (mapcar #'reverse args)
+                               (to-block body-obj) 
+                               (current-line (end-line body-obj)))))
+
+               :out-vars (out-vars body-obj))
+              (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))))
 
 ;; [TODO] first argument should always be the environment
 ;;        or maybe that is implicitly available

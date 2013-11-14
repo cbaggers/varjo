@@ -58,7 +58,7 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for (name type . qualifiers) :in in-args :do
-       (let* ((type-obj (type-spec->type type))
+       (let* ((type-obj (type-spec->type type :place t))
               (fake-struct (when (typep type-obj 'v-struct)
                              (make-fake-struct type-obj env))))
          (add-var name (make-instance 'v-value :type (or fake-struct type-obj))
@@ -76,7 +76,8 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (loop :for (name type) :in uniforms :do
-       (add-var name (make-instance 'v-value :type (type-spec->type type)) 
+       (add-var name (make-instance 'v-value :type (type-spec->type type)
+                                    :read-onlyp t) 
                 env t)
        (push (list name type) (v-uniforms env)))
     (values code env)))

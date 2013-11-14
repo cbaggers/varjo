@@ -1,5 +1,7 @@
 (in-package :varjo)
 
+(defun listify (x) (if (listp x) x (list x)))
+
 (defun lambda-list-get-names (l-list)
   (let ((keywords '(&allow-other-keys &environment &rest &aux &key &whole &body
                     &optional)))

@@ -108,10 +108,11 @@
     (a-add var-name val (v-variables env))
     env))
 
-(defmethod add-vars (var-name (vals list) (env environment)
+(defmethod add-vars ((var-names list) (vals list) (env environment)
                      &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
-    (loop :for val :in vals :do (a-add var-name val (v-variables env)))
+    (loop :for name in var-names :for val :in vals :do
+       (a-add name val (v-variables env)))
     env))
 
 (defgeneric get-var (var-name env))

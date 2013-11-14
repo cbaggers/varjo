@@ -3,7 +3,7 @@
 ;;types
 (defclass v-type () 
   ((core :initform nil :reader core-typep)
-   (place :initform nil :reader v-placep)
+   (place :initform t :initarg :place :reader v-placep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)))

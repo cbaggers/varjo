@@ -38,8 +38,8 @@
                  `(progn 
                         (add-function ',name (list :special 
                                                    t
-                                                   (lambda ,args 
-                                                     (declare (ignorable ,@arg-names)) 
+                                                   (lambda ,(cons 'env args) 
+                                                     (declare (ignorable env ,@arg-names)) 
                                                      ,return)                                               
                                                    ,context ,place nil)
                                       *global-env*)
@@ -47,12 +47,12 @@
                  (if args-valid
                      `(progn 
                         (add-function ',name (list :special 
-                                                   (lambda ,args
-                                                     (declare (ignorable ,@arg-names))
+                                                   (lambda ,(cons 'env args)
+                                                     (declare (ignorable env ,@arg-names))
                                                      (let ((res ,args-valid)) 
                                                        (when res (list res 0))))
-                                                   (lambda ,args 
-                                                     (declare (ignorable ,@arg-names)) 
+                                                   (lambda ,(cons 'env args) 
+                                                     (declare (ignorable env ,@arg-names)) 
                                                      ,return)                                               
                                                    ,context ,place nil)
                                       *global-env*)
@@ -60,8 +60,8 @@
                      `(progn
                         (add-function ',name (list :special 
                                                    ',(mapcar #'second args)
-                                                   (lambda ,(mapcar #'first args)
-                                                     (declare (ignorable ,@arg-names))
+                                                   (lambda ,(cons 'env (mapcar #'first args))
+                                                     (declare (ignorable env ,@arg-names))
                                                      ,return)
                                                    ,context ,place nil)
                                       *global-env*)
@@ -81,14 +81,14 @@
   (handler-case (varjo->glsl arg env)
     (error () (make-instance 'code :type (make-instance 'v-error)))))
 
-(defun special-arg-matchp (func arg-code arg-objs arg-types any-errors)
-  (let ((method (v-argument-spec func)))
-    (print "method") (print method)
+(defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
+  (let ((method (v-argument-spec func))
+        (env (clone-environment env)))
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
         (if (eq method t)
-            (print (list 0 func arg-code))
-            (handler-case (list 0 func (apply method arg-code)) 
+            (list 0 func arg-code)
+            (handler-case (list 0 func (apply method (cons env arg-code))) 
               (error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs)
@@ -124,7 +124,7 @@
     (loop :for func :in (get-function func-name env) 
        :for candidate =
        (if (v-special-functionp func) 
-           (special-arg-matchp func args-code arg-objs arg-types any-errors)
+           (special-arg-matchp func args-code arg-objs arg-types any-errors env)
            (when (not any-errors)
              (if (v-glsl-spec-matchingp func)
                  (glsl-arg-matchp func arg-types arg-objs)
@@ -165,8 +165,11 @@
           ((or (symbolp spec) (listp spec)) (type-spec->type spec))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
 
-(defun glsl-resolve-special-func-type (func args)
-  (handler-case (apply (v-return-spec func) args)
-    (error () (error 'problem-with-the-compiler))))
+(defun glsl-resolve-special-func-type (func args env)
+  (let ((env (clone-environment env)))
+    (multiple-value-bind (code-obj new-env)
+        (handler-case (apply (v-return-spec func) (cons env args))
+          (error (e) (error e)))
+      (values code-obj (or new-env env)))))
 
 ;;------------------------------------------------------------

@@ -442,13 +442,15 @@
 (defmethod v-type-name ((type v-spec-type))
   (class-name (class-of type)))
 
-(defun type-spec->type (spec)  
+(defun type-spec->type (spec &key place)  
   (if (symbolp spec)
-      (make-instance (if (keywordp spec) (symb 'v- spec) spec))
+      (make-instance (if (keywordp spec) (symb 'v- spec) spec)
+                     :place place)
       (destructuring-bind (type dimensions) spec
         (make-instance 'v-array :element-type (if (keywordp spec)
                                                   (symb 'v- type)
                                                   type)
+                       :place place
                        :dimensions dimensions))))
 
 (defmethod v-glsl-size ((type t))
