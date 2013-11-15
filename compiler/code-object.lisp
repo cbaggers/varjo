@@ -67,6 +67,7 @@
 (defun make-none-ob ()
   (make-instance 'code :type :none :current-line ""))
 
+;;[TODO] This is why break needs a semicolon
 (defun end-line (ob)
   (if (find (type-principle (code-type ob)) '(:none :void))
       ob

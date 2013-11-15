@@ -12,7 +12,8 @@
 ;; spec types are to handle the manifest ugliness of the glsl spec.
 ;; dear god just one txt file with every permutation of every glsl
 ;; function would have save me so many hours work.
-(defclass v-spec-type () ())
+(defclass v-spec-type () 
+  ((place :initform t :initarg :place :reader v-placep)))
 (defclass v-tfd (v-spec-type) ())
 (defclass v-tf (v-tfd) ()) ;; float vec*
 (defclass v-td (v-tfd) ()) ;; double dvec*

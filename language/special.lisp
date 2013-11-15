@@ -90,19 +90,20 @@
                  :to-top (append (mapcan #'to-top decl-objs)
                                  (to-top prog-obj))))))
 
+;;[TODO] read this and de-ugly it
 (v-defun progn (&rest body)
   :special
   :args-valid t
   :return
-  (let ((arg-objs (mapcar #'varjo->glsl body env)))
+  (let ((body-objs (loop :for code :in body :collect (varjo->glsl code env))))
     (cond 
-      ((eq 0 (length arg-objs)) (make-none-ob))
-      ((eq 1 (length arg-objs))
-       (let ((ob (first arg-objs)))
+      ((eq 0 (length body-objs)) (make-none-ob))
+      ((eq 1 (length body-objs))
+       (let ((ob (first body-objs)))
          (merge-obs ob :current-line (current-line ob))))
-      (t (let ((last-arg (car (last arg-objs)))
-               (args (subseq arg-objs 0 (- (length arg-objs) 1))))
-           (merge-obs arg-objs
+      (t (let ((last-arg (car (last body-objs)))
+               (args (subseq body-objs 0 (- (length body-objs) 1))))
+           (merge-obs body-objs
                       :type (code-type last-arg)
                       :current-line (current-line last-arg)
                       :to-block 
