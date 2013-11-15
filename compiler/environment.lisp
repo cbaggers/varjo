@@ -82,14 +82,11 @@
 
 (defgeneric get-macro (macro-name env))
 
-(defmethod get-macro (macro-name (env (eql :-genv-)))
-  (let ((spec (gethash macro-name *global-env-macros*)))
-    (when (and spec (valid-for-contextp spec env)) (first spec))))
-
 (defmethod get-macro (macro-name (env environment))
-  (or (let ((spec (a-get macro-name (v-macros env))))
-        (when (and spec (valid-for-contextp spec env)) (first spec)))
-      (get-macro macro-name *global-env*)))
+  (let ((spec (or (a-get macro-name (v-macros env))
+                  (gethash macro-name *global-env-macros*))))
+    (when (and spec (valid-for-contextp spec env)) 
+      (first spec))))
 
 (defmethod v-mboundp (macro-name (env environment))
   (not (null (get-macro macro-name env))))

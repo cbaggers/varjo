@@ -85,13 +85,21 @@
   :return (let ((new-env (clone-environment env)))
            (varjo->glsl `(progn ,@body) new-env)))
 
-;; [TODO] This would be the ideal.
-;; [TODO] is block the best term? is it a block in the code-obj sense?
-;; (defmacro let (forms &body body)
-;;   `(%env-block
-;;     (%env-multi-declare ,forms)
-;;     ,@body))
+;;[TODO] this should have a and &optional for place
+(v-defun %make-var (name type)
+  :special
+  :args-valid t
+  :return (make-instance 'code :type (set-place-t type) 
+                         :current-line (lisp-name->glsl-name name)))
 
+
+(v-defun %typify (form &optional qualifiers)
+  :special
+  :args-valid t
+  :return
+  (let* ((code (varjo->glsl form env)))
+    (merge-obs code :type (code-type code)
+               :current-line (prefix-type-declaration code qualifiers))))
 
 ;;[TODO] Make this less ugly
 (v-defun %env-multi-var-declare (forms &optional include-type-declarations)
@@ -143,40 +151,19 @@
                          :to-top (mapcan #'to-top decl-objs))
               env))))
 
-(v-defun let (forms &body body)
-  :special
-  :args-valid t
-  :return
-  (destructuring-bind (decl-objs new-env) (compile-let-forms forms t env)
-    (let ((prog-obj (varjo->glsl `(progn ,@body) new-env)))
-      (merge-obs (cons prog-obj decl-objs)
-                 :type (code-type prog-obj)
-                 :current-line (current-line prog-obj)
-                 :to-block (append 
-                            (mapcan #'to-block decl-objs)
-                            (mapcar (lambda (x) (current-line (end-line x)))
-                                    decl-objs)
-                            (to-block prog-obj))
-                 :to-top (append (mapcan #'to-top decl-objs)
-                                 (to-top prog-obj))))))
+;; [TODO] is block the best term? is it a block in the code-obj sense?
+(v-defmacro let (bindings &body body)
+  `(%env-block
+    (%env-multi-declare ,bindings)
+    ,@body))
 
+(v-defmacro let* (bindings &rest body)
+  (let* ((bindings (reverse bindings))
+         (result `(let (,(first bindings)) ,@body)))
+    (loop :for binding :in (rest bindings) :do
+       (setf result `(let (,binding) ,result)))
+    result))
 
-
-;;[TODO] this should have a and &optional for place
-(v-defun %make-var (name type)
-  :special
-  :args-valid t
-  :return (make-instance 'code :type (set-place-t type) 
-                         :current-line (lisp-name->glsl-name name)))
-
-
-(v-defun %typify (form &optional qualifiers)
-  :special
-  :args-valid t
-  :return
-  (let* ((code (varjo->glsl form env)))
-    (merge-obs code :type (code-type code)
-               :current-line (prefix-type-declaration code qualifiers))))
 
 ;;[TODO] move error
 ;;[TODO] ignoreing the arg-obs seems dumb, surely we need that data 

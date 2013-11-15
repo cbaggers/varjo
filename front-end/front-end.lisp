@@ -87,9 +87,10 @@
 (defun v-macroexpand-all (code env)
   (cond ((atom code) code)
         (t (let* ((head (first code))
-                  (m (get-macro head env))
-                  (code (if m (apply m code) code)))
-             (loop :for c :in code :collect (v-macroexpand-all c env))))))
+                  (m (get-macro head env)))
+             (if m 
+                 (v-macroexpand-all (apply m (rest code)) env)
+                 (loop :for c :in code :collect (v-macroexpand-all c env)))))))
 
 (defun macroexpand-pass (code env)
   (values (v-macroexpand-all code env) env))
@@ -117,10 +118,9 @@
 
 ;;----------------------------------------------------------------------
 
-(defun compile-pass (code env)
-  (error "This isnt an error! It's time to look at what we have ~a" 
-         (list code env))
-  (values (varjo->glsl `(%make-function :main () ,@code) env)
+(defun compile-pass (code env)  
+  ;;(values (varjo->glsl `(%make-function :main () ,@code) env) env)
+  (values (varjo->glsl code env) 
           env))
 
 ;;----------------------------------------------------------------------
