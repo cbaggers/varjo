@@ -45,6 +45,10 @@
 (deferror no-valid-function (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
 
+(deferror return-type-mismatch (name types returns)
+    "Some of the return statements in function '~a' return different types~%~a~%~a" 
+  name types returns)
+
 ;-----------------------------;
 
 (defclass deferred-error ()

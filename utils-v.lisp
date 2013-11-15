@@ -1,5 +1,8 @@
 (in-package :varjo)
 
+(defun cons-end (thing list)
+  (concatenate 'list list (list thing)))
+
 (defun listify (x) (if (listp x) x (list x)))
 
 (defun lambda-list-get-names (l-list)

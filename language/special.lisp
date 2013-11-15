@@ -35,70 +35,122 @@
 ;;                  (make-instance 'code :current-line "booyah!" 
 ;;                                 :type (make-instance 'v-int))))
 
+;;[TODO] move error
 
-(v-defun %defvar (name type &key qualifiers)
-  )
+(defun validate-var-types (var-name type-spec code-obj)
+  (when (and code-obj type-spec (not (v-type-eq (code-type code-obj) type-spec)))
+    (error "Type specified does not match the type of the form~%~s~%~s"
+           (code-type code-obj) type-spec))
+  (unless (and (null type-spec) code-obj)
+    (error "Could not establish the type of the variable: ~s" var-name))
+  t))
+
+(defun compile-let-forms (forms include-type-declarations env)
+  ;; compile vals
+  (let* ((env (clone-environment env))
+         (var-specs (loop :for f :in forms :collect (listify (first f))))
+         (c-objs (loop :for f in forms :collect 
+                    (when f (varjo->glsl (second f) env))))
+         (glsl-names (loop :for (name) :in var-specs
+                        :do (when (> (count name var-specs :key #'first) 1)
+                              (error "This name appears more than once in this form list ~a" 
+                                     name))
+                        :collect (free-name name env)))
+         (decl-objs (loop :for (name type-spec qualifiers) :in var-specs
+                       :for glsl-name :in glsl-names :for code-obj :in c-objs :do
+                       (validate-form-types name type-spec code-obj)
+                       (let ((code (if code-obj
+                                       `(setf (%make-var ,name (or type-spec (code-type code-obj))) ,code-obj)
+                                       `(%make-var ,name (or type-spec (code-type code-obj))))))
+                         (varjo->glsl (if include-type-declarations
+                                          `(%typify ,code) code) env)))))
+    ;;add-vars to env - this is destrucitvely modifying env
+    (loop :for (name type-spec qualifiers) :in var-specs 
+       :for glsl-name :in glsl-names :for code-obj :in c-objs :do
+       (let ((type-spec (when type-spec (type-spec->type type-spec))))
+         (add-var glsl-name
+                  (make-instance 'v-value :type (or type-spec (code-type code-obj)))
+                  env t)))
+    (list decl-objs env)))
+
+(v-defun let (forms &body body)
+  :special
+  :args-valid t
+  :return
+  (destructuring-bind (decl-objs new-env) (compile-let-forms forms t env)
+    (let ((prog-obj (varjo->glsl `(progn ,@body) new-env)))
+      (merge-obs (cons prog-obj decl-objs)
+                 :type (code-type prog-obj)
+                 :current-line (current-line prog-obj)
+                 :to-block (append 
+                            (mapcan #'to-block decl-objs)
+                            (mapcar (lambda (x) (current-line (end-line x)))
+                                    decl-objs)
+                            (to-block prog-obj))
+                 :to-top (append (mapcan #'to-top decl-objs)
+                                 (to-top prog-obj))))))
+
+(v-defun progn (&rest body)
+  :special
+  :args-valid t
+  :return
+  (let ((arg-objs (mapcar #'varjo->glsl body env)))
+    (cond 
+      ((eq 0 (length arg-objs)) (make-none-ob))
+      ((eq 1 (length arg-objs))
+       (let ((ob (first arg-objs)))
+         (merge-obs ob :current-line (current-line ob))))
+      (t (let ((last-arg (car (last arg-objs)))
+               (args (subseq arg-objs 0 (- (length arg-objs) 1))))
+           (merge-obs arg-objs
+                      :type (code-type last-arg)
+                      :current-line (current-line last-arg)
+                      :to-block 
+                      (remove #'null
+                              (append (loop for i in args
+                                         for j in (mapcar #'end-line args)
+                                         append (to-block i) 
+                                         collect (current-line j))
+                                      (to-block last-arg)))))))))
 
 
-(v-defun %make-var (name type &optional place))
+;;[TODO] this should have a and &optional for place
+(v-defun %make-var (name type)
+  :special
+  :args-valid t
+  :return (make-instance 'code :type (set-place-t type) 
+                         :current-line (lisp-name->glsl-name name)))
 
-(vdefspecial %make-var (name type)
-  (make-instance 'code :type (set-place-t type)
-                 :current-line (string name)))
 
-(vdefspecial %typify (form)
-  (let* ((arg (varjo->glsl form))
-         (type (code-type arg)))
-    (merge-obs arg :current-line 
-               (format nil "~a ~a" (varjo-type->glsl-type type)
-                       (current-line arg)))))
+(v-defun %typify (form &optional qualifiers)
+  :special
+  :args-valid t
+  :return
+  (let* ((code (varjo->glsl form env)))
+    (merge-obs code :current-line (prefix-type-declaration code qualifiers))))
 
-(vdefspecial %in-typify (form &optional (qualifiers nil))
-  (let* ((arg (varjo->glsl form))
-         (type (code-type arg)))
-    (merge-obs arg :current-line 
-               (format nil "~a ~{~a ~}~a~@[[~a]~]" 
-                       (varjo-type->glsl-type type)
-                       qualifiers
-                       (current-line arg)
-                       (when (second type)
-                         (if (numberp (second type))
-                             (second type)
-                             ""))))))
-
+;;[TODO] move error
+;;[TODO] ignoreing the arg-obs seems dumb, surely we need that data 
+;;       for something
 (v-defun %make-function (name args &rest body)
   :special
   :args-valid t
-  :return (progn ))
-
-(vdefspecial %make-function (name args &rest body)
-  (let ((name (if (eq name :main) :main (symb '-f name))))
-    (destructuring-bind (form-objs new-vars)
-        (compile-let-forms (mapcar #'list args) nil nil)
-      (declare (ignore form-objs))
-      (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
-             (body-obj (indent-ob (apply-special 'progn body)))
-             (name (if (eq name :main) :main name))
+  :return
+  (let ((func-env (make-instance 'environment :context (v-context env))))
+    (destructuring-bind (arg-objs func-env) (compile-let-forms args t func-env)
+      (declare (ignore arg-objs))
+      (let* ((body-obj (varjo->glsl `(progn ,@body) func-env))
+             (name (if (eq name :main) :main (free-name name env)))
              (returns (returns body-obj))
-             (type (if (eq name :main) '(:void nil nil) 
-                       (first returns))))
-        (let ((name (safe-gl-name name)))
-          (if (or (not returns) (loop for r in returns always (equal r (first returns))))
-              (make-instance 
-               'code :type type
-               :current-line nil
-               :to-top (append 
-                        (to-top body-obj)
-                        (list (format 
-                               nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
-                               (varjo-type->glsl-type type)
-                               name 
-                               (mapcar #'reverse args)
-                               (to-block body-obj) 
-                               (current-line (end-line body-obj)))))
-
-               :out-vars (out-vars body-obj))
-              (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))))
+             (type (if (eq name :main) '(:void nil nil) (first returns))))
+        (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
+          (error 'return-type-mismatch name type returns))
+        (make-instance 
+         'code :type type
+         :current-line nil
+         :to-top (cons-end (gen-function-body-string name args type body-obj)
+                           (to-top body-obj))
+         :out-vars (out-vars body-obj))))))
 
 ;; [TODO] first argument should always be the environment
 ;;        or maybe that is implicitly available
@@ -237,25 +289,6 @@
                        :type (code-type prog-obj)
                        :current-line (current-line prog-obj)))))))
 
-(vdefspecial let (form-code &rest body-code)
-  ;; check for name clashes between forms
-  ;; create init forms, for each one 
-  (destructuring-bind (form-objs new-vars)
-      (compile-let-forms form-code)
-    (let* ((*glsl-variables* (append new-vars *glsl-variables*))
-           (prog-ob (apply-special 'progn body-code)))
-      (merge-obs (cons prog-ob form-objs)
-                 :type (code-type prog-ob)
-                 :current-line (current-line prog-ob)
-                 :to-block (append 
-                            (mapcan #'to-block form-objs)
-                            (mapcar (lambda (x) 
-                                      (current-line (end-line x)))
-                                    form-objs)
-                            (to-block prog-ob))
-                 :to-top (append (mapcan #'to-top form-objs)
-                                 (to-top prog-ob))))))
-
 (vdefspecial %make-array (type length &optional contents)
   (let* ((literal-length (typep length 'code))
          (length (varjo->glsl length))
@@ -330,26 +363,6 @@
                                     ,(code-type arg-obj)
                                     ,(safe-gl-name out-var-name) 
                                     ,@qualifiers))))))
-
-(vdefspecial progn (&rest body)
-  (let ((arg-objs (mapcar #'varjo->glsl body)))
-    (cond 
-      ((eq 0 (length arg-objs)) (make-none-ob))
-      ((eq 1 (length arg-objs))
-       (let ((ob (first arg-objs)))
-         (merge-obs ob :current-line (current-line ob))))
-      (t (let ((last-arg (car (last arg-objs)))
-               (args (subseq arg-objs 0 (- (length arg-objs) 1))))
-           (merge-obs arg-objs
-                      :type (code-type last-arg)
-                      :current-line (current-line last-arg)
-                      :to-block 
-                      (remove #'null
-                              (append (loop for i in args
-                                         for j in (mapcar #'end-line args)
-                                         append (to-block i) 
-                                         collect (current-line j))
-                                      (to-block last-arg)))))))))
 
 ;; [TODO] why does this need semicolon?
 (vdefspecial return (&optional (form '(%void)))

@@ -8,6 +8,10 @@
    (glsl-size :initform 1)
    (casts-to :initform nil)))
 
+(defmethod set-place-t ((type v-type))
+  (setf (v-placep type) t)
+  type)
+
 (defgeneric v-glsl-size (type))
 (defgeneric v-casts-to-p (from-type to-type))
 (defgeneric v-casts-to (from-type to-type))
@@ -43,6 +47,3 @@
   ((type :initarg :type :initform nil :accessor v-type)
    (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
    (inferring :initarg :inferring :initform nil :accessor v-inferringp)))
-
-;; string generation
-(defgeneric v-type->string (x))

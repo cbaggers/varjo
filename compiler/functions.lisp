@@ -22,7 +22,9 @@
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
-         (args (if context-pos (subseq args 0 context-pos) args))
+         (args (subst '&rest '&body 
+                      (if context-pos (subseq args 0 context-pos) args)
+                      :test #'symbol-name-equal))
          (arg-names (lambda-list-get-names args)))
     (cond ((stringp (first body))
            (destructuring-bind (transform arg-types return-spec 
