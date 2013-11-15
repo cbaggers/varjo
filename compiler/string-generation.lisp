@@ -56,6 +56,9 @@
           (to-block body-obj) 
           (current-line (end-line body-obj))))
 
+(defun gen-assignment-string (place val)
+  (format nil "~a = ~a" (current-line place) (current-line val)))
+
 (defun qualify (obj &rest qualifiers)
   (%qualify obj qualifiers))
 

@@ -42,6 +42,9 @@
 (deferror clone-global-env-error ()
     "Cannot clone the global environment")
 
+(deferror could-not-find-function (name)
+    "No function called '~a' was found in this environment" name)
+
 (deferror no-valid-function (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
 
@@ -49,13 +52,10 @@
     "Some of the return statements in function '~a' return different types~%~a~%~a" 
   name types returns)
 
+(deferror non-place-assign (place val)
+    "You cannot setf this: ~a ~%This was attempted as follows ~a"
+  (current-line place)
+  (gen-assignment-string place val))
+
 ;-----------------------------;
 
-(defclass deferred-error ()
-  ((error-name :initform nil :initarg :error-name :reader error-name)
-   (error-args :initform nil :initarg :error-args :reader error-args)))
-
-(defmethod raise-deffered-error ((error deferred-error))
-  (if (error-name error)
-      (apply #'error (cons (error-name error) (error-args error)))
-      (apply #'error (error-args error))))

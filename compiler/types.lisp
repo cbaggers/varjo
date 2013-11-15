@@ -29,7 +29,7 @@
 (defmethod v-glsl-string ((object v-array))
   (format nil "~a ~~a~{[~a]~}" (v-element-type object) (v-dimensions object)))
 
-(defclass v-none () ())
+(defclass v-none (v-t-type) ())
 
 (defclass v-stream (v-type) ())
 
@@ -53,7 +53,9 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
-(defclass v-error (v-type) ())
+;;[TODO] This used to inherit from v-type...why was that?
+(defclass v-error (v-type) 
+  ((payload :initform nil :initarg :payload :accessor v-payload)))
 
 (defclass v-void () 
   ((core :initform t :reader core-typep)

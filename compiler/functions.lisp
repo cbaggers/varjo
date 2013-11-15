@@ -81,7 +81,7 @@
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
-    (error () (make-instance 'code :type (make-instance 'v-error)))))
+    (error (e) (make-instance 'code :type (make-instance 'v-error :payload e)))))
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
   (let ((method (v-argument-spec func))
@@ -122,16 +122,19 @@
 
 (defun find-functions-for-args (func-name args-code arg-objs env)
   (let* ((arg-types (mapcar #'code-type arg-objs))
-         (any-errors (some #'v-errorp arg-types)))
-    (loop :for func :in (get-function func-name env) 
-       :for candidate =
-       (if (v-special-functionp func) 
-           (special-arg-matchp func args-code arg-objs arg-types any-errors env)
-           (when (not any-errors)
-             (if (v-glsl-spec-matchingp func)
-                 (glsl-arg-matchp func arg-types arg-objs)
-                 (basic-arg-matchp func arg-types arg-objs))))
-       :if candidate :collect candidate)))
+         (any-errors (some #'v-errorp arg-types))
+         (potentials (get-function func-name env)))
+    (if potentials
+        (loop :for func :in potentials
+           :for candidate =
+           (if (v-special-functionp func) 
+               (special-arg-matchp func args-code arg-objs arg-types any-errors env)
+               (when (not any-errors)
+                 (if (v-glsl-spec-matchingp func)
+                     (glsl-arg-matchp func arg-types arg-objs)
+                     (basic-arg-matchp func arg-types arg-objs))))
+           :if candidate :collect candidate)
+        (error 'could-not-find-function :name func-name))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
@@ -146,10 +149,13 @@
             (first (sort functions #'< :key #'first))
           (declare (ignore score))
           (list function arg-objs))
-        (make-instance 'deferred-error :error-name 'no-valid-function 
-                       :error-args `(:name ,func-name :types
-                                           ,(loop :for obj :in arg-objs
-                                               :collect (code-type obj)))))))
+        (loop :for arg-obj :in arg-objs
+           :if (typep (code-type arg-obj) 'v-error) :return (code-type arg-obj)
+           :finally (return
+                      (make-instance 
+                       'v-error :payload
+                       (make-instance 'no-valid-function :name func-name
+                                      :types (mapcar #'code-type arg-objs))))))))
 
 (defun glsl-resolve-func-type (func args)
   "nil - superior type

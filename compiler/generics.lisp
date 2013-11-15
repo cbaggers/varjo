@@ -1,9 +1,10 @@
 (in-package :varjo)
 
 ;;types
-(defclass v-type () 
+(defclass v-t-type () ())
+(defclass v-type (v-t-type) 
   ((core :initform nil :reader core-typep)
-   (place :initform t :initarg :place :reader v-placep)
+   (place :initform t :initarg :place :accessor v-placep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)))

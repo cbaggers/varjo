@@ -12,7 +12,7 @@
     ((code-ob code) &key (type nil set-type))
   (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
   (setf (slot-value code-ob 'type) 
-        (if (typep type 'v-type) type (type-spec->type type))))
+        (if (typep type 'v-t-type) type (type-spec->type type))))
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
 (defgeneric copy-code (code-obj &key type current-line to-block to-top 
@@ -69,6 +69,6 @@
 
 ;;[TODO] This is why break needs a semicolon
 (defun end-line (ob)
-  (if (find (type-principle (code-type ob)) '(:none :void))
+  (if (eq (v-type-name (code-type ob)) 'v-none)
       ob
       (merge-obs ob :current-line (format nil "~a;" (current-line ob)))))
