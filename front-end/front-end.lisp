@@ -8,6 +8,10 @@
 
 (in-package :varjo)
 
+(defun stabilizedp (last-pass one-before-that)
+  (break)
+  (equal (first last-pass) (first one-before-that)))
+
 ;; remember that args has context in it
 (defun translate (args body)
   (let ((env (make-instance 'environment)))
@@ -15,8 +19,8 @@
       #'split-input-into-env
       #'process-in-args
       #'process-uniforms      
-      #'macroexpand-pass
-      #'inject-functions-pass
+      (stabilizedp #'macroexpand-pass
+                   #'inject-functions-pass)
       #'compile-pass
       #'gen-in-arg-strings
       #'final-uniform-strings

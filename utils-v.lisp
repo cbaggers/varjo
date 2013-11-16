@@ -26,10 +26,31 @@
   (let ((stages (reverse stages)))
     (when stages
       (let ((stage (first stages)))
-        `(multiple-value-call ,stage
-           ,(if (rest stages)
-                `(pipe-> ,args ,@(reverse (rest stages)))
-                `(values ,@args)))))))
+        (if (eq 'function (first stage))
+            `(multiple-value-call ,stage
+               ,(if (rest stages)
+                    `(pipe-> ,args ,@(reverse (rest stages)))
+                    (if (listp (print args))
+                        `(values ,@args)
+                        `(values-list ,args))))
+            (destructuring-bind (check-func &rest steps) stage
+              `(let ((rest (multiple-value-list 
+                            ,(if (rest stages)
+                                 `(pipe-> ,args ,@(reverse (rest stages)))
+                                 (if (listp (print args))
+                                     `(values ,@args)
+                                     `(values-list ,args))))))
+                 (let ((args rest))
+                   (let ((passes nil))
+                     (loop :do (let ((results (multiple-value-list
+                                               (pipe-> ,@(cons 'args steps)))))
+                                 (setf args results)
+                                 (push results passes))
+                        :until (,check-func (first passes) (second passes))))
+                   (values-list args)))))))))
+
+
+
 
 ;; [TODO] should dissapear as refactor goes on
 (defun acons-many (data a-list)
