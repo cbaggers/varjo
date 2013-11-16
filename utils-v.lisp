@@ -30,7 +30,7 @@
             `(multiple-value-call ,stage
                ,(if (rest stages)
                     `(pipe-> ,args ,@(reverse (rest stages)))
-                    (if (listp (print args))
+                    (if (listp args)
                         `(values ,@args)
                         `(values-list ,args))))
             (destructuring-bind (check-func &rest steps) stage

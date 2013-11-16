@@ -12,6 +12,7 @@
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
+(defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *default-context* '(:330))
 
 (defun test-env (&rest context)
@@ -22,6 +23,9 @@
 (defun a-get (name list)
   (assocr name list))
 
+(defun a-get1 (name list)
+  (first (assocr name list)))
+
 (defmacro a-add (name value list-place)
   `(setf ,list-place (acons ,name
                             (cons ,value (assocr ,name ,list-place)) 
@@ -29,7 +33,12 @@
 
 
 (defmacro a-set (name value list-place)
-  `(setf ,list-place (acons ,name ,value ,list-place)))
+  (let ((g-list-place (gensym "list-place")))
+    `(let ((,g-list-place (remove ,name ,list-place :key #'first)))
+       (setf ,list-place (acons ,name (list ,value) ,g-list-place)))))
+
+(defmacro a-remove-all (name list-place)
+  `(setf ,list-place (remove ,name ,list-place :key #'first)))
 
 ;;-------------------------------------------------------------------------
 
@@ -40,6 +49,7 @@
   (make-instance 'environment :variables (copy-list (v-variables env))
                  :functions (copy-list (v-functions env))
                  :macros (copy-list (v-macros env))
+                 :compiler-macros (copy-list (v-compiler-macros env))
                  :types (copy-list (v-types env))
                  :context (copy-list (v-context env))))
 
@@ -67,6 +77,16 @@
         (when (context-ok-given-restriction context restriction) func)
         func)))
 
+(defun shadow-global-check (name &key (specials t) (macros t) (c-macros t))
+  (when (or (and macros (get-macro name *global-env*))
+            (and c-macros (get-compiler-macro name *global-env*)))
+    (error 'cannot-not-shadow-core))
+  (when specials
+    (loop :for func :in (get-function name *global-env*)
+       :if (and specials (v-special-functionp func))       
+       :do (error 'cannot-not-shadow-core)))
+  t)
+
 ;;-------------------------------------------------------------------------
 
 (defmethod add-macro (macro-name (macro function) (context list) 
@@ -78,19 +98,50 @@
 (defmethod add-macro (macro-name (macro function) (context list)
                       (env environment) &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
-    (a-set macro-name `(,macro ,context) (v-macros env))
+    (when (shadow-global-check macro-name)
+      (a-remove-all macro-name (v-functions env))
+      (a-set macro-name `(,macro ,context) (v-macros env)))
     env))
 
 (defgeneric get-macro (macro-name env))
 
+(defmethod get-macro (macro-name (env (eql :-genv-)))
+  (gethash macro-name *global-env-macros*))
+
 (defmethod get-macro (macro-name (env environment))
-  (let ((spec (or (a-get macro-name (v-macros env))
+  (let ((spec (or (a-get1 macro-name (v-macros env))
                   (gethash macro-name *global-env-macros*))))
     (when (and spec (valid-for-contextp spec env)) 
       (first spec))))
 
 (defmethod v-mboundp (macro-name (env environment))
   (not (null (get-macro macro-name env))))
+
+;;-------------------------------------------------------------------------
+
+(defmethod add-compiler-macro (macro-name (macro function) (context list) 
+                      (env (eql :-genv-)) &optional modify-env)
+  (declare (ignore modify-env))
+  (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
+  *global-env*)
+
+(defmethod add-compiler-macro (macro-name (macro function) (context list)
+                      (env environment) &optional modify-env)  
+  (let ((env (if modify-env env (clone-environment env))))
+    (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
+      (a-set macro-name `(,macro ,context) (v-compiler-macros env)))
+    env))
+
+(defgeneric get-compiler-macro (macro-name env))
+
+(defmethod get-compiler-macro (macro-name (env environment))
+  (let ((spec (or (a-get1 macro-name (v-compiler-macros env))
+                  (gethash macro-name *global-env-compiler-macros*))))
+    (when (and spec (valid-for-contextp spec env)) 
+      (first spec))))
+
+(defmethod v-mboundp (macro-name (env environment))
+  (not (null (get-compiler-macro macro-name env))))
 
 ;;-------------------------------------------------------------------------
 
@@ -118,7 +169,7 @@
   (gethash var-name *global-env-vars*))
 
 (defmethod get-var (var-name (env environment))
-  (or (a-get var-name (v-variables env))
+  (or (first (a-get var-name (v-variables env)))
       (get-var var-name *global-env*)))
 
 (defmethod v-boundp (var-name (env environment))
@@ -151,15 +202,17 @@
 (defmethod add-function (func-name (func-spec v-function) (env environment)
                          &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
-    (a-add func-name func-spec (v-functions env))
+    (when (shadow-global-check func-name)
+      (a-add func-name func-spec (v-functions env)))
     env))
 
-(defmethod add-functions (func-name (func-specs list) (env environment)
-                          &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (loop :for func-spec :in func-specs :do
-       (a-add func-name func-spec (v-functions env)))
-    env))
+;;[TODO] this is dumb
+;; (defmethod add-functions (func-name (func-specs list) (env environment)
+;;                           &optional modify-env)
+;;   (let ((env (if modify-env env (clone-environment env))))
+;;     (loop :for func-spec :in func-specs :do
+;;        (a-add func-name func-spec (v-functions env)))
+;;     env))
 
 (defmethod v-external-functions ((env (eql :-genv-)))
   *global-env-external-funcs*)

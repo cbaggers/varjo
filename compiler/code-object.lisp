@@ -69,6 +69,6 @@
 
 ;;[TODO] This is why break needs a semicolon
 (defun end-line (ob)
-  (if (eq (v-type-name (code-type ob)) 'v-none)
+  (if (typep (code-type ob) 'v-none)
       ob
       (merge-obs ob :current-line (format nil "~a;" (current-line ob)))))

@@ -1,0 +1,18 @@
+Ok so need to sort out a few things:
+* macros
+* compiler macros
+* functions (regular and special)
+
+macros kill functions
+functions kill macros
+compiler macros dont kill anything
+
+Only kill in non-global environments, it will just shadow ...hmm
+well we dont want to shadow progn...Maybe we say no function definintions
+that shadow special functions. Thats makes some sence.
+
+Need to make a sorting system for functions so we can order them by importance
+we need this is so we can call special functiosn WITHOUT firt processing the
+args as this is causing the walk nightmare that we are currently seeing.
+
+

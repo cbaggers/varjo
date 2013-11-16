@@ -76,7 +76,8 @@
   :special
   :args-valid t
   :return (let ((new-env (clone-environment env)))
-           (varjo->glsl `(progn ,@body) new-env)))
+            (break)
+            (varjo->glsl `(progn ,@body) new-env)))
 
 (v-defun %clean-env-block (&body body)
   :special
@@ -152,8 +153,8 @@
 
 ;; [TODO] is block the best term? is it a block in the code-obj sense?
 (v-defmacro let (bindings &body body)
-  `(%env-block
-    (%env-multi-declare ,bindings)
+  `(%new-env-block
+    (%env-multi-var-declare ,bindings)
     ,@body))
 
 (v-defmacro let* (bindings &rest body)
@@ -165,7 +166,7 @@
 
 (v-defmacro labels (definitions &body body)
   (declare (ignore definitions))
-  `(%env-block
+  `(%new-env-block
     ;;,@(loop :for d :in definitions :collect (%make-function d))
     ,@body))
 

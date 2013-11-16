@@ -19,7 +19,8 @@
       #'process-in-args
       #'process-uniforms      
       (stabilizedp #'macroexpand-pass
-                   #'inject-functions-pass)
+                   #'inject-functions-pass
+                   #'compiler-macroexpand-pass)
       #'compile-pass
       #'gen-in-arg-strings
       #'final-uniform-strings
@@ -101,6 +102,19 @@
 
 ;;----------------------------------------------------------------------
 
+(defun v-compiler-macroexpand-all (code env)
+  (cond ((atom code) code)
+        (t (let* ((head (first code))
+                  (m (get-compiler-macro head env)))
+             (if m 
+                 (v-compiler-macroexpand-all (apply m (rest code)) env)
+                 (loop :for c :in code :collect (v-compiler-macroexpand-all c env)))))))
+
+(defun compiler-macroexpand-pass (code env)
+  (values (v-compiler-macroexpand-all code env) env))
+
+;;----------------------------------------------------------------------
+
 ;; [TODO] prehaps reverse (,head <@f) and the dependencies
 (defun find-injected-functions (code env &optional seen)
   (remove 
@@ -125,7 +139,6 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)  
-  ;;(values (varjo->glsl `(%make-function :main () ,code) env) env)
   (values (varjo->glsl code env) 
           env))
 

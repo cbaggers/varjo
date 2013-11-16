@@ -27,6 +27,7 @@
    (variables :initform nil :initarg :variables :accessor v-variables)
    (functions :initform nil :initarg :functions :accessor v-functions)
    (macros :initform nil :initarg :macros :accessor v-macros)
+   (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
    (types :initform nil :initarg :types :accessor v-types)
    (context :initform nil :initarg :context :accessor v-context)))
 

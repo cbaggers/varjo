@@ -142,6 +142,7 @@
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
+  (format t "~%looking for ~a~%" func-name)
   (let* ((arg-objs (loop :for i :in args-code :collect (try-compile-arg i env)))
          (functions (find-functions-for-args func-name args-code arg-objs env)))
     (if functions
@@ -173,11 +174,13 @@
           ((or (symbolp spec) (listp spec)) (type-spec->type spec))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
 
+;;[TODO] Maybe the error should be caught and returned, 
+;;       in case this is a bad walk
 (defun glsl-resolve-special-func-type (func args env)
   (let ((env (clone-environment env)))
     (multiple-value-bind (code-obj new-env)
         (handler-case (apply (v-return-spec func) (cons env args))
-          (error (e) (error e)))
+          (error (e) (invoke-debugger e)))
       (values code-obj (or new-env env)))))
 
 ;;------------------------------------------------------------

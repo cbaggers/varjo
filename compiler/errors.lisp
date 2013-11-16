@@ -57,5 +57,8 @@
   (current-line place)
   (gen-assignment-string place val))
 
+(deferror cannot-not-shadow-core ()
+    "You cannot shadow or replace core macros or special functions.")
+
 ;-----------------------------;
 
