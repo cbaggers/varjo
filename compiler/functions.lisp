@@ -158,7 +158,6 @@
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
-  (format t "~%looking for ~a~%" func-name)
   (let* ((functions (find-functions-for-args func-name args-code env)))
     (destructuring-bind (score function arg-objs)
         (if (> (length functions) 1) 

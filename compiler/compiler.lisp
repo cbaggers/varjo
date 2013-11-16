@@ -43,13 +43,11 @@
         (error "Varjo: '~s' is unidentified." code))))
 
 (defun compile-form (code env)
-  (print code)
   (let* ((func-name (first code)) 
          (args-code (rest code))
          (f-result (find-function-for-args func-name args-code env)))
     (multiple-value-bind (code-obj new-env)
         (cond ((listp f-result)
-               (format t "at ~a~%" func-name)
                (destructuring-bind (func args) f-result
                  (if (v-special-functionp func)                 
                      (glsl-resolve-special-func-type func args env)
@@ -59,5 +57,4 @@
                                              (error (v-payload f-result))
                                              (error 'cannot-compile :code code)))
               (t (error 'problem-with-the-compiler)))
-      (format t "--------------------~%")
       (values code-obj (or new-env env)))))
