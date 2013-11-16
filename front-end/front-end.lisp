@@ -9,7 +9,6 @@
 (in-package :varjo)
 
 (defun stabilizedp (last-pass one-before-that)
-  (break)
   (equal (first last-pass) (first one-before-that)))
 
 ;; remember that args has context in it
@@ -54,6 +53,7 @@
       (setf (v-raw-in-args env) in-vars)
       (setf (v-raw-uniforms env) uniforms)
       (setf (v-raw-context env) context)
+      (when (not context-pos) (setf (v-context env) *default-context*))
       (values body env))))
 
 ;;----------------------------------------------------------------------
@@ -118,12 +118,14 @@
 
 (defun inject-functions-pass (code env)
   (let ((injected-funcs (remove nil (find-injected-functions code env))))
-    (values `((labels ,injected-funcs ,@code)) env)))
+    (if injected-funcs
+        (values `(labels ,injected-funcs ,@code) env)
+        (values code env))))
 
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)  
-  ;;(values (varjo->glsl `(%make-function :main () ,@code) env) env)
+  ;;(values (varjo->glsl `(%make-function :main () ,code) env) env)
   (values (varjo->glsl code env) 
           env))
 

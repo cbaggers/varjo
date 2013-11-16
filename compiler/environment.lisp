@@ -12,9 +12,10 @@
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
+(defparameter *default-context* '(:330))
 
 (defun test-env (&rest context)
-  (make-instance 'environment :context (or context '(:330))))
+  (make-instance 'environment :context (or context *default-context*)))
 
 ;;-------------------------------------------------------------------------
 
