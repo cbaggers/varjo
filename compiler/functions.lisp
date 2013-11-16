@@ -89,7 +89,7 @@
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
         (if (eq method t)
-            (list 0 func arg-code)
+            (list t func arg-code)
             (handler-case (list 0 func (apply method (cons env arg-code))) 
               (error () nil))))))
 
@@ -120,21 +120,37 @@
             (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
                             :collect (copy-code obj :type type))))))))
 
-(defun find-functions-for-args (func-name args-code arg-objs env)
-  (let* ((arg-types (mapcar #'code-type arg-objs))
-         (any-errors (some #'v-errorp arg-types))
-         (potentials (get-function func-name env)))
+(defun find-functions-for-args (func-name args-code env &aux matches)
+  (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
     (if potentials
-        (loop :for func :in potentials
-           :for candidate =
-           (if (v-special-functionp func) 
-               (special-arg-matchp func args-code arg-objs arg-types any-errors env)
-               (when (not any-errors)
-                 (if (v-glsl-spec-matchingp func)
-                     (glsl-arg-matchp func arg-types arg-objs)
-                     (basic-arg-matchp func arg-types arg-objs))))
-           :if candidate :collect candidate)
+        (loop :for func :in potentials :do 
+           (when (and (not arg-objs) (func-need-arguments-compiledp func))
+             (setf arg-objs (loop :for i :in args-code :collect 
+                               (try-compile-arg i env)))
+             (setf arg-types (mapcar #'code-type arg-objs))
+             (setf any-errors (some #'v-errorp arg-types)))           
+           (let ((match (if (v-special-functionp func) 
+                            (special-arg-matchp func args-code arg-objs
+                                                arg-types any-errors env)
+                            (when (not any-errors)
+                              (if (v-glsl-spec-matchingp func)
+                                  (glsl-arg-matchp func arg-types arg-objs)
+                                  (basic-arg-matchp func arg-types arg-objs))))))
+             (if (eq (first match) t)
+                 (return (list match))
+                 (push match matches)))
+           :finally (return (or matches (func-find-failure func-name arg-objs))))
         (error 'could-not-find-function :name func-name))))
+
+;; if there were no candidates then pass errors back
+(defun func-find-failure (func-name arg-objs)
+  (loop :for arg-obj :in arg-objs
+     :if (typep (code-type arg-obj) 'v-error) :return (code-type arg-obj) 
+     :finally (return
+                (make-instance 
+                 'v-error :payload
+                 (make-instance 'no-valid-function :name func-name
+                                :types (mapcar #'code-type arg-objs))))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
@@ -143,20 +159,13 @@
    the lower the better. We then take the first one and return that
    as the function to use."
   (format t "~%looking for ~a~%" func-name)
-  (let* ((arg-objs (loop :for i :in args-code :collect (try-compile-arg i env)))
-         (functions (find-functions-for-args func-name args-code arg-objs env)))
-    (if functions
-        (destructuring-bind (score function arg-objs)
-            (first (sort functions #'< :key #'first))
-          (declare (ignore score))
-          (list function arg-objs))
-        (loop :for arg-obj :in arg-objs
-           :if (typep (code-type arg-obj) 'v-error) :return (code-type arg-obj)
-           :finally (return
-                      (make-instance 
-                       'v-error :payload
-                       (make-instance 'no-valid-function :name func-name
-                                      :types (mapcar #'code-type arg-objs))))))))
+  (let* ((functions (find-functions-for-args func-name args-code env)))
+    (destructuring-bind (score function arg-objs)
+        (if (> (length functions) 1) 
+            (first functions)
+            (first (sort functions #'< :key #'first)))
+      (declare (ignore score))
+      (list function arg-objs))))
 
 (defun glsl-resolve-func-type (func args)
   "nil - superior type

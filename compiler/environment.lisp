@@ -224,13 +224,34 @@
     f))
 
 (defmethod get-function (func-name (env (eql :-genv-)))
-  (loop :for func-spec :in (gethash func-name *global-env-funcs*)
-     :collect (func-spec->function func-spec)))
+  (sort-function-list
+   (loop :for func-spec :in (gethash func-name *global-env-funcs*)
+      :collect (func-spec->function func-spec))))
 
 (defmethod get-function (func-name (env environment))
-  (loop :for func :in (append (a-get func-name (v-functions env))
-                              (get-function func-name *global-env*))
-     :if (and func (valid-for-contextp func env)) :collect func))
+  (sort-function-list
+   (loop :for func :in (append (a-get func-name (v-functions env))
+                               (get-function func-name *global-env*))
+      :if (and func (valid-for-contextp func env)) :collect func)))
+
+(defmethod special-raw-argp ((func v-function))
+  (eq (v-argument-spec func) t))
+(defmethod special-func-argp ((func v-function))
+  (functionp (v-argument-spec func)))
+(defmethod special-basic-argp ((func v-function))
+  (listp (v-argument-spec func)))
+(defmethod func-need-arguments-compiledp ((func v-function))
+  (not (and (v-special-functionp func) (special-raw-argp func))))
+
+(defun sort-function-list (func-list)
+  (sort (copy-list func-list) #'< :key #'func-priority-score))
+
+(defun func-priority-score (func)  
+  (if (v-special-functionp func)
+      (cond ((special-raw-argp func) 0)
+            ((special-func-argp func) 1)
+            ((special-basic-argp func) 2))
+      (if (v-glsl-spec-matchingp func) 3 4)))
 
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function func-name env))))
