@@ -35,7 +35,6 @@
 ;;                  (make-instance 'code :current-line "booyah!" 
 ;;                                 :type (make-instance 'v-int))))
 
-;;[TODO] move error
 ;;[TODO] make it handle multiple assignements like cl version
 (v-defun setf ((place v-type) (val v-type))
   :special
@@ -76,7 +75,6 @@
   :special
   :args-valid t
   :return (let ((new-env (clone-environment env)))
-            (break)
             (varjo->glsl `(progn ,@body) new-env)))
 
 (v-defun %clean-env-block (&body body)

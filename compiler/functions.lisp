@@ -138,19 +138,22 @@
                                   (basic-arg-matchp func arg-types arg-objs))))))
              (if (eq (first match) t)
                  (return (list match))
-                 (push match matches)))
+                 (when match (push match matches))))
            :finally (return (or matches (func-find-failure func-name arg-objs))))
         (error 'could-not-find-function :name func-name))))
 
 ;; if there were no candidates then pass errors back
 (defun func-find-failure (func-name arg-objs)
   (loop :for arg-obj :in arg-objs
-     :if (typep (code-type arg-obj) 'v-error) :return (code-type arg-obj) 
+     :if (typep (code-type arg-obj) 'v-error) 
+     :return `((t ,(code-type arg-obj) nil)) 
      :finally (return
-                (make-instance 
-                 'v-error :payload
-                 (make-instance 'no-valid-function :name func-name
-                                :types (mapcar #'code-type arg-objs))))))
+                `((t (make-instance 'v-error :payload
+                                    ,(make-instance 'no-valid-function
+                                                    :name func-name
+                                                    :types (mapcar #'code-type
+                                                                   arg-objs)))
+                     nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
