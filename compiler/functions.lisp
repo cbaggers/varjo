@@ -97,10 +97,11 @@
   (let* ((spec-types (v-argument-spec func))
          (spec-generics (positions-if #'v-spec-typep spec-types))
          (g-dim (when spec-generics 
-                  (v-dimensions (nth (first spec-generics) arg-types)))))
-    (when (or (null g-dim)
-              (loop :for i :in spec-generics :always 
-                 (equal (v-dimensions (nth i arg-types)) g-dim)))
+                  (v-dimensions (nth (first spec-generics) arg-types)))))    
+    (when (and (eql (length arg-objs) (length spec-types))
+               (or (null g-dim)
+                   (loop :for i :in spec-generics :always 
+                      (equal (v-dimensions (nth i arg-types)) g-dim))))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
           (list 0 func arg-objs)
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
@@ -112,13 +113,14 @@
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs)
   (let ((spec-types (v-argument-spec func)))
-    (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
-        (list 0 func arg-objs)
-        (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
-                             :collect (v-casts-to a s))))
-          (when (not (some #'null cast-types))
-            (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                            :collect (copy-code obj :type type))))))))
+    (when (eql (length arg-objs) (length spec-types))
+      (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
+          (list 0 func arg-objs)
+          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
+                               :collect (v-casts-to a s))))
+            (when (not (some #'null cast-types))
+              (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
+                              :collect (copy-code obj :type type)))))))))
 
 (defun find-functions-for-args (func-name args-code env &aux matches)
   (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
