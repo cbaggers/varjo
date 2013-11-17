@@ -57,7 +57,7 @@
 (defclass v-error (v-type) 
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 
-(defclass v-void () 
+(defclass v-void (v-t-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "" :reader v-glsl-string)))
 
@@ -449,15 +449,20 @@
   (class-name (class-of type)))
 
 (defun type-spec->type (spec &key place)  
-  (if (symbolp spec)
-      (make-instance (if (keywordp spec) (symb 'v- spec) spec)
-                     :place place)
-      (destructuring-bind (type dimensions) spec
-        (make-instance 'v-array :element-type (if (keywordp spec)
-                                                  (symb 'v- type)
-                                                  type)
-                       :place place
-                       :dimensions dimensions))))
+  (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
+        ((symbolp spec) 
+         (let ((type (make-instance (if (keywordp spec) (symb 'v- spec) spec))))
+           (when (slot-exists-p type 'place) 
+             (setf (slot-value type 'place) place))
+           type))
+        ((listp spec)
+         (destructuring-bind (type dimensions) spec
+           (make-instance 'v-array :element-type (if (keywordp spec)
+                                                     (symb 'v- type)
+                                                     type)
+                          :place place
+                          :dimensions dimensions)))
+        (t (error 'unknown-type-spec :type-spec spec))))
 
 (defmethod v-glsl-size ((type t))
   (slot-value type 'glsl-size))
@@ -468,6 +473,10 @@
 
 (defmethod v-type-eq ((a v-type) (b v-type))
   (eq (v-type-name a) (v-type-name b)))
+(defmethod v-type-eq ((a v-type) (b symbol))
+  (eq (v-type-name a) (v-type-name (type-spec->type b))))
+(defmethod v-type-eq ((a v-type) (b list))
+  (eq (v-type-name a) (v-type-name (type-spec->type b))))
 
 (defmethod v-typep ((a v-type) (b v-type))
   (typep a (v-type-name b)))

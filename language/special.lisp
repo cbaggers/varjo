@@ -99,7 +99,7 @@
     (merge-obs code :type (code-type code)
                :current-line (prefix-type-declaration code qualifiers))))
 
-;;[TODO] Make this less ugly
+;;[TODO] Make this less ugly, if we can merge environments we can do this easily
 (v-defun %env-multi-var-declare (forms &optional include-type-declarations)
   ;; This is the single ugliest thing in varjo (hopefully!)
   ;; it implements declarations of multiple values without letting
@@ -108,31 +108,31 @@
   :args-valid t
   :return
   (labels ((validate-var-types (var-name type-spec code-obj)
-             (when (and code-obj type-spec (not (v-type-eq (code-type code-obj) type-spec)))
-               (error "Type specified does not match the type of the form~%~s~%~s"
-                      (code-type code-obj) type-spec))
              (when (and (null type-spec) (null code-obj))
                (error "Could not establish the type of the variable: ~s" var-name))
+             (when (and code-obj type-spec (not (v-type-eq (code-type code-obj) type-spec)))
+               (error "Type specified does not match the type of the form~%~s~%~s"
+                      (code-type code-obj) type-spec))             
              t))
     ;; compile vals
-    (let* ((env (clone-environment env))
+    (let* ((forms (remove nil forms))
+           (env (clone-environment env))
            (var-specs (loop :for f :in forms :collect (listify (first f))))
            (c-objs (loop :for f in forms :collect 
-                      (when f (varjo->glsl (second f) env))))
+                      (when (> (length forms) 1) (varjo->glsl (second f) env))))
            (glsl-names (loop :for (name) :in var-specs
                           :do (when (> (count name var-specs :key #'first) 1)
-                                (error "This name appears more than once in this form list ~a" 
-                                       name))
+                                (error 'duplicate-name name))
                           :collect (free-name name env)))
            (decl-objs (loop :for (name type-spec qualifiers) :in var-specs
                          :for code-obj :in c-objs :do
                          (validate-var-types name type-spec code-obj)
                          :collect
-                         (let ((code (if code-obj
-                                         `(setf (%make-var ,name ,(or type-spec (code-type code-obj))) ,code-obj)
-                                         `(%make-var ,name ,(or type-spec (code-type code-obj))))))
-                           (varjo->glsl (if include-type-declarations
-                                            `(%typify ,code) code) env)))))
+                         (let* ((type-spec (when type-spec (type-spec->type type-spec)))
+                                (code (if code-obj
+                                          `(setf (%make-var ,name ,(or type-spec (code-type code-obj))) ,code-obj)
+                                          `(%make-var ,name ,type-spec))))
+                           (varjo->glsl `(%typify ,code) env)))))
       ;;add-vars to env - this is destrucitvely modifying env
       (loop :for (name type-spec qualifiers) :in var-specs 
          :for glsl-name :in glsl-names :for code-obj :in c-objs :do
@@ -140,19 +140,21 @@
            (add-var glsl-name
                     (make-instance 'v-value :type (or type-spec (code-type code-obj)))
                     env t)))
-      (values (merge-obs decl-objs
-                         :type (make-instance 'v-none)
-                         :current-line ""
-                         :to-block (append (mapcan #'to-block decl-objs)
-                                           (mapcar (lambda (x) (end-line x)) 
-                                                   decl-objs))
-                         :to-top (mapcan #'to-top decl-objs))
+      (values (if include-type-declarations                  
+                  (merge-obs decl-objs
+                             :type (make-instance 'v-none)
+                             :current-line ""
+                             :to-block (append (mapcan #'to-block decl-objs)
+                                               (mapcar (lambda (x) (end-line x))
+                                                       decl-objs))
+                             :to-top (mapcan #'to-top decl-objs))
+                  (make-instance 'code :type 'v-none))
               env))))
 
 ;; [TODO] is block the best term? is it a block in the code-obj sense?
 (v-defmacro let (bindings &body body)
   `(%new-env-block
-    (%env-multi-var-declare ,bindings)
+    (%env-multi-var-declare ,bindings t)
     ,@body))
 
 (v-defmacro let* (bindings &rest body)
@@ -165,31 +167,43 @@
 (v-defmacro labels (definitions &body body)
   (declare (ignore definitions))
   `(%new-env-block
-    ;;,@(loop :for d :in definitions :collect (%make-function d))
+    ;;,@(loop :for d :in definitions :collect (%make-function ,@d))
     ,@body))
 
-;; ;;[TODO] move error
-;; ;;[TODO] ignoreing the arg-obs seems dumb, surely we need that data 
-;; ;;       for something
-;; (v-defun %make-function (name args &rest body)
-;;   :special
-;;   :args-valid t
-;;   :return
-;;   (let ((func-env (make-instance 'environment :context (v-context env))))
-;;     (destructuring-bind (arg-objs func-env) (compile-let-forms args t func-env)
-;;       (declare (ignore arg-objs))
-;;       (let* ((body-obj (varjo->glsl `(progn ,@body) func-env))
-;;              (name (if (eq name :main) :main (free-name name env)))
-;;              (returns (returns body-obj))
-;;              (type (if (eq name :main) '(:void nil nil) (first returns))))
-;;         (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
-;;           (error 'return-type-mismatch name type returns))
-;;         (make-instance 
-;;          'code :type type
-;;          :current-line nil
-;;          :to-top (cons-end (gen-function-body-string name args type body-obj)
-;;                            (to-top body-obj))
-;;          :out-vars (out-vars body-obj))))))
+;;[TODO] move error
+;;[TODO] ignoreing the arg-obs seems dumb, surely we need that data 
+;;       for something
+(v-defun %make-function (name raw-args &rest body)
+  :special
+  :args-valid t
+  :return
+  (let* ((args (mapcar #'list raw-args)) ;;so we can just use let
+         (body-obj (varjo->glsl `(%clean-env-block 
+                                  (%env-multi-var-declare ,args nil)
+                                  ,@body) env))
+         (name (if (eq name :main) :main (free-name name env)))
+         (returns (returns body-obj))        
+         (type (if (eq name :main) '(:void nil nil) (first returns))))
+    (unless returns (error 'no-function-returns :name name))
+    (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
+      (error 'return-type-mismatch name type returns))
+    (let ((arg-pairs (loop :for (name type) :in raw-args :collect
+                        `(,(v-glsl-string (type-spec->type type)) ,name))))
+      (make-instance 
+       'code :type type
+       :current-line nil
+       :to-top (cons-end (gen-function-body-string name arg-pairs type body-obj)
+                         (to-top body-obj))
+       :out-vars (out-vars body-obj)))))
+
+(v-defun return (form)
+  :special
+  :args-valid t
+  :return
+  (let ((obj (varjo->glsl form env)))
+    (merge-obs obj :type 'v-void
+               :current-line (format nil "return ~a" (current-line obj))
+               :returns (list (code-type obj)))))
 
 ;; ;; [TODO] first argument should always be the environment
 ;; ;;        or maybe that is implicitly available

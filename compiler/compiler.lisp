@@ -15,8 +15,8 @@
 (defun compile-bool (code env)
   (declare (ignore env))
   (if code
-      (make-instance 'code :current-line "true" :type '(:bool nil))
-      (make-instance 'code :current-line "false" :type '(:bool nil))))
+      (make-instance 'code :current-line "true" :type 'v-bool)
+      (make-instance 'code :current-line "false" :type 'v-bool)))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?

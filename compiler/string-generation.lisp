@@ -52,7 +52,7 @@
   (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
           (v-glsl-string type)
           name 
-          (mapcar #'reverse args)
+          args
           (to-block body-obj) 
           (current-line (end-line body-obj))))
 

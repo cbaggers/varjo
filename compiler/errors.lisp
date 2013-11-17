@@ -31,6 +31,9 @@
 (deferror cannot-compile (code)
   "Cannot compile the following code:~%~a" code)
 
+(deferror no-function-returns (name)
+  "Function '~a' did not specify any return types" name)
+
 (deferror not-core-type-error (type-name)
   "Type ~a is not a core type and thus cannot end up in glsl src code
    It must end up being used or converted to something that resolves 
@@ -38,6 +41,12 @@
 
 (deferror invalid-function-return-spec (func spec)
     "Outbound spec of function ~a is invalid:~%~a" func spec)
+
+(deferror unknown-type-spec (type-spec)
+    "Unknown specification for type: ~a" type-spec)
+
+(deferror duplicate-name (name)
+    "This name appears more than once in this form list ~a" name)
 
 (deferror clone-global-env-error ()
     "Cannot clone the global environment")
