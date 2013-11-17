@@ -177,7 +177,7 @@
    list - type spec"
   (let ((spec (v-return-spec func))
         (arg-types (mapcar #'code-type args)))
-    (cond ((null spec) (find-mutual-cast-type arg-types))
+    (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
           ((typep spec 'v-type) spec)
           ((numberp spec) (nth spec arg-types))
           ((functionp spec) (apply spec args))

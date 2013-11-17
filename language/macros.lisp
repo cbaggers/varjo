@@ -8,107 +8,116 @@
 
 (in-package :varjo)
 
-(defun segment-arg-list (list symbol)
-  "Takes a form like \(+ 1 2 3 4\) and returns \(+ 1 \(+ 2 \(+ 3 4\)\)\)"
-  (if (rest list) 
-      (list symbol (first list) (segment-arg-list (rest list) symbol)) 
-      (first list)))
+(v-define-compiler-macro + (&rest numbers)
+  (if (> (length numbers) 2)
+      `(%+ ,(first numbers) (+ ,@(rest numbers)))
+      `(%+ ,@numbers)))
 
-(%vdefmacro - t nil (&rest args)
-  (if (eq 1 (length args))
-      `(%negate ,@args)
-      `(%- ,@args)))
+(v-define-compiler-macro - (&rest numbers)
+  (if (> (length numbers) 2)
+      `(%- ,(first numbers) (- ,@(rest numbers)))
+      `(%- ,@numbers)))
 
-(%vdefmacro * t nil (&rest args)
-  (segment-arg-list args '*))
+(v-define-compiler-macro * (&rest numbers)
+  (if (> (length numbers) 2)
+      `(%* ,(first numbers) (* ,@(rest numbers)))
+      `(%* ,@numbers)))
 
-(%vdefmacro / t nil (&rest args)
-  (segment-arg-list args '/))
+(v-define-compiler-macro / (&rest numbers)
+  (if (> (length numbers) 2)
+      `(%/ ,(first numbers) (/ ,@(rest numbers)))
+      `(%/ ,@numbers)))
 
-(%vdefmacro v! t nil (&rest args)
-  (let ((len (length args)))
-    (when (or (>= len 2) (<= len 4)))
-    `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args)))
+;; (defun segment-arg-list (list symbol)
+;;   "Takes a form like \(+ 1 2 3 4\) and returns \(+ 1 \(+ 2 \(+ 3 4\)\)\)"
+;;   (if (rest list) 
+;;       (list symbol (first list) (segment-arg-list (rest list) symbol)) 
+;;       (first list)))
 
-(%vdefmacro m! t nil (&rest args)
-  (let ((len (length args)))
-    (if (or (eq len 4) (eq len 9) (eq len 16))
-        `(%init-vec-or-mat ,(kwd (symb :mat (floor (sqrt len))))
-                           ,@args)
-        (error "Invalid number of arguemnts for matrix"))))
+;; (%vdefmacro v! t nil (&rest args)
+;;   (let ((len (length args)))
+;;     (when (or (>= len 2) (<= len 4)))
+;;     `(%init-vec-or-mat ,(kwd (symb :vec (length args))) ,@args)))
 
-(%vdefmacro vec2 t nil (&rest args)
-  `(%init-vec-or-mat :vec2 ,@args))
+;; (%vdefmacro m! t nil (&rest args)
+;;   (let ((len (length args)))
+;;     (if (or (eq len 4) (eq len 9) (eq len 16))
+;;         `(%init-vec-or-mat ,(kwd (symb :mat (floor (sqrt len))))
+;;                            ,@args)
+;;         (error "Invalid number of arguemnts for matrix"))))
 
-(%vdefmacro vec3 t nil (&rest args)
-  `(%init-vec-or-mat :vec3 ,@args))
+;; (%vdefmacro vec2 t nil (&rest args)
+;;   `(%init-vec-or-mat :vec2 ,@args))
 
-(%vdefmacro vec4 t nil (&rest args)
-  `(%init-vec-or-mat :vec4 ,@args))
+;; (%vdefmacro vec3 t nil (&rest args)
+;;   `(%init-vec-or-mat :vec3 ,@args))
 
-(%vdefmacro ivec2 t nil (&rest args)
-  `(%init-vec-or-mat :ivec2 ,@args))
+;; (%vdefmacro vec4 t nil (&rest args)
+;;   `(%init-vec-or-mat :vec4 ,@args))
 
-(%vdefmacro ivec3 t nil (&rest args)
-  `(%init-vec-or-mat :ivec3 ,@args))
+;; (%vdefmacro ivec2 t nil (&rest args)
+;;   `(%init-vec-or-mat :ivec2 ,@args))
 
-(%vdefmacro ivec4 t nil (&rest args)
-  `(%init-vec-or-mat :ivec4 ,@args))
+;; (%vdefmacro ivec3 t nil (&rest args)
+;;   `(%init-vec-or-mat :ivec3 ,@args))
 
-(%vdefmacro uvec2 t nil (&rest args)
-  `(%init-vec-or-mat :uvec2 ,@args))
+;; (%vdefmacro ivec4 t nil (&rest args)
+;;   `(%init-vec-or-mat :ivec4 ,@args))
 
-(%vdefmacro uvec3 t nil (&rest args)
-  `(%init-vec-or-mat :uvec3 ,@args))
+;; (%vdefmacro uvec2 t nil (&rest args)
+;;   `(%init-vec-or-mat :uvec2 ,@args))
 
-(%vdefmacro uvec4 t nil (&rest args)
-  `(%init-vec-or-mat :uvec4 ,@args))
+;; (%vdefmacro uvec3 t nil (&rest args)
+;;   `(%init-vec-or-mat :uvec3 ,@args))
 
-(%vdefmacro mat2 t nil (&rest args)
-  `(%init-vec-or-mat :mat2 ,@args))
+;; (%vdefmacro uvec4 t nil (&rest args)
+;;   `(%init-vec-or-mat :uvec4 ,@args))
 
-(%vdefmacro mat3 t nil (&rest args)
-  `(%init-vec-or-mat :mat3 ,@args))
+;; (%vdefmacro mat2 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat2 ,@args))
 
-(%vdefmacro mat4 t nil (&rest args)
-  `(%init-vec-or-mat :mat4 ,@args))
+;; (%vdefmacro mat3 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat3 ,@args))
 
-(%vdefmacro mat2x2 t nil (&rest args)
-  `(%init-vec-or-mat :mat2x2 ,@args))
+;; (%vdefmacro mat4 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat4 ,@args))
 
-(%vdefmacro mat2x3 t nil (&rest args)
-  `(%init-vec-or-mat :mat2x3 ,@args))
+;; (%vdefmacro mat2x2 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat2x2 ,@args))
 
-(%vdefmacro mat2x4 t nil (&rest args)
-  `(%init-vec-or-mat :mat2x4 ,@args))
+;; (%vdefmacro mat2x3 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat2x3 ,@args))
 
-(%vdefmacro mat3x2 t nil (&rest args)
-  `(%init-vec-or-mat :mat3x2 ,@args))
+;; (%vdefmacro mat2x4 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat2x4 ,@args))
 
-(%vdefmacro mat3x3 t nil (&rest args)
-  `(%init-vec-or-mat :mat3x3 ,@args))
+;; (%vdefmacro mat3x2 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat3x2 ,@args))
 
-(%vdefmacro mat3x4 t nil (&rest args)
-  `(%init-vec-or-mat :mat3x4 ,@args))
+;; (%vdefmacro mat3x3 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat3x3 ,@args))
 
-(%vdefmacro mat4x2 t nil (&rest args)
-  `(%init-vec-or-mat :mat4x2 ,@args))
+;; (%vdefmacro mat3x4 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat3x4 ,@args))
 
-(%vdefmacro mat4x3 t nil (&rest args)
-  `(%init-vec-or-mat :mat4x3 ,@args))
+;; (%vdefmacro mat4x2 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat4x2 ,@args))
 
-(%vdefmacro mat4x4 t nil (&rest args)
-  `(%init-vec-or-mat :mat4x4 ,@args))
+;; (%vdefmacro mat4x3 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat4x3 ,@args))
 
-(%vdefmacro while t nil (test &rest body)
-  `(while ,test (progn ,@body)))
+;; (%vdefmacro mat4x4 t nil (&rest args)
+;;   `(%init-vec-or-mat :mat4x4 ,@args))
 
-(%vdefmacro let* t nil (bindings &rest body)
-  (let* ((bindings (reverse bindings))
-         (result `(let (,(first bindings))
-                    ,@body)))
-    (loop for binding in (rest bindings) do
-         (setf result `(let (,binding) ,result)))
-    result))
+;; (%vdefmacro while t nil (test &rest body)
+;;   `(while ,test (progn ,@body)))
+
+;; (%vdefmacro let* t nil (bindings &rest body)
+;;   (let* ((bindings (reverse bindings))
+;;          (result `(let (,(first bindings))
+;;                     ,@body)))
+;;     (loop for binding in (rest bindings) do
+;;          (setf result `(let (,binding) ,result)))
+;;     result))
 
 

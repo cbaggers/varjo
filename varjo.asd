@@ -21,7 +21,7 @@
                ;; (:file "language/types")
                (:file "language/special")
                (:file "language/functions")
-               ;; (:file "language/macros")
+               (:file "language/macros")
                ;; (:file "language/textures")
                ;; (:file "front-end/arguments")
                (:file "front-end/front-end")

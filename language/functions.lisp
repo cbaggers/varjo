@@ -20,6 +20,11 @@
 ;; (V-DEFUN INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
 ;; (V-DEFUN UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
 
+(v-defun %+ (a b) "(~a + ~a)" (v-number v-number) nil :glsl-spec-matching t)
+(v-defun %- (a b) "(~a - ~a)" (v-number v-number) nil :glsl-spec-matching t)
+(v-defun %- (a b) "(- ~a)" (v-number) 0 :glsl-spec-matching t)
+(v-defun %* (a b) "(~a * ~a)" (v-number v-number) nil :glsl-spec-matching t)
+(v-defun %/ (a b) "(~a / ~a)" (v-number v-number) nil :glsl-spec-matching t)
 
 (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440))
          "clamp(~a,~a,~a)"

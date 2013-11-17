@@ -495,20 +495,32 @@
            :if (typep cast-type to-type) :return cast-type))))
 
 (defun find-mutual-cast-type (&rest types)
-  (let ((casts (loop :for type :in types :collect 
-                  (if (symbolp type) 
-                      (cons type (slot-value (make-instance type) 'casts-to)) 
-                      (cons (v-type-name type) 
-                            (slot-value type 'casts-to))))))
-    (destructuring-bind (mutual-casts . other-cast-lists) casts
-      (loop :for casts :in other-cast-lists :do
-         (setf mutual-casts (intersection mutual-casts casts)))
-      (first (sort mutual-casts #'v-superior)))))
+  (let ((names (loop :for type :in types
+                         :collect (if (typep type 'v-t-type)
+                                      (v-type-name type)
+                                      type))))
+    (if (loop :for name :in names :always (eq name (first names)))
+        (first names)
+        (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
+                                   (cons name
+                                         (if (symbolp type)
+                                             (slot-value (make-instance type) 
+                                                         'casts-to) 
+                                             (slot-value type 'casts-to))))
+                                #'> :key #'length))
+               (master (first all-casts))
+               (rest-casts (rest all-casts)))
+          (first (sort (loop :for type :in master 
+                          :if (loop :for casts :in rest-casts 
+                                 :always (find type casts))
+                          :collect type) #'> :key #'v-superior-score))))))
 
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2 
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
                               v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
                               v-mat4x4)))
+  (defun v-superior-score (type)
+    (or (position type order-or-superiority) -1))
   (defun v-superior (x y) 
     (< (or (position x order-or-superiority) -1)
        (or (position y order-or-superiority) -1))))

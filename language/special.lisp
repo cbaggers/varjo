@@ -269,6 +269,8 @@
                    :to-block (list (gen-while-string test-obj body-obj)))
         (error 'loop-will-never-halt :test-code test :test-obj test-obj))))
 
+
+
 ;; (vdefspecial switch (test-form &rest clauses)    
 ;;   (let* ((test (varjo->glsl test-form))
 ;;          (keys (mapcar #'first clauses))
