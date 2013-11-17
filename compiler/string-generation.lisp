@@ -93,6 +93,24 @@
           (to-block body-obj)
           (current-line body-obj)))
 
+(defun gen-switch-string (test-obj keys clause-body-objs
+                          &optional (default-symb 'default))
+  (let* ((default-clause nil)
+         (format-clauses 
+          (loop :for key :in keys
+             :for obj :in clause-body-objs
+             :append
+             (if (eq key default-symb) 
+                 (progn (setf default-clause (list "default" nil "jam")) nil)
+                 (list key 
+                       (or (to-block obj) nil) 
+                       (current-line obj))) :into result
+             :finally (return (append result default-clause))))) 
+    (format nil "~a~%switch (~a) {~{~%case ~a:~%~{~a~^~%~}~a;~%break;~}}"
+            (or (to-block test-obj) "") 
+            (current-line test-obj)
+                  format-clauses)))
+
 (defun qualify (obj &rest qualifiers)
   (%qualify obj qualifiers))
 

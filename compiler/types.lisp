@@ -19,6 +19,7 @@
 (defclass v-td (v-tfd) ()) ;; double dvec*
 (defclass v-tb (v-spec-type) ()) ;; bool bvec*
 (defclass v-tiu (v-spec-type) ())
+(defclass v-i-ui (v-spec-type) ()) ;; int uint
 (defclass v-ti (v-tiu) ()) ;; int ivec*
 (defclass v-tu (v-tiu) ()) ;; uint uvec*
 (defclass v-tvec (v-spec-type) ()) ;;vec* uvec* ivec* [notice no dvec]
@@ -66,11 +67,11 @@
    (glsl-string :initform "bool" :reader v-glsl-string)))
 
 (defclass v-number (v-type) ())
-(defclass v-int (v-number v-ti)
+(defclass v-int (v-number v-ti v-i-ui)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "int" :reader v-glsl-string)
    (casts-to :initform '(v-uint v-float v-double))))
-(defclass v-uint (v-number v-tu)
+(defclass v-uint (v-number v-tu v-i-ui)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uint" :reader v-glsl-string)
    (casts-to :initform '(v-float v-double))))

@@ -73,6 +73,9 @@
     "The variable name '~a' is already taken and so cannot be used~%for an out variable" 
   out-var-name)
 
+(deferror switch-type-error (test-obj keys)
+    "In a switch statement the result of the test and the keys must all be either ints or uints:~%Test type: ~a~%Keys used: ~{~a~^,~}" (code-type test-obj) keys)
+
 (deferror loop-will-never-halt (test-code test-obj)
     "The loop is using the following code as it's test.~%~a~%~%This will only ever result in a ~a which means the loop will never halt" test-code (v-type-name (code-type test-obj)))
 

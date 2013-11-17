@@ -270,35 +270,24 @@
         (error 'loop-will-never-halt :test-code test :test-obj test-obj))))
 
 
-
-;; (vdefspecial switch (test-form &rest clauses)    
-;;   (let* ((test (varjo->glsl test-form))
-;;          (keys (mapcar #'first clauses))
-;;          (arg-objs (mapcar #'(lambda (x) (varjo->glsl (second x)))
-;;                            clauses))
-;;          (format-clauses 
-;;           (loop :for key :in keys
-;;              :for obj :in arg-objs
-;;              :append
-;;              (cond ((eq key 'otherwise) 
-;;                     (list "default" nil "jam"))
-;;                    ((glsl-typep key '(:int nil))
-;;                     (list (current-line key)
-;;                           (or (to-block obj) nil) 
-;;                           (current-line obj)))))))
-;;     (if (glsl-typep test '(:int nil))
-;;         (merge-obs 
-;;          arg-objs
-;;          :type :none
-;;          :current-line ""
-;;          :to-block 
-;;          (list 
-;;           (format nil "~a~%switch (~a) {~{~%case ~a:~%~{~a~^~%~}~a;~%break;~}}"
-;;                   (or (to-block test) "") 
-;;                   (current-line test)
-;;                   format-clauses)))
-;;         (error "The result of the test must be an int.~%~s"
-;;                (code-type test)))))
+;; [TODO] check keys
+(v-defun switch (test-form &rest clauses)
+  :special
+  :args-valid t
+  :return
+  (let* ((test-obj (varjo->glsl test-form env))
+         (keys (mapcar #'first clauses))
+         (clause-body-objs (mapcar #'(lambda (x) (varjo->glsl 
+                                                  `(progn ,(second x)) env)) 
+                           clauses)))
+    (if (and (v-typep (code-type test-obj) 'v-i-ui)
+             (loop :for key :in keys :always 
+                (or (eq key 'default) (integerp key))))
+        (merge-obs clause-body-objs :type 'v-none
+                   :current-line ""
+                   :to-block (list (gen-switch-string test-obj keys
+                                                      clause-body-objs)))
+        (error 'switch-type-error test-obj keys))))
 
 ;; (vdefspecial swizzle (vec-form components)
 ;;   (let* ((vec-ob (varjo->glsl vec-form))
@@ -363,54 +352,6 @@
 ;;                            type
 ;;                            (current-line length) 
 ;;                            (mapcar #'current-line contents)))))
-
-
-;; (vdefspecial %negate (form)  
-;;   (let* ((arg-obj (varjo->glsl form)))
-;;     (merge-obs arg-obj
-;;                :current-line (format nil "-~a"
-;;                                      (current-line arg-obj)))))
-
-;; (v-defun + (&rest numbers)
-;;   :special
-;;   :args-valid #'args-compatible
-;;   :return (merge-obs numbers
-;;                      :type (apply #'superior-type (mapcar #'v-type numbers))
-;;                      :current-line (format nil "(~{~a~^ ~^+~^ ~})"
-;;                                            (mapcar #'current-line arg-objs))))
-
-;; (vdefspecial + (&rest args)    
-;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
-;;          (types (mapcar #'code-type arg-objs)))
-;;     (if (apply #'types-compatiblep types)
-;;         (merge-obs arg-objs
-;;                    :type (apply #'superior-type types)
-;;                    :current-line (format nil "(~{~a~^ ~^+~^ ~})"
-;;                                          (mapcar #'current-line 
-;;                                                  arg-objs)))
-;;         (error "The types of object passed to + are not compatible~%~{~s~^ ~}" types))))
-
-;; (vdefspecial %- (&rest args)    
-;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
-;;          (types (mapcar #'code-type arg-objs)))
-;;     (if (apply #'types-compatiblep types)
-;;         (merge-obs arg-objs
-;;                    :type (apply #'superior-type types)
-;;                    :current-line (format nil "(~{~a~^ ~^-~^ ~})"
-;;                                          (mapcar #'current-line 
-;;                                                  arg-objs)))
-;;         (error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
-
-;; (vdefspecial / (&rest args)    
-;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
-;;          (types (mapcar #'code-type arg-objs)))
-;;     (if (apply #'types-compatiblep types)
-;;         (merge-obs arg-objs
-;;                    :type (apply #'superior-type types)
-;;                    :current-line (format nil "(~{~a~^ ~^/~^ ~})"
-;;                                          (mapcar #'current-line 
-;;                                                  arg-objs)))
-;;         (error "The types of object passed to / are not compatible~%~{~s~^ ~}" types))))
 
 ;; (vdefspecial %init-vec-or-mat (type &rest args)
 ;;   (labels ((type-size (arg-type) 
