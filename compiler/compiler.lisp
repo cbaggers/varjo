@@ -59,4 +59,4 @@
           ((typep func 'v-error) (if (v-payload func)
                                      (error (v-payload func))
                                      (error 'cannot-compile :code code)))
-          (t (error 'problem-with-the-compiler))))))
+          (t (error 'problem-with-the-compiler :target func))))))

@@ -25,8 +25,8 @@
 (define-condition missing-function-error (error)
   ((text :initarg :text :reader text)))
 
-(deferror problem-with-the-compiler ()
-  "This shouldnt have been possible so this needs a bug report. Sorry about that")
+(deferror problem-with-the-compiler (target)
+  "This shouldnt have been possible so this needs a bug report. Sorry about that~%~s" target)
 
 (deferror cannot-compile (code)
   "Cannot compile the following code:~%~a" code)
@@ -40,7 +40,7 @@
    to a glsl type." type-name)
 
 (deferror invalid-function-return-spec (func spec)
-    "Outbound spec of function ~a is invalid:~%~a" func spec)
+    "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec (type-spec)
     "Unknown specification for type: ~a" type-spec)

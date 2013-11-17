@@ -48,12 +48,21 @@
 (defun gen-function-string (func arg-objs)
   (apply #'format nil (v-glsl-string func) (mapcar #'current-line arg-objs)))
 
+(defun gen-function-transform (name args)
+  (format nil "~a(~{~a~^,~})" name (loop for i in args collect "~a")))
+
+(defun gen-function-signature (name args return-type)
+  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~));"
+          (v-glsl-string return-type)
+          name
+          args))
+
 (defun gen-function-body-string (name args type body-obj)
   (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
           (v-glsl-string type)
           name 
           args
-          (to-block body-obj) 
+          (remove "" (to-block body-obj) :test #'equal) 
           (current-line (end-line body-obj))))
 
 (defun gen-assignment-string (place val)

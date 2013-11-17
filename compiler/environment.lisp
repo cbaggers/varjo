@@ -134,6 +134,9 @@
 
 (defgeneric get-compiler-macro (macro-name env))
 
+(defmethod get-compiler-macro (macro-name (env (eql :-genv-)))
+  (gethash macro-name *global-env-compiler-macros*))
+
 (defmethod get-compiler-macro (macro-name (env environment))
   (let ((spec (or (a-get1 macro-name (v-compiler-macros env))
                   (gethash macro-name *global-env-compiler-macros*))))

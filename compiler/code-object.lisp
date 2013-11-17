@@ -19,6 +19,7 @@
                                   out-vars invariant returns))
 (defmethod copy-code ((code-obj code) 
                       &key type current-line 
+                        (signatures nil set-sigs)
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
@@ -27,6 +28,7 @@
                  :type (if type type (code-type code-obj)) 
                  :current-line (if current-line current-line 
                                    (current-line code-obj)) 
+                 :signatures (if set-sigs signatures (signatures code-obj))
                  :to-block (if set-block to-block (to-block code-obj))
                  :to-top (if set-top to-top (to-top code-obj))
                  :out-vars (if set-out-vars out-vars (out-vars code-obj))
@@ -34,6 +36,7 @@
                  :returns (if set-returns returns (returns code-obj))))
 
 (defmethod merge-obs ((objs list) &key type current-line 
+                                    (signatures nil set-sigs)
                                     (to-block nil set-block)
                                     (to-top nil set-top)
                                     (out-vars nil set-out-vars)
@@ -41,6 +44,8 @@
   (make-instance 'code
                  :type (if type type (error "type is mandatory")) 
                  :current-line current-line 
+                 :signatures (if set-sigs signatures 
+                                 (mapcan #'signatures objs))
                  :to-block (if set-block to-block (mapcan #'to-block objs))
                  :to-top (if set-top to-top (mapcan #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
@@ -49,6 +54,7 @@
 
 (defmethod merge-obs ((objs code) 
                       &key (type nil set-type)
+                        (signatures nil set-sigs)
                         (current-line nil set-current-line) 
                         (to-block nil set-block)
                         (to-top nil set-top)
@@ -58,6 +64,7 @@
                  :type (if set-type type (code-type objs)) 
                  :current-line (if set-current-line current-line 
                                    (current-line objs)) 
+                 :signatures (if set-sigs signatures (signatures objs))
                  :to-block (if set-block to-block (to-block objs))
                  :to-top (if set-top to-top (to-top objs))
                  :out-vars (if set-out-vars out-vars (out-vars objs))

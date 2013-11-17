@@ -75,13 +75,13 @@
   :special
   :args-valid t
   :return (let ((new-env (clone-environment env)))
-            (varjo->glsl `(progn ,@body) new-env)))
+            (values (varjo->glsl `(progn ,@body) new-env))))
 
 (v-defun %clean-env-block (&body body)
   :special
   :args-valid t
   :return (let ((new-env (clone-environment env)))
-           (varjo->glsl `(progn ,@body) new-env)))
+            (values (varjo->glsl `(progn ,@body) new-env))))
 
 ;;[TODO] this should have a and &optional for place
 (v-defun %make-var (name type)
@@ -119,7 +119,7 @@
            (env (clone-environment env))
            (var-specs (loop :for f :in forms :collect (listify (first f))))
            (c-objs (loop :for f in forms :collect 
-                      (when (> (length forms) 1) (varjo->glsl (second f) env))))
+                      (when (> (length f) 1) (varjo->glsl (second f) env))))
            (glsl-names (loop :for (name) :in var-specs
                           :do (when (> (count name var-specs :key #'first) 1)
                                 (error 'duplicate-name name))
@@ -164,12 +164,6 @@
        (setf result `(let (,binding) ,result)))
     result))
 
-(v-defmacro labels (definitions &body body)
-  (declare (ignore definitions))
-  `(%new-env-block
-    ;;,@(loop :for d :in definitions :collect (%make-function ,@d))
-    ,@body))
-
 ;;[TODO] move error
 ;;[TODO] ignoreing the arg-obs seems dumb, surely we need that data 
 ;;       for something
@@ -189,12 +183,24 @@
       (error 'return-type-mismatch name type returns))
     (let ((arg-pairs (loop :for (name type) :in raw-args :collect
                         `(,(v-glsl-string (type-spec->type type)) ,name))))
-      (make-instance 
-       'code :type type
-       :current-line nil
-       :to-top (cons-end (gen-function-body-string name arg-pairs type body-obj)
-                         (to-top body-obj))
-       :out-vars (out-vars body-obj)))))
+      (add-function 
+       name (func-spec->function 
+             (v-make-f-spec (gen-function-transform name raw-args) raw-args
+                            (mapcar #'second raw-args) type)) env t)
+      (values (make-instance 
+               'code :type type
+               :current-line nil
+               :signatures (cons (gen-function-signature name arg-pairs type)
+                                 (signatures body-obj))
+               :to-top (cons-end (gen-function-body-string name arg-pairs type body-obj)
+                                 (to-top body-obj))
+               :out-vars (out-vars body-obj))
+              env))))
+
+(v-defun break ()
+  :special
+  :args-valid t
+  :return (break))
 
 (v-defun return (form)
   :special
@@ -204,6 +210,70 @@
     (merge-obs obj :type 'v-void
                :current-line (format nil "return ~a" (current-line obj))
                :returns (list (code-type obj)))))
+
+(v-defmacro labels (definitions &body body)
+  `(%new-env-block
+    ,@(loop :for d :in definitions :collect `(%make-function ,@d))
+    ,@body))
+
+
+;; ;; [TODO] Pretty sure this has a bug where if you use an in-built
+;; ;;        type with upper and lower case, this will just write 
+;; ;;        lower-case
+;; (vdefspecial labels (func-specs &rest body)
+;;   (let ((func-objs) (processed nil) (todo func-specs) (count 0))
+;;     (loop :until (or (not todo) (>= count (length todo))) :do
+;;        (let* ((*glsl-functions* (acons-many processed *glsl-functions*))
+;;               (spec (first todo))
+;;               (obj (handler-case (varjo->glsl (cons '%make-function spec))
+;;                      (missing-function-error ()
+;;                        (progn (setf todo `(,@(rest todo) ,(first todo)))
+;;                               (incf count)
+;;                               nil)))))
+;;          (when obj
+;;            (setf count 0)
+;;            (push obj func-objs)
+;;            (pop todo)
+;;            (push (list (first spec) 
+;;                        (vlambda :in-args (second spec)
+;;                                 :output-type (code-type obj)
+;;                                 :transform 
+;;                                 (format nil "~a(~{~a~^,~^ ~})"
+;;                                         (safe-gl-name '-f (first spec))
+;;                                         (loop for i below (length (second spec))
+;;                                            :collect "~a"))))
+;;                  processed))))
+;;     (if todo
+;;         (error "Functions unresolvable in labels block~{~%~s~}" todo)
+;;         (let ((*glsl-functions* (acons-many processed *glsl-functions*)))
+;;           (let ((prog-obj (apply-special 'progn body)))
+;;             (merge-obs (append func-objs (list prog-obj))
+;;                        :type (code-type prog-obj)
+;;                        :current-line (current-line prog-obj)))))))
+
+;; (vdefspecial %init-vec-or-mat (type &rest args)
+;;   (labels ((type-size (arg-type) 
+;;              (let ((arg-type (type-principle arg-type)))
+;;                (if (type-aggregate-p arg-type)
+;;                    (type-component-count arg-type)
+;;                    (if (eq arg-type (type-component-type type))
+;;                        1
+;;                        (error "Varjo: ~a is not of suitable type to be a component of ~a" 
+;;                               arg-type type))))))
+;;     (let* ((target-type (flesh-out-type type))
+;;            (target-length (type-component-count target-type))
+;;            (arg-objs (mapcar #'varjo->glsl args))
+;;            (types (mapcar #'code-type arg-objs))
+;;            (lengths (mapcar #'type-size types)))
+;;       (if (eq target-length (apply #'+ lengths))
+;;           (merge-obs arg-objs
+;;                      :type target-type
+;;                      :current-line 
+;;                      (format nil "~a(~{~a~^,~^ ~})"
+;;                              (varjo-type->glsl-type target-type)
+;;                              (mapcar #'current-line arg-objs)))
+;;           (error "The lengths of the types provided~%(~{~a~^,~^ ~})~%do not add up to the length of ~a" types target-type)))))
+
 
 ;; ;; [TODO] first argument should always be the environment
 ;; ;;        or maybe that is implicitly available
@@ -285,63 +355,6 @@
 ;;         (error "The result of the test must be a bool.~%~s"
 ;;                (code-type test)))))
 
-;; (vdefspecial %init-vec-or-mat (type &rest args)
-;;   (labels ((type-size (arg-type) 
-;;              (let ((arg-type (type-principle arg-type)))
-;;                (if (type-aggregate-p arg-type)
-;;                    (type-component-count arg-type)
-;;                    (if (eq arg-type (type-component-type type))
-;;                        1
-;;                        (error "Varjo: ~a is not of suitable type to be a component of ~a" 
-;;                               arg-type type))))))
-;;     (let* ((target-type (flesh-out-type type))
-;;            (target-length (type-component-count target-type))
-;;            (arg-objs (mapcar #'varjo->glsl args))
-;;            (types (mapcar #'code-type arg-objs))
-;;            (lengths (mapcar #'type-size types)))
-;;       (if (eq target-length (apply #'+ lengths))
-;;           (merge-obs arg-objs
-;;                      :type target-type
-;;                      :current-line 
-;;                      (format nil "~a(~{~a~^,~^ ~})"
-;;                              (varjo-type->glsl-type target-type)
-;;                              (mapcar #'current-line arg-objs)))
-;;           (error "The lengths of the types provided~%(~{~a~^,~^ ~})~%do not add up to the length of ~a" types target-type)))))
-
-;; ;; [TODO] Pretty sure this has a bug where if you use an in-built
-;; ;;        type with upper and lower case, this will just write 
-;; ;;        lower-case
-;; (vdefspecial labels (func-specs &rest body)
-;;   (let ((func-objs) (processed nil) (todo func-specs) (count 0))
-;;     (loop :until (or (not todo) (>= count (length todo))) :do
-;;        (let* ((*glsl-functions* (acons-many processed *glsl-functions*))
-;;               (spec (first todo))
-;;               (obj (handler-case (varjo->glsl (cons '%make-function spec))
-;;                      (missing-function-error ()
-;;                        (progn (setf todo `(,@(rest todo) ,(first todo)))
-;;                               (incf count)
-;;                               nil)))))
-;;          (when obj
-;;            (setf count 0)
-;;            (push obj func-objs)
-;;            (pop todo)
-;;            (push (list (first spec) 
-;;                        (vlambda :in-args (second spec)
-;;                                 :output-type (code-type obj)
-;;                                 :transform 
-;;                                 (format nil "~a(~{~a~^,~^ ~})"
-;;                                         (safe-gl-name '-f (first spec))
-;;                                         (loop for i below (length (second spec))
-;;                                            :collect "~a"))))
-;;                  processed))))
-;;     (if todo
-;;         (error "Functions unresolvable in labels block~{~%~s~}" todo)
-;;         (let ((*glsl-functions* (acons-many processed *glsl-functions*)))
-;;           (let ((prog-obj (apply-special 'progn body)))
-;;             (merge-obs (append func-objs (list prog-obj))
-;;                        :type (code-type prog-obj)
-;;                        :current-line (current-line prog-obj)))))))
-
 ;; (vdefspecial %make-array (type length &optional contents)
 ;;   (let* ((literal-length (typep length 'code))
 ;;          (length (varjo->glsl length))
@@ -357,39 +370,6 @@
 ;;                            (current-line length) 
 ;;                            (mapcar #'current-line contents)))))
 
-;; ;;[TODO] arg names arent always safe (try anything with a hyphon)
-;; (vdefspecial %make-function (name args &rest body)
-;;   (let ((name (if (eq name :main) :main (symb '-f name))))
-;;     (destructuring-bind (form-objs new-vars)
-;;         (compile-let-forms (mapcar #'list args) nil nil)
-;;       (declare (ignore form-objs))
-;;       (let* ((*glsl-variables* (append new-vars *glsl-variables*)) 
-;;              (body-obj (indent-ob (apply-special 'progn body)))
-;;              (name (if (eq name :main) :main name))
-;;              (returns (returns body-obj))
-;;              (type (if (eq name :main) '(:void nil nil) 
-;;                        (first returns))))
-;;         (let ((name (safe-gl-name name)))
-;;           (if (or (not returns) (loop for r in returns always (equal r (first returns))))
-;;               (make-instance 
-;;                'code :type type
-;;                :current-line nil
-;;                :to-top (append 
-;;                         (to-top body-obj)
-;;                         (list (format 
-;;                                nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
-;;                                (varjo-type->glsl-type type)
-;;                                name 
-;;                                (mapcar #'reverse args)
-;;                                (to-block body-obj) 
-;;                                (current-line (end-line body-obj)))))
-
-;;                :out-vars (out-vars body-obj))
-;;               (error "Some of the return statements in function '~a' return different types~%~a~%~a" name type returns)))))))
-
-;; (vdefspecial %make-var (name type)
-;;   (make-instance 'code :type (set-place-t type)
-;;                  :current-line (string name)))
 
 ;; (vdefspecial %negate (form)  
 ;;   (let* ((arg-obj (varjo->glsl form)))
@@ -416,17 +396,6 @@
 ;;                                     ,(code-type arg-obj)
 ;;                                     ,(safe-gl-name out-var-name) 
 ;;                                     ,@qualifiers))))))
-
-;; ;; [TODO] why does this need semicolon?
-;; (vdefspecial return (&optional (form '(%void)))
-;;   (let ((ob (varjo->glsl form)))
-;;     (if (eq :none (code-type ob))
-;;         ob
-;;         (merge-obs ob
-;;                    :current-line (format nil "return ~a;" 
-;;                                          (current-line ob))
-;;                    :type :none
-;;                    :returns (list (code-type ob))))))
 
 ;; (vdefspecial switch (test-form &rest clauses)    
 ;;   (let* ((test (varjo->glsl test-form))
@@ -456,32 +425,6 @@
 ;;                   format-clauses)))
 ;;         (error "The result of the test must be an int.~%~s"
 ;;                (code-type test)))))
-
-;; (vdefspecial %%typify (form)
-;;   (let* ((arg (varjo->glsl form))
-;;          (type (code-type arg)))
-;;     (merge-obs arg :current-line 
-;;                (format nil "<~a ~a>" type (current-line arg)))))
-
-;; (vdefspecial %typify (form)
-;;   (let* ((arg (varjo->glsl form))
-;;          (type (code-type arg)))
-;;     (merge-obs arg :current-line 
-;;                (format nil "~a ~a" (varjo-type->glsl-type type)
-;;                        (current-line arg)))))
-
-;; (vdefspecial %in-typify (form &optional (qualifiers nil))
-;;   (let* ((arg (varjo->glsl form))
-;;          (type (code-type arg)))
-;;     (merge-obs arg :current-line 
-;;                (format nil "~a ~{~a ~}~a~@[[~a]~]" 
-;;                        (varjo-type->glsl-type type)
-;;                        qualifiers
-;;                        (current-line arg)
-;;                        (when (second type)
-;;                          (if (numberp (second type))
-;;                              (second type)
-;;                              ""))))))
 
 ;; (vdefspecial while (test &rest body)
 ;;   (let* ((test-ob (varjo->glsl test))

@@ -35,6 +35,7 @@
 (defclass code ()
   ((type :initarg :type :initform nil :accessor code-type)
    (current-line :initarg :current-line :initform "" :accessor current-line)
+   (signatures :initarg :signatures :initform nil :accessor signatures)
    (to-block :initarg :to-block :initform nil :accessor to-block)
    (to-top :initarg :to-top :initform nil :accessor to-top)
    (out-vars :initarg :out-vars :initform nil :accessor out-vars)
