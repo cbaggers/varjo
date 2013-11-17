@@ -178,7 +178,7 @@
   (let ((spec (v-return-spec func))
         (arg-types (mapcar #'code-type args)))
     (cond ((null spec) (find-mutual-cast-type arg-types))
-          ((v-typep spec 'v-type) spec)
+          ((typep spec 'v-type) spec)
           ((numberp spec) (nth spec arg-types))
           ((functionp spec) (apply spec args))
           ((and (listp spec) (eq (first spec) :element))

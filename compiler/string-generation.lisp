@@ -68,6 +68,31 @@
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))
 
+(defun gen-out-var-assignment-string (var-name val)
+  (format nil "~a = ~a" var-name (current-line val)))
+
+(defun gen-if-string (test-obj then-obj else-obj)
+  (if else-obj
+      (format nil "~a~&if (~a) {~{~%~a~}~%    ~a~%} else {~{~%~a~}~%    ~a~%}"
+              (or (to-block test-obj) "") 
+              (current-line test-obj)
+              (or (to-block then-obj) nil) 
+              (current-line then-obj)
+              (or (to-block else-obj) nil) 
+              (current-line else-obj))
+      (format nil "~a~&if (~a) {~{~%~a~}~%    ~a~%}"
+              (or (to-block test-obj) "") 
+              (current-line test-obj)
+              (or (to-block then-obj) nil)
+              (current-line then-obj))))
+
+(defun gen-while-string (test-obj body-obj)
+  (format nil "~{~a~%~}while (~a) {~%~{~a~%~}~a;~%}"
+          (to-block test-obj)
+          (current-line test-obj)
+          (to-block body-obj)
+          (current-line body-obj)))
+
 (defun qualify (obj &rest qualifiers)
   (%qualify obj qualifiers))
 

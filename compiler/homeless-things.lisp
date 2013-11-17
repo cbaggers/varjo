@@ -7,7 +7,7 @@
     (let ((safe-name (safe-gl-name name)))
       (format nil "_~a_~a" safe-name count))))
 
-;;
+;;[TODO] needs to take and environment, not safe if its taken
 (defun safe-gl-name (&rest name-parts)
   (let* ((n (string-downcase (string (apply #'symb name-parts))))
          (matches (cl-ppcre:all-matches "[^a-zA-Z0-9-]" n)))

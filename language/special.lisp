@@ -216,40 +216,199 @@
     ,@(loop :for d :in definitions :collect `(%make-function ,@d))
     ,@body))
 
+;; [TODO] what if tpye of form is not value
+(v-defun out (name-and-qualifiers form)
+  :special
+  :args-valid t
+  :return
+  (let* ((form-obj (varjo->glsl form env))
+         (out-var-name (if (consp name-and-qualifiers) 
+                           (first name-and-qualifiers)
+                           name-and-qualifiers))
+         (qualifiers (when (consp name-and-qualifiers)
+                       (rest name-and-qualifiers)))
+         (glsl-name (free-name out-var-name env)))
+    (if (assoc out-var-name *glsl-variables*)
+        (error 'out-var-name-taken out-var-name)
+        (make-instance 
+         'code :type 'v-none
+         :current-line (gen-out-var-assignment-string glsl-name form-obj)
+         :to-block (to-block form-obj)
+         :out-vars (cons `(,out-var-name 
+                           ,qualifiers
+                           ,(make-instance 'v-value :type (code-type form-obj)))
+                         (out-vars form-obj))))))
 
-;; ;; [TODO] Pretty sure this has a bug where if you use an in-built
-;; ;;        type with upper and lower case, this will just write 
-;; ;;        lower-case
-;; (vdefspecial labels (func-specs &rest body)
-;;   (let ((func-objs) (processed nil) (todo func-specs) (count 0))
-;;     (loop :until (or (not todo) (>= count (length todo))) :do
-;;        (let* ((*glsl-functions* (acons-many processed *glsl-functions*))
-;;               (spec (first todo))
-;;               (obj (handler-case (varjo->glsl (cons '%make-function spec))
-;;                      (missing-function-error ()
-;;                        (progn (setf todo `(,@(rest todo) ,(first todo)))
-;;                               (incf count)
-;;                               nil)))))
-;;          (when obj
-;;            (setf count 0)
-;;            (push obj func-objs)
-;;            (pop todo)
-;;            (push (list (first spec) 
-;;                        (vlambda :in-args (second spec)
-;;                                 :output-type (code-type obj)
-;;                                 :transform 
-;;                                 (format nil "~a(~{~a~^,~^ ~})"
-;;                                         (safe-gl-name '-f (first spec))
-;;                                         (loop for i below (length (second spec))
-;;                                            :collect "~a"))))
-;;                  processed))))
-;;     (if todo
-;;         (error "Functions unresolvable in labels block~{~%~s~}" todo)
-;;         (let ((*glsl-functions* (acons-many processed *glsl-functions*)))
-;;           (let ((prog-obj (apply-special 'progn body)))
-;;             (merge-obs (append func-objs (list prog-obj))
-;;                        :type (code-type prog-obj)
-;;                        :current-line (current-line prog-obj)))))))
+;; note that just like in lisp this only fails if false. 0 does not fail.
+(v-defun if (test-form then-form &optional else-form)
+  :special
+  :args-valid t 
+  :return
+  (let* ((test-obj (varjo->glsl test-form env))
+         (then-obj (end-line (varjo->glsl then-form env)))
+         (else-obj (when else-form (end-line (varjo->glsl else-form env))))
+         (arg-objs (remove-if #'null (list test-obj then-obj else-obj))))
+    (when (not (v-typep (code-type test-obj) 'v-bool))
+      (setf test-obj (varjo->glsl t env))
+      (setf else-obj nil))
+    (if (v-typep (code-type test-obj) 'v-bool)
+        (merge-obs arg-objs :type :none :current-line nil
+                   :to-block (list (gen-if-string test-obj then-obj else-obj)))
+        (error "The result of the test must be a bool.~%~s"
+               (code-type test-obj)))))
+
+(v-defun while (test &rest body)
+  :special
+  :args-valid t
+  :return
+  (let* ((test-obj (varjo->glsl test env))
+         (body-obj (varjo->glsl `(progn ,@body) env)))
+    (if (v-typep (code-type test-obj) 'v-bool)
+        (merge-obs (list body-obj test-obj)
+                   :type 'v-none :current-line nil
+                   :to-block (list (gen-while-string test-obj body-obj)))
+        (error 'loop-will-never-halt :test-code test :test-obj test-obj))))
+
+;; (vdefspecial switch (test-form &rest clauses)    
+;;   (let* ((test (varjo->glsl test-form))
+;;          (keys (mapcar #'first clauses))
+;;          (arg-objs (mapcar #'(lambda (x) (varjo->glsl (second x)))
+;;                            clauses))
+;;          (format-clauses 
+;;           (loop :for key :in keys
+;;              :for obj :in arg-objs
+;;              :append
+;;              (cond ((eq key 'otherwise) 
+;;                     (list "default" nil "jam"))
+;;                    ((glsl-typep key '(:int nil))
+;;                     (list (current-line key)
+;;                           (or (to-block obj) nil) 
+;;                           (current-line obj)))))))
+;;     (if (glsl-typep test '(:int nil))
+;;         (merge-obs 
+;;          arg-objs
+;;          :type :none
+;;          :current-line ""
+;;          :to-block 
+;;          (list 
+;;           (format nil "~a~%switch (~a) {~{~%case ~a:~%~{~a~^~%~}~a;~%break;~}}"
+;;                   (or (to-block test) "") 
+;;                   (current-line test)
+;;                   format-clauses)))
+;;         (error "The result of the test must be an int.~%~s"
+;;                (code-type test)))))
+
+;; (vdefspecial swizzle (vec-form components)
+;;   (let* ((vec-ob (varjo->glsl vec-form))
+;;          (vec-type (code-type vec-ob)))
+;;     (if (type-vec-core-type vec-type)
+;;         (let* ((comp (string-downcase (string (if (listp components)
+;;                                                   (cadr components)
+;;                                                   components))))
+;;                (len (length comp)))
+;;           (if (<= len 4)
+;;               (merge-obs (list vec-ob)	
+;;                          :type (set-place-t (change-vec-length
+;;                                              vec-type len))
+;;                          :current-line (format nil "~a.~a"
+;;                                                (current-line vec-ob)
+;;                                                comp))
+;;               (error "Varjo: Invlaid length of components for swizzle")))
+;;         (error "Varjo: Trying to swizzle a non vector: ~a" vec-type))))
+
+;; ;; [TODO] double check implications of typify in compile-let-forms
+;; (vdefspecial for (var-form condition update &rest body)
+;;   "(for (a 0) (< a 10) (++ a)
+;;      (* a 2))"
+;;   (if 
+;;    (consp (first var-form))
+;;    (error "for can only iterate over one variable")
+;;    (destructuring-bind (form-objs new-vars)
+;;        (compile-let-forms (list var-form) t)
+;;      (let* ((form-obj (first form-objs))
+;;             (*glsl-variables* (append new-vars *glsl-variables*))
+;;             (con-ob (varjo->glsl condition))
+;;             (up-ob (varjo->glsl update))
+;;             (prog-ob (end-line (indent-ob (apply-special 'progn body)))))
+;;        (if (and (null (to-block con-ob)) (null (to-block up-ob)))
+           
+;;            (merge-obs (list prog-ob form-obj)
+;;                       :type :none
+;;                       :current-line nil
+;;                       :to-block 
+;;                       (list
+;;                        (fmt "~{~a~%~}for (~a;~a;~a) {~%~{~a~%~}    ~a~%}"
+;;                             (to-block form-obj)
+;;                             (current-line form-obj)
+;;                             (current-line con-ob)
+;;                             (current-line up-ob)
+;;                             (to-block prog-ob)
+;;                             (current-line prog-ob))))
+;;            (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
+
+
+;; (vdefspecial %make-array (type length &optional contents)
+;;   (let* ((literal-length (typep length 'code))
+;;          (length (varjo->glsl length))
+;;          (contents (mapcar #'varjo->glsl contents)))
+;;     (merge-obs 
+;;      (cons length contents)
+;;      :type (flesh-out-type 
+;;             `(,type ,(if literal-length
+;;                          (parse-integer (current-line length))
+;;                          t)))
+;;      :current-line (format nil "~a[~a]{~{~a~^,~}}" 
+;;                            type
+;;                            (current-line length) 
+;;                            (mapcar #'current-line contents)))))
+
+
+;; (vdefspecial %negate (form)  
+;;   (let* ((arg-obj (varjo->glsl form)))
+;;     (merge-obs arg-obj
+;;                :current-line (format nil "-~a"
+;;                                      (current-line arg-obj)))))
+
+;; (v-defun + (&rest numbers)
+;;   :special
+;;   :args-valid #'args-compatible
+;;   :return (merge-obs numbers
+;;                      :type (apply #'superior-type (mapcar #'v-type numbers))
+;;                      :current-line (format nil "(~{~a~^ ~^+~^ ~})"
+;;                                            (mapcar #'current-line arg-objs))))
+
+;; (vdefspecial + (&rest args)    
+;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
+;;          (types (mapcar #'code-type arg-objs)))
+;;     (if (apply #'types-compatiblep types)
+;;         (merge-obs arg-objs
+;;                    :type (apply #'superior-type types)
+;;                    :current-line (format nil "(~{~a~^ ~^+~^ ~})"
+;;                                          (mapcar #'current-line 
+;;                                                  arg-objs)))
+;;         (error "The types of object passed to + are not compatible~%~{~s~^ ~}" types))))
+
+;; (vdefspecial %- (&rest args)    
+;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
+;;          (types (mapcar #'code-type arg-objs)))
+;;     (if (apply #'types-compatiblep types)
+;;         (merge-obs arg-objs
+;;                    :type (apply #'superior-type types)
+;;                    :current-line (format nil "(~{~a~^ ~^-~^ ~})"
+;;                                          (mapcar #'current-line 
+;;                                                  arg-objs)))
+;;         (error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
+
+;; (vdefspecial / (&rest args)    
+;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
+;;          (types (mapcar #'code-type arg-objs)))
+;;     (if (apply #'types-compatiblep types)
+;;         (merge-obs arg-objs
+;;                    :type (apply #'superior-type types)
+;;                    :current-line (format nil "(~{~a~^ ~^/~^ ~})"
+;;                                          (mapcar #'current-line 
+;;                                                  arg-objs)))
+;;         (error "The types of object passed to / are not compatible~%~{~s~^ ~}" types))))
 
 ;; (vdefspecial %init-vec-or-mat (type &rest args)
 ;;   (labels ((type-size (arg-type) 
@@ -296,205 +455,3 @@
 ;;             (error "Verjo: Both potential outputs must be of the same type"))
 ;;         (error "The result of the test must be a bool.~%~a"
 ;;                (code-type test)))))
-
-
-;; ;; [TODO] double check implications of typify in compile-let-forms
-;; (vdefspecial for (var-form condition update &rest body)
-;;   "(for (a 0) (< a 10) (++ a)
-;;      (* a 2))"
-;;   (if 
-;;    (consp (first var-form))
-;;    (error "for can only iterate over one variable")
-;;    (destructuring-bind (form-objs new-vars)
-;;        (compile-let-forms (list var-form) t)
-;;      (let* ((form-obj (first form-objs))
-;;             (*glsl-variables* (append new-vars *glsl-variables*))
-;;             (con-ob (varjo->glsl condition))
-;;             (up-ob (varjo->glsl update))
-;;             (prog-ob (end-line (indent-ob (apply-special 'progn body)))))
-;;        (if (and (null (to-block con-ob)) (null (to-block up-ob)))
-           
-;;            (merge-obs (list prog-ob form-obj)
-;;                       :type :none
-;;                       :current-line nil
-;;                       :to-block 
-;;                       (list
-;;                        (fmt "~{~a~%~}for (~a;~a;~a) {~%~{~a~%~}    ~a~%}"
-;;                             (to-block form-obj)
-;;                             (current-line form-obj)
-;;                             (current-line con-ob)
-;;                             (current-line up-ob)
-;;                             (to-block prog-ob)
-;;                             (current-line prog-ob))))
-;;            (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
-
-;; (vdefspecial if (test-form then-form &optional else-form)  
-;;   (let* ((test (varjo->glsl test-form))
-;;          (t-obj (end-line (indent-ob (varjo->glsl then-form))))
-;;          (nil-obj (when else-form (end-line (indent-ob (varjo->glsl else-form)))))
-;;          (arg-objs (remove-if #'null (list test t-obj nil-obj))))
-;;     (if (glsl-typep test '(:bool nil))
-;;         (merge-obs 
-;;          arg-objs
-;;          :type :none
-;;          :current-line nil
-;;          :to-block 
-;;          (list (if nil-obj
-;;                    (format nil "~a~&if (~a) {~{~%~a~}~%    ~a~%} else {~{~%~a~}~%    ~a~%}"
-;;                            (or (to-block test) "") 
-;;                            (current-line test)
-;;                            (or (to-block t-obj) nil) 
-;;                            (current-line t-obj)
-;;                            (or (to-block nil-obj) nil) 
-;;                            (current-line nil-obj))
-;;                    (format nil "~a~&if (~a) {~{~%~a~}~%    ~a~%}"
-;;                            (or (to-block test) "") 
-;;                            (current-line test)
-;;                            (or (to-block t-obj) nil)
-;;                            (current-line t-obj)))))
-;;         (error "The result of the test must be a bool.~%~s"
-;;                (code-type test)))))
-
-;; (vdefspecial %make-array (type length &optional contents)
-;;   (let* ((literal-length (typep length 'code))
-;;          (length (varjo->glsl length))
-;;          (contents (mapcar #'varjo->glsl contents)))
-;;     (merge-obs 
-;;      (cons length contents)
-;;      :type (flesh-out-type 
-;;             `(,type ,(if literal-length
-;;                          (parse-integer (current-line length))
-;;                          t)))
-;;      :current-line (format nil "~a[~a]{~{~a~^,~}}" 
-;;                            type
-;;                            (current-line length) 
-;;                            (mapcar #'current-line contents)))))
-
-
-;; (vdefspecial %negate (form)  
-;;   (let* ((arg-obj (varjo->glsl form)))
-;;     (merge-obs arg-obj
-;;                :current-line (format nil "-~a"
-;;                                      (current-line arg-obj)))))
-
-;; (vdefspecial out (name-and-qualifiers form)
-;;   (let ((arg-obj (varjo->glsl form))
-;;         (out-var-name (if (consp name-and-qualifiers)
-;;                           (first name-and-qualifiers)
-;;                           name-and-qualifiers))
-;;         (qualifiers (when (consp name-and-qualifiers)
-;;                       (rest name-and-qualifiers))))
-;;     (if (assoc out-var-name *glsl-variables*)
-;;         (error "The variable name '~a' is already taken and so cannot be used~%for an out variable" out-var-name)
-;;         (make-instance 'code
-;;                        :type :void
-;;                        :current-line (fmt "~a = ~a;" 
-;;                                           (safe-gl-name out-var-name)
-;;                                           (current-line arg-obj))
-;;                        :to-block (to-block arg-obj)
-;;                        :out-vars `((,out-var-name
-;;                                     ,(code-type arg-obj)
-;;                                     ,(safe-gl-name out-var-name) 
-;;                                     ,@qualifiers))))))
-
-;; (vdefspecial switch (test-form &rest clauses)    
-;;   (let* ((test (varjo->glsl test-form))
-;;          (keys (mapcar #'first clauses))
-;;          (arg-objs (mapcar #'(lambda (x) (varjo->glsl (second x)))
-;;                            clauses))
-;;          (format-clauses 
-;;           (loop :for key :in keys
-;;              :for obj :in arg-objs
-;;              :append
-;;              (cond ((eq key 'otherwise) 
-;;                     (list "default" nil "jam"))
-;;                    ((glsl-typep key '(:int nil))
-;;                     (list (current-line key)
-;;                           (or (to-block obj) nil) 
-;;                           (current-line obj)))))))
-;;     (if (glsl-typep test '(:int nil))
-;;         (merge-obs 
-;;          arg-objs
-;;          :type :none
-;;          :current-line ""
-;;          :to-block 
-;;          (list 
-;;           (format nil "~a~%switch (~a) {~{~%case ~a:~%~{~a~^~%~}~a;~%break;~}}"
-;;                   (or (to-block test) "") 
-;;                   (current-line test)
-;;                   format-clauses)))
-;;         (error "The result of the test must be an int.~%~s"
-;;                (code-type test)))))
-
-;; (vdefspecial while (test &rest body)
-;;   (let* ((test-ob (varjo->glsl test))
-;;          (prog-ob (end-line (apply-special 'progn body))))
-;;     (merge-obs (list prog-ob test-ob)
-;;                :type :none
-;;                :current-line nil
-;;                :to-block 
-;;                (list
-;;                 (format nil "~{~a~%~}while (~a) {~%~{~a~%~}~a;~%}"
-;;                         (to-block test-ob)
-;;                         (current-line test-ob)
-;;                         (to-block prog-ob)
-;;                         (current-line prog-ob))))))
-
-;; (vdefspecial swizzle (vec-form components)
-;;   (let* ((vec-ob (varjo->glsl vec-form))
-;;          (vec-type (code-type vec-ob)))
-;;     (if (type-vec-core-type vec-type)
-;;         (let* ((comp (string-downcase (string (if (listp components)
-;;                                                   (cadr components)
-;;                                                   components))))
-;;                (len (length comp)))
-;;           (if (<= len 4)
-;;               (merge-obs (list vec-ob)	
-;;                          :type (set-place-t (change-vec-length
-;;                                              vec-type len))
-;;                          :current-line (format nil "~a.~a"
-;;                                                (current-line vec-ob)
-;;                                                comp))
-;;               (error "Varjo: Invlaid length of components for swizzle")))
-;;         (error "Varjo: Trying to swizzle a non vector: ~a" vec-type))))
-
-;; (v-defun + (&rest numbers)
-;;   :special
-;;   :args-valid #'args-compatible
-;;   :return (merge-obs numbers
-;;                      :type (apply #'superior-type (mapcar #'v-type numbers))
-;;                      :current-line (format nil "(~{~a~^ ~^+~^ ~})"
-;;                                            (mapcar #'current-line arg-objs))))
-
-;; (vdefspecial + (&rest args)    
-;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
-;;          (types (mapcar #'code-type arg-objs)))
-;;     (if (apply #'types-compatiblep types)
-;;         (merge-obs arg-objs
-;;                    :type (apply #'superior-type types)
-;;                    :current-line (format nil "(~{~a~^ ~^+~^ ~})"
-;;                                          (mapcar #'current-line 
-;;                                                  arg-objs)))
-;;         (error "The types of object passed to + are not compatible~%~{~s~^ ~}" types))))
-
-;; (vdefspecial %- (&rest args)    
-;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
-;;          (types (mapcar #'code-type arg-objs)))
-;;     (if (apply #'types-compatiblep types)
-;;         (merge-obs arg-objs
-;;                    :type (apply #'superior-type types)
-;;                    :current-line (format nil "(~{~a~^ ~^-~^ ~})"
-;;                                          (mapcar #'current-line 
-;;                                                  arg-objs)))
-;;         (error "The types of object passed to - are not compatible~%~{~s~^ ~}" types))))
-
-;; (vdefspecial / (&rest args)    
-;;   (let* ((arg-objs (mapcar #'varjo->glsl args))
-;;          (types (mapcar #'code-type arg-objs)))
-;;     (if (apply #'types-compatiblep types)
-;;         (merge-obs arg-objs
-;;                    :type (apply #'superior-type types)
-;;                    :current-line (format nil "(~{~a~^ ~^/~^ ~})"
-;;                                          (mapcar #'current-line 
-;;                                                  arg-objs)))
-;;         (error "The types of object passed to / are not compatible~%~{~s~^ ~}" types))))

@@ -50,3 +50,6 @@
   ((type :initarg :type :initform nil :accessor v-type)
    (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
    (inferring :initarg :inferring :initform nil :accessor v-inferringp)))
+
+
+
