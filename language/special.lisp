@@ -39,10 +39,12 @@
 (v-defun setf ((place v-type) (val v-type))
   :special
   :return 
-  (if (v-placep (code-type place))
-      (merge-obs (list place val) :type (code-type place)
-                 :current-line (gen-assignment-string place val))
-      (error 'non-place-assign :place place :val val)))
+  (cond ((not (v-placep (code-type place)))
+         (error 'non-place-assign :place place :val val))
+        ((not (v-type-eq (code-type place) (code-type val)))
+         (error 'setf-type-match place val))
+        (t (merge-obs (list place val) :type (code-type place)
+                      :current-line (gen-assignment-string place val)))))
 
 (v-defun progn (&rest body)
   ;; this is super important as it is the only function that implements 
@@ -84,6 +86,8 @@
             (values (varjo->glsl `(progn ,@body) new-env))))
 
 ;;[TODO] this should have a and &optional for place
+;;[TODO] could this take a form and infer the type? yes...it could
+;;       should destructively modify the env
 (v-defun %make-var (name type)
   :special
   :args-valid t
@@ -145,8 +149,7 @@
                              :type (make-instance 'v-none)
                              :current-line ""
                              :to-block (append (mapcan #'to-block decl-objs)
-                                               (mapcar (lambda (x) (end-line x))
-                                                       decl-objs))
+                                               (mapcar #'end-line decl-objs))
                              :to-top (mapcan #'to-top decl-objs))
                   (make-instance 'code :type 'v-none))
               env))))

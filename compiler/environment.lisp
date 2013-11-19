@@ -53,6 +53,17 @@
                  :types (copy-list (v-types env))
                  :context (copy-list (v-context env))))
 
+(defmethod normalize-environment (env &optional modify-env)
+  (let ((env (if modify-env env (clone-environment env))))
+    (labels ((norm-list (x) (loop :for i :in x :for seen = nil :do
+                              (when (not (find (first i) seen :key #'first))
+                                (push i seen))
+                              :finally (return seen))))
+      (setf (v-variables env) (norm-list (v-variables env)))
+      (setf (v-functions env) (norm-list (v-functions env)))
+      (setf (v-macros env) (norm-list (v-macros env)))
+      (setf (v-compiler-macros env) (norm-list (v-compiler-macros env))))))
+
 ;;-------------------------------------------------------------------------
 
 (defun context-ok-given-restriction (context restriction)

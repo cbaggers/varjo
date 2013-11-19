@@ -51,5 +51,11 @@
    (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
    (inferring :initarg :inferring :initform nil :accessor v-inferringp)))
 
+(defmethod v-make-value ((type v-t-type))
+  (make-instance 'v-value :type type))
+
+(defmethod v-make-value ((type t))
+  (make-instance 'v-value :type (type-spec->type type)))
+
 
 

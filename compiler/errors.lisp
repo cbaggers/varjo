@@ -66,12 +66,23 @@
   (current-line place)
   (gen-assignment-string place val))
 
+(deferror setf-type-match (code-obj-a code-obj-b)
+    "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
+  code-obj-a code-obj-b)
+
 (deferror cannot-not-shadow-core ()
     "You cannot shadow or replace core macros or special functions.")
 
 (deferror out-var-name-taken (out-var-name)
     "The variable name '~a' is already taken and so cannot be used~%for an out variable" 
   out-var-name)
+
+(deferror unknown-variable-type (name)
+    "Could not establish the type of the variable: ~s" name)
+
+(deferror var-type-mismatch (var-type code-obj)
+    "Type specified does not match the type of the form~%~s~%~s"
+  (code-type code-obj) var-type)
 
 (deferror switch-type-error (test-obj keys)
     "In a switch statement the result of the test and the keys must all be either ints or uints:~%Test type: ~a~%Keys used: ~{~a~^,~}" (code-type test-obj) keys)
