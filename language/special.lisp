@@ -292,6 +292,7 @@
                                                       clause-body-objs)))
         (error 'switch-type-error test-obj keys))))
 
+(v-defmacro s~ (&rest args) `(swizzle ,@args))
 (v-defun swizzle (vec-form components)
   :special 
   :args-valid t
