@@ -20,7 +20,7 @@
 ;; (V-DEFUN INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
 ;; (V-DEFUN UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
 
-(v-defun not (a) "(~a != true)" (v-bool) v-bool :glsl-spec-matching t)
+(v-defun not (a) "(~a == true)" (v-bool) v-bool :glsl-spec-matching t)
 (v-defun not (a) "false" (v-type) v-bool :glsl-spec-matching t)
 
 (v-defun %< (a b) "(~a < ~a)" (v-number v-number) v-bool :glsl-spec-matching t)
@@ -32,9 +32,10 @@
 (v-defun %eql (a b) "(~a == ~a)" (v-number v-number) v-bool :glsl-spec-matching t)
 (v-defun %= (a b) "(~a == ~a)" (v-number v-number) v-bool :glsl-spec-matching t)
 
+(v-defun %+ (a) "(~a)" (v-number) nil :glsl-spec-matching t)
 (v-defun %+ (a b) "(~a + ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun %- (a b) "(~a - ~a)" (v-number v-number) nil :glsl-spec-matching t)
-(v-defun %- (a b) "(- ~a)" (v-number) 0 :glsl-spec-matching t)
+(v-defun %- (a) "(- ~a)" (v-number) 0 :glsl-spec-matching t)
 (v-defun %* (a b) "(~a * ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun %/ (a b) "(~a / ~a)" (v-number v-number) nil :glsl-spec-matching t)
 
@@ -241,48 +242,43 @@
          (V-DVEC4) V-BVEC4
          :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-NOT (X &CONTEXT (:330 :440)) "not(~a)" (V-BVECTOR) 0 :PLACE NIL
+         :GLSL-SPEC-MATCHING T)
+
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
-         (V-BVECN V-BVECN)
+         (V-BVECTOR V-BVECTOR)
          0 :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440))
-         "notEqual(~a,~a)"
-         (V-BVECN V-BVECN) 0 :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-FLOAT V-FLOAT)
          V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-VEC2 V-VEC2)
          V-BVEC2 :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-VEC3 V-VEC3)
          V-BVEC3 :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-VEC4 V-VEC4)
          V-BVEC4 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-NOT-EQUAL (X Y &CONTEXT (:330 :440))
+         "notEqual(~a,~a)"
+         (V-BVECTOR V-BVECTOR) 0 :PLACE NIL :GLSL-SPEC-MATCHING T)
+(V-DEFUN V-NOT-EQUAL (X Y &CONTEXT (:330 :440))
          "notEqual(~a,~a)"
          (V-FLOAT V-FLOAT) V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-NOT-EQUAL (X Y &CONTEXT (:330 :440))
          "notEqual(~a,~a)"
          (V-VEC2 V-VEC2) V-BVEC2 :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-NOT-EQUAL (X Y &CONTEXT (:330 :440))
          "notEqual(~a,~a)"
          (V-VEC3 V-VEC3) V-BVEC3 :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN NOT-EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-NOT-EQUAL (X Y &CONTEXT (:330 :440))
          "notEqual(~a,~a)"
          (V-VEC4 V-VEC4) V-BVEC4 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
@@ -355,17 +351,17 @@
          (V-INT V-INT)
          V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-IVEC2 V-IVEC2)
          V-BVEC2 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-IVEC3 V-IVEC3)
          V-BVEC3 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-IVEC4 V-IVEC4)
          V-BVEC4 :PLACE NIL :GLSL-SPEC-MATCHING T)
@@ -450,22 +446,22 @@
          "lessThanEqual(~a,~a)"
          (V-IVEC4 V-IVEC4) V-BVEC4 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-UINT V-UINT)
          V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-UVEC2 V-UVEC2)
          V-BVEC2 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-UVEC3 V-UVEC3)
          V-BVEC3 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-UVEC4 V-UVEC4)
          V-BVEC4 :PLACE NIL :GLSL-SPEC-MATCHING T)
@@ -554,17 +550,17 @@
          "equal(~a,~a)"
          (V-DOUBLE V-DOUBLE) V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-DVEC2 V-DVEC2)
          V-BVEC2 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-DVEC3 V-DVEC3)
          V-BVEC3 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
-(V-DEFUN EQUAL (X Y &CONTEXT (:330 :440))
+(V-DEFUN V-EQUAL (X Y &CONTEXT (:330 :440))
          "equal(~a,~a)"
          (V-DVEC4 V-DVEC4)
          V-BVEC4 :PLACE NIL :GLSL-SPEC-MATCHING T)
@@ -667,11 +663,11 @@
 
 (V-DEFUN ALL (X &CONTEXT (:330 :440))
          "all(~a)"
-         (V-BVECN) V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
+         (V-BVECTOR) V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
 
 (V-DEFUN ANY (X &CONTEXT (:330 :440))
          "any(~a)"
-         (V-BVECN) V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
+         (V-BVECTOR) V-BOOL :PLACE NIL :GLSL-SPEC-MATCHING T)
 
 (V-DEFUN ASIN (X &CONTEXT (:330 :440))
          "asin(~a)"
@@ -998,10 +994,6 @@
          "normalize(~a)"
          (V-TFD) 0
          :PLACE NIL :GLSL-SPEC-MATCHING T)
-
-(V-DEFUN NOT (X &CONTEXT (:330 :440))
-         "not(~a)"
-         (V-BVECN) 0 :PLACE NIL :GLSL-SPEC-MATCHING T)
 
 (V-DEFUN OUTER-PRODUCT (C R &CONTEXT (:330 :440))
          "outerProduct(~a,~a)"

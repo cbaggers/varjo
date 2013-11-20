@@ -372,4 +372,4 @@
   ;;             (error "Verjo: Both potential outputs must be of the same type"))
   ;;         (error "The result of the test must be a bool.~%~a"
   ;;                (code-type test)))))
-  )
+
