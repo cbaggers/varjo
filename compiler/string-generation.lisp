@@ -52,7 +52,9 @@
   (format nil "~a~a" number (num-suffix type)))
 
 (defun gen-variable-string (var-name)
-  (format nil "~a" var-name))
+  (format nil "~a" (if (glsl-var-namep var-name) 
+                       (gen-reserved-var-string var-name)
+                       var-name)))
 
 (defun gen-function-string (func arg-objs)
   (apply #'format nil (v-glsl-string func) (mapcar #'current-line arg-objs)))

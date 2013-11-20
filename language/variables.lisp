@@ -43,7 +43,7 @@
      (gl-multi-tex-coord-6 v-vec4 t)
      (gl-multi-tex-coord-7 v-vec4 t)
      (gl-fog-coord v-float t)
-     (gl-position v-vec4)
+     (gl-position v-vec4 t)
      (gl-point-size v-float)
      (gl-clip-distance (v-float t))
      (gl-clip-vertex v-vec4)
