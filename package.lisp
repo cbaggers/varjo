@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:varjo
-  (:use #:cl)
+  (:use #:cl :split-sequence)
   (:export :v-glsl-size
            :v-casts-to-p
            :v-casts-to

@@ -68,8 +68,8 @@
                   (remove #'null
                           (append (loop :for i :in objs
                                      :for j :in (mapcar #'end-line objs)
-                                     :append (to-block i) 
-                                     :collect (current-line j))
+                                     :append (remove nil (to-block i)) 
+                                     :append (listify (current-line j)));this should work
                                   (to-block last-obj))))))
    env))
 
@@ -192,7 +192,7 @@
              (v-make-f-spec (gen-function-transform name raw-args) raw-args
                             (mapcar #'second raw-args) type)) env t)
       (values (make-instance 
-               'code :type type
+               'code :type (make-instance 'v-none)
                :current-line nil
                :signatures (cons (gen-function-signature name arg-pairs type)
                                  (signatures body-obj))
@@ -338,40 +338,3 @@
                        (first var-form) condition-obj
                        update-obj body-obj)))
         (error 'for-loop-simple-expression))))
-
-;; (v-defun not (object)
-;;   :special
-;;   :args-valid t
-;;   :return
-;;   (let ((test-obj (varjo->glsl object env)))
-    
-;;     (if (v-typep (code-type test-obj 'v-bool))
-;;         (merge-obs 
-;;          body-obj :type 'v-none :current-line nil
-;;          :to-block `(,(gen-for-loop-string 
-;;                        (first var-form) condition-obj update-obj body-obj)))
-;;         ()))
-
-
-  ;; ;; [TODO] first argument should always be the environment
-  ;; ;;        or maybe that is implicitly available
-  ;; ;; [TODO] work out if we need to care about &optional &rest etc
-
-  ;; (vdefspecial ? (test-form then-form &optional else-form)
-  ;;   (let* ((test (varjo->glsl test-form))
-  ;;          (t-obj (varjo->glsl then-form))
-  ;;          (nil-obj (varjo->glsl else-form))
-  ;;          (arg-objs (remove-if #'null (list test t-obj nil-obj))))
-  ;;     (if (glsl-typep test '(:bool nil))
-  ;;         (if (equal (code-type nil-obj) (code-type t-obj))
-  ;;             (merge-obs 
-  ;;              arg-objs
-  ;;              :type (code-type nil-obj)
-  ;;              :current-line (format nil "(~a ? ~a : ~a)"
-  ;;                                    (current-line test)
-  ;;                                    (current-line t-obj)
-  ;;                                    (current-line nil-obj)))
-  ;;             (error "Verjo: Both potential outputs must be of the same type"))
-  ;;         (error "The result of the test must be a bool.~%~a"
-  ;;                (code-type test)))))
-

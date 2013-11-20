@@ -36,6 +36,15 @@
 
 ;;----v-v-v-new-v-v-v----;;
 
+(defun gen-reserved-var-string (name-symbol)
+  (let* ((name-string (symbol-name name-symbol))
+         (split-name (split-sequence #\- name-string :test #'equal)))
+    (format nil "gl_~{~a~}" (loop :for part :in split-name 
+                               :if (not (equal part "GL")) :collect
+                               (if (<= (length part) 2)
+                                   (string-upcase part)
+                                   (string-capitalize part))))))
+
 (defun num-suffix (type)
   (or (assocr (v-type-name type) '((v-float . "f") (v-uint . "u"))) ""))
 
@@ -97,7 +106,7 @@
   (format nil "~a.~a" (current-line vec-obj) (string-downcase components-string)))
 
 (defun gen-for-loop-string (var-name condition-obj update-obj body-obj)
-  (format nil "for (~a;~a;~a) {~%~{~a~%~}    ~a~%}"
+  (format nil "for (~a;~a;~a) {~%~{~a~%~}~a~%}"
           var-name
           (current-line condition-obj)
           (current-line update-obj)

@@ -19,12 +19,12 @@
                (:file "compiler/string-generation")
                (:file "compiler/compiler")
                ;; (:file "language/types")
+               (:file "language/variables")
                (:file "language/special")
                (:file "language/functions")
                (:file "language/macros")
                ;; (:file "language/textures")
                ;; (:file "front-end/arguments")
-               (:file "front-end/front-end")
-               ))
+               (:file "front-end/front-end")))
 
 

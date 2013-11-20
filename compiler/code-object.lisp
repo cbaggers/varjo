@@ -65,8 +65,8 @@
                  :current-line (if set-current-line current-line 
                                    (current-line objs)) 
                  :signatures (if set-sigs signatures (signatures objs))
-                 :to-block (if set-block to-block (to-block objs))
-                 :to-top (if set-top to-top (to-top objs))
+                 :to-block (if set-block to-block (remove nil (to-block objs)))
+                 :to-top (if set-top to-top (remove nil (to-top objs)))
                  :out-vars (if set-out-vars out-vars (out-vars objs))
                  :invariant invariant
                  :returns (if set-returns returns (returns objs))))
@@ -75,7 +75,10 @@
   (make-instance 'code :type :none :current-line nil))
 
 ;;[TODO] This is why break needs a semicolon
-(defun end-line (ob)
-  (if (typep (code-type ob) 'v-none)
-      ob
-      (merge-obs ob :current-line (format nil "~a;" (current-line ob)))))
+(defun end-line (obj)
+  (when obj
+    (if (typep (code-type obj) 'v-none)
+        obj
+        (if (null (current-line obj))
+            (peek obj)
+            (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))

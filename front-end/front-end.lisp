@@ -17,7 +17,8 @@
     (pipe-> (args body env)
       #'split-input-into-env
       #'process-in-args
-      #'process-uniforms      
+      #'process-uniforms
+      #'add-context-glsl-vars
       (stabilizedp #'macroexpand-pass
                    #'inject-functions-pass
                    #'compiler-macroexpand-pass)
@@ -86,6 +87,11 @@
                 env t)
        (push (list name type) (v-uniforms env)))
     (values code env)))
+
+;;----------------------------------------------------------------------
+
+(defun add-context-glsl-vars (code env)
+  (values code (add-glsl-vars env)))
 
 ;;----------------------------------------------------------------------
 

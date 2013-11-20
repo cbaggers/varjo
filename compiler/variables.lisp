@@ -12,3 +12,5 @@
      :while i :do (setf name (symb name '- num))
      :finally (return name)))
 
+(defun glsl-var-namep (name-symbol)
+  (equal "GL-" (subseq (symbol-name name-symbol) 0 3)))
