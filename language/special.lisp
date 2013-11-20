@@ -309,94 +309,67 @@
         (merge-obs vec-obj :type (symb 'v-vec new-len)
                    :current-line (gen-swizzle-string vec-obj comp-string)))))
 
-;; ;; [TODO] double check implications of typify in compile-let-forms
-;; (vdefspecial for (var-form condition update &rest body)
-;;   "(for (a 0) (< a 10) (++ a)
-;;      (* a 2))"
-;;   (if 
-;;    (consp (first var-form))
-;;    (error "for can only iterate over one variable")
-;;    (destructuring-bind (form-objs new-vars)
-;;        (compile-let-forms (list var-form) t)
-;;      (let* ((form-obj (first form-objs))
-;;             (*glsl-variables* (append new-vars *glsl-variables*))
-;;             (con-ob (varjo->glsl condition))
-;;             (up-ob (varjo->glsl update))
-;;             (prog-ob (end-line (indent-ob (apply-special 'progn body)))))
-;;        (if (and (null (to-block con-ob)) (null (to-block up-ob)))
-           
-;;            (merge-obs (list prog-ob form-obj)
-;;                       :type :none
-;;                       :current-line nil
-;;                       :to-block 
-;;                       (list
-;;                        (fmt "~{~a~%~}for (~a;~a;~a) {~%~{~a~%~}    ~a~%}"
-;;                             (to-block form-obj)
-;;                             (current-line form-obj)
-;;                             (current-line con-ob)
-;;                             (current-line up-ob)
-;;                             (to-block prog-ob)
-;;                             (current-line prog-ob))))
-;;            (error "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop"))))))
+
+;;   (for (a 0) (< a 10) (++ a) 
+;;     (* a 2))
+;; [TODO] double check implications of typify in compile-let-forms
+(v-defmacro for (var-form condition update &rest body)
+  (if (consp (first var-form))
+      (error 'for-loop-only-one-var)
+      `(%clean-env-block 
+        (%env-multi-var-declare (,var-form) nil)
+        (%for ,var-form ,condition ,update ,@body))))
+
+(v-defun %for (var-form condition update &rest body)
+  :special 
+  :args-valid t
+  :return
+  (let* ((decl-obj (varjo->glsl (second var-form) env))
+         (condition-obj (varjo->glsl condition env))
+         (update-obj (varjo->glsl update env))
+         (body-obj (end-line (varjo->glsl `(progn ,@body) env))))
+    (unless (typep (code-type decl-obj) 'v-i-ui)
+      (error 'invalid-for-loop-type decl-obj))
+    (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
+        (merge-obs 
+         body-obj :type 'v-none :current-line nil
+         :to-block `(,(gen-for-loop-string 
+                       (first var-form) condition-obj update-obj body-obj)))
+        (error 'for-loop-simple-expression))))
+
+;; (v-defun not (object)
+;;   :special
+;;   :args-valid t
+;;   :return
+;;   (let ((test-obj (varjo->glsl object env)))
+    
+;;     (if (v-typep (code-type test-obj 'v-bool))
+;;         (merge-obs 
+;;          body-obj :type 'v-none :current-line nil
+;;          :to-block `(,(gen-for-loop-string 
+;;                        (first var-form) condition-obj update-obj body-obj)))
+;;         ()))
 
 
-;; (vdefspecial %make-array (type length &optional contents)
-;;   (let* ((literal-length (typep length 'code))
-;;          (length (varjo->glsl length))
-;;          (contents (mapcar #'varjo->glsl contents)))
-;;     (merge-obs 
-;;      (cons length contents)
-;;      :type (flesh-out-type 
-;;             `(,type ,(if literal-length
-;;                          (parse-integer (current-line length))
-;;                          t)))
-;;      :current-line (format nil "~a[~a]{~{~a~^,~}}" 
-;;                            type
-;;                            (current-line length) 
-;;                            (mapcar #'current-line contents)))))
+  ;; ;; [TODO] first argument should always be the environment
+  ;; ;;        or maybe that is implicitly available
+  ;; ;; [TODO] work out if we need to care about &optional &rest etc
 
-;; (vdefspecial %init-vec-or-mat (type &rest args)
-;;   (labels ((type-size (arg-type) 
-;;              (let ((arg-type (type-principle arg-type)))
-;;                (if (type-aggregate-p arg-type)
-;;                    (type-component-count arg-type)
-;;                    (if (eq arg-type (type-component-type type))
-;;                        1
-;;                        (error "Varjo: ~a is not of suitable type to be a component of ~a" 
-;;                               arg-type type))))))
-;;     (let* ((target-type (flesh-out-type type))
-;;            (target-length (type-component-count target-type))
-;;            (arg-objs (mapcar #'varjo->glsl args))
-;;            (types (mapcar #'code-type arg-objs))
-;;            (lengths (mapcar #'type-size types)))
-;;       (if (eq target-length (apply #'+ lengths))
-;;           (merge-obs arg-objs
-;;                      :type target-type
-;;                      :current-line 
-;;                      (format nil "~a(~{~a~^,~^ ~})"
-;;                              (varjo-type->glsl-type target-type)
-;;                              (mapcar #'current-line arg-objs)))
-;;           (error "The lengths of the types provided~%(~{~a~^,~^ ~})~%do not add up to the length of ~a" types target-type)))))
-
-
-;; ;; [TODO] first argument should always be the environment
-;; ;;        or maybe that is implicitly available
-;; ;; [TODO] work out if we need to care about &optional &rest etc
-
-;; (vdefspecial ? (test-form then-form &optional else-form)
-;;   (let* ((test (varjo->glsl test-form))
-;;          (t-obj (varjo->glsl then-form))
-;;          (nil-obj (varjo->glsl else-form))
-;;          (arg-objs (remove-if #'null (list test t-obj nil-obj))))
-;;     (if (glsl-typep test '(:bool nil))
-;;         (if (equal (code-type nil-obj) (code-type t-obj))
-;;             (merge-obs 
-;;              arg-objs
-;;              :type (code-type nil-obj)
-;;              :current-line (format nil "(~a ? ~a : ~a)"
-;;                                    (current-line test)
-;;                                    (current-line t-obj)
-;;                                    (current-line nil-obj)))
-;;             (error "Verjo: Both potential outputs must be of the same type"))
-;;         (error "The result of the test must be a bool.~%~a"
-;;                (code-type test)))))
+  ;; (vdefspecial ? (test-form then-form &optional else-form)
+  ;;   (let* ((test (varjo->glsl test-form))
+  ;;          (t-obj (varjo->glsl then-form))
+  ;;          (nil-obj (varjo->glsl else-form))
+  ;;          (arg-objs (remove-if #'null (list test t-obj nil-obj))))
+  ;;     (if (glsl-typep test '(:bool nil))
+  ;;         (if (equal (code-type nil-obj) (code-type t-obj))
+  ;;             (merge-obs 
+  ;;              arg-objs
+  ;;              :type (code-type nil-obj)
+  ;;              :current-line (format nil "(~a ? ~a : ~a)"
+  ;;                                    (current-line test)
+  ;;                                    (current-line t-obj)
+  ;;                                    (current-line nil-obj)))
+  ;;             (error "Verjo: Both potential outputs must be of the same type"))
+  ;;         (error "The result of the test must be a bool.~%~a"
+  ;;                (code-type test)))))
+  )

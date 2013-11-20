@@ -90,5 +90,15 @@
 (deferror loop-will-never-halt (test-code test-obj)
     "The loop is using the following code as it's test.~%~a~%~%This will only ever result in a ~a which means the loop will never halt" test-code (v-type-name (code-type test-obj)))
 
+(deferror for-loop-simple-expression ()
+    "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop")
+
+(deferror for-loop-only-one-var ()
+    "for loops can only iterate over one variable")
+
+(deferror invalid-for-loop-type (decl-obj)
+    "Invalid type ~a used as counter for for-loop"
+  (code-type decl-obj))
+
 ;-----------------------------;
 
