@@ -26,6 +26,11 @@
 (v-defun %* (a b) "(~a * ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun %/ (a b) "(~a / ~a)" (v-number v-number) nil :glsl-spec-matching t)
 
+(v-defun v! (x y) "vec2(~a,~a)" (v-float v-float) v-vec2 :glsl-spec-matching t)
+(v-defun v! (x y z) "vec2(~a,~a,~a)" (v-float v-float v-float) v-vec3 :glsl-spec-matching t)
+(v-defun v! (x y z w) "vec2(~a,~a,~a,~a)" (v-float v-float v-float v-float) 
+         v-vec4 :glsl-spec-matching t)
+
 (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440))
          "clamp(~a,~a,~a)"
          (V-TIU V-TIU V-TIU) 0 :PLACE NIL :GLSL-SPEC-MATCHING T)

@@ -292,23 +292,21 @@
                                                       clause-body-objs)))
         (error 'switch-type-error test-obj keys))))
 
-;; (vdefspecial swizzle (vec-form components)
-;;   (let* ((vec-ob (varjo->glsl vec-form))
-;;          (vec-type (code-type vec-ob)))
-;;     (if (type-vec-core-type vec-type)
-;;         (let* ((comp (string-downcase (string (if (listp components)
-;;                                                   (cadr components)
-;;                                                   components))))
-;;                (len (length comp)))
-;;           (if (<= len 4)
-;;               (merge-obs (list vec-ob)	
-;;                          :type (set-place-t (change-vec-length
-;;                                              vec-type len))
-;;                          :current-line (format nil "~a.~a"
-;;                                                (current-line vec-ob)
-;;                                                comp))
-;;               (error "Varjo: Invlaid length of components for swizzle")))
-;;         (error "Varjo: Trying to swizzle a non vector: ~a" vec-type))))
+(v-defun swizzle (vec-form components)
+  :special 
+  :args-valid t
+  :return
+  (let* ((vec-obj (varjo->glsl vec-form env))
+         (allowed (subseq (list #\x #\y #\z #\w) 0 
+                          (first (v-dimensions (code-type vec-obj)))))
+         (comp-string (string-downcase (symbol-name components)))
+         (new-len (length comp-string)))
+    (if (and (>= new-len 2) (<= new-len 4) 
+             (v-typep (code-type vec-obj) 'v-vector)
+             (loop :for c :being :the :elements :of comp-string 
+                :always (find c allowed)))
+        (merge-obs vec-obj :type (symb 'v-vec new-len)
+                   :current-line (gen-swizzle-string vec-obj comp-string)))))
 
 ;; ;; [TODO] double check implications of typify in compile-let-forms
 ;; (vdefspecial for (var-form condition update &rest body)
