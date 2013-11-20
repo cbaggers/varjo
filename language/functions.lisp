@@ -31,6 +31,25 @@
 (v-defun v! (x y z w) "vec2(~a,~a,~a,~a)" (v-float v-float v-float v-float) 
          v-vec4 :glsl-spec-matching t)
 
+(v-defun m! (a b c d) "mat2(~a,~a,~a,~a)" (v-float v-float v-float v-float)
+         v-mat2 :glsl-spec-matching t)
+(v-defun m! (a b) "mat2(~a,~a)" (v-vec2 v-vec2) v-mat2 :glsl-spec-matching t)
+
+(v-defun m! (a b c d e f g h i) "mat3(~a,~a,~a,~a,~a,~a,~a,~a,~a)" 
+         (v-float v-float v-float v-float v-float
+                  v-float v-float v-float v-float) v-mat3 :glsl-spec-matching t)
+(v-defun m! (a b c) "mat3(~a,~a,~a)" (v-vec3 v-vec3 v-vec3) v-mat3
+         :glsl-spec-matching t)
+
+(v-defun m! (a b c d e f g h i j k l m n o p) 
+  "mat4(~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a)" 
+  (v-float v-float v-float v-float v-float v-float v-float v-float v-float
+           v-float v-float v-float v-float v-float v-float v-float v-float) 
+  v-mat4 :glsl-spec-matching t)
+(v-defun m! (a b c d) 
+  "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4
+  :glsl-spec-matching t)
+
 (V-DEFUN CLAMP (X MINVAL MAXVAL &CONTEXT (:330 :440))
          "clamp(~a,~a,~a)"
          (V-TIU V-TIU V-TIU) 0 :PLACE NIL :GLSL-SPEC-MATCHING T)
