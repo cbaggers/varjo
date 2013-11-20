@@ -11,24 +11,26 @@
 (defun stabilizedp (last-pass one-before-that)
   (equal (first last-pass) (first one-before-that)))
 
-;; remember that args has context in it
-(defun translate (args body)
+(defun translate-shader (args body)
   (let ((env (make-instance 'environment)))
     (pipe-> (args body env)
       #'split-input-into-env
       #'process-in-args
       #'process-uniforms
-      #'add-context-glsl-vars
-      (stabilizedp #'macroexpand-pass
-                   #'inject-functions-pass
-                   #'compiler-macroexpand-pass)
-      #'compile-pass
+      #'translate
       #'gen-in-arg-strings
       #'final-uniform-strings
       #'final-string-compose
       #'process-output
       #'code-obj->result-object)))
 
+(defun translate (code env)
+  (pipe-> (code env)
+    #'add-context-glsl-vars
+    (stabilizedp #'macroexpand-pass
+                 #'inject-functions-pass
+                 #'compiler-macroexpand-pass)
+    #'compile-pass))
 
 ;;----------------------------------------------------------------------
 
