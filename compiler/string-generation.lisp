@@ -40,7 +40,7 @@
   (or (assocr (v-type-name type) '((v-float . "f") (v-uint . "u"))) ""))
 
 (defun gen-number-string (number type)
-    (format nil "~a~a" number (num-suffix type)))
+  (format nil "~a~a" number (num-suffix type)))
 
 (defun gen-variable-string (var-name)
   (format nil "~a" var-name))

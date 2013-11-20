@@ -32,6 +32,9 @@
 (v-defun %eql (a b) "(~a == ~a)" (v-number v-number) v-bool :glsl-spec-matching t)
 (v-defun %= (a b) "(~a == ~a)" (v-number v-number) v-bool :glsl-spec-matching t)
 
+(v-defun ++ (a) "(~a++)" (v-number) nil :glsl-spec-matching t)
+(v-defun -- (a) "(~a--)" (v-number) nil :glsl-spec-matching t)
+
 (v-defun %+ (a) "(~a)" (v-number) nil :glsl-spec-matching t)
 (v-defun %+ (a b) "(~a + ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun %- (a b) "(~a - ~a)" (v-number v-number) nil :glsl-spec-matching t)

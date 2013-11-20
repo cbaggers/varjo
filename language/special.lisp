@@ -147,9 +147,10 @@
       (values (if include-type-declarations                  
                   (merge-obs decl-objs
                              :type (make-instance 'v-none)
-                             :current-line ""
+                             :current-line nil
                              :to-block (append (mapcan #'to-block decl-objs)
-                                               (mapcar #'end-line decl-objs))
+                                               (mapcar #'(lambda (x) (current-line (end-line x)))
+                                                       decl-objs))
                              :to-top (mapcan #'to-top decl-objs))
                   (make-instance 'code :type 'v-none))
               env))))
@@ -287,7 +288,7 @@
              (loop :for key :in keys :always 
                 (or (eq key 'default) (integerp key))))
         (merge-obs clause-body-objs :type 'v-none
-                   :current-line ""
+                   :current-line nil
                    :to-block (list (gen-switch-string test-obj keys
                                                       clause-body-objs)))
         (error 'switch-type-error test-obj keys))))
@@ -317,7 +318,7 @@
   (if (consp (first var-form))
       (error 'for-loop-only-one-var)
       `(%clean-env-block 
-        (%env-multi-var-declare (,var-form) nil)
+        (%env-multi-var-declare (,var-form) t)
         (%for ,var-form ,condition ,update ,@body))))
 
 (v-defun %for (var-form condition update &rest body)
@@ -334,7 +335,8 @@
         (merge-obs 
          body-obj :type 'v-none :current-line nil
          :to-block `(,(gen-for-loop-string 
-                       (first var-form) condition-obj update-obj body-obj)))
+                       (first var-form) condition-obj
+                       update-obj body-obj)))
         (error 'for-loop-simple-expression))))
 
 ;; (v-defun not (object)

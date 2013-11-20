@@ -72,7 +72,7 @@
                  :returns (if set-returns returns (returns objs))))
 
 (defun make-none-ob ()
-  (make-instance 'code :type :none :current-line ""))
+  (make-instance 'code :type :none :current-line nil))
 
 ;;[TODO] This is why break needs a semicolon
 (defun end-line (ob)
