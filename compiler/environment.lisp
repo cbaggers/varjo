@@ -13,6 +13,7 @@
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
+(defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *default-context* '(:330))
 
 (defun test-env (&rest context)
@@ -45,12 +46,20 @@
 (defmethod clone-environment ((env (eql :-genv-)))
   (error 'clone-global-env-error))
 
+(defmethod clean-environment ((env (eql :-genv-)))
+  (error 'clean-global-env-error))
+
 (defmethod clone-environment ((env environment))
   (make-instance 'environment :variables (copy-list (v-variables env))
                  :functions (copy-list (v-functions env))
                  :macros (copy-list (v-macros env))
                  :compiler-macros (copy-list (v-compiler-macros env))
                  :types (copy-list (v-types env))
+                 :context (copy-list (v-context env))))
+
+(defmethod clean-environment ((env environment))
+  (make-instance 'environment :variables nil :functions nil
+                 :macros nil :compiler-macros nil :types nil
                  :context (copy-list (v-context env))))
 
 (defmethod normalize-environment (env &optional modify-env)
@@ -97,6 +106,12 @@
        :if (and specials (v-special-functionp func))       
        :do (error 'cannot-not-shadow-core)))
   t)
+
+(defun get-version-from-context (env)
+  (loop :for item :in (v-context env)
+     :if (find item *supported-versions*)
+     :return item
+     :finally (error 'no-version-in-context env)))
 
 ;;-------------------------------------------------------------------------
 

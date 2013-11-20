@@ -15,25 +15,6 @@
 ;;   (merge-obs code-obj
 ;;              :to-block (indent (to-block code-obj))))
 
-;; (defun write-output-string (version struct-definitions
-;;                             code in-vars out-vars uniforms)
-;;   (if (or (to-block code) (current-line code))
-;;       (error "The following code not written to output.~%~a~%~a"
-;;              (to-block code) (current-line code))
-;;       (format 
-;;        nil 
-;;        "#version ~a~%~{~%~{~a~%~}~}" 
-;;        version
-;;        (remove-if #'null
-;;                   (list
-;;                    (mapcar #'struct-init-form struct-definitions)
-;;                    (mapcar #'(lambda (x) (current-line (first x))) 
-;;                            (remove-if #'null in-vars))
-;;                    (mapcar #'(lambda (x) (current-line x)) 
-;;                            (remove-if #'null out-vars))
-;;                    (mapcar #'current-line uniforms)
-;;                    (to-top code))))))
-
 ;;----v-v-v-new-v-v-v----;;
 
 (defun gen-reserved-var-string (name-symbol)
@@ -54,7 +35,7 @@
 (defun gen-variable-string (var-name)
   (format nil "~a" (if (glsl-var-namep var-name) 
                        (gen-reserved-var-string var-name)
-                       var-name)))
+                       (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs)
   (apply #'format nil (v-glsl-string func) (mapcar #'current-line arg-objs)))
@@ -71,7 +52,7 @@
 (defun gen-function-body-string (name args type body-obj)
   (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
           (v-glsl-string type)
-          name 
+          (string-downcase (string name)) 
           args
           (remove "" (to-block body-obj) :test #'equal) 
           (current-line (end-line body-obj))))
@@ -154,7 +135,34 @@
         (format nil "~{~a ~} ~a" qualifiers line)
         line)))
 
-
 ;;[TODO] make this properly
 (defun lisp-name->glsl-name (name)
   (string name))
+
+(defun gen-shader-string (code-obj)
+  (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context (test-env))
+          (loop :for part :in (list '("// struct definitions go here")
+                                    '("// in-vars go here")
+                                    '("// out-vars go here")                   
+                                    '("// uniforms go here")
+                                    (to-top code-obj))
+             :collect (or part ""))))
+
+;; (defun write-output-string (version struct-definitions
+;;                             code in-vars out-vars uniforms)
+;;   (if (or (to-block code) (current-line code))
+;;       (error "The following code not written to output.~%~a~%~a"
+;;              (to-block code) (current-line code))
+;;       (format 
+;;        nil 
+;;        "#version ~a~%~{~%~{~a~%~}~}" 
+;;        version
+;;        (remove-if #'null
+;;                   (list
+;;                    (mapcar #'struct-init-form struct-definitions)
+;;                    (mapcar #'(lambda (x) (current-line (first x))) 
+;;                            (remove-if #'null in-vars))
+;;                    (mapcar #'(lambda (x) (current-line x)) 
+;;                            (remove-if #'null out-vars))
+;;                    (mapcar #'current-line uniforms)
+;;                    (to-top code))))))

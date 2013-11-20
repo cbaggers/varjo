@@ -60,7 +60,7 @@
 
 (defclass v-void (v-t-type)
   ((core :initform t :reader core-typep)
-   (glsl-string :initform "" :reader v-glsl-string)))
+   (glsl-string :initform "void" :reader v-glsl-string)))
 
 (defclass v-bool (v-type v-tb) 
   ((core :initform t :reader core-typep)

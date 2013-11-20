@@ -37,7 +37,7 @@
               `(let ((rest (multiple-value-list 
                             ,(if (rest stages)
                                  `(pipe-> ,args ,@(reverse (rest stages)))
-                                 (if (listp (print args))
+                                 (if (listp args)
                                      `(values ,@args)
                                      `(values-list ,args))))))
                  (let ((args rest))

@@ -73,13 +73,13 @@
                                   (to-block last-obj))))))
    env))
 
-(v-defun %new-env-block (&body body)
+(v-defun %clean-env-block (&body body)
   :special
   :args-valid t
-  :return (let ((new-env (clone-environment env)))
+  :return (let ((new-env (clean-environment env)))
             (values (varjo->glsl `(progn ,@body) new-env))))
 
-(v-defun %clean-env-block (&body body)
+(v-defun %clone-env-block (&body body)
   :special
   :args-valid t
   :return (let ((new-env (clone-environment env)))
@@ -157,7 +157,7 @@
 
 ;; [TODO] is block the best term? is it a block in the code-obj sense?
 (v-defmacro let (bindings &body body)
-  `(%new-env-block
+  `(%clone-env-block
     (%env-multi-var-declare ,bindings t)
     ,@body))
 
@@ -175,14 +175,15 @@
   :special
   :args-valid t
   :return
-  (let* ((args (mapcar #'list raw-args)) ;;so we can just use let
-         (body-obj (varjo->glsl `(%clean-env-block 
+  (let* ((mainp (eq name :main))
+         (args (mapcar #'list raw-args)) ;;so we can just use let
+         (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
                                   (%env-multi-var-declare ,args nil)
                                   ,@body) env))
-         (name (if (eq name :main) :main (free-name name env)))
+         (name (if mainp :main (free-name name env)))
          (returns (returns body-obj))        
-         (type (if (eq name :main) '(:void nil nil) (first returns))))
-    (unless returns (error 'no-function-returns :name name))
+         (type (if mainp (make-instance 'v-void) (first returns))))
+    (unless (or mainp returns) (error 'no-function-returns :name name))
     (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
       (error 'return-type-mismatch name type returns))
     (let ((arg-pairs (loop :for (name type) :in raw-args :collect
@@ -194,8 +195,9 @@
       (values (make-instance 
                'code :type (make-instance 'v-none)
                :current-line nil
-               :signatures (cons (gen-function-signature name arg-pairs type)
-                                 (signatures body-obj))
+               :signatures (if mainp (signatures body-obj)
+                               (cons (gen-function-signature name arg-pairs type)
+                                     (signatures body-obj)))
                :to-top (cons-end (gen-function-body-string name arg-pairs type body-obj)
                                  (to-top body-obj))
                :out-vars (out-vars body-obj))
@@ -216,7 +218,7 @@
                :returns (list (code-type obj)))))
 
 (v-defmacro labels (definitions &body body)
-  `(%new-env-block
+  `(%clone-env-block
     ,@(loop :for d :in definitions :collect `(%make-function ,@d))
     ,@body))
 
@@ -317,7 +319,7 @@
 (v-defmacro for (var-form condition update &rest body)
   (if (consp (first var-form))
       (error 'for-loop-only-one-var)
-      `(%clean-env-block 
+      `(%clone-env-block 
         (%env-multi-var-declare (,var-form) t)
         (%for ,var-form ,condition ,update ,@body))))
 

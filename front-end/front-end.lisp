@@ -11,12 +11,16 @@
 (defun stabilizedp (last-pass one-before-that)
   (equal (first last-pass) (first one-before-that)))
 
+(defmacro defshader (args &body body)
+  `(translate-shader ',args '(progn ,@body)))
+
 (defun translate-shader (args body)
   (let ((env (make-instance 'environment)))
     (pipe-> (args body env)
       #'split-input-into-env
       #'process-in-args
       #'process-uniforms
+      #'wrap-in-main-function
       #'translate
       #'gen-in-arg-strings
       #'final-uniform-strings
@@ -25,8 +29,10 @@
       #'code-obj->result-object)))
 
 (defun translate (code env)
+  (when (not (typep env 'environment)) 
+    (error "you probably meant to call translate-shader"))
   (pipe-> (code env)
-    #'add-context-glsl-vars
+    ;; #'add-context-glsl-vars
     (stabilizedp #'macroexpand-pass
                  #'inject-functions-pass
                  #'compiler-macroexpand-pass)
@@ -89,6 +95,12 @@
                 env t)
        (push (list name type) (v-uniforms env)))
     (values code env)))
+
+;;----------------------------------------------------------------------
+
+(defun wrap-in-main-function (code env)
+  (values `(%make-function :main () ,code) 
+          env))
 
 ;;----------------------------------------------------------------------
 
@@ -163,7 +175,8 @@
 ;;----------------------------------------------------------------------
 
 (defun final-string-compose (code env) 
-  (values code env))
+  (values (gen-shader-string code)
+          env))
 
 ;;----------------------------------------------------------------------
 

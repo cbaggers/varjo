@@ -51,6 +51,9 @@
 (deferror clone-global-env-error ()
     "Cannot clone the global environment")
 
+(deferror clean-global-env-error ()
+    "Cannot clean the global environment")
+
 (deferror could-not-find-function (name)
     "No function called '~a' was found in this environment" name)
 
@@ -99,6 +102,10 @@
 (deferror invalid-for-loop-type (decl-obj)
     "Invalid type ~a used as counter for for-loop"
   (code-type decl-obj))
+
+(deferror no-version-in-context (env)
+    "No supported version found in context:~%~a"
+  (v-context env))
 
 ;-----------------------------;
 

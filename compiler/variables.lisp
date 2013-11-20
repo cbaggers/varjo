@@ -13,4 +13,6 @@
      :finally (return name)))
 
 (defun glsl-var-namep (name-symbol)
-  (equal "GL-" (subseq (symbol-name name-symbol) 0 3)))
+  (let ((name (symbol-name name-symbol)))
+    (when (> (length name) 2) 
+      (equal "GL-" (subseq name 0 3)))))
