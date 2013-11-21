@@ -26,7 +26,7 @@
 
 (defclass v-array (v-container) 
   ((element-type :initform nil :initarg :element-type :reader v-element-type)
-   (dimensions :initform nil :initarg :dimensions :reader v-dimensions)))
+   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 (defmethod v-glsl-string ((object v-array))
   (format nil "~a ~~a~{[~a]~}" (v-element-type object) (v-dimensions object)))
 
@@ -48,7 +48,9 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
-(defclass v-fake-struct (v-type)
+(defclass v-user-struct (v-struct) ())
+
+(defclass v-fake-struct (v-user-struct)
   ((fake-type-name :initform nil :initarg :fake-type-name :accessor v-fake-type-name)
    (restriction :initform nil :initarg :restriction :accessor v-restriction)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
@@ -88,7 +90,7 @@
 
 (defclass v-container (v-type)
   ((element-type :initform nil :reader v-element-type)
-   (dimensions :initform nil :reader v-dimensions)))
+   (dimensions :initform nil :accessor v-dimensions)))
 
 (defclass v-matrix (v-container) ())
 (defclass v-mat2 (v-matrix) 
@@ -444,10 +446,13 @@
   (and (typep obj 'v-spec-type)
        (not (typep obj 'v-type))))
 
-(defmethod v-type-name ((type v-type))
+(defmethod v-type-name ((type v-t-type)) ;; this used to be v-type (I think)
   (class-name (class-of type)))
-(defmethod v-type-name ((type v-spec-type))
-  (class-name (class-of type)))
+;; (defmethod v-type-name ((type v-spec-type))
+;;   (class-name (class-of type)))
+
+(defmethod v-type-name ((type v-array))
+  (list (v-element-type type) (v-dimensions type)))
 
 (defun type-spec->type (spec &key place)  
   (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
@@ -535,3 +540,11 @@
   (eq :special (v-glsl-string func)))
 
 (defun v-errorp (obj) (typep obj 'v-error))
+
+(defmethod post-initialise ((object v-t-type)))
+(defmethod post-initialise ((object v-container))
+  (setf (v-dimensions object) (listify (v-dimensions object))))
+
+(defmethod initialize-instance :after ((type-obj v-t-type) &rest initargs)
+  (declare (ignore initargs))
+  (post-initialise type-obj))

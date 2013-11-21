@@ -1,21 +1,5 @@
 (in-package :varjo)
 
-;; [TODO] name generation MUST take reserver glsl names into account.
-
-;; (defgeneric indent (input))
-
-;; (defmethod indent ((input string))
-;;   (mapcar #'(lambda (x) (format nil "    ~a" x))
-;;           (split-sequence:split-sequence #\newline input)))
-
-;; (defmethod indent ((input list))
-;;   (mapcan #'indent input))
-
-;; (defun indent-ob (code-obj)
-;;   (merge-obs code-obj
-;;              :to-block (indent (to-block code-obj))))
-
-;;----v-v-v-new-v-v-v----;;
 
 (defun gen-reserved-var-string (name-symbol)
   (let* ((name-string (symbol-name name-symbol))
@@ -145,8 +129,9 @@
                                     '("// in-vars go here")
                                     '("// out-vars go here")                   
                                     '("// uniforms go here")
+                                    (signatures code-obj)
                                     (to-top code-obj))
-             :collect (or part ""))))
+             :if part :collect part)))
 
 ;; (defun write-output-string (version struct-definitions
 ;;                             code in-vars out-vars uniforms)
@@ -166,3 +151,18 @@
 ;;                            (remove-if #'null out-vars))
 ;;                    (mapcar #'current-line uniforms)
 ;;                    (to-top code))))))
+
+;;----------------------------------------------------------------------
+
+(defgeneric indent (input))
+
+(defmethod indent ((input string))
+  (mapcar #'(lambda (x) (format nil "    ~a" x))
+          (split-sequence:split-sequence #\newline input)))
+
+(defmethod indent ((input list))
+  (mapcan #'indent input))
+
+(defun indent-ob (code-obj)
+  (merge-obs code-obj
+             :to-block (indent (to-block code-obj))))

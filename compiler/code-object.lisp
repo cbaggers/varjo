@@ -9,10 +9,14 @@
 
 ;; [TODO] Proper error needed here
 (defmethod initialize-instance :after
-    ((code-ob code) &key (type nil set-type))
+    ((code-obj code) &key (type nil set-type))
   (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
-  (setf (slot-value code-ob 'type) 
-        (if (typep type 'v-t-type) type (type-spec->type type))))
+  (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
+         (type-spec (v-type-name type-obj)))
+    (setf (slot-value code-obj 'type) type-obj)
+    (when (and (not (find type-spec (used-types code-obj)))
+               (not (eq type-spec 'v-none)))
+      (push type-spec (used-types code-obj)))))
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
 (defgeneric copy-code (code-obj &key type current-line to-block to-top 
@@ -33,7 +37,8 @@
                  :to-top (if set-top to-top (to-top code-obj))
                  :out-vars (if set-out-vars out-vars (out-vars code-obj))
                  :invariant (if invariant invariant (invariant code-obj))
-                 :returns (if set-returns returns (returns code-obj))))
+                 :returns (if set-returns returns (returns code-obj))
+                 :used-types (used-types code-obj)))
 
 (defmethod merge-obs ((objs list) &key type current-line 
                                     (signatures nil set-sigs)
@@ -50,7 +55,8 @@
                  :to-top (if set-top to-top (mapcan #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
                  :invariant invariant
-                 :returns (if set-returns returns (mapcan #'returns objs))))
+                 :returns (if set-returns returns (mapcan #'returns objs))
+                 :used-types (mapcan #'used-types objs)))
 
 (defmethod merge-obs ((objs code) 
                       &key (type nil set-type)
@@ -69,7 +75,8 @@
                  :to-top (if set-top to-top (remove nil (to-top objs)))
                  :out-vars (if set-out-vars out-vars (out-vars objs))
                  :invariant invariant
-                 :returns (if set-returns returns (returns objs))))
+                 :returns (if set-returns returns (returns objs))
+                 :used-types (used-types objs)))
 
 (defun make-none-ob ()
   (make-instance 'code :type :none :current-line nil))

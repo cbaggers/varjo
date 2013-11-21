@@ -136,6 +136,8 @@
 ;;----------------------------------------------------------------------
 
 ;; [TODO] prehaps reverse (,head <@f) and the dependencies
+;; [TODO] will inject not used functions too, any symbol in first position is
+;;        included, regardless of context.
 (defun find-injected-functions (code env &optional seen)
   (remove 
    nil
@@ -164,7 +166,8 @@
 
 ;;----------------------------------------------------------------------
 
-(defun gen-in-arg-strings (code env) 
+(defun gen-in-arg-strings (code env)
+  (break)
   (values code env))
 
 ;;----------------------------------------------------------------------
