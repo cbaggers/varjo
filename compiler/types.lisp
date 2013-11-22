@@ -39,6 +39,7 @@
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (code :initform nil :initarg :code :accessor v-code)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
+   (glsl-name :initarg :glsl-name :accessor v-glsl-string)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (place :initform nil :initarg :place :accessor v-placep)
    (glsl-spec-matching :initform nil :initarg :glsl-spec-matching :reader v-glsl-spec-matchingp)))
@@ -56,7 +57,6 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
-;;[TODO] This used to inherit from v-type...why was that?
 (defclass v-error (v-type) 
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 

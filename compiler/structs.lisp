@@ -10,7 +10,7 @@
 
 (defmacro v-defstruct (name context &body slots)
   `(progn 
-     (defclass ,name (v-struct) 
+     (defclass ,name (v-user-struct) 
        ((glsl-string :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
                                         name (mapcar #'gen-slot-string slots))
                      :initarg :glsl-string :reader v-glsl-string)
@@ -43,7 +43,7 @@
 
 ;;[TODO] I think there will be a problem if you let a in-arg
 ;;       it will end up with the wrong name in the resulting glsl code
-(defmethod make-fake-struct ((type v-struct) (env environment))
+(defmethod make-fake-struct ((type v-user-struct) (env environment))
   (let* ((name (gensym (format nil "fake-~s" (v-type-name type))))
          (slots (v-slots type))
          (fake-type (make-instance 'v-fake-struct :slots slots

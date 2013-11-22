@@ -11,7 +11,8 @@
 (defun stabilizedp (last-pass one-before-that)
   (equal (first last-pass) (first one-before-that)))
 
-(defmacro defshader (args &body body)
+(defmacro defshader (name args &body body)
+  (declare (ignore name))
   `(translate-shader ',args '(progn ,@body)))
 
 (defun translate-shader (args body)
@@ -22,6 +23,7 @@
       #'process-uniforms
       #'wrap-in-main-function
       #'translate
+      #'filter-used-types
       #'gen-in-arg-strings
       #'final-uniform-strings
       #'final-string-compose
@@ -32,7 +34,7 @@
   (when (not (typep env 'environment)) 
     (error "you probably meant to call translate-shader"))
   (pipe-> (code env)
-    ;; #'add-context-glsl-vars
+    #'add-context-glsl-vars
     (stabilizedp #'macroexpand-pass
                  #'inject-functions-pass
                  #'compiler-macroexpand-pass)
@@ -161,13 +163,23 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)  
+  (print "compile-pass")
   (values (varjo->glsl code env) 
           env))
 
 ;;----------------------------------------------------------------------
 
+(defun filter-used-types (code env)
+  "This changes the code-object so that used-types only contains used
+   'user' defined structs."
+  (print "filter-used-types")
+  (setf (used-types code) (find-used-user-structs code))
+  (values code env))
+
+;;----------------------------------------------------------------------
+
 (defun gen-in-arg-strings (code env)
-  (break)
+  (print "gen-in-arg-strings")
   (values code env))
 
 ;;----------------------------------------------------------------------
@@ -177,7 +189,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defun final-string-compose (code env) 
+(defun final-string-compose (code env)
   (values (gen-shader-string code)
           env))
 

@@ -60,3 +60,12 @@
                                      (error (v-payload func))
                                      (error 'cannot-compile :code code)))
           (t (error 'problem-with-the-compiler :target func))))))
+
+;;[TODO] This is why break needs a semicolon
+(defun end-line (obj)
+  (when obj
+    (if (typep (code-type obj) 'v-none)
+        obj
+        (if (null (current-line obj))
+            (peek obj)
+            (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))

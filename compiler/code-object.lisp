@@ -16,7 +16,7 @@
     (setf (slot-value code-obj 'type) type-obj)
     (when (and (not (find type-spec (used-types code-obj)))
                (not (eq type-spec 'v-none)))
-      (push type-spec (used-types code-obj)))))
+      (push (listify type-spec) (used-types code-obj)))))
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
 (defgeneric copy-code (code-obj &key type current-line to-block to-top 
@@ -56,7 +56,7 @@
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
                  :invariant invariant
                  :returns (if set-returns returns (mapcan #'returns objs))
-                 :used-types (mapcan #'used-types objs)))
+                 :used-types (mapcar #'used-types objs)))
 
 (defmethod merge-obs ((objs code) 
                       &key (type nil set-type)
@@ -81,11 +81,17 @@
 (defun make-none-ob ()
   (make-instance 'code :type :none :current-line nil))
 
-;;[TODO] This is why break needs a semicolon
-(defun end-line (obj)
-  (when obj
-    (if (typep (code-type obj) 'v-none)
-        obj
-        (if (null (current-line obj))
-            (peek obj)
-            (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))
+(defun normalize-used-types (types)
+  (loop :for item :in (remove nil types) :append
+     (cond ((atom item) (list item))
+           ((and (listp item) (numberp (second item))) (list item))
+           (t (normalize-used-types item)))))
+
+(defun find-used-user-structs (code-obj)
+  (let ((used-types (normalize-used-types (used-types code-obj))))
+    (remove nil (loop :for type :in used-types :collect
+                   (let ((principle-type (if (listp type) (first type) type)))
+                     (when (typep (make-instance principle-type) 'v-user-struct)
+                       principle-type))))))
+
+

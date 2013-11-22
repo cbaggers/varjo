@@ -125,12 +125,14 @@
 
 (defun gen-shader-string (code-obj)
   (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context (test-env))
-          (loop :for part :in (list '("// struct definitions go here")
-                                    '("// in-vars go here")
-                                    '("// out-vars go here")                   
-                                    '("// uniforms go here")
-                                    (signatures code-obj)
-                                    (to-top code-obj))
+          (loop :for part :in 
+             (list '("// struct definitions go here")
+                   (mapcar #'v-glsl-string (used-types code-obj))
+                   '("// in-vars go here")
+                   '("// out-vars go here")                   
+                   '("// uniforms go here")
+                   (signatures code-obj)
+                   (to-top code-obj))
              :if part :collect part)))
 
 ;; (defun write-output-string (version struct-definitions

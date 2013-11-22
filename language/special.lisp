@@ -185,21 +185,23 @@
          (type (if mainp (make-instance 'v-void) (first returns))))
     (unless (or mainp returns) (error 'no-function-returns :name name))
     (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
-      (error 'return-type-mismatch name type returns))
+      (error 'return-type-mismatch :name name :types type :returns returns))
     (let ((arg-pairs (loop :for (name type) :in raw-args :collect
                         `(,(v-glsl-string (type-spec->type type)) ,name))))
       (add-function 
        name (func-spec->function 
              (v-make-f-spec (gen-function-transform name raw-args) raw-args
                             (mapcar #'second raw-args) type)) env t)
-      (values (make-instance 
-               'code :type (make-instance 'v-none)
+      (values (merge-obs 
+               body-obj
+               :type (make-instance 'v-none)
                :current-line nil
                :signatures (if mainp (signatures body-obj)
                                (cons (gen-function-signature name arg-pairs type)
                                      (signatures body-obj)))
                :to-top (cons-end (gen-function-body-string name arg-pairs type body-obj)
                                  (to-top body-obj))
+               :returns nil
                :out-vars (out-vars body-obj))
               env))))
 
