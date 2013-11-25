@@ -7,7 +7,6 @@
                (:file "utils-v")
                (:file "compiler/errors")
                (:file "compiler/generics")
-               (:file "compiler/homeless-things")
                (:file "compiler/backend-data")
                (:file "compiler/types")
                (:file "compiler/environment")

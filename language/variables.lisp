@@ -76,5 +76,6 @@
      :do (loop :for (name type-spec place) :in vars :do 
             (let ((type (type-spec->type type-spec)))
               (when place (setf (v-placep type) t))
-              (add-var name (v-make-value type) env t))))
+              (add-var name (v-make-value type (gen-reserved-var-string name))
+                       env t))))
   env)

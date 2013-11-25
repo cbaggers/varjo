@@ -33,7 +33,7 @@
 
 (defun v-variable->code-obj (var-name v-value)
   (make-instance 'code :type (v-type v-value)
-                 :current-line (gen-variable-string var-name)))
+                 :current-line (gen-variable-string var-name v-value)))
 
 ;; [TODO] move error
 (defun compile-symbol (code env)

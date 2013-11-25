@@ -88,11 +88,11 @@
 ;;[TODO] this should have a and &optional for place
 ;;[TODO] could this take a form and infer the type? yes...it could
 ;;       should destructively modify the env
-(v-defun %make-var (name type)
+(v-defun %make-var (name-string type)
   :special
   :args-valid t
   :return (make-instance 'code :type (set-place-t type) 
-                         :current-line (lisp-name->glsl-name name)))
+                         :current-line name-string))
 
 
 (v-defun %typify (form &optional qualifiers)
@@ -127,22 +127,24 @@
            (glsl-names (loop :for (name) :in var-specs
                           :do (when (> (count name var-specs :key #'first) 1)
                                 (error 'duplicate-name name))
-                          :collect (free-name name env)))
+                          :collect (safe-glsl-name-string (free-name name env))))
            (decl-objs (loop :for (name type-spec qualifiers) :in var-specs
+                         :for glsl-name :in glsl-names
                          :for code-obj :in c-objs :do
                          (validate-var-types name type-spec code-obj)
                          :collect
                          (let* ((type-spec (when type-spec (type-spec->type type-spec)))
                                 (code (if code-obj
-                                          `(setf (%make-var ,name ,(or type-spec (code-type code-obj))) ,code-obj)
-                                          `(%make-var ,name ,type-spec))))
+                                          `(setf (%make-var ,glsl-name ,(or type-spec (code-type code-obj))) ,code-obj)
+                                          `(%make-var ,glsl-name ,type-spec))))
                            (varjo->glsl `(%typify ,code) env)))))
       ;;add-vars to env - this is destrucitvely modifying env
       (loop :for (name type-spec qualifiers) :in var-specs 
          :for glsl-name :in glsl-names :for code-obj :in c-objs :do
          (let ((type-spec (when type-spec (type-spec->type type-spec))))
-           (add-var glsl-name
-                    (make-instance 'v-value :type (or type-spec (code-type code-obj)))
+           (add-var name
+                    (make-instance 'v-value :glsl-name glsl-name
+                                   :type (or type-spec (code-type code-obj)))
                     env t)))
       (values (if include-type-declarations                  
                   (merge-obs decl-objs
@@ -180,7 +182,7 @@
          (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
                                   (%env-multi-var-declare ,args nil)
                                   ,@body) env))
-         (name (if mainp :main (free-name name env)))
+         (glsl-name (safe-glsl-name-string (free-name name env)))
          (returns (returns body-obj))        
          (type (if mainp (make-instance 'v-void) (first returns))))
     (unless (or mainp returns) (error 'no-function-returns :name name))
@@ -188,18 +190,20 @@
       (error 'return-type-mismatch :name name :types type :returns returns))
     (let ((arg-pairs (loop :for (name type) :in raw-args :collect
                         `(,(v-glsl-string (type-spec->type type)) ,name))))
-      (add-function 
-       name (func-spec->function 
-             (v-make-f-spec (gen-function-transform name raw-args) raw-args
-                            (mapcar #'second raw-args) type)) env t)
+      (add-function name (func-spec->function 
+                          (v-make-f-spec (gen-function-transform glsl-name
+                                                                 raw-args) 
+                                         raw-args (mapcar #'second raw-args)
+                                         type :glsl-name glsl-name)) 
+                    env t)
       (values (merge-obs 
                body-obj
                :type (make-instance 'v-none)
                :current-line nil
                :signatures (if mainp (signatures body-obj)
-                               (cons (gen-function-signature name arg-pairs type)
+                               (cons (gen-function-signature glsl-name arg-pairs type)
                                      (signatures body-obj)))
-               :to-top (cons-end (gen-function-body-string name arg-pairs type body-obj)
+               :to-top (cons-end (gen-function-body-string glsl-name arg-pairs type body-obj)
                                  (to-top body-obj))
                :returns nil
                :out-vars (out-vars body-obj))

@@ -13,12 +13,14 @@
   (unless (every #'symbolp args) (error "can only take simple args"))
   (loop :for arg :in args :do
      (setf body (subst `(,arg condition) arg body :test #'eq)))
-  `(define-condition ,name (error)
+  `(define-condition ,name (varjo-error)
      (,@(loop :for arg :in args :collect
            `(,arg :initarg ,(kwd arg) :reader ,arg)))
      (:report (lambda (condition stream)
                 (declare (ignorable condition))
                 (format stream ,error-string ,@body)))))
+
+(define-condition varjo-error (error) ())
 
 ;-----------------------------;
 
@@ -106,6 +108,9 @@
 (deferror no-version-in-context (env)
     "No supported version found in context:~%~a"
   (v-context env))
+
+(deferror name-unsuitable (name)
+    "Varjo: Names of variables and functions must be only contain~%alpha-numeric characters and the hyphen character (-).~%They also may not start with 'gl'~%Supplied Name: ~a~%" name)
 
 ;-----------------------------;
 

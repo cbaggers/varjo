@@ -1,16 +1,19 @@
 (in-package :varjo)
 
+(defconstant +order-bias+ 0.0001)
+
 ;;------------------------------------------------------------
 ;; GLSL Functions
 ;;----------------
 
 (defun v-make-f-spec (transform args arg-types return-spec 
-                      &key place glsl-spec-matching)
+                      &key place glsl-spec-matching glsl-name)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
-    `(,transform ,arg-types ,return-spec ,context ,place ,glsl-spec-matching)))
+    (list transform arg-types return-spec context place glsl-spec-matching 
+          glsl-name)))
 ;;
 ;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
 ;;
@@ -28,9 +31,10 @@
          (arg-names (lambda-list-get-names args)))
     (cond ((stringp (first body))
            (destructuring-bind (transform arg-types return-spec 
-                                          &key place glsl-spec-matching) body
+                                          &key place glsl-spec-matching glsl-name) body
              `(progn (add-function ',name '(,transform ,arg-types ,return-spec
-                                            ,context ,place ,glsl-spec-matching)
+                                            ,context ,place ,glsl-spec-matching 
+                                            ,glsl-name)
                                    *global-env*)
                      ',name)))
           ((eq (first body) :special)
@@ -42,8 +46,8 @@
                                                    t
                                                    (lambda ,(cons 'env args) 
                                                      (declare (ignorable env ,@arg-names)) 
-                                                     ,return)                                               
-                                                   ,context ,place nil)
+                                                     ,return)
+                                                   ,context ,place nil nil)
                                       *global-env*)
                         ',name)
                  (if args-valid
@@ -56,7 +60,7 @@
                                                    (lambda ,(cons 'env args) 
                                                      (declare (ignorable env ,@arg-names)) 
                                                      ,return)                                               
-                                                   ,context ,place nil)
+                                                   ,context ,place nil nil)
                                       *global-env*)
                         ',name)
                      `(progn
@@ -65,7 +69,7 @@
                                                    (lambda ,(cons 'env (mapcar #'first args))
                                                      (declare (ignorable env ,@arg-names))
                                                      ,return)
-                                                   ,context ,place nil)
+                                                   ,context ,place nil nil)
                                       *global-env*)
                         ',name)))))
           (t `(progn (setf (gethash ',name (v-external-functions *global-env*))
@@ -81,7 +85,7 @@
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
-    (error (e) (make-instance 'code :type (make-instance 'v-error :payload e)))))
+    (varjo-error (e) (make-instance 'code :type (make-instance 'v-error :payload e)))))
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
   (let ((method (v-argument-spec func))
@@ -91,7 +95,7 @@
         (if (eq method t)
             (list t func arg-code)
             (handler-case (list 0 func (apply method (cons env arg-code))) 
-              (error () nil))))))
+              (varjo-error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs)
   (let* ((spec-types (v-argument-spec func))
@@ -125,7 +129,7 @@
 (defun find-functions-for-args (func-name args-code env &aux matches)
   (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
     (if potentials
-        (loop :for func :in potentials :do 
+        (loop :for func :in potentials :for bias-count :from 0 :do
            (when (and (not arg-objs) (func-need-arguments-compiledp func))
              (setf arg-objs (loop :for i :in args-code :collect 
                                (try-compile-arg i env)))
@@ -140,7 +144,11 @@
                                   (basic-arg-matchp func arg-types arg-objs))))))
              (if (eq (first match) t)
                  (return (list match))
-                 (when match (push match matches))))
+                 (when match
+                   (when (numberp (first match)) 
+                     (setf (first match) (+ (first match)
+                                            (* bias-count +order-bias+))))
+                   (push match matches))))
            :finally (return (or matches (func-find-failure func-name arg-objs))))
         (error 'could-not-find-function :name func-name))))
 
@@ -151,11 +159,11 @@
      :return `((t ,(code-type arg-obj) nil)) 
      :finally (return
                 `((t ,(make-instance 'v-error :payload
-                                     (make-instance 'no-valid-function
-                                                    :name func-name
-                                                    :types (mapcar #'code-type
-                                                                   arg-objs)))
-                     nil)))))
+                                         (make-instance 'no-valid-function
+                                                        :name func-name
+                                                        :types (mapcar #'code-type
+                                                                       arg-objs)))
+                         nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
@@ -166,8 +174,8 @@
   (let* ((functions (find-functions-for-args func-name args-code env)))
     (destructuring-bind (score function arg-objs)
         (if (> (length functions) 1) 
-            (first functions)
-            (first (sort functions #'< :key #'first)))
+            (first (sort functions #'< :key #'first))
+            (first functions))
       (declare (ignore score))
       (list function arg-objs))))
 
@@ -194,7 +202,7 @@
   (let ((env (clone-environment env)))
     (multiple-value-bind (code-obj new-env)
         (handler-case (apply (v-return-spec func) (cons env args))
-          (error (e) (invoke-debugger e)))
+          (varjo-error (e) (invoke-debugger e)))
       (values code-obj (or new-env env)))))
 
 ;;------------------------------------------------------------

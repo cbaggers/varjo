@@ -8,6 +8,9 @@
 ;;   (a v-float)
 ;;   (to-long-to-blah v-int :accessor b))
 
+;;[TODO] should this use defun? 
+;;       pro: this is a global struct so global func
+;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
   `(progn 
      (defclass ,name (v-user-struct) 

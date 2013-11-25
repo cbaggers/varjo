@@ -287,10 +287,11 @@
 
 (defun func-spec->function (spec)
   (destructuring-bind (transform arg-spec return-spec context place 
-                                 glsl-spec-matching) spec
+                                 glsl-spec-matching glsl-name) spec
     (make-instance 'v-function :glsl-string transform :arg-spec arg-spec
                    :return-spec return-spec :restriction context :place place
-                   :glsl-spec-matching glsl-spec-matching)))
+                   :glsl-spec-matching glsl-spec-matching 
+                   :glsl-name glsl-name)))
 
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))

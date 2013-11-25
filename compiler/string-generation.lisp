@@ -1,5 +1,10 @@
 (in-package :varjo)
 
+(defun safe-glsl-name-string (name)
+  (if (valid-user-defined-name name) 
+      (string-downcase 
+       (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
+      (error 'name-unsuitable :name name)))
 
 (defun gen-reserved-var-string (name-symbol)
   (let* ((name-string (symbol-name name-symbol))
@@ -16,9 +21,8 @@
 (defun gen-number-string (number type)
   (format nil "~a~a" number (num-suffix type)))
 
-(defun gen-variable-string (var-name)
-  (format nil "~a" (if (glsl-var-namep var-name) 
-                       (gen-reserved-var-string var-name)
+(defun gen-variable-string (var-name v-value)
+  (format nil "~a" (or (v-glsl-name v-value)
                        (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs)
@@ -34,7 +38,7 @@
           args))
 
 (defun gen-function-body-string (name args type body-obj)
-  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[    ~a~%~]}~%"
+  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[~a~%~]}~%"
           (v-glsl-string type)
           (string-downcase (string name)) 
           args
@@ -45,18 +49,18 @@
   (format nil "~a = ~a" (current-line place) (current-line val)))
 
 (defun gen-out-var-assignment-string (var-name val)
-  (format nil "~a = ~a" var-name (current-line val)))
+  (format nil "~a = ~a" (safe-glsl-name-string var-name) (current-line val)))
 
 (defun gen-if-string (test-obj then-obj else-obj)
   (if else-obj
-      (format nil "~a~&if (~a) {~{~%~a~}~%    ~a~%} else {~{~%~a~}~%    ~a~%}"
+      (format nil "~a~&if (~a) {~{~%~a~}~%~a~%} else {~{~%~a~}~%~a~%}"
               (or (to-block test-obj) "") 
               (current-line test-obj)
               (or (to-block then-obj) nil) 
               (current-line then-obj)
               (or (to-block else-obj) nil) 
               (current-line else-obj))
-      (format nil "~a~&if (~a) {~{~%~a~}~%    ~a~%}"
+      (format nil "~a~&if (~a) {~{~%~a~}~%~a~%}"
               (or (to-block test-obj) "") 
               (current-line test-obj)
               (or (to-block then-obj) nil)
