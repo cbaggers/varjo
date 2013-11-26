@@ -131,7 +131,7 @@
   (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context (test-env))
           (loop :for part :in 
              (list '("// struct definitions go here")
-                   (mapcar #'v-glsl-string (used-types code-obj))
+                   (mapcar #'v-signature (used-types code-obj))
                    '("// in-vars go here")
                    '("// out-vars go here")                   
                    '("// uniforms go here")

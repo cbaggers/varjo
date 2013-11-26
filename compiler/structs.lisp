@@ -12,25 +12,29 @@
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
-  `(progn 
-     (defclass ,name (v-user-struct) 
-       ((glsl-string :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
-                                        name (mapcar #'gen-slot-string slots))
-                     :initarg :glsl-string :reader v-glsl-string)
-        (slots :initform ',slots :reader v-slots)))
-     (v-defun ,(symb 'make- name) 
-         ,(append (loop :for slot :in slots :collect (first slot))
-                  (when context `(&context ,@context)))
-       ,(format nil "~a(~{~a~^,~^ ~})" name 
-                (loop :for slot :in slots :collect "~a"))
-       ,(loop :for slot :in slots :collect (second slot))
-       ,name :place nil)
-     ,@(loop :for (slot-name slot-type . acc) :in slots :collect
-          (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
-            `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
-               ,(concatenate 'string "~a." (string slot-name))
-               (,name) ,slot-type :place t)))
-     ',name))
+  (let ((name-string (string-downcase (symbol-name name))))
+    `(progn 
+       (defclass ,name (v-user-struct) 
+         ((glsl-string :initform ,name-string :initarg :glsl-string
+                       :reader v-glsl-string)
+          (signature :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
+                                          name-string
+                                          (mapcar #'gen-slot-string slots))
+                       :initarg :signature :reader v-signature)
+          (slots :initform ',slots :reader v-slots)))
+       (v-defun ,(symb 'make- name) 
+           ,(append (loop :for slot :in slots :collect (first slot))
+                    (when context `(&context ,@context)))
+         ,(format nil "~a(~{~a~^,~^ ~})" name-string
+                  (loop :for slot :in slots :collect "~a"))
+         ,(loop :for slot :in slots :collect (second slot))
+         ,name :place nil)
+       ,@(loop :for (slot-name slot-type . acc) :in slots :collect
+            (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
+              `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
+                 ,(concatenate 'string "~a." (string slot-name))
+                 (,name) ,slot-type :place t)))
+       ',name)))
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot

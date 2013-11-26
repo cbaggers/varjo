@@ -173,7 +173,9 @@
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
   (print "filter-used-types")
-  (setf (used-types code) (find-used-user-structs code))
+  (setf (used-types code) 
+        (mapcar #'make-instance 
+                (remove-duplicates (find-used-user-structs code))))
   (values code env))
 
 ;;----------------------------------------------------------------------
