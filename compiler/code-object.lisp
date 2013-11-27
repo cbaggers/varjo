@@ -38,7 +38,8 @@
                  :out-vars (if set-out-vars out-vars (out-vars code-obj))
                  :invariant (if invariant invariant (invariant code-obj))
                  :returns (if set-returns returns (returns code-obj))
-                 :used-types (used-types code-obj)))
+                 :used-types (used-types code-obj)
+                 :stemcells (stemcells code-obj)))
 
 (defmethod merge-obs ((objs list) &key type current-line 
                                     (signatures nil set-sigs)
@@ -56,7 +57,8 @@
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
                  :invariant invariant
                  :returns (if set-returns returns (mapcan #'returns objs))
-                 :used-types (mapcar #'used-types objs)))
+                 :used-types (mapcar #'used-types objs)
+                 :stemcells (mapcar #'stemcells objs)))
 
 (defmethod merge-obs ((objs code) 
                       &key (type nil set-type)
@@ -76,7 +78,8 @@
                  :out-vars (if set-out-vars out-vars (out-vars objs))
                  :invariant invariant
                  :returns (if set-returns returns (returns objs))
-                 :used-types (used-types objs)))
+                 :used-types (used-types objs)
+                 :stemcells (stemcells objs)))
 
 (defun make-none-ob ()
   (make-instance 'code :type :none :current-line nil))

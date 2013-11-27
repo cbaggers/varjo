@@ -20,5 +20,10 @@
 
 (defun glsl-var-namep (name-symbol)
   (let ((name (symbol-name name-symbol)))
-    (when (> (length name) 2) 
-      (equal "GL-" (subseq name 0 3)))))
+    (or (when (> (length name) 2) (equal "GL-" (subseq name 0 3)))
+        (when (> (length name) 3) (equal "-SC-" (subseq name 0 4))))))
+
+(let ((count -1))
+  (defun free-stemcell-name (name)
+    (incf count)
+    (symb '-sc- name '- count)))

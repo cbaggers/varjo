@@ -174,7 +174,7 @@
    'user' defined structs."
   (print "filter-used-types")
   (setf (used-types code) 
-        (mapcar #'make-instance 
+        (mapcar #'type-spec->type
                 (remove-duplicates (find-used-user-structs code))))
   (values code env))
 

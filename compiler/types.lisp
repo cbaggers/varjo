@@ -485,13 +485,16 @@
   (eq (v-type-name a) (v-type-name (type-spec->type b))))
 
 (defmethod v-typep ((a v-type) (b v-type))
-  (typep a (v-type-name b)))
+  (or (typep a 'v-stemcell)
+      (typep a (v-type-name b))))
 (defmethod v-typep ((a v-type) b)
-  (typep a (v-type-name (type-spec->type b))))
+  (or (typep a 'v-stemcell)
+      (typep a (v-type-name (type-spec->type b)))))
 
 (defmethod v-casts-to-p (from-type to-type)
   (not (null (v-casts-to from-type to-type))))
 
+;;[TODO] vtypep here?
 (defmethod v-casts-to ((from-type v-type) (to-type symbol))
   (if (typep from-type to-type)
       from-type
@@ -499,6 +502,9 @@
         (loop :for cast :in (slot-value from-type 'casts-to)
            :for cast-type = (type-spec->type cast)
            :if (typep cast-type to-type) :return cast-type))))
+
+(defmethod v-casts-to ((from-type v-stemcell) (to-type symbol))
+  (type-spec->type to-type))
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types

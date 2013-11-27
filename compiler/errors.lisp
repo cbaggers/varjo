@@ -110,7 +110,7 @@
   (v-context env))
 
 (deferror name-unsuitable (name)
-    "Varjo: Names of variables and functions must be only contain~%alpha-numeric characters and the hyphen character (-).~%They also may not start with 'gl'~%Supplied Name: ~a~%" name)
+    "Varjo: Names of variables and functions must be only contain~%alpha-numeric characters and the hyphen character (-).~%They also may not start with 'gl-' or '-sc-' ~%Supplied Name: ~a~%" name)
 
 ;-----------------------------;
 

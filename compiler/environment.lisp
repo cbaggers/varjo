@@ -14,7 +14,7 @@
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
-(defparameter *default-context* '(:330))
+(defparameter *default-context* '(:330 :stemcells))
 
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
@@ -112,6 +112,9 @@
      :if (find item *supported-versions*)
      :return item
      :finally (error 'no-version-in-context env)))
+
+(defun allows-stemcellsp (env)
+  (context-ok-given-restriction (v-context env) '(:stemcells)))
 
 ;;-------------------------------------------------------------------------
 

@@ -82,19 +82,25 @@
 
 ;;------------------------------------------------------------
 
+;;[TODO] Where should this live?
+(defun get-stemcells (arg-objs final-types)
+  (loop :for o :in arg-objs :for f :in final-types
+     :if (typep (code-type o) 'v-stemcell) :collect `(,o ,f)))
+
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
     (varjo-error (e) (make-instance 'code :type (make-instance 'v-error :payload e)))))
 
+;;[TODO] stemcells...how do we handle them?
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
   (let ((method (v-argument-spec func))
         (env (clone-environment env)))
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
         (if (eq method t)
-            (list t func arg-code)
-            (handler-case (list 0 func (apply method (cons env arg-code))) 
+            (list t func arg-code nil)
+            (handler-case (list 0 func (apply method (cons env arg-code)) nil) 
               (varjo-error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs)
@@ -107,24 +113,26 @@
                    (loop :for i :in spec-generics :always 
                       (equal (v-dimensions (nth i arg-types)) g-dim))))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
-          (list 0 func arg-objs)
+          (list 0 func arg-objs (get-stemcells arg-objs spec-types))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                              :collect (v-casts-to a s))))
             (when (not (some #'null cast-types))
               (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                              :collect (copy-code obj :type type)))))))))
+                              :collect (copy-code obj :type type))
+                    (get-stemcells arg-objs cast-types))))))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs)
   (let ((spec-types (v-argument-spec func)))
     (when (eql (length arg-objs) (length spec-types))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
-          (list 0 func arg-objs)
+          (list 0 func arg-objs (get-stemcells arg-objs spec-types))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                                :collect (v-casts-to a s))))
             (when (not (some #'null cast-types))
               (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                              :collect (copy-code obj :type type)))))))))
+                              :collect (copy-code obj :type type))
+                    (get-stemcells arg-objs cast-types))))))))
 
 (defun find-functions-for-args (func-name args-code env &aux matches)
   (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
@@ -172,12 +180,13 @@
    the lower the better. We then take the first one and return that
    as the function to use."
   (let* ((functions (find-functions-for-args func-name args-code env)))
-    (destructuring-bind (score function arg-objs)
+    (destructuring-bind (score function arg-objs stemcells)
         (if (> (length functions) 1) 
             (first (sort functions #'< :key #'first))
             (first functions))
       (declare (ignore score))
-      (list function arg-objs))))
+      (error "You were working here, some of the returned arg-objs are stemcell type")
+      (list function arg-objs stemcells))))
 
 (defun glsl-resolve-func-type (func args)
   "nil - superior type

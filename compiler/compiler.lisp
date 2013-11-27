@@ -41,12 +41,15 @@
          (v-value (get-var var-name env)))
     (if v-value
         (v-variable->code-obj var-name v-value)
-        (error "Varjo: Symbol '~s' is unidentified." code))))
+        (if (allows-stemcellsp env)
+            (make-instance 'code :type 'v-stemcell 
+                           :current-line (string (free-stemcell-name code)))
+            (error "Varjo: Symbol '~s' is unidentified." code)))))
 
 (defun compile-form (code env)
   (let* ((func-name (first code)) 
          (args-code (rest code)))
-    (destructuring-bind (func args)
+    (destructuring-bind (func args stemcells)
         (find-function-for-args func-name args-code env)
       (cond 
         ((typep func 'v-function)
@@ -55,6 +58,7 @@
                  (glsl-resolve-special-func-type func args env)
                  (merge-obs args :type (glsl-resolve-func-type func args)
                             :current-line (gen-function-string func args)))
+           (push stemcells (stemcells code-obj))
            (values code-obj (or new-env env))))
           ((typep func 'v-error) (if (v-payload func)
                                      (error (v-payload func))
