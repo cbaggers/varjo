@@ -56,8 +56,11 @@
          (multiple-value-bind (code-obj new-env)
              (if (v-special-functionp func) 
                  (glsl-resolve-special-func-type func args env)
-                 (merge-obs args :type (glsl-resolve-func-type func args)
-                            :current-line (gen-function-string func args)))
+                 (let ((type (glsl-resolve-func-type func args)))
+                   (if type (merge-obs args :type type :current-line
+                                       (gen-function-string func args))
+                       (error 'unable-to-resolve-func-type :func-name func-name
+                              :args args))))
            (push stemcells (stemcells code-obj))
            (values code-obj (or new-env env))))
           ((typep func 'v-error) (if (v-payload func)

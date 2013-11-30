@@ -112,5 +112,8 @@
 (deferror name-unsuitable (name)
     "Varjo: Names of variables and functions must be only contain~%alpha-numeric characters and the hyphen character (-).~%They also may not start with 'gl-' or '-sc-' ~%Supplied Name: ~a~%" name)
 
+(deferror unable-to-resolve-func-type (func-name args)
+    "Varjo: Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%" func-name (mapcar #'code-type args))
+
 ;-----------------------------;
 

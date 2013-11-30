@@ -23,7 +23,7 @@
       #'process-uniforms
       #'wrap-in-main-function
       #'translate
-      #'filter-used-types
+      #'filter-used-items
       #'gen-in-arg-strings
       #'final-uniform-strings
       #'final-string-compose
@@ -169,10 +169,11 @@
 
 ;;----------------------------------------------------------------------
 
-(defun filter-used-types (code env)
+(defun filter-used-items (code env)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
-  (print "filter-used-types")
+  (print "filter-used-items")
+  (print (normalize-used-types (stemcells code)))
   (setf (used-types code) 
         (mapcar #'type-spec->type
                 (remove-duplicates (find-used-user-structs code))))

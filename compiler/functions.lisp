@@ -82,6 +82,9 @@
 
 ;;------------------------------------------------------------
 
+;;[TODO] The stemcell stuff feels liek it has been just bodged in, 
+;;       can we make this code read more naturally.
+
 ;;[TODO] Where should this live?
 (defun get-stemcells (arg-objs final-types)
   (loop :for o :in arg-objs :for f :in final-types
@@ -92,7 +95,7 @@
   (handler-case (varjo->glsl arg env)
     (varjo-error (e) (make-instance 'code :type (make-instance 'v-error :payload e)))))
 
-;;[TODO] stemcells...how do we handle them?
+
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
   (let ((method (v-argument-spec func))
         (env (clone-environment env)))
@@ -113,7 +116,8 @@
                    (loop :for i :in spec-generics :always 
                       (equal (v-dimensions (nth i arg-types)) g-dim))))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
-          (list 0 func arg-objs (get-stemcells arg-objs spec-types))
+          (list 0 func (swap-stemcells arg-objs spec-types)
+                (get-stemcells arg-objs spec-types))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                              :collect (v-casts-to a s))))
             (when (not (some #'null cast-types))
@@ -121,12 +125,19 @@
                               :collect (copy-code obj :type type))
                     (get-stemcells arg-objs cast-types))))))))
 
+(defun swap-stemcells (args-objs types)
+  (loop :for a :in args-objs :for type :in types
+     :collect (if (typep (code-type a) 'v-stemcell) 
+                  (copy-code a :type type)
+                  (copy-code a))))
+
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs)
   (let ((spec-types (v-argument-spec func)))
     (when (eql (length arg-objs) (length spec-types))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
-          (list 0 func arg-objs (get-stemcells arg-objs spec-types))
+          (list 0 func (swap-stemcells arg-objs spec-types)
+                (get-stemcells arg-objs spec-types))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                                :collect (v-casts-to a s))))
             (when (not (some #'null cast-types))
@@ -164,14 +175,14 @@
 (defun func-find-failure (func-name arg-objs)
   (loop :for arg-obj :in arg-objs
      :if (typep (code-type arg-obj) 'v-error) 
-     :return `((t ,(code-type arg-obj) nil)) 
+     :return `((t ,(code-type arg-obj) nil nil)) 
      :finally (return
                 `((t ,(make-instance 'v-error :payload
                                          (make-instance 'no-valid-function
                                                         :name func-name
                                                         :types (mapcar #'code-type
                                                                        arg-objs)))
-                         nil)))))
+                         nil nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
@@ -185,7 +196,10 @@
             (first (sort functions #'< :key #'first))
             (first functions))
       (declare (ignore score))
-      (error "You were working here, some of the returned arg-objs are stemcell type")
+      ;;[TODO] what the fuck
+      (when (some #'(lambda (x) (and (typep x 'code) (typep (code-type x) 'v-stemcell)))
+                  arg-objs)
+        (error "balls ~a" arg-objs))
       (list function arg-objs stemcells))))
 
 (defun glsl-resolve-func-type (func args)
@@ -196,6 +210,7 @@
    list - type spec"
   (let ((spec (v-return-spec func))
         (arg-types (mapcar #'code-type args)))
+    (format t "~%[~a ~a]~%" spec arg-types)
     (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
           ((typep spec 'v-type) spec)
           ((numberp spec) (nth spec arg-types))

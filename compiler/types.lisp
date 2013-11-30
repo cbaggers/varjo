@@ -503,8 +503,9 @@
            :for cast-type = (type-spec->type cast)
            :if (typep cast-type to-type) :return cast-type))))
 
-(defmethod v-casts-to ((from-type v-stemcell) (to-type symbol))
-  (type-spec->type to-type))
+(defmethod v-casts-to ((from-type v-stemcell) to-type)
+  (let ((to-type (if (typep from-type 'v-t-type) to-type (type-spec->type to-type))))
+    (type-spec->type to-type)))
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types
