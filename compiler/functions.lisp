@@ -154,7 +154,7 @@
                                (try-compile-arg i env)))
              (setf arg-types (mapcar #'code-type arg-objs))
              (setf any-errors (some #'v-errorp arg-types)))           
-           (let ((match (if (v-special-functionp func) 
+           (let ((match (if (v-special-functionp func)
                             (special-arg-matchp func args-code arg-objs
                                                 arg-types any-errors env)
                             (when (not any-errors)
@@ -202,7 +202,7 @@
         (error "balls ~a" arg-objs))
       (list function arg-objs stemcells))))
 
-(defun glsl-resolve-func-type (func args)
+(defun glsl-resolve-func-type (func args env)
   "nil - superior type
    number - type of nth arg
    function - call the function
@@ -210,14 +210,13 @@
    list - type spec"
   (let ((spec (v-return-spec func))
         (arg-types (mapcar #'code-type args)))
-    (format t "~%[~a ~a]~%" spec arg-types)
     (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
           ((typep spec 'v-type) spec)
           ((numberp spec) (nth spec arg-types))
           ((functionp spec) (apply spec args))
           ((and (listp spec) (eq (first spec) :element))
            (v-element-type (nth (second spec) arg-types)))
-          ((or (symbolp spec) (listp spec)) (type-spec->type spec))
+          ((or (symbolp spec) (listp spec)) (type-spec->type spec :env env))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
 
 ;;[TODO] Maybe the error should be caught and returned, 

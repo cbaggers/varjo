@@ -110,31 +110,44 @@
                                        qualifiers 
                                        (current-line obj))))
 
-;;[TODO] Work out where to handle qualifiers
-(defun prefix-type-declaration (code-obj &optional qualifiers)
-  (let* ((type (code-type code-obj))
-         (line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
-                                                    (current-line code-obj)))
+(defun prefix-type-to-string (type line-string &optional qualifiers)
+  (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
+                                                    line-string))
                      ((typep type 'v-type) (format nil "~a ~a" 
                                                    (v-glsl-string type)
-                                                   (current-line code-obj)))
+                                                   line-string))
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
         (format nil "~{~a ~} ~a" qualifiers line)
         line)))
 
+(defun prefix-type-declaration (code-obj &optional qualifiers)
+  (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers))
+
+(defun gen-out-var-string (name qualifiers value)
+  (format nil "out ~a;" (prefix-type-to-string (v-type value) 
+                                           (string-downcase (string name)) 
+                                           qualifiers)))
+
+
+(defun gen-in-var-string (name type qualifiers)
+  (format nil "in ~a;" (prefix-type-to-string 
+                        type (string-downcase (string name)) qualifiers)))
+
+(defun gen-uniform-decl-string (name type)
+  (format nil "uniform ~a;" (prefix-type-to-string type (string-downcase (string name)))))
+
 ;;[TODO] make this properly
 (defun lisp-name->glsl-name (name)
   (string name))
 
-(defun gen-shader-string (code-obj)
+(defun gen-shader-string (code-obj env)
   (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context (test-env))
           (loop :for part :in 
-             (list '("// struct definitions go here")
-                   (mapcar #'v-signature (used-types code-obj))
-                   '("// in-vars go here")
-                   '("// out-vars go here")                   
-                   '("// uniforms go here")
+             (list (mapcar #'v-signature (used-types code-obj))
+                   (v-in-args env)
+                   (out-vars code-obj)
+                   (v-uniforms env)
                    (signatures code-obj)
                    (to-top code-obj))
              :if part :collect part)))

@@ -56,7 +56,7 @@
          (multiple-value-bind (code-obj new-env)
              (if (v-special-functionp func) 
                  (glsl-resolve-special-func-type func args env)
-                 (let ((type (glsl-resolve-func-type func args)))
+                 (let ((type (glsl-resolve-func-type func args env)))
                    (if type (merge-obs args :type type :current-line
                                        (gen-function-string func args))
                        (error 'unable-to-resolve-func-type :func-name func-name
@@ -69,10 +69,10 @@
           (t (error 'problem-with-the-compiler :target func))))))
 
 ;;[TODO] This is why break needs a semicolon
-(defun end-line (obj)
+(defun end-line (obj &optional force)
   (when obj
-    (if (typep (code-type obj) 'v-none)
+    (if (and (typep (code-type obj) 'v-none) (not force))
         obj
         (if (null (current-line obj))
-            (peek obj)
+            obj
             (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))

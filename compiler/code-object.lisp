@@ -11,6 +11,7 @@
 (defmethod initialize-instance :after
     ((code-obj code) &key (type nil set-type))
   (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
+  ;;[TODO] dont pass in the name of a fake struct here, must be object
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
          (type-spec (v-type-name type-obj)))
     (setf (slot-value code-obj 'type) type-obj)

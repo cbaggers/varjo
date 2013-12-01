@@ -55,10 +55,10 @@
    (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
    (inferring :initarg :inferring :initform nil :accessor v-inferringp)))
 
-(defmethod v-make-value ((type v-t-type) &optional glsl-name)
+(defmethod v-make-value ((type v-t-type) env &optional glsl-name)
   (make-instance 'v-value :type type :glsl-name glsl-name))
 
-(defmethod v-make-value ((type t) &optional glsl-name)
+(defmethod v-make-value ((type t) env &optional glsl-name)
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name))
 
 

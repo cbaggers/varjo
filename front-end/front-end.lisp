@@ -25,6 +25,7 @@
       #'translate
       #'filter-used-items
       #'gen-in-arg-strings
+      #'gen-out-var-strings
       #'final-uniform-strings
       #'final-string-compose
       #'process-output
@@ -74,17 +75,13 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for (name type . qualifiers) :in in-args :do
-       (let* ((type-obj (type-spec->type type :place t))
-              (fake-struct (when (typep type-obj 'v-struct)
-                             (make-fake-struct type-obj env))))
-         (add-var name (make-instance 'v-value :type (or fake-struct type-obj))
-                  env t)
-         (if fake-struct
-             (loop :for (slot-name slot-type . acc) :in (v-slots fake-struct) 
-                :do (push `(,(fake-slot-name slot-name) ,slot-type ,qualifiers) 
-                          (v-in-args env)))
-             (push `(,name ,(v-type-name type-obj) ,qualifiers) 
-                   (v-in-args env)))))
+       (let* ((type-obj (type-spec->type type :place t)))
+         (if (typep type-obj 'v-struct)
+             (add-fake-struct name type-obj qualifiers env)
+             (progn
+               (add-var name (make-instance 'v-value :type type-obj) env t)
+               (push `(,name ,(v-type-name type-obj) ,qualifiers) 
+                     (v-in-args env))))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -92,8 +89,8 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (loop :for (name type) :in uniforms :do
-       (add-var name (make-instance 'v-value :type (type-spec->type type)
-                                    :read-onlyp t) 
+       (add-var name (make-instance 'v-value :type (set-place-t
+                                                    (type-spec->type type))) 
                 env t)
        (push (list name type) (v-uniforms env)))
     (values code env)))
@@ -163,7 +160,6 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)  
-  (print "compile-pass")
   (values (varjo->glsl code env) 
           env))
 
@@ -172,8 +168,7 @@
 (defun filter-used-items (code env)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
-  (print "filter-used-items")
-  (print (normalize-used-types (stemcells code)))
+  (setf (stemcells code) (normalize-used-types (stemcells code)))
   (setf (used-types code) 
         (mapcar #'type-spec->type
                 (remove-duplicates (find-used-user-structs code))))
@@ -182,18 +177,46 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-in-arg-strings (code env)
-  (print "gen-in-arg-strings")
+  ;;`(,fake-slot-name ,slot-type ,qualifiers)
+  (setf (v-in-args env) 
+        (loop for (name type qualifiers) :in (v-in-args env) :collect
+             (gen-in-var-string name (type-spec->type type) qualifiers)))
   (values code env))
 
 ;;----------------------------------------------------------------------
 
-(defun final-uniform-strings (code env) 
+(defun dedup-out-vars (out-vars)
+  (let ((seen (make-hash-table))
+        (deduped nil))
+    (loop :for (name qualifiers value) :in out-vars
+       :do (let ((tspec (type->type-spec (v-type value))))
+             (if (gethash name seen)
+                 (unless (equal tspec (gethash name seen))
+                   (error 'out-var-type-mismatch :var-name name 
+                          :var-types (list tspec (gethash name seen))))
+                 (setf (gethash name seen) tspec
+                       deduped (cons (list name qualifiers value) deduped)))))
+    deduped))
+
+(defun gen-out-var-strings (code env)
+  (let ((out-vars (dedup-out-vars (out-vars code))))
+    (setf (out-vars code)
+          (loop :for (name qualifiers value) :in out-vars
+             :collect (gen-out-var-string name qualifiers value)))
+    (values code env)))
+
+;;----------------------------------------------------------------------
+
+(defun final-uniform-strings (code env)
+  (setf (v-uniforms env)
+        (loop :for (name type) :in (v-uniforms env) :collect
+           (gen-uniform-decl-string name (type-spec->type type))))
   (values code env))
 
 ;;----------------------------------------------------------------------
 
 (defun final-string-compose (code env)
-  (values (gen-shader-string code)
+  (values (gen-shader-string code env)
           env))
 
 ;;----------------------------------------------------------------------

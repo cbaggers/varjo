@@ -177,6 +177,29 @@
 
 ;;-------------------------------------------------------------------------
 
+(defmethod add-fake-type (type-name type-obj (env (eql :-genv-))
+                          &optional modify-env)
+  (declare (ignore type-name env modify-env))
+  (error 'fake-type-global))
+
+(defmethod add-fake-type (type-name type-obj (env environment) &optional modify-env)
+  (let ((env (if modify-env env (clone-environment env))))
+    (a-set type-name type-obj (v-types env))
+    env))
+
+;;[TODO] really no better way of doing this?
+(defun type-existsp (type-name)
+  (handler-case (progn (typep t type-name) t) (error () nil)))
+
+(defmethod get-fake-type (type-name (env (eql :-genv-)))
+  (error 'fake-type-global))
+
+(defmethod get-fake-type (type-name (env environment))
+  (copy-fake-struct-type (a-get1 type-name (v-types env))))
+
+
+;;-------------------------------------------------------------------------
+
 (defmethod add-var (var-name (val v-value) (env (eql :-genv-)) 
                     &optional modify-env)
   (declare (ignore modify-env))

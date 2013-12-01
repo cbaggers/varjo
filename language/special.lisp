@@ -25,7 +25,7 @@
 ;; (v-defun test-1 ((a v-int) (b v-float))
 ;;   :special 
 ;;   :return (make-instance 'code :current-line "booyah!" 
-;;                          :type (make-instance 'v-int)))
+;;                          :type (type-spec->type 'v-int)))
 
 ;; example for case 2
 ;; (v-defun test-2 (name args &rest body)
@@ -33,7 +33,7 @@
 ;;   :args-valid t
 ;;   :return (progn (format nil "name:~s args:~s body:~s" name args body)
 ;;                  (make-instance 'code :current-line "booyah!" 
-;;                                 :type (make-instance 'v-int))))
+;;                                 :type (type-spec->type 'v-int))))
 
 ;;[TODO] make it handle multiple assignements like cl version
 (v-defun setf ((place v-type) (val v-type))
@@ -148,7 +148,7 @@
                     env t)))
       (values (if include-type-declarations                  
                   (merge-obs decl-objs
-                             :type (make-instance 'v-none)
+                             :type (type-spec->type 'v-none)
                              :current-line nil
                              :to-block (append (mapcan #'to-block decl-objs)
                                                (mapcar #'(lambda (x) (current-line (end-line x)))
@@ -184,7 +184,7 @@
                                   ,@body) env))
          (glsl-name (safe-glsl-name-string (free-name name env)))
          (returns (returns body-obj))        
-         (type (if mainp (make-instance 'v-void) (first returns))))
+         (type (if mainp (type-spec->type 'v-void) (first returns))))
     (unless (or mainp returns) (error 'no-function-returns :name name))
     (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
       (error 'return-type-mismatch :name name :types type :returns returns))
@@ -198,7 +198,7 @@
                     env t)
       (values (merge-obs 
                body-obj
-               :type (make-instance 'v-none)
+               :type (type-spec->type 'v-none)
                :current-line nil
                :signatures (if mainp (signatures body-obj)
                                (cons (gen-function-signature glsl-name arg-pairs type)
@@ -238,18 +238,18 @@
                            (first name-and-qualifiers)
                            name-and-qualifiers))
          (qualifiers (when (consp name-and-qualifiers)
-                       (rest name-and-qualifiers)))
-         (glsl-name (free-name out-var-name env)))
+                       (rest name-and-qualifiers))))
     (if (assoc out-var-name *glsl-variables*)
         (error 'out-var-name-taken out-var-name)
-        (make-instance 
-         'code :type 'v-none
-         :current-line (gen-out-var-assignment-string glsl-name form-obj)
-         :to-block (to-block form-obj)
-         :out-vars (cons `(,out-var-name 
-                           ,qualifiers
-                           ,(make-instance 'v-value :type (code-type form-obj)))
-                         (out-vars form-obj))))))
+        (end-line
+         (make-instance 
+          'code :type 'v-none
+          :current-line (gen-out-var-assignment-string out-var-name form-obj)
+          :to-block (to-block form-obj)
+          :out-vars (cons `(,out-var-name 
+                            ,qualifiers
+                            ,(make-instance 'v-value :type (code-type form-obj)))
+                          (out-vars form-obj))) t))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 (v-defun if (test-form then-form &optional else-form)

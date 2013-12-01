@@ -142,6 +142,6 @@
                ,@(when testp (list :test test))
                ,@(when notp (list test-not)))))
 
-(defun lists-contain-duplicates-p (&rest lists)
-  (let ((joined (apply #'append lists)))
-    (not (eq (length joined) (length (remove-duplicates joined))))))
+(defun list-contains-duplicates-p (list &key (key #'identity) (test #'eq))
+  (loop :for i :in list :do 
+     (when (> (count i list :key key :test test) 1) (return t))))

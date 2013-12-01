@@ -30,7 +30,8 @@
          ,(loop :for slot :in slots :collect (second slot))
          ,name :place nil)
        ,@(loop :for (slot-name slot-type . acc) :in slots :collect
-            (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
+            (let ((accessor (if (eq :accessor (first acc)) (second acc) 
+                                (symb name '- slot-name))))
               `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
                  ,(concatenate 'string "~a." (string slot-name))
                  (,name) ,slot-type :place t)))
@@ -48,24 +49,43 @@
           (format nil "    ~a ~a;" 
                   (v-glsl-string type-obj) name)))))
 
-;;[TODO] I think there will be a problem if you let a in-arg
-;;       it will end up with the wrong name in the resulting glsl code
-(defmethod make-fake-struct ((type v-user-struct) (env environment))
-  (let* ((name (gensym (format nil "fake-~s" (v-type-name type))))
-         (slots (v-slots type))
-         (fake-type (make-instance 'v-fake-struct :slots slots
-                                   :fake-type-name name 
-                                   :glsl-string (v-glsl-string type))))
-    (loop :for (slot-name slot-type . acc) :in slots :collect
-       (let ((accessor (if (eq :accessor (first acc)) (second acc) slot-name)))
-         (add-function 
-          accessor
-          (func-spec->function (v-make-f-spec
-                                (concatenate 'string "~a_" 
-                                             (fake-slot-name slot-name))
-                                '(obj) (list name) (type-spec->type slot-type)
-                                :place nil))
-          env t)))
-    fake-type))
+(defgeneric add-fake-struct (in-var-name type qualifiers env))
+(defmethod add-fake-struct (in-var-name (type v-user-struct) qualifiers
+                            (env environment))
+  (let* ((name (symb 'fake- (v-type-name type) '- in-var-name))
+         (slots (v-slots type))         
+         (struct (make-instance 'v-fake-struct
+                                :signature nil
+                                :slots slots
+                                :fake-type-name name
+                                :glsl-string (v-glsl-string type))))
+    (loop :for (slot-name slot-type . acc) :in slots
+       :for fake-slot-name = (fake-slot-name in-var-name slot-name)
+       :for accessor = (if (eq :accessor (first acc))
+                           (second acc) 
+                           (symb (v-type-name type) '- slot-name))
+       :do (add-function
+            accessor
+            (func-spec->function
+             (v-make-f-spec fake-slot-name '(obj) (list name) 
+                            (type-spec->type slot-type :env env) 
+                            :place nil)) env t)
+       :do (push `(,fake-slot-name ,slot-type ,qualifiers)
+                 (v-in-args env)))
+    (add-fake-type name struct env t)
+    (add-var in-var-name (make-instance 'v-value :type struct 
+                                        :glsl-name (string-downcase 
+                                                    (string in-var-name)))
+             env t)    
+    env))
 
-(defun fake-slot-name (slot-name) (string slot-name))
+(defun copy-fake-struct-type (type)
+  (make-instance 'v-fake-struct
+                 :signature (copy-seq (v-signature type))
+                 :slots (copy-seq (v-slots type))
+                 :fake-type-name (v-fake-type-name type)
+                 :glsl-string (copy-seq (v-glsl-string type))))
+
+(defun fake-slot-name (in-var-name slot-name) 
+  (format nil "fk_~a_~a" (string-downcase (string in-var-name))
+          (string-downcase (string slot-name))))

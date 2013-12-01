@@ -21,6 +21,7 @@
 (defun glsl-var-namep (name-symbol)
   (let ((name (symbol-name name-symbol)))
     (or (when (> (length name) 2) (equal "GL-" (subseq name 0 3)))
+        (when (> (length name) 2) (equal "FK-" (subseq name 0 3)))
         (when (> (length name) 3) (equal "-SC-" (subseq name 0 4))))))
 
 (let ((count -1))

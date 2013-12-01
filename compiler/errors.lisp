@@ -115,5 +115,8 @@
 (deferror unable-to-resolve-func-type (func-name args)
     "Varjo: Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%" func-name (mapcar #'code-type args))
 
-;-----------------------------;
+(deferror out-var-type-mismatch (var-name var-types)
+    "Varjo: The out variable ~a is has been set with different types.~%Types used: ~a" var-name var-types)
 
+(deferror fake-type-global (env)
+    "fake types can not be added to the global environment")

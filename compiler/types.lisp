@@ -453,14 +453,17 @@
   (class-name (class-of type)))
 (defmethod v-type-name ((type v-array))
   (list (v-element-type type) (v-dimensions type)))
+(defmethod type->type-spec ((type v-t-type))
+  (v-type-name type))
 
-(defun type-spec->type (spec &key place)  
+(defun type-spec->type (spec &key place (env *global-env*))
   (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
-        ((symbolp spec) 
-         (let ((type (make-instance (if (keywordp spec) (symb 'v- spec) spec))))
-           (when (slot-exists-p type 'place) 
-             (setf (slot-value type 'place) place))
-           type))
+        ((symbolp spec)
+         (or (when (not (eq env *global-env*)) (get-fake-type spec env))
+             (let ((type (make-instance (if (keywordp spec) (symb 'v- spec) spec))))
+               (when (slot-exists-p type 'place) 
+                 (setf (slot-value type 'place) place))
+               type)))
         ((listp spec)
          (destructuring-bind (type dimensions) spec
            (make-instance 'v-array :element-type (if (keywordp spec)
@@ -477,11 +480,11 @@
   (* (apply #'* (v-dimensions type)) 
      (slot-value (v-element-type type) 'glsl-size)))
 
-(defmethod v-type-eq ((a v-type) (b v-type))
+(defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
   (eq (v-type-name a) (v-type-name b)))
-(defmethod v-type-eq ((a v-type) (b symbol))
+(defmethod v-type-eq ((a v-type) (b symbol) &optional (env *global-env*))
   (eq (v-type-name a) (v-type-name (type-spec->type b))))
-(defmethod v-type-eq ((a v-type) (b list))
+(defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
   (eq (v-type-name a) (v-type-name (type-spec->type b))))
 
 (defmethod v-typep ((a v-type) (b v-type))
@@ -517,7 +520,7 @@
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
                                          (if (symbolp type)
-                                             (slot-value (make-instance type) 
+                                             (slot-value (type-spec->type type) 
                                                          'casts-to) 
                                              (slot-value type 'casts-to))))
                                 #'> :key #'length))
