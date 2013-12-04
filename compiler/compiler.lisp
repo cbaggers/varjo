@@ -20,8 +20,8 @@
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
-  (cond ((floatp x) (type-spec->type :float))
-        ((integerp x) (type-spec->type :int))
+  (cond ((floatp x) (type-spec->type 'v-float))
+        ((integerp x) (type-spec->type 'v-int))
         (t (error "Varjo: Do not know the type of the number '~s'" x))))
 
 (defun compile-number (code env)
@@ -57,8 +57,12 @@
              (if (v-special-functionp func) 
                  (glsl-resolve-special-func-type func args env)
                  (let ((type (glsl-resolve-func-type func args env)))
-                   (if type (merge-obs args :type type :current-line
-                                       (gen-function-string func args))
+                   (if type
+                       (merge-obs args :type type :current-line
+                                  (gen-function-string func args)
+                                  :used-external-functions
+                                  (append (when (v-externalp func) `(,func))
+                                          (mapcan #'used-external-functions args)))
                        (error 'unable-to-resolve-func-type :func-name func-name
                               :args args))))
            (push stemcells (stemcells code-obj))

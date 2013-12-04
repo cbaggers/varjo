@@ -31,13 +31,14 @@
       #'process-output
       #'code-obj->result-object)))
 
+
 (defun translate (code env)
   (when (not (typep env 'environment)) 
     (error "you probably meant to call translate-shader"))
   (pipe-> (code env)
     #'add-context-glsl-vars
     (stabilizedp #'macroexpand-pass
-                 #'inject-functions-pass
+                 ;;#'inject-functions-pass
                  #'compiler-macroexpand-pass)
     #'compile-pass))
 
@@ -80,7 +81,7 @@
              (add-fake-struct name type-obj qualifiers env)
              (progn
                (add-var name (make-instance 'v-value :type type-obj) env t)
-               (push `(,name ,(v-type-name type-obj) ,qualifiers) 
+               (push `(,name ,(type->type-spec type-obj) ,qualifiers) 
                      (v-in-args env))))))
     (values code env)))
 
@@ -98,7 +99,7 @@
 ;;----------------------------------------------------------------------
 
 (defun wrap-in-main-function (code env)
-  (values `(%make-function :main () ,code) 
+  (values `(%make-function :main () ,code)
           env))
 
 ;;----------------------------------------------------------------------
@@ -160,8 +161,7 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)  
-  (values (varjo->glsl code env) 
-          env))
+  (varjo->glsl code env))
 
 ;;----------------------------------------------------------------------
 
@@ -170,8 +170,8 @@
    'user' defined structs."
   (setf (stemcells code) (normalize-used-types (stemcells code)))
   (setf (used-types code) 
-        (mapcar #'type-spec->type
-                (remove-duplicates (find-used-user-structs code))))
+        (append (mapcar #'type-spec->type
+                        (remove-duplicates (find-used-user-structs code)))))
   (values code env))
 
 ;;----------------------------------------------------------------------
@@ -208,9 +208,17 @@
 ;;----------------------------------------------------------------------
 
 (defun final-uniform-strings (code env)
-  (setf (v-uniforms env)
-        (loop :for (name type) :in (v-uniforms env) :collect
-           (gen-uniform-decl-string name (type-spec->type type))))
+  (let (final-strings 
+        (structs (used-types code)))
+    (loop :for (name type) :in (v-uniforms env)
+       :for type-obj = (type-spec->type type) 
+       :do (push (gen-uniform-decl-string name type-obj) final-strings)
+       :do (when (and (v-typep type-obj 'v-user-struct)
+                      (not (find (type->type-spec type-obj) structs
+                                 :key #'type->type-spec :test #'equal)))
+             (push type-obj structs)))
+    (setf (used-types code) structs)
+    (setf (v-uniforms env) final-strings))
   (values code env))
 
 ;;----------------------------------------------------------------------

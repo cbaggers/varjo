@@ -7,13 +7,13 @@
 ;;----------------
 
 (defun v-make-f-spec (transform args arg-types return-spec 
-                      &key place glsl-spec-matching glsl-name)
+                      &key place glsl-spec-matching glsl-name external)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
     (list transform arg-types return-spec context place glsl-spec-matching 
-          glsl-name)))
+          glsl-name external)))
 ;;
 ;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
 ;;
@@ -34,7 +34,7 @@
                                           &key place glsl-spec-matching glsl-name) body
              `(progn (add-function ',name '(,transform ,arg-types ,return-spec
                                             ,context ,place ,glsl-spec-matching 
-                                            ,glsl-name)
+                                            ,glsl-name nil)
                                    *global-env*)
                      ',name)))
           ((eq (first body) :special)
@@ -47,7 +47,7 @@
                                                    (lambda ,(cons 'env args) 
                                                      (declare (ignorable env ,@arg-names)) 
                                                      ,return)
-                                                   ,context ,place nil nil)
+                                                   ,context ,place nil nil nil)
                                       *global-env*)
                         ',name)
                  (if args-valid
@@ -60,7 +60,7 @@
                                                    (lambda ,(cons 'env args) 
                                                      (declare (ignorable env ,@arg-names)) 
                                                      ,return)                                               
-                                                   ,context ,place nil nil)
+                                                   ,context ,place nil nil nil)
                                       *global-env*)
                         ',name)
                      `(progn
@@ -69,20 +69,31 @@
                                                    (lambda ,(cons 'env (mapcar #'first args))
                                                      (declare (ignorable env ,@arg-names))
                                                      ,return)
-                                                   ,context ,place nil nil)
+                                                   ,context ,place nil nil nil)
                                       *global-env*)
-                        ',name)))))
-          (t `(progn (setf (gethash ',name (v-external-functions *global-env*))
-                         '(,args ,@(rest body)))
-                   ',name)))))
-;; [TODO] ^^^^- we use setf rather than add for extended functions...this seems 
-;;              dumb as it means we can have generic externals which are chosen
-;;              based on usage. This also means some level of checking to see 
-;;              if the arg spec matches.
+                        ',name))))))))
+
+(defmacro v-def-external (name args &body body)
+  `(%v-def-external ',name ',args ',body))
+
+
+(defun %v-def-external (name args body)
+  (let ((env (make-instance 'environment))
+        (body `(%make-function ,name ,args ,@body)))
+     (pipe-> (args body env)
+       #'split-input-into-env
+       (stabilizedp #'macroexpand-pass
+                    #'compiler-macroexpand-pass)
+       #'compile-pass
+       #'filter-used-items
+       #'populate-external)))
+
+(defun populate-external (code env)
+  (peek (list code env)))
 
 ;;------------------------------------------------------------
 
-;;[TODO] The stemcell stuff feels liek it has been just bodged in, 
+;;[TODO] The stemcell stuff feels like it has been just bodged in, 
 ;;       can we make this code read more naturally.
 
 ;;[TODO] Where should this live?
@@ -100,26 +111,29 @@
   (let ((method (v-argument-spec func))
         (env (clone-environment env)))
     (if (listp method)
-        (when (not any-errors) (basic-arg-matchp func arg-types arg-objs))
+        (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env))
         (if (eq method t)
             (list t func arg-code nil)
             (handler-case (list 0 func (apply method (cons env arg-code)) nil) 
               (varjo-error () nil))))))
 
-(defun glsl-arg-matchp (func arg-types arg-objs)
+(defun glsl-arg-matchp (func arg-types arg-objs env)
   (let* ((spec-types (v-argument-spec func))
          (spec-generics (positions-if #'v-spec-typep spec-types))
          (g-dim (when spec-generics 
-                  (v-dimensions (nth (first spec-generics) arg-types)))))    
+                  (when (v-typep (nth (first spec-generics) arg-types) 'v-array 
+                                 env)
+                    (v-dimensions (nth (first spec-generics) arg-types))))))
     (when (and (eql (length arg-objs) (length spec-types))
                (or (null g-dim)
                    (loop :for i :in spec-generics :always 
                       (equal (v-dimensions (nth i arg-types)) g-dim))))
-      (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
+      (if (loop :for a :in arg-types :for s :in spec-types :always 
+             (v-typep a s env))
           (list 0 func (swap-stemcells arg-objs spec-types)
                 (get-stemcells arg-objs spec-types))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
-                             :collect (v-casts-to a s))))
+                             :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
               (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
                               :collect (copy-code obj :type type))
@@ -132,14 +146,14 @@
                   (copy-code a))))
 
 ;; [TODO] should this always copy the arg-objs?
-(defun basic-arg-matchp (func arg-types arg-objs)
+(defun basic-arg-matchp (func arg-types arg-objs env)
   (let ((spec-types (v-argument-spec func)))
     (when (eql (length arg-objs) (length spec-types))
-      (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s))
+      (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s env))
           (list 0 func (swap-stemcells arg-objs spec-types)
                 (get-stemcells arg-objs spec-types))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
-                               :collect (v-casts-to a s))))
+                               :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
               (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
                               :collect (copy-code obj :type type))
@@ -159,8 +173,8 @@
                                                 arg-types any-errors env)
                             (when (not any-errors)
                               (if (v-glsl-spec-matchingp func)
-                                  (glsl-arg-matchp func arg-types arg-objs)
-                                  (basic-arg-matchp func arg-types arg-objs))))))
+                                  (glsl-arg-matchp func arg-types arg-objs env)
+                                  (basic-arg-matchp func arg-types arg-objs env))))))
              (if (eq (first match) t)
                  (return (list match))
                  (when match

@@ -52,27 +52,26 @@
 (defgeneric add-fake-struct (in-var-name type qualifiers env))
 (defmethod add-fake-struct (in-var-name (type v-user-struct) qualifiers
                             (env environment))
-  (let* ((name (symb 'fake- (v-type-name type) '- in-var-name))
+  (let* ((name (symb 'fake- (type->type-spec type) '- in-var-name))
          (slots (v-slots type))         
          (struct (make-instance 'v-fake-struct
                                 :signature nil
                                 :slots slots
                                 :fake-type-name name
                                 :glsl-string (v-glsl-string type))))
+    (add-fake-type name struct env t)    
     (loop :for (slot-name slot-type . acc) :in slots
        :for fake-slot-name = (fake-slot-name in-var-name slot-name)
        :for accessor = (if (eq :accessor (first acc))
                            (second acc) 
-                           (symb (v-type-name type) '- slot-name))
+                           (symb (type->type-spec type) '- slot-name))
        :do (add-function
             accessor
             (func-spec->function
              (v-make-f-spec fake-slot-name '(obj) (list name) 
-                            (type-spec->type slot-type :env env) 
-                            :place nil)) env t)
+                            slot-type :place nil) env) env t)
        :do (push `(,fake-slot-name ,slot-type ,qualifiers)
                  (v-in-args env)))
-    (add-fake-type name struct env t)
     (add-var in-var-name (make-instance 'v-value :type struct 
                                         :glsl-name (string-downcase 
                                                     (string in-var-name)))

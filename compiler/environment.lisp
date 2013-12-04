@@ -14,7 +14,7 @@
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
-(defparameter *default-context* '(:330 :stemcells))
+(defparameter *default-context* '(:330))
 
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
@@ -188,14 +188,14 @@
     env))
 
 ;;[TODO] really no better way of doing this?
-(defun type-existsp (type-name)
-  (handler-case (progn (typep t type-name) t) (error () nil)))
+(defun vtype-existsp (type-name)
+  (and type-name (handler-case (progn (typep t type-name) t) (error () nil))))
 
-(defmethod get-fake-type (type-name (env (eql :-genv-)))
-  (error 'fake-type-global))
+(defmethod get-fake-type (type-name (env (eql :-genv-))) nil)
 
 (defmethod get-fake-type (type-name (env environment))
-  (copy-fake-struct-type (a-get1 type-name (v-types env))))
+  (let ((ftype (a-get1 type-name (v-types env))))
+    (when ftype (copy-fake-struct-type ftype))))
 
 
 ;;-------------------------------------------------------------------------
@@ -281,7 +281,7 @@
 (defmethod get-function (func-name (env (eql :-genv-)))
   (sort-function-list
    (loop :for func-spec :in (gethash func-name *global-env-funcs*)
-      :collect (func-spec->function func-spec))))
+      :collect (func-spec->function func-spec env))))
 
 (defmethod get-function (func-name (env environment))
   (sort-function-list
@@ -311,11 +311,19 @@
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function func-name env))))
 
-(defun func-spec->function (spec)
+(defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 
-                                 glsl-spec-matching glsl-name) spec
-    (make-instance 'v-function :glsl-string transform :arg-spec arg-spec
-                   :return-spec return-spec :restriction context :place place
+                                 glsl-spec-matching glsl-name external) spec
+    (make-instance 'v-function :glsl-string transform 
+                   :arg-spec (if (listp arg-spec)
+                                 (loop :for spec :in arg-spec :collect
+                                    (type-spec->type spec :env env))
+                                 arg-spec)
+                   :return-spec (if (type-specp return-spec)
+                                    (type-spec->type return-spec :env env)
+                                    return-spec)
+                   :restriction context :place place
+                   :external external
                    :glsl-spec-matching glsl-spec-matching 
                    :glsl-name glsl-name)))
 

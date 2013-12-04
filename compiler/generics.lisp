@@ -14,10 +14,6 @@
   (setf (v-placep type) t)
   type)
 
-(defgeneric v-glsl-size (type))
-(defgeneric v-casts-to-p (from-type to-type))
-(defgeneric v-casts-to (from-type to-type))
-
 ;; environment
 (defclass environment () 
   ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
@@ -40,10 +36,12 @@
    (to-block :initarg :to-block :initform nil :accessor to-block)
    (to-top :initarg :to-top :initform nil :accessor to-top)
    (out-vars :initarg :out-vars :initform nil :accessor out-vars)   
-   (used-types :initarg :used-types :initform nil :accessor used-types)
+   (used-types :initarg :used-types :initform nil :accessor used-types)   
    (stemcells :initarg :stemcells :initform nil :accessor stemcells)
    (invariant :initarg :invariant :initform nil :accessor invariant)
-   (returns :initarg :returns :initform nil :accessor returns)))
+   (returns :initarg :returns :initform nil :accessor returns)
+   (used-external-functions :initarg :used-external-functions :initform nil
+                            :accessor used-external-functions)))
 
 (defgeneric merge-obs (objs &key type current-line to-block 
                               to-top out-vars invariant returns))
@@ -60,6 +58,3 @@
 
 (defmethod v-make-value ((type t) env &optional glsl-name)
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name))
-
-
-

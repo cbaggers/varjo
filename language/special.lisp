@@ -170,9 +170,6 @@
        (setf result `(let (,binding) ,result)))
     result))
 
-;;[TODO] move error
-;;[TODO] ignoreing the arg-obs seems dumb, surely we need that data 
-;;       for something
 (v-defun %make-function (name raw-args &rest body)
   :special
   :args-valid t
@@ -192,9 +189,9 @@
                         `(,(v-glsl-string (type-spec->type type)) ,name))))
       (add-function name (func-spec->function 
                           (v-make-f-spec (gen-function-transform glsl-name
-                                                                 raw-args) 
+                                                                 raw-args)
                                          raw-args (mapcar #'second raw-args)
-                                         type :glsl-name glsl-name)) 
+                                         type :glsl-name glsl-name) env) 
                     env t)
       (values (merge-obs 
                body-obj
@@ -346,3 +343,4 @@
                        (first var-form) condition-obj
                        update-obj body-obj)))
         (error 'for-loop-simple-expression))))
+

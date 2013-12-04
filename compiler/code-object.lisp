@@ -13,7 +13,7 @@
   (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
   ;;[TODO] dont pass in the name of a fake struct here, must be object
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
-         (type-spec (v-type-name type-obj)))
+         (type-spec (type->type-spec type-obj)))
     (setf (slot-value code-obj 'type) type-obj)
     (when (and (not (find type-spec (used-types code-obj)))
                (not (eq type-spec 'v-none)))
@@ -40,6 +40,7 @@
                  :invariant (if invariant invariant (invariant code-obj))
                  :returns (if set-returns returns (returns code-obj))
                  :used-types (used-types code-obj)
+                 :used-external-functions (used-external-functions code-obj)
                  :stemcells (stemcells code-obj)))
 
 (defmethod merge-obs ((objs list) &key type current-line 
@@ -47,7 +48,8 @@
                                     (to-block nil set-block)
                                     (to-top nil set-top)
                                     (out-vars nil set-out-vars)
-                                    (invariant nil) (returns nil set-returns))
+                                    (invariant nil) (returns nil set-returns)
+                                    used-external-functions)
   (make-instance 'code
                  :type (if type type (error "type is mandatory")) 
                  :current-line current-line 
@@ -59,6 +61,8 @@
                  :invariant invariant
                  :returns (if set-returns returns (mapcan #'returns objs))
                  :used-types (mapcar #'used-types objs)
+                 :used-external-functions (mapcan #'used-external-functions 
+                                                  objs)
                  :stemcells (mapcar #'stemcells objs)))
 
 (defmethod merge-obs ((objs code) 
@@ -80,6 +84,7 @@
                  :invariant invariant
                  :returns (if set-returns returns (returns objs))
                  :used-types (used-types objs)
+                 :used-external-functions (used-external-functions objs)
                  :stemcells (stemcells objs)))
 
 (defun make-none-ob ()
