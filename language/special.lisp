@@ -104,7 +104,8 @@
                :current-line (prefix-type-declaration code qualifiers))))
 
 ;;[TODO] Make this less ugly, if we can merge environments we can do this easily
-(v-defun %env-multi-var-declare (forms &optional include-type-declarations)
+(v-defun %env-multi-var-declare (forms &optional include-type-declarations 
+                                       arg-glsl-names)
   ;; This is the single ugliest thing in varjo (hopefully!)
   ;; it implements declarations of multiple values without letting
   ;; them share the environment.
@@ -124,10 +125,11 @@
            (var-specs (loop :for f :in forms :collect (listify (first f))))
            (c-objs (loop :for f in forms :collect 
                       (when (> (length f) 1) (varjo->glsl (second f) env))))
-           (glsl-names (loop :for (name) :in var-specs
-                          :do (when (> (count name var-specs :key #'first) 1)
-                                (error 'duplicate-name name))
-                          :collect (safe-glsl-name-string (free-name name env))))
+           (glsl-names (or arg-glsl-names
+                           (loop :for (name) :in var-specs
+                              :do (when (> (count name var-specs :key #'first) 1)
+                                    (error 'duplicate-name name))
+                              :collect (safe-glsl-name-string (free-name name env)))))
            (decl-objs (loop :for (name type-spec qualifiers) :in var-specs
                          :for glsl-name :in glsl-names
                          :for code-obj :in c-objs :do
@@ -175,17 +177,20 @@
   :args-valid t
   :return
   (let* ((mainp (eq name :main))
-         (args (mapcar #'list raw-args)) ;;so we can just use let
+         (args (mapcar #'list raw-args))
+         (arg-glsl-names (loop :for (name) :in raw-args :collect
+                            (safe-glsl-name-string (free-name name))))
          (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
-                                  (%env-multi-var-declare ,args nil)
-                                  ,@body) env))
-         (glsl-name (safe-glsl-name-string (free-name name env)))
+                        (%env-multi-var-declare ,args nil ,arg-glsl-names)
+                        ,@body) env))
+         (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))        
          (returns (returns body-obj))        
          (type (if mainp (type-spec->type 'v-void) (first returns))))
     (unless (or mainp returns) (error 'no-function-returns :name name))
     (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
       (error 'return-type-mismatch :name name :types type :returns returns))
-    (let ((arg-pairs (loop :for (name type) :in raw-args :collect
+    (let ((arg-pairs (loop :for (ignored type) :in raw-args
+                        :for name :in arg-glsl-names :collect
                         `(,(v-glsl-string (type-spec->type type)) ,name))))
       (add-function name (func-spec->function 
                           (v-make-f-spec (gen-function-transform glsl-name

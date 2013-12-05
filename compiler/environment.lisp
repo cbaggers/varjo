@@ -26,6 +26,9 @@
 ;; we then need to inlcude this one the function is resolved, this needs to be 
 ;; handled by the compile-form function I think (yeah looks good).
 
+;; Hi! Looks like we need the signature and the glsl code (that should be the 
+;; to-top) 
+
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
 
@@ -336,6 +339,21 @@
                    :external external
                    :glsl-spec-matching glsl-spec-matching 
                    :glsl-name glsl-name)))
+
+(defun function->func-spec (func)
+  (let ((arg-spec (v-argument-spec func)))
+    (v-make-f-spec (v-glsl-string func)
+                   (when (listp arg-spec) 
+                     (loop :for a :in arg-spec :collect '?))
+                   (when (listp arg-spec) 
+                     (loop :for a :in arg-spec :collect (type->type-spec a)))
+                   (if (type-specp (v-return-spec func))
+                       (type->type-spec (v-return-spec func))
+                       (v-return-spec func))
+                   :place (v-placep func) 
+                   :glsl-spec-matching (v-glsl-spec-matchingp func)
+                   :glsl-name (v-glsl-name func)
+                   :external (v-externalp func))))
 
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))

@@ -4,14 +4,14 @@
 ;; GLSL Variables
 ;;----------------
 
-(defun free-name (name env &aux)
-  (if (valid-user-defined-name name)
-      (loop :for i = (append (listify (get-var name env))
-                             (get-function name env)) 
-         :for num from 0
-         :while i :do (setf name (symb name '- num))
-         :finally (return name))
-      (error 'name-unsuitable :name name)))
+;;[TODO] this smells a bit, it is only used for glsl strings, and we should 
+;;       rename this to that end
+(let ((num 0))
+  (defun free-name (name &optional env)
+    (declare (ignore env))
+    (if (valid-user-defined-name name)
+        (progn (incf num) (symb name '- onum 'v))
+        (error 'name-unsuitable :name name))))
 
 (defun valid-user-defined-name (name-symbol)
   (let* ((name (string-downcase (symbol-name name-symbol)))

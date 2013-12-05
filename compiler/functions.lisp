@@ -89,7 +89,10 @@
        #'populate-external)))
 
 (defun populate-external (code env)
-  (peek (list code env)))
+  ;; this shouldnt return, it should just populate
+  (destructuring-bind (name func) (first (v-functions env))
+    (list name (function->func-spec func :external (list (signatures code)
+                                                         (to-top code))))))
 
 ;;------------------------------------------------------------
 
