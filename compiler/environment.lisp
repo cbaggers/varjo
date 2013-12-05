@@ -16,6 +16,16 @@
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *default-context* '(:330))
 
+;; &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+;; Hey man, right we need to work this out.
+;; We first need to go see what details we need from the external function in 
+;; our glsl source code, some of this will be provided by the function spec
+;; itself which will simplify things.
+;; With those details we need to decide where this information lives. I think
+;; it should probably be in the function spec itself but that is up to you
+;; we then need to inlcude this one the function is resolved, this needs to be 
+;; handled by the compile-form function I think (yeah looks good).
+
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
 
