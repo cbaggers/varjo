@@ -80,7 +80,10 @@
          (if (typep type-obj 'v-struct)
              (add-fake-struct name type-obj qualifiers env)
              (progn
-               (add-var name (make-instance 'v-value :type type-obj) env t)
+               (add-var name (make-instance 'v-value :type type-obj 
+                                            :glsl-name (safe-glsl-name-string 
+                                                        (free-name name)))
+                        env t)
                (push `(,name ,(type->type-spec type-obj) ,qualifiers) 
                      (v-in-args env))))))
     (values code env)))
@@ -90,8 +93,10 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (loop :for (name type) :in uniforms :do
-       (add-var name (make-instance 'v-value :type (set-place-t
-                                                    (type-spec->type type))) 
+       (add-var name (make-instance 'v-value
+                                    :glsl-name (safe-glsl-name-string 
+                                                        (free-name name))
+                                    :type (set-place-t (type-spec->type type))) 
                 env t)
        (push (list name type) (v-uniforms env)))
     (values code env)))
@@ -135,7 +140,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defun compile-pass (code env)  
+(defun compile-pass (code env)
   (varjo->glsl code env))
 
 ;;----------------------------------------------------------------------

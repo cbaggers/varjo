@@ -74,6 +74,10 @@
                         ',name))))))))
 
 ;;------------------------------------------------------------
+;; External functions go through a full compile and then their
+;; definition is extracted and added to the global environment.
+;; This means they can then be used in future shader and 
+;; other external functions
 
 (defmacro v-def-external (name args &body body)
   `(%v-def-external ',name ',args ',body))

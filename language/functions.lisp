@@ -20,6 +20,8 @@
 ;; (V-DEFUN INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
 ;; (V-DEFUN UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
 
+(v-defun x (a) "~a.x" (v-vector) (:element 0) :glsl-spec-matching t)
+
 (v-defun not (a) "(~a == true)" (v-bool) v-bool :glsl-spec-matching t)
 (v-defun not (a) "false" (v-type) v-bool :glsl-spec-matching t)
 

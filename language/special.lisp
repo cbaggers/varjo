@@ -244,8 +244,8 @@
     (if (assoc out-var-name *glsl-variables*)
         (error 'out-var-name-taken out-var-name)
         (end-line
-         (make-instance 
-          'code :type 'v-none
+         (merge-obs
+          form-obj :type 'v-none
           :current-line (gen-out-var-assignment-string out-var-name form-obj)
           :to-block (to-block form-obj)
           :out-vars (cons `(,out-var-name 

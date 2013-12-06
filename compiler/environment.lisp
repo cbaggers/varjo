@@ -15,19 +15,6 @@
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *default-context* '(:330))
 
-;; &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-;; Hey man, right we need to work this out.
-;; We first need to go see what details we need from the external function in 
-;; our glsl source code, some of this will be provided by the function spec
-;; itself which will simplify things.
-;; With those details we need to decide where this information lives. I think
-;; it should probably be in the function spec itself but that is up to you
-;; we then need to inlcude this one the function is resolved, this needs to be 
-;; handled by the compile-form function I think (yeah looks good).
-
-;; ok so now we have to do 2 things
-;; * dedup the top and signatures
-
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
 
@@ -67,7 +54,12 @@
                  :macros (copy-list (v-macros env))
                  :compiler-macros (copy-list (v-compiler-macros env))
                  :types (copy-list (v-types env))
-                 :context (copy-list (v-context env))))
+                 :context (copy-list (v-context env))
+                 :in-args (v-in-args env)
+                 :uniforms (v-uniforms env)
+                 :raw-context (v-raw-context env)
+                 :raw-uniforms (v-raw-uniforms env)
+                 :raw-args (v-raw-in-args env)))
 
 (defmethod clean-environment ((env environment))
   (make-instance 'environment :variables nil :functions nil
