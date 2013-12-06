@@ -525,14 +525,16 @@
       from-type
       (when (slot-exists-p from-type 'casts-to)
         (loop :for cast-type :in (slot-value from-type 'casts-to)           
-           :if (v-typep cast-type to-type env) :return cast-type))))
+           :if (v-typep (type-spec->type cast-type) to-type env)
+           :return cast-type))))
 
 (defmethod v-casts-to ((from-type v-type) (to-type v-spec-type) env)
   (when (slot-exists-p from-type 'casts-to)
     (if (v-typep from-type to-type)
         from-type
         (loop :for cast-type :in (slot-value from-type 'casts-to)           
-           :if (v-typep (type-spec->type cast-type) to-type env) :return cast-type))))
+           :if (v-typep (type-spec->type cast-type) to-type env)
+           :return cast-type))))
 
 (defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
   to-type)
