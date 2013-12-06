@@ -7,13 +7,13 @@
 ;;----------------
 
 (defun v-make-f-spec (transform args arg-types return-spec 
-                      &key place glsl-spec-matching glsl-name external)
+                      &key place glsl-spec-matching glsl-name required-glsl)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
     (list transform arg-types return-spec context place glsl-spec-matching 
-          glsl-name external)))
+          glsl-name required-glsl)))
 ;;
 ;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
 ;;
@@ -73,9 +73,10 @@
                                       *global-env*)
                         ',name))))))))
 
+;;------------------------------------------------------------
+
 (defmacro v-def-external (name args &body body)
   `(%v-def-external ',name ',args ',body))
-
 
 (defun %v-def-external (name args body)
   (let ((env (make-instance 'environment))
@@ -86,13 +87,16 @@
                     #'compiler-macroexpand-pass)
        #'compile-pass
        #'filter-used-items
-       #'populate-external)))
+       #'populate-required-glsl))
+  name)
 
-(defun populate-external (code env)
+(defun populate-required-glsl (code env)
   ;; this shouldnt return, it should just populate
   (destructuring-bind (name func) (first (v-functions env))
-    (list name (function->func-spec func :external (list (signatures code)
-                                                         (to-top code))))))
+    (add-function name
+                  (function->func-spec 
+                   func :required-glsl (list (signatures code) (to-top code)))
+                  *global-env* t)))
 
 ;;------------------------------------------------------------
 

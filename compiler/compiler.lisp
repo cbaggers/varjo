@@ -61,9 +61,10 @@
                                        :func-name func-name :args args))
                    (merge-obs args :type type :current-line
                               (gen-function-string func args)
-                              :used-external-functions
-                              (append (when (v-externalp func) `(,func))
-                                      (mapcan #'used-external-functions args)))))
+                              :to-top (append (second (v-required-glsl func)) 
+                                              (mapcan #'to-top args))
+                              :signatures (append (first (v-required-glsl func))
+                                                  (mapcan #'signatures args)))))
            (push stemcells (stemcells code-obj))
            (values code-obj (or new-env env))))
           ((typep func 'v-error) (if (v-payload func)
@@ -71,7 +72,6 @@
                                      (error 'cannot-compile :code code)))
           (t (error 'problem-with-the-compiler :target func))))))
 
-;;[TODO] This is why break needs a semicolon
 (defun end-line (obj &optional force)
   (when obj
     (if (and (typep (code-type obj) 'v-none) (not force))

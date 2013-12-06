@@ -39,9 +39,7 @@
    (used-types :initarg :used-types :initform nil :accessor used-types)   
    (stemcells :initarg :stemcells :initform nil :accessor stemcells)
    (invariant :initarg :invariant :initform nil :accessor invariant)
-   (returns :initarg :returns :initform nil :accessor returns)
-   (used-external-functions :initarg :used-external-functions :initform nil
-                            :accessor used-external-functions)))
+   (returns :initarg :returns :initform nil :accessor returns)))
 
 (defgeneric merge-obs (objs &key type current-line to-block 
                               to-top out-vars invariant returns))

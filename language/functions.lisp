@@ -6,7 +6,7 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-;; [TODO] (break) needs a semicolon, fix this!
+;; [TODO] (break) is not implmented, as it it used for lisp break
 ;; [TODO] setf coudl change type, how do we handle this?
 (in-package :varjo)
 

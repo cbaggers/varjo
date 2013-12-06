@@ -27,6 +27,7 @@
       #'gen-in-arg-strings
       #'gen-out-var-strings
       #'final-uniform-strings
+      #'dedup-strings
       #'final-string-compose
       #'process-output
       #'code-obj->result-object)))
@@ -38,7 +39,6 @@
   (pipe-> (code env)
     #'add-context-glsl-vars
     (stabilizedp #'macroexpand-pass
-                 ;;#'inject-functions-pass
                  #'compiler-macroexpand-pass)
     #'compile-pass))
 
@@ -135,31 +135,6 @@
 
 ;;----------------------------------------------------------------------
 
-;; [TODO] prehaps reverse (,head <@f) and the dependencies
-;; [TODO] will inject not used functions too, any symbol in first position is
-;;        included, regardless of context.
-(defun find-injected-functions (code env &optional seen)
-  (remove 
-   nil
-   (unless (atom code)
-     (let* ((head (first code))
-            (f (unless (find head seen) 
-                 (get-external-function head *global-env*))))
-       (append (when f (cons `(,head ,@f) 
-                             (remove nil (find-injected-functions 
-                                          (rest f) env (cons head seen)))))
-               (loop :for c :in code :if (listp c) :append
-                  (remove nil (find-injected-functions
-                               c env (if f (cons head seen) seen)))))))))
-
-(defun inject-functions-pass (code env)
-  (let ((injected-funcs (remove nil (find-injected-functions code env))))
-    (if injected-funcs
-        (values `(labels ,injected-funcs ,@code) env)
-        (values code env))))
-
-;;----------------------------------------------------------------------
-
 (defun compile-pass (code env)  
   (varjo->glsl code env))
 
@@ -219,6 +194,15 @@
              (push type-obj structs)))
     (setf (used-types code) structs)
     (setf (v-uniforms env) final-strings))
+  (values code env))
+
+;;----------------------------------------------------------------------
+
+(defun dedup-strings (code env)
+  (setf (to-top code)
+        (remove-duplicates (to-top code) :test #'string-equal))
+  (setf (signatures code)
+        (remove-duplicates (signatures code) :test #'string-equal))
   (values code env))
 
 ;;----------------------------------------------------------------------

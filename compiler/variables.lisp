@@ -10,7 +10,7 @@
   (defun free-name (name &optional env)
     (declare (ignore env))
     (if (valid-user-defined-name name)
-        (progn (incf num) (symb name '- onum 'v))
+        (progn (incf num) (symb name '- num 'v))
         (error 'name-unsuitable :name name))))
 
 (defun valid-user-defined-name (name-symbol)

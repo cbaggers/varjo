@@ -8,7 +8,6 @@
 (in-package :varjo)
 
 (defparameter *global-env* :-genv-)
-(defparameter *global-env-external-funcs* (make-hash-table))
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
@@ -26,8 +25,8 @@
 ;; we then need to inlcude this one the function is resolved, this needs to be 
 ;; handled by the compile-form function I think (yeah looks good).
 
-;; Hi! Looks like we need the signature and the glsl code (that should be the 
-;; to-top) 
+;; ok so now we have to do 2 things
+;; * dedup the top and signatures
 
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
@@ -274,23 +273,6 @@
       (a-add func-name func-spec (v-functions env)))
     env))
 
-;;[TODO] this is dumb
-;; (defmethod add-functions (func-name (func-specs list) (env environment)
-;;                           &optional modify-env)
-;;   (let ((env (if modify-env env (clone-environment env))))
-;;     (loop :for func-spec :in func-specs :do
-;;        (a-add func-name func-spec (v-functions env)))
-;;     env))
-
-(defmethod v-external-functions ((env (eql :-genv-)))
-  *global-env-external-funcs*)
-
-;; loop and instanstiate
-(defmethod get-external-function (func-name (env (eql :-genv-)))
-  (let ((f (gethash func-name *global-env-external-funcs*)))
-    ;;(when f (func-spec->function f))
-    f))
-
 (defmethod get-function (func-name (env (eql :-genv-)))
   (sort-function-list
    (loop :for func-spec :in (gethash func-name *global-env-funcs*)
@@ -326,7 +308,8 @@
 
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 
-                                 glsl-spec-matching glsl-name external) spec
+                                 glsl-spec-matching glsl-name required-glsl)
+      spec
     (make-instance 'v-function :glsl-string transform 
                    :arg-spec (if (listp arg-spec)
                                  (loop :for spec :in arg-spec :collect
@@ -336,11 +319,11 @@
                                     (type-spec->type return-spec :env env)
                                     return-spec)
                    :restriction context :place place
-                   :external external
+                   :required-glsl required-glsl
                    :glsl-spec-matching glsl-spec-matching 
                    :glsl-name glsl-name)))
 
-(defun function->func-spec (func)
+(defun function->func-spec (func &key required-glsl)
   (let ((arg-spec (v-argument-spec func)))
     (v-make-f-spec (v-glsl-string func)
                    (when (listp arg-spec) 
@@ -353,7 +336,7 @@
                    :place (v-placep func) 
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func)
-                   :external (v-externalp func))))
+                   :required-glsl (or required-glsl (v-required-glsl func)))))
 
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))
@@ -364,7 +347,5 @@
 (defun wipe-global-environment ()
   (loop :for f :being :the :hash-key :of *global-env-funcs* :do
      (remhash f *global-env-funcs*))
-  (loop :for f :being :the :hash-key :of *global-env-external-funcs* :do
-     (remhash f *global-env-external-funcs*))
   (loop :for f :being :the :hash-key :of *global-env-vars* :do
      (remhash f *global-env-vars*)))
