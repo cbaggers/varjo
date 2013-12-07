@@ -186,11 +186,14 @@
 
 ;;----------------------------------------------------------------------
 
-(defun gen-in-arg-strings (code env)
+(defun gen-in-arg-strings (code env &aux position)
   ;;`(,fake-slot-name ,slot-type ,qualifiers)
+  (when (find :vertex (v-context env)) (setf position 0))
   (setf (v-in-args env) 
-        (loop for (name type qualifiers) :in (v-in-args env) :collect
-             (gen-in-var-string name (type-spec->type type :env env) qualifiers)))
+        (loop :for (name type qualifiers) :in (v-in-args env)
+           :for type-obj = (type-spec->type type :env env)           
+           :collect (gen-in-var-string name type-obj qualifiers position)
+           :if position :do (incf position (v-glsl-size  type-obj))))
   (values code env))
 
 ;;----------------------------------------------------------------------

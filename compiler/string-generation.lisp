@@ -126,17 +126,22 @@
   (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers))
 
 (defun gen-out-var-string (name qualifiers value)
-  (format nil "out ~a;" (prefix-type-to-string (v-type value) 
-                                           (string-downcase (string name)) 
-                                           qualifiers)))
+  (let ((name (if (stringp name) 
+                  (string-downcase
+                   (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
+                  (safe-glsl-name-string name))))
+    (format nil "out ~a;" (prefix-type-to-string (v-type value) name qualifiers))))
 
-
-(defun gen-in-var-string (name type qualifiers)
-  (format nil "in ~a;" (prefix-type-to-string 
-                        type (string-downcase (string name)) qualifiers)))
+(defun gen-in-var-string (name type qualifiers &optional layout)
+  (let ((name (if (stringp name) 
+                  (string-downcase
+                   (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
+                  (safe-glsl-name-string name))))
+    (format nil "~@[layout(location=~a) ~]in ~a;" layout
+            (prefix-type-to-string type name qualifiers))))
 
 (defun gen-uniform-decl-string (name type)
-  (format nil "uniform ~a;" (prefix-type-to-string type (string-downcase (string name)))))
+  (format nil "uniform ~a;" (prefix-type-to-string type (safe-glsl-name-string name))))
 
 ;;[TODO] make this properly
 (defun lisp-name->glsl-name (name)
