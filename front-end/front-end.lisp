@@ -39,10 +39,28 @@
 (defun stabilizedp (last-pass one-before-that)
   (equal (first last-pass) (first one-before-that)))
 
+(defun rolling-translate (args stages)
+  (let* ((uni-pos (symbol-name-position '&uniform args))
+         (context-pos (symbol-name-position '&context args))
+         (in-vars (subseq args 0 (or uni-pos context-pos)))
+         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
+         (context (when context-pos (subseq args (1+ context-pos))))
+         (wip nil))
+    (loop :for (stage-type . code) :in stages 
+       :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
+                         &context ,@(cons stage-type context))
+       :do (let ((result (translate-shader (print new-args) `(progn ,@code))))
+             (setf in-vars 
+                   (loop :for (name qualifiers value) :in (out-vars result)
+                      :collect `(,name ,(type->type-spec (v-type value))
+                                       ,@qualifiers)))             
+             (push result wip))
+       :finally (return (reverse wip)))))
+
 ;;----------------------------------------------------------------------
 
 ;;[TODO] Move these errors
-(defun check-arg-forms (in-args)
+(defun check-arg-forms (in-args &aux )
   (loop for stream in in-args :do 
        (when (or (not (every #'keywordp (cddr stream))) (< (length stream) 2))
          (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
