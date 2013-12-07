@@ -144,7 +144,7 @@
 (defun gen-shader-string (code-obj env)
   (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context (test-env))
           (loop :for part :in 
-             (list (mapcar #'v-signature (used-types code-obj))
+             (list (used-types code-obj)
                    (v-in-args env)
                    (out-vars code-obj)
                    (v-uniforms env)

@@ -221,10 +221,9 @@
             (first (sort functions #'< :key #'first))
             (first functions))
       (declare (ignore score))
-      ;;[TODO] what the fuck
       (when (some #'(lambda (x) (and (typep x 'code) (typep (code-type x) 'v-stemcell)))
                   arg-objs)
-        (error "balls ~a" arg-objs))
+        (error "Leaking stemcells, fix thsi and remove this error ~a" arg-objs))
       (list function arg-objs stemcells))))
 
 (defun glsl-resolve-func-type (func args env)

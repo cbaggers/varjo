@@ -7,8 +7,9 @@
 ;;[TODO] this smells a bit, it is only used for glsl strings, and we should 
 ;;       rename this to that end
 (let ((num 0))
-  (defun free-name (name &optional env)
+  (defun free-name (name &optional env counter)
     (declare (ignore env))
+    (when counter (setf num counter))
     (if (valid-user-defined-name name)
         (progn (incf num) (symb name '- num 'v))
         (error 'name-unsuitable :name name))))

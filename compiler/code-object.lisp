@@ -11,7 +11,6 @@
 (defmethod initialize-instance :after
     ((code-obj code) &key (type nil set-type))
   (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
-  ;;[TODO] dont pass in the name of a fake struct here, must be object
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
          (type-spec (type->type-spec type-obj)))
     (setf (slot-value code-obj 'type) type-obj)
@@ -91,11 +90,12 @@
            ((and (listp item) (numberp (second item))) (list item))
            (t (normalize-used-types item)))))
 
-(defun find-used-user-structs (code-obj)
+(defun find-used-user-structs (code-obj env)
   (let ((used-types (normalize-used-types (used-types code-obj))))
     (remove nil (loop :for type :in used-types :collect
                    (let ((principle-type (if (listp type) (first type) type)))
-                     (when (typep (make-instance principle-type) 'v-user-struct)
-                       principle-type))))))
-
+                     (when (vtype-existsp principle-type)
+                       (when (typep (make-instance principle-type) 
+                                    'v-user-struct)
+                         principle-type)))))))
 

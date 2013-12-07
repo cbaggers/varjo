@@ -8,12 +8,13 @@
 
 (in-package :varjo)
 
-(defun stabilizedp (last-pass one-before-that)
-  (equal (first last-pass) (first one-before-that)))
+;;----------------------------------------------------------------------
 
 (defmacro defshader (name args &body body)
   (declare (ignore name))
   `(translate-shader ',args '(progn ,@body)))
+
+;;----------------------------------------------------------------------
 
 (defun translate-shader (args body)
   (let ((env (make-instance 'environment)))
@@ -22,7 +23,10 @@
       #'process-in-args
       #'process-uniforms
       #'wrap-in-main-function
-      #'translate
+      #'add-context-glsl-vars
+      (stabilizedp #'macroexpand-pass
+                   #'compiler-macroexpand-pass)
+      #'compile-pass
       #'filter-used-items
       #'gen-in-arg-strings
       #'gen-out-var-strings
@@ -32,15 +36,8 @@
       #'process-output
       #'code-obj->result-object)))
 
-
-(defun translate (code env)
-  (when (not (typep env 'environment)) 
-    (error "you probably meant to call translate-shader"))
-  (pipe-> (code env)
-    #'add-context-glsl-vars
-    (stabilizedp #'macroexpand-pass
-                 #'compiler-macroexpand-pass)
-    #'compile-pass))
+(defun stabilizedp (last-pass one-before-that)
+  (equal (first last-pass) (first one-before-that)))
 
 ;;----------------------------------------------------------------------
 
@@ -93,11 +90,13 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (loop :for (name type) :in uniforms :do
-       (add-var name (make-instance 'v-value
-                                    :glsl-name (safe-glsl-name-string 
-                                                        (free-name name))
-                                    :type (set-place-t (type-spec->type type))) 
-                env t)
+       (let ((true-type (v-true-type (type-spec->type type))))
+         (add-var name (make-instance 'v-value
+                                      :glsl-name (safe-glsl-name-string 
+                                                  (free-name name))
+                                      :type (set-place-t (type-spec->type 
+                                                          true-type))) 
+                  env t))
        (push (list name type) (v-uniforms env)))
     (values code env)))
 
@@ -150,8 +149,8 @@
    'user' defined structs."
   (setf (stemcells code) (normalize-used-types (stemcells code)))
   (setf (used-types code) 
-        (append (mapcar #'type-spec->type
-                        (remove-duplicates (find-used-user-structs code)))))
+        (loop :for i :in (remove-duplicates (find-used-user-structs code env))
+           :collect (type-spec->type i :env env)))
   (values code env))
 
 ;;----------------------------------------------------------------------
@@ -160,7 +159,7 @@
   ;;`(,fake-slot-name ,slot-type ,qualifiers)
   (setf (v-in-args env) 
         (loop for (name type qualifiers) :in (v-in-args env) :collect
-             (gen-in-var-string name (type-spec->type type) qualifiers)))
+             (gen-in-var-string name (type-spec->type type :env env) qualifiers)))
   (values code env))
 
 ;;----------------------------------------------------------------------
@@ -205,9 +204,12 @@
 
 (defun dedup-strings (code env)
   (setf (to-top code)
-        (remove-duplicates (to-top code) :test #'string-equal))
+        (remove-duplicates (to-top code) :test #'equal))
   (setf (signatures code)
-        (remove-duplicates (signatures code) :test #'string-equal))
+        (remove-duplicates (signatures code) :test #'equal))
+  (setf (used-types code)
+        (remove-duplicates (mapcar #'v-signature (used-types code)) 
+                           :test #'equal))
   (values code env))
 
 ;;----------------------------------------------------------------------
