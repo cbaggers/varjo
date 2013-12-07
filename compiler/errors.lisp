@@ -1,5 +1,9 @@
 (in-package :varjo)
 
+(defconstant +so-sorry+ t)
+(defparameter *so-sorry-message* "Oh god I am so so SOOOO sorry but this....I dont 
+know man... I dont think its you ...but...Just look")
+
 ;-----------EXAMPLE-----------;
 (define-condition machine-error (error)
   ((machine-name :initarg :machine-name :reader machine-error-machine-name))
@@ -10,15 +14,18 @@
 
 ;;[TODO] need better arg test
 (defmacro deferror (name (&rest args) error-string &body body)
-  (unless (every #'symbolp args) (error "can only take simple args"))
-  (loop :for arg :in args :do
-     (setf body (subst `(,arg condition) arg body :test #'eq)))
-  `(define-condition ,name (varjo-error)
-     (,@(loop :for arg :in args :collect
-           `(,arg :initarg ,(kwd arg) :reader ,arg)))
-     (:report (lambda (condition stream)
-                (declare (ignorable condition))
-                (format stream ,error-string ,@body)))))
+  (let ((error-string (if +so-sorry+ (format nil "~a~%~a" *so-sorry-message*
+                                             error-string) 
+                          error-string)))
+    (unless (every #'symbolp args) (error "can only take simple args"))
+    (loop :for arg :in args :do
+       (setf body (subst `(,arg condition) arg body :test #'eq)))
+    `(define-condition ,name (varjo-error)
+       (,@(loop :for arg :in args :collect
+             `(,arg :initarg ,(kwd arg) :reader ,arg)))
+       (:report (lambda (condition stream)
+                  (declare (ignorable condition))
+                  (format stream ,error-string ,@body))))))
 
 (define-condition varjo-error (error) ())
 

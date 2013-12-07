@@ -14,6 +14,10 @@
   (declare (ignore name))
   `(translate ',args '(progn ,@body)))
 
+(defmacro defpipline (name args &body stages)
+  (declare (ignore name))
+  `(format nil "~{~a~%~}"(mapcar #'glsl-code (rolling-translate ',args ',stages))))
+
 ;;----------------------------------------------------------------------
 
 (defun translate (args body)
@@ -49,7 +53,7 @@
     (loop :for (stage-type . code) :in stages 
        :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
                          &context ,@(cons stage-type context))
-       :do (let ((result (translate (print new-args) `(progn ,@code))))
+       :do (let ((result (translate new-args `(progn ,@code))))
              (setf in-vars 
                    (loop :for (name qualifiers value) :in (out-vars result)
                       :collect `(,name ,(type->type-spec (v-type value))
