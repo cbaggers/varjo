@@ -10,57 +10,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defun extract-uniforms (args)
-  (let ((uni-pos (symbol-name-position '&uniform args)))
-    (when uni-pos (subseq args (1+ uni-pos) 
-                          (symbol-name-position '&context args)))))
-
-(defun uniform-default-val (x)
-  (when (consp (first x)) (second x)))
-
-(defun uniform->var (x)
-  (if (uniform-default-val x) (first x) x))
-
-(defun flesh-out-arg (var)
-  (list (var-name var)
-        (flesh-out-type (or (expand-built-in-type (var-type var))
-                            (var-type var)))
-        (safe-gl-name (var-name var))
-        t))
-
-(defun flesh-out-args (in-vars)
-  "This fleshes out the type, adds a lowercase version
-   of the name and sets the variable to read-only"
-  (mapcar #'flesh-out-arg in-vars))
-
-(defun get-uniform-struct-types (uniforms) 
-  (remove-i
-f #'null
-             (remove-duplicates
-              (loop for u in uniforms
-                 :if (not (type-built-inp (var-type u)))
-                 :collect (type-principle (var-type u))))))
-
-(defun expand-struct-in-vars (in-vars qualifiers)  
-  "Transforms struct invars into the component variables"
-  (loop for i in in-vars
-     for q in qualifiers
-     :if (type-built-inp (var-type i))
-     :collect (list i q)
-     :else
-     :append 
-       (mapcar #'list 
-               (fake-struct-vars
-                (var-name i) (type-principle (var-type i))))))
-
-(defun create-fake-structs-from-in-vars (in-vars) 
-  "Transforms struct invars into the component variables"
-  (remove-duplicates
-   (loop for i in in-vars
-      :if (not (type-built-inp (var-type i)))
-      :collect (make-fake-struct (type-principle (var-type i))))
-   :test #'equal))
-
 (defun layout-size (type-spec)
   (let* ((type (flesh-out-type type-spec))
          (principle (first type))

@@ -147,7 +147,7 @@
           (loop :for part :in 
              (list (used-types code-obj)
                    (v-in-args env)
-                   (out-vars code-obj)
+                   (mapcar #'fourth (out-vars code-obj))
                    (v-uniforms env)
                    (signatures code-obj)
                    (to-top code-obj))

@@ -44,6 +44,13 @@
 (defgeneric merge-obs (objs &key type current-line to-block 
                               to-top out-vars invariant returns))
 
+;; compile result
+(defclass varjo-compile-result ()
+  ((glsl-code :initarg :glsl-code :accessor glsl-code)
+   (out-vars :initarg :out-vars :accessor out-vars)
+   (used-external-functions :initarg :used-external-functions 
+                            :accessor used-external-functions)))
+
 ;; values
 (defclass v-value ()
   ((type :initarg :type :initform nil :accessor v-type)

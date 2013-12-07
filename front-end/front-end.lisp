@@ -34,7 +34,6 @@
       #'final-uniform-strings
       #'dedup-strings
       #'final-string-compose
-      #'process-output
       #'code-obj->result-object)))
 
 (defun stabilizedp (last-pass one-before-that)
@@ -195,7 +194,8 @@
   (let ((out-vars (dedup-out-vars (out-vars code))))
     (setf (out-vars code)
           (loop :for (name qualifiers value) :in out-vars
-             :collect (gen-out-var-string name qualifiers value)))
+             :collect (list name qualifiers value 
+                            (gen-out-var-string name qualifiers value))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -229,16 +229,16 @@
 ;;----------------------------------------------------------------------
 
 (defun final-string-compose (code env)
-  (values (gen-shader-string code env)
-          env))
-
-;;----------------------------------------------------------------------
-
-(defun process-output (code env) 
+  (setf (current-line code) (gen-shader-string code env))
   (values code env))
 
 ;;----------------------------------------------------------------------
 
 (defun code-obj->result-object (code env) 
-  (values code env))
-
+  (declare (ignore env))
+  (make-instance 'varjo-compile-result
+                 :glsl-code (current-line code)
+                 :out-vars (loop :for (name qualifiers value string)
+                              :in (out-vars code) :collect
+                              (list name qualifiers value))
+                 :used-external-functions nil))
