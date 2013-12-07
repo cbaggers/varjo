@@ -42,7 +42,7 @@
   (cond ((not (v-placep (code-type place)))
          (error 'non-place-assign :place place :val val))
         ((not (v-type-eq (code-type place) (code-type val)))
-         (error 'setf-type-match place val))
+         (error 'setf-type-match :code-obj-a place :code-obj-b val))
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)))))
 

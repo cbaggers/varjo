@@ -73,7 +73,7 @@
 
 (deferror setf-type-match (code-obj-a code-obj-b)
     "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
-  code-obj-a code-obj-b)
+  (code-type code-obj-a) (code-type code-obj-b))
 
 (deferror cannot-not-shadow-core ()
     "You cannot shadow or replace core macros or special functions.")
@@ -120,3 +120,6 @@
 
 (deferror fake-type-global (env)
     "fake types can not be added to the global environment")
+
+(deferror invalid-context-symbol (context-symb)
+    "Varjo: Sorry but the symbol '~a' is not valid as a context specifier" context-symb)

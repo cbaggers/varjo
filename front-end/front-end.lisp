@@ -20,6 +20,7 @@
   (let ((env (make-instance 'environment)))
     (pipe-> (args body env)
       #'split-input-into-env
+      #'process-context
       #'process-in-args
       #'process-uniforms
       #'wrap-in-main-function
@@ -66,6 +67,19 @@
       (setf (v-raw-context env) context)
       (when (not context-pos) (setf (v-context env) *default-context*))
       (values body env))))
+
+;;----------------------------------------------------------------------
+
+(defun process-context (code env)
+  ;; ensure there is a version
+  (unless (loop :for item :in (v-raw-context env) 
+             :if (find item *supported-versions*) :return item)
+    (push *default-version* (v-raw-context env)))
+  (setf (v-context env) 
+        (loop :for item :in (v-raw-context env)
+           :if (find item *valid-contents-symbols*) :collect item
+           :else :do (error 'invalid-context-symbol :context-symb item)))
+  (values code env))
 
 ;;----------------------------------------------------------------------
 

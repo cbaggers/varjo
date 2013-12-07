@@ -13,7 +13,11 @@
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
-(defparameter *default-context* '(:330))
+(defparameter *supported-stages* '(:vertex :geometry :fragment))
+(defparameter *default-version* :330)
+(defparameter *default-context* '(:330 :vertex))
+(defparameter *valid-contents-symbols* (append (copy-list *supported-versions*)
+                                               (copy-list *supported-stages*)))
 
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))

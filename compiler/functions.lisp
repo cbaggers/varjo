@@ -71,7 +71,8 @@
                                                      ,return)
                                                    ,context ,place nil nil nil)
                                       *global-env*)
-                        ',name))))))))
+                        ',name)))))
+          (t `(v-def-external ,name ,args ,@body)))))
 
 ;;------------------------------------------------------------
 ;; External functions go through a full compile and then their

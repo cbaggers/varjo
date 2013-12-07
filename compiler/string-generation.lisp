@@ -107,7 +107,7 @@
 
 (defun %qualify (obj qualifiers)
   (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a" 
-                                       qualifiers 
+                                       (string-downcase (string qualifiers)) 
                                        (current-line obj))))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers)
@@ -118,7 +118,8 @@
                                                    line-string))
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
-        (format nil "~{~a ~} ~a" qualifiers line)
+        (format nil "~{~a~^ ~} ~a" (loop :for q :in qualifiers 
+                                    :collect (string-downcase (string q))) line)
         line)))
 
 (defun prefix-type-declaration (code-obj &optional qualifiers)
