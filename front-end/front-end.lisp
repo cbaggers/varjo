@@ -12,11 +12,11 @@
 
 (defmacro defshader (name args &body body)
   (declare (ignore name))
-  `(translate-shader ',args '(progn ,@body)))
+  `(translate ',args '(progn ,@body)))
 
 ;;----------------------------------------------------------------------
 
-(defun translate-shader (args body)
+(defun translate (args body)
   (let ((env (make-instance 'environment)))
     (pipe-> (args body env)
       #'split-input-into-env
@@ -49,7 +49,7 @@
     (loop :for (stage-type . code) :in stages 
        :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
                          &context ,@(cons stage-type context))
-       :do (let ((result (translate-shader (print new-args) `(progn ,@code))))
+       :do (let ((result (translate (print new-args) `(progn ,@code))))
              (setf in-vars 
                    (loop :for (name qualifiers value) :in (out-vars result)
                       :collect `(,name ,(type->type-spec (v-type value))
@@ -259,4 +259,4 @@
                  :out-vars (loop :for (name qualifiers value string)
                               :in (out-vars code) :collect
                               (list name qualifiers value))
-                 :used-external-functions nil))
+                 :used-external-functions (used-external-functions code)))

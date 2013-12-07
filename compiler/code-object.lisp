@@ -39,6 +39,7 @@
                  :invariant (if invariant invariant (invariant code-obj))
                  :returns (if set-returns returns (returns code-obj))
                  :used-types (used-types code-obj)
+                 :used-external-functions (used-external-functions code-obj)
                  :stemcells (stemcells code-obj)))
 
 (defmethod merge-obs ((objs list) &key type current-line 
@@ -46,6 +47,7 @@
                                     (to-block nil set-block)
                                     (to-top nil set-top)
                                     (out-vars nil set-out-vars)
+                                    (used-funcs nil set-used-funcs)
                                     (invariant nil) (returns nil set-returns))
   (make-instance 'code
                  :type (if type type (error "type is mandatory")) 
@@ -58,6 +60,8 @@
                  :invariant invariant
                  :returns (if set-returns returns (mapcan #'returns objs))
                  :used-types (mapcar #'used-types objs)
+                 :used-external-functions (if set-used-funcs used-funcs 
+                                              (mapcan #'used-external-functions objs))
                  :stemcells (mapcar #'stemcells objs)))
 
 (defmethod merge-obs ((objs code) 
@@ -67,6 +71,7 @@
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
+                        (used-funcs nil set-used-funcs)
                         (invariant nil) (returns nil set-returns))
   (make-instance 'code
                  :type (if set-type type (code-type objs)) 
@@ -79,6 +84,8 @@
                  :invariant invariant
                  :returns (if set-returns returns (returns objs))
                  :used-types (used-types objs)
+                 :used-external-functions (if set-used-funcs used-funcs 
+                                 (used-external-functions objs))
                  :stemcells (stemcells objs)))
 
 (defun make-none-ob ()
@@ -91,6 +98,7 @@
            (t (normalize-used-types item)))))
 
 (defun find-used-user-structs (code-obj env)
+  (declare (ignore env))
   (let ((used-types (normalize-used-types (used-types code-obj))))
     (remove nil (loop :for type :in used-types :collect
                    (let ((principle-type (if (listp type) (first type) type)))

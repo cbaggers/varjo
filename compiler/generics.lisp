@@ -36,7 +36,9 @@
    (to-block :initarg :to-block :initform nil :accessor to-block)
    (to-top :initarg :to-top :initform nil :accessor to-top)
    (out-vars :initarg :out-vars :initform nil :accessor out-vars)   
-   (used-types :initarg :used-types :initform nil :accessor used-types)   
+   (used-types :initarg :used-types :initform nil :accessor used-types)
+   (used-external-functions :initarg :used-external-functions :initform nil 
+                            :accessor used-external-functions)
    (stemcells :initarg :stemcells :initform nil :accessor stemcells)
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)))
