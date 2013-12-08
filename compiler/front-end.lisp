@@ -10,6 +10,9 @@
 
 ;;----------------------------------------------------------------------
 
+;; These two are example macros to show how to use the compiler.
+;; They dont provide anything 
+
 (defmacro defshader (name args &body body)
   (declare (ignore name))
   `(translate ',args '(progn ,@body)))
@@ -262,13 +265,14 @@
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
+   (in-args :initarg :in-args :accessor in-args)
    (used-external-functions :initarg :used-external-functions 
                             :accessor used-external-functions)))
 
 (defun code-obj->result-object (code env) 
-  (declare (ignore env))
   (make-instance 'varjo-compile-result
                  :glsl-code (current-line code)
+                 :in-args (v-in-args env)
                  :out-vars (loop :for (name qualifiers value string)
                               :in (out-vars code) :collect
                               (list name qualifiers value))
