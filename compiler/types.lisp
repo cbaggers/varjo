@@ -34,20 +34,24 @@
 
 (defun type-spec->type (spec &key place (env *global-env*))
   (declare (ignore env))
-  (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
-        ((and (symbolp spec) (vtype-existsp spec))
-         (let ((type (make-instance (if (keywordp spec) (symb 'v- spec) spec))))
-           (when (slot-exists-p type 'place) 
-             (setf (slot-value type 'place) place))
-           type))
-        ((and (listp spec) (vtype-existsp (first spec)))
-         (destructuring-bind (type dimensions) spec
-           (make-instance 'v-array :element-type (if (keywordp spec)
-                                                     (symb 'v- type)
-                                                     type)
-                          :place place
-                          :dimensions dimensions)))
-        (t (error 'unknown-type-spec :type-spec spec))))
+  (let ((spec (cond ((keywordp spec) (symb 'v- spec)) 
+                    ((and (listp spec) (keywordp (first spec)))
+                     (cons (symb 'v- (first spec)) (rest spec)))
+                    (t spec))))
+    (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
+          ((and (symbolp spec) (vtype-existsp spec))
+           (let ((type (make-instance spec)))
+             (when (slot-exists-p type 'place) 
+               (setf (slot-value type 'place) place))
+             type))
+          ((and (listp spec) (vtype-existsp (first spec)))
+           (destructuring-bind (type dimensions) spec
+             (make-instance 'v-array :element-type (if (keywordp spec)
+                                                       (symb 'v- type)
+                                                       type)
+                            :place place
+                            :dimensions dimensions)))
+          (t (error 'unknown-type-spec :type-spec spec)))))
 
 (defmethod v-glsl-size ((type t))
   (slot-value type 'glsl-size))
