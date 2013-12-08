@@ -1,7 +1,9 @@
 
 -----------
 
-* 
+* add-function to global should remove functiosn that are totally blocked, so match
+  on (cons func-name (v-args func)) as only the newsest one will be selected and it slows
+  down processing
 * merge-obs needs a new name
 * Write tour guide
 

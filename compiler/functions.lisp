@@ -72,7 +72,8 @@
                                                    ,context ,place nil nil nil)
                                       *global-env*)
                         ',name)))))
-          (t `(v-def-external ,name ,args ,@body)))))
+          (t `(progn (v-def-external ,name ,args ,@body)
+                     ',name)))))
 
 ;;------------------------------------------------------------
 ;; External functions go through a full compile and then their
@@ -92,8 +93,7 @@
                     #'compiler-macroexpand-pass)
        #'compile-pass
        #'filter-used-items
-       #'populate-required-glsl))
-  name)
+       #'populate-required-glsl)))
 
 (defun populate-required-glsl (code env)
   ;; this shouldnt return, it should just populate

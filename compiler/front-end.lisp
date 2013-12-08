@@ -43,25 +43,55 @@
       #'final-string-compose
       #'code-obj->result-object)))
 
+;; (defun rolling-translate (args stages)
+;;   (multiple-value-bind (in-vars uniforms context) (split-arguments args)
+;;     (loop :for (stage-type . code) :in stages :with wip = nil
+;;        :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
+;;                                    &context ,@(cons stage-type context))
+;;        :do (let ((result (translate new-args `(progn ,@code))))
+;;              (setf in-vars 
+;;                    (loop :for (name qualifiers value) :in (out-vars result)
+;;                       :collect `(,name ,(type->type-spec (v-type value))
+;;                                        ,@qualifiers)))             
+;;              (push result wip))
+;;        :finally (return (reverse wip)))))
+
+;;[TODO] Make real error
 (defun rolling-translate (args stages)
-  (let* ((uni-pos (symbol-name-position '&uniform args))
-         (context-pos (symbol-name-position '&context args))
-         (in-vars (subseq args 0 (or uni-pos context-pos)))
-         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
-         (context (when context-pos (subseq args (1+ context-pos))))
-         (wip nil))
-    (loop :for (stage-type . code) :in stages 
-       :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
-                         &context ,@(cons stage-type context))
-       :do (let ((result (translate new-args `(progn ,@code))))
-             (setf in-vars 
-                   (loop :for (name qualifiers value) :in (out-vars result)
-                      :collect `(,name ,(type->type-spec (v-type value))
-                                       ,@qualifiers)))             
-             (push result wip))
+  (multiple-value-bind (in-args uniforms context) (split-arguments args) 
+    (loop :for stage :in stages :with wip = nil :do
+       (if (typep stage 'varjo-compile-result)
+           (if (args-compatiblep in-args uniforms context stage)
+               (push stage wip)
+               (error "incompatible args"))
+           (destructuring-bind (stage-type &rest code) stage
+             (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniforms uniforms))
+                                          &context ,@(cons stage-type context)))
+                    (result (translate new-args `(progn ,@code))))
+               (setf in-args 
+                     (loop :for (name qualifiers value) :in (out-vars result)
+                        :collect `(,name ,(type->type-spec (pv-type value))
+                                         ,@qualifiers)))             
+               (push result wip)))) 
        :finally (return (reverse wip)))))
 
+(defun args-compatiblep (in-args uniforms context stage)
+  (and (if (find :vertex (context stage)) 
+           (equal (in-args stage) in-args)
+           (loop :for i :in (in-args stage) :always 
+              (find i in-args :test #'equal)))
+       (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
+       (context-ok-given-restriction (context stage) context)))
+
 ;;----------------------------------------------------------------------
+
+(defun split-arguments (args)
+  (let* ((uni-pos (symbol-name-position '&uniform args))
+         (context-pos (symbol-name-position '&context args))
+         (in-args (subseq args 0 (or uni-pos context-pos)))
+         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
+         (context (when context-pos (subseq args (1+ context-pos)))))
+    (values in-args uniforms context)))
 
 ;;[TODO] Move these errors
 (defun check-arg-forms (in-args &aux )
@@ -70,23 +100,20 @@
          (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
   t)
 
-(defun check-for-dups (in-vars uniforms)  
-  (if (intersection (mapcar #'first in-vars) (mapcar #'first uniforms))
-      (error "Varjo: Duplicates names found between in-vars and uniforms")
+(defun check-for-dups (in-args uniforms)  
+  (if (intersection (mapcar #'first in-args) (mapcar #'first uniforms))
+      (error "Varjo: Duplicates names found between in-args and uniforms")
       t))
 
 (defun split-input-into-env (args body env)
-  (let* ((uni-pos (symbol-name-position '&uniform args))
-         (context-pos (symbol-name-position '&context args))
-         (in-vars (subseq args 0 (or uni-pos context-pos)))
-         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
-         (context (when context-pos (subseq args (1+ context-pos)))))
-    (when (and (check-arg-forms uniforms) (check-arg-forms in-vars)
-               (check-for-dups in-vars uniforms))
-      (setf (v-raw-in-args env) in-vars)
+  (multiple-value-bind (in-args uniforms context)
+      (split-arguments args)
+    (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
+               (check-for-dups in-args uniforms))
+      (setf (v-raw-in-args env) in-args)
       (setf (v-raw-uniforms env) uniforms)
       (setf (v-raw-context env) context)
-      (when (not context-pos) (setf (v-context env) *default-context*))
+      (when (not context) (setf (v-context env) *default-context*))
       (values body env))))
 
 ;;----------------------------------------------------------------------
@@ -263,6 +290,8 @@
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
    (in-args :initarg :in-args :accessor in-args)
+   (uniforms :initargs :uniforms :accessor uniforms)
+   (context :initargs :context :accessor context)
    (used-external-functions :initarg :used-external-functions 
                             :accessor used-external-functions)))
 
@@ -273,4 +302,7 @@
                  :out-vars (loop :for (name qualifiers value string)
                               :in (out-vars code) :collect
                               (list name qualifiers value))
+                 :uniforms (v-uniforms env)
+                 :context (v-context env)
                  :used-external-functions (used-external-functions code)))
+
