@@ -7,6 +7,20 @@
 ;; known as the LLGPL.
 (in-package :varjo)
 
+(defclass code ()
+  ((type :initarg :type :initform nil :accessor code-type)
+   (current-line :initarg :current-line :initform "" :accessor current-line)
+   (signatures :initarg :signatures :initform nil :accessor signatures)
+   (to-block :initarg :to-block :initform nil :accessor to-block)
+   (to-top :initarg :to-top :initform nil :accessor to-top)
+   (out-vars :initarg :out-vars :initform nil :accessor out-vars)   
+   (used-types :initarg :used-types :initform nil :accessor used-types)
+   (used-external-functions :initarg :used-external-functions :initform nil 
+                            :accessor used-external-functions)
+   (stemcells :initarg :stemcells :initform nil :accessor stemcells)
+   (invariant :initarg :invariant :initform nil :accessor invariant)
+   (returns :initarg :returns :initform nil :accessor returns)))
+
 ;; [TODO] Proper error needed here
 (defmethod initialize-instance :after
     ((code-obj code) &key (type nil set-type))
@@ -41,6 +55,10 @@
                  :used-types (used-types code-obj)
                  :used-external-functions (used-external-functions code-obj)
                  :stemcells (stemcells code-obj)))
+
+
+(defgeneric merge-obs (objs &key type current-line to-block 
+                              to-top out-vars invariant returns))
 
 (defmethod merge-obs ((objs list) &key type current-line 
                                     (signatures nil set-sigs)

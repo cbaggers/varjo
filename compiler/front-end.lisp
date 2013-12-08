@@ -144,7 +144,7 @@
 ;;----------------------------------------------------------------------
 
 (defun add-context-glsl-vars (code env)
-  (values code (add-glsl-vars env)))
+  (values code (add-glsl-vars env *glsl-variables*)))
 
 ;;----------------------------------------------------------------------
 
@@ -258,6 +258,12 @@
   (values code env))
 
 ;;----------------------------------------------------------------------
+
+(defclass varjo-compile-result ()
+  ((glsl-code :initarg :glsl-code :accessor glsl-code)
+   (out-vars :initarg :out-vars :accessor out-vars)
+   (used-external-functions :initarg :used-external-functions 
+                            :accessor used-external-functions)))
 
 (defun code-obj->result-object (code env) 
   (declare (ignore env))

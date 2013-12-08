@@ -19,6 +19,21 @@
 (defparameter *valid-contents-symbols* (append (copy-list *supported-versions*)
                                                (copy-list *supported-stages*)))
 
+;;-------------------------------------------------------------------------
+
+(defclass environment () 
+  ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
+   (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
+   (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
+   (in-args :initform nil :initarg :in-args :accessor v-in-args)
+   (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
+   (variables :initform nil :initarg :variables :accessor v-variables)
+   (functions :initform nil :initarg :functions :accessor v-functions)
+   (macros :initform nil :initarg :macros :accessor v-macros)
+   (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
+   (types :initform nil :initarg :types :accessor v-types)
+   (context :initform nil :initarg :context :accessor v-context)))
+
 (defun test-env (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
 

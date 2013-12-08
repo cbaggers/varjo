@@ -69,13 +69,3 @@
      (gl-primitive-id v-int)
      (gl-layer v-int))))
 
-(defun add-glsl-vars (env)
-  (loop :for (restrict . vars) :in *glsl-variables*
-     :if (or (equal restrict t)
-             (context-ok-given-restriction (v-context env) (listify restrict)))
-     :do (loop :for (name type-spec place) :in vars :do 
-            (let ((type (type-spec->type type-spec)))
-              (when place (setf (v-placep type) t))
-              (add-var name (v-make-value type env (gen-reserved-var-string name))
-                       env t))))
-  env)
