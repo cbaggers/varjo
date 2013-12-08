@@ -1,66 +1,18 @@
 
-restructure
 -----------
 
-* the eq-* functions could probably be easily replaced
-* when you see 'object' below, think struct. Structs with generics when needed
-* replace types lists with gl-type object
-* probably stop using dynamic var and make expicit environment object
-* glsl-gensym only make ugly name if name taken
-* safe-gl-name could possibly be replaced by cffi name functiions
+* 
 * merge-obs needs a new name
-* Type trees
-* Have types that cannot end up in code this like 'matrix as parent for all matricies/
-  or user defined types for things like lists of functions.
-* mat/vec-length should use the component length table
-* What is change-vec-length for?
-* Are vlambdas used in labels? If nnot do we need this? - they are also in struct accessors
-* function defintions could be objects
-* variables should be objects
-* compile-let-forms is a nightmare. Fix this shit
-* literal-number-output-type...what the fuck?
-* Kill the weird substitute terminology and call it macros
-* Use package namesspaces as much as possible. e.g. vfuncs:functionp
-* 'special function' seems odd too....arent these macros too?
-* unfuck identation
-* Why is argument processing so hard? It should be possible to shrink this
-* Translate function is ugly, break this process down and compose the functions together
-* I have underestimated #'equal, use it more. if it is literals it is excellent
-* The struct replacements for strings we define must have a (thing-equal a b) to make
-  later stuff easier.
-
 * Write tour guide
-
------------
-
 
 * read up on setting variables as invariant
 * find out what centroid means
-
 * add preprocessor extensions to translate function
 * check out _line_ _file_ and _version_ macros from glsl, are they
   used?
 * add lisp macros wrappers for this functionality
-* Massive cleanup of code
-* glsl-defun doesnt use the arg names we give it
-
------------------------------------------------------
-
-* Need to support nested structures for uniforms
-
-* define proper conditionals and use them in our errors
-
-* imported struct has incorrect case info
-
-* smooth out not becoming smooth in (really?)
-
 * add constants
-
 * how do we handle ARBs?
-
-* Keep glsl-defuns as spec but used compiled list for initializing. Should be faster.
-
-* remove all funcs from compatibility profile, we should be enforcing new style to as early
-  a version of glsl as possible. We need to have :context-restriction for built in vars
-
 * add correct versions to all functions
+
+-----------

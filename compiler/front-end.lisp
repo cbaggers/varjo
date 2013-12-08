@@ -32,8 +32,8 @@
       #'process-uniforms
       #'wrap-in-main-function
       #'add-context-glsl-vars
-      (stabilizedp #'macroexpand-pass
-                   #'compiler-macroexpand-pass)
+      (equal #'macroexpand-pass
+             #'compiler-macroexpand-pass)
       #'compile-pass
       #'filter-used-items
       #'gen-in-arg-strings
@@ -42,9 +42,6 @@
       #'dedup-strings
       #'final-string-compose
       #'code-obj->result-object)))
-
-(defun stabilizedp (last-pass one-before-that)
-  (equal (first last-pass) (first one-before-that)))
 
 (defun rolling-translate (args stages)
   (let* ((uni-pos (symbol-name-position '&uniform args))
