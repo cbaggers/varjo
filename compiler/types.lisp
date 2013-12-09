@@ -34,9 +34,9 @@
 
 (defun type-spec->type (spec &key place (env *global-env*))
   (declare (ignore env))
-  (let ((spec (cond ((keywordp spec) (symb 'v- spec)) 
+  (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec)) 
                     ((and (listp spec) (keywordp (first spec)))
-                     (cons (symb 'v- (first spec)) (rest spec)))
+                     (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
           ((and (symbolp spec) (vtype-existsp spec))

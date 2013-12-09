@@ -23,7 +23,8 @@
                                           name-string
                                           (mapcar #'gen-slot-string slots))
                        :initarg :signature :reader v-signature)
-          (slots :initform ',slots :reader v-slots)
+          (slots :initform ',(loop :for (a b c) :in slots :collect `(,a ,b)) 
+                 :reader v-slots)
           (true-type :initform ',type-name :initarg :true-type :reader v-true-type)
           (fake-type :initform ',fake-type-name :initarg :fake-type :reader v-fake-type)))
        (defclass ,type-name (,name) ())

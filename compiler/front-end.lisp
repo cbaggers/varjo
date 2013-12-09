@@ -288,6 +288,7 @@
 
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
+   (stage-type :initarg :stage-type :accessor stage-type)
    (out-vars :initarg :out-vars :accessor out-vars)
    (in-args :initarg :in-args :accessor in-args)
    (uniforms :initargs :uniforms :accessor uniforms)
@@ -298,6 +299,8 @@
 (defun code-obj->result-object (code env) 
   (make-instance 'varjo-compile-result
                  :glsl-code (current-line code)
+                 :type (loop for i in (v-context env) 
+                          :if (find i *supported-stages*) :return i)
                  :in-args (v-in-args env)
                  :out-vars (loop :for (name qualifiers value string)
                               :in (out-vars code) :collect
