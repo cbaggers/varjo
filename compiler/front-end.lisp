@@ -70,7 +70,7 @@
                     (result (translate new-args `(progn ,@code))))
                (setf in-args 
                      (loop :for (name qualifiers value) :in (out-vars result)
-                        :collect `(,name ,(type->type-spec (pv-type value))
+                        :collect `(,name ,(type->type-spec (v-type value))
                                          ,@qualifiers)))             
                (push result wip)))) 
        :finally (return (reverse wip)))))
@@ -291,15 +291,15 @@
    (stage-type :initarg :stage-type :accessor stage-type)
    (out-vars :initarg :out-vars :accessor out-vars)
    (in-args :initarg :in-args :accessor in-args)
-   (uniforms :initargs :uniforms :accessor uniforms)
-   (context :initargs :context :accessor context)
+   (uniforms :initarg :uniforms :accessor uniforms)
+   (context :initarg :context :accessor context)
    (used-external-functions :initarg :used-external-functions 
                             :accessor used-external-functions)))
 
 (defun code-obj->result-object (code env) 
   (make-instance 'varjo-compile-result
                  :glsl-code (current-line code)
-                 :type (loop for i in (v-context env) 
+                 :stage-type (loop for i in (v-context env) 
                           :if (find i *supported-stages*) :return i)
                  :in-args (v-in-args env)
                  :out-vars (loop :for (name qualifiers value string)
