@@ -20,6 +20,7 @@
                (:file "compiler/compiler")
                (:file "language/special")
                (:file "language/functions")
+               (:file "language/textures")
                (:file "compiler/front-end")))
 
 

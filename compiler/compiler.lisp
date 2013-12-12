@@ -82,3 +82,13 @@
         (if (null (current-line obj))
             obj
             (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))
+
+(defclass varjo-compile-result ()
+  ((glsl-code :initarg :glsl-code :accessor glsl-code)
+   (stage-type :initarg :stage-type :accessor stage-type)
+   (out-vars :initarg :out-vars :accessor out-vars)
+   (in-args :initarg :in-args :accessor in-args)
+   (uniforms :initarg :uniforms :accessor uniforms)
+   (context :initarg :context :accessor context)
+   (used-external-functions :initarg :used-external-functions 
+                            :accessor used-external-functions)))

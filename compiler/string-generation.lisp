@@ -148,7 +148,7 @@
   (string name))
 
 (defun gen-shader-string (code-obj env)
-  (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context (test-env))
+  (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
           (loop :for part :in 
              (list (used-types code-obj)
                    (v-in-args env)

@@ -14,6 +14,9 @@
 (defmethod set-place-t ((type v-type))
   (setf (v-placep type) t) type)
 
+(defmethod core-typep ((type v-t-type))
+  nil)
+
 ;; [TODO] ensure all cast lists have the correct order.
 
 ;; spec types are to handle the manifest ugliness of the glsl spec.

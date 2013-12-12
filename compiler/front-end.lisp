@@ -175,7 +175,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defun v-macroexpand-all (code env)
+(defun v-macroexpand-all (code &optional (env :-GENV-))
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (m (get-macro head env)))
@@ -188,7 +188,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defun v-compiler-macroexpand-all (code env)
+(defun v-compiler-macroexpand-all (code &optional (env :-GENV-))
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (m (get-compiler-macro head env)))
@@ -285,16 +285,6 @@
   (values code env))
 
 ;;----------------------------------------------------------------------
-
-(defclass varjo-compile-result ()
-  ((glsl-code :initarg :glsl-code :accessor glsl-code)
-   (stage-type :initarg :stage-type :accessor stage-type)
-   (out-vars :initarg :out-vars :accessor out-vars)
-   (in-args :initarg :in-args :accessor in-args)
-   (uniforms :initarg :uniforms :accessor uniforms)
-   (context :initarg :context :accessor context)
-   (used-external-functions :initarg :used-external-functions 
-                            :accessor used-external-functions)))
 
 (defun code-obj->result-object (code env) 
   (make-instance 'varjo-compile-result

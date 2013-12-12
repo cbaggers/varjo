@@ -34,7 +34,7 @@
    (types :initform nil :initarg :types :accessor v-types)
    (context :initform nil :initarg :context :accessor v-context)))
 
-(defun test-env (&rest context)
+(defun make-varjo-environment (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
 
 ;;-------------------------------------------------------------------------
