@@ -267,6 +267,10 @@
            :IMAGE-ATOMIC-XOR
            :IMAGE-LOAD
            :IMAGE-STORE
+
+           ;;definitions
+           :v-defstruct
+           :v-defun
            
            ;;compiler
            :varjo->glsl
