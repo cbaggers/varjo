@@ -83,6 +83,7 @@
             obj
             (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))
 
+;; [TODO] this shouldnt live here
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (stage-type :initarg :stage-type :accessor stage-type)

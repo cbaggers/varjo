@@ -280,4 +280,13 @@
            :rolling-translate
            :split-arguments
            :v-macroexpand-all
-           :v-compiler-macroexpand-all))
+           :v-compiler-macroexpand-all
+           
+           ;;compile-result
+           :glsl-code
+           :stage-type
+           :out-vars
+           :in-args
+           :uniforms
+           :context
+           :used-external-functions))
