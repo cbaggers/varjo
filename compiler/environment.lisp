@@ -164,7 +164,7 @@
 (defmethod get-macro (macro-name (env environment))
   (let ((spec (or (a-get1 (kwd macro-name) (v-macros env))
                   (a-get1 macro-name (v-macros env))
-                  (gethash macro-name *global-env-macros*))))
+                  (get-macro macro-name *global-env*))))
     (when (and spec (valid-for-contextp spec env)) 
       (first spec))))
 
@@ -195,7 +195,7 @@
 (defmethod get-compiler-macro (macro-name (env environment))
   (let ((spec (or (a-get1 (kwd macro-name) (v-compiler-macros env))
                   (a-get1 macro-name (v-compiler-macros env))
-                  (gethash macro-name *global-env-compiler-macros*))))
+                  (get-compiler-macro macro-name *global-env*))))
     (when (and spec (valid-for-contextp spec env)) 
       (first spec))))
 
@@ -231,10 +231,12 @@
 
 (defgeneric get-var (var-name env))
 (defmethod get-var (var-name (env (eql :-genv-)))
-  (gethash var-name *global-env-vars*))
+  (or (gethash (kwd var-name) *global-env-vars*)
+      (gethash var-name *global-env-vars*)))
 
 (defmethod get-var (var-name (env environment))
-  (or (first (a-get var-name (v-variables env)))
+  (or (first (a-get (kwd var-name) (v-variables env)))
+      (first (a-get var-name (v-variables env)))
       (get-var var-name *global-env*)))
 
 (defmethod v-boundp (var-name (env environment))

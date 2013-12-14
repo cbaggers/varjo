@@ -36,7 +36,7 @@
 ;;                                 :type (type-spec->type 'v-int))))
 
 ;;[TODO] make it handle multiple assignements like cl version
-(v-defun setf ((place v-type) (val v-type))
+(v-defun :setf ((place v-type) (val v-type))
   :special
   :return 
   (cond ((not (v-placep (code-type place)))
@@ -46,7 +46,7 @@
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)))))
 
-(v-defun progn (&rest body)
+(v-defun :progn (&rest body)
   ;; this is super important as it is the only function that implements 
   ;; imperitive coding. It does this my passing the env from one form
   ;; to the next.
@@ -73,13 +73,13 @@
                                   (to-block last-obj))))))
    env))
 
-(v-defun %clean-env-block (&body body)
+(v-defun :%clean-env-block (&body body)
   :special
   :args-valid t
   :return (let ((new-env (clean-environment env)))
             (values (varjo->glsl `(progn ,@body) new-env))))
 
-(v-defun %clone-env-block (&body body)
+(v-defun :%clone-env-block (&body body)
   :special
   :args-valid t
   :return (let ((new-env (clone-environment env)))
@@ -88,14 +88,14 @@
 ;;[TODO] this should have a and &optional for place
 ;;[TODO] could this take a form and infer the type? yes...it could
 ;;       should destructively modify the env
-(v-defun %make-var (name-string type)
+(v-defun :%make-var (name-string type)
   :special
   :args-valid t
   :return (make-instance 'code :type (set-place-t type) 
                          :current-line name-string))
 
 
-(v-defun %typify (form &optional qualifiers)
+(v-defun :%typify (form &optional qualifiers)
   :special
   :args-valid t
   :return
@@ -104,7 +104,7 @@
                :current-line (prefix-type-declaration code qualifiers))))
 
 ;;[TODO] Make this less ugly, if we can merge environments we can do this easily
-(v-defun %env-multi-var-declare (forms &optional include-type-declarations 
+(v-defun :%env-multi-var-declare (forms &optional include-type-declarations 
                                        arg-glsl-names)
   ;; This is the single ugliest thing in varjo (hopefully!)
   ;; it implements declarations of multiple values without letting
@@ -160,19 +160,19 @@
               env))))
 
 ;; [TODO] is block the best term? is it a block in the code-obj sense?
-(v-defmacro let (bindings &body body)
+(v-defmacro :let (bindings &body body)
   `(%clone-env-block
     (%env-multi-var-declare ,bindings t)
     ,@body))
 
-(v-defmacro let* (bindings &rest body)
+(v-defmacro :let* (bindings &rest body)
   (let* ((bindings (reverse bindings))
          (result `(let (,(first bindings)) ,@body)))
     (loop :for binding :in (rest bindings) :do
        (setf result `(let (,binding) ,result)))
     result))
 
-(v-defun %make-function (name raw-args &rest body)
+(v-defun :%make-function (name raw-args &rest body)
   :special
   :args-valid t
   :return
@@ -211,12 +211,12 @@
                :out-vars (out-vars body-obj))
               env))))
 
-(v-defun break ()
+(v-defun :break ()
   :special
   :args-valid t
   :return (break))
 
-(v-defun return (form)
+(v-defun :return (form)
   :special
   :args-valid t
   :return
@@ -225,13 +225,13 @@
                :current-line (format nil "return ~a" (current-line obj))
                :returns (list (code-type obj)))))
 
-(v-defmacro labels (definitions &body body)
+(v-defmacro :labels (definitions &body body)
   `(%clone-env-block
     ,@(loop :for d :in definitions :collect `(%make-function ,@d))
     ,@body))
 
 ;; [TODO] what if tpye of form is not value
-(v-defun out (name-and-qualifiers form)
+(v-defun :out (name-and-qualifiers form)
   :special
   :args-valid t
   :return
@@ -254,7 +254,7 @@
                           (out-vars form-obj))) t))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
-(v-defun if (test-form then-form &optional else-form)
+(v-defun :if (test-form then-form &optional else-form)
   :special
   :args-valid t 
   :return
@@ -271,7 +271,7 @@
         (error "The result of the test must be a bool.~%~s"
                (code-type test-obj)))))
 
-(v-defun while (test &rest body)
+(v-defun :while (test &rest body)
   :special
   :args-valid t
   :return
@@ -285,7 +285,7 @@
 
 
 ;; [TODO] check keys
-(v-defun switch (test-form &rest clauses)
+(v-defun :switch (test-form &rest clauses)
   :special
   :args-valid t
   :return
@@ -303,8 +303,8 @@
                                                       clause-body-objs)))
         (error 'switch-type-error test-obj keys))))
 
-(v-defmacro s~ (&rest args) `(swizzle ,@args))
-(v-defun swizzle (vec-form components)
+(v-defmacro :s~ (&rest args) `(swizzle ,@args))
+(v-defun :swizzle (vec-form components)
   :special 
   :args-valid t
   :return
@@ -324,14 +324,14 @@
 ;;   (for (a 0) (< a 10) (++ a) 
 ;;     (* a 2))
 ;; [TODO] double check implications of typify in compile-let-forms
-(v-defmacro for (var-form condition update &rest body)
+(v-defmacro :for (var-form condition update &rest body)
   (if (consp (first var-form))
       (error 'for-loop-only-one-var)
       `(%clone-env-block 
         (%env-multi-var-declare (,var-form) t)
         (%for ,var-form ,condition ,update ,@body))))
 
-(v-defun %for (var-form condition update &rest body)
+(v-defun :%for (var-form condition update &rest body)
   :special 
   :args-valid t
   :return
