@@ -43,19 +43,6 @@
       #'final-string-compose
       #'code-obj->result-object)))
 
-;; (defun rolling-translate (args stages)
-;;   (multiple-value-bind (in-vars uniforms context) (split-arguments args)
-;;     (loop :for (stage-type . code) :in stages :with wip = nil
-;;        :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
-;;                                    &context ,@(cons stage-type context))
-;;        :do (let ((result (translate new-args `(progn ,@code))))
-;;              (setf in-vars 
-;;                    (loop :for (name qualifiers value) :in (out-vars result)
-;;                       :collect `(,name ,(type->type-spec (v-type value))
-;;                                        ,@qualifiers)))             
-;;              (push result wip))
-;;        :finally (return (reverse wip)))))
-
 ;;[TODO] Make real error
 (defun rolling-translate (args stages)
   (multiple-value-bind (in-args uniforms context) (split-arguments args) 
@@ -63,7 +50,7 @@
        (if (typep stage 'varjo-compile-result)
            (if (args-compatiblep in-args uniforms context stage)
                (push stage wip)
-               (error "incompatible args"))
+               (error 'args-compatiblep in-args (in-args stage)))
            (destructuring-bind (stage-type &rest code) stage
              (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniforms uniforms))
                                           &context ,@(cons stage-type context)))
@@ -72,7 +59,7 @@
                      (loop :for (name qualifiers value) :in (out-vars result)
                         :collect `(,name ,(type->type-spec (v-type value))
                                          ,@qualifiers)))             
-               (push result wip)))) 
+               (push result wip))))
        :finally (return (reverse wip)))))
 
 (defun args-compatiblep (in-args uniforms context stage)

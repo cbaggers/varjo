@@ -123,3 +123,6 @@
 
 (deferror invalid-context-symbol (context-symb)
     "Varjo: Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
+
+(deferror args-incompatible (previous-args current-args)
+    "Varjo: Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a" previous-args current-args)

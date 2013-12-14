@@ -140,7 +140,7 @@
                   (string-downcase
                    (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
                   (safe-glsl-name-string name))))
-    (format nil "~@[layout(location=~a) ~]~a;" layout
+    (format nil "~@[layout(location = ~a) ~]~a;" layout
             (prefix-type-to-string type name qualifiers 'in))))
 
 (defun gen-uniform-decl-string (name type)
