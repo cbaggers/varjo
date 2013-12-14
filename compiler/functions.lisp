@@ -89,8 +89,8 @@
         (body `(%make-function ,name ,args ,@body)))
      (pipe-> (args body env)
        #'split-input-into-env
-       (stabilizedp #'macroexpand-pass
-                    #'compiler-macroexpand-pass)
+       (equal #'macroexpand-pass
+              #'compiler-macroexpand-pass)
        #'compile-pass
        #'filter-used-items
        #'populate-required-glsl)))
