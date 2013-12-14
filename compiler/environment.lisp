@@ -158,10 +158,12 @@
 (defgeneric get-macro (macro-name env))
 
 (defmethod get-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-macros*))
+  (or (gethash (kwd macro-name) *global-env-macros*)
+      (gethash macro-name *global-env-macros*)))
 
 (defmethod get-macro (macro-name (env environment))
-  (let ((spec (or (a-get1 macro-name (v-macros env))
+  (let ((spec (or (a-get1 (kwd macro-name) (v-macros env))
+                  (a-get1 macro-name (v-macros env))
                   (gethash macro-name *global-env-macros*))))
     (when (and spec (valid-for-contextp spec env)) 
       (first spec))))
@@ -187,10 +189,12 @@
 (defgeneric get-compiler-macro (macro-name env))
 
 (defmethod get-compiler-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-compiler-macros*))
+  (or (gethash (kwd macro-name) *global-env-compiler-macros*)
+      (gethash macro-name *global-env-compiler-macros*)))
 
 (defmethod get-compiler-macro (macro-name (env environment))
-  (let ((spec (or (a-get1 macro-name (v-compiler-macros env))
+  (let ((spec (or (a-get1 (kwd macro-name) (v-compiler-macros env))
+                  (a-get1 macro-name (v-compiler-macros env))
                   (gethash macro-name *global-env-compiler-macros*))))
     (when (and spec (valid-for-contextp spec env)) 
       (first spec))))
@@ -269,12 +273,14 @@
 
 (defmethod get-function (func-name (env (eql :-genv-)))
   (sort-function-list
-   (loop :for func-spec :in (gethash func-name *global-env-funcs*)
+   (loop :for func-spec :in (append (gethash func-name *global-env-funcs*)
+                                    (gethash (kwd func-name) *global-env-funcs*))
       :collect (func-spec->function func-spec env))))
 
 (defmethod get-function (func-name (env environment))
   (sort-function-list
    (loop :for func :in (append (a-get func-name (v-functions env))
+                               (a-get (kwd func-name) (v-functions env))
                                (get-function func-name *global-env*))
       :if (and func (valid-for-contextp func env)) :collect func)))
 
