@@ -72,8 +72,8 @@
 (v-defun :v! (x y z) "vec4(~a,~a,~a)" (v-float v-float v-vec2) v-vec4 :glsl-spec-matching t)
 
 (v-defun :v! (x y) "vec2(~a,~a)" (v-float v-float) v-vec2 :glsl-spec-matching t)
-(v-defun :v! (x y z) "vec2(~a,~a,~a)" (v-float v-float v-float) v-vec3 :glsl-spec-matching t)
-(v-defun :v! (x y z w) "vec2(~a,~a,~a,~a)" (v-float v-float v-float v-float) 
+(v-defun :v! (x y z) "vec3(~a,~a,~a)" (v-float v-float v-float) v-vec3 :glsl-spec-matching t)
+(v-defun :v! (x y z w) "vec4(~a,~a,~a,~a)" (v-float v-float v-float v-float) 
          v-vec4 :glsl-spec-matching t)
 
 (v-defun :m! (a b c d) "mat2(~a,~a,~a,~a)" (v-float v-float v-float v-float)
