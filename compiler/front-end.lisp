@@ -140,8 +140,7 @@
              (add-fake-struct name type-obj qualifiers env)
              (progn
                (add-var name (make-instance 'v-value :type type-obj 
-                                            :glsl-name (safe-glsl-name-string 
-                                                        (free-name name)))
+                                            :glsl-name (safe-glsl-name-string name))
                         env t)
                (push `(,name ,(type->type-spec type-obj) ,qualifiers) 
                      (v-in-args env))))))
