@@ -110,7 +110,7 @@
                                        (string-downcase (string qualifiers)) 
                                        (current-line obj))))
 
-(defun prefix-type-to-string (type line-string &optional qualifiers)
+(defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
                                                     line-string))
                      ((typep type 'v-type) (format nil "~a ~a" 
@@ -118,27 +118,30 @@
                                                    line-string))
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
-        (format nil "~{~a~^ ~} ~a" (loop :for q :in qualifiers 
-                                    :collect (string-downcase (string q))) line)
-        line)))
+        (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a" 
+                (loop :for q :in qualifiers :collect (string-downcase (string q)))
+                storage-qual
+                line)
+        (format nil "~@[~(~a ~)~]~a" storage-qual line))))
 
-(defun prefix-type-declaration (code-obj &optional qualifiers)
-  (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers))
+(defun prefix-type-declaration (code-obj &optional qualifiers storage-qual)
+  (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers
+                         storage-qual))
 
 (defun gen-out-var-string (name qualifiers value)
   (let ((name (if (stringp name) 
                   (string-downcase
                    (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
                   (safe-glsl-name-string name))))
-    (format nil "out ~a;" (prefix-type-to-string (v-type value) name qualifiers))))
+    (format nil "~a;" (prefix-type-to-string (v-type value) name qualifiers 'out))))
 
 (defun gen-in-var-string (name type qualifiers &optional layout)
   (let ((name (if (stringp name) 
                   (string-downcase
                    (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
                   (safe-glsl-name-string name))))
-    (format nil "~@[layout(location=~a) ~]in ~a;" layout
-            (prefix-type-to-string type name qualifiers))))
+    (format nil "~@[layout(location=~a) ~]~a;" layout
+            (prefix-type-to-string type name qualifiers 'in))))
 
 (defun gen-uniform-decl-string (name type)
   (format nil "uniform ~a;" (prefix-type-to-string type (safe-glsl-name-string name))))
