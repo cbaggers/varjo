@@ -61,7 +61,8 @@
                             (env environment))
   (let* ((fake-type (v-fake-type type))
          (slots (v-slots type))
-         (struct (make-instance fake-type)))
+         (struct (make-instance fake-type))
+         (new-in-args))
     (loop :for (slot-name slot-type . acc) :in slots
        :for fake-slot-name = (fake-slot-name in-var-name slot-name)
        :for accessor = (if (eq :accessor (first acc))
@@ -72,8 +73,8 @@
             (func-spec->function
              (v-make-f-spec fake-slot-name '(obj) (list fake-type)
                             slot-type :place nil) env) env t)
-       :do (push `(,fake-slot-name ,slot-type ,qualifiers)
-                 (v-in-args env)))
+       :do (push `(,fake-slot-name ,slot-type ,qualifiers) new-in-args))
+    (setf (v-in-args env) (append (v-in-args env) (reverse new-in-args)))
     (add-var in-var-name (make-instance 'v-value :type struct 
                                         :glsl-name (string-downcase 
                                                     (string in-var-name)))
