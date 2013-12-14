@@ -17,7 +17,7 @@
   (declare (ignore name))
   `(translate ',args '(progn ,@body)))
 
-(defmacro defpipline (name args &body stages)
+(defmacro defpipeline (name args &body stages)
   (declare (ignore name))
   `(format nil "~{~a~%~}"(mapcar #'glsl-code (rolling-translate ',args ',stages))))
 
