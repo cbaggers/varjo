@@ -142,8 +142,7 @@
          (add-var name (make-instance 'v-value
                                       :glsl-name (safe-glsl-name-string 
                                                   (free-name name))
-                                      :type (set-place-t (type-spec->type 
-                                                          true-type))) 
+                                      :type (set-place-t true-type)) 
                   env t))
        (push (list name type) (v-uniforms env)))
     (values code env)))

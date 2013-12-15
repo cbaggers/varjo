@@ -89,8 +89,8 @@
         (body `(%make-function ,name ,args ,@body)))
      (pipe-> (args body env)
        #'split-input-into-env
-       (stabilizedp #'macroexpand-pass
-                    #'compiler-macroexpand-pass)
+       (equal #'macroexpand-pass
+              #'compiler-macroexpand-pass)
        #'compile-pass
        #'filter-used-items
        #'populate-required-glsl)))
@@ -101,7 +101,10 @@
     (add-function name
                   (function->func-spec 
                    func :required-glsl (list (signatures code) (to-top code)))
-                  *global-env* t)))
+                  *global-env* t)
+    (make-instance 'varjo-compile-result :glsl-code "" :stage-type nil :in-args nil
+                   :out-vars nil :uniforms nil :context nil
+                   :used-external-functions (used-external-functions code))))
 
 ;;------------------------------------------------------------
 
