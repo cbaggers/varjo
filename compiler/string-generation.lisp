@@ -154,9 +154,9 @@
   (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
           (loop :for part :in 
              (list (used-types code-obj)
-                   (v-in-args env)
+                   (mapcar #'fourth (v-in-args env))
                    (mapcar #'fourth (out-vars code-obj))
-                   (v-uniforms env)
+                   (mapcar #'third (v-uniforms env))
                    (signatures code-obj)
                    (to-top code-obj))
              :if part :collect part)))

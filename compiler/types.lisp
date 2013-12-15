@@ -69,12 +69,12 @@
 
 (defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
   (declare (ignore env))
-  (eq (type->type-spec a) (type->type-spec b)))
+  (equal (type->type-spec a) (type->type-spec b)))
 (defmethod v-type-eq ((a v-type) (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (eq (type->type-spec a) (type->type-spec (type-spec->type b))))
+  (equal (type->type-spec a) (type->type-spec (type-spec->type b))))
 (defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
-  (eq (type->type-spec a) (type->type-spec (type-spec->type b :env env))))
+  (equal (type->type-spec a) (type->type-spec (type-spec->type b :env env))))
 
 (defmethod v-typep ((a v-type) (b v-spec-type) &optional (env *global-env*))
   (declare (ignore env))

@@ -47,12 +47,13 @@
 (defun rolling-translate (args stages)
   (destructuring-bind (in-args uniforms context) (split-arguments args)    
     (loop :for stage :in stages :with wip = nil :do
-       (unless (or (typep stage 'varjo-compile-result) (symbolp stage))
+       (unless (or (typep stage 'varjo-compile-result) (listp stage))
          (error 'invalid-shader-stage :stage stage))
        (if (typep stage 'varjo-compile-result)
            (if (args-compatiblep in-args uniforms context stage)
                (push stage wip)
-               (error 'args-compatiblep in-args (in-args stage)))
+               (error 'args-incompatible :current-args (in-args stage)
+                      :previous-args in-args))
            (destructuring-bind (stage-type &rest code) stage
              (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniform uniforms))
                                           &context ,@(cons stage-type context)))
@@ -65,10 +66,11 @@
        :finally (return (reverse wip)))))
 
 (defun args-compatiblep (in-args uniforms context stage)
-  (and (if (find :vertex (context stage)) 
-           (equal (in-args stage) in-args)
-           (loop :for i :in (in-args stage) :always 
-              (find i in-args :test #'equal)))
+  (and (loop :for p :in in-args :for c :in (in-args stage) :always 
+          (and (equal (first p) (first c)) 
+               (v-type-eq (type-spec->type (second p)) 
+                          (type-spec->type (second c)))
+               (equal (third p) (third c))))
        (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
        (context-ok-given-restriction (context stage) context)))
 
@@ -141,8 +143,7 @@
     (loop :for (name type) :in uniforms :do
        (let ((true-type (v-true-type (type-spec->type type))))
          (add-var name (make-instance 'v-value
-                                      :glsl-name (safe-glsl-name-string 
-                                                  (free-name name))
+                                      :glsl-name (safe-glsl-name-string name)
                                       :type (set-place-t true-type)) 
                   env t))
        (push (list name type) (v-uniforms env)))
@@ -209,7 +210,8 @@
   (setf (v-in-args env) 
         (loop :for (name type qualifiers) :in (v-in-args env)
            :for type-obj = (type-spec->type type :env env)           
-           :collect (gen-in-var-string name type-obj qualifiers position)
+           :collect `(,name ,type ,qualifiers
+                      ,(gen-in-var-string name type-obj qualifiers position))
            :if position :do (incf position (v-glsl-size  type-obj))))
   (values code env))
 
@@ -243,7 +245,8 @@
         (structs (used-types code)))
     (loop :for (name type) :in (v-uniforms env)
        :for type-obj = (type-spec->type type) 
-       :do (push (gen-uniform-decl-string name type-obj) final-strings)
+       :do (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
+                 final-strings)
        :do (when (and (v-typep type-obj 'v-user-struct)
                       (not (find (type->type-spec type-obj) structs
                                  :key #'type->type-spec :test #'equal)))
@@ -277,11 +280,12 @@
                  :glsl-code (current-line code)
                  :stage-type (loop for i in (v-context env) 
                           :if (find i *supported-stages*) :return i)
-                 :in-args (v-in-args env)
-                 :out-vars (loop :for (name qualifiers value string)
-                              :in (out-vars code) :collect
-                              (list name qualifiers value))
-                 :uniforms (v-uniforms env)
+                 :in-args (loop :for i :in (v-in-args env) :collect
+                             (subseq i 0 3))
+                 :out-vars (loop :for i :in (out-vars code) :collect
+                             (subseq i 0 3))
+                 :uniforms (loop :for i :in (v-uniforms env) :collect
+                              (subseq i 0 2))
                  :context (v-context env)
                  :used-external-functions (used-external-functions code)))
 
