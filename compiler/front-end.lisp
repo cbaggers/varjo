@@ -45,14 +45,14 @@
 
 ;;[TODO] Make real error
 (defun rolling-translate (args stages)
-  (multiple-value-bind (in-args uniforms context) (split-arguments args) 
+  (destructuring-bind (in-args uniforms context) (split-arguments args) 
     (loop :for stage :in stages :with wip = nil :do
        (if (typep stage 'varjo-compile-result)
            (if (args-compatiblep in-args uniforms context stage)
                (push stage wip)
                (error 'args-compatiblep in-args (in-args stage)))
            (destructuring-bind (stage-type &rest code) stage
-             (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniforms uniforms))
+             (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniform uniforms))
                                           &context ,@(cons stage-type context)))
                     (result (translate new-args `(progn ,@code))))
                (setf in-args 
@@ -78,7 +78,7 @@
          (in-args (subseq args 0 (or uni-pos context-pos)))
          (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
          (context (when context-pos (subseq args (1+ context-pos)))))
-    (values in-args uniforms context)))
+    (list in-args uniforms context)))
 
 ;;[TODO] Move these errors
 (defun check-arg-forms (in-args &aux )
@@ -93,8 +93,7 @@
       t))
 
 (defun split-input-into-env (args body env)
-  (multiple-value-bind (in-args uniforms context)
-      (split-arguments args)
+  (destructuring-bind (in-args uniforms context) (split-arguments args)
     (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
                (check-for-dups in-args uniforms))
       (setf (v-raw-in-args env) in-args)
