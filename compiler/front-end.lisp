@@ -45,8 +45,10 @@
 
 ;;[TODO] Make real error
 (defun rolling-translate (args stages)
-  (destructuring-bind (in-args uniforms context) (split-arguments args) 
+  (destructuring-bind (in-args uniforms context) (split-arguments args)    
     (loop :for stage :in stages :with wip = nil :do
+       (unless (or (typep stage 'varjo-compile-result) (symbolp stage))
+         (error 'invalid-shader-stage :stage stage))
        (if (typep stage 'varjo-compile-result)
            (if (args-compatiblep in-args uniforms context stage)
                (push stage wip)

@@ -126,3 +126,6 @@
 
 (deferror args-incompatible (previous-args current-args)
     "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a" previous-args current-args)
+
+(deferror invalid-shader-stage (stage)
+    "Sorry but '~a' is not a valid shader stage" stage)
