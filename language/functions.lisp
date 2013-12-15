@@ -20,6 +20,27 @@
 ;; (V-DEFUN :INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
 ;; (V-DEFUN :UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
 
+(v-defun :int (x) "int(~a)" (v-uint) v-int :glsl-spec-matching t)
+(v-defun :int (x) "int(~a)" (v-bool) v-int :glsl-spec-matching t)
+(v-defun :int (x) "int(~a)" (v-float) v-int :glsl-spec-matching t)
+(v-defun :int (x) "int(~a)" (v-double)  v-int :glsl-spec-matching t)
+(v-defun :uint (x) "uint(~a)" (v-int) v-uint :glsl-spec-matching t)
+(v-defun :uint (x) "uint(~a)" (v-bool) v-uint :glsl-spec-matching t)
+(v-defun :uint (x) "uint(~a)" (v-float)  v-uint :glsl-spec-matching t)
+(v-defun :uint (x) "uint(~a)" (v-double)  v-uint :glsl-spec-matching t)
+(v-defun :bool (x) "bool(~a)" (v-int) v-bool :glsl-spec-matching t)
+(v-defun :bool (x) "bool(~a)" (v-uint) v-bool :glsl-spec-matching t)
+(v-defun :bool (x) "bool(~a)" (v-float)  v-bool :glsl-spec-matching t)
+(v-defun :bool (x) "bool(~a)" (v-double)  v-bool :glsl-spec-matching t)
+(v-defun :float (x) "float(~a)" (v-int) v-float :glsl-spec-matching t)
+(v-defun :float (x) "float(~a)" (v-uint)  v-float :glsl-spec-matching t)
+(v-defun :float (x) "float(~a)" (v-bool)  v-float :glsl-spec-matching t)
+(v-defun :float (x) "float(~a)" (v-double) v-float :glsl-spec-matching t)
+(v-defun :double (x) "double(~a)" (v-int)  v-double :glsl-spec-matching t)
+(v-defun :double (x) "double(~a)" (v-uint)  v-double :glsl-spec-matching t)
+(v-defun :double (x) "double(~a)" (v-bool)  v-double :glsl-spec-matching t)
+(v-defun :double (x) "double(~a)" (v-float) v-double :glsl-spec-matching t)
+
 (v-defun :x (a) "~a.x" (v-vector) (:element 0) :glsl-spec-matching t)
 (v-defun :y (a) "~a.y" (v-vector) (:element 0) :glsl-spec-matching t)
 (v-defun :z (a) "~a.z" (v-vec3)  (:element 0) :glsl-spec-matching t)
@@ -55,6 +76,23 @@
 
 (v-defun :%+ (a) "(~a)" (v-number) nil :glsl-spec-matching t)
 (v-defun :%+ (a b) "(~a + ~a)" (v-number v-number) nil :glsl-spec-matching t)
+
+(v-defun :%+ (a b) "(~a + ~a)" (v-vec2 v-vec2) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-vec3 v-vec3) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-vec4 v-vec4) 0 :glsl-spec-matching t)
+
+(v-defun :%+ (a b) "(~a + ~a)" (v-ivec2 v-ivec2) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-ivec3 v-ivec3) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-ivec4 v-ivec4) 0 :glsl-spec-matching t)
+
+(v-defun :%+ (a b) "(~a + ~a)" (v-uvec2 v-uvec2) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-uvec3 v-uvec3) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-uvec4 v-uvec4) 0 :glsl-spec-matching t)
+
+(v-defun :%+ (a b) "(~a + ~a)" (v-dvec2 v-dvec2) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-dvec3 v-dvec3) 0 :glsl-spec-matching t)
+(v-defun :%+ (a b) "(~a + ~a)" (v-dvec4 v-dvec4) 0 :glsl-spec-matching t)
+
 (v-defun :%- (a b) "(~a - ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun :%- (a) "(- ~a)" (v-number) 0 :glsl-spec-matching t)
 (v-defun :%* (a b) "(~a * ~a)" (v-number v-number) nil :glsl-spec-matching t)

@@ -1,3 +1,38 @@
+* add all of the following and all their permutations
+* also add all the arithmatic operators for non number datatypes
+* add aref, make-array and array constructors
+
+(v-defun :vec3 (x) "a&&a(~a)" (float) // initializes each component of the vec3 with the float v-thing :glsl-spec-matching t)
+(v-defun :vec4 (x) "a&&a(~a)" (ivec4) // makes a vec4 with component-wise conversion v-thing :glsl-spec-matching t)
+(v-defun :vec4 (x) "a&&a(~a)" (mat2) // the vec4 is column 0 followed by column 1 v-thing :glsl-spec-matching t)
+(v-defun :vec2 (x) "a&&a(~a)" (float, float) v-thing :glsl-spec-matching t)
+(v-defun :ivec3 (x) "a&&a(~a)" (int, int, int) v-thing :glsl-spec-matching t)
+(v-defun :bvec4 (x) "a&&a(~a)" (int, int, float, float) // uses 4 Boolean conversions v-thing :glsl-spec-matching t)
+(v-defun :vec2 (x) "a&&a(~a)" (vec3) v-thing :glsl-spec-matching t)
+(v-defun :vec3 (x) "a&&a(~a)" (vec4) v-thing :glsl-spec-matching t)
+(v-defun :vec3 (x) "a&&a(~a)" (vec2, float) v-thing :glsl-spec-matching t)
+(v-defun :vec3 (x) "a&&a(~a)" (float, vec2) v-thing :glsl-spec-matching t)
+(v-defun :vec4 (x) "a&&a(~a)" (vec3, float) v-thing :glsl-spec-matching t)
+(v-defun :vec4 (x) "a&&a(~a)" (float, vec3) v-thing :glsl-spec-matching t)
+(v-defun :vec4 (x) "a&&a(~a)" (vec2, vec2) v-thing :glsl-spec-matching t)
+(v-defun :vec4 color = vec4 (x) "a&&a(~a)" (0.0, 1.0, 0.0, 1.0); v-thing :glsl-spec-matching t)
+(v-defun :vec4 rgba = vec4 (x) "a&&a(~a)" (1.0); // sets each component to 1.0 v-thing :glsl-spec-matching t)
+(v-defun :vec3 rgb = vec3 (x) "a&&a(~a)" (color); v-thing :glsl-spec-matching t)
+(v-defun :mat2 (x) "a&&a(~a)" (float) v-thing :glsl-spec-matching t)
+(v-defun :mat3 (x) "a&&a(~a)" (float) v-thing :glsl-spec-matching t)
+(v-defun :mat4 (x) "a&&a(~a)" (float) v-thing :glsl-spec-matching t)
+(v-defun :mat2 (x) "a&&a(~a)" (vec2, vec2); v-thing :glsl-spec-matching t)
+(v-defun :mat3 (x) "a&&a(~a)" (vec3, vec3, vec3); v-thing :glsl-spec-matching t)
+(v-defun :mat4 (x) "a&&a(~a)" (vec4, vec4, vec4, vec4); v-thing :glsl-spec-matching t)
+(v-defun :mat3x2 (x) "a&&a(~a)" (vec2, vec2, vec2); v-thing :glsl-spec-matching t)
+(v-defun :dmat2 (x) "a&&a(~a)" (dvec2, dvec2); v-thing :glsl-spec-matching t)
+(v-defun :dmat3 (x) "a&&a(~a)" (dvec3, dvec3, dvec3); v-thing :glsl-spec-matching t)
+(v-defun :dmat4 (x) "a&&a(~a)" (dvec4, dvec4, dvec4, dvec4); v-thing :glsl-spec-matching t)
+(v-defun :mat2 (x) "a&&a(~a)" (float, float, float, float); //first 2 first column, etc v-thing :glsl-spec-matching t)
+(v-defun :mat3 (x) "a&&a(~a)" (float, float, float, float, float, float, float, float, float); v-thing :glsl-spec-matching t)
+(v-defun :mat4 (x) "a&&a(~a)" (float,float,float,float,float,float,float,float,float,float,float,float,float,float,float,float); v-thing :glsl-spec-matching t)
+(v-defun :mat2x3 (x) "a&&a(~a)" (vec2, float, vec2, float); // first column v-thing :glsl-spec-matching t)
+(v-defun :dmat2x4 (x) "a&&a(~a)" (dvec3, double, double, dvec3) // first column
 
 -----------
 

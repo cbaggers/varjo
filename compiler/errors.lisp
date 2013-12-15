@@ -18,7 +18,7 @@
            `(,arg :initarg ,(kwd arg) :reader ,arg)))
      (:report (lambda (condition stream)
                 (declare (ignorable condition))
-                (format stream ,error-string ,@body)))))
+                (format stream ,(format nil "Varjo: ~a" error-string) ,@body)))))
 
 (define-condition varjo-error (error) ())
 
@@ -96,7 +96,7 @@
     "The loop is using the following code as it's test.~%~a~%~%This will only ever result in a ~a which means the loop will never halt" test-code (type->type-spec (code-type test-obj)))
 
 (deferror for-loop-simple-expression ()
-    "Varjo: Only simple expressions are allowed in the condition and update slots of a for loop")
+    "Only simple expressions are allowed in the condition and update slots of a for loop")
 
 (deferror for-loop-only-one-var ()
     "for loops can only iterate over one variable")
@@ -110,19 +110,19 @@
   (v-context env))
 
 (deferror name-unsuitable (name)
-    "Varjo: Names of variables and functions must be only contain~%alpha-numeric characters and the hyphen character (-).~%They also may not start with 'gl-' or '-sc-' ~%Supplied Name: ~a~%" name)
+    "Names of variables and functions must be only contain~%alpha-numeric characters and the hyphen character (-).~%They also may not start with 'gl-' or '-sc-' ~%Supplied Name: ~a~%" name)
 
 (deferror unable-to-resolve-func-type (func-name args)
-    "Varjo: Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%" func-name (mapcar #'code-type args))
+    "Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%" func-name (mapcar #'code-type args))
 
 (deferror out-var-type-mismatch (var-name var-types)
-    "Varjo: The out variable ~a is has been set with different types.~%Types used: ~a" var-name var-types)
+    "The out variable ~a is has been set with different types.~%Types used: ~a" var-name var-types)
 
 (deferror fake-type-global (env)
     "fake types can not be added to the global environment")
 
 (deferror invalid-context-symbol (context-symb)
-    "Varjo: Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
+    "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
 
 (deferror args-incompatible (previous-args current-args)
-    "Varjo: Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a" previous-args current-args)
+    "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a" previous-args current-args)
