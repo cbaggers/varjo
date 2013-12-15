@@ -43,19 +43,6 @@
       #'final-string-compose
       #'code-obj->result-object)))
 
-;; (defun rolling-translate (args stages)
-;;   (multiple-value-bind (in-vars uniforms context) (split-arguments args)
-;;     (loop :for (stage-type . code) :in stages :with wip = nil
-;;        :for new-args = `(,@in-vars ,@(when uniforms (cons '&uniforms uniforms))
-;;                                    &context ,@(cons stage-type context))
-;;        :do (let ((result (translate new-args `(progn ,@code))))
-;;              (setf in-vars 
-;;                    (loop :for (name qualifiers value) :in (out-vars result)
-;;                       :collect `(,name ,(type->type-spec (v-type value))
-;;                                        ,@qualifiers)))             
-;;              (push result wip))
-;;        :finally (return (reverse wip)))))
-
 ;;[TODO] Make real error
 (defun rolling-translate (args stages)
   (multiple-value-bind (in-args uniforms context) (split-arguments args) 
@@ -155,8 +142,7 @@
          (add-var name (make-instance 'v-value
                                       :glsl-name (safe-glsl-name-string 
                                                   (free-name name))
-                                      :type (set-place-t (type-spec->type 
-                                                          true-type))) 
+                                      :type (set-place-t true-type)) 
                   env t))
        (push (list name type) (v-uniforms env)))
     (values code env)))

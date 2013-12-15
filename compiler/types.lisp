@@ -11,13 +11,18 @@
   (and (typep obj 'v-spec-type)
        (not (typep obj 'v-type))))
 
+(defgeneric v-element-type (object))
+(defmethod v-element-type ((object v-t-type))
+  (when (slot-exists-p object 'element-type)
+    (type-spec->type (slot-value object 'element-type))))
+
 (defmethod type->type-spec ((type v-t-type)) 
   (class-name (class-of type)))
 (defmethod type->type-spec ((type v-spec-type))
   (class-name (class-of type)))
 (defmethod type->type-spec ((type v-array))
   (if (and (v-element-type type) (v-dimensions type))
-      (list (v-element-type type) (v-dimensions type))
+      (list (type->type-spec (v-element-type type)) (v-dimensions type))
       'v-array))
 
 (defun type-specp (spec &optional (env *global-env*))
@@ -52,6 +57,8 @@
                             :place place
                             :dimensions dimensions)))
           (t (error 'unknown-type-spec :type-spec spec)))))
+(defmethod v-true-type ((object v-t-type))
+  object)
 
 (defmethod v-glsl-size ((type t))
   (slot-value type 'glsl-size))

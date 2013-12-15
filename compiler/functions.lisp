@@ -101,7 +101,10 @@
     (add-function name
                   (function->func-spec 
                    func :required-glsl (list (signatures code) (to-top code)))
-                  *global-env* t)))
+                  *global-env* t)
+    (make-instance 'varjo-compile-result :glsl-code "" :stage-type nil :in-args nil
+                   :out-vars nil :uniforms nil :context nil
+                   :used-external-functions (used-external-functions code))))
 
 ;;------------------------------------------------------------
 

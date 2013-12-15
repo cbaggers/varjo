@@ -50,7 +50,7 @@
           (type-obj (type-spec->type slot-type)))
       (if (typep type-obj 'v-array)
           (format nil "    ~a ~a[~a];" 
-                  (v-glsl-string (v-element-type type-obj)) 
+                  (v-glsl-string (type->type-spec (v-element-type type-obj))) 
                   name 
                   (v-dimensions type-obj))
           (format nil "    ~a ~a;" 
