@@ -12,7 +12,7 @@
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
-  (let ((name-string (string-downcase (symbol-name name)))
+  (let ((name-string (safe-glsl-name-string name))
         (type-name (symb 'varjo::true_ name))
         (fake-type-name (symb 'varjo::fake_ name)))
     `(progn 
@@ -40,7 +40,7 @@
             (let ((accessor (if (eq :accessor (first acc)) (second acc) 
                                 (symb name '- slot-name))))
               `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
-                 ,(concatenate 'string "~a." (string slot-name))
+                 ,(concatenate 'string "~a." (safe-glsl-name-string slot-name))
                  (,type-name) ,slot-type :place t)))
        ',name)))
 
@@ -51,10 +51,11 @@
       (if (typep type-obj 'v-array)
           (format nil "    ~a ~a[~a];" 
                   (v-glsl-string (type->type-spec (v-element-type type-obj))) 
-                  name 
+                  (safe-glsl-name-string name) 
                   (v-dimensions type-obj))
           (format nil "    ~a ~a;" 
-                  (v-glsl-string type-obj) name)))))
+                  (v-glsl-string type-obj)
+                  (safe-glsl-name-string name))))))
 
 (defgeneric add-fake-struct (in-var-name type qualifiers env))
 (defmethod add-fake-struct (in-var-name (type v-user-struct) qualifiers
@@ -83,4 +84,4 @@
 
 (defun fake-slot-name (in-var-name slot-name) 
   (format nil "fk_~a_~a" (string-downcase (string in-var-name))
-          (string-downcase (string slot-name))))
+          (string-downcase (safe-glsl-name-string slot-name))))

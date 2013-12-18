@@ -95,7 +95,38 @@
 
 (v-defun :%- (a b) "(~a - ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun :%- (a) "(- ~a)" (v-number) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-vec2 v-vec2) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-vec3 v-vec3) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-vec4 v-vec4) 0 :glsl-spec-matching t)
+
+(v-defun :%- (a b) "(~a + ~a)" (v-ivec2 v-ivec2) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-ivec3 v-ivec3) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-ivec4 v-ivec4) 0 :glsl-spec-matching t)
+
+(v-defun :%- (a b) "(~a + ~a)" (v-uvec2 v-uvec2) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-uvec3 v-uvec3) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-uvec4 v-uvec4) 0 :glsl-spec-matching t)
+
+(v-defun :%- (a b) "(~a + ~a)" (v-dvec2 v-dvec2) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-dvec3 v-dvec3) 0 :glsl-spec-matching t)
+(v-defun :%- (a b) "(~a + ~a)" (v-dvec4 v-dvec4) 0 :glsl-spec-matching t)
+
 (v-defun :%* (a b) "(~a * ~a)" (v-number v-number) nil :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-vector v-vector) nil :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-matrix v-matrix) nil :glsl-spec-matching t)
+
+(v-defun :%* (a b) "(~a * ~a)" (v-mat2 v-vec2) 1 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-mat3 v-vec3) 1 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-mat4 v-vec4) 1 :glsl-spec-matching t)
+
+(v-defun :%* (a b) "(~a * ~a)" (v-mat2 v-float) 0 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-mat4 v-float) 0 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-mat3 v-float) 0 :glsl-spec-matching t)
+
+(v-defun :%* (a b) "(~a * ~a)" (v-vec2 v-float) 0 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-vec3 v-float) 0 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-vec4 v-float) 0 :glsl-spec-matching t)
+
 (v-defun :%/ (a b) "(~a / ~a)" (v-number v-number) nil :glsl-spec-matching t)
 
 (v-defun :v! (x y) "vec3(~a,~a)" (v-float v-vec2) v-vec3 :glsl-spec-matching t)

@@ -1,3 +1,4 @@
+
 * add all of the following and all their permutations
 * also add all the arithmatic operators for non number datatypes
 * add aref, make-array and array constructors
