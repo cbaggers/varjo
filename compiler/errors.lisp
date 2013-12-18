@@ -129,3 +129,6 @@
 
 (deferror invalid-shader-stage (stage)
     "Sorry but '~a' is not a valid shader stage" stage)
+
+(deferror swizzle-keyword (item)
+    "Swizzle expects a keyword to specify the components. Recieved ~a instead" item) 

@@ -207,14 +207,10 @@
                                      (signatures body-obj)))
                :to-top (cons-end (gen-function-body-string glsl-name arg-pairs type body-obj)
                                  (to-top body-obj))
+               :to-block nil
                :returns nil
                :out-vars (out-vars body-obj))
               env))))
-
-(v-defun :break ()
-  :special
-  :args-valid t
-  :return (break))
 
 (v-defun :return (form)
   :special
@@ -311,14 +307,18 @@
   (let* ((vec-obj (varjo->glsl vec-form env))
          (allowed (subseq (list #\x #\y #\z #\w) 0 
                           (first (v-dimensions (code-type vec-obj)))))
-         (comp-string (string-downcase (symbol-name components)))
+         (comp-string (if (keywordp components)
+                          (string-downcase (symbol-name components))
+                          (error 'swizzle-keyword :item components)))
          (new-len (length comp-string)))
-    (if (and (>= new-len 2) (<= new-len 4) 
+    (if (and (>= new-len 2) (<= new-len 4)
              (v-typep (code-type vec-obj) 'v-vector)
              (loop :for c :being :the :elements :of comp-string 
                 :always (find c allowed)))
-        (merge-obs vec-obj :type (symb 'v-vec new-len)
-                   :current-line (gen-swizzle-string vec-obj comp-string)))))
+        (merge-obs vec-obj :type (type-spec->type 
+                                  (p-symb 'varjo 'v-vec new-len))
+                   :current-line (gen-swizzle-string vec-obj comp-string))
+        (error "swizzle form invalid"))))
 
 
 ;;   (for (a 0) (< a 10) (++ a) 
@@ -336,6 +336,7 @@
   :args-valid t
   :return
   (let* ((decl-obj (varjo->glsl (second var-form) env))
+         (counter-obj (varjo->glsl (first var-form) env))
          (condition-obj (varjo->glsl condition env))
          (update-obj (varjo->glsl update env))
          (body-obj (end-line (varjo->glsl `(progn ,@body) env))))
@@ -344,8 +345,7 @@
     (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
         (merge-obs 
          body-obj :type 'v-none :current-line nil
-         :to-block `(,(gen-for-loop-string 
-                       (first var-form) condition-obj
-                       update-obj body-obj)))
+         :to-block `(,(gen-for-loop-string counter-obj condition-obj
+                                           update-obj body-obj)))
         (error 'for-loop-simple-expression))))
 

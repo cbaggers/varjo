@@ -6,7 +6,6 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 
-;; [TODO] (break) is not implmented, as it it used for lisp break
 ;; [TODO] setf coudl change type, how do we handle this?
 (in-package :varjo)
 
@@ -19,6 +18,8 @@
 ;; (V-DEFUN :NOISEN (X &CONTEXT (:330 :440)) "noisen(~a)" (TF) (#'VECN 0) :PLACE NIL)
 ;; (V-DEFUN :INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
 ;; (V-DEFUN :UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
+
+(v-defun :break () "break" () v-void :glsl-spec-matching t)
 
 (v-defun :int (x) "int(~a)" (v-uint) v-int :glsl-spec-matching t)
 (v-defun :int (x) "int(~a)" (v-bool) v-int :glsl-spec-matching t)
