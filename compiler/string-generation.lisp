@@ -76,9 +76,9 @@
 (defun gen-swizzle-string (vec-obj components-string)
   (format nil "~a.~a" (current-line vec-obj) (string-downcase components-string)))
 
-(defun gen-for-loop-string (var-obj condition-obj update-obj body-obj)
+(defun gen-for-loop-string (var-string condition-obj update-obj body-obj)
   (format nil "for (~a;~a;~a) {~%~{~a~%~}~a~%}"
-          (current-line var-obj)
+          var-string
           (current-line condition-obj)
           (current-line update-obj)
           (to-block body-obj)

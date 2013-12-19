@@ -324,28 +324,25 @@
 ;;   (for (a 0) (< a 10) (++ a) 
 ;;     (* a 2))
 ;; [TODO] double check implications of typify in compile-let-forms
-(v-defmacro :for (var-form condition update &rest body)
-  (if (consp (first var-form))
-      (error 'for-loop-only-one-var)
-      `(%clone-env-block 
-        (%env-multi-var-declare (,var-form) t)
-        (%for ,var-form ,condition ,update ,@body))))
-
-(v-defun :%for (var-form condition update &rest body)
+(v-defun :for (var-form condition update &rest body)
   :special 
   :args-valid t
   :return
-  (let* ((decl-obj (varjo->glsl (second var-form) env))
-         (counter-obj (varjo->glsl (first var-form) env))
-         (condition-obj (varjo->glsl condition env))
-         (update-obj (varjo->glsl update env))
-         (body-obj (end-line (varjo->glsl `(progn ,@body) env))))
-    (unless (typep (code-type decl-obj) 'v-i-ui)
-      (error 'invalid-for-loop-type decl-obj))
-    (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
-        (merge-obs 
-         body-obj :type 'v-none :current-line nil
-         :to-block `(,(gen-for-loop-string counter-obj condition-obj
-                                           update-obj body-obj)))
-        (error 'for-loop-simple-expression))))
+  (if (consp (first var-form))
+      (error 'for-loop-only-one-var) 
+      (multiple-value-bind (code new-env) 
+          (varjo->glsl `(%env-multi-var-declare (,var-form) t) env)
+        (let* ((var-string (subseq (first (to-block code)) 0 (1- (length (first (to-block code))))))
+               (decl-obj (varjo->glsl (second var-form) new-env))
+               (condition-obj (varjo->glsl condition new-env))
+               (update-obj (varjo->glsl update new-env))
+               (body-obj (end-line (varjo->glsl `(progn ,@body) new-env))))
+          (unless (typep (code-type decl-obj) 'v-i-ui)
+            (error 'invalid-for-loop-type decl-obj))
+          (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
+              (merge-obs 
+               body-obj :type 'v-none :current-line nil
+               :to-block `(,(gen-for-loop-string var-string condition-obj
+                                                 update-obj body-obj)))
+              (error 'for-loop-simple-expression))))))
 
