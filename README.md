@@ -1,4 +1,11 @@
 ### Varjo
+
+> NOTE: As of 10/02/2013 I am away for a month and a bit. 
+> This project is not dead and I will in fact I have a 
+> lot in the works for this and Cepl. 
+> Hope this find you well. Ciao
+> Baggers
+
 Varjo is a Lisp to GLSL Language translator. It will allow you to write vertex, fragment & geometry shaders for any version of glsl greater than or equal to 1.20 (opengl version 2.1).
 
 This is currently WIP and is not ready for use.
