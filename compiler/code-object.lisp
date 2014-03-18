@@ -9,6 +9,7 @@
 
 (defclass code ()
   ((type :initarg :type :initform nil :accessor code-type)
+   (values-code :initarg :values-code :initform nil :accessor values-code)
    (current-line :initarg :current-line :initform "" :accessor current-line)
    (signatures :initarg :signatures :initform nil :accessor signatures)
    (to-block :initarg :to-block :initform nil :accessor to-block)
@@ -36,7 +37,7 @@
 (defgeneric copy-code (code-obj &key type current-line to-block to-top 
                                   out-vars invariant returns))
 (defmethod copy-code ((code-obj code) 
-                      &key type current-line 
+                      &key type values-code current-line 
                         (signatures nil set-sigs)
                         (to-block nil set-block)
                         (to-top nil set-top)
@@ -44,6 +45,8 @@
                         (invariant nil) (returns nil set-returns))
   (make-instance 'code 
                  :type (if type type (code-type code-obj)) 
+                 :values-code (if values-code values-code
+                                  (values-code code-obj))
                  :current-line (if current-line current-line 
                                    (current-line code-obj)) 
                  :signatures (if set-sigs signatures (signatures code-obj))
@@ -69,10 +72,13 @@
                                     (invariant nil) (returns nil set-returns))
   (make-instance 'code
                  :type (if type type (error "type is mandatory")) 
+                 :values-code nil
                  :current-line current-line 
                  :signatures (if set-sigs signatures 
                                  (mapcan #'signatures objs))
-                 :to-block (if set-block to-block (mapcan #'to-block objs))
+                 :to-block (if set-block to-block 
+                               (append (mapcan #'to-block objs)
+                                       (mapcan #'values-code objs)))
                  :to-top (if set-top to-top (mapcan #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
                  :invariant invariant
@@ -93,10 +99,13 @@
                         (invariant nil) (returns nil set-returns))
   (make-instance 'code
                  :type (if set-type type (code-type objs)) 
+                 :values-code nil
                  :current-line (if set-current-line current-line 
                                    (current-line objs)) 
                  :signatures (if set-sigs signatures (signatures objs))
-                 :to-block (if set-block to-block (remove nil (to-block objs)))
+                 :to-block (if set-block to-block 
+                               (remove nil (append (to-block objs)
+                                                   (values-code objs))))
                  :to-top (if set-top to-top (remove nil (to-top objs)))
                  :out-vars (if set-out-vars out-vars (out-vars objs))
                  :invariant invariant

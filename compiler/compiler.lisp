@@ -61,7 +61,7 @@
                                        :func-name func-name :args args))
                    (merge-obs args :type type :current-line
                               (gen-function-string func args)
-                              :to-top (append (second (v-required-glsl func)) 
+                              :to-top (append (second (v-required-glsl func))
                                               (mapcan #'to-top args))
                               :signatures (append (first (v-required-glsl func))
                                                   (mapcan #'signatures args))

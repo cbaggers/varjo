@@ -46,6 +46,46 @@
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)))))
 
+;; what about types and such used in other values forms, cant guarentee that
+;; they will be used and thus cant be sure they will be included in code obj 
+;; later
+(v-defun :values (&rest forms)
+  :special
+  :args-valid t
+  :return
+  (let* ((body-objs (loop :for code :in forms :collect (varjo->glsl code env)))
+         (first-obj (first body-objs)))
+    (setf (values-code first-obj) (rest body-objs)
+          (signatures first-obj) (mapcar #'signatures body-objs)
+          (to-block first-obj) (mapcar #'to-block body-objs)
+          (to-top first-obj) (mapcar #'to-top body-objs)
+          (out-vars first-obj) (mapcar #'out-vars body-objs)
+          (used-types first-obj) (mapcar #'used-types body-objs)
+          (stemcells first-obj) (mapcar #'stemcells body-objs)
+          (invariant first-obj) (mapcar #'invariant body-objs)
+          (returns first-obj) (mapcar #'returns body-objs)
+          (used-external-functions first-obj) (mapcar #'used-external-functions
+                                                      body-objs))
+    (loop :for obj :in (values-code first-obj) :do
+       (setf (signatures first-obj) nil (to-block first-obj) nil
+             (to-top first-obj) nil (out-vars first-obj) nil
+             (used-types first-obj) nil (stemcells first-obj) nil
+             (invariant first-obj) nil (returns first-obj) nil
+             (used-external-functions first-obj) nil))
+    first-obj))
+
+(v-defun :multiple-value-bind (vars form &body body)
+  :special
+  :args-valid t
+  :return
+  (let* ((form-obj (varjo->glsl form env)) 
+         (objs (cons form-obj (values-code form-obj))) ;;remove values-code?
+         (vals (if (< (length objs) (length vars))
+                   (append objs (loop :for i :below (- (length objs) (length vars))
+                                   :collect nil))
+                   objs)))
+    (varjo->glsl `(let ,(loop :for val :in vals :for var :in vars  )))))
+
 (v-defun :progn (&rest body)
   ;; this is super important as it is the only function that implements 
   ;; imperitive coding. It does this my passing the env from one form
@@ -215,8 +255,9 @@
 (v-defun :return (form)
   :special
   :args-valid t
-  :return
+  :return  
   (let ((obj (varjo->glsl form env)))
+    (unless (null (values-code obj)) (error 'values-return))
     (merge-obs obj :type 'v-void
                :current-line (format nil "return ~a" (current-line obj))
                :returns (list (code-type obj)))))
