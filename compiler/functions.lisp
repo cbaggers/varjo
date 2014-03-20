@@ -84,7 +84,7 @@
 (defmacro v-def-external (name args &body body)
   `(%v-def-external ',name ',args ',body))
 
-(defun %v-def-external (name args body)
+(defun %v-def-external (name args return-type glsl-string)
   (let ((env (make-instance 'environment))
         (body `(%make-function ,name ,args ,@body)))
      (pipe-> (args body env)
@@ -96,7 +96,7 @@
        #'populate-required-glsl)))
 
 (defun populate-required-glsl (code env)
-  ;; this shouldnt return, it should just populate
+  ;; {TODO} this shouldnt return, it should just populate. Why? I havent justified this
   (destructuring-bind (name func) (first (v-functions env))
     (add-function name
                   (function->func-spec 
@@ -104,7 +104,30 @@
                   *global-env* t)
     (make-instance 'varjo-compile-result :glsl-code "" :stage-type nil :in-args nil
                    :out-vars nil :uniforms nil :context nil
-                   :used-external-functions (used-external-functions code))))
+                   :used-external-functions) (used-external-functions code)))
+
+;;This allows the addition of handwritten glsl 
+(defmacro v-def-raw-glsl-func (name args return-type &body glsl)
+  (%v-def-raw-external name args return-type (apply #'concatenate 'string glsl)))
+
+(defun %v-def-raw-external (name args return-type glsl-string)
+  (let* ((glsl-name (safe-glsl-name-string (free-name name)))
+         (return-type (type-spec->type return-type))
+         (arg-glsl-names (loop :for (name) :in args :collect
+                            (safe-glsl-name-string name)))
+         (arg-pairs (loop :for (ignored type) :in args
+                       :for name :in arg-glsl-names :collect
+                       `(,(v-glsl-string (type-spec->type type)) ,name))))
+    (add-function 
+     name
+     (v-make-f-spec (gen-function-transform glsl-name args) args
+                          (mapcar #'second args) return-type :glsl-name glsl-name
+                          :required-glsl 
+                          `((,(gen-function-signature glsl-name arg-pairs return-type))
+                            (,(gen-glsl-function-body-string
+                               glsl-name arg-pairs return-type glsl-string))))
+     *global-env* t)
+    t))
 
 ;;------------------------------------------------------------
 
