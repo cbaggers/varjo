@@ -84,7 +84,7 @@
 (defmacro v-def-external (name args &body body)
   `(%v-def-external ',name ',args ',body))
 
-(defun %v-def-external (name args return-type glsl-string)
+(defun %v-def-external (name args body)
   (let ((env (make-instance 'environment))
         (body `(%make-function ,name ,args ,@body)))
      (pipe-> (args body env)
@@ -104,7 +104,7 @@
                   *global-env* t)
     (make-instance 'varjo-compile-result :glsl-code "" :stage-type nil :in-args nil
                    :out-vars nil :uniforms nil :context nil
-                   :used-external-functions) (used-external-functions code)))
+                   :used-external-functions (used-external-functions code))))
 
 ;;This allows the addition of handwritten glsl 
 (defmacro v-def-raw-glsl-func (name args return-type &body glsl)
