@@ -43,18 +43,29 @@
       #'final-string-compose
       #'code-obj->result-object)))
 
+(defun make-stage-order-checker ()
+  (let ((order (list :vertex :geometry :tess-eval :tess-control :fragment)))
+    (lambda (stage) 
+      (if (member stage order)
+          (progn (setf order (subseq order (1+ (position stage order))))
+                 stage)
+          (error "stage ~s is not valid" stage)))))
+
 ;;[TODO] Make real error
 (defun rolling-translate (args stages)
   (destructuring-bind (in-args uniforms context) (split-arguments args)    
-    (loop :for stage :in stages :with wip = nil :do
+    (loop :for stage :in stages :with wip = nil 
+       :with order-checker = (make-stage-order-checker) :do
        (unless (or (typep stage 'varjo-compile-result) (listp stage))
          (error 'invalid-shader-stage :stage stage))
        (if (typep stage 'varjo-compile-result)
-           (if (args-compatiblep in-args uniforms context stage)
+           (if (and (args-compatiblep in-args uniforms context stage)
+                    (funcall order-checker (stage-type stage)))
                (push stage wip)
                (error 'args-incompatible :current-args (in-args stage)
                       :previous-args in-args))
            (destructuring-bind (stage-type &rest code) stage
+             (funcall order-checker stage-type)
              (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniform uniforms))
                                           &context ,@(cons stage-type context)))
                     (result (translate new-args `(progn ,@code))))
@@ -96,6 +107,13 @@
       (error "Varjo: Duplicates names found between in-args and uniforms")
       t))
 
+;;{TODO} fix error message
+(defun check-for-stage-specific-limitations (env)
+  (cond ((or (and (member :vertex (v-context env)) 
+                  (some #'third (v-raw-in-args env))))
+         (error "In args to vertex shaders can not have qualifiers")))
+  t)
+
 (defun split-input-into-env (args body env)
   (destructuring-bind (in-args uniforms context) (split-arguments args)
     (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
@@ -104,7 +122,8 @@
       (setf (v-raw-uniforms env) uniforms)
       (setf (v-raw-context env) context)
       (when (not context) (setf (v-context env) *default-context*))
-      (values body env))))
+      (when (check-for-stage-specific-limitations env)
+        (values body env)))))
 
 ;;----------------------------------------------------------------------
 

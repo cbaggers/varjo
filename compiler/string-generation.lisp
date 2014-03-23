@@ -16,7 +16,7 @@
                                    (string-capitalize part))))))
 
 (defun num-suffix (type)
-  (or (assocr (type->type-spec type) '((v-float . "f") (v-uint . "u"))) ""))
+  (or (assocr (type->type-spec type) '((v-double . "lf") (v-float . "f") (v-uint . "u"))) ""))
 
 (defun gen-number-string (number type)
   (format nil "~a~a" number (num-suffix type)))
@@ -36,6 +36,13 @@
           (v-glsl-string return-type)
           name
           args))
+
+(defun gen-glsl-function-body-string (name args type glsl-string)
+  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~a~%}~%"
+          (v-glsl-string type) 
+          (string-downcase (string name))
+          args
+          glsl-string))
 
 (defun gen-function-body-string (name args type body-obj)
   (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[~a~%~]}~%"

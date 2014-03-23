@@ -13,7 +13,7 @@
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
-(defparameter *supported-stages* '(:vertex :geometry :fragment))
+(defparameter *supported-stages* '(:vertex :fragment))
 (defparameter *default-version* :330)
 (defparameter *default-context* '(:330 :vertex))
 (defparameter *valid-contents-symbols* (append (copy-list *supported-versions*)
@@ -135,6 +135,12 @@
      :if (find item *supported-versions*)
      :return item
      :finally (error 'no-version-in-context env)))
+
+(defun get-stage-from-env (env)
+  (get-version-from-context (v-context env)))
+
+(defun get-stage-from-context (context)
+  (find-if (lambda (x) (member x *supported-stages*)) context))
 
 (defun allows-stemcellsp (env)
   (context-ok-given-restriction (v-context env) '(:stemcells)))
