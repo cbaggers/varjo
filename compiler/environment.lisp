@@ -142,6 +142,19 @@
 (defun get-stage-from-context (context)
   (find-if (lambda (x) (member x *supported-stages*)) context))
 
+;;{TODO} move errors to correct place
+(let ((prims '(:points :line_strip :line_loop :lines :triangle_strip 
+               :triangle_fan :triangles)))
+  (defun get-primitive-type-from-context (context)
+    (or (loop :for i :in context :if (member i prims) :return i)
+        :triangles))
+  ;; (defun get-primitive-length (prim-type)
+  ;;   (let ((pos (position prim-type prims)))
+  ;;     (if pos
+  ;;         (1+ pos)
+  ;;         (error "Varjo: Not a valid primitive type"))))
+  )
+
 (defun allows-stemcellsp (env)
   (context-ok-given-restriction (v-context env) '(:stemcells)))
 
