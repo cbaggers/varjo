@@ -144,11 +144,10 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for (name type . qualifiers) :in in-args :do
-       (let* ((type (if (and (not (vtype-existsp type))
+       (let* ((type (if (and (not (keywordp type))
+                             (not (vtype-existsp type))
                              (vtype-existsp (sym-down type)))
-                        (if (eq :float type) 
-                            (break)
-                            (sym-down type))
+                        (sym-down type)
                         type))
               (type-obj (type-spec->type type :place t)))
          (if (typep type-obj 'v-struct)
@@ -166,11 +165,10 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (loop :for (name type) :in uniforms :do
-       (let* ((type (if (and (not (vtype-existsp type))
+       (let* ((type (if (and (not (keywordp type))
+                             (not (vtype-existsp type))
                              (vtype-existsp (sym-down type)))
-                        (if (eq :float type) 
-                            (break)
-                            (sym-down type))
+                        (sym-down type)
                         type))
               (true-type (v-true-type (type-spec->type type))))
          (add-var name (make-instance 'v-value
