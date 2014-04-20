@@ -153,3 +153,9 @@
 (defun list-contains-duplicates-p (list &key (key #'identity) (test #'eq))
   (loop :for i :in list :do 
      (when (> (count i list :key key :test test) 1) (return t))))
+
+(defun sym-down (symbol)
+  (p-symb (symbol-package symbol) 
+          (string-downcase (symbol-name symbol))))
+
+

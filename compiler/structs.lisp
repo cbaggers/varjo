@@ -13,6 +13,7 @@
 ;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
   (let ((name-string (safe-glsl-name-string name))
+        (name (sym-down name))
         (type-name (symb 'varjo::true_ name))
         (fake-type-name (symb 'varjo::fake_ name)))
     `(progn 
