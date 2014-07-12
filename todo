@@ -1,4 +1,18 @@
 
+* need an across vector loop thing. We can then unroll these loops.
+* why does placep live in type? ... basically no reason, fix this ... Ah..
+  ok so functions are types? yeah.
+  This seems weird, ok so the logic is that a block of code could have a type of 
+  function and the function could be a place. arent functions a valeu with type of function?
+  Surely we can handle this...we dont need first class functions to be supported anywhere
+  but we need to pull the concept of a place out of the type....Do we?
+  The are blocks of code that can be places (a variable or an accessor (aref a 0)) the type
+  of the code block..
+  NOPE...I got back to my original view, place should be a field in the code object
+  Functions can make something a place so they need that flag. functions can remain as
+  types.
+* Code object also needs an inferred value field and a change-frequency field.
+  
 * add all of the following and all their permutations
 * also add all the arithmatic operators for non number datatypes
 * add aref, make-array and array constructors
