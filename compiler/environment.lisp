@@ -32,7 +32,8 @@
    (macros :initform nil :initarg :macros :accessor v-macros)
    (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
    (types :initform nil :initarg :types :accessor v-types)
-   (context :initform nil :initarg :context :accessor v-context)))
+   (context :initform nil :initarg :context :accessor v-context)
+   (multi-val-vars :initform nil :initarg :multi-val-vars :accessor v-multi-val-vars)))
 
 (defun make-varjo-environment (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
@@ -78,7 +79,8 @@
                  :uniforms (v-uniforms env)
                  :raw-context (v-raw-context env)
                  :raw-uniforms (v-raw-uniforms env)
-                 :raw-args (v-raw-in-args env)))
+                 :raw-args (v-raw-in-args env)
+                 :multi-val-vars (v-multi-val-vars env)))
 
 (defmethod clean-environment ((env environment))
   (make-instance 'environment :variables nil :functions nil

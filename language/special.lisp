@@ -48,7 +48,7 @@
 
 (v-defun :progn (&rest body)
   ;; this is super important as it is the only function that implements 
-  ;; imperitive coding. It does this my passing the env from one form
+  ;; imperitive coding. It does this by passing the env from one form
   ;; to the next.
   :special
   :args-valid t
@@ -59,19 +59,40 @@
                            (varjo->glsl code env)
                          (when new-env (setf env new-env))
                          code-obj))))
-     (let ((last-obj (car (last body-objs)))
-           (objs (subseq body-objs 0 (1- (length body-objs)))))
+     (let ((last-obj (last1 body-objs)))
        (merge-obs body-objs
                   :type (code-type last-obj)
                   :current-line (current-line last-obj)
-                  :to-block 
-                  (remove #'null
-                          (append (loop :for i :in objs
-                                     :for j :in (mapcar #'end-line objs)
-                                     :append (remove nil (to-block i)) 
-                                     :append (listify (current-line j)));this should work
-                                  (to-block last-obj))))))
+                  :to-block (merge-lines-into-block-list body-objs)
+                  :multi-vals (multi-vals (last1 body-objs)))))
    env))
+
+(v-defun :multiple-value-bind (vars value-form &body body)
+  :special
+  :args-valid t
+  :return 
+  (let ((new-env (clone-environment env)))
+    (unless (every #'symbolp vars)
+      (error "multiple-value-bind: all vars must symbols")) ;{TODO} proper error
+    (setf (v-multi-val-vars new-env) vars)
+    (let ((val-obj (varjo->glsl value-form new-env)))
+      (unless (= (length vars) (1+ (length (multi-vals val-obj)))) ;;{TODO} proper error
+        (error "multiple-value-bind: value form values do not match lambda list"))
+      (let ((complete-vars (mapcar #'list (rest vars) (multi-vals val-obj))))
+        (print "Hi")
+        (expand->varjo->glsl (print `(let ,complete-vars
+                                       (let ((,(first vars) (progn ,val-obj)))
+                                         ,@body)))
+                             env)))))
+
+(v-defun :values (&rest values)
+  :special
+  :args-valid t
+  :return 
+  (let* ((objs (mapcar (lambda (x) (varjo->glsl x env)) values)))
+    (setf (multi-vals (first objs)) (rest objs))
+    ;;{TODO} this needs to be a merge
+    (first objs)))
 
 (v-defun :%clean-env-block (&body body)
   :special
@@ -99,7 +120,7 @@
   :special
   :args-valid t
   :return
-  (let* ((code (varjo->glsl form env)))
+  (let ((code (varjo->glsl form env)))
     (merge-obs code :type (code-type code)
                :current-line (prefix-type-declaration code qualifiers))))
 
@@ -183,43 +204,57 @@
          (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
                         (%env-multi-var-declare ,args nil ,arg-glsl-names)
                         ,@body) env))
-         (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))        
+         (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))
          (returns (returns body-obj))        
          (type (if mainp (type-spec->type 'v-void) (first returns))))
+
     (unless (or mainp returns) (error 'no-function-returns :name name))
     (unless (loop :for r :in returns :always (v-type-eq r (first returns)))
       (error 'return-type-mismatch :name name :types type :returns returns))
-    (let ((arg-pairs (loop :for (ignored type) :in raw-args
-                        :for name :in arg-glsl-names :collect
-                        `(,(v-glsl-string (type-spec->type type)) ,name))))
-      (add-function name (func-spec->function 
-                          (v-make-f-spec (gen-function-transform glsl-name
-                                                                 raw-args)
-                                         raw-args (mapcar #'second raw-args)
-                                         type :glsl-name glsl-name) env) 
-                    env t)
-      (values (merge-obs 
-               body-obj
-               :type (type-spec->type 'v-none)
-               :current-line nil
-               :signatures (if mainp (signatures body-obj)
-                               (cons (gen-function-signature glsl-name arg-pairs type)
-                                     (signatures body-obj)))
-               :to-top (cons-end (gen-function-body-string glsl-name arg-pairs type body-obj)
-                                 (to-top body-obj))
-               :to-block nil
-               :returns nil
-               :out-vars (out-vars body-obj))
+
+    (add-function 
+     name (func-spec->function 
+           (v-make-f-spec (gen-function-transform glsl-name raw-args)
+                          raw-args (mapcar #'second raw-args)
+                          type :glsl-name glsl-name) env) env t)
+
+    (let* ((arg-pairs (loop :for (ignored type) :in raw-args
+                         :for name :in arg-glsl-names :collect
+                         `(,(v-glsl-string (type-spec->type type)) ,name)))
+           (sigs (if mainp 
+                     (signatures body-obj)
+                     (cons (gen-function-signature glsl-name arg-pairs type)
+                           (signatures body-obj))))
+           (top (cons-end (gen-function-body-string glsl-name arg-pairs type
+                                                    body-obj)
+                          (to-top body-obj))))      
+      (values (merge-obs body-obj
+                         :type (type-spec->type 'v-none)
+                         :current-line nil
+                         :signatures sigs
+                         :to-top top
+                         :to-block nil
+                         :returns nil
+                         :out-vars (out-vars body-obj))
               env))))
 
+;; {TODO} should this error for certain types?
 (v-defun :return (form)
   :special
   :args-valid t
   :return
-  (let ((obj (varjo->glsl form env)))
-    (merge-obs obj :type 'v-void
-               :current-line (format nil "return ~a" (current-line obj))
-               :returns (list (code-type obj)))))
+  (let* ((obj (varjo->glsl form env))
+         (result (merge-obs 
+                  obj :type 'v-void
+                  :current-line (format nil "return ~a" (current-line obj))
+                  :returns (cons (code-type obj)
+                                 (multi-vals obj))))
+         ;; This is done to ensure that any return statement in
+         ;; the form is also compatible with the return statement
+         ;; that has just been created
+         (ign (merge-returns obj result)))
+    (declare (ignore ign))
+    result))
 
 (v-defmacro :labels (definitions &body body)
   `(%clone-env-block

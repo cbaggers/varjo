@@ -158,4 +158,7 @@
   (p-symb (symbol-package symbol) 
           (string-downcase (symbol-name symbol))))
 
+(defun last1 (list)
+  (car (last list)))
+
 
