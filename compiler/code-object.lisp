@@ -53,7 +53,7 @@
                  :to-top (if set-top to-top (to-top code-obj))
                  :out-vars (if set-out-vars out-vars (out-vars code-obj))
                  :invariant (if invariant invariant (invariant code-obj))
-                 :returns (if set-returns returns (returns code-obj))
+                 :returns (listify (if set-returns returns (returns code-obj)))
                  :used-types (used-types code-obj)
                  :used-external-functions (used-external-functions code-obj)
                  :stemcells (stemcells code-obj)
@@ -85,7 +85,7 @@
                  :to-top (if set-top to-top (mapcan #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
                  :invariant invariant
-                 :returns (if set-returns returns (merge-returns objs))
+                 :returns (listify (if set-returns returns (merge-returns objs)))
                  :used-types (mapcar #'used-types objs)
                  :used-external-functions (if set-used-funcs used-funcs 
                                               (mapcan #'used-external-functions objs))
@@ -111,7 +111,7 @@
                  :to-top (if set-top to-top (remove nil (to-top objs)))
                  :out-vars (if set-out-vars out-vars (out-vars objs))
                  :invariant invariant
-                 :returns (if set-returns returns (returns objs))
+                 :returns (listify (if set-returns returns (returns objs)))
                  :used-types (used-types objs)
                  :used-external-functions (if set-used-funcs used-funcs 
                                  (used-external-functions objs))
@@ -120,6 +120,7 @@
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))
+         (returns (remove nil returns))
          (first (first returns))
          (match (or (every #'null returns)
                     (loop :for r :in (rest returns) :always
@@ -127,8 +128,8 @@
                             (mapcar #'v-type-eq first r))))))
     ;; {TODO} Proper error needed here
     (if match
-        first
-        (error 'return-type-mismatch :returns returns)))) 
+        (listify first)
+        (progn (error 'return-type-mismatch :returns returns))))) 
 
 (defun merge-lines-into-block-list (objs)
   (when objs

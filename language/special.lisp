@@ -106,10 +106,16 @@
     (let* ((obj (varjo->glsl form new-env))
            (mvals (multi-vals obj))
            (mval-types (mapcar #'v-type mvals))
-           (result (merge-obs
-                    obj :type 'v-void
-                    :current-line (format nil "return ~a" (current-line obj))
-                    :returns (cons (code-type obj) mval-types))))
+           (result
+            (if mvals
+                (merge-obs
+                 obj :type 'v-void
+                 :current-line (format nil "return ~a" (v-glsl-name (first mvals)))
+                 :returns mval-types)
+                (merge-obs
+                 obj :type 'v-void
+                 :current-line (format nil "return ~a" (current-line obj))
+                 :returns (list (code-type obj))))))
       result)))
 
 (v-defun :values (&rest values)
@@ -125,8 +131,8 @@
                             (format nil "~a~a" base i)))             
              (bindings (mapcar (lambda (x y) (list (list x) y))  names values))
              (result (varjo->glsl 
-                      (print `(%clone-env-block
-                         (%env-multi-var-declare ,bindings :env-and-set ,glsl-names)))
+                      `(%clone-env-block
+                        (%env-multi-var-declare ,bindings :env-and-set ,glsl-names))
                       (clone-environment env))))
         (setf (multi-vals result) 
               (loop :for o :in objs :for n in glsl-names :collect 
@@ -245,10 +251,10 @@
          (arg-glsl-names (loop :for (name) :in raw-args :collect
                             (safe-glsl-name-string (free-name name))))
          (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
-                        (%env-multi-var-declare ,args nil ,arg-glsl-names)
-                        ,@body) env))
+                                   (%env-multi-var-declare ,args nil ,arg-glsl-names)
+                                   ,@body) env))
          (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))
-         (primary-return (returns body-obj))
+         (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
          (type (if mainp (type-spec->type 'v-void) primary-return)))
 
@@ -263,15 +269,18 @@
     (let* ((arg-pairs (loop :for (ignored type) :in raw-args
                          :for name :in arg-glsl-names :collect
                          `(,(v-glsl-string (type-spec->type type)) ,name)))
-           (out-arg-pairs (loop :for m :in multi-return-vars :collect
-                             (list (v-glsl-string m) (free-name 'out-arg))))
+           (out-arg-pairs (loop :for type :in multi-return-vars :for i :from 1
+                             :for name = (fmt "return~a" i) :collect
+                             `(,(v-glsl-string type) ,name)))
            (sigs (if mainp
                      (signatures body-obj)
-                     (cons (gen-function-signature glsl-name arg-pairs type)
+                     (cons (gen-function-signature glsl-name arg-pairs 
+                                                   out-arg-pairs type)
                            (signatures body-obj))))
            (top (cons-end (gen-function-body-string 
                            glsl-name arg-pairs out-arg-pairs type body-obj)
                           (to-top body-obj))))
+
       (values (merge-obs body-obj
                          :type (type-spec->type 'v-none)
                          :current-line nil

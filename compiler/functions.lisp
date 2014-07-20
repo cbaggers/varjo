@@ -126,7 +126,8 @@
      (v-make-f-spec (gen-function-transform glsl-name args) args
                           (mapcar #'second args) return-type :glsl-name glsl-name
                           :required-glsl 
-                          `((,(gen-function-signature glsl-name arg-pairs return-type))
+                          `((,(gen-function-signature glsl-name arg-pairs nil
+                                                      return-type))
                             (,(gen-glsl-function-body-string
                                glsl-name arg-pairs return-type glsl-string))))
      *global-env* t)

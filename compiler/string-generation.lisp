@@ -31,25 +31,32 @@
 (defun gen-function-transform (name args)
   (format nil "~a(~{~a~^,~})" name (loop for i in args collect "~a")))
 
-(defun gen-function-signature (name args return-type)
-  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~));"
-          (v-glsl-string return-type)
+(defun gen-function-signature (name args out-args return-types)  
+  (format nil "~a ~a(~a);"
+          (v-glsl-string return-types)
           name
-          args))
+          (gen-arg-string args out-args)))
+
+(defun gen-arg-string (arg-pairs &optional out-pairs)
+  (let ((arg-string (format nil "~(~{~{~a ~a~}~^,~^ ~}~)" arg-pairs)))
+    (if out-pairs
+        (if (> (length arg-string) 0)
+            (format nil "~a, ~(~{~{out ~a ~a~}~^,~^ ~}~)" arg-string out-pairs)
+            (format nil "~(~{~{out ~a ~a~}~^,~^ ~}~)" out-pairs))
+        arg-string)))
 
 (defun gen-glsl-function-body-string (name args type glsl-string)
-  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~a~%}~%"
+  (format nil "~a ~a(~a) {~%~a~%}~%"
           (v-glsl-string type)
           (string-downcase (string name))
-          args
+          (gen-arg-string args)
           glsl-string))
 
 (defun gen-function-body-string (name args out-args type body-obj)
-  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~) ~(,~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[~a~%~]}~%"
+  (format nil "~a ~a(~a) {~%~{~a~%~}~@[~a~%~]}~%"
           (v-glsl-string type)
           (string-downcase (string name))
-          args
-          out-args
+          (gen-arg-string args out-args)
           (remove "" (to-block body-obj) :test #'equal)
           (current-line (end-line body-obj))))
 

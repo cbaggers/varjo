@@ -1,5 +1,6 @@
 (in-package :varjo)
 
+
 (defun varjo->glsl (code env)
   (multiple-value-bind (code new-env)
       (cond ((or (null code) (eq t code)) (compile-bool code env))
