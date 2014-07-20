@@ -62,9 +62,9 @@
 (deferror no-valid-function (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
 
-(deferror return-type-mismatch (name types returns)
-    "Some of the return statements in function '~a' return different types~%~a~%~a" 
-  name types returns)
+(deferror return-type-mismatch (returns)
+    "Some of the return statements return different types:~{~%~a~}"
+  returns)
 
 (deferror non-place-assign (place val)
     "You cannot setf this: ~a ~%This was attempted as follows ~a"

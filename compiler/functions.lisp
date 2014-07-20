@@ -7,21 +7,23 @@
 ;;----------------
 
 (defun v-make-f-spec (transform args arg-types return-spec 
-                      &key place glsl-spec-matching glsl-name required-glsl)
+                      &key place glsl-spec-matching glsl-name required-glsl 
+                        multi-return-vars)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
          (args (if context-pos (subseq args 0 context-pos) args)))
     (declare (ignore args))
     (list transform arg-types return-spec context place glsl-spec-matching 
-          glsl-name required-glsl)))
+          glsl-name required-glsl multi-return-vars)))
 ;;
-;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THE OTHER-vvvvv
+;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THIS -vvvvv
+;;                  AND FUNC-SPEC->FUNCTION
 ;;
 ;;[TODO] split each case into a different macro and use this as core
 ;;[TODO] use make-func-spec so we have only one place where the spec
 ;;       is defined, this will lower the number of errors once we start
 ;;       editting things in the future
-;;[TODO] This is the ugliest part of varjo now....sort it out!
+;;[TODO] This is probably the ugliest part of varjo now....sort it out!
 (defmacro v-defun (name args &body body)
   (let* ((context-pos (position '&context args :test #'symbol-name-equal))
          (context (when context-pos (subseq args (1+ context-pos))))
@@ -34,33 +36,34 @@
                                           &key place glsl-spec-matching glsl-name) body
              `(progn (add-function ',name '(,transform ,arg-types ,return-spec
                                             ,context ,place ,glsl-spec-matching 
-                                            ,glsl-name nil)
+                                            ,glsl-name nil nil)
                                    *global-env*)
                      ',name)))
           ((eq (first body) :special)
            (destructuring-bind (&key context place args-valid return)
                (rest body)
              (if (eq args-valid t)
-                 `(progn 
-                        (add-function ',name (list :special 
+                 `(progn
+                        (add-function ',name (list :special
                                                    t
-                                                   (lambda ,(cons 'env args) 
-                                                     (declare (ignorable env ,@arg-names)) 
-                                                     ,return)
-                                                   ,context ,place nil nil nil)
+                                                   (lambda ,(cons 'env args)
+                                                     (declare (ignorable env ,@arg-names))
+                                  
+                   ,return)
+                                                   ,context ,place nil nil nil nil)
                                       *global-env*)
                         ',name)
                  (if args-valid
-                     `(progn 
-                        (add-function ',name (list :special 
+                     `(progn
+                        (add-function ',name (list :special
                                                    (lambda ,(cons 'env args)
                                                      (declare (ignorable env ,@arg-names))
-                                                     (let ((res ,args-valid)) 
+                                                     (let ((res ,args-valid))
                                                        (when res (list res 0))))
                                                    (lambda ,(cons 'env args) 
-                                                     (declare (ignorable env ,@arg-names)) 
+                                                     (declare (ignorable env ,@arg-names))
                                                      ,return)                                               
-                                                   ,context ,place nil nil nil)
+                                                   ,context ,place nil nil nil nil)
                                       *global-env*)
                         ',name)
                      `(progn
@@ -69,7 +72,7 @@
                                                    (lambda ,(cons 'env (mapcar #'first args))
                                                      (declare (ignorable env ,@arg-names))
                                                      ,return)
-                                                   ,context ,place nil nil nil)
+                                                   ,context ,place nil nil nil nil)
                                       *global-env*)
                         ',name)))))
           (t `(progn (v-def-external ,name ,args ,@body)

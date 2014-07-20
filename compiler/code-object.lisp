@@ -107,11 +107,7 @@
                  :current-line (if set-current-line current-line 
                                    (current-line objs)) 
                  :signatures (if set-sigs signatures (signatures objs))
-                 :to-block (if set-block to-block 
-                               (append (remove nil (to-block objs))
-                                       (when (not multi-vals) 
-                                         (merge-lines-into-block-list 
-                                          (multi-vals objs)))))
+                 :to-block (if set-block to-block (remove nil (to-block objs)))
                  :to-top (if set-top to-top (remove nil (to-top objs)))
                  :out-vars (if set-out-vars out-vars (out-vars objs))
                  :invariant invariant
@@ -132,8 +128,7 @@
     ;; {TODO} Proper error needed here
     (if match
         first
-        (error "Returns types do not match across the shader:~{~%~a~}"
-               (mapcar #'returns objs))))) 
+        (error 'return-type-mismatch :returns returns)))) 
 
 (defun merge-lines-into-block-list (objs)
   (when objs

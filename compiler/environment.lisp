@@ -33,7 +33,7 @@
    (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
    (types :initform nil :initarg :types :accessor v-types)
    (context :initform nil :initarg :context :accessor v-context)
-   (multi-val-vars :initform nil :initarg :multi-val-vars :accessor v-multi-val-vars)))
+   (multi-val-base :initform nil :initarg :multi-val-base :accessor v-multi-val-base)))
 
 (defun make-varjo-environment (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
@@ -80,7 +80,7 @@
                  :raw-context (v-raw-context env)
                  :raw-uniforms (v-raw-uniforms env)
                  :raw-args (v-raw-in-args env)
-                 :multi-val-vars (v-multi-val-vars env)))
+                 :multi-val-base (v-multi-val-base env)))
 
 (defmethod clean-environment ((env environment))
   (make-instance 'environment :variables nil :functions nil
@@ -333,7 +333,8 @@
 
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 
-                                 glsl-spec-matching glsl-name required-glsl)
+                                 glsl-spec-matching glsl-name required-glsl
+                                 multi-return-vars)
       spec
     (make-instance 'v-function :glsl-string transform 
                    :arg-spec (if (listp arg-spec)
@@ -346,7 +347,8 @@
                    :restriction context :place place
                    :required-glsl required-glsl
                    :glsl-spec-matching glsl-spec-matching 
-                   :glsl-name glsl-name)))
+                   :glsl-name glsl-name
+                   :multi-return-vars multi-return-vars)))
 
 (defun function->func-spec (func &key required-glsl)
   (let ((arg-spec (v-argument-spec func)))

@@ -1,15 +1,15 @@
 (in-package :varjo)
 
 (defun safe-glsl-name-string (name)
-  (if (valid-user-defined-name name) 
-      (string-downcase 
+  (if (valid-user-defined-name name)
+      (string-downcase
        (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
       (error 'name-unsuitable :name name)))
 
 (defun gen-reserved-var-string (name-symbol)
   (let* ((name-string (symbol-name name-symbol))
          (split-name (split-sequence #\- name-string :test #'equal)))
-    (format nil "gl_~{~a~}" (loop :for part :in split-name 
+    (format nil "gl_~{~a~}" (loop :for part :in split-name
                                :if (not (equal part "GL")) :collect
                                (if (<= (length part) 2)
                                    (string-upcase part)
@@ -39,17 +39,18 @@
 
 (defun gen-glsl-function-body-string (name args type glsl-string)
   (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~a~%}~%"
-          (v-glsl-string type) 
+          (v-glsl-string type)
           (string-downcase (string name))
           args
           glsl-string))
 
-(defun gen-function-body-string (name args type body-obj)
-  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[~a~%~]}~%"
+(defun gen-function-body-string (name args out-args type body-obj)
+  (format nil "~a ~a(~(~{~{~a ~a~}~^,~^ ~}~) ~(,~{~{~a ~a~}~^,~^ ~}~)) {~%~{~a~%~}~@[~a~%~]}~%"
           (v-glsl-string type)
-          (string-downcase (string name)) 
+          (string-downcase (string name))
           args
-          (remove "" (to-block body-obj) :test #'equal) 
+          out-args
+          (remove "" (to-block body-obj) :test #'equal)
           (current-line (end-line body-obj))))
 
 (defun gen-assignment-string (place val)
@@ -61,14 +62,14 @@
 (defun gen-if-string (test-obj then-obj else-obj)
   (if else-obj
       (format nil "~a~&if (~a) {~{~%~a~}~%~a~%} else {~{~%~a~}~%~a~%}"
-              (or (to-block test-obj) "") 
+              (or (to-block test-obj) "")
               (current-line test-obj)
-              (or (to-block then-obj) nil) 
+              (or (to-block then-obj) nil)
               (current-line then-obj)
-              (or (to-block else-obj) nil) 
+              (or (to-block else-obj) nil)
               (current-line else-obj))
       (format nil "~a~&if (~a) {~{~%~a~}~%~a~%}"
-              (or (to-block test-obj) "") 
+              (or (to-block test-obj) "")
               (current-line test-obj)
               (or (to-block then-obj) nil)
               (current-line then-obj))))
@@ -94,18 +95,18 @@
 (defun gen-switch-string (test-obj keys clause-body-objs
                           &optional (default-symb 'default))
   (let* ((default-clause nil)
-         (format-clauses 
+         (format-clauses
           (loop :for key :in keys
              :for obj :in clause-body-objs
              :append
-             (if (eq key default-symb) 
+             (if (eq key default-symb)
                  (progn (setf default-clause (list "default" nil "jam")) nil)
-                 (list key 
-                       (or (to-block obj) nil) 
+                 (list key
+                       (or (to-block obj) nil)
                        (current-line obj))) :into result
-             :finally (return (append result default-clause))))) 
+             :finally (return (append result default-clause)))))
     (format nil "~a~%switch (~a) {~{~%case ~a:~%~{~a~^~%~}~a;~%break;~}}"
-            (or (to-block test-obj) "") 
+            (or (to-block test-obj) "")
             (current-line test-obj)
                   format-clauses)))
 
@@ -113,19 +114,19 @@
   (%qualify obj qualifiers))
 
 (defun %qualify (obj qualifiers)
-  (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a" 
-                                       (string-downcase (string qualifiers)) 
+  (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a"
+                                       (string-downcase (string qualifiers))
                                        (current-line obj))))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
                                                     line-string))
-                     ((typep type 'v-type) (format nil "~a ~a" 
+                     ((typep type 'v-type) (format nil "~a ~a"
                                                    (v-glsl-string type)
                                                    line-string))
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
-        (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a" 
+        (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a"
                 (loop :for q :in qualifiers :collect (string-downcase (string q)))
                 storage-qual
                 line)
@@ -136,14 +137,14 @@
                          storage-qual))
 
 (defun gen-out-var-string (name qualifiers value)
-  (let ((name (if (stringp name) 
+  (let ((name (if (stringp name)
                   (string-downcase
                    (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
                   (safe-glsl-name-string name))))
     (format nil "~a;" (prefix-type-to-string (v-type value) name qualifiers 'out))))
 
 (defun gen-in-var-string (name type qualifiers &optional layout)
-  (let ((name (if (stringp name) 
+  (let ((name (if (stringp name)
                   (string-downcase
                    (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
                   (safe-glsl-name-string name))))
@@ -159,7 +160,7 @@
 
 (defun gen-shader-string (code-obj env)
   (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
-          (loop :for part :in 
+          (loop :for part :in
              (list (used-types code-obj)
                    (mapcar #'fourth (v-in-args env))
                    (mapcar #'fourth (out-vars code-obj))
