@@ -135,7 +135,7 @@
                         (%env-multi-var-declare ,bindings :env-and-set ,glsl-names))
                       (clone-environment env))))
         (setf (multi-vals result) 
-              (loop :for o :in objs :for n in glsl-names :collect 
+              (loop :for o :in objs :for n in glsl-names :collect
                  (make-instance 'v-value :glsl-name n :type (code-type o))))
         result)
       (varjo->glsl `(progn1 ,@values) env)))
@@ -216,7 +216,8 @@
          (let ((type-spec (when type-spec (type-spec->type type-spec))))
            (add-var name
                     (make-instance 'v-value :glsl-name glsl-name
-                                   :type (or type-spec (code-type code-obj)))
+                                   :type (set-place-t (or type-spec
+                                                          (code-type code-obj))))
                     env t)))
       (values (if include-type-declarations
                   (merge-obs decl-objs
@@ -261,7 +262,8 @@
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
     (add-function
      name (func-spec->function
-           (v-make-f-spec (gen-function-transform glsl-name raw-args)
+           (v-make-f-spec (gen-function-transform glsl-name raw-args 
+                                                  multi-return-vars)
                           raw-args (mapcar #'second raw-args)
                           type :glsl-name glsl-name 
                           :multi-return-vars multi-return-vars) env) env t)

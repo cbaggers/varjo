@@ -68,21 +68,84 @@
                  (let ((type (glsl-resolve-func-type func args env)))
                    (unless type (error 'unable-to-resolve-func-type
                                        :func-name func-name :args args))
-                   (merge-obs args :type type :current-line
-                              (gen-function-string func args)
-                              :to-top (append (second (v-required-glsl func)) 
-                                              (mapcan #'to-top args))
-                              :signatures (append (first (v-required-glsl func))
-                                                  (mapcan #'signatures args))
-                              :used-funcs (if (v-required-glsl func)
-                                              (cons func-name (mapcan #'used-external-functions args))
-                                              (mapcan #'used-external-functions args)))))
+                   (if (multi-return-vars func)                       
+                       (compile-multi-return-func func-name func args 
+                                                  type env)
+                       (compile-func func-name func args type))))
            (push stemcells (stemcells code-obj))
            (values code-obj (or new-env env))))
           ((typep func 'v-error) (if (v-payload func)
                                      (error (v-payload func))
                                      (error 'cannot-compile :code code)))
           (t (error 'problem-with-the-compiler :target func))))))
+
+
+
+(defun compile-func (func-name func args type)
+  (let* ((c-line (gen-function-string func args)))
+    (merge-obs args :type type :current-line c-line
+               :to-top (append (second (v-required-glsl func)) 
+                               (mapcan #'to-top args))
+               :signatures (append (first (v-required-glsl func))
+                                   (mapcan #'signatures args))
+               :used-funcs (if (v-required-glsl func)
+                               (cons func-name
+                                     (mapcan #'used-external-functions args))
+                               (mapcan #'used-external-functions args)))))
+
+(defun compile-multi-return-func (func-name func args type env)  
+  (let* ((m-r-base (or (v-multi-val-base env)
+                       (safe-glsl-name-string (free-name 'nc))))
+         (m-r-types (multi-return-vars func)))    
+    (if (and (multi-return-vars func) (not (v-multi-val-base env)))
+        (let* ((bindings (loop :for type :in m-r-types :collect
+                            `((,(free-name 'nc) ,(type->type-spec type)))))
+               (m-r-names (loop :for i :below (length m-r-types) :collect
+                             (fmt "~a~a" m-r-base i)))         
+               (o (merge-obs args :type type 
+                             :current-line (gen-function-string func args m-r-names)
+                             :to-top (append (second (v-required-glsl func)) 
+                                             (mapcan #'to-top args))
+                             :signatures (append (first (v-required-glsl func))
+                                                 (mapcan #'signatures args))
+                             :used-funcs (if (v-required-glsl func)
+                                             (cons func-name
+                                                   (mapcan #'used-external-functions args))
+                                             (mapcan #'used-external-functions args)))))
+          (expand->varjo->glsl 
+           `(%clone-env-block
+             (%env-multi-var-declare ,bindings t ,m-r-names)
+             ,o) env))
+
+        (let* ((m-r-names (loop :for i :below (1+ (length m-r-types)) :collect
+                             (fmt "~a~a" m-r-base i)))
+               (o (merge-obs
+                   args :type type 
+                   :current-line (gen-function-string func args (rest m-r-names))
+                   :to-top (append (second (v-required-glsl func)) 
+                                   (mapcan #'to-top args))
+                   :signatures (append (first (v-required-glsl func))
+                                       (mapcan #'signatures args))
+                   :used-funcs (if (v-required-glsl func)
+                                   (cons func-name
+                                         (mapcan #'used-external-functions args))
+                                   (mapcan #'used-external-functions args))))
+               (bind `((,(free-name 'nr) ,o)))
+               (c (varjo->glsl 
+                   `(%clone-env-block
+                     (%env-multi-var-declare ,bind nil (,(first m-r-names)))
+                     (setf ,(caar bind) ,o)) 
+                   env)))
+          (merge-obs c
+                     :multi-vals (cons (make-instance 'v-value :type type
+                                                      :glsl-name (first m-r-names)) 
+                                       (mapcar (lambda (x y) (make-instance 
+                                                              'v-value :type x
+                                                              :glsl-name y))
+                                               m-r-types
+                                               (rest m-r-names))))))))
+
+
 
 (defun end-line (obj &optional force)
   (when obj

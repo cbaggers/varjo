@@ -22,14 +22,17 @@
   (format nil "~a~a" number (num-suffix type)))
 
 (defun gen-variable-string (var-name v-value)
-  (format nil "~a" (or (v-glsl-name v-value)
+  (format nil "~a" (or (v-glsl-name v-value) ()
                        (string-downcase (string var-name)))))
 
-(defun gen-function-string (func arg-objs)
-  (apply #'format nil (v-glsl-string func) (mapcar #'current-line arg-objs)))
+(defun gen-function-string (func arg-objs &optional out-strings)
+  (apply #'format nil (v-glsl-string func) 
+         (append (mapcar #'current-line arg-objs) out-strings)))
 
-(defun gen-function-transform (name args)
-  (format nil "~a(~{~a~^,~})" name (loop for i in args collect "~a")))
+(defun gen-function-transform (name args &optional out-args)
+  (format nil "~a(~{~a~^,~})" name 
+          (loop :for i :below (+ (length args) (length out-args)) 
+             :collect "~a")))
 
 (defun gen-function-signature (name args out-args return-types)  
   (format nil "~a ~a(~a);"
