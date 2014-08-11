@@ -1,5 +1,7 @@
 ;;;; package.lisp
 
+(in-package #:cl-user)
+
 (defpackage #:varjo
   (:use #:cl :split-sequence #:alexandria #:cl-ppcre)
   (:export :v-glsl-size
