@@ -58,7 +58,7 @@
 (defun compile-form (code env)
   (let* ((func-name (first code)) 
          (args-code (rest code)))
-    (destructuring-bind (func args stemcells)
+    (destructuring-bind (func args)
         (find-function-for-args func-name args-code env)
       (cond 
         ((typep func 'v-function)
@@ -71,8 +71,7 @@
                    (if (multi-return-vars func)                       
                        (compile-multi-return-func func-name func args 
                                                   type env)
-                       (compile-func func-name func args type))))
-           (push stemcells (stemcells code-obj))
+                       (compile-func func-name func args type))))           
            (values code-obj (or new-env env))))
           ((typep func 'v-error) (if (v-payload func)
                                      (error (v-payload func))

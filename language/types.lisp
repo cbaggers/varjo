@@ -10,6 +10,8 @@
    (glsl-size :initform 1)
    (casts-to :initform nil)))
 (defclass v-stemcell (v-type) ())
+(defun stemcellp (x)
+  (typep x 'v-stemcell))
 
 (defmethod set-place-t ((type v-type))
   (setf (v-placep type) t) type)

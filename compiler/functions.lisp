@@ -135,14 +135,6 @@
 
 ;;------------------------------------------------------------
 
-;;[TODO] The stemcell stuff feels like it has been just bodged in, 
-;;       can we make this code read more naturally.
-
-;;[TODO] Where should this live?
-(defun get-stemcells (arg-objs final-types)
-  (loop :for o :in arg-objs :for f :in final-types
-     :if (typep (code-type o) 'v-stemcell) :collect `(,o ,f)))
-
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
@@ -155,7 +147,7 @@
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env))
         (if (eq method t)
-            (list t func arg-code nil)
+            (list t func arg-code)
             (handler-case (list 0 func (apply method (cons env arg-code)) nil) 
               (varjo-error () nil))))))
 
@@ -172,73 +164,88 @@
                       (equal (v-dimensions (nth i arg-types)) g-dim))))
       (if (loop :for a :in arg-types :for s :in spec-types :always 
              (v-typep a s env))
-          (list 0 func (swap-stemcells arg-objs spec-types)
-                (get-stemcells arg-objs spec-types))
+          (list 0 func (mapcar #'copy-code arg-objs))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                              :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
               (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                              :collect (copy-code obj :type type))
-                    (get-stemcells arg-objs cast-types))))))))
-
-(defun swap-stemcells (args-objs types)
-  (loop :for a :in args-objs :for type :in types
-     :collect (if (typep (code-type a) 'v-stemcell) 
-                  (copy-code a :type type)
-                  (copy-code a))))
+                              :collect (copy-code obj :type type)))))))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
   (let ((spec-types (v-argument-spec func)))
     (when (eql (length arg-objs) (length spec-types))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s env))
-          (list 0 func (swap-stemcells arg-objs spec-types)
-                (get-stemcells arg-objs spec-types))
+          (list 0 func (mapcar #'copy-code arg-objs))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                                :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
               (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                              :collect (copy-code obj :type type))
-                    (get-stemcells arg-objs cast-types))))))))
+                              :collect (copy-code obj :type type)))))))))
 
-(defun find-functions-for-args (func-name args-code env &aux matches)
-  (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
-    (if potentials
-        (loop :for func :in potentials :for bias-count :from 0 :do
-           (when (and (not arg-objs) (func-need-arguments-compiledp func))
-             (setf arg-objs (loop :for i :in args-code :collect 
-                               (try-compile-arg i env)))
-             (setf arg-types (mapcar #'code-type arg-objs))
-             (setf any-errors (some #'v-errorp arg-types)))           
-           (let ((match (if (v-special-functionp func)
-                            (special-arg-matchp func args-code arg-objs
-                                                arg-types any-errors env)
-                            (when (not any-errors)
-                              (if (v-glsl-spec-matchingp func)
-                                  (glsl-arg-matchp func arg-types arg-objs env)
-                                  (basic-arg-matchp func arg-types arg-objs env))))))
-             (if (eq (first match) t)
-                 (return (list match))
-                 (when match
-                   (when (numberp (first match)) 
-                     (setf (first match) (+ (first match)
-                                            (* bias-count +order-bias+))))
-                   (push match matches))))
-           :finally (return (or matches (func-find-failure func-name arg-objs))))
-        (error 'could-not-find-function :name func-name))))
+(defun match-function-to-args (args-code compiled-args env candidate)
+  (let* ((arg-types (mapcar #'code-type (print compiled-args)))
+         (any-errors (some #'v-errorp arg-types)))
+    (if (v-special-functionp candidate)
+        (special-arg-matchp candidate args-code compiled-args arg-types
+                            any-errors env)
+        (when (not any-errors)
+          (if (v-glsl-spec-matchingp candidate)
+              (glsl-arg-matchp candidate arg-types compiled-args env)
+              (basic-arg-matchp candidate arg-types compiled-args env))))))
+
+(defun find-functions-for-args (func-name args-code env)
+  (let* ((candidates (or (get-function func-name env)
+                         (error 'could-not-find-function :name func-name)))
+         (compiled-args (when (some #'func-need-arguments-compiledp candidates)
+                          (mapcar (rcurry #'try-compile-arg env) args-code)))
+         (match (curry #'match-function-to-args args-code compiled-args env))
+         (matches (remove nil (mapcar match candidates))))
+    (or (find-if #'(lambda (x) (eq t (first x))) matches)
+        (mapcar (lambda (x y) 
+                  (when (numberp (first x)) 
+                    (cons (+ (first x) (* y +order-bias+)) (rest x))))
+                matches (iota (length matches)))
+        (func-find-failure func-name compiled-args))))
+
+;; (defun find-functions-for-args (func-name args-code env &aux matches)
+;;   (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
+;;     (if potentials
+;;         (loop :for func :in potentials :for bias-count :from 0 :do
+;;            (when (and (not arg-objs) (func-need-arguments-compiledp func))
+;;              (setf arg-objs (loop :for i :in args-code :collect 
+;;                                (try-compile-arg i env)))
+;;              (setf arg-types (mapcar #'code-type arg-objs))
+;;              (setf any-errors (some #'v-errorp arg-types)))           
+;;            (let ((match (if (v-special-functionp func)
+;;                             (special-arg-matchp func args-code arg-objs
+;;                                                 arg-types any-errors env)
+;;                             (when (not any-errors)
+;;                               (if (v-glsl-spec-matchingp func)
+;;                                   (glsl-arg-matchp func arg-types arg-objs env)
+;;                                   (basic-arg-matchp func arg-types arg-objs env))))))
+;;              (if (eq (first match) t)
+;;                  (return (list match))
+;;                  (when match
+;;                    (when (numberp (first match)) 
+;;                      (setf (first match) (+ (first match)
+;;                                             (* bias-count +order-bias+))))
+;;                    (push match matches))))
+;;            :finally (return (or matches (func-find-failure func-name arg-objs))))
+;;         (error 'could-not-find-function :name func-name))))
 
 ;; if there were no candidates then pass errors back
 (defun func-find-failure (func-name arg-objs)
   (loop :for arg-obj :in arg-objs
      :if (typep (code-type arg-obj) 'v-error) 
-     :return `((t ,(code-type arg-obj) nil nil)) 
+     :return `((t ,(code-type arg-obj) nil)) 
      :finally (return
                 `((t ,(make-instance 'v-error :payload
                                          (make-instance 'no-valid-function
                                                         :name func-name
                                                         :types (mapcar #'code-type
                                                                        arg-objs)))
-                         nil nil)))))
+                         nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
@@ -247,15 +254,18 @@
    the lower the better. We then take the first one and return that
    as the function to use."
   (let* ((functions (find-functions-for-args func-name args-code env)))
-    (destructuring-bind (score function arg-objs stemcells)
+    (print "- - - - - - - - - - -")
+    (print func-name)
+    (print (length functions))
+    (destructuring-bind (score function arg-objs)
         (if (> (length functions) 1) 
-            (first (sort functions #'< :key #'first))
+            (let ((arg-objs))
+              (if (some #'stemcellp (print (code-type arg-objs)))
+                  (error 'multi-func-stemcells functions arg-objs)
+                  (first (sort functions #'< :key #'first))))
             (first functions))
       (declare (ignore score))
-      (when (some #'(lambda (x) (and (typep x 'code) (typep (code-type x) 'v-stemcell)))
-                  arg-objs)
-        (error "Leaking stemcells, fix thsi and remove this error ~a" arg-objs))
-      (list function arg-objs stemcells))))
+      (list function arg-objs))))
 
 (defun glsl-resolve-func-type (func args env)
   "nil - superior type

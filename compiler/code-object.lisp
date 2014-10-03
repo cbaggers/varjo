@@ -17,7 +17,6 @@
    (used-types :initarg :used-types :initform nil :accessor used-types)
    (used-external-functions :initarg :used-external-functions :initform nil 
                             :accessor used-external-functions)
-   (stemcells :initarg :stemcells :initform nil :accessor stemcells)
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)
    (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)))
@@ -56,7 +55,6 @@
                  :returns (listify (if set-returns returns (returns code-obj)))
                  :used-types (used-types code-obj)
                  :used-external-functions (used-external-functions code-obj)
-                 :stemcells (stemcells code-obj)
                  :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))))
 
 
@@ -89,7 +87,6 @@
                  :used-types (mapcar #'used-types objs)
                  :used-external-functions (if set-used-funcs used-funcs 
                                               (mapcan #'used-external-functions objs))
-                 :stemcells (mapcar #'stemcells objs)
                  :multi-vals multi-vals))
 
 (defmethod merge-obs ((objs code) 
@@ -115,7 +112,6 @@
                  :used-types (used-types objs)
                  :used-external-functions (if set-used-funcs used-funcs 
                                  (used-external-functions objs))
-                 :stemcells (stemcells objs)
                  :multi-vals multi-vals))
 
 (defun merge-returns (objs)

@@ -225,7 +225,6 @@
 (defun filter-used-items (code env)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
-  (setf (stemcells code) (normalize-used-types (stemcells code)))
   (setf (used-types code) 
         (loop :for i :in (remove-duplicates (find-used-user-structs code env))
            :collect (type-spec->type i :env env)))
