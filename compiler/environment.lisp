@@ -15,7 +15,7 @@
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *supported-stages* '(:vertex :fragment))
 (defparameter *default-version* :330)
-(defparameter *default-context* '(:330 :vertex))
+(defparameter *default-context* '(:330 :vertex :stemcells))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
                                            :stemcells))
@@ -91,9 +91,9 @@
 (defmethod normalize-environment (env &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
     (labels ((norm-list (x) (loop :for i :in x :for seen = nil :do
-                              (when (not (find (first i) seen :key #'first))
-                                (push i seen))
-                              :finally (return seen))))
+                               (when (not (find (first i) seen :key #'first))
+                                 (push i seen))
+                               :finally (return seen))))
       (setf (v-variables env) (norm-list (v-variables env)))
       (setf (v-functions env) (norm-list (v-functions env)))
       (setf (v-macros env) (norm-list (v-macros env)))
@@ -196,13 +196,13 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list) 
-                      (env (eql :-genv-)) &optional modify-env)
+                               (env (eql :-genv-)) &optional modify-env)
   (declare (ignore modify-env))
   (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
   *global-env*)
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
-                      (env environment) &optional modify-env)  
+                               (env environment) &optional modify-env)  
   (let ((env (if modify-env env (clone-environment env))))
     (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
       (a-set macro-name `(,macro ,context) (v-compiler-macros env)))
@@ -269,7 +269,7 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-type (type-name (type-obj v-type) (env environment)
-                    &optional modify-env)
+                     &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
     (a-add type-name type-obj (v-types env))    
     env))

@@ -121,7 +121,7 @@
       (setf (v-raw-in-args env) in-args)
       (setf (v-raw-uniforms env) uniforms)
       (setf (v-raw-context env) context)
-      (when (not context) (setf (v-context env) *default-context*))
+      (when (not context) (setf (v-raw-context env) *default-context*))
       (when (check-for-stage-specific-limitations env)
         (values body env)))))
 

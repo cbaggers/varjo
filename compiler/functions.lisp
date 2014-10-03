@@ -155,7 +155,7 @@
             (make-instance 'func-match :score t :func func :arguments arg-code)
             (handler-case (make-instance 
                            'func-match :score 0 :func func 
-                           :arguments (apply method (cons env arg-code))) ; list used to end in nil
+                           :arguments (apply method (cons env arg-code)))
               (varjo-error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs env)
@@ -228,32 +228,6 @@
                 (iota (length matches)))
         (func-find-failure func-name compiled-args))))
 
-;; (defun find-functions-for-args (func-name args-code env &aux matches)
-;;   (let (arg-objs arg-types any-errors (potentials (get-function-by-name func-name env)))
-;;     (if potentials
-;;         (loop :for func :in potentials :for bias-count :from 0 :do
-;;            (when (and (not arg-objs) (func-need-arguments-compiledp func))
-;;              (setf arg-objs (loop :for i :in args-code :collect 
-;;                                (try-compile-arg i env)))
-;;              (setf arg-types (mapcar #'code-type arg-objs))
-;;              (setf any-errors (some #'v-errorp arg-types)))           
-;;            (let ((match (if (v-special-functionp func)
-;;                             (special-arg-matchp func args-code arg-objs
-;;                                                 arg-types any-errors env)
-;;                             (when (not any-errors)
-;;                               (if (v-glsl-spec-matchingp func)
-;;                                   (glsl-arg-matchp func arg-types arg-objs env)
-;;                                   (basic-arg-matchp func arg-types arg-objs env))))))
-;;              (if (eq (first match) t)
-;;                  (return (list match))
-;;                  (when match
-;;                    (when (numberp (first match)) 
-;;                      (setf (first match) (+ (first match)
-;;                                             (* bias-count +order-bias+))))
-;;                    (push match matches))))
-;;            :finally (return (or matches (func-find-failure func-name arg-objs))))
-;;         (error 'could-not-find-function :name func-name))))
-
 ;; if there were no candidates then pass errors back
 (defun func-find-failure (func-name arg-objs)
   (loop :for arg-obj :in arg-objs
@@ -277,7 +251,7 @@
     (with-slots (score func arguments)
         (if (> (length functions) 1) 
             (if (some (lambda (x) (some #'stemcellp (code-type x))) 
-                      (print functions))
+                      functions)
                 (error 'multi-func-stemcells functions)
                 (first (sort functions #'< :key #'score)))
             (first functions))
