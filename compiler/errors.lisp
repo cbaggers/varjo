@@ -133,5 +133,5 @@
 (deferror swizzle-keyword (item)
     "Swizzle expects a keyword to specify the components. Recieved ~a instead" item) 
 
-(deferror multi-func-stemcells (func-name arg-objs)
-    "Multiple functions found name ~a that match arguments.~%However varjo cannot decide which function to use because ~a of the arguments passed in are of stemcell type:~%~a" func-name (count-if #'stemcellp arg-objs) arg-objs)
+(deferror multi-func-stemcells (func-name)
+    "Multiple functions found name ~a that match arguments.~%However varjo cannot decide which function to use because n of the arguments passed in are of stemcell type" func-name)

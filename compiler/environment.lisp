@@ -128,7 +128,7 @@
             (and c-macros (get-compiler-macro name *global-env*)))
     (error 'cannot-not-shadow-core))
   (when specials
-    (loop :for func :in (get-function name *global-env*)
+    (loop :for func :in (get-function-by-name name *global-env*)
        :if (and specials (v-special-functionp func))       
        :do (error 'cannot-not-shadow-core)))
   t)
@@ -297,17 +297,17 @@
       (a-add func-name func-spec (v-functions env)))
     env))
 
-(defmethod get-function (func-name (env (eql :-genv-)))
+(defmethod get-function-by-name (func-name (env (eql :-genv-)))
   (sort-function-list
    (loop :for func-spec :in (append (gethash func-name *global-env-funcs*)
                                     (gethash (kwd func-name) *global-env-funcs*))
       :collect (func-spec->function func-spec env))))
 
-(defmethod get-function (func-name (env environment))
+(defmethod get-function-by-name (func-name (env environment))
   (sort-function-list
    (loop :for func :in (append (a-get func-name (v-functions env))
                                (a-get (kwd func-name) (v-functions env))
-                               (get-function func-name *global-env*))
+                               (get-function-by-name func-name *global-env*))
       :if (and func (valid-for-contextp func env)) :collect func)))
 
 (defmethod special-raw-argp ((func v-function))
@@ -330,7 +330,7 @@
       (if (v-glsl-spec-matchingp func) 3 4)))
 
 (defmethod v-fboundp (func-name (env environment))
-  (not (null (get-function func-name env))))
+  (not (null (get-function-by-name func-name env))))
 
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 

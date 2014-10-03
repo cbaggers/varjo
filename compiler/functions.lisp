@@ -44,15 +44,15 @@
                (rest body)
              (if (eq args-valid t)
                  `(progn
-                        (add-function ',name (list :special
-                                                   t
-                                                   (lambda ,(cons 'env args)
-                                                     (declare (ignorable env ,@arg-names))
-                                  
-                   ,return)
-                                                   ,context ,place nil nil nil nil)
-                                      *global-env*)
-                        ',name)
+                    (add-function ',name (list :special
+                                               t
+                                               (lambda ,(cons 'env args)
+                                                 (declare (ignorable env ,@arg-names))
+                                                 
+                                                 ,return)
+                                               ,context ,place nil nil nil nil)
+                                  *global-env*)
+                    ',name)
                  (if args-valid
                      `(progn
                         (add-function ',name (list :special
@@ -90,13 +90,13 @@
 (defun %v-def-external (name args body)
   (let ((env (make-instance 'environment))
         (body `(%make-function ,name ,args ,@body)))
-     (pipe-> (args body env)
-       #'split-input-into-env
-       (equal #'macroexpand-pass
-              #'compiler-macroexpand-pass)
-       #'compile-pass
-       #'filter-used-items
-       #'populate-required-glsl)))
+    (pipe-> (args body env)
+      #'split-input-into-env
+      (equal #'macroexpand-pass
+             #'compiler-macroexpand-pass)
+      #'compile-pass
+      #'filter-used-items
+      #'populate-required-glsl)))
 
 (defun populate-required-glsl (code env)
   ;; {TODO} this shouldnt return, it should just populate. Why? I havent justified this
@@ -124,16 +124,21 @@
     (add-function 
      name
      (v-make-f-spec (gen-function-transform glsl-name args) args
-                          (mapcar #'second args) return-type :glsl-name glsl-name
-                          :required-glsl 
-                          `((,(gen-function-signature glsl-name arg-pairs nil
-                                                      return-type))
-                            (,(gen-glsl-function-body-string
-                               glsl-name arg-pairs return-type glsl-string))))
+                    (mapcar #'second args) return-type :glsl-name glsl-name
+                    :required-glsl 
+                    `((,(gen-function-signature glsl-name arg-pairs nil
+                                                return-type))
+                      (,(gen-glsl-function-body-string
+                         glsl-name arg-pairs return-type glsl-string))))
      *global-env* t)
     t))
 
 ;;------------------------------------------------------------
+
+(defclass func-match () 
+  ((score :initarg :score :reader score) 
+   (func :initarg :func :reader func) 
+   (arguments :initarg :arguments :reader arguments)))
 
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
@@ -147,8 +152,10 @@
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env))
         (if (eq method t)
-            (list t func arg-code)
-            (handler-case (list 0 func (apply method (cons env arg-code)) nil) 
+            (make-instance 'func-match :score t :func func :arguments arg-code)
+            (handler-case (make-instance 
+                           'func-match :score 0 :func func 
+                           :arguments (apply method (cons env arg-code))) ; list used to end in nil
               (varjo-error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs env)
@@ -164,27 +171,34 @@
                       (equal (v-dimensions (nth i arg-types)) g-dim))))
       (if (loop :for a :in arg-types :for s :in spec-types :always 
              (v-typep a s env))
-          (list 0 func (mapcar #'copy-code arg-objs))
+          (make-instance 'func-match :score 0 :func func
+                         :arguments (mapcar #'copy-code arg-objs))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
-                             :collect (v-casts-to a s env))))
+                               :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
-              (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                              :collect (copy-code obj :type type)))))))))
+              (make-instance 'func-match :score 1 :func func
+                             :arguments (loop :for obj :in arg-objs :for type
+                                           :in cast-types :collect
+                                           (copy-code obj :type type)))))))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
   (let ((spec-types (v-argument-spec func)))
     (when (eql (length arg-objs) (length spec-types))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s env))
-          (list 0 func (mapcar #'copy-code arg-objs))
+          (make-instance 'func-match :score 0 :func func 
+                         :arguments (mapcar #'copy-code arg-objs))
           (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
                                :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
-              (list 1 func (loop :for obj :in arg-objs :for type :in cast-types
-                              :collect (copy-code obj :type type)))))))))
+              (make-instance
+               'func-match :score 1 :func func
+               :arguments (loop :for obj :in arg-objs
+                             :for type :in cast-types
+                             :collect (copy-code obj :type type)))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
-  (let* ((arg-types (mapcar #'code-type (print compiled-args)))
+  (let* ((arg-types (mapcar #'code-type compiled-args))
          (any-errors (some #'v-errorp arg-types)))
     (if (v-special-functionp candidate)
         (special-arg-matchp candidate args-code compiled-args arg-types
@@ -194,22 +208,28 @@
               (glsl-arg-matchp candidate arg-types compiled-args env)
               (basic-arg-matchp candidate arg-types compiled-args env))))))
 
+
 (defun find-functions-for-args (func-name args-code env)
-  (let* ((candidates (or (get-function func-name env)
+  (let* ((candidates (or (get-function-by-name func-name env)
                          (error 'could-not-find-function :name func-name)))
          (compiled-args (when (some #'func-need-arguments-compiledp candidates)
                           (mapcar (rcurry #'try-compile-arg env) args-code)))
-         (match (curry #'match-function-to-args args-code compiled-args env))
-         (matches (remove nil (mapcar match candidates))))
-    (or (find-if #'(lambda (x) (eq t (first x))) matches)
+         (match-fn (curry #'match-function-to-args args-code compiled-args env))
+         (matches (remove nil (mapcar match-fn candidates)))
+         (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
+    (or (when instant-win (list instant-win))
         (mapcar (lambda (x y) 
-                  (when (numberp (first x)) 
-                    (cons (+ (first x) (* y +order-bias+)) (rest x))))
-                matches (iota (length matches)))
+                  (when (numberp (score x))
+                    (make-instance 
+                     'func-match 
+                     :score (+ (score x) (* y +order-bias+))
+                     :func (func x) :arguments (arguments x))))
+                matches 
+                (iota (length matches)))
         (func-find-failure func-name compiled-args))))
 
 ;; (defun find-functions-for-args (func-name args-code env &aux matches)
-;;   (let (arg-objs arg-types any-errors (potentials (get-function func-name env)))
+;;   (let (arg-objs arg-types any-errors (potentials (get-function-by-name func-name env)))
 ;;     (if potentials
 ;;         (loop :for func :in potentials :for bias-count :from 0 :do
 ;;            (when (and (not arg-objs) (func-need-arguments-compiledp func))
@@ -241,11 +261,11 @@
      :return `((t ,(code-type arg-obj) nil)) 
      :finally (return
                 `((t ,(make-instance 'v-error :payload
-                                         (make-instance 'no-valid-function
-                                                        :name func-name
-                                                        :types (mapcar #'code-type
-                                                                       arg-objs)))
-                         nil)))))
+                                     (make-instance 'no-valid-function
+                                                    :name func-name
+                                                    :types (mapcar #'code-type
+                                                                   arg-objs)))
+                     nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
@@ -254,18 +274,15 @@
    the lower the better. We then take the first one and return that
    as the function to use."
   (let* ((functions (find-functions-for-args func-name args-code env)))
-    (print "- - - - - - - - - - -")
-    (print func-name)
-    (print (length functions))
-    (destructuring-bind (score function arg-objs)
+    (with-slots (score func arguments)
         (if (> (length functions) 1) 
-            (let ((arg-objs))
-              (if (some #'stemcellp (print (code-type arg-objs)))
-                  (error 'multi-func-stemcells functions arg-objs)
-                  (first (sort functions #'< :key #'first))))
+            (if (some (lambda (x) (some #'stemcellp (code-type x))) 
+                      (print functions))
+                (error 'multi-func-stemcells functions)
+                (first (sort functions #'< :key #'score)))
             (first functions))
       (declare (ignore score))
-      (list function arg-objs))))
+      (list func arguments))))
 
 (defun glsl-resolve-func-type (func args env)
   "nil - superior type
