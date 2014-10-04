@@ -36,6 +36,7 @@
              #'compiler-macroexpand-pass)
       #'compile-pass
       #'filter-used-items
+      #'check-stemcells
       #'gen-in-arg-strings
       #'gen-out-var-strings
       #'final-uniform-strings
@@ -268,17 +269,39 @@
 
 ;;----------------------------------------------------------------------
 
+(defun check-stemcells (code env)
+  (let ((stemcells (stemcells code)))
+    (mapcar 
+     (lambda (x) 
+       (dbind (name string type) x
+         (declare (ignore string))
+         (when (remove-if-not (lambda (x) 
+                                (and (equal name (first x))
+                                     (not (equal type (third x))))) 
+                              stemcells)
+           (error "Symbol ~a used with different implied types" name))))
+     ;; {TODO} Proper error here         
+     stemcells)
+    (setf (stemcells code) (remove-duplicates stemcells :test #'equal
+                                              :key #'first)))
+  (values code env))
+
+;;----------------------------------------------------------------------
+
 (defun final-uniform-strings (code env)
-  (let (final-strings 
-        (structs (used-types code)))
-    (loop :for (name type) :in (v-uniforms env)
-       :for type-obj = (type-spec->type type) 
-       :do (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
-                 final-strings)
-       :do (when (and (v-typep type-obj 'v-user-struct)
-                      (not (find (type->type-spec type-obj) structs
-                                 :key #'type->type-spec :test #'equal)))
-             (push type-obj structs)))
+  (let ((final-strings nil) 
+        (structs (used-types code))
+        (uniforms (concatenate 'list (v-uniforms env)
+                               (mapcar (lambda (x) `(,(first x) ,(third x))) 
+                                       (stemcells code)))))
+    (loop :for (name type) :in uniforms
+       :for type-obj = (type-spec->type type) :do
+       (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
+             final-strings)
+       (when (and (v-typep type-obj 'v-user-struct)
+                  (not (find (type->type-spec type-obj) structs
+                             :key #'type->type-spec :test #'equal)))
+         (push type-obj structs)))
     (setf (used-types code) structs)
     (setf (v-uniforms env) final-strings))
   (values code env))
@@ -314,6 +337,7 @@
                              (subseq i 0 3))
                  :uniforms (loop :for i :in (v-uniforms env) :collect
                               (subseq i 0 2))
+                 :implicit-uniforms (stemcells code)
                  :context (v-context env)
                  :used-external-functions (used-external-functions code)))
 

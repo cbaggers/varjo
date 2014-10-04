@@ -10,6 +10,16 @@
    (glsl-size :initform 1)
    (casts-to :initform nil)))
 (defclass v-stemcell (v-type) ())
+
+(defun make-stem-cell (symbol)
+  (let ((string-name (string (safe-glsl-name-string symbol)))
+        (original-name symbol))
+    (make-instance
+     'code
+     :type 'v-stemcell 
+     :current-line string-name
+     :stemcells `((,original-name ,string-name '|unknown-type|)))))
+
 (defun stemcellp (x)
   (typep x 'v-stemcell))
 

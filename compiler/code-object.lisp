@@ -19,7 +19,8 @@
                             :accessor used-external-functions)x
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)
-   (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)))
+   (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)
+   (stem-cells :initarg :stemcells :initform nil :accessor stemcells)))
 
 ;; [TODO] Proper error needed here
 (defmethod initialize-instance :after
@@ -36,13 +37,16 @@
 (defgeneric copy-code (code-obj &key type current-line to-block to-top 
                                   out-vars invariant returns multi-vals))
 (defmethod copy-code ((code-obj code) 
-                      &key type current-line 
+                      &key type
+                        current-line 
                         (signatures nil set-sigs)
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (invariant nil) (returns nil set-returns)
-                        (multi-vals nil set-multi-vals))
+                        (invariant nil) 
+                        (returns nil set-returns)
+                        (multi-vals nil set-multi-vals)
+                        (stemcells nil set-stemcells))
   (make-instance 'code 
                  :type (if type type (code-type code-obj)) 
                  :current-line (if current-line current-line 
@@ -55,20 +59,25 @@
                  :returns (listify (if set-returns returns (returns code-obj)))
                  :used-types (used-types code-obj)
                  :used-external-functions (used-external-functions code-obj)
-                 :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))))
+                 :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
+                 :stemcells (if set-stemcells stemcells (stemcells code-obj))))
 
 
 (defgeneric merge-obs (objs &key type current-line to-block 
                               to-top out-vars invariant returns multi-vals))
 
-(defmethod merge-obs ((objs list) &key type current-line 
-                                    (signatures nil set-sigs)
-                                    (to-block nil set-block)
-                                    (to-top nil set-top)
-                                    (out-vars nil set-out-vars)
-                                    (used-funcs nil set-used-funcs)
-                                    (invariant nil) (returns nil set-returns)
-                                    multi-vals)
+(defmethod merge-obs ((objs list) 
+                      &key type
+                        current-line 
+                        (signatures nil set-sigs)
+                        (to-block nil set-block)
+                        (to-top nil set-top)
+                        (out-vars nil set-out-vars)
+                        (used-funcs nil set-used-funcs)
+                        (invariant nil)
+                        (returns nil set-returns)
+                        multi-vals
+                        (stemcells nil set-stemcells))
   (make-instance 'code
                  :type (if type type (error "type is mandatory")) 
                  :current-line current-line 
@@ -87,7 +96,9 @@
                  :used-types (mapcar #'used-types objs)
                  :used-external-functions (if set-used-funcs used-funcs 
                                               (mapcan #'used-external-functions objs))
-                 :multi-vals multi-vals))
+                 :multi-vals multi-vals
+                 :stemcells (if set-stemcells stemcells 
+                                (mapcan #'stemcells objs))))
 
 (defmethod merge-obs ((objs code) 
                       &key (type nil set-type)
@@ -98,7 +109,8 @@
                         (out-vars nil set-out-vars)
                         (used-funcs nil set-used-funcs)
                         (invariant nil) (returns nil set-returns)
-                        multi-vals)
+                        multi-vals
+                        (stemcells nil set-stemcells))
   (make-instance 'code
                  :type (if set-type type (code-type objs)) 
                  :current-line (if set-current-line current-line 
@@ -112,7 +124,8 @@
                  :used-types (used-types objs)
                  :used-external-functions (if set-used-funcs used-funcs 
                                  (used-external-functions objs))
-                 :multi-vals multi-vals))
+                 :multi-vals multi-vals
+                 :stemcells (if set-stemcells stemcells (stemcells objs))))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

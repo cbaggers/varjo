@@ -1,9 +1,10 @@
 (in-package :varjo)
 
-(defun safe-glsl-name-string (name)
+(defun safe-glsl-name-string (name)  
   (if (valid-user-defined-name name)
-      (string-downcase
-       (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
+      (let* ((sname (regex-replace-all "[-]" (symbol-name (symb name)) "_"))
+             (sname (regex-replace-all "\\*" sname "star")))
+        (string-downcase sname))
       (error 'name-unsuitable :name name)))
 
 (defun gen-reserved-var-string (name-symbol)

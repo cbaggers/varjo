@@ -96,6 +96,7 @@
              #'compiler-macroexpand-pass)
       #'compile-pass
       #'filter-used-items
+      #'check-stemcells
       #'populate-required-glsl)))
 
 (defun populate-required-glsl (code env)
@@ -103,7 +104,8 @@
   (destructuring-bind (name func) (first (v-functions env))
     (add-function name
                   (function->func-spec 
-                   func :required-glsl (list (signatures code) (to-top code)))
+                   func :required-glsl (list (signatures code) (to-top code)
+                                             (stemcells code)))
                   *global-env* t)
     (make-instance 'varjo-compile-result :glsl-code "" :stage-type nil :in-args nil
                    :out-vars nil :uniforms nil :context nil
@@ -247,18 +249,16 @@
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
-  (let* ((functions (find-functions-for-args func-name args-code env)))
-    (with-slots (score func arguments)
-        (if (> (length functions) 1) 
-            (if (some (lambda (x) (some #'stemcellp (code-type x))) 
-                      functions)
-                (error 'multi-func-stemcells functions)
-                (first (sort functions #'< :key #'score)))
-            (first functions))
-      (declare (ignore score))
-      (list func arguments))))
+  (let* ((functions (find-functions-for-args func-name args-code env))
+         (function
+          (if (and (> (length functions) 1)
+                   (some (lambda (x) (some #'stemcellp (code-type x)))
+                         functions))
+              (error 'multi-func-stemcells functions)
+              (first (sort functions #'< :key #'score)))))
+    (list (func function) (arguments function))))
 
-(defun glsl-resolve-func-type (func args env)
+(defun resolve-func-type (func args env)
   "nil - superior type
    number - type of nth arg
    function - call the function
@@ -274,14 +274,5 @@
            (v-element-type (nth (second spec) arg-types)))
           ((or (symbolp spec) (listp spec)) (type-spec->type spec :env env))
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
-
-;;[TODO] Maybe the error should be caught and returned, 
-;;       in case this is a bad walk
-(defun glsl-resolve-special-func-type (func args env)
-  (let ((env (clone-environment env)))
-    (multiple-value-bind (code-obj new-env)
-        (handler-case (apply (v-return-spec func) (cons env args))
-          (varjo-error (e) (invoke-debugger e)))
-      (values code-obj (or new-env env)))))
 
 ;;------------------------------------------------------------
