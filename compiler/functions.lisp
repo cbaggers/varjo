@@ -92,6 +92,7 @@
         (body `(%make-function ,name ,args ,@body)))
     (pipe-> (args body env)
       #'split-input-into-env
+      #'process-context
       (equal #'macroexpand-pass
              #'compiler-macroexpand-pass)
       #'compile-pass
@@ -234,14 +235,19 @@
 (defun func-find-failure (func-name arg-objs)
   (loop :for arg-obj :in arg-objs
      :if (typep (code-type arg-obj) 'v-error) 
-     :return `((t ,(code-type arg-obj) nil)) 
+     
+     :return `(,(make-instance 'func-match :score t :func (code-type arg-obj)
+                               :arguments nil)) 
      :finally (return
-                `((t ,(make-instance 'v-error :payload
+                `(,(make-instance 
+                    'func-match
+                    :score t
+                    :func (make-instance 'v-error :payload
                                      (make-instance 'no-valid-function
                                                     :name func-name
                                                     :types (mapcar #'code-type
                                                                    arg-objs)))
-                     nil)))))
+                    :arguments nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given

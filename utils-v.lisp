@@ -18,6 +18,13 @@
   (loop :for element :in sequence :for i :from 0
      :if (funcall predicate element) :collect i))
 
+
+(define-compiler-macro mapcat (function &rest lists)
+  `(apply #'concatenate 'list (mapcar ,function ,@lists)))
+
+(defun mapcat (function &rest lists)
+  (apply #'concatenate 'list (apply #'mapcar function lists)))
+
 (defun elt* (sequence &rest indicies)
   (labels ((_elt* (sequence indicies accum)
              (if indicies
