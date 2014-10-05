@@ -9,8 +9,9 @@
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)))
-(defclass v-stemcell (v-type) ())
 
+(defclass v-stemcell (v-type) ())
+(defmethod v-dimensions ((object v-stemcell)) 0)
 (defun make-stem-cell (symbol)
   (let ((string-name (string (safe-glsl-name-string symbol)))
         (original-name symbol))

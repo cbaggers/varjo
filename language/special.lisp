@@ -419,3 +419,20 @@
                                                  update-obj body-obj)))
               (error 'for-loop-simple-expression))))))
 
+
+(v-defun :the (type-name form)
+  :special
+  :args-valid t
+  :return
+  (let ((compiled (varjo->glsl form env))
+        (declared-type (type-spec->type type-name)))
+    (if (stemcellp (code-type compiled))
+        (copy-code compiled 
+                   :type declared-type
+                   :stemcells (let ((stemcell (first (stemcells compiled))))
+                                `((,(first stemcell)
+                                    ,(second stemcell)
+                                    ,type-name))))
+        (unless (v-typep compiled declared-type)
+          (error "Incorrect declaration that ~a was of type ~a" 
+                 compiled type-name))))) ;{TODO} proper error here

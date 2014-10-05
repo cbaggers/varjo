@@ -258,7 +258,9 @@
   (let* ((functions (find-functions-for-args func-name args-code env))
          (function
           (if (and (> (length functions) 1)
-                   (some (lambda (x) (some #'stemcellp (code-type x)))
+                   (some (lambda (x) 
+                           (some (lambda (x) (stemcellp (code-type x)))
+                                 (arguments x)))
                          functions))
               (error 'multi-func-stemcells functions)
               (first (sort functions #'< :key #'score)))))
