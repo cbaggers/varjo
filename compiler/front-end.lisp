@@ -291,9 +291,8 @@
 (defun final-uniform-strings (code env)
   (let ((final-strings nil) 
         (structs (used-types code))
-        (uniforms (concatenate 'list (v-uniforms env)
-                               (mapcar (lambda (x) `(,(first x) ,(third x))) 
-                                       (stemcells code)))))
+        (uniforms (v-uniforms env))
+        (implicit-uniforms nil))
     (loop :for (name type) :in uniforms
        :for type-obj = (type-spec->type type) :do
        (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
@@ -302,8 +301,22 @@
                   (not (find (type->type-spec type-obj) structs
                              :key #'type->type-spec :test #'equal)))
          (push type-obj structs)))
+    
+    
+    (loop :for (name string-name type) :in (stemcells code)
+       :for type-obj = (type-spec->type type) :do
+
+       (push `(,name ,string-name ,type ,(gen-uniform-decl-string name type-obj))
+             implicit-uniforms)
+
+       (when (and (v-typep type-obj 'v-user-struct)
+                  (not (find (type->type-spec type-obj) structs
+                             :key #'type->type-spec :test #'equal)))
+         (push type-obj structs)))
+
     (setf (used-types code) structs)
-    (setf (v-uniforms env) final-strings))
+    (setf (v-uniforms env) final-strings)
+    (setf (stemcells code) implicit-uniforms))
   (values code env))
 
 ;;----------------------------------------------------------------------
