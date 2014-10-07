@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:varjo
-  (:use #:cl :split-sequence)
+  (:use #:cl :split-sequence #:alexandria #:cl-ppcre)
   (:export :v-glsl-size
            :v-casts-to-p
            :v-casts-to
@@ -181,7 +181,7 @@
            :%/
            :V!
            :M!
-           :CLAMP
+           ;; :CLAMP
            :BITFIELD-INSERT
            :MIX
            :FACEFORWARD

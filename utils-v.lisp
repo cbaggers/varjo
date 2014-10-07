@@ -18,6 +18,23 @@
   (loop :for element :in sequence :for i :from 0
      :if (funcall predicate element) :collect i))
 
+
+(define-compiler-macro mapcat (function &rest lists)
+  `(apply #'concatenate 'list (mapcar ,function ,@lists)))
+
+(defun mapcat (function &rest lists)
+  (apply #'concatenate 'list (apply #'mapcar function lists)))
+
+(defun elt* (sequence &rest indicies)
+  (labels ((_elt* (sequence indicies accum)
+             (if indicies
+                 (_elt* sequence
+                        (rest indicies) 
+                        (cons (elt sequence (first indicies)) accum))
+                 (reverse accum))))
+    (_elt* sequence indicies nil)))
+
+
 (defmacro pipe-> (args &body stages)
   "\(pipe-> \(1 2 3\) #'a #'b #'c #'d\)
    Calls first function with args provided and uses result as 
@@ -49,7 +66,11 @@
                         :until (,check-func (first passes) (second passes))))
                    (values-list args)))))))))
 
+(defmacro dbind (lambda-list expression &body body)
+  `(destructuring-bind ,lambda-list ,expression ,@body))
 
+(defmacro vbind (vars value-form &body body)
+  `(multiple-value-bind ,vars ,value-form ,@body))
 
 
 ;; [TODO] should dissapear as refactor goes on
@@ -157,5 +178,8 @@
 (defun sym-down (symbol)
   (p-symb (symbol-package symbol) 
           (string-downcase (symbol-name symbol))))
+
+(defun last1 (list)
+  (car (last list)))
 
 

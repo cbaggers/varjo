@@ -9,7 +9,20 @@
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)))
+
 (defclass v-stemcell (v-type) ())
+(defmethod v-dimensions ((object v-stemcell)) 0)
+(defun make-stem-cell (symbol)
+  (let ((string-name (string (safe-glsl-name-string symbol)))
+        (original-name symbol))
+    (make-instance
+     'code
+     :type 'v-stemcell 
+     :current-line string-name
+     :stemcells `((,original-name ,string-name '|unknown-type|)))))
+
+(defun stemcellp (x)
+  (typep x 'v-stemcell))
 
 (defmethod set-place-t ((type v-type))
   (setf (v-placep type) t) type)
@@ -50,7 +63,8 @@
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (place :initform nil :initarg :place :accessor v-placep)
-   (glsl-spec-matching :initform nil :initarg :glsl-spec-matching :reader v-glsl-spec-matchingp)))
+   (glsl-spec-matching :initform nil :initarg :glsl-spec-matching :reader v-glsl-spec-matchingp)
+   (multi-return-vars :initarg nil :initarg :multi-return-vars :reader multi-return-vars)))
 
 (defclass v-struct (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)

@@ -28,7 +28,7 @@
 
 (defun valid-user-defined-name (name-symbol)
   (let* ((name (string-downcase (symbol-name name-symbol)))
-         (matches (cl-ppcre:all-matches "[^a-zA-Z0-9-]" name)))
+         (matches (cl-ppcre:all-matches "[^a-zA-Z0-9-*]" name)))
     (not (or matches (glsl-var-namep name-symbol)))))
 
 (defun glsl-var-namep (name-symbol)
@@ -36,11 +36,6 @@
     (or (when (> (length name) 2) (equal "GL-" (subseq name 0 3)))
         (when (> (length name) 2) (equal "FK-" (subseq name 0 3)))
         (when (> (length name) 3) (equal "-SC-" (subseq name 0 4))))))
-
-(let ((count -1))
-  (defun free-stemcell-name (name)
-    (incf count)
-    (symb '-sc- name '- count)))
 
 (defun add-glsl-vars (env source)
   (loop :for (restrict . vars) :in source

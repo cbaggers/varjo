@@ -2,7 +2,7 @@
 
 (asdf:defsystem #:varjo
   :serial t
-  :depends-on (#:cl-ppcre #:split-sequence)
+  :depends-on (#:cl-ppcre #:split-sequence #:alexandria)
   :components ((:file "package")
                (:file "utils-v")
                (:file "compiler/errors")

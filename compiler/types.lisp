@@ -57,6 +57,7 @@
                             :place place
                             :dimensions dimensions)))
           (t (error 'unknown-type-spec :type-spec spec)))))
+
 (defmethod v-true-type ((object v-t-type))
   object)
 

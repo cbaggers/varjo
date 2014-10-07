@@ -62,9 +62,9 @@
 (deferror no-valid-function (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
 
-(deferror return-type-mismatch (name types returns)
-    "Some of the return statements in function '~a' return different types~%~a~%~a" 
-  name types returns)
+(deferror return-type-mismatch (returns)
+    "Some of the return statements return different types:~{~%~a~}"
+  returns)
 
 (deferror non-place-assign (place val)
     "You cannot setf this: ~a ~%This was attempted as follows ~a"
@@ -132,3 +132,6 @@
 
 (deferror swizzle-keyword (item)
     "Swizzle expects a keyword to specify the components. Recieved ~a instead" item) 
+
+(deferror multi-func-stemcells (func-name)
+    "Multiple functions found name ~a that match arguments.~%However varjo cannot decide which function to use because n of the arguments passed in are of stemcell type" func-name)

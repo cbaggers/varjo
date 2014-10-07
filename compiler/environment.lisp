@@ -15,9 +15,10 @@
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *supported-stages* '(:vertex :fragment))
 (defparameter *default-version* :330)
-(defparameter *default-context* '(:330 :vertex))
-(defparameter *valid-contents-symbols* (append (copy-list *supported-versions*)
-                                               (copy-list *supported-stages*)))
+(defparameter *default-context* '(:330 :vertex :stemcells))
+(defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
+                                           ,@(copy-list *supported-stages*)
+                                           :stemcells))
 
 ;;-------------------------------------------------------------------------
 
@@ -32,7 +33,8 @@
    (macros :initform nil :initarg :macros :accessor v-macros)
    (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
    (types :initform nil :initarg :types :accessor v-types)
-   (context :initform nil :initarg :context :accessor v-context)))
+   (context :initform nil :initarg :context :accessor v-context)
+   (multi-val-base :initform nil :initarg :multi-val-base :accessor v-multi-val-base)))
 
 (defun make-varjo-environment (&rest context)
   (make-instance 'environment :context (or context *default-context*)))
@@ -78,7 +80,8 @@
                  :uniforms (v-uniforms env)
                  :raw-context (v-raw-context env)
                  :raw-uniforms (v-raw-uniforms env)
-                 :raw-args (v-raw-in-args env)))
+                 :raw-args (v-raw-in-args env)
+                 :multi-val-base (v-multi-val-base env)))
 
 (defmethod clean-environment ((env environment))
   (make-instance 'environment :variables nil :functions nil
@@ -88,9 +91,9 @@
 (defmethod normalize-environment (env &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
     (labels ((norm-list (x) (loop :for i :in x :for seen = nil :do
-                              (when (not (find (first i) seen :key #'first))
-                                (push i seen))
-                              :finally (return seen))))
+                               (when (not (find (first i) seen :key #'first))
+                                 (push i seen))
+                               :finally (return seen))))
       (setf (v-variables env) (norm-list (v-variables env)))
       (setf (v-functions env) (norm-list (v-functions env)))
       (setf (v-macros env) (norm-list (v-macros env)))
@@ -125,7 +128,7 @@
             (and c-macros (get-compiler-macro name *global-env*)))
     (error 'cannot-not-shadow-core))
   (when specials
-    (loop :for func :in (get-function name *global-env*)
+    (loop :for func :in (get-function-by-name name *global-env*)
        :if (and specials (v-special-functionp func))       
        :do (error 'cannot-not-shadow-core)))
   t)
@@ -193,13 +196,13 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list) 
-                      (env (eql :-genv-)) &optional modify-env)
+                               (env (eql :-genv-)) &optional modify-env)
   (declare (ignore modify-env))
   (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
   *global-env*)
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
-                      (env environment) &optional modify-env)  
+                               (env environment) &optional modify-env)  
   (let ((env (if modify-env env (clone-environment env))))
     (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
       (a-set macro-name `(,macro ,context) (v-compiler-macros env)))
@@ -266,7 +269,7 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-type (type-name (type-obj v-type) (env environment)
-                    &optional modify-env)
+                     &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
     (a-add type-name type-obj (v-types env))    
     env))
@@ -294,17 +297,17 @@
       (a-add func-name func-spec (v-functions env)))
     env))
 
-(defmethod get-function (func-name (env (eql :-genv-)))
+(defmethod get-function-by-name (func-name (env (eql :-genv-)))
   (sort-function-list
    (loop :for func-spec :in (append (gethash func-name *global-env-funcs*)
                                     (gethash (kwd func-name) *global-env-funcs*))
       :collect (func-spec->function func-spec env))))
 
-(defmethod get-function (func-name (env environment))
+(defmethod get-function-by-name (func-name (env environment))
   (sort-function-list
    (loop :for func :in (append (a-get func-name (v-functions env))
                                (a-get (kwd func-name) (v-functions env))
-                               (get-function func-name *global-env*))
+                               (get-function-by-name func-name *global-env*))
       :if (and func (valid-for-contextp func env)) :collect func)))
 
 (defmethod special-raw-argp ((func v-function))
@@ -327,11 +330,12 @@
       (if (v-glsl-spec-matchingp func) 3 4)))
 
 (defmethod v-fboundp (func-name (env environment))
-  (not (null (get-function func-name env))))
+  (not (null (get-function-by-name func-name env))))
 
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 
-                                 glsl-spec-matching glsl-name required-glsl)
+                                 glsl-spec-matching glsl-name required-glsl
+                                 multi-return-vars)
       spec
     (make-instance 'v-function :glsl-string transform 
                    :arg-spec (if (listp arg-spec)
@@ -344,7 +348,8 @@
                    :restriction context :place place
                    :required-glsl required-glsl
                    :glsl-spec-matching glsl-spec-matching 
-                   :glsl-name glsl-name)))
+                   :glsl-name glsl-name
+                   :multi-return-vars multi-return-vars)))
 
 (defun function->func-spec (func &key required-glsl)
   (let ((arg-spec (v-argument-spec func)))
