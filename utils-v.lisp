@@ -161,13 +161,22 @@
 
 (defun symbol-name-position (symbol list)
   (let ((symb-name (string-upcase symbol)))
-    (position-if #'(lambda (x) (when (symbolp x) (equal (symbol-name x) symb-name))) list)))
+    (position-if #'(lambda (x) (when (symbolp x) 
+                                 (equal (symbol-name x) symb-name))) 
+                 list)))
 
-(defmacro assocr (item alist &key (key nil keyp) 
-                               (test nil testp) 
-                               (test-not nil notp))
+(defun assocr (item alist &key (key nil keyp) (test nil testp) 
+                            (test-not nil notp))
+  (cdr (apply #'assoc item alist (append (when keyp (list :key key)) 
+                                         (when testp (list :test test))
+                                         (when notp (list test-not))))))
+
+
+(define-compiler-macro assocr (item alist &key (key nil keyp) 
+                                    (test nil testp) 
+                                    (test-not nil notp))
   `(cdr (assoc ,item ,alist 
-               ,@(when keyp (list :key key)) 
+               ,@(when keyp (list :key key))
                ,@(when testp (list :test test))
                ,@(when notp (list test-not)))))
 

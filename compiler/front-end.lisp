@@ -89,12 +89,19 @@
 ;;----------------------------------------------------------------------
 
 (defun split-arguments (args)
-  (let* ((uni-pos (symbol-name-position '&uniform args))
-         (context-pos (symbol-name-position '&context args))
-         (in-args (subseq args 0 (or uni-pos context-pos)))
-         (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
-         (context (when context-pos (subseq args (1+ context-pos)))))
+  (let* ((split (triv.bind:lambda-list-split '(&uniform &context &instancing) args))
+         (in-args (cdr (assoc nil split)))
+         (uniforms (cdr (assoc :&uniform split)))
+         (context (cdr (assoc :&context split))))
     (list in-args uniforms context)))
+
+;; (defun split-arguments (args)
+;;   (let* ((uni-pos (symbol-name-position '&uniform args))
+;;          (context-pos (symbol-name-position '&context args))
+;;          (in-args (subseq args 0 (or uni-pos context-pos)))
+;;          (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
+;;          (context (when context-pos (subseq args (1+ context-pos)))))
+;;     (list in-args uniforms context)))
 
 ;;[TODO] Move these errors
 (defun check-arg-forms (in-args &aux )
