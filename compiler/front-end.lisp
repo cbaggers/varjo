@@ -89,7 +89,7 @@
 ;;----------------------------------------------------------------------
 
 (defun split-arguments (args)
-  (let* ((split (triv.bind:lambda-list-split '(&uniform &context &instancing) args))
+  (let* ((split (lambda-list-split '(&uniform &context &instancing) args))
          (in-args (cdr (assoc nil split)))
          (uniforms (cdr (assoc :&uniform split)))
          (context (cdr (assoc :&context split))))
