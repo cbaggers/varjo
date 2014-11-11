@@ -386,7 +386,7 @@
          (new-len (length comp-string)))
     (if (and (>= new-len 2) (<= new-len 4)
              (v-typep (code-type vec-obj) 'v-vector)
-             (loop :for c :being :the :elements :of comp-string
+             (loop :for c :across comp-string
                 :always (find c allowed)))
         (merge-obs vec-obj :type (type-spec->type
                                   (p-symb 'varjo 'v-vec new-len))
