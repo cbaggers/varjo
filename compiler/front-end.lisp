@@ -23,6 +23,76 @@
 
 ;;----------------------------------------------------------------------
 
+;; {TODO} check in args on have one stream
+(defun rolling-translate (args stages)
+  (destructuring-bind (in-args uniforms context) (split-arguments args)
+    (compile-stages in-args uniforms context stages
+                    '(:vertex :geometry :tess-eval :tess-control :fragment)
+                    nil)))
+
+(defun compile-stages (in-args uniforms context stages remaining-stage-types accum)
+  (let ((stage (first stages)))
+    (typecase stage
+      (varjo-compile-result 
+       (precompiled-stage in-args uniforms context
+                          stages remaining-stage-types accum))
+      (list (if (null stages)
+                (reverse accum)
+                (compile-stage in-args uniforms context
+                               stages remaining-stage-types accum)))
+      (t (error 'invalid-shader-stage :stage stage)))))
+
+(defun precompiled-stage (in-args uniforms context
+                          stages remaining-stage-types accum)
+  (let* ((stage (first stages))
+         (remaining-stage-types 
+          (check-order (stage-type stage) remaining-stage-types)))
+    (if (args-compatiblep in-args uniforms context stage)        
+        (compile-stages (gen-in-args-for-next-stage stage)
+                        uniforms
+                        context
+                        (rest stages)
+                        remaining-stage-types
+                        (cons stage accum))
+        (error 'args-incompatible :current-args (in-args stage)
+               :previous-args in-args))))
+
+(defun compile-stage (in-args uniforms context
+                      stages remaining-stage-types accum)
+  (let ((stage (first stages)))
+    (destructuring-bind (stage-type &rest code) stage
+      (let* ((remaining-stage-types 
+              (check-order stage-type remaining-stage-types))
+             (new-args `(,@in-args ,@(when uniforms (cons '&uniform uniforms))
+                                   &context ,@(cons stage-type context)))
+             (result (translate new-args `(progn ,@code))))
+        (compile-stages (gen-in-args-for-next-stage result)
+                        uniforms
+                        context
+                        (rest stages)
+                        remaining-stage-types
+                        (cons result accum))))))
+
+(defun args-compatiblep (in-args uniforms context stage)
+  (and (loop :for p :in in-args :for c :in (in-args stage) :always
+          (and (equal (first p) (first c))
+               (v-type-eq (type-spec->type (second p)) 
+                          (type-spec->type (second c)))
+               (equal (third p) (third c))))
+       (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
+       (context-ok-given-restriction (context stage) context)))
+
+(defun gen-in-args-for-next-stage (compiled-stage)
+  (loop :for (name qualifiers value) :in (out-vars compiled-stage)
+     :collect `(,name ,(type->type-spec (v-type value))
+                      ,@qualifiers)))
+
+;;{TODO} make proper error
+(defun check-order (stage-type remaining-stage-types)
+  (if (member stage-type remaining-stage-types)
+      (subseq remaining-stage-types (position stage-type remaining-stage-types))
+      (error "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists" stage-type)))
+
 (defun translate (args body)
   (let ((env (make-instance 'environment)))
     (pipe-> (args body env)
@@ -43,48 +113,6 @@
       #'dedup-strings
       #'final-string-compose
       #'code-obj->result-object)))
-
-(defun make-stage-order-checker ()
-  (let ((order (list :vertex :geometry :tess-eval :tess-control :fragment)))
-    (lambda (stage) 
-      (if (member stage order)
-          (progn (setf order (subseq order (1+ (position stage order))))
-                 stage)
-          (error "stage ~s is not valid" stage)))))
-
-;;[TODO] Make real error
-(defun rolling-translate (args stages)
-  (destructuring-bind (in-args uniforms context) (split-arguments args)    
-    (loop :for stage :in stages :with wip = nil 
-       :with order-checker = (make-stage-order-checker) :do
-       (unless (or (typep stage 'varjo-compile-result) (listp stage))
-         (error 'invalid-shader-stage :stage stage))
-       (if (typep stage 'varjo-compile-result)
-           (if (and (args-compatiblep in-args uniforms context stage)
-                    (funcall order-checker (stage-type stage)))
-               (push stage wip)
-               (error 'args-incompatible :current-args (in-args stage)
-                      :previous-args in-args))
-           (destructuring-bind (stage-type &rest code) stage
-             (funcall order-checker stage-type)
-             (let* ((new-args `(,@in-args ,@(when uniforms (cons '&uniform uniforms))
-                                          &context ,@(cons stage-type context)))
-                    (result (translate new-args `(progn ,@code))))
-               (setf in-args 
-                     (loop :for (name qualifiers value) :in (out-vars result)
-                        :collect `(,name ,(type->type-spec (v-type value))
-                                         ,@qualifiers)))             
-               (push result wip))))
-       :finally (return (reverse wip)))))
-
-(defun args-compatiblep (in-args uniforms context stage)
-  (and (loop :for p :in in-args :for c :in (in-args stage) :always 
-          (and (equal (first p) (first c)) 
-               (v-type-eq (type-spec->type (second p)) 
-                          (type-spec->type (second c)))
-               (equal (third p) (third c))))
-       (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
-       (context-ok-given-restriction (context stage) context)))
 
 ;;----------------------------------------------------------------------
 
