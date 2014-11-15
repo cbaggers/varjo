@@ -299,7 +299,7 @@
     ,@(loop :for d :in definitions :collect `(%make-function ,@d))
     ,@body))
 
-;; [TODO] what if tpye of form is not value
+;; [TODO] what if type of form is not value
 (v-defun :out (name-and-qualifiers form)
   :special
   :args-valid t
@@ -321,6 +321,17 @@
                             ,qualifiers
                             ,(make-instance 'v-value :type (code-type form-obj)))
                           (out-vars form-obj))) t))))
+
+(v-defun :assert (kind form error-message)
+  :special
+  :args-valid t
+  :return
+  (case kind
+    ((:valid-variable '(:valid-variable))
+     (and (symbolp form)     
+          (handler-case (varjo->glsl form env)
+            (varjo-error () (error error-message)))))
+    (otherwise (error "Unknown assert kind ~s" kind))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 (v-defun :if (test-form then-form &optional else-form)
