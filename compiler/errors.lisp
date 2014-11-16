@@ -1,11 +1,13 @@
 (in-package :varjo)
 
-;-----------EXAMPLE-----------;
-(define-condition machine-error (error)
-  ((machine-name :initarg :machine-name :reader machine-error-machine-name))
-  (:report (lambda (condition stream)
-             (format stream "There is a problem with ~A."
-                     (machine-error-machine-name condition)))))
+;-----------INSPIRATION-----------;
+
+;; (define-condition machine-error (error)
+;;   ((machine-name :initarg :machine-name :reader machine-error-machine-name))
+;;   (:report (lambda (condition stream)
+;;              (format stream "There is a problem with ~A."
+;;                      (machine-error-machine-name condition)))))
+
 ;------------HELPER-----------;
 
 ;;[TODO] need better arg test

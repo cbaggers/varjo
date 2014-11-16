@@ -123,14 +123,6 @@
          (context (cdr (assoc :&context split))))
     (list in-args uniforms context)))
 
-;; (defun split-arguments (args)
-;;   (let* ((uni-pos (symbol-name-position '&uniform args))
-;;          (context-pos (symbol-name-position '&context args))
-;;          (in-args (subseq args 0 (or uni-pos context-pos)))
-;;          (uniforms (when uni-pos (subseq args (1+ uni-pos) context-pos)))
-;;          (context (when context-pos (subseq args (1+ context-pos)))))
-;;     (list in-args uniforms context)))
-
 ;;[TODO] Move these errors
 (defun check-arg-forms (in-args &aux )
   (loop for stream in in-args :do 
@@ -330,8 +322,12 @@
         (implicit-uniforms nil))
     (loop :for (name type) :in uniforms
        :for type-obj = (type-spec->type type) :do
-       (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
-             final-strings)
+       (if (uniform-string-gen type-obj)
+           (loop :for x :in (funcall (uniform-string-gen type-obj) 
+                                     name type)
+              :do (push x final-strings))
+           (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
+                 final-strings))
        (when (and (v-typep type-obj 'v-user-struct)
                   (not (find (type->type-spec type-obj) structs
                              :key #'type->type-spec :test #'equal)))

@@ -1,3 +1,4 @@
+
 (in-package :varjo)
 
 ;;----------------------------------------------------------------------
@@ -8,7 +9,9 @@
    (place :initform t :initarg :place :accessor v-placep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
-   (casts-to :initform nil)))
+   (casts-to :initform nil)
+   (uniform-string-gen :initform nil :initarg :uniform-string-gen 
+                       :reader uniform-string-gen)))
 
 (defclass v-stemcell (v-type) ())
 (defmethod v-dimensions ((object v-stemcell)) 0)

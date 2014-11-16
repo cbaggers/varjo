@@ -16,7 +16,7 @@
    (out-vars :initarg :out-vars :initform nil :accessor out-vars)   
    (used-types :initarg :used-types :initform nil :accessor used-types)
    (used-external-functions :initarg :used-external-functions :initform nil 
-                            :accessor used-external-functions)x
+                            :accessor used-external-functions)
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)
    (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)
