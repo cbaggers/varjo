@@ -168,6 +168,7 @@
 
 ;;----------------------------------------------------------------------
 
+;; {TODO} get rid of all this ugly imperitive crap, what was I thinking?
 (defun process-in-args (code env)
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
@@ -183,9 +184,10 @@
              (progn
                (add-var name (make-instance 'v-value :type type-obj 
                                             :glsl-name (safe-glsl-name-string name))
-                        env t)
-               (push `(,name ,(type->type-spec type-obj) ,qualifiers) 
-                     (v-in-args env))))))
+                        env t)               
+               (setf (v-in-args env) 
+                     (append (v-in-args env)
+                             `((,name ,(type->type-spec type-obj) ,qualifiers))))))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
