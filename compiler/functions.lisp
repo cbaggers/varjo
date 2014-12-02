@@ -6,91 +6,91 @@
 ;; GLSL Functions
 ;;----------------
 
-(defun v-make-f-spec (transform args arg-types return-spec 
-                      &key place glsl-spec-matching glsl-name required-glsl 
+(defun v-make-f-spec (transform context arg-types return-spec
+                      &key place glsl-spec-matching glsl-name required-glsl
                         multi-return-vars)
-  (let* ((context-pos (position '&context args :test #'symbol-name-equal))
-         (context (when context-pos (subseq args (1+ context-pos))))
-         (args (if context-pos (subseq args 0 context-pos) args)))
-    (declare (ignore args))
-    (list transform arg-types return-spec context place glsl-spec-matching 
-          glsl-name required-glsl multi-return-vars)))
-;;
-;; {IMPORTANT NOTE} IF YOU CHANGE ONE-^^^^, CHANGE THIS -vvvvv
-;;                  AND FUNC-SPEC->FUNCTION
-;;
-;;[TODO] split each case into a different macro and use this as core
-;;[TODO] use make-func-spec so we have only one place where the spec
-;;       is defined, this will lower the number of errors once we start
-;;       editting things in the future
-;;[TODO] This is probably the ugliest part of varjo now....sort it out!
+  (list transform arg-types return-spec context place glsl-spec-matching
+        glsl-name required-glsl multi-return-vars))
+
 (defmacro v-defun (name args &body body)
-  (let* ((context-pos (position '&context args :test #'symbol-name-equal))
-         (context (when context-pos (subseq args (1+ context-pos))))
-         (args (subst '&rest '&body 
-                      (if context-pos (subseq args 0 context-pos) args)
-                      :test #'symbol-name-equal))
-         (arg-names (lambda-list-get-names args)))
-    (cond ((stringp (first body))
-           (destructuring-bind (transform arg-types return-spec 
-                                          &key place glsl-spec-matching glsl-name) body
-             `(progn (add-function ',name '(,transform ,arg-types ,return-spec
-                                            ,context ,place ,glsl-spec-matching 
-                                            ,glsl-name nil nil)
-                                   *global-env*)
-                     ',name)))
-          ((eq (first body) :special)
-           (destructuring-bind (&key context place args-valid return)
-               (rest body)
-             (if (eq args-valid t)
-                 `(progn
-                    (add-function ',name (list :special
-                                               t
-                                               (lambda ,(cons 'env args)
-                                                 (declare (ignorable env ,@arg-names))
-                                                 
-                                                 ,return)
-                                               ,context ,place nil nil nil nil)
-                                  *global-env*)
-                    ',name)
-                 (if args-valid
-                     `(progn
-                        (add-function ',name (list :special
-                                                   (lambda ,(cons 'env args)
-                                                     (declare (ignorable env ,@arg-names))
-                                                     (let ((res ,args-valid))
-                                                       (when res (list res 0))))
-                                                   (lambda ,(cons 'env args) 
-                                                     (declare (ignorable env ,@arg-names))
-                                                     ,return)                                               
-                                                   ,context ,place nil nil nil nil)
-                                      *global-env*)
-                        ',name)
-                     `(progn
-                        (add-function ',name (list :special 
-                                                   ',(mapcar #'second args)
-                                                   (lambda ,(cons 'env (mapcar #'first args))
-                                                     (declare (ignorable env ,@arg-names))
-                                                     ,return)
-                                                   ,context ,place nil nil nil nil)
-                                      *global-env*)
-                        ',name)))))
-          (t `(progn (v-def-external ,name ,args ,@body)
-                     ',name)))))
+  (destructuring-bind (in-args uniforms context) (split-arguments args)
+    (declare (ignore in-args))
+    (when uniforms (error 'uniform-in-sfunc :func-name name))
+    (let* ((template (first body)))
+      (unless (stringp (first body))
+        (error 'invalid-v-defun-template :func-nane name :template template))
+      (destructuring-bind (transform arg-types return-spec
+                                     &key place glsl-spec-matching glsl-name) body
+        `(progn (add-function
+                 ',name
+                 ,(v-make-f-spec transform context arg-types return-spec
+                                 :place place :glsl-name glsl-name
+                                 :glsl-spec-matching glsl-spec-matching)
+                 *global-env*)
+                ',name)))))
+
+;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
+(defmacro v-defspecial (name args &body body)
+  (destructuring-bind (in-args uniforms context) (split-arguments args)
+    (declare (ignore context)) ;; ignored as provided from body
+    (when uniforms (error 'uniform-in-sfunc :func-name name))
+    (let ((arg-names (lambda-list-get-names in-args)))
+      (destructuring-bind (&key context place args-valid return) body
+        (cond
+          ((eq args-valid t)
+           `(progn
+              (add-function ',name
+                            ',(v-make-f-spec
+                               :special
+                               context
+                               t
+                               `(lambda ,(cons 'env args)
+                                  (declare (ignorable env ,@arg-names))
+                                  ,return)
+                               :place place)
+                            *global-env*)
+              ',name))
+          (args-valid
+           `(progn
+              (add-function ',name
+                            ',(v-make-f-spec
+                               :special
+                               context
+                               `(lambda ,(cons 'env args)
+                                  (declare (ignorable env ,@arg-names))
+                                  (let ((res ,args-valid))
+                                    (when res (list res 0))))
+                               `(lambda ,(cons 'env args)
+                                  (declare (ignorable env ,@arg-names))
+                                  ,return)
+                               :place place)
+                            *global-env*)
+              ',name))
+          (t `(progn
+                (add-function ',name
+                              ',(v-make-f-spec
+                                 :special
+                                 context
+                                 (mapcar #'second args)
+                                 `(lambda ,(cons 'env (mapcar #'first args))
+                                    (declare (ignorable env ,@arg-names))
+                                    ,return)
+                                 :place place)
+                              *global-env*)
+                ',name)))))))
 
 ;;------------------------------------------------------------
 ;; External functions go through a full compile and then their
 ;; definition is extracted and added to the global environment.
-;; This means they can then be used in future shader and 
+;; This means they can then be used in future shader and
 ;; other external functions
 
-(defmacro v-def-external (name args &body body)
-  `(%v-def-external ',name ',args ',body))
 
-(defun %v-def-external (name args body)
+
+(defun %v-def-external (name in-args context body)
   (let ((env (make-instance 'environment))
-        (body `(%make-function ,name ,args ,@body)))
-    (pipe-> (args body env)
+        (body~1 `(%make-function ,name in-args ,@body)))
+    (pipe-> (in-args nil context body~1 env)
       #'split-input-into-env
       #'process-context
       (equal #'macroexpand-pass
@@ -104,7 +104,7 @@
   ;; {TODO} this shouldnt return, it should just populate. Why? I havent justified this
   (destructuring-bind (name func) (first (v-functions env))
     (add-function name
-                  (function->func-spec 
+                  (function->func-spec
                    func :required-glsl (list (signatures code) (to-top code)
                                              (stemcells code)))
                   *global-env* t)
@@ -112,7 +112,7 @@
                    :out-vars nil :uniforms nil :context nil
                    :used-external-functions (used-external-functions code))))
 
-;;This allows the addition of handwritten glsl 
+;;This allows the addition of handwritten glsl
 (defmacro v-def-raw-glsl-func (name args return-type &body glsl)
   (%v-def-raw-external name args return-type (apply #'concatenate 'string glsl)))
 
@@ -124,11 +124,11 @@
          (arg-pairs (loop :for (ignored type) :in args
                        :for name :in arg-glsl-names :collect
                        `(,(v-glsl-string (type-spec->type type)) ,name))))
-    (add-function 
+    (add-function
      name
      (v-make-f-spec (gen-function-transform glsl-name args) args
                     (mapcar #'second args) return-type :glsl-name glsl-name
-                    :required-glsl 
+                    :required-glsl
                     `((,(gen-function-signature glsl-name arg-pairs nil
                                                 return-type))
                       (,(gen-glsl-function-body-string
@@ -138,9 +138,9 @@
 
 ;;------------------------------------------------------------
 
-(defclass func-match () 
-  ((score :initarg :score :reader score) 
-   (func :initarg :func :reader func) 
+(defclass func-match ()
+  ((score :initarg :score :reader score)
+   (func :initarg :func :reader func)
    (arguments :initarg :arguments :reader arguments)))
 
 ;;[TODO] catch cannot-compiler errors only here
@@ -156,27 +156,27 @@
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env))
         (if (eq method t)
             (make-instance 'func-match :score t :func func :arguments arg-code)
-            (handler-case (make-instance 
-                           'func-match :score 0 :func func 
+            (handler-case (make-instance
+                           'func-match :score 0 :func func
                            :arguments (apply method (cons env arg-code)))
               (varjo-error () nil))))))
 
 (defun glsl-arg-matchp (func arg-types arg-objs env)
   (let* ((spec-types (v-argument-spec func))
          (spec-generics (positions-if #'v-spec-typep spec-types))
-         (g-dim (when spec-generics 
-                  (when (v-typep (nth (first spec-generics) arg-types) 'v-array 
+         (g-dim (when spec-generics
+                  (when (v-typep (nth (first spec-generics) arg-types) 'v-array
                                  env)
                     (v-dimensions (nth (first spec-generics) arg-types))))))
     (when (and (eql (length arg-objs) (length spec-types))
                (or (null g-dim)
-                   (loop :for i :in spec-generics :always 
+                   (loop :for i :in spec-generics :always
                       (equal (v-dimensions (nth i arg-types)) g-dim))))
-      (if (loop :for a :in arg-types :for s :in spec-types :always 
+      (if (loop :for a :in arg-types :for s :in spec-types :always
              (v-typep a s env))
           (make-instance 'func-match :score 0 :func func
                          :arguments (mapcar #'copy-code arg-objs))
-          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
+          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
                                :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
               (make-instance 'func-match :score 1 :func func
@@ -189,9 +189,9 @@
   (let ((spec-types (v-argument-spec func)))
     (when (eql (length arg-objs) (length spec-types))
       (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s env))
-          (make-instance 'func-match :score 0 :func func 
+          (make-instance 'func-match :score 0 :func func
                          :arguments (mapcar #'copy-code arg-objs))
-          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types 
+          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
                                :collect (v-casts-to a s env))))
             (when (not (some #'null cast-types))
               (make-instance
@@ -221,44 +221,44 @@
          (matches (remove nil (mapcar match-fn candidates)))
          (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
     (or (when instant-win (list instant-win))
-        (mapcar (lambda (x y) 
+        (mapcar (lambda (x y)
                   (when (numberp (score x))
-                    (make-instance 
-                     'func-match 
+                    (make-instance
+                     'func-match
                      :score (+ (score x) (* y +order-bias+))
                      :func (func x) :arguments (arguments x))))
-                matches 
+                matches
                 (iota (length matches)))
         (func-find-failure func-name compiled-args))))
 
 ;; if there were no candidates then pass errors back
 (defun func-find-failure (func-name arg-objs)
   (loop :for arg-obj :in arg-objs
-     :if (typep (code-type arg-obj) 'v-error) 
-     
+     :if (typep (code-type arg-obj) 'v-error)
+
      :return `(,(make-instance 'func-match :score t :func (code-type arg-obj)
-                               :arguments nil)) 
+                               :arguments nil))
      :finally (return
-                `(,(make-instance 
+                `(,(make-instance
                     'func-match
                     :score t
                     :func (make-instance 'v-error :payload
-                                     (make-instance 'no-valid-function
-                                                    :name func-name
-                                                    :types (mapcar #'code-type
-                                                                   arg-objs)))
+                                         (make-instance 'no-valid-function
+                                                        :name func-name
+                                                        :types (mapcar #'code-type
+                                                                       arg-objs)))
                     :arguments nil)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given
-   the current environment. This process simply involves finding the 
+   the current environment. This process simply involves finding the
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
   (let* ((functions (find-functions-for-args func-name args-code env))
          (function
           (if (and (> (length functions) 1)
-                   (some (lambda (x) 
+                   (some (lambda (x)
                            (some (lambda (x) (stemcellp (code-type x)))
                                  (arguments x)))
                          functions))

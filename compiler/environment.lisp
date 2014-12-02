@@ -354,8 +354,7 @@
 (defun function->func-spec (func &key required-glsl)
   (let ((arg-spec (v-argument-spec func)))
     (v-make-f-spec (v-glsl-string func)
-                   (when (listp arg-spec) 
-                     (loop :for a :in arg-spec :collect '?))
+                   nil ;;{TODO} this must be context
                    (when (listp arg-spec) 
                      (loop :for a :in arg-spec :collect (type->type-spec a)))
                    (if (type-specp (v-return-spec func))

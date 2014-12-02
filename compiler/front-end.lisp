@@ -15,20 +15,27 @@
 
 (defmacro defshader (name args &body body)
   (declare (ignore name))
-  `(translate ',args '(progn ,@body)))
+  (destructuring-bind (in-args uniforms context) (split-arguments args)
+    `(translate ',in-args ',uniforms ',context '(progn ,@body))))
 
 (defmacro defpipeline (name args &body stages)
   (declare (ignore name))
-  `(format nil "~{~a~%~}"(mapcar #'glsl-code (rolling-translate ',args ',stages))))
+  (destructuring-bind (in-args uniforms context) (split-arguments args)
+    `(format nil "~{~a~%~}" (mapcar #'glsl-code (rolling-translate ',in-args
+                                                                   ',uniforms
+                                                                   ',context
+                                                                   ',stages)))))
 
 ;;----------------------------------------------------------------------
 
+;;(defvar *arg-transformers* (list (:vertex . #'identity) ))
+
 ;; {TODO} check in args on have one stream
-(defun rolling-translate (args stages)
-  (destructuring-bind (in-args uniforms context) (split-arguments args)
-    (compile-stages in-args uniforms context stages
-                    '(:vertex :geometry :tess-eval :tess-control :fragment)
-                    nil)))
+(defun rolling-translate (in-args uniforms context stages)
+  (compile-stages in-args uniforms context stages
+                  '(:vertex :geometry :tess-eval :tess-control :fragment)
+                  ;;*arg-transformers*
+                  nil))
 
 (defun compile-stages (in-args uniforms context stages remaining-stage-types accum)
   (let ((stage (first stages)))
@@ -63,9 +70,8 @@
     (destructuring-bind (stage-type &rest code) stage
       (let* ((remaining-stage-types 
               (check-order stage-type remaining-stage-types))
-             (new-args `(,@in-args ,@(when uniforms (cons '&uniform uniforms))
-                                   &context ,@(cons stage-type context)))
-             (result (translate new-args `(progn ,@code))))
+             (result (translate in-args uniforms (cons stage-type context)
+                                `(progn ,@code))))
         (compile-stages (gen-in-args-for-next-stage result)
                         uniforms
                         context
@@ -93,9 +99,9 @@
       (subseq remaining-stage-types (position stage-type remaining-stage-types))
       (error "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists" stage-type)))
 
-(defun translate (args body)
+(defun translate (in-args uniforms context body)
   (let ((env (make-instance 'environment)))
-    (pipe-> (args body env)
+    (pipe-> (in-args uniforms context body env)
       #'split-input-into-env
       #'process-context
       #'process-in-args
@@ -142,16 +148,15 @@
          (error "In args to vertex shaders can not have qualifiers")))
   t)
 
-(defun split-input-into-env (args body env)
-  (destructuring-bind (in-args uniforms context) (split-arguments args)
-    (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
-               (check-for-dups in-args uniforms))
-      (setf (v-raw-in-args env) in-args)
-      (setf (v-raw-uniforms env) uniforms)
-      (setf (v-raw-context env) context)
-      (when (not context) (setf (v-raw-context env) *default-context*))
-      (when (check-for-stage-specific-limitations env)
-        (values body env)))))
+(defun split-input-into-env (in-args uniforms context body env)
+  (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
+             (check-for-dups in-args uniforms))
+    (setf (v-raw-in-args env) in-args)
+    (setf (v-raw-uniforms env) uniforms)
+    (setf (v-raw-context env) context)
+    (when (not context) (setf (v-raw-context env) *default-context*))
+    (when (check-for-stage-specific-limitations env)
+      (values body env))))
 
 ;;----------------------------------------------------------------------
 

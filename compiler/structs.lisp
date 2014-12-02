@@ -73,7 +73,9 @@
        :do (add-function
             accessor
             (func-spec->function
-             (v-make-f-spec fake-slot-name '(obj) (list fake-type)
+             (v-make-f-spec fake-slot-name
+                            nil ;; {TODO} Must be context
+                            (list fake-type)
                             slot-type :place nil) env) env t)
        :do (push `(,fake-slot-name ,slot-type ,qualifiers) new-in-args))
     (setf (v-in-args env) (append (v-in-args env) (reverse new-in-args)))

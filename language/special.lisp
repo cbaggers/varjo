@@ -22,22 +22,19 @@
 ;; environment in the second value position
 
 ;; example for case 1
-;; (v-defun test-1 ((a v-int) (b v-float))
-;;   :special
-;;   :return (make-instance 'code :current-line "booyah!"
+;; (v-defspecial test-1 ((a v-int) (b v-float))
+;; ;;   :return (make-instance 'code :current-line "booyah!"
 ;;                          :type (type-spec->type 'v-int)))
 
 ;; example for case 2
-;; (v-defun test-2 (name args &rest body)
-;;   :special
-;;   :args-valid t
+;; (v-defspecial test-2 (name args &rest body)
+;; ;;   :args-valid t
 ;;   :return (progn (format nil "name:~s args:~s body:~s" name args body)
 ;;                  (make-instance 'code :current-line "booyah!"
 ;;                                 :type (type-spec->type 'v-int))))
 
 ;;[TODO] make it handle multiple assignements like cl version
-(v-defun :setf ((place v-type) (val v-type))
-  :special
+(v-defspecial :setf ((place v-type) (val v-type))
   :return
   (cond ((not (v-placep (code-type place)))
          (error 'non-place-assign :place place :val val))
@@ -46,11 +43,10 @@
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)))))
 
-(v-defun :progn (&rest body)
+(v-defspecial :progn (&rest body)
   ;; this is super important as it is the only function that implements
   ;; imperitive coding. It does this by passing the env from one form
   ;; to the next.
-  :special
   :args-valid t
   :return
   (values
@@ -67,20 +63,18 @@
                   :multi-vals (multi-vals (last1 body-objs)))))
    env))
 
-(v-defun :progn1 (&rest body)
-  :special
+(v-defspecial :progn1 (&rest body)
   :args-valid t
   :return
   (let ((tmp (free-name 'progn-var)))
     (expand->varjo->glsl `(let ((,tmp ,(first body))) ,@(rest body) ,tmp) env)))
 
-(v-defun :multiple-value-bind (vars value-form &body body)
-  :special
+(v-defspecial :multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
   (let ((new-env (clone-environment env)))
     (unless (every #'symbolp vars)
-      (error "multiple-value-bind: all vars must symbols")) ;{TODO} proper error    
+      (error "multiple-value-bind: all vars must symbols")) ;{TODO} proper error
     (setf (v-multi-val-base new-env) (safe-glsl-name-string (free-name 'a)))
     (let* ((val-obj (varjo->glsl value-form new-env))
            (mvals (multi-vals val-obj))
@@ -97,11 +91,10 @@
                        ,@body)
                      env)))))
 
-(v-defun :return (form)
-  :special
+(v-defspecial :return (form)
   :args-valid t
   :return
-  (let ((new-env (clone-environment env)))    
+  (let ((new-env (clone-environment env)))
     (setf (v-multi-val-base new-env) "return") ;;{TODO} something from the banned list
     (let* ((obj (varjo->glsl form new-env))
            (mvals (multi-vals obj))
@@ -118,37 +111,34 @@
                  :returns (list (code-type obj))))))
       result)))
 
-(v-defun :values (&rest values)
-  :special
+(v-defspecial :values (&rest values)
   :args-valid t
   :return
   (if (v-multi-val-base env)
-      (let* ((new-env (clone-environment env))            
+      (let* ((new-env (clone-environment env))
              (objs (mapcar (lambda (x) (varjo->glsl x new-env)) values))
              (names (loop for i in values :collect (free-name 'v)))
              (base (v-multi-val-base env))
              (glsl-names (loop :for i :below (length values) :collect
-                            (format nil "~a~a" base i)))             
+                            (format nil "~a~a" base i)))
              (bindings (mapcar (lambda (x y) (list (list x) y))  names values))
-             (result (varjo->glsl 
+             (result (varjo->glsl
                       `(%clone-env-block
                         (%env-multi-var-declare ,bindings :env-and-set ,glsl-names))
                       (clone-environment env))))
-        (setf (multi-vals result) 
+        (setf (multi-vals result)
               (loop :for o :in objs :for n in glsl-names :collect
                  (make-instance 'v-value :glsl-name n :type (code-type o))))
         result)
       (varjo->glsl `(progn1 ,@values) env)))
 
 
-(v-defun :%clean-env-block (&body body)
-  :special
+(v-defspecial :%clean-env-block (&rest body)
   :args-valid t
   :return (let ((new-env (clean-environment env)))
             (values (varjo->glsl `(progn ,@body) new-env))))
 
-(v-defun :%clone-env-block (&body body)
-  :special
+(v-defspecial :%clone-env-block (&rest body)
   :args-valid t
   :return (let ((new-env (clone-environment env)))
             (values (varjo->glsl `(progn ,@body) new-env))))
@@ -156,15 +146,13 @@
 ;;[TODO] this should have a and &optional for place
 ;;[TODO] could this take a form and infer the type? yes...it could
 ;;       should destructively modify the env
-(v-defun :%make-var (name-string type)
-  :special
+(v-defspecial :%make-var (name-string type)
   :args-valid t
   :return (make-instance 'code :type (set-place-t type)
                          :current-line name-string))
 
 
-(v-defun :%typify (form &optional qualifiers)
-  :special
+(v-defspecial :%typify (form &optional qualifiers)
   :args-valid t
   :return
   (let ((code (varjo->glsl form env)))
@@ -172,12 +160,11 @@
                :current-line (prefix-type-declaration code qualifiers))))
 
 ;;[TODO] Make this less ugly, if we can merge environments we can do this easily
-(v-defun :%env-multi-var-declare (forms &optional include-type-declarations
+(v-defspecial :%env-multi-var-declare (forms &optional include-type-declarations
                                        arg-glsl-names)
   ;; This is the single ugliest thing in varjo (hopefully!)
   ;; it implements declarations of multiple values without letting
   ;; them share the environment.
-  :special
   :args-valid t
   :return
   (labels ((validate-var-types (var-name type-spec code-obj)
@@ -243,8 +230,7 @@
        (setf result `(let (,binding) ,result)))
     result))
 
-(v-defun :%make-function (name raw-args &rest body)
-  :special
+(v-defspecial :%make-function (name raw-args &rest body)
   :args-valid t
   :return
   (let* ((mainp (eq name :main))
@@ -262,10 +248,10 @@
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
     (add-function
      name (func-spec->function
-           (v-make-f-spec (gen-function-transform glsl-name raw-args 
+           (v-make-f-spec (gen-function-transform glsl-name raw-args
                                                   multi-return-vars)
                           raw-args (mapcar #'second raw-args)
-                          type :glsl-name glsl-name 
+                          type :glsl-name glsl-name
                           :multi-return-vars multi-return-vars) env) env t)
 
     (let* ((arg-pairs (loop :for (ignored type) :in raw-args
@@ -276,10 +262,10 @@
                              `(,(v-glsl-string type) ,name)))
            (sigs (if mainp
                      (signatures body-obj)
-                     (cons (gen-function-signature glsl-name arg-pairs 
+                     (cons (gen-function-signature glsl-name arg-pairs
                                                    out-arg-pairs type)
                            (signatures body-obj))))
-           (top (cons-end (gen-function-body-string 
+           (top (cons-end (gen-function-body-string
                            glsl-name arg-pairs out-arg-pairs type body-obj)
                           (to-top body-obj))))
 
@@ -300,8 +286,7 @@
     ,@body))
 
 ;; [TODO] what if type of form is not value
-(v-defun :out (name-and-qualifiers form)
-  :special
+(v-defspecial :out (name-and-qualifiers form)
   :args-valid t
   :return
   (let* ((form-obj (varjo->glsl form env))
@@ -322,20 +307,18 @@
                             ,(make-instance 'v-value :type (code-type form-obj)))
                           (out-vars form-obj))) t))))
 
-(v-defun :assert (kind form error-message)
-  :special
+(v-defspecial :assert (kind form error-message)
   :args-valid t
   :return
   (case kind
     ((:valid-variable '(:valid-variable))
-     (and (symbolp form)     
+     (and (symbolp form)
           (handler-case (varjo->glsl form env)
             (varjo-error () (error error-message)))))
     (otherwise (error "Unknown assert kind ~s" kind))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
-(v-defun :if (test-form then-form &optional else-form)
-  :special
+(v-defspecial :if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
@@ -351,8 +334,7 @@
         (error "The result of the test must be a bool.~%~s"
                (code-type test-obj)))))
 
-(v-defun :while (test &rest body)
-  :special
+(v-defspecial :while (test &rest body)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test env))
@@ -365,8 +347,7 @@
 
 
 ;; [TODO] check keys
-(v-defun :switch (test-form &rest clauses)
-  :special
+(v-defspecial :switch (test-form &rest clauses)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
@@ -384,8 +365,7 @@
         (error 'switch-type-error test-obj keys))))
 
 (v-defmacro :s~ (&rest args) `(swizzle ,@args))
-(v-defun :swizzle (vec-form components)
-  :special
+(v-defspecial :swizzle (vec-form components)
   :args-valid t
   :return
   (let* ((vec-obj (varjo->glsl vec-form env))
@@ -408,8 +388,7 @@
 ;;   (for (a 0) (< a 10) (++ a)
 ;;     (* a 2))
 ;; [TODO] double check implications of typify in compile-let-forms
-(v-defun :for (var-form condition update &rest body)
-  :special
+(v-defspecial :for (var-form condition update &rest body)
   :args-valid t
   :return
   (if (consp (first var-form))
@@ -431,19 +410,18 @@
               (error 'for-loop-simple-expression))))))
 
 
-(v-defun :the (type-name form)
-  :special
+(v-defspecial :the (type-name form)
   :args-valid t
   :return
   (let ((compiled (varjo->glsl form env))
         (declared-type (type-spec->type type-name)))
     (if (stemcellp (code-type compiled))
-        (copy-code compiled 
+        (copy-code compiled
                    :type declared-type
                    :stemcells (let ((stemcell (first (stemcells compiled))))
                                 `((,(first stemcell)
                                     ,(second stemcell)
                                     ,type-name))))
         (unless (v-typep compiled declared-type)
-          (error "Incorrect declaration that ~a was of type ~a" 
+          (error "Incorrect declaration that ~a was of type ~a"
                  compiled type-name))))) ;{TODO} proper error here
