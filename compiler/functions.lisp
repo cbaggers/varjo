@@ -24,9 +24,9 @@
                                      &key place glsl-spec-matching glsl-name) body
         `(progn (add-function
                  ',name
-                 ',(v-make-f-spec transform context arg-types return-spec
-                                  :place place :glsl-name glsl-name
-                                  :glsl-spec-matching glsl-spec-matching)
+                 (v-make-f-spec ,transform ',context ',arg-types ',return-spec
+                                :place ',place :glsl-name ',glsl-name
+                                :glsl-spec-matching ',glsl-spec-matching)
                  *global-env*)
                 ',name)))))
 
@@ -45,42 +45,42 @@
           ((eq args-valid t)
            `(progn
               (add-function ',name
-                            ',(v-make-f-spec
-                               :special
-                               context
-                               t
-                               `(lambda ,(cons 'env args)
-                                  (declare (ignorable env ,@arg-names))
-                                  ,return)
-                               :place place)
+                            (v-make-f-spec
+                             :special
+                             ',context
+                             t
+                             (lambda ,(cons 'env args)
+                               (declare (ignorable env ,@arg-names))
+                               ,return)
+                             :place ',place)
                             *global-env*)
               ',name))
           (args-valid
            `(progn
               (add-function ',name
-                            ',(v-make-f-spec
-                               :special
-                               context
-                               `(lambda ,(cons 'env args)
-                                  (declare (ignorable env ,@arg-names))
-                                  (let ((res ,args-valid))
-                                    (when res (list res 0))))
-                               `(lambda ,(cons 'env args)
-                                  (declare (ignorable env ,@arg-names))
-                                  ,return)
-                               :place place)
+                            (v-make-f-spec
+                             :special
+                             ',context
+                             (lambda ,(cons 'env args)
+                               (declare (ignorable env ,@arg-names))
+                               (let ((res ,args-valid))
+                                 (when res (list res 0))))
+                             (lambda ,(cons 'env args)
+                               (declare (ignorable env ,@arg-names))
+                               ,return)
+                             :place ',place)
                             *global-env*)
               ',name))
           (t `(progn
                 (add-function ',name
-                              ',(v-make-f-spec
-                                 :special
-                                 context
-                                 (mapcar #'second args)
-                                 `(lambda ,(cons 'env (mapcar #'first args))
-                                    (declare (ignorable env ,@arg-names))
-                                    ,return)
-                                 :place place)
+                              (v-make-f-spec
+                               :special
+                               ',context
+                               ',(mapcar #'second args)
+                               (lambda ,(cons 'env (mapcar #'first args))
+                                 (declare (ignorable env ,@arg-names))
+                                 ,return)
+                               :place ',place)
                               *global-env*)
                 ',name)))))))
 
