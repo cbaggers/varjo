@@ -226,3 +226,10 @@
           (clean-alist split)
           (error "'&' symbol found that was not specified in template ~s"
                  (mapcar #'first split))))))
+
+(defun split-arguments (args &optional (template '(&uniform &context &instancing)))
+  (let* ((split (lambda-list-split template args))
+         (in-args (cdr (assoc nil split))))
+    (cons in-args
+          (loop :for kw :in template :collect
+             (cdr (assoc (kwd kw) split))))))

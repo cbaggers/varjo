@@ -15,12 +15,14 @@
 
 (defmacro defshader (name args &body body)
   (declare (ignore name))
-  (destructuring-bind (in-args uniforms context) (split-arguments args)
+  (destructuring-bind (in-args uniforms context)
+      (split-arguments args '(&uniform &context))
     `(translate ',in-args ',uniforms ',context '(progn ,@body))))
 
 (defmacro defpipeline (name args &body stages)
   (declare (ignore name))
-  (destructuring-bind (in-args uniforms context) (split-arguments args)
+  (destructuring-bind (in-args uniforms context)
+      (split-arguments args '(&uniform &context))
     `(format nil "~{~a~%~}" (mapcar #'glsl-code (rolling-translate ',in-args
                                                                    ',uniforms
                                                                    ',context
@@ -121,13 +123,6 @@
       #'code-obj->result-object)))
 
 ;;----------------------------------------------------------------------
-
-(defun split-arguments (args)
-  (let* ((split (lambda-list-split '(&uniform &context &instancing) args))
-         (in-args (cdr (assoc nil split)))
-         (uniforms (cdr (assoc :&uniform split)))
-         (context (cdr (assoc :&context split))))
-    (list in-args uniforms context)))
 
 ;;[TODO] Move these errors
 (defun check-arg-forms (in-args &aux )

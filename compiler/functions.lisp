@@ -13,7 +13,8 @@
         glsl-name required-glsl multi-return-vars))
 
 (defmacro v-defun (name args &body body)
-  (destructuring-bind (in-args uniforms context) (split-arguments args)
+  (destructuring-bind (in-args uniforms context)
+      (split-arguments args '(&uniform &context))
     (declare (ignore in-args))
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (let* ((template (first body)))
@@ -23,18 +24,22 @@
                                      &key place glsl-spec-matching glsl-name) body
         `(progn (add-function
                  ',name
-                 ,(v-make-f-spec transform context arg-types return-spec
-                                 :place place :glsl-name glsl-name
-                                 :glsl-spec-matching glsl-spec-matching)
+                 ',(v-make-f-spec transform context arg-types return-spec
+                                  :place place :glsl-name glsl-name
+                                  :glsl-spec-matching glsl-spec-matching)
                  *global-env*)
                 ',name)))))
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 (defmacro v-defspecial (name args &body body)
-  (destructuring-bind (in-args uniforms context) (split-arguments args)
+  (destructuring-bind (in-args uniforms context rest optional)
+      (split-arguments args '(&uniform &context &rest &optional))
     (declare (ignore context)) ;; ignored as provided from body
     (when uniforms (error 'uniform-in-sfunc :func-name name))
-    (let ((arg-names (lambda-list-get-names in-args)))
+    (let ((arg-names (lambda-list-get-names
+                      (concatenate 'list in-args
+                                   (when rest (cons '&rest rest))
+                                   (when rest (cons '&optional optional))))))
       (destructuring-bind (&key context place args-valid return) body
         (cond
           ((eq args-valid t)
