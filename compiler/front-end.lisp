@@ -30,13 +30,10 @@
 
 ;;----------------------------------------------------------------------
 
-;;(defvar *arg-transformers* (list (:vertex . #'identity) ))
-
 ;; {TODO} check in args on have one stream
 (defun rolling-translate (in-args uniforms context stages)
   (compile-stages in-args uniforms context stages
                   '(:vertex :geometry :tess-eval :tess-control :fragment)
-                  ;;*arg-transformers*
                   nil))
 
 (defun compile-stages (in-args uniforms context stages remaining-stage-types accum)
@@ -56,30 +53,34 @@
   (let* ((stage (first stages))
          (remaining-stage-types 
           (check-order (stage-type stage) remaining-stage-types)))
-    (if (args-compatiblep in-args uniforms context stage)        
-        (compile-stages (gen-in-args-for-next-stage stage)
-                        uniforms
-                        context
-                        (rest stages)
-                        remaining-stage-types
-                        (cons stage accum))
-        (error 'args-incompatible :current-args (in-args stage)
-               :previous-args in-args))))
+    (destructuring-bind (in-args uniforms context)
+        (transform-stage-args (stage-type stage) in-args uniforms context)
+      (if (args-compatiblep in-args uniforms context stage)        
+          (compile-stages (gen-in-args-for-next-stage stage)
+                          uniforms
+                          context
+                          (rest stages)
+                          remaining-stage-types
+                          (cons stage accum))
+          (error 'args-incompatible :current-args (in-args stage)
+                 :previous-args in-args)))))
 
 (defun compile-stage (in-args uniforms context
                       stages remaining-stage-types accum)
   (let ((stage (first stages)))
     (destructuring-bind (stage-type &rest code) stage
-      (let* ((remaining-stage-types 
-              (check-order stage-type remaining-stage-types))
-             (result (translate in-args uniforms (cons stage-type context)
-                                `(progn ,@code))))
-        (compile-stages (gen-in-args-for-next-stage result)
-                        uniforms
-                        context
-                        (rest stages)
-                        remaining-stage-types
-                        (cons result accum))))))
+      (destructuring-bind (in-args uniforms context)
+          (transform-stage-args stage in-args uniforms context)
+        (let* ((remaining-stage-types 
+                (check-order stage-type remaining-stage-types))
+               (result (translate in-args uniforms (cons stage-type context)
+                                  `(progn ,@code))))
+          (compile-stages (gen-in-args-for-next-stage result)
+                          uniforms
+                          context
+                          (rest stages)
+                          remaining-stage-types
+                          (cons result accum)))))))
 
 (defun args-compatiblep (in-args uniforms context stage)
   (and (loop :for p :in in-args :for c :in (in-args stage) :always
@@ -89,6 +90,13 @@
                (equal (third p) (third c))))
        (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
        (context-ok-given-restriction (context stage) context)))
+
+(let ((arg-transformers (list '(:geometry . (lambda (i u c) (list i u c))))))
+  (defun transform-stage-args (stage in-args uniforms context)
+    (let ((transform (cdr (assoc stage arg-transformers))))
+      (if transform
+          (funcall transform in-args uniforms context)
+          (list in-args uniforms context)))))
 
 (defun gen-in-args-for-next-stage (compiled-stage)
   (loop :for (name qualifiers value) :in (out-vars compiled-stage)
