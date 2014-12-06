@@ -146,3 +146,7 @@
 (deferror invalid-v-defun-template (func-name template)
     "Template passed to vdefun must be a format string : ~a~%~a~%"
   func-name template)
+
+(deferror invalid-symbol-macro-form (name form)
+    "Symbol macros must expand to a list or atom form : ~s -> ~s~%"
+    name form)

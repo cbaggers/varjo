@@ -11,6 +11,7 @@
 (defparameter *global-env-funcs* (make-hash-table))
 (defparameter *global-env-vars* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
+(defparameter *global-env-symbol-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *supported-stages* '(:vertex :fragment))
@@ -31,6 +32,7 @@
    (variables :initform nil :initarg :variables :accessor v-variables)
    (functions :initform nil :initarg :functions :accessor v-functions)
    (macros :initform nil :initarg :macros :accessor v-macros)
+   (symbol-macros :initform nil :initarg :symbol-macros :accessor v-symbol-macros)
    (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
    (types :initform nil :initarg :types :accessor v-types)
    (context :initform nil :initarg :context :accessor v-context)
@@ -192,6 +194,45 @@
 
 (defmethod v-mboundp (macro-name (env environment))
   (not (null (get-macro macro-name env))))
+
+;;-------------------------------------------------------------------------
+
+
+
+(defmethod add-symbol-macro (macro-name macro (context list) 
+                      (env (eql :-genv-)) &optional modify-env)
+  (declare (ignore modify-env))
+  (unless (or (listp macro) (symbolp macro) (numberp macro))
+    (error 'invalid-symbol-macro-form :name macro-name :form macro))
+  (setf (gethash macro-name *global-env-symbol-macros*) `(,macro ,context))
+  *global-env*)
+
+(defmethod add-symbol-macro (macro-name macro (context list)
+                             (env environment) &optional modify-env)
+  (unless (or (listp macro) (symbolp macro) (numberp macro))
+    (error 'invalid-symbol-macro-form :name macro-name :form macro))
+  (let ((env (if modify-env env (clone-environment env))))
+    (when (shadow-global-check macro-name)
+      (a-remove-all macro-name (v-functions env))
+      (a-set macro-name `(,macro ,context) (v-symbol-macros env)))
+    env))
+
+(defgeneric get-symbol-macro (macro-name env))
+
+(defmethod get-symbol-macro (macro-name (env (eql :-genv-)))
+  (or (gethash (kwd macro-name) *global-env-symbol-macros*)
+      (gethash macro-name *global-env-symbol-macros*)))
+
+(defmethod get-symbol-macro (macro-name (env environment))
+  (let ((spec (or (a-get1 (kwd macro-name) (v-symbol-macros env))
+                  (a-get1 macro-name (v-symbol-macros env))
+                  (get-symbol-macro macro-name *global-env*))))
+    (when (and spec (valid-for-contextp spec env)) 
+      spec)))
+
+(defmethod v-mboundp (macro-name (env environment))
+  (not (null (get-symbol-macro macro-name env))))
+
 
 ;;-------------------------------------------------------------------------
 
