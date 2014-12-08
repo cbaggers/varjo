@@ -248,7 +248,8 @@
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
     (add-function
      name (func-spec->function
-           (v-make-f-spec (gen-function-transform glsl-name raw-args
+           (v-make-f-spec name
+                          (gen-function-transform glsl-name raw-args
                                                   multi-return-vars)
                           raw-args (mapcar #'second raw-args)
                           type :glsl-name glsl-name

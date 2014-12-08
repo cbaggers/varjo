@@ -67,7 +67,8 @@
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (place :initform nil :initarg :place :accessor v-placep)
    (glsl-spec-matching :initform nil :initarg :glsl-spec-matching :reader v-glsl-spec-matchingp)
-   (multi-return-vars :initarg nil :initarg :multi-return-vars :reader multi-return-vars)))
+   (multi-return-vars :initform nil :initarg :multi-return-vars :reader multi-return-vars)
+   (name :initform nil :initarg :name :reader name)))
 
 (defclass v-struct (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
