@@ -6,11 +6,11 @@
 ;; GLSL Functions
 ;;----------------
 
-(defun v-make-f-spec (transform context arg-types return-spec
+(defun v-make-f-spec (name transform context arg-types return-spec
                       &key place glsl-spec-matching glsl-name required-glsl
                         multi-return-vars)
   (list transform arg-types return-spec context place glsl-spec-matching
-        glsl-name required-glsl multi-return-vars))
+        glsl-name required-glsl multi-return-vars name))
 
 (defmacro v-defun (name args &body body)
   (destructuring-bind (in-args uniforms context)
@@ -24,7 +24,7 @@
                                      &key place glsl-spec-matching glsl-name) body
         `(progn (add-function
                  ',name
-                 (v-make-f-spec ,transform ',context ',arg-types ',return-spec
+                 (v-make-f-spec ',name ,transform ',context ',arg-types ',return-spec
                                 :place ',place :glsl-name ',glsl-name
                                 :glsl-spec-matching ',glsl-spec-matching)
                  *global-env*)
@@ -46,6 +46,7 @@
            `(progn
               (add-function ',name
                             (v-make-f-spec
+                             ',name
                              :special
                              ',context
                              t
@@ -59,6 +60,7 @@
            `(progn
               (add-function ',name
                             (v-make-f-spec
+                             ',name
                              :special
                              ',context
                              (lambda ,(cons 'env args)
@@ -74,6 +76,7 @@
           (t `(progn
                 (add-function ',name
                               (v-make-f-spec
+                               ',name
                                :special
                                ',context
                                ',(mapcar #'second args)
@@ -131,7 +134,8 @@
                        `(,(v-glsl-string (type-spec->type type)) ,name))))
     (add-function
      name
-     (v-make-f-spec (gen-function-transform glsl-name args) args
+     (v-make-f-spec name
+                    (gen-function-transform glsl-name args) args
                     (mapcar #'second args) return-type :glsl-name glsl-name
                     :required-glsl
                     `((,(gen-function-signature glsl-name arg-pairs nil

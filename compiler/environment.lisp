@@ -376,7 +376,7 @@
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 
                                  glsl-spec-matching glsl-name required-glsl
-                                 multi-return-vars)
+                                 multi-return-vars name)
       spec
     (make-instance 'v-function :glsl-string transform 
                    :arg-spec (if (listp arg-spec)
@@ -390,11 +390,13 @@
                    :required-glsl required-glsl
                    :glsl-spec-matching glsl-spec-matching 
                    :glsl-name glsl-name
-                   :multi-return-vars multi-return-vars)))
+                   :multi-return-vars multi-return-vars
+                   :name name)))
 
 (defun function->func-spec (func &key required-glsl)
   (let ((arg-spec (v-argument-spec func)))
-    (v-make-f-spec (v-glsl-string func)
+    (v-make-f-spec (name func)
+                   (v-glsl-string func)
                    nil ;;{TODO} this must be context
                    (when (listp arg-spec) 
                      (loop :for a :in arg-spec :collect (type->type-spec a)))
