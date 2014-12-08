@@ -14,7 +14,8 @@
 (defgeneric v-element-type (object))
 (defmethod v-element-type ((object v-t-type))
   (when (slot-exists-p object 'element-type)
-    (type-spec->type (slot-value object 'element-type))))
+    (when (slot-value object 'element-type)
+      (type-spec->type (slot-value object 'element-type)))))
 
 (defmethod type->type-spec ((type v-t-type)) 
   (class-name (class-of type)))
