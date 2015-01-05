@@ -54,7 +54,7 @@
   ((element-type :initform nil :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 (defmethod v-glsl-string ((object v-array))
-  (format nil "~a ~~a~{[~a]~}" (type->type-spec (v-element-type object)) (v-dimensions object)))
+  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object)) (v-dimensions object)))
 
 (defclass v-none (v-t-type) ())
 

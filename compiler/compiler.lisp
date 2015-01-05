@@ -57,6 +57,8 @@
 (defun compile-form (code env)
   (let* ((func-name (first code)) 
          (args-code (rest code)))
+    (when (keywordp func-name)
+      (error 'keyword-in-function-position :form code))
     (dbind (func args) (find-function-for-args func-name args-code env)
       (cond 
         ((typep func 'v-function) (compile-function func-name func args env))
@@ -171,6 +173,7 @@
 
 ;;[TODO] Maybe the error should be caught and returned, 
 ;;       in case this is a bad walk
+;;{TODO} expand on this please. Future you couldnt work out what this meant
 (defun compile-special-function (func args env)
   (let ((env (clone-environment env)))
     (multiple-value-bind (code-obj new-env)

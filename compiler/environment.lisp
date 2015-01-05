@@ -37,7 +37,8 @@
    (multi-val-base :initform nil :initarg :multi-val-base :accessor v-multi-val-base)))
 
 (defun make-varjo-environment (&rest context)
-  (make-instance 'environment :context (or context *default-context*)))
+  (let ((context (or context *default-context*)))
+    (make-instance 'environment :context context :raw-context context)))
 
 ;;-------------------------------------------------------------------------
 
@@ -97,7 +98,22 @@
       (setf (v-variables env) (norm-list (v-variables env)))
       (setf (v-functions env) (norm-list (v-functions env)))
       (setf (v-macros env) (norm-list (v-macros env)))
-      (setf (v-compiler-macros env) (norm-list (v-compiler-macros env))))))
+      (setf (v-compiler-macros env) (norm-list (v-compiler-macros env)))
+      env)))
+
+(defun merge-env (env new-env)
+  (let ((a (clone-environment env))
+        (b (normalize-environment (clone-environment new-env))))
+    (with-slots ((a-vars variables) (a-funcs functions) (a-macros macros)
+                 (a-cmacros compiler-macros) (a-types types)) a
+      (with-slots ((b-vars variables) (b-funcs functions) (b-macros macros)
+                   (b-cmacros compiler-macros) (b-types types)) b        
+        (setf a-vars (concatenate 'list b-vars a-vars)
+              a-funcs (concatenate 'list b-funcs a-funcs)
+              a-macros (concatenate 'list b-macros a-macros)
+              a-cmacros (concatenate 'list b-cmacros a-cmacros)
+              a-types (concatenate 'list b-types a-types))))
+    a))
 
 ;;-------------------------------------------------------------------------
 

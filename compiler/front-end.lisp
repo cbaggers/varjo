@@ -181,8 +181,7 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for (name type . qualifiers) :in in-args :do
-       (let* ((type (if (and (not (keywordp type))
-                             (not (vtype-existsp type))
+       (let* ((type (if (and (not (type-specp type))                             
                              (vtype-existsp (sym-down type)))
                         (sym-down type)
                         type))

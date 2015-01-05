@@ -146,3 +146,7 @@
 (deferror invalid-v-defun-template (func-name template)
     "Template passed to vdefun must be a format string : ~a~%~a~%"
   func-name template)
+
+(deferror keyword-in-function-position (form)
+    "Keyword cannot appear in function name position : ~s"
+  form)
