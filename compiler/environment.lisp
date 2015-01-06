@@ -15,11 +15,19 @@
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *supported-stages* '(:vertex :fragment))
+(defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines 
+                                       :line-strip-adjacency :lines-adjacency
+                                       :triangle-strip :triangle-fan :triangles
+                                       :triangle-strip-adjacency
+                                       :triangles-adjacency :patches))
 (defparameter *default-version* :330)
 (defparameter *default-context* '(:330 :vertex :stemcells))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
+                                           ,@(copy-list *supported-draw-modes*)
                                            :stemcells))
+
+
 
 ;;-------------------------------------------------------------------------
 
