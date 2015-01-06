@@ -15,7 +15,7 @@
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *supported-stages* '(:vertex :fragment))
 (defparameter *default-version* :330)
-(defparameter *default-context* '(:330 :vertex :stemcells))
+(defparameter *default-context* '(:330 :vertex))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
                                            :stemcells))
