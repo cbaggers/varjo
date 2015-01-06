@@ -150,3 +150,8 @@
 (deferror keyword-in-function-position (form)
     "Keyword cannot appear in function name position : ~s"
   form)
+
+(deferror invalid-symbol-macro-form (name form)
+    "Symbol macros must expand to a list or atom form : ~s -> ~s~%"
+    name form)
+

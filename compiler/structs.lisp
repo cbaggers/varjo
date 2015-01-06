@@ -73,7 +73,8 @@
        :do (add-function
             accessor
             (func-spec->function
-             (v-make-f-spec fake-slot-name
+             (v-make-f-spec accessor
+                            fake-slot-name
                             nil ;; {TODO} Must be context
                             (list fake-type)
                             slot-type :place nil) env) env t)

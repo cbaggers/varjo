@@ -53,13 +53,6 @@
      (:gl-back-secondary-color v-vec4)
      (:gl-tex-coord (v-vec4 t))
      (:gl-fog-frag-coord v-float))
-    (:fragment 
-     (:gl-frag-coord v-vec4 t)
-     (:gl-front-facing v-bool  t)
-     (:gl-clip-distance (v-float t) t)
-     (:gl-point-coord v-vec2  t)
-     (:gl-primitive-id v-int t)
-     (:gl-frag-depth v-float nil))
     (:geometry
      (:gl-in (vgl-per-vertex-g t) t)
      (:gl-primitive-id-in v-int t)
@@ -67,5 +60,13 @@
      (:gl-point-size v-float)
      (:gl-clip-distance (v-float t))
      (:gl-primitive-id v-int)
-     (:gl-layer v-int))))
+     (:gl-layer v-int))
+    (:fragment 
+     (:gl-frag-coord v-vec4 t)
+     (:gl-front-facing v-bool  t)
+     (:gl-clip-distance (v-float t) t)
+     (:gl-point-coord v-vec2  t)
+     (:gl-primitive-id v-int t)
+     (:gl-frag-data (v-vec4 16) t)
+     (:gl-frag-depth v-float nil))))
 

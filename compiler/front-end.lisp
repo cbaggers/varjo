@@ -118,7 +118,8 @@
       #'process-uniforms
       #'wrap-in-main-function
       #'add-context-glsl-vars
-      (equal #'macroexpand-pass
+      (equal #'symbol-macroexpand-pass
+             #'macroexpand-pass
              #'compiler-macroexpand-pass)
       #'compile-pass
       #'filter-used-items
@@ -225,6 +226,19 @@
 
 (defun add-context-glsl-vars (code env)
   (values code (add-glsl-vars env *glsl-variables*)))
+
+;;----------------------------------------------------------------------
+
+(defun v-symbol-macroexpand-all (form &optional (env :-GENV-))
+  (cond ((null form) nil)
+        ((atom form) 
+         (let ((sm (get-symbol-macro form env)))
+           (or (first sm) form)))
+        ((consp form) (cons (v-symbol-macroexpand-all (car form))
+                            (v-symbol-macroexpand-all (cdr form))))))
+
+(defun symbol-macroexpand-pass (form env)
+  (values (v-symbol-macroexpand-all form env) env))
 
 ;;----------------------------------------------------------------------
 
