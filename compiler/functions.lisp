@@ -19,7 +19,7 @@
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (let* ((template (first body)))
       (unless (stringp (first body))
-        (error 'invalid-v-defun-template :func-nane name :template template))
+        (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
                                      &key place glsl-spec-matching glsl-name) body
         `(progn (add-function
@@ -31,6 +31,7 @@
                 ',name)))))
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
+;;{TODO} :return should just be the last form
 (defmacro v-defspecial (name args &body body)
   (destructuring-bind (in-args uniforms context rest optional)
       (split-arguments args '(&uniform &context &rest &optional))

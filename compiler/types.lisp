@@ -26,25 +26,13 @@
       (list (type->type-spec (v-element-type type)) (v-dimensions type))
       'v-array))
 
-(defun type-specp (spec &optional (env *global-env*))
-  (declare (ignore env))
-  (when (not (or (null spec) (typep spec 'v-type)
-                 (numberp spec) (functionp spec)
-                 (and (listp spec) (eq (first spec) :element))))
-    (not (null (and (or (symbolp spec) 
-                        (and (listp spec) (numberp (second spec))))
-                    (if (listp spec)
-                        (vtype-existsp (first spec))
-                        (vtype-existsp spec)))))))
-
-
-(defun type-spec->type (spec &key place (env *global-env*))
+(defun try-type-spec->type (spec &key place (env *global-env*))
   (declare (ignore env))
   (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec)) 
                     ((and (listp spec) (keywordp (first spec)))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
-    (cond ((null spec) (error 'unknown-type-spec :type-spec spec))
+    (cond ((null spec) nil)
           ((and (symbolp spec) (vtype-existsp spec))
            (let ((type (make-instance spec)))
              (when (slot-exists-p type 'place) 
@@ -57,7 +45,14 @@
                                                        type)
                             :place place
                             :dimensions dimensions)))
-          (t (error 'unknown-type-spec :type-spec spec)))))
+          (t nil))))
+
+(defun type-specp (spec &optional (env *global-env*))
+  (not (null (try-type-spec->type spec :place nil :env env))))
+
+(defun type-spec->type (spec &key place (env *global-env*))
+  (or (try-type-spec->type spec :place place :env env)
+      (error 'unknown-type-spec :type-spec spec)))
 
 (defmethod v-true-type ((object v-t-type))
   object)

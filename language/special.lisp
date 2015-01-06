@@ -7,33 +7,13 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
+(named-readtables:in-readtable fn_::fn_lambda)
 
-;; special functions need to specify:
-;; :args-valid
-;;  * if not present then the types from the arguments are used
-;;    with basic type checking. the args are then populated with
-;;    the compiled code-objects for the :return section
-;;  * if set to t any arguments are accepted and the raw code is
-;;    passed to the :return section.
-;;  * you can specify code here and it will be used to validate the
-;;    arguments, you must return a list of compiled arg objects if successfull
-;;    and you MUST throw an error if not.
-;; Finally if you modify the environment in :return you must return the new
-;; environment in the second value position
+;;{TODO} all special functions starting with :% should start with % as they
+;;       are not directly used anyway. After his look into whether any glsl
+;;       functions should use keyword names.
 
-;; example for case 1
-;; (v-defspecial test-1 ((a v-int) (b v-float))
-;; ;;   :return (make-instance 'code :current-line "booyah!"
-;;                          :type (type-spec->type 'v-int)))
-
-;; example for case 2
-;; (v-defspecial test-2 (name args &rest body)
-;; ;;   :args-valid t
-;;   :return (progn (format nil "name:~s args:~s body:~s" name args body)
-;;                  (make-instance 'code :current-line "booyah!"
-;;                                 :type (type-spec->type 'v-int))))
-
-;;[TODO] make it handle multiple assignements like cl version
+;;{TODO} make it handle multiple assignements like cl version
 (v-defspecial :setf ((place v-type) (val v-type))
   :return
   (cond ((not (v-placep (code-type place)))
@@ -143,8 +123,14 @@
   :return (let ((new-env (clone-environment env)))
             (values (varjo->glsl `(progn ,@body) new-env))))
 
-;;[TODO] this should have a and &optional for place
-;;[TODO] could this take a form and infer the type? yes...it could
+(v-defspecial %merge-env (env-a new-env)
+  :args-valid t
+  :return  
+  (let ((dummy-code-obj (make-instance 'code :current-line "")))
+    (values dummy-code-obj (merge-env env-a new-env))))
+
+;;{TODO} this should have a and &optional for place
+;;{TODO} could this take a form and infer the type? yes...it could
 ;;       should destructively modify the env
 (v-defspecial :%make-var (name-string type)
   :args-valid t
@@ -159,7 +145,78 @@
     (merge-obs code :type (code-type code)
                :current-line (prefix-type-declaration code qualifiers))))
 
-;;[TODO] Make this less ugly, if we can merge environments we can do this easily
+(defun %validate-var-types (var-name type code-obj)
+  (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
+    (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
+           (string-downcase var-name) (current-line code-obj)))
+  (when (and (null type) (null code-obj))
+    (error "Could not establish the type of the variable: ~s" var-name))  
+  (when (and code-obj type (not (v-type-eq (code-type code-obj) type)))
+    (error "Type specified does not match the type of the form~%~s~%~s"
+           (code-type code-obj) type))
+  t)
+
+(v-defspecial %glsl-let (form &optional include-type-declaration arg-glsl-name)
+  :args-valid t
+  :return
+  (let* ((var-spec (listify (first form)))
+         (glsl-name (or arg-glsl-name
+                        (safe-glsl-name-string (free-name (first var-spec) env))))
+         (code-obj (when (> (length form) 1) (varjo->glsl (second form) env))))
+    (destructuring-bind (name &optional type-spec qualifiers) var-spec
+      (declare (ignore qualifiers))
+      (let ((type-spec (when type-spec (type-spec->type type-spec))))
+        (%validate-var-types name type-spec code-obj)
+        (let* ((glsl-let-code
+                (if code-obj
+                    (if (eq include-type-declaration :env-and-set)
+                        `(setf (%make-var ,glsl-name ,(or type-spec (code-type code-obj))) ,code-obj)
+                        `(setf (%typify (%make-var ,glsl-name ,(or type-spec (code-type code-obj))))
+                               ,code-obj))
+                    (if (eq include-type-declaration :env-and-set)
+                        `(%make-var ,glsl-name ,type-spec)
+                        `(%typify (%make-var ,glsl-name ,type-spec)))))
+               (let-obj (varjo->glsl glsl-let-code env)))
+          (add-var name
+                   (make-instance 'v-value :glsl-name glsl-name
+                                  :type (set-place-t
+                                         (or type-spec (code-type code-obj))))
+                   env t)
+          (values (if include-type-declaration
+                      (merge-obs let-obj
+                                 :type (type-spec->type 'v-none)
+                                 :current-line nil
+                                 :to-block (append (to-block let-obj)
+                                                   (list (current-line
+                                                          (end-line let-obj)))))
+                      (make-instance 'code :type 'v-none))
+                  env))))))
+
+(v-defspecial %multi-env-progn (&rest env-local-expessions)
+  :args-valid t
+  :return  
+  (let* ((e (mapcar λ(multiple-value-list (varjo->glsl % env))
+                    env-local-expessions))
+         (code-objs (mapcar #'first e))
+         (env-objs (mapcar #'second e))
+         (merged-env (reduce λ(merge-env % %1) env-objs)))    
+    (values
+     (merge-obs code-objs
+                 :type (type-spec->type 'v-none)
+                 :current-line nil
+                 :to-block (append (mapcan #'to-block code-objs)
+                                   (mapcar λ(current-line (end-line %))
+                                           code-objs))
+                 :to-top (mapcan #'to-top code-objs))
+     merged-env)))
+
+(v-defmacro :wip-let (bindings &body body)
+  `(%clone-env-block
+    (%multi-env-progn ,@(loop :for b :in bindings
+                           :collect `(%glsl-let ,b t)))
+    ,@body))
+
+;;{TODO} DEPRECATED - REMOVE ASAP
 (v-defspecial :%env-multi-var-declare (forms &optional include-type-declarations
                                        arg-glsl-names)
   ;; This is the single ugliest thing in varjo (hopefully!)
@@ -199,7 +256,8 @@
                                (varjo->glsl `(%typify ,code) env))))))
       ;;add-vars to env - this is destrucitvely modifying env
       (loop :for (name type-spec qualifiers) :in var-specs
-         :for glsl-name :in glsl-names :for code-obj :in c-objs :do
+         :for glsl-name :in glsl-names
+         :for code-obj :in c-objs :do
          (let ((type-spec (when type-spec (type-spec->type type-spec))))
            (add-var name
                     (make-instance 'v-value :glsl-name glsl-name
@@ -217,7 +275,7 @@
                   (make-instance 'code :type 'v-none))
               env))))
 
-;; [TODO] is block the best term? is it a block in the code-obj sense?
+;; {TODO} is block the best term? is it a block in the code-obj sense?
 (v-defmacro :let (bindings &body body)
   `(%clone-env-block
     (%env-multi-var-declare ,bindings t)
@@ -286,7 +344,7 @@
     ,@(loop :for d :in definitions :collect `(%make-function ,@d))
     ,@body))
 
-;; [TODO] what if type of form is not value
+;; {TODO} what if type of form is not value
 (v-defspecial :out (name-and-qualifiers form)
   :args-valid t
   :return
@@ -347,7 +405,7 @@
         (error 'loop-will-never-halt :test-code test :test-obj test-obj))))
 
 
-;; [TODO] check keys
+;; {TODO} check keys
 (v-defspecial :switch (test-form &rest clauses)
   :args-valid t
   :return
@@ -388,7 +446,7 @@
 
 ;;   (for (a 0) (< a 10) (++ a)
 ;;     (* a 2))
-;; [TODO] double check implications of typify in compile-let-forms
+;; {TODO} double check implications of typify in compile-let-forms
 (v-defspecial :for (var-form condition update &rest body)
   :args-valid t
   :return
