@@ -179,8 +179,6 @@
            :%-
            :%*
            :%/
-           :V!
-           :M!
            ;; :CLAMP
            :BITFIELD-INSERT
            :MIX

@@ -9,9 +9,11 @@
 (in-package :varjo)
 
 (v-define-compiler-macro :+ (&rest numbers)
-  (if (> (length numbers) 2)
-      `(%+ ,(first numbers) (+ ,@(rest numbers)))
-      `(%+ ,@numbers)))
+  (cond
+    ((= (length numbers) 1) (first numbers))
+    ((> (length numbers) 2)
+     `(%+ ,(first numbers) (+ ,@(rest numbers))))
+    (t `(%+ ,@numbers))))
 
 (v-define-compiler-macro :- (&rest numbers)
   (if (> (length numbers) 2)
