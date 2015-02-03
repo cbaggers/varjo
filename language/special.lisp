@@ -30,17 +30,19 @@
   :args-valid t
   :return
   (values
-   (let ((body-objs (loop :for code :in body :collect
-                       (multiple-value-bind (code-obj new-env)
-                           (varjo->glsl code env)
-                         (when new-env (setf env new-env))
-                         code-obj))))
-     (let ((last-obj (last1 body-objs)))
-       (merge-obs body-objs
-                  :type (code-type last-obj)
-                  :current-line (current-line last-obj)
-                  :to-block (merge-lines-into-block-list body-objs)
-                  :multi-vals (multi-vals (last1 body-objs)))))
+   (if body
+       (let ((body-objs (loop :for code :in body :collect
+                           (multiple-value-bind (code-obj new-env)
+                               (varjo->glsl code env)
+                             (when new-env (setf env new-env))
+                             code-obj))))
+         (let ((last-obj (last1 body-objs)))
+           (merge-obs body-objs
+                      :type (code-type last-obj)
+                      :current-line (current-line last-obj)
+                      :to-block (merge-lines-into-block-list body-objs)
+                      :multi-vals (multi-vals (last1 body-objs)))))
+       (make-instance 'code :type (type-spec->type :none)))
    env))
 
 (v-defspecial :progn1 (&rest body)
@@ -66,7 +68,9 @@
       (let ((lvars (mapcar #'(lambda (x y) (list (list x (type->type-spec y))))
                            vars mval-types)))
         (varjo->glsl `(%clone-env-block
-                       (%env-multi-var-declare ,lvars t ,glsl-names)
+                       (%multi-env-progn
+                        ,@(loop :for v :in lvars :for gname :in glsl-names
+                             :collect `(%glsl-let ,v t ,gname)))
                        ,val-obj
                        ,@body)
                      env)))))
@@ -104,7 +108,9 @@
              (bindings (mapcar (lambda (x y) (list (list x) y))  names values))
              (result (varjo->glsl
                       `(%clone-env-block
-                        (%env-multi-var-declare ,bindings :env-and-set ,glsl-names))
+                        (%multi-env-progn
+                         ,@(loop :for b :in bindings :for g :in glsl-names
+                              :collect `(%glsl-let ,b :env-and-set ,g))))
                       (clone-environment env))))
         (setf (multi-vals result)
               (loop :for o :in objs :for n in glsl-names :collect
@@ -125,7 +131,7 @@
 
 (v-defspecial %merge-env (env-a new-env)
   :args-valid t
-  :return  
+  :return
   (let ((dummy-code-obj (make-instance 'code :current-line "")))
     (values dummy-code-obj (merge-env env-a new-env))))
 
@@ -150,7 +156,7 @@
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
            (string-downcase var-name) (current-line code-obj)))
   (when (and (null type) (null code-obj))
-    (error "Could not establish the type of the variable: ~s" var-name))  
+    (error "Could not establish the type of the variable: ~s" var-name))
   (when (and code-obj type (not (v-type-eq (code-type code-obj) type)))
     (error "Type specified does not match the type of the form~%~s~%~s"
            (code-type code-obj) type))
@@ -194,91 +200,28 @@
 
 (v-defspecial %multi-env-progn (&rest env-local-expessions)
   :args-valid t
-  :return  
-  (let* ((e (mapcar λ(multiple-value-list (varjo->glsl % env))
-                    env-local-expessions))
-         (code-objs (mapcar #'first e))
-         (env-objs (mapcar #'second e))
-         (merged-env (reduce λ(merge-env % %1) env-objs)))    
-    (values
-     (merge-obs code-objs
-                 :type (type-spec->type 'v-none)
-                 :current-line nil
-                 :to-block (append (mapcan #'to-block code-objs)
-                                   (mapcar λ(current-line (end-line %))
-                                           code-objs))
-                 :to-top (mapcan #'to-top code-objs))
-     merged-env)))
-
-(v-defmacro :wip-let (bindings &body body)
-  `(%clone-env-block
-    (%multi-env-progn ,@(loop :for b :in bindings
-                           :collect `(%glsl-let ,b t)))
-    ,@body))
-
-;;{TODO} DEPRECATED - REMOVE ASAP
-(v-defspecial :%env-multi-var-declare (forms &optional include-type-declarations
-                                       arg-glsl-names)
-  ;; This is the single ugliest thing in varjo (hopefully!)
-  ;; it implements declarations of multiple values without letting
-  ;; them share the environment.
-  :args-valid t
   :return
-  (labels ((validate-var-types (var-name type-spec code-obj)
-             (when (and (null type-spec) (null code-obj))
-               (error "Could not establish the type of the variable: ~s" var-name))
-             (when (and code-obj type-spec (not (v-type-eq (code-type code-obj) type-spec)))
-               (error "Type specified does not match the type of the form~%~s~%~s"
-                      (code-type code-obj) type-spec))
-             t))
-    ;; compile vals
-    (let* ((forms (remove nil forms))
-           (env (clone-environment env))
-           (var-specs (loop :for f :in forms :collect (listify (first f))))
-           (c-objs (loop :for f in forms :collect
-                      (when (> (length f) 1) (varjo->glsl (second f) env))))
-           (glsl-names (or arg-glsl-names
-                           (loop :for (name) :in var-specs
-                              :do (when (> (count name var-specs :key #'first) 1)
-                                    (error 'duplicate-name name))
-                              :collect (safe-glsl-name-string (free-name name env)))))
-           (decl-objs (loop :for (name type-spec qualifiers) :in var-specs
-                         :for glsl-name :in glsl-names
-                         :for code-obj :in c-objs :do
-                         (validate-var-types name type-spec code-obj)
-                         :collect
-                         (let* ((type-spec (when type-spec (type-spec->type type-spec)))
-                                (code (if code-obj
-                                          `(setf (%make-var ,glsl-name ,(or type-spec (code-type code-obj))) ,code-obj)
-                                          `(%make-var ,glsl-name ,type-spec))))
-                           (if (eq include-type-declarations :env-and-set)
-                               (varjo->glsl code env)
-                               (varjo->glsl `(%typify ,code) env))))))
-      ;;add-vars to env - this is destrucitvely modifying env
-      (loop :for (name type-spec qualifiers) :in var-specs
-         :for glsl-name :in glsl-names
-         :for code-obj :in c-objs :do
-         (let ((type-spec (when type-spec (type-spec->type type-spec))))
-           (add-var name
-                    (make-instance 'v-value :glsl-name glsl-name
-                                   :type (set-place-t (or type-spec
-                                                          (code-type code-obj))))
-                    env t)))
-      (values (if include-type-declarations
-                  (merge-obs decl-objs
-                             :type (type-spec->type 'v-none)
-                             :current-line nil
-                             :to-block (append (mapcan #'to-block decl-objs)
-                                               (mapcar #'(lambda (x) (current-line (end-line x)))
-                                                       decl-objs))
-                             :to-top (mapcan #'to-top decl-objs))
-                  (make-instance 'code :type 'v-none))
-              env))))
+  (if env-local-expessions
+      (let* ((e (mapcar λ(multiple-value-list (varjo->glsl % env))
+                        env-local-expessions))
+             (code-objs (mapcar #'first e))
+             (env-objs (mapcar #'second e))
+             (merged-env (reduce λ(merge-env % %1) env-objs)))
+        (values
+         (merge-obs code-objs
+                    :type (type-spec->type 'v-none)
+                    :current-line nil
+                    :to-block (append (mapcan #'to-block code-objs)
+                                      (mapcar λ(current-line (end-line %))
+                                              code-objs))
+                    :to-top (mapcan #'to-top code-objs))
+         merged-env))
+      (make-instance 'code :type (type-spec->type :none) :current-line "")))
 
-;; {TODO} is block the best term? is it a block in the code-obj sense?
 (v-defmacro :let (bindings &body body)
   `(%clone-env-block
-    (%env-multi-var-declare ,bindings t)
+    (%multi-env-progn
+     ,@(loop :for b :in bindings :collect `(%glsl-let ,b t)))
     ,@body))
 
 (v-defmacro :let* (bindings &rest body)
@@ -296,7 +239,10 @@
          (arg-glsl-names (loop :for (name) :in raw-args :collect
                             (safe-glsl-name-string (free-name name))))
          (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
-                                   (%env-multi-var-declare ,args nil ,arg-glsl-names)
+                                   (%multi-env-progn
+                                    ,@(loop :for b :in args
+                                         :for g :in arg-glsl-names
+                                         :collect `(%glsl-let ,b nil ,g)))
                                    ,@body) env))
          (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))
          (primary-return (first (returns body-obj)))
@@ -444,6 +390,10 @@
         (error "swizzle form invalid"))))
 
 
+
+
+
+
 ;;   (for (a 0) (< a 10) (++ a)
 ;;     (* a 2))
 ;; {TODO} double check implications of typify in compile-let-forms
@@ -453,7 +403,7 @@
   (if (consp (first var-form))
       (error 'for-loop-only-one-var)
       (multiple-value-bind (code new-env)
-          (varjo->glsl `(%env-multi-var-declare (,var-form) t) env)
+          (varjo->glsl `(%glsl-let ,var-form t) env)
         (let* ((var-string (subseq (first (to-block code)) 0 (1- (length (first (to-block code))))))
                (decl-obj (varjo->glsl (second var-form) new-env))
                (condition-obj (varjo->glsl condition new-env))
