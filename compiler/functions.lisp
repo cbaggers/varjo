@@ -98,7 +98,7 @@
 
 (defun %v-def-external (name in-args context body)
   (let ((env (make-instance 'environment))
-        (body~1 `(%make-function ,name in-args ,@body)))
+        (body~1 `(%make-function ,name ,in-args ,@body)))
     (pipe-> (in-args nil context body~1 env)
       #'split-input-into-env
       #'process-context
