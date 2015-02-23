@@ -405,6 +405,5 @@
                  :uniforms (loop :for i :in (v-uniforms env) :collect
                               (subseq i 0 2))
                  :implicit-uniforms (stemcells code)
-                 :context (v-context env)
-                 :used-external-functions (used-external-functions code)))
+                 :context (v-context env)))
 

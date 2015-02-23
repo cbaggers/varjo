@@ -35,7 +35,6 @@
            :v-glsl-string
            :v-payload
            :v-placep
-           :v-required-glsl
            :v-restriction
            :v-return-spec
            :v-signature
@@ -286,5 +285,4 @@
            :out-vars
            :in-args
            :uniforms
-           :context
-           :used-external-functions))
+           :context))

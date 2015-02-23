@@ -399,7 +399,7 @@
 
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place 
-                                 glsl-spec-matching glsl-name required-glsl
+                                 glsl-spec-matching glsl-name
                                  multi-return-vars name)
       spec
     (make-instance 'v-function :glsl-string transform 
@@ -411,13 +411,12 @@
                                     (type-spec->type return-spec :env env)
                                     return-spec)
                    :restriction context :place place
-                   :required-glsl required-glsl
                    :glsl-spec-matching glsl-spec-matching 
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
                    :name name)))
 
-(defun function->func-spec (func &key required-glsl)
+(defun function->func-spec (func)
   (let ((arg-spec (v-argument-spec func)))
     (v-make-f-spec (name func)
                    (v-glsl-string func)
@@ -429,8 +428,7 @@
                        (v-return-spec func))
                    :place (v-placep func) 
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
-                   :glsl-name (v-glsl-name func)
-                   :required-glsl (or required-glsl (v-required-glsl func)))))
+                   :glsl-name (v-glsl-name func))))
 
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))

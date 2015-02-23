@@ -61,7 +61,6 @@
 (defclass v-function (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
-   (required-glsl :initform nil :initarg :required-glsl :accessor v-required-glsl)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)

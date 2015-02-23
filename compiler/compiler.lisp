@@ -100,16 +100,9 @@
     (merge-obs args 
                :type type 
                :current-line c-line
-               :to-top (append (second (v-required-glsl func)) 
-                               (mapcan #'to-top args))
-               :signatures (append (first (v-required-glsl func))
-                                   (mapcan #'signatures args))
-               :used-funcs (if (v-required-glsl func)
-                               (cons func-name
-                                     (mapcan #'used-external-functions args))
-                               (mapcan #'used-external-functions args))
-               :stemcells (append (third (v-required-glsl func)) 
-                                  (mapcan #'stemcells args)))))
+               :to-top (mapcan #'to-top args)
+               :signatures (mapcan #'signatures args)
+               :stemcells (mapcan #'stemcells args))))
 
 (defun compile-multi-return-function (func-name func args env)  
   (let* ((args (make-stemcell-arguments-concrete args func))
@@ -126,16 +119,9 @@
                              (fmt "~a~a" m-r-base i)))         
                (o (merge-obs args :type type 
                              :current-line (gen-function-string func args m-r-names)
-                             :to-top (append (second (v-required-glsl func)) 
-                                             (mapcan #'to-top args))
-                             :signatures (append (first (v-required-glsl func))
-                                                 (mapcan #'signatures args))
-                             :used-funcs (if (v-required-glsl func)
-                                             (cons func-name
-                                                   (mapcan #'used-external-functions args))
-                                             (mapcan #'used-external-functions args))
-                             :stemcells (append (third (v-required-glsl func)) 
-                                                (mapcan #'stemcells args)))))
+                             :to-top (mapcan #'to-top args)
+                             :signatures (mapcan #'signatures args)
+                             :stemcells (mapcan #'stemcells args))))
           (expand->varjo->glsl 
            `(%clone-env-block
              (%env-multi-var-declare ,bindings t ,m-r-names)
@@ -146,16 +132,9 @@
                (o (merge-obs
                    args :type type 
                    :current-line (gen-function-string func args (rest m-r-names))
-                   :to-top (append (second (v-required-glsl func)) 
-                                   (mapcan #'to-top args))
-                   :signatures (append (first (v-required-glsl func))
-                                       (mapcan #'signatures args))
-                   :used-funcs (if (v-required-glsl func)
-                                   (cons func-name
-                                         (mapcan #'used-external-functions args))
-                                   (mapcan #'used-external-functions args))
-                   :stemcells (append (third (v-required-glsl func)) 
-                                  (mapcan #'stemcells args))))
+                   :to-top (mapcan #'to-top args)
+                   :signatures (mapcan #'signatures args)
+                   :stemcells (mapcan #'stemcells args)))
                (bind `((,(free-name 'nr) ,o)))
                (c (varjo->glsl 
                    `(%clone-env-block
@@ -198,6 +177,4 @@
    (in-args :initarg :in-args :accessor in-args)
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
-   (context :initarg :context :accessor context)
-   (used-external-functions :initarg :used-external-functions 
-                            :accessor used-external-functions)))
+   (context :initarg :context :accessor context)))

@@ -7,10 +7,10 @@
 ;;----------------
 
 (defun v-make-f-spec (name transform context arg-types return-spec
-                      &key place glsl-spec-matching glsl-name required-glsl
+                      &key place glsl-spec-matching glsl-name
                         multi-return-vars)
   (list transform arg-types return-spec context place glsl-spec-matching
-        glsl-name required-glsl multi-return-vars name))
+        glsl-name multi-return-vars name))
 
 (defmacro v-defun (name args &body body)
   (destructuring-bind (in-args uniforms context)
@@ -87,64 +87,6 @@
                                :place ',place)
                               *global-env*)
                 ',name)))))))
-
-;;------------------------------------------------------------
-;; External functions go through a full compile and then their
-;; definition is extracted and added to the global environment.
-;; This means they can then be used in future shader and
-;; other external functions
-
-
-
-(defun %v-def-external (name in-args context body)
-  (let ((env (make-instance 'environment))
-        (body~1 `(%make-function ,name ,in-args ,@body)))
-    (pipe-> (in-args nil context body~1 env)
-      #'split-input-into-env
-      #'process-context
-      (equal #'macroexpand-pass
-             #'compiler-macroexpand-pass)
-      #'compile-pass
-      #'filter-used-items
-      #'check-stemcells
-      #'populate-required-glsl)))
-
-(defun populate-required-glsl (code env)
-  ;; {TODO} this shouldnt return, it should just populate. Why? I havent justified this
-  (destructuring-bind (name func) (first (v-functions env))
-    (add-function name
-                  (function->func-spec
-                   func :required-glsl (list (signatures code) (to-top code)
-                                             (stemcells code)))
-                  *global-env* t)
-    (make-instance 'varjo-compile-result :glsl-code "" :stage-type nil :in-args nil
-                   :out-vars nil :uniforms nil :context nil
-                   :used-external-functions (used-external-functions code))))
-
-;;This allows the addition of handwritten glsl
-(defmacro v-def-raw-glsl-func (name args return-type &body glsl)
-  (%v-def-raw-external name args return-type (apply #'concatenate 'string glsl)))
-
-(defun %v-def-raw-external (name args return-type glsl-string)
-  (let* ((glsl-name (safe-glsl-name-string (free-name name)))
-         (return-type (type-spec->type return-type))
-         (arg-glsl-names (loop :for (name) :in args :collect
-                            (safe-glsl-name-string name)))
-         (arg-pairs (loop :for (ignored type) :in args
-                       :for name :in arg-glsl-names :collect
-                       `(,(v-glsl-string (type-spec->type type)) ,name))))
-    (add-function
-     name
-     (v-make-f-spec name
-                    (gen-function-transform glsl-name args) args
-                    (mapcar #'second args) return-type :glsl-name glsl-name
-                    :required-glsl
-                    `((,(gen-function-signature glsl-name arg-pairs nil
-                                                return-type))
-                      (,(gen-glsl-function-body-string
-                         glsl-name arg-pairs return-type glsl-string))))
-     *global-env* t)
-    t))
 
 ;;------------------------------------------------------------
 
