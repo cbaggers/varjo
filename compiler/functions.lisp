@@ -172,6 +172,7 @@
          (match-fn (curry #'match-function-to-args args-code compiled-args env))
          (matches (remove nil (mapcar match-fn candidates)))
          (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
+
     (or (when instant-win (list instant-win))
         (mapcar (lambda (x y)
                   (when (numberp (score x))

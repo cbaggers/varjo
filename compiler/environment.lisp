@@ -15,7 +15,7 @@
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :430 :440))
 (defparameter *supported-stages* '(:vertex :fragment))
-(defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines 
+(defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
                                        :line-strip-adjacency :lines-adjacency
                                        :triangle-strip :triangle-fan :triangles
                                        :triangle-strip-adjacency
@@ -31,7 +31,7 @@
 
 ;;-------------------------------------------------------------------------
 
-(defclass environment () 
+(defclass environment ()
   ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
    (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
    (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
@@ -60,7 +60,7 @@
 
 (defmacro a-add (name value list-place)
   `(setf ,list-place (acons ,name
-                            (cons ,value (assocr ,name ,list-place)) 
+                            (cons ,value (assocr ,name ,list-place))
                             ,list-place)))
 
 
@@ -101,7 +101,8 @@
 
 (defmethod normalize-environment (env &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
-    (labels ((norm-list (x) (loop :for i :in x :for seen = nil :do
+    (labels ((norm-list (x) (loop :with seen = nil
+                               :for i :in x :do
                                (when (not (find (first i) seen :key #'first))
                                  (push i seen))
                                :finally (return seen))))
@@ -113,17 +114,33 @@
 
 (defun merge-env (env new-env)
   (let ((a (clone-environment env))
-        (b (normalize-environment (clone-environment new-env))))
+        (b (clone-environment new-env)))
     (with-slots ((a-vars variables) (a-funcs functions) (a-macros macros)
                  (a-cmacros compiler-macros) (a-types types)) a
       (with-slots ((b-vars variables) (b-funcs functions) (b-macros macros)
-                   (b-cmacros compiler-macros) (b-types types)) b        
-        (setf a-vars (concatenate 'list b-vars a-vars)
-              a-funcs (concatenate 'list b-funcs a-funcs)
-              a-macros (concatenate 'list b-macros a-macros)
-              a-cmacros (concatenate 'list b-cmacros a-cmacros)
-              a-types (concatenate 'list b-types a-types))))
+                   (b-cmacros compiler-macros) (b-types types)) b
+        (setf a-vars (%merge-env-lists a-vars b-vars)
+              a-funcs (%merge-env-lists a-funcs b-funcs)
+              a-macros (%merge-env-lists a-macros b-macros)
+              a-cmacros (%merge-env-lists a-cmacros b-cmacros)
+              a-types (%merge-env-lists a-types b-types))))
     a))
+
+(defun %merge-env-lists (a b)
+  (reduce #'varjo::%merge-env-lists-item b :initial-value a))
+
+(defun %merge-env-lists-item (a item)
+  "if item is in A then append its entry to item in A"
+  ;; find item in a
+  (let ((entry (find (first item) a :key #'first)))
+    (if entry
+        ;; ensure item isn't already in there
+        (if (and entry (not (member (second item) entry)))
+            (cons (cons (first entry) (cons item (rest entry)))
+                  (remove (first item) a :key #'first))
+            a)
+        ;; not found in A so add it
+        (cons item a))))
 
 ;;-------------------------------------------------------------------------
 
@@ -138,16 +155,18 @@
 (defmethod valid-for-contextp ((func list) (env environment))
   (let ((restriction (second func))
         (context (v-context env)))
-    (if restriction
-        (when (context-ok-given-restriction context restriction) func)
-        func)))
+    (%valid-for-contextp func restriction context)))
 
 (defmethod valid-for-contextp ((func v-function) (env environment))
   (let ((restriction (v-restriction func))
         (context (v-context env)))
-    (if restriction
-        (when (context-ok-given-restriction context restriction) func)
-        func)))
+    (%valid-for-contextp func restriction context)))
+
+(defun %valid-for-contextp (func restriction context)
+  (if restriction
+      (when (context-ok-given-restriction context restriction)
+        func)
+      func))
 
 (defun shadow-global-check (name &key (specials t) (macros t) (c-macros t))
   (when (or (and macros (get-macro name *global-env*))
@@ -155,7 +174,7 @@
     (error 'cannot-not-shadow-core))
   (when specials
     (loop :for func :in (get-function-by-name name *global-env*)
-       :if (and specials (v-special-functionp func))       
+       :if (and specials (v-special-functionp func))
        :do (error 'cannot-not-shadow-core)))
   t)
 
@@ -172,7 +191,7 @@
   (find-if (lambda (x) (member x *supported-stages*)) context))
 
 ;;{TODO} move errors to correct place
-(let ((prims '(:points :line_strip :line_loop :lines :triangle_strip 
+(let ((prims '(:points :line_strip :line_loop :lines :triangle_strip
                :triangle_fan :triangles)))
   (defun get-primitive-type-from-context (context)
     (or (loop :for i :in context :if (member i prims) :return i)
@@ -189,7 +208,7 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-macro (macro-name (macro function) (context list) 
+(defmethod add-macro (macro-name (macro function) (context list)
                       (env (eql :-genv-)) &optional modify-env)
   (declare (ignore modify-env))
   (setf (gethash macro-name *global-env-macros*) `(,macro ,context))
@@ -213,7 +232,7 @@
   (let ((spec (or (a-get1 (kwd macro-name) (v-macros env))
                   (a-get1 macro-name (v-macros env))
                   (get-macro macro-name *global-env*))))
-    (when (and spec (valid-for-contextp spec env)) 
+    (when (and spec (valid-for-contextp spec env))
       (first spec))))
 
 (defmethod v-mboundp (macro-name (env environment))
@@ -223,7 +242,7 @@
 
 
 
-(defmethod add-symbol-macro (macro-name macro (context list) 
+(defmethod add-symbol-macro (macro-name macro (context list)
                       (env (eql :-genv-)) &optional modify-env)
   (declare (ignore modify-env))
   (unless (or (listp macro) (symbolp macro) (numberp macro))
@@ -251,7 +270,7 @@
   (let ((spec (or (a-get1 (kwd macro-name) (v-symbol-macros env))
                   (a-get1 macro-name (v-symbol-macros env))
                   (get-symbol-macro macro-name *global-env*))))
-    (when (and spec (valid-for-contextp spec env)) 
+    (when (and spec (valid-for-contextp spec env))
       spec)))
 
 (defmethod v-mboundp (macro-name (env environment))
@@ -260,14 +279,14 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-compiler-macro (macro-name (macro function) (context list) 
+(defmethod add-compiler-macro (macro-name (macro function) (context list)
                                (env (eql :-genv-)) &optional modify-env)
   (declare (ignore modify-env))
   (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
   *global-env*)
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
-                               (env environment) &optional modify-env)  
+                               (env environment) &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
     (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
       (a-set macro-name `(,macro ,context) (v-compiler-macros env)))
@@ -283,7 +302,7 @@
   (let ((spec (or (a-get1 (kwd macro-name) (v-compiler-macros env))
                   (a-get1 macro-name (v-compiler-macros env))
                   (get-compiler-macro macro-name *global-env*))))
-    (when (and spec (valid-for-contextp spec env)) 
+    (when (and spec (valid-for-contextp spec env))
       (first spec))))
 
 (defmethod v-mboundp (macro-name (env environment))
@@ -299,7 +318,7 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-var (var-name (val v-value) (env (eql :-genv-)) 
+(defmethod add-var (var-name (val v-value) (env (eql :-genv-))
                     &optional modify-env)
   (declare (ignore modify-env))
   (setf (gethash var-name *global-env-vars*) val)
@@ -336,7 +355,7 @@
 (defmethod add-type (type-name (type-obj v-type) (env environment)
                      &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
-    (a-add type-name type-obj (v-types env))    
+    (a-add type-name type-obj (v-types env))
     env))
 
 ;;-------------------------------------------------------------------------
@@ -387,7 +406,7 @@
 (defun sort-function-list (func-list)
   (sort (copy-list func-list) #'< :key #'func-priority-score))
 
-(defun func-priority-score (func)  
+(defun func-priority-score (func)
   (if (v-special-functionp func)
       (cond ((special-raw-argp func) 0)
             ((special-func-argp func) 1)
@@ -398,11 +417,11 @@
   (not (null (get-function-by-name func-name env))))
 
 (defun func-spec->function (spec env)
-  (destructuring-bind (transform arg-spec return-spec context place 
+  (destructuring-bind (transform arg-spec return-spec context place
                                  glsl-spec-matching glsl-name
                                  multi-return-vars name)
       spec
-    (make-instance 'v-function :glsl-string transform 
+    (make-instance 'v-function :glsl-string transform
                    :arg-spec (if (listp arg-spec)
                                  (loop :for spec :in arg-spec :collect
                                     (type-spec->type spec :env env))
@@ -411,7 +430,7 @@
                                     (type-spec->type return-spec :env env)
                                     return-spec)
                    :restriction context :place place
-                   :glsl-spec-matching glsl-spec-matching 
+                   :glsl-spec-matching glsl-spec-matching
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
                    :name name)))
@@ -421,12 +440,12 @@
     (v-make-f-spec (name func)
                    (v-glsl-string func)
                    nil ;;{TODO} this must be context
-                   (when (listp arg-spec) 
+                   (when (listp arg-spec)
                      (loop :for a :in arg-spec :collect (type->type-spec a)))
                    (if (type-specp (v-return-spec func))
                        (type->type-spec (v-return-spec func))
                        (v-return-spec func))
-                   :place (v-placep func) 
+                   :place (v-placep func)
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func))))
 

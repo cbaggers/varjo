@@ -11,7 +11,7 @@
 ;;----------------------------------------------------------------------
 
 ;; These two are example macros to show how to use the compiler.
-;; They dont provide anything 
+;; They dont provide anything
 
 (defmacro defshader (name args &body body)
   (declare (ignore name))
@@ -39,7 +39,7 @@
 (defun compile-stages (in-args uniforms context stages remaining-stage-types accum)
   (let ((stage (first stages)))
     (typecase stage
-      (varjo-compile-result 
+      (varjo-compile-result
        (precompiled-stage in-args uniforms context
                           stages remaining-stage-types accum))
       (list (if (null stages)
@@ -51,11 +51,11 @@
 (defun precompiled-stage (in-args uniforms context
                           stages remaining-stage-types accum)
   (let* ((stage (first stages))
-         (remaining-stage-types 
+         (remaining-stage-types
           (check-order (stage-type stage) remaining-stage-types)))
     (destructuring-bind (in-args uniforms context)
         (transform-stage-args (stage-type stage) in-args uniforms context)
-      (if (args-compatiblep in-args uniforms context stage)        
+      (if (args-compatiblep in-args uniforms context stage)
           (compile-stages (gen-in-args-for-next-stage stage)
                           uniforms
                           context
@@ -71,7 +71,7 @@
     (destructuring-bind (stage-type &rest code) stage
       (destructuring-bind (in-args uniforms context)
           (transform-stage-args stage in-args uniforms context)
-        (let* ((remaining-stage-types 
+        (let* ((remaining-stage-types
                 (check-order stage-type remaining-stage-types))
                (result (translate in-args uniforms (cons stage-type context)
                                   `(progn ,@code))))
@@ -85,7 +85,7 @@
 (defun args-compatiblep (in-args uniforms context stage)
   (and (loop :for p :in in-args :for c :in (in-args stage) :always
           (and (equal (first p) (first c))
-               (v-type-eq (type-spec->type (second p)) 
+               (v-type-eq (type-spec->type (second p))
                           (type-spec->type (second c)))
                (equal (third p) (third c))))
        (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
@@ -118,9 +118,9 @@
       #'process-uniforms
       #'wrap-in-main-function
       #'add-context-glsl-vars
-      (equal #'symbol-macroexpand-pass
-             #'macroexpand-pass
-             #'compiler-macroexpand-pass)
+      (equalp #'symbol-macroexpand-pass
+              #'macroexpand-pass
+              #'compiler-macroexpand-pass)
       #'compile-pass
       #'filter-used-items
       #'check-stemcells
@@ -135,19 +135,19 @@
 
 ;;[TODO] Move these errors
 (defun check-arg-forms (in-args &aux )
-  (loop for stream in in-args :do 
+  (loop for stream in in-args :do
        (when (or (not (every #'keywordp (cddr stream))) (< (length stream) 2))
          (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
   t)
 
-(defun check-for-dups (in-args uniforms)  
+(defun check-for-dups (in-args uniforms)
   (if (intersection (mapcar #'first in-args) (mapcar #'first uniforms))
       (error "Varjo: Duplicates names found between in-args and uniforms")
       t))
 
 ;;{TODO} fix error message
 (defun check-for-stage-specific-limitations (env)
-  (cond ((or (and (member :vertex (v-context env)) 
+  (cond ((or (and (member :vertex (v-context env))
                   (some #'third (v-raw-in-args env))))
          (error "In args to vertex shaders can not have qualifiers")))
   t)
@@ -166,10 +166,10 @@
 
 (defun process-context (code env)
   ;; ensure there is a version
-  (unless (loop :for item :in (v-raw-context env) 
+  (unless (loop :for item :in (v-raw-context env)
              :if (find item *supported-versions*) :return item)
     (push *default-version* (v-raw-context env)))
-  (setf (v-context env) 
+  (setf (v-context env)
         (loop :for item :in (v-raw-context env)
            :if (find item *valid-contents-symbols*) :collect item
            :else :do (error 'invalid-context-symbol :context-symb item)))
@@ -182,7 +182,7 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for (name type . qualifiers) :in in-args :do
-       (let* ((type (if (and (not (type-specp type))                             
+       (let* ((type (if (and (not (type-specp type))
                              (vtype-existsp (sym-down type)))
                         (sym-down type)
                         type))
@@ -190,10 +190,10 @@
          (if (typep type-obj 'v-struct)
              (add-fake-struct name type-obj qualifiers env)
              (progn
-               (add-var name (make-instance 'v-value :type type-obj 
+               (add-var name (make-instance 'v-value :type type-obj
                                             :glsl-name (safe-glsl-name-string name))
-                        env t)               
-               (setf (v-in-args env) 
+                        env t)
+               (setf (v-in-args env)
                      (append (v-in-args env)
                              `((,name ,(type->type-spec type-obj) ,qualifiers))))))))
     (values code env)))
@@ -211,7 +211,7 @@
               (true-type (v-true-type (type-spec->type type))))
          (add-var name (make-instance 'v-value
                                       :glsl-name (safe-glsl-name-string name)
-                                      :type (set-place-t true-type)) 
+                                      :type (set-place-t true-type))
                   env t))
        (push (list name type) (v-uniforms env)))
     (values code env)))
@@ -219,8 +219,10 @@
 ;;----------------------------------------------------------------------
 
 (defun wrap-in-main-function (code env)
-  (values `(%make-function :main () ,code)
-          env))
+  (let ((new-env (clone-environment env)))
+    (push :main (v-context new-env))
+    (values `(%make-function :main () ,code)
+            env)))
 
 ;;----------------------------------------------------------------------
 
@@ -231,7 +233,7 @@
 
 (defun v-symbol-macroexpand-all (form &optional (env :-GENV-))
   (cond ((null form) nil)
-        ((atom form) 
+        ((atom form)
          (let ((sm (get-symbol-macro form env)))
            (or (first sm) form)))
         ((consp form) (cons (v-symbol-macroexpand-all (car form))
@@ -246,7 +248,7 @@
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (m (get-macro head env)))
-             (if m 
+             (if m
                  (v-macroexpand-all (apply m (rest code)) env)
                  (loop :for c :in code :collect (v-macroexpand-all c env)))))))
 
@@ -259,7 +261,7 @@
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (m (get-compiler-macro head env)))
-             (if m 
+             (if m
                  (v-compiler-macroexpand-all (apply m (rest code)) env)
                  (loop :for c :in code :collect (v-compiler-macroexpand-all c env)))))))
 
@@ -276,7 +278,7 @@
 (defun filter-used-items (code env)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
-  (setf (used-types code) 
+  (setf (used-types code)
         (loop :for i :in (remove-duplicates (find-used-user-structs code env))
            :collect (type-spec->type i :env env)))
   (values code env))
@@ -286,9 +288,9 @@
 (defun gen-in-arg-strings (code env &aux position)
   ;;`(,fake-slot-name ,slot-type ,qualifiers)
   (when (find :vertex (v-context env)) (setf position 0))
-  (setf (v-in-args env) 
+  (setf (v-in-args env)
         (loop :for (name type qualifiers) :in (v-in-args env)
-           :for type-obj = (type-spec->type type :env env)           
+           :for type-obj = (type-spec->type type :env env)
            :collect `(,name ,type ,qualifiers
                       ,(gen-in-var-string name type-obj qualifiers position))
            :if position :do (incf position (v-glsl-size  type-obj))))
@@ -303,7 +305,7 @@
        :do (let ((tspec (type->type-spec (v-type value))))
              (if (gethash name seen)
                  (unless (equal tspec (gethash name seen))
-                   (error 'out-var-type-mismatch :var-name name 
+                   (error 'out-var-type-mismatch :var-name name
                           :var-types (list tspec (gethash name seen))))
                  (setf (gethash name seen) tspec
                        deduped (cons (list name qualifiers value) deduped)))))
@@ -313,7 +315,7 @@
   (let ((out-vars (dedup-out-vars (out-vars code))))
     (setf (out-vars code)
           (loop :for (name qualifiers value) :in out-vars
-             :collect (list name qualifiers value 
+             :collect (list name qualifiers value
                             (gen-out-var-string name qualifiers value))))
     (values code env)))
 
@@ -321,16 +323,16 @@
 
 (defun check-stemcells (code env)
   (let ((stemcells (stemcells code)))
-    (mapcar 
-     (lambda (x) 
+    (mapcar
+     (lambda (x)
        (dbind (name string type) x
          (declare (ignore string))
-         (when (remove-if-not (lambda (x) 
+         (when (remove-if-not (lambda (x)
                                 (and (equal name (first x))
-                                     (not (equal type (third x))))) 
+                                     (not (equal type (third x)))))
                               stemcells)
            (error "Symbol ~a used with different implied types" name))))
-     ;; {TODO} Proper error here         
+     ;; {TODO} Proper error here
      stemcells)
     (setf (stemcells code) (remove-duplicates stemcells :test #'equal
                                               :key #'first)))
@@ -339,14 +341,14 @@
 ;;----------------------------------------------------------------------
 
 (defun final-uniform-strings (code env)
-  (let ((final-strings nil) 
+  (let ((final-strings nil)
         (structs (used-types code))
         (uniforms (v-uniforms env))
         (implicit-uniforms nil))
     (loop :for (name type) :in uniforms
        :for type-obj = (type-spec->type type) :do
        (if (uniform-string-gen type-obj)
-           (loop :for x :in (funcall (uniform-string-gen type-obj) 
+           (loop :for x :in (funcall (uniform-string-gen type-obj)
                                      name type)
               :do (push x final-strings))
            (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
@@ -355,8 +357,8 @@
                   (not (find (type->type-spec type-obj) structs
                              :key #'type->type-spec :test #'equal)))
          (push type-obj structs)))
-    
-    
+
+
     (loop :for (name string-name type) :in (stemcells code)
        :for type-obj = (type-spec->type type) :do
 
@@ -381,7 +383,7 @@
   (setf (signatures code)
         (remove-duplicates (signatures code) :test #'equal))
   (setf (used-types code)
-        (remove-duplicates (mapcar #'v-signature (used-types code)) 
+        (remove-duplicates (mapcar #'v-signature (used-types code))
                            :test #'equal))
   (values code env))
 
@@ -393,10 +395,10 @@
 
 ;;----------------------------------------------------------------------
 
-(defun code-obj->result-object (code env) 
+(defun code-obj->result-object (code env)
   (make-instance 'varjo-compile-result
                  :glsl-code (current-line code)
-                 :stage-type (loop for i in (v-context env) 
+                 :stage-type (loop for i in (v-context env)
                           :if (find i *supported-stages*) :return i)
                  :in-args (loop :for i :in (v-in-args env) :collect
                              (subseq i 0 3))
@@ -406,4 +408,3 @@
                               (subseq i 0 2))
                  :implicit-uniforms (stemcells code)
                  :context (v-context env)))
-

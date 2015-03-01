@@ -6,7 +6,7 @@
       (cond ((or (null code) (eq t code)) (compile-bool code env))
             ((numberp code) (compile-number code env))
             ((symbolp code) (compile-symbol code env))
-            ((and (listp code) (listp (first code))) 
+            ((and (listp code) (listp (first code)))
              (error 'cannot-compile :code code))
             ((listp code) (compile-form code env))
             ((typep code 'code) code)
@@ -36,7 +36,7 @@
 (defun compile-number (code env)
   (declare (ignore env))
   (let ((num-type (get-number-type code)))
-    (make-instance 'code 
+    (make-instance 'code
                    :current-line (gen-number-string code num-type)
                    :type num-type)))
 
@@ -55,12 +55,12 @@
             (error "Varjo: Symbol '~s' is unidentified." code)))))
 
 (defun compile-form (code env)
-  (let* ((func-name (first code)) 
+  (let* ((func-name (first code))
          (args-code (rest code)))
     (when (keywordp func-name)
       (error 'keyword-in-function-position :form code))
     (dbind (func args) (find-function-for-args func-name args-code env)
-      (cond 
+      (cond
         ((typep func 'v-function) (compile-function func-name func args env))
         ((typep func 'v-error) (if (v-payload func)
                                    (error (v-payload func))
@@ -68,7 +68,7 @@
         (t (error 'problem-with-the-compiler :target func))))))
 
 (defun make-stemcell-arguments-concrete (args func)
-  (mapcar #'(lambda (arg actual-type) 
+  (mapcar #'(lambda (arg actual-type)
               (if (stemcellp (code-type arg))
                   (let ((stemcell (first (stemcells arg))))
                     (copy-code arg
@@ -77,17 +77,17 @@
                                               ,(second stemcell)
                                               ,(type->type-spec actual-type)))))
                   arg))
-          args 
+          args
           (v-argument-spec func)))
 
 (defun compile-function (func-name func args env)
   (vbind (code-obj new-env)
       (cond
         ((v-special-functionp func) (compile-special-function func args env))
-        
+
         ((multi-return-vars func) (compile-multi-return-function
                                    func-name func args env))
-        
+
         (t (compile-regular-function func-name func args env)))
     (values code-obj (or new-env env))))
 
@@ -95,16 +95,16 @@
   (let* ((args (make-stemcell-arguments-concrete args func))
          (c-line (gen-function-string func args))
          (type (resolve-func-type func args env)))
-    (unless type (error 'unable-to-resolve-func-type 
-                        :func-name func-name :args args))        
-    (merge-obs args 
-               :type type 
+    (unless type (error 'unable-to-resolve-func-type
+                        :func-name func-name :args args))
+    (merge-obs args
+               :type type
                :current-line c-line
                :to-top (mapcan #'to-top args)
                :signatures (mapcan #'signatures args)
                :stemcells (mapcan #'stemcells args))))
 
-(defun compile-multi-return-function (func-name func args env)  
+(defun compile-multi-return-function (func-name func args env)
   (let* ((args (make-stemcell-arguments-concrete args func))
          (m-r-base (or (v-multi-val-base env)
                        (safe-glsl-name-string (free-name 'nc))))
@@ -116,13 +116,13 @@
         (let* ((bindings (loop :for type :in m-r-types :collect
                             `((,(free-name 'nc) ,(type->type-spec type)))))
                (m-r-names (loop :for i :below (length m-r-types) :collect
-                             (fmt "~a~a" m-r-base i)))         
-               (o (merge-obs args :type type 
+                             (fmt "~a~a" m-r-base i)))
+               (o (merge-obs args :type type
                              :current-line (gen-function-string func args m-r-names)
                              :to-top (mapcan #'to-top args)
                              :signatures (mapcan #'signatures args)
                              :stemcells (mapcan #'stemcells args))))
-          (expand->varjo->glsl 
+          (expand->varjo->glsl
            `(%clone-env-block
              (%env-multi-var-declare ,bindings t ,m-r-names)
              ,o) env))
@@ -130,27 +130,27 @@
         (let* ((m-r-names (loop :for i :below (1+ (length m-r-types)) :collect
                              (fmt "~a~a" m-r-base i)))
                (o (merge-obs
-                   args :type type 
+                   args :type type
                    :current-line (gen-function-string func args (rest m-r-names))
                    :to-top (mapcan #'to-top args)
                    :signatures (mapcan #'signatures args)
                    :stemcells (mapcan #'stemcells args)))
                (bind `((,(free-name 'nr) ,o)))
-               (c (varjo->glsl 
+               (c (varjo->glsl
                    `(%clone-env-block
                      (%env-multi-var-declare ,bind nil (,(first m-r-names)))
-                     (setf ,(caar bind) ,o)) 
+                     (setf ,(caar bind) ,o))
                    env)))
           (merge-obs c
                      :multi-vals (cons (make-instance 'v-value :type type
-                                                      :glsl-name (first m-r-names)) 
-                                       (mapcar (lambda (x y) (make-instance 
+                                                      :glsl-name (first m-r-names))
+                                       (mapcar (lambda (x y) (make-instance
                                                               'v-value :type x
                                                               :glsl-name y))
                                                m-r-types
                                                (rest m-r-names))))))))
 
-;;[TODO] Maybe the error should be caught and returned, 
+;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk
 ;;{TODO} expand on this please. Future you couldnt work out what this meant
 (defun compile-special-function (func args env)

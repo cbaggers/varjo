@@ -29,21 +29,27 @@
   ;; to the next.
   :args-valid t
   :return
-  (values
-   (if body
-       (let ((body-objs (loop :for code :in body :collect
-                           (multiple-value-bind (code-obj new-env)
-                               (varjo->glsl code env)
-                             (when new-env (setf env new-env))
-                             code-obj))))
-         (let ((last-obj (last1 body-objs)))
-           (merge-obs body-objs
-                      :type (code-type last-obj)
-                      :current-line (current-line last-obj)
-                      :to-block (merge-lines-into-block-list body-objs)
-                      :multi-vals (multi-vals (last1 body-objs)))))
-       (make-instance 'code :type (type-spec->type :none)))
-   env))
+  (if body
+      (let* ((mvb (v-multi-val-base env))
+             (env (let ((new-env (clone-environment env)))
+                    (setf (v-multi-val-base new-env) nil)
+                    new-env))
+             (body-objs (append
+                         (loop :for code :in (butlast body) :collect
+                            (multiple-value-bind (code-obj new-env)
+                                (varjo->glsl code env)
+                              (when new-env (setf env new-env))
+                              code-obj))
+                         (let ((code (car (last body))))
+                           (setf (v-multi-val-base env) mvb)
+                           (list (varjo->glsl code env))))))
+        (let ((last-obj (last1 body-objs)))
+          (merge-obs body-objs
+                     :type (code-type last-obj)
+                     :current-line (current-line last-obj)
+                     :to-block (merge-lines-into-block-list body-objs)
+                     :multi-vals (multi-vals (last1 body-objs)))))
+      (make-instance 'code :type (type-spec->type :none))))
 
 (v-defspecial :progn1 (&rest body)
   :args-valid t
@@ -98,6 +104,13 @@
 (v-defspecial :values (&rest values)
   :args-valid t
   :return
+  (%values-for-normal-functions values env)
+  ;; (if (member :main (v-context env))
+  ;;     (%values-for-normal-functions values env)
+  ;;     (%values-for-main values env))
+  )
+
+(defun %values-for-normal-functions (values env)
   (if (v-multi-val-base env)
       (let* ((new-env (clone-environment env))
              (objs (mapcar (lambda (x) (varjo->glsl x new-env)) values))
@@ -118,16 +131,28 @@
         result)
       (varjo->glsl `(progn1 ,@values) env)))
 
+(defun %values-for-main (values env)
+  )
+
 
 (v-defspecial :%clean-env-block (&rest body)
   :args-valid t
   :return (let ((new-env (clean-environment env)))
-            (values (varjo->glsl `(progn ,@body) new-env))))
+            (varjo->glsl `(progn ,@body) new-env)))
+
+(v-defspecial :%clean-env-block-for-labels (&rest body)
+  :args-valid t
+  :return (let ((new-env (clean-environment env)))
+            (setf (v-functions new-env)
+                  (v-functions env))
+            (setf (v-context new-env)
+                  (remove :main (v-context env)))
+            (varjo->glsl `(progn ,@body) new-env)))
 
 (v-defspecial :%clone-env-block (&rest body)
   :args-valid t
   :return (let ((new-env (clone-environment env)))
-            (values (varjo->glsl `(progn ,@body) new-env))))
+            (varjo->glsl `(progn ,@body) new-env)))
 
 (v-defspecial %merge-env (env-a new-env)
   :args-valid t
@@ -238,7 +263,7 @@
          (args (mapcar #'list raw-args))
          (arg-glsl-names (loop :for (name) :in raw-args :collect
                             (safe-glsl-name-string (free-name name))))
-         (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block)
+         (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block-for-labels)
                                    (%multi-env-progn
                                     ,@(loop :for b :in args
                                          :for g :in arg-glsl-names
@@ -255,10 +280,10 @@
            (v-make-f-spec name
                           (gen-function-transform glsl-name raw-args
                                                   multi-return-vars)
-                          raw-args (mapcar #'second raw-args)
+                          nil ;;should be context
+                          (mapcar #'second raw-args)
                           type :glsl-name glsl-name
                           :multi-return-vars multi-return-vars) env) env t)
-
     (let* ((arg-pairs (loop :for (ignored type) :in raw-args
                          :for name :in arg-glsl-names :collect
                          `(,(v-glsl-string (type-spec->type type)) ,name)))
@@ -291,7 +316,7 @@
     ,@body))
 
 ;; {TODO} what if type of form is not value
-(v-defspecial :out (name-and-qualifiers form)
+(v-defspecial :%out (name-and-qualifiers form)
   :args-valid t
   :return
   (let* ((form-obj (varjo->glsl form env))
@@ -434,3 +459,7 @@
         (unless (v-typep compiled declared-type)
           (error "Incorrect declaration that ~a was of type ~a"
                  compiled type-name))))) ;{TODO} proper error here
+
+(v-defspecial :%break ()
+  :return
+  (break "Varjo compiler breakpoint" env))

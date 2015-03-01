@@ -13,7 +13,7 @@
    (signatures :initarg :signatures :initform nil :accessor signatures)
    (to-block :initarg :to-block :initform nil :accessor to-block)
    (to-top :initarg :to-top :initform nil :accessor to-top)
-   (out-vars :initarg :out-vars :initform nil :accessor out-vars)   
+   (out-vars :initarg :out-vars :initform nil :accessor out-vars)
    (used-types :initarg :used-types :initform nil :accessor used-types)
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)
@@ -32,23 +32,23 @@
       (push (listify type-spec) (used-types code-obj)))))
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
-(defgeneric copy-code (code-obj &key type current-line to-block to-top 
+(defgeneric copy-code (code-obj &key type current-line to-block to-top
                                   out-vars invariant returns multi-vals))
-(defmethod copy-code ((code-obj code) 
+(defmethod copy-code ((code-obj code)
                       &key type
-                        current-line 
+                        current-line
                         (signatures nil set-sigs)
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (invariant nil) 
+                        (invariant nil)
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
                         (stemcells nil set-stemcells))
-  (make-instance 'code 
-                 :type (if type type (code-type code-obj)) 
-                 :current-line (if current-line current-line 
-                                   (current-line code-obj)) 
+  (make-instance 'code
+                 :type (if type type (code-type code-obj))
+                 :current-line (if current-line current-line
+                                   (current-line code-obj))
                  :signatures (if set-sigs signatures (signatures code-obj))
                  :to-block (if set-block to-block (to-block code-obj))
                  :to-top (if set-top to-top (to-top code-obj))
@@ -60,12 +60,12 @@
                  :stemcells (if set-stemcells stemcells (stemcells code-obj))))
 
 
-(defgeneric merge-obs (objs &key type current-line to-block 
+(defgeneric merge-obs (objs &key type current-line to-block
                               to-top out-vars invariant returns multi-vals))
 
-(defmethod merge-obs ((objs list) 
+(defmethod merge-obs ((objs list)
                       &key type
-                        current-line 
+                        current-line
                         (signatures nil set-sigs)
                         (to-block nil set-block)
                         (to-top nil set-top)
@@ -76,15 +76,15 @@
                         multi-vals
                         (stemcells nil set-stemcells))
   (make-instance 'code
-                 :type (if type type (error "type is mandatory")) 
-                 :current-line current-line 
-                 :signatures (if set-sigs signatures 
+                 :type (if type type (error "type is mandatory"))
+                 :current-line current-line
+                 :signatures (if set-sigs signatures
                                  (mapcan #'signatures objs))
                  :to-block (if set-block to-block
                                (append
                                 (mapcan #'to-block objs)
-                                (when (not multi-vals) 
-                                  (merge-lines-into-block-list 
+                                (when (not multi-vals)
+                                  (merge-lines-into-block-list
                                    (mapcan #'multi-vals objs)))))
                  :to-top (if set-top to-top (mapcan #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
@@ -92,13 +92,13 @@
                  :returns (listify (if set-returns returns (merge-returns objs)))
                  :used-types (mapcar #'used-types objs)
                  :multi-vals multi-vals
-                 :stemcells (if set-stemcells stemcells 
+                 :stemcells (if set-stemcells stemcells
                                 (mapcan #'stemcells objs))))
 
-(defmethod merge-obs ((objs code) 
+(defmethod merge-obs ((objs code)
                       &key (type nil set-type)
                         (signatures nil set-sigs)
-                        (current-line nil set-current-line) 
+                        (current-line nil set-current-line)
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
@@ -107,9 +107,9 @@
                         multi-vals
                         (stemcells nil set-stemcells))
   (make-instance 'code
-                 :type (if set-type type (code-type objs)) 
-                 :current-line (if set-current-line current-line 
-                                   (current-line objs)) 
+                 :type (if set-type type (code-type objs))
+                 :current-line (if set-current-line current-line
+                                   (current-line objs))
                  :signatures (if set-sigs signatures (signatures objs))
                  :to-block (if set-block to-block (remove nil (to-block objs)))
                  :to-top (if set-top to-top (remove nil (to-top objs)))
@@ -131,7 +131,7 @@
     ;; {TODO} Proper error needed here
     (if match
         (listify first)
-        (progn (error 'return-type-mismatch :returns returns))))) 
+        (progn (error 'return-type-mismatch :returns returns)))))
 
 (defun merge-lines-into-block-list (objs)
   (when objs
@@ -139,7 +139,7 @@
       (remove #'null
               (append (loop :for i :in %objs
                          :for j :in (mapcar #'end-line %objs)
-                         :append (remove nil (to-block i)) 
+                         :append (remove nil (to-block i))
                          :append (listify (current-line j)));this should work
                       (to-block (last1 objs)))))))
 
@@ -158,7 +158,6 @@
     (remove nil (loop :for type :in used-types :collect
                    (let ((principle-type (if (listp type) (first type) type)))
                      (when (vtype-existsp principle-type)
-                       (when (typep (make-instance principle-type) 
+                       (when (typep (make-instance principle-type)
                                     'v-user-struct)
                          principle-type)))))))
-
