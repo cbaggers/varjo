@@ -303,7 +303,7 @@
                                     ,@(loop :for b :in args
                                          :for g :in arg-glsl-names
                                          :collect `(%glsl-let ,b nil ,g)))
-                                   ,@body) env))
+                                   (return (progn ,@body))) env))
          (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))
          (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
