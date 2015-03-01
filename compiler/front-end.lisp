@@ -219,10 +219,8 @@
 ;;----------------------------------------------------------------------
 
 (defun wrap-in-main-function (code env)
-  (let ((new-env (clone-environment env)))
-    (push :main (v-context new-env))
-    (values `(%make-function :main () ,code)
-            env)))
+  (values `(%make-function :main () ,code)
+          env))
 
 ;;----------------------------------------------------------------------
 

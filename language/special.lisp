@@ -64,6 +64,7 @@
     (unless (every #'symbolp vars)
       (error "multiple-value-bind: all vars must symbols")) ;{TODO} proper error
     (setf (v-multi-val-base new-env) (safe-glsl-name-string (free-name 'a)))
+    (setf (v-context new-env) (remove :main (v-context new-env)))
     (let* ((val-obj (varjo->glsl value-form new-env))
            (mvals (multi-vals val-obj))
            (mval-types (mapcar #'v-type mvals))
@@ -90,25 +91,42 @@
            (mvals (multi-vals obj))
            (mval-types (mapcar #'v-type mvals))
            (result
-            (if mvals
-                (merge-obs
-                 obj :type 'v-void
-                 :current-line (format nil "return ~a" (v-glsl-name (first mvals)))
-                 :returns mval-types)
-                (merge-obs
-                 obj :type 'v-void
-                 :current-line (format nil "return ~a" (current-line obj))
-                 :returns (list (code-type obj))))))
+            (cond ((member :main (v-context env)) (%main-return obj mvals env))
+                  ((null mvals) (%regular-return obj))
+                  (t (%regular-value-return obj mvals mval-types)))))
       result)))
+
+(defun %main-return (obj mvals env)
+  (if mvals
+      (%regular-return obj)
+      (varjo->glsl (%default-out-for-stage obj env) env)))
+
+(defun %default-out-for-stage (form env)
+  (let ((context (v-context env)))
+    (cond ((member :vertex context) `(setf gl-position ,form))
+          ((member :fragment context) `(%out (,(free-name :output-color env))
+                                             ,form))
+          (t (error "Have not implemented #'values defaults for this stage ~a"
+                    env)))))
+
+(defun %regular-return (obj)
+  (merge-obs
+   obj :type 'v-void
+   :current-line (format nil "return ~a" (current-line obj))
+   :returns (list (code-type obj))))
+
+(defun %regular-value-return (obj mvals mval-types)
+  (merge-obs
+   obj :type 'v-void
+   :current-line (format nil "return ~a" (v-glsl-name (first mvals)))
+   :returns mval-types))
 
 (v-defspecial :values (&rest values)
   :args-valid t
   :return
-  (%values-for-normal-functions values env)
-  ;; (if (member :main (v-context env))
-  ;;     (%values-for-normal-functions values env)
-  ;;     (%values-for-main values env))
-  )
+  (if (member :main (v-context env))
+      (%values-for-main values env)
+      (%values-for-normal-functions values env)))
 
 (defun %values-for-normal-functions (values env)
   (if (v-multi-val-base env)
@@ -132,7 +150,19 @@
       (varjo->glsl `(progn1 ,@values) env)))
 
 (defun %values-for-main (values env)
-  )
+  (varjo->glsl
+   `(progn ,@(mapcar (lambda (x y) (%main-value-form x y env))
+                     (rest values) (range (- (length values) 1)))
+           ,(first values))
+   env))
+
+(defun %main-value-form (form position env)
+  position
+  (cond
+    ((and (listp form) (keywordp (first form)))
+     `(%out (,(free-name :out env) ,@(butlast form)) ,(car (last form))))
+    (t `(%out ,(free-name :out env) ,form))))
+
 
 
 (v-defspecial :%clean-env-block (&rest body)
@@ -260,6 +290,11 @@
   :args-valid t
   :return
   (let* ((mainp (eq name :main))
+         (env (if mainp
+                  (let ((new-env (clone-environment env)))
+                    (push :main (v-context new-env))
+                    new-env)
+                  env))
          (args (mapcar #'list raw-args))
          (arg-glsl-names (loop :for (name) :in raw-args :collect
                             (safe-glsl-name-string (free-name name))))
@@ -462,4 +497,6 @@
 
 (v-defspecial :%break ()
   :return
-  (break "Varjo compiler breakpoint" env))
+  (progn
+    (break "Varjo compiler breakpoint" env)
+    (make-none-ob)))

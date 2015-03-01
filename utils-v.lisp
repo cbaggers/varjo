@@ -241,3 +241,5 @@
         (if (listp tree)
             (mapcar (lambda (x) (apply-tree func x)) tree)
             tree))))
+
+(defun range (n) (loop for i below n collect i))
