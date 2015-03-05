@@ -124,7 +124,9 @@
                              :stemcells (mapcan #'stemcells args))))
           (expand->varjo->glsl
            `(%clone-env-block
-             (%env-multi-var-declare ,bindings t ,m-r-names)
+             (%multi-env-progn
+              ,@(loop :for v :in bindings :for gname :in m-r-names
+                   :collect `(%glsl-let ,v t ,gname)))
              ,o) env))
 
         (let* ((m-r-names (loop :for i :below (1+ (length m-r-types)) :collect
@@ -135,11 +137,12 @@
                    :to-top (mapcan #'to-top args)
                    :signatures (mapcan #'signatures args)
                    :stemcells (mapcan #'stemcells args)))
-               (bind `((,(free-name 'nr) ,o)))
+               (bind `(,(free-name 'nr) ,o))
                (c (varjo->glsl
                    `(%clone-env-block
-                     (%env-multi-var-declare ,bind nil (,(first m-r-names)))
-                     (setf ,(caar bind) ,o))
+                     (%multi-env-progn
+                      (%glsl-let ,bind t ,(first m-r-names)))
+                     (setf ,(car bind) ,o))
                    env)))
           (merge-obs c
                      :multi-vals (cons (make-instance 'v-value :type type
