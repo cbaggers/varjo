@@ -113,22 +113,6 @@
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
     (if (and (multi-return-vars func) (not (v-multi-val-base env)))
-        (let* ((bindings (loop :for type :in m-r-types :collect
-                            `((,(free-name 'nc) ,(type->type-spec type)))))
-               (m-r-names (loop :for i :below (length m-r-types) :collect
-                             (fmt "~a~a" m-r-base i)))
-               (o (merge-obs args :type type
-                             :current-line (gen-function-string func args m-r-names)
-                             :to-top (mapcan #'to-top args)
-                             :signatures (mapcan #'signatures args)
-                             :stemcells (mapcan #'stemcells args))))
-          (expand->varjo->glsl
-           `(%clone-env-block
-             (%multi-env-progn
-              ,@(loop :for v :in bindings :for gname :in m-r-names
-                   :collect `(%glsl-let ,v t ,gname)))
-             ,o) env))
-
         (let* ((m-r-names (loop :for i :below (1+ (length m-r-types)) :collect
                              (fmt "~a~a" m-r-base i)))
                (o (merge-obs
@@ -151,7 +135,23 @@
                                                               'v-value :type x
                                                               :glsl-name y))
                                                m-r-types
-                                               (rest m-r-names))))))))
+                                               (rest m-r-names)))))
+
+        (let* ((bindings (loop :for type :in m-r-types :collect
+                            `((,(free-name 'nc) ,(type->type-spec type)))))
+               (m-r-names (loop :for i :below (length m-r-types) :collect
+                             (fmt "~a~a" m-r-base i)))
+               (o (merge-obs args :type type
+                             :current-line (gen-function-string func args m-r-names)
+                             :to-top (mapcan #'to-top args)
+                             :signatures (mapcan #'signatures args)
+                             :stemcells (mapcan #'stemcells args))))
+          (expand->varjo->glsl
+           `(%clone-env-block
+             (%multi-env-progn
+              ,@(loop :for v :in bindings :for gname :in m-r-names
+                   :collect `(%glsl-let ,v t ,gname)))
+             ,o) env)))))
 
 ;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk
