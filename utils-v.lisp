@@ -243,3 +243,5 @@
             tree))))
 
 (defun range (n) (loop for i below n collect i))
+
+(defun lastr (x) (car (last x)))

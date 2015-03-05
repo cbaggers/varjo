@@ -40,7 +40,7 @@
 
 (deferror not-core-type-error (type-name)
   "Type ~a is not a core type and thus cannot end up in glsl src code
-   It must end up being used or converted to something that resolves 
+   It must end up being used or converted to something that resolves
    to a glsl type." type-name)
 
 (deferror invalid-function-return-spec (func spec)
@@ -81,7 +81,7 @@
     "You cannot shadow or replace core macros or special functions.")
 
 (deferror out-var-name-taken (out-var-name)
-    "The variable name '~a' is already taken and so cannot be used~%for an out variable" 
+    "The variable name '~a' is already taken and so cannot be used~%for an out variable"
   out-var-name)
 
 (deferror unknown-variable-type (name)
@@ -127,14 +127,14 @@
     "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
 
 (deferror args-incompatible (previous-args current-args)
-    "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a" 
+    "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a"
    previous-args current-args)
 
 (deferror invalid-shader-stage (stage)
     "Sorry but '~a' is not a valid shader stage" stage)
 
 (deferror swizzle-keyword (item)
-    "Swizzle expects a keyword to specify the components. Recieved ~a instead" item) 
+    "Swizzle expects a keyword to specify the components. Recieved ~a instead" item)
 
 (deferror multi-func-stemcells (func-name)
     "Multiple functions found name ~a that match arguments.~%However varjo cannot decide which function to use because n of the arguments passed in are of stemcell type" func-name)
@@ -155,3 +155,6 @@
     "Symbol macros must expand to a list or atom form : ~s -> ~s~%"
     name form)
 
+(deferror stage-order-error (stage-type)
+    "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists"
+    stage-type)

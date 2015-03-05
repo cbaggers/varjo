@@ -1,6 +1,6 @@
 (in-package :varjo)
 
-(defun safe-glsl-name-string (name)  
+(defun safe-glsl-name-string (name)
   (if (valid-user-defined-name name)
       (let* ((sname (regex-replace-all "[-]" (symbol-name (symb name)) "_"))
              (sname (regex-replace-all "\\*" sname "star")))
@@ -27,15 +27,15 @@
                        (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs &optional out-strings)
-  (apply #'format nil (v-glsl-string func) 
+  (apply #'format nil (v-glsl-string func)
          (append (mapcar #'current-line arg-objs) out-strings)))
 
 (defun gen-function-transform (name args &optional out-args)
-  (format nil "~a(~{~a~^,~})" name 
-          (loop :for i :below (+ (length args) (length out-args)) 
+  (format nil "~a(~{~a~^,~})" name
+          (loop :for i :below (+ (length args) (length out-args))
              :collect "~a")))
 
-(defun gen-function-signature (name args out-args return-types)  
+(defun gen-function-signature (name args out-args return-types)
   (format nil "~a ~a(~a);"
           (v-glsl-string return-types)
           name
@@ -67,8 +67,8 @@
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))
 
-(defun gen-out-var-assignment-string (var-name val)
-  (format nil "~a = ~a" (safe-glsl-name-string var-name) (current-line val)))
+(defun gen-out-var-assignment-string (glsl-name val)
+  (format nil "~a = ~a" glsl-name (current-line val)))
 
 (defun gen-if-string (test-obj then-obj else-obj)
   (if else-obj
@@ -147,20 +147,13 @@
   (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers
                          storage-qual))
 
-(defun gen-out-var-string (name qualifiers value)
-  (let ((name (if (stringp name)
-                  (string-downcase
-                   (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
-                  (safe-glsl-name-string name))))
-    (format nil "~a;" (prefix-type-to-string (v-type value) name qualifiers 'out))))
+(defun gen-out-var-string (glsl-name qualifiers value)
+  (format nil "~a;" (prefix-type-to-string (v-type value) glsl-name
+                                           qualifiers 'out)))
 
-(defun gen-in-var-string (name type qualifiers &optional layout)
-  (let ((name (if (stringp name)
-                  (string-downcase
-                   (cl-ppcre:regex-replace-all "[-]" (symbol-name (symb name)) "_"))
-                  (safe-glsl-name-string name))))
-    (format nil "~@[layout(location = ~a) ~]~a;" layout
-            (prefix-type-to-string type name qualifiers 'in))))
+(defun gen-in-var-string (glsl-name type qualifiers &optional layout)
+  (format nil "~@[layout(location = ~a) ~]~a;" layout
+          (prefix-type-to-string type glsl-name qualifiers 'in)))
 
 (defun gen-uniform-decl-string (name type)
   (format nil "uniform ~a;" (prefix-type-to-string type (safe-glsl-name-string name))))
@@ -174,7 +167,7 @@
           (loop :for part :in
              (list (used-types code-obj)
                    (mapcar #'fourth (v-in-args env))
-                   (mapcar #'fourth (out-vars code-obj))
+                   (mapcar #'fifth (out-vars code-obj))
                    (concatenate 'list (mapcar #'third (v-uniforms env))
                                 (mapcar #'fourth (stemcells code-obj)))
                    (signatures code-obj)

@@ -30,84 +30,95 @@
 
 ;;----------------------------------------------------------------------
 
-;; {TODO} check in args on have one stream
-(defun rolling-translate (in-args uniforms context stages)
-  (compile-stages in-args uniforms context stages
-                  '(:vertex :geometry :tess-eval :tess-control :fragment)
-                  nil))
+(defparameter *stage-types* '(:vertex :geometry :tess-eval :tess-control :fragment))
 
-(defun compile-stages (in-args uniforms context stages remaining-stage-types accum)
-  (let ((stage (first stages)))
-    (typecase stage
-      (varjo-compile-result
-       (precompiled-stage in-args uniforms context
-                          stages remaining-stage-types accum))
-      (list (if (null stages)
-                (reverse accum)
-                (compile-stage in-args uniforms context
-                               stages remaining-stage-types accum)))
-      (t (error 'invalid-shader-stage :stage stage)))))
+(defmacro with-stage ((&optional (in-args (symb :in-args))
+                                 (uniforms (symb :uniforms))
+                                 (context (symb :context))
+                                 (code (symb :code)))
+                         stage &body body)
+  `(destructuring-bind (,in-args ,uniforms ,context ,code) ,stage
+     (declare (ignorable ,in-args ,uniforms ,context ,code))
+     ,@body))
 
-(defun precompiled-stage (in-args uniforms context
-                          stages remaining-stage-types accum)
-  (let* ((stage (first stages))
-         (remaining-stage-types
-          (check-order (stage-type stage) remaining-stage-types)))
-    (destructuring-bind (in-args uniforms context)
-        (transform-stage-args (stage-type stage) in-args uniforms context)
-      (if (args-compatiblep in-args uniforms context stage)
-          (compile-stages (gen-in-args-for-next-stage stage)
-                          uniforms
-                          context
-                          (rest stages)
-                          remaining-stage-types
-                          (cons stage accum))
-          (error 'args-incompatible :current-args (in-args stage)
-                 :previous-args in-args)))))
+(defun rolling-translate (stages)
+  (let ((result (reduce #'compile-stage stages :initial-value nil)))
+    (reverse (cons (caar result) (rest result)))))
 
-(defun compile-stage (in-args uniforms context
-                      stages remaining-stage-types accum)
-  (let ((stage (first stages)))
-    (destructuring-bind (stage-type &rest code) stage
-      (destructuring-bind (in-args uniforms context)
-          (transform-stage-args stage in-args uniforms context)
-        (let* ((remaining-stage-types
-                (check-order stage-type remaining-stage-types))
-               (result (translate in-args uniforms (cons stage-type context)
-                                  `(progn ,@code))))
-          (compile-stages (gen-in-args-for-next-stage result)
-                          uniforms
-                          context
-                          (rest stages)
-                          remaining-stage-types
-                          (cons result accum)))))))
+(defun merge-in-previous-stage-args (previous-stage stage)
+  (if previous-stage
+      (with-stage () stage
+        (list (if (args-compatiblep stage previous-stage)
+                  (mapcar λ(append (if (stringp (lastr %))
+                                       (butlast %) %)
+                                   (list (lastr %1)))
+                          in-args (out-vars previous-stage))
+                  (error 'args-incompatible in-args (out-vars previous-stage)))
+              uniforms
+              context
+              code))
+      stage))
 
-(defun args-compatiblep (in-args uniforms context stage)
-  (and (loop :for p :in in-args :for c :in (in-args stage) :always
-          (and (equal (first p) (first c))
-               (v-type-eq (type-spec->type (second p))
-                          (type-spec->type (second c)))
-               (equal (third p) (third c))))
-       (loop :for u :in (uniforms stage) :always (find u uniforms :test #'equal))
-       (context-ok-given-restriction (context stage) context)))
+(defun compile-stage (accum stage)
+  (destructuring-bind (last-stage remaining-stage-types)
+      (or (first accum) `(nil ,*stage-types*))
+    (let ((remaining-stage-types (check-order (extract-stage-type stage)
+                                              remaining-stage-types)))
+      (cons (list (apply #'translate (transform-stage-args
+                                      (merge-in-previous-stage-args last-stage
+                                                                    stage)))
+                  remaining-stage-types)
+            (cons last-stage (cddr accum))))))
 
-(let ((arg-transformers (list '(:geometry . (lambda (i u c) (list i u c))))))
-  (defun transform-stage-args (stage in-args uniforms context)
-    (let ((transform (cdr (assoc stage arg-transformers))))
-      (if transform
-          (funcall transform in-args uniforms context)
-          (list in-args uniforms context)))))
+(defun extract-stage-type (stage)
+  (let ((context (typecase stage
+                   (list (with-stage () stage context))
+                   (varjo-compile-result (context stage)))))
+    (find-if λ(when (member % context) %) *stage-types*)))
 
-(defun gen-in-args-for-next-stage (compiled-stage)
-  (loop :for (name qualifiers value) :in (out-vars compiled-stage)
-     :collect `(,name ,(type->type-spec (v-type value))
-                      ,@qualifiers)))
+(defun args-compatiblep (stage previous-stage)
+  (with-stage () stage
+    (and (loop :for p :in (mapcar #'out-var-to-in-arg (out-vars previous-stage))
+            :for c :in in-args :always
+            (and (v-type-eq (type-spec->type (second p))
+                            (type-spec->type (second c)))
+                 (%suitable-qualifiersp p c)))
+         (loop :for u :in (uniforms previous-stage) :always
+            (find u uniforms :test #'equal))
+         (context-ok-given-restriction
+          (remove (extract-stage-type previous-stage) (context previous-stage))
+          (remove (extract-stage-type stage) context)))))
+
+(defun in-arg-qualifiers (in-arg)
+  (let ((qualifiers (cddr in-arg)))
+    (if (stringp (lastr qualifiers))
+        (butlast qualifiers)
+        qualifiers)))
+
+(defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
+  (let ((pq (in-arg-qualifiers prev-stage-in-arg))
+        (cq (in-arg-qualifiers in-arg)))
+    (every λ(member % pq) cq)))
+
+(defun out-var-to-in-arg (out-var)
+  (destructuring-bind (name qualifiers value glsl-name) out-var
+    `(,name ,(type->type-spec (v-type value))
+            ,@qualifiers ,glsl-name)))
+
+
+(let ((arg-transformers (list '(:geometry . (lambda (i u c code)
+                                              (list i u c code))))))
+  (defun transform-stage-args (stage)
+    (let* ((stage-type (extract-stage-type stage))
+           (transform (cdr (assoc stage-type arg-transformers))))
+      (if transform (apply transform stage) stage))))
 
 ;;{TODO} make proper error
 (defun check-order (stage-type remaining-stage-types)
-  (if (member stage-type remaining-stage-types)
-      (subseq remaining-stage-types (position stage-type remaining-stage-types))
-      (error "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists" stage-type)))
+  (let ((check (member stage-type remaining-stage-types)))
+    (if check
+        (rest check)
+        (error 'stage-order-error stage-type))))
 
 (defun translate (in-args uniforms context body)
   (let ((env (make-instance 'environment)))
@@ -133,13 +144,22 @@
 
 ;;----------------------------------------------------------------------
 
-;;[TODO] Move these errors
-(defun check-arg-forms (in-args &aux )
-  (loop for stream in in-args :do
-       (when (or (not (every #'keywordp (cddr stream))) (< (length stream) 2))
-         (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" stream)))
+
+(defun check-arg-forms (in-args) (every #'check-arg-form in-args))
+(defun check-arg-form (arg)
+  (unless
+      (and
+       ;; needs to at least have name and type
+       (>= (length arg) 2)
+       ;; of the rest of the list it must be keyword qualifiers and optionally a
+       ;; string at the end. The string is a declaration of what the name of the
+       ;; var will be in glsl. This feature is intended for use only by the compiler
+       ;; but I see not reason to lock this away.
+       (every #'keywordp (cddr (if (stringp (car (last arg))) (butlast arg) arg))))
+    (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" arg))
   t)
 
+;;[TODO] Move these errors vvv^^^^^
 (defun check-for-dups (in-args uniforms)
   (if (intersection (mapcar #'first in-args) (mapcar #'first uniforms))
       (error "Varjo: Duplicates names found between in-args and uniforms")
@@ -181,21 +201,28 @@
 (defun process-in-args (code env)
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
-    (loop :for (name type . qualifiers) :in in-args :do
-       (let* ((type (if (and (not (type-specp type))
+    (loop :for (name type . arg-details) :in in-args :do
+       (let* ((declared-glsl-name (when (stringp (lastr arg-details))
+                                    (lastr arg-details)))
+              (qualifiers (if declared-glsl-name
+                              (butlast arg-details)
+                              arg-details))
+              (type (if (and (not (type-specp type))
                              (vtype-existsp (sym-down type)))
                         (sym-down type)
                         type))
-              (type-obj (type-spec->type type :place t)))
+              (type-obj (type-spec->type type :place t))
+              (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
          (if (typep type-obj 'v-struct)
-             (add-fake-struct name type-obj qualifiers env)
+             (add-fake-struct name glsl-name type-obj qualifiers env)
              (progn
                (add-var name (make-instance 'v-value :type type-obj
-                                            :glsl-name (safe-glsl-name-string name))
+                                            :glsl-name glsl-name)
                         env t)
                (setf (v-in-args env)
                      (append (v-in-args env)
-                             `((,name ,(type->type-spec type-obj) ,qualifiers))))))))
+                             `((,name ,(type->type-spec type-obj) ,qualifiers
+                                      ,glsl-name))))))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -287,10 +314,10 @@
   ;;`(,fake-slot-name ,slot-type ,qualifiers)
   (when (find :vertex (v-context env)) (setf position 0))
   (setf (v-in-args env)
-        (loop :for (name type qualifiers) :in (v-in-args env)
+        (loop :for (name type qualifiers glsl-name) :in (v-in-args env)
            :for type-obj = (type-spec->type type :env env)
            :collect `(,name ,type ,qualifiers
-                      ,(gen-in-var-string name type-obj qualifiers position))
+                      ,(gen-in-var-string glsl-name type-obj qualifiers position))
            :if position :do (incf position (v-glsl-size  type-obj))))
   (values code env))
 
@@ -313,8 +340,10 @@
   (let ((out-vars (dedup-out-vars (out-vars code))))
     (setf (out-vars code)
           (loop :for (name qualifiers value) :in out-vars
-             :collect (list name qualifiers value
-                            (gen-out-var-string name qualifiers value))))
+             :collect (let ((glsl-name (v-glsl-name value)))
+                        (list name qualifiers value glsl-name
+                              (gen-out-var-string glsl-name qualifiers value)))))
+    (out-vars code)
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -401,7 +430,7 @@
                  :in-args (loop :for i :in (v-in-args env) :collect
                              (subseq i 0 3))
                  :out-vars (loop :for i :in (out-vars code) :collect
-                             (subseq i 0 3))
+                             (subseq i 0 4))
                  :uniforms (loop :for i :in (v-uniforms env) :collect
                               (subseq i 0 2))
                  :implicit-uniforms (stemcells code)

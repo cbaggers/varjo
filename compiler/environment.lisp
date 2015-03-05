@@ -145,12 +145,10 @@
 ;;-------------------------------------------------------------------------
 
 (defun context-ok-given-restriction (context restriction)
-  (every #'identity
-         (loop :for item :in restriction :collect
-            (if (listp item)
-                (some #'identity (loop :for sub-item :in item :collect
-                                    (find sub-item context)))
-                (find item context)))))
+  (loop :for item :in restriction :always
+     (if (listp item)
+         (find-if λ(member % context) item)
+         (find item context))))
 
 (defmethod valid-for-contextp ((func list) (env environment))
   (let ((restriction (second func))
