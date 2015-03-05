@@ -311,23 +311,27 @@
 ;;----------------------------------------------------------------------
 
 (defun calc-locations (types)
+  "Takes a list of type objects and returns a list of positions
+- usage example -
+(let ((types (mapcar #'type-spec->type '(:mat4 :vec2 :float :mat2 :vec3))))
+         (mapcar #'cons types (calc-positions types)))"
   (labels ((%calc-location (sizes type)
              (cons (+ (first sizes) (v-glsl-size type)) sizes)))
     (reverse (reduce #'%calc-location (butlast types) :initial-value '(0)))))
 
-;; - example -
-;; (let ((types (mapcar #'type-spec->type '(:mat4 :vec2 :float :mat2 :vec3))))
-;;          (mapcar #'cons types (calc-positions types)))
 
-(defun gen-in-arg-strings (code env &aux position)
-  ;;`(,fake-slot-name ,slot-type ,qualifiers)
-  (when (find :vertex (v-context env)) (setf position 0))
-  (setf (v-in-args env)
-        (loop :for (name type qualifiers glsl-name) :in (v-in-args env)
-           :for type-obj = (type-spec->type type :env env)
-           :collect `(,name ,type ,qualifiers
-                      ,(gen-in-var-string glsl-name type-obj qualifiers position))
-           :if position :do (incf position (v-glsl-size  type-obj))))
+
+(defun gen-in-arg-strings (code env)
+  (let* ((types (mapcar #'second (v-in-args env)))
+         (type-objs (mapcar #'type-spec->type types))
+         (locations (calc-locations type-objs)))
+    (setf (v-in-args env)
+          (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
+             :for location in locations
+             :for type in type-objs
+             :collect `(,name ,type ,qualifiers ,(gen-in-var-string
+                                                  glsl-name type
+                                                  qualifiers location)))))
   (values code env))
 
 ;;----------------------------------------------------------------------
@@ -342,16 +346,22 @@
                    (error 'out-var-type-mismatch :var-name name
                           :var-types (list tspec (gethash name seen))))
                  (setf (gethash name seen) tspec
-                       deduped (cons (list name qualifiers value) deduped)))))
-    deduped))
+                       deduped (cons (list name qualifiers value)
+                                     deduped)))))
+    (reverse deduped)))
 
 (defun gen-out-var-strings (code env)
-  (let ((out-vars (dedup-out-vars (out-vars code))))
+  (let* ((out-vars (dedup-out-vars (out-vars code)))
+         (out-types (mapcar λ(v-type (third %)) out-vars))
+         (locations (calc-locations out-types)))
     (setf (out-vars code)
           (loop :for (name qualifiers value) :in out-vars
+             :for type :in out-types
+             :for location :in locations
              :collect (let ((glsl-name (v-glsl-name value)))
                         (list name qualifiers value glsl-name
-                              (gen-out-var-string glsl-name qualifiers value)))))
+                              (gen-out-var-string glsl-name type qualifiers
+                                                  location)))))
     (out-vars code)
     (values code env)))
 

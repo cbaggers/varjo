@@ -147,9 +147,13 @@
   (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers
                          storage-qual))
 
-(defun gen-out-var-string (glsl-name qualifiers value)
-  (format nil "~a;" (prefix-type-to-string (v-type value) glsl-name
-                                           qualifiers 'out)))
+;; (defun gen-out-var-string (glsl-name qualifiers value)
+;;   (format nil "~a;" (prefix-type-to-string (v-type value) glsl-name
+;;                                            qualifiers 'out)))
+
+(defun gen-out-var-string (glsl-name type qualifiers &optional layout)
+  (format nil "~@[layout(location = ~a) ~]~a;" layout
+          (prefix-type-to-string type glsl-name qualifiers 'out)))
 
 (defun gen-in-var-string (glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~]~a;" layout

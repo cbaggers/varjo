@@ -150,14 +150,12 @@
       (varjo->glsl `(progn1 ,@values) env)))
 
 (defun %values-for-main (values env)
-  (varjo->glsl
-   `(progn ,@(mapcar (lambda (x y) (%main-value-form x y env))
-                     (rest values) (range (- (length values) 1)))
-           ,(first values))
-   env))
+  (let ((code `(progn ,@(mapcar (lambda (x) (%main-value-form x env))
+                                (rest values))
+                      ,(first values))))
+    (varjo->glsl code env)))
 
-(defun %main-value-form (form position env)
-  position
+(defun %main-value-form (form env)
   (cond
     ((and (listp form) (keywordp (first form)))
      `(%out (,(free-name :out env) ,@(butlast form)) ,(car (last form))))
@@ -298,12 +296,13 @@
          (args (mapcar #'list raw-args))
          (arg-glsl-names (loop :for (name) :in raw-args :collect
                             (safe-glsl-name-string (free-name name))))
+         (body-code `(return (progn ,@body)))
          (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block-for-labels)
                                    (%multi-env-progn
                                     ,@(loop :for b :in args
                                          :for g :in arg-glsl-names
                                          :collect `(%glsl-let ,b nil ,g)))
-                                   (return (progn ,@body))) env))
+                                   ,body-code) env))
          (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))
          (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
@@ -351,7 +350,7 @@
     ,@body))
 
 ;; {TODO} what if type of form is not value
-(v-defspecial :%out (name-and-qualifiers form)
+(v-defspecial '%out (name-and-qualifiers form)
   :args-valid t
   :return
   (let* ((form-obj (varjo->glsl form env))

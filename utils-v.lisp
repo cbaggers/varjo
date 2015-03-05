@@ -216,6 +216,8 @@
                      ((not (assoc (first item) accum))
                       (clean-alist (rest alist) (cons item accum)))
                      (t (clean-alist (rest alist) accum)))))
+           (reverse-results (r)
+             (loop for (n . rst) in r collect (cons n (reverse rst))))
            (first-in-template-p (x) (or (null (first x))
                                         (member (first x) template
                                                 :test #'symbol-name= ))))
@@ -223,7 +225,7 @@
           (split (collector lam-list)))
       (if (or (null template)
               (every #'first-in-template-p split))
-          (clean-alist split)
+          (reverse-results (clean-alist split))
           (error "'&' symbol found that was not specified in template ~s"
                  (mapcar #'first split))))))
 
