@@ -310,6 +310,15 @@
 
 ;;----------------------------------------------------------------------
 
+(defun calc-locations (types)
+  (labels ((%calc-location (sizes type)
+             (cons (+ (first sizes) (v-glsl-size type)) sizes)))
+    (reverse (reduce #'%calc-location (butlast types) :initial-value '(0)))))
+
+;; - example -
+;; (let ((types (mapcar #'type-spec->type '(:mat4 :vec2 :float :mat2 :vec3))))
+;;          (mapcar #'cons types (calc-positions types)))
+
 (defun gen-in-arg-strings (code env &aux position)
   ;;`(,fake-slot-name ,slot-type ,qualifiers)
   (when (find :vertex (v-context env)) (setf position 0))
