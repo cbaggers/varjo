@@ -70,6 +70,7 @@
            (mval-types (mapcar #'v-type mvals))
            (glsl-names (mapcar #'v-glsl-name mvals)))
       (unless (= (length vars) (length mvals))
+        (break "boom" val-obj value-form)
         (error "Length mismatch between values form and value-bind:~%~s~%~s"
                vars mvals))
       (let ((lvars (mapcar #'(lambda (x y) (list (list x (type->type-spec y))))

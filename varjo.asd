@@ -21,6 +21,5 @@
                (:file "language/special")
                (:file "language/functions")
                (:file "language/textures")
-               (:file "compiler/front-end")))
-
-
+               (:file "compiler/front-end")
+               (:file "language/object-printers")))

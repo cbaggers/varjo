@@ -4,13 +4,13 @@
 ;;----------------------------------------------------------------------
 
 (defclass v-t-type () ())
-(defclass v-type (v-t-type) 
+(defclass v-type (v-t-type)
   ((core :initform nil :reader core-typep)
    (place :initform t :initarg :place :accessor v-placep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)
-   (uniform-string-gen :initform nil :initarg :uniform-string-gen 
+   (uniform-string-gen :initform nil :initarg :uniform-string-gen
                        :reader uniform-string-gen)))
 
 (defclass v-stemcell (v-type) ())
@@ -20,7 +20,7 @@
         (original-name symbol))
     (make-instance
      'code
-     :type 'v-stemcell 
+     :type 'v-stemcell
      :current-line string-name
      :stemcells `((,original-name ,string-name '|unknown-type|)))))
 
@@ -38,7 +38,7 @@
 ;; spec types are to handle the manifest ugliness of the glsl spec.
 ;; dear god just one txt file with every permutation of every glsl
 ;; function would have save me so many hours work.
-(defclass v-spec-type () 
+(defclass v-spec-type ()
   ((place :initform t :initarg :place :reader v-placep)))
 (defclass v-tfd (v-spec-type) ())
 (defclass v-tf (v-tfd) ()) ;; float vec*
@@ -50,7 +50,7 @@
 (defclass v-tu (v-tiu) ()) ;; uint uvec*
 (defclass v-tvec (v-spec-type) ()) ;;vec* uvec* ivec* [notice no dvec]
 
-(defclass v-array (v-container) 
+(defclass v-array (v-container)
   ((element-type :initform nil :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 (defmethod v-glsl-string ((object v-array))
@@ -79,14 +79,14 @@
 
 (defclass v-user-struct (v-struct) ())
 
-(defclass v-error (v-type) 
+(defclass v-error (v-type)
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 
 (defclass v-void (v-t-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "void" :reader v-glsl-string)))
 
-(defclass v-bool (v-type v-tb) 
+(defclass v-bool (v-type v-tb)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bool" :reader v-glsl-string)))
 
@@ -103,10 +103,10 @@
   ((core :initform t :reader core-typep)
    (glsl-string :initform "float" :reader v-glsl-string)
    (casts-to :initform '(v-double))))
-(defclass v-short-float (v-number) 
+(defclass v-short-float (v-number)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "short-float" :reader v-glsl-string)))
-(defclass v-double (v-number v-td) 
+(defclass v-double (v-number v-td)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "double" :reader v-glsl-string)))
 
@@ -115,7 +115,7 @@
    (dimensions :initform nil :accessor v-dimensions)))
 
 (defclass v-matrix (v-container) ())
-(defclass v-mat2 (v-matrix) 
+(defclass v-mat2 (v-matrix)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "mat2" :reader v-glsl-string)
    (element-type :initform 'v-float)
@@ -196,7 +196,7 @@
    (element-type :initform 'V-FLOAT)
    (dimensions :initform '(4 4) :reader v-dimensions)
    (glsl-size :initform 4)))
-(defclass v-dmat2 (v-matrix) 
+(defclass v-dmat2 (v-matrix)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "mat2" :reader v-glsl-string)
    (element-type :initform 'v-double)
@@ -281,13 +281,13 @@
 (defclass v-vector (v-container) ())
 (defclass v-fvector (v-vector v-tf v-tvec) ())
 
-(defclass v-vec2 (v-fvector) 
+(defclass v-vec2 (v-fvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "vec2" :reader v-glsl-string)
    (element-type :initform 'v-float)
    (dimensions :initform '(2) :reader v-dimensions)
    (casts-to :initform '(v-dvec2))))
-(defclass v-vec3 (v-fvector) 
+(defclass v-vec3 (v-fvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "vec3" :reader v-glsl-string)
    (element-type :initform 'v-float)
@@ -301,7 +301,7 @@
    (casts-to :initform '(v-dvec4))))
 
 (defclass v-bvector (v-vector v-tb) ())
-(defclass v-bvec2 (v-bvector) 
+(defclass v-bvec2 (v-bvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bvec2" :reader v-glsl-string)
    (element-type :initform 'v-bool)
@@ -311,7 +311,7 @@
    (glsl-string :initform "bvec3" :reader v-glsl-string)
    (element-type :initform 'v-bool)
    (dimensions :initform '(3) :reader v-dimensions)))
-(defclass v-bvec4 (v-bvector) 
+(defclass v-bvec4 (v-bvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bvec4" :reader v-glsl-string)
    (element-type :initform 'v-bool)
@@ -330,7 +330,7 @@
    (element-type :initform 'v-uint)
    (dimensions :initform '(3) :reader v-dimensions)
    (casts-to :initform '(v-dvec3 v-vec3))))
-(defclass v-uvec4 (v-uvector) 
+(defclass v-uvec4 (v-uvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uvec4" :reader v-glsl-string)
    (element-type :initform 'v-uint)
@@ -338,19 +338,19 @@
    (casts-to :initform '(v-dvec4 v-vec4))))
 
 (defclass v-ivector (v-vector v-ti) ())
-(defclass v-ivec2 (v-ivector v-tvec) 
+(defclass v-ivec2 (v-ivector v-tvec)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec2" :reader v-glsl-string)
    (element-type :initform 'v-int)
    (dimensions :initform '(2) :reader v-dimensions)
    (casts-to :initform '(v-uvec2 v-vec2 v-dvec2))))
-(defclass v-ivec3 (v-ivector) 
+(defclass v-ivec3 (v-ivector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec3" :reader v-glsl-string)
    (element-type :initform 'v-int)
    (dimensions :initform '(3) :reader v-dimensions)
    (casts-to :initform '(v-uvec3 v-vec3 v-dvec3))))
-(defclass v-ivec4 (v-ivector) 
+(defclass v-ivec4 (v-ivector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec4" :reader v-glsl-string)
    (element-type :initform 'v-int)
@@ -358,19 +358,19 @@
    (casts-to :initform '(v-uvec4 v-vec4 v-dvec4))))
 
 (defclass v-dvector (v-vector) ())
-(defclass v-dvec2 (v-dvector v-td) 
+(defclass v-dvec2 (v-dvector v-td)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec2" :reader v-glsl-string)
    (element-type :initform 'v-dnt)
    (dimensions :initform '(2) :reader v-dimensions)
    (casts-to :initform '(v-uvec2 v-vec2 v-dvec2))))
-(defclass v-dvec3 (v-dvector) 
+(defclass v-dvec3 (v-dvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec3" :reader v-glsl-string)
    (element-type :initform 'v-dnt)
    (dimensions :initform '(3) :reader v-dimensions)
    (casts-to :initform '(v-uvec3 v-vec3 v-dvec3))))
-(defclass v-dvec4 (v-dvector) 
+(defclass v-dvec4 (v-dvector)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ivec4" :reader v-glsl-string)
    (element-type :initform 'v-dnt)
@@ -559,4 +559,3 @@
 ;;   (position :vec4 "gl_Position")
 ;;   (point-size :float "gl_PointSize")
 ;;   (clip-distance (:float t) "gl_ClipDistance"))
-
