@@ -7,6 +7,7 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
+(named-readtables:in-readtable fn_::fn_lambda)
 
 ;;----------------------------------------------------------------------
 
@@ -19,14 +20,12 @@
       (split-arguments args '(&uniform &context))
     `(translate ',in-args ',uniforms ',context '(progn ,@body))))
 
-(defmacro defpipeline (name args &body stages)
-  (declare (ignore name))
-  (destructuring-bind (in-args uniforms context)
-      (split-arguments args '(&uniform &context))
-    `(format nil "~{~a~%~}" (mapcar #'glsl-code (rolling-translate ',in-args
-                                                                   ',uniforms
-                                                                   ',context
-                                                                   ',stages)))))
+(defun v-macroexpand (form &optional (env (make-varjo-environment)))
+  (identity
+   (pipe-> (form env)
+     (equalp #'symbol-macroexpand-pass
+             #'macroexpand-pass
+             #'compiler-macroexpand-pass))))
 
 ;;----------------------------------------------------------------------
 
@@ -311,10 +310,10 @@
 ;;----------------------------------------------------------------------
 
 (defun calc-locations (types)
-  "Takes a list of type objects and returns a list of positions
-- usage example -
-(let ((types (mapcar #'type-spec->type '(:mat4 :vec2 :float :mat2 :vec3))))
-         (mapcar #'cons types (calc-positions types)))"
+;;   "Takes a list of type objects and returns a list of positions
+;; - usage example -
+;; (let ((types (mapcar #'type-spec->type '(:mat4 :vec2 :float :mat2 :vec3))))
+;;          (mapcar #'cons types (calc-positions types)))"
   (labels ((%calc-location (sizes type)
              (cons (+ (first sizes) (v-glsl-size type)) sizes)))
     (reverse (reduce #'%calc-location (butlast types) :initial-value '(0)))))

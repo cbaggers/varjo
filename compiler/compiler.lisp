@@ -17,7 +17,8 @@
   "Special case generally used by special functions that need to expand
    any macros in the form before compiling"
   (pipe-> (code env)
-    (equal #'macroexpand-pass
+    (equal #'symbol-macroexpand-pass
+           #'macroexpand-pass
            #'compiler-macroexpand-pass)
     #'varjo->glsl))
 
@@ -106,52 +107,36 @@
 
 (defun compile-multi-return-function (func-name func args env)
   (let* ((args (make-stemcell-arguments-concrete args func))
-         (m-r-base (or (v-multi-val-base env)
-                       (safe-glsl-name-string (free-name 'nc))))
-         (m-r-types (multi-return-vars func))
          (type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
-    (if (and (multi-return-vars func) (not (v-multi-val-base env)))
-        (let* ((m-r-names (loop :for i :below (1+ (length m-r-types)) :collect
-                             (fmt "~a~a" m-r-base i)))
-               (o (merge-obs
-                   args :type type
-                   :current-line (gen-function-string func args (rest m-r-names))
-                   :to-top (mapcan #'to-top args)
-                   :signatures (mapcan #'signatures args)
-                   :stemcells (mapcan #'stemcells args)))
-               (bind `(,(free-name 'nr) ,o))
-               (c (varjo->glsl
-                   `(%clone-env-block
-                     (%multi-env-progn
-                      (%glsl-let ,bind t ,(first m-r-names)))
-                     (setf ,(car bind) ,o))
-                   env)))
-          (merge-obs c
-                     :multi-vals (cons (make-instance 'v-value :type type
-                                                      :glsl-name (first m-r-names))
-                                       (mapcar (lambda (x y) (make-instance
-                                                              'v-value :type x
-                                                              :glsl-name y))
-                                               m-r-types
-                                               (rest m-r-names)))))
-
-        (let* ((bindings (loop :for type :in m-r-types :collect
-                            `((,(free-name 'nc) ,(type->type-spec type)))))
-               (m-r-names (loop :for i :below (length m-r-types) :collect
-                             (fmt "~a~a" m-r-base i)))
-               (o (merge-obs args :type type
-                             :current-line (gen-function-string func args m-r-names)
-                             :to-top (mapcan #'to-top args)
-                             :signatures (mapcan #'signatures args)
-                             :stemcells (mapcan #'stemcells args))))
-          (expand->varjo->glsl
-           `(%clone-env-block
-             (%multi-env-progn
-              ,@(loop :for v :in bindings :for gname :in m-r-names
-                   :collect `(%glsl-let ,v t ,gname)))
-             ,o) env)))))
+    (let* ((has-base (not (null (v-multi-val-base env))))
+           (m-r-base (or (v-multi-val-base env)
+                         (safe-glsl-name-string (free-name 'nc))))
+           (m-r-types (multi-return-vars func))
+           (start-index (if has-base 0 1))
+           (m-r-names (loop :for i :from start-index
+                         :below (+ start-index (length m-r-types)) :collect
+                         (fmt "~a~a" m-r-base i))))
+      (let* ((bindings (loop :for type :in m-r-types :collect
+                          `((,(free-name 'nc) ,(type->type-spec type)))))
+             (o (merge-obs
+                 args :type type
+                 :current-line (gen-function-string func args m-r-names)
+                 :to-top (mapcan #'to-top args)
+                 :signatures (mapcan #'signatures args)
+                 :stemcells (mapcan #'stemcells args)
+                 :multi-vals (mapcar (lambda (x y) (make-instance
+                                                    'v-value :type x
+                                                    :glsl-name y))
+                                     m-r-types
+                                     m-r-names))))
+        (varjo->glsl
+         `(%clone-env-block
+           (%multi-env-progn
+            ,@(loop :for v :in bindings :for gname :in m-r-names
+                 :collect `(%glsl-let ,v t ,gname)))
+           ,o) env)))))
 
 ;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk

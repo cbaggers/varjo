@@ -40,25 +40,30 @@
     (let ((arg-names (lambda-list-get-names
                       (concatenate 'list in-args
                                    (when rest (cons '&rest rest))
-                                   (when rest (cons '&optional optional))))))
+                                   (when rest (cons '&optional optional)))))
+          (func-name (symb :vs- name)))
       (destructuring-bind (&key context place args-valid return) body
         (cond
           ((eq args-valid t)
            `(progn
+              (defun ,func-name ,(cons 'env args)
+                (declare (ignorable env ,@arg-names))
+                ,return)
               (add-function ',name
                             (v-make-f-spec
                              ',name
                              :special
                              ',context
                              t
-                             (lambda ,(cons 'env args)
-                               (declare (ignorable env ,@arg-names))
-                               ,return)
+                             #',func-name
                              :place ',place)
                             *global-env*)
               ',name))
           (args-valid
            `(progn
+              (defun ,func-name ,(cons 'env args)
+                (declare (ignorable env ,@arg-names))
+                ,return)
               (add-function ',name
                             (v-make-f-spec
                              ',name
@@ -68,22 +73,20 @@
                                (declare (ignorable env ,@arg-names))
                                (let ((res ,args-valid))
                                  (when res (list res 0))))
-                             (lambda ,(cons 'env args)
-                               (declare (ignorable env ,@arg-names))
-                               ,return)
                              :place ',place)
                             *global-env*)
               ',name))
           (t `(progn
+              (defun ,func-name ,(cons 'env (mapcar #'first args))
+                (declare (ignorable env ,@arg-names))
+                ,return)
                 (add-function ',name
                               (v-make-f-spec
                                ',name
                                :special
                                ',context
                                ',(mapcar #'second args)
-                               (lambda ,(cons 'env (mapcar #'first args))
-                                 (declare (ignorable env ,@arg-names))
-                                 ,return)
+                               #',func-name
                                :place ',place)
                               *global-env*)
                 ',name)))))))
