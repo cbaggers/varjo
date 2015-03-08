@@ -23,19 +23,10 @@
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)))))
 
-(defun unset-tail (env)
-  (let ((new-env (clone-environment env)))
-    (setf (v-context new-env) (remove :tail (v-context new-env)))
-    new-env))
-(defun set-tail (env)
-  (if (not (member :tail (v-context env)))
-      (let ((new-env (clone-environment env)))
-        (push :tail (v-context new-env))
-        new-env)
-      env))
-
-(defun tail-pos-p (env)
-  (member :tail (v-context env)))
+(v-defspecial :%setf ((place v-type) (val v-type))
+  :return
+  (merge-obs (list place val) :type (code-type place)
+             :current-line (gen-assignment-string place val)))
 
 (v-defspecial :progn (&rest body)
   ;; this is super important as it is the only function that implements
@@ -47,15 +38,14 @@
       (let* ((mvb (v-multi-val-base env))
              (env (let ((new-env (clone-environment env)))
                     (setf (v-multi-val-base new-env) nil)
-                    (unset-tail new-env)))
+                    new-env))
              (body-objs (append
                          (loop :for code :in (butlast body) :collect
                             (multiple-value-bind (code-obj new-env)
                                 (varjo->glsl code env)
                               (when new-env (setf env new-env))
                               code-obj))
-                         (let ((code (last1 body))
-                               (env (set-tail env)))
+                         (let ((code (last1 body)))
                            (setf (v-multi-val-base env) mvb)
                            (list (varjo->glsl code env))))))
 
@@ -73,75 +63,74 @@
        ,@(rest body)
        ,tmp)))
 
-(v-defspecial :multiple-value-bind (vars value-form &rest body)
-  :args-valid t
-  :return
-  (let ((new-env (clone-environment env)))
-    (unless (every #'symbolp vars)
-      (error "multiple-value-bind: all vars must symbols")) ;{TODO} proper error
-    (setf (v-multi-val-base new-env) (safe-glsl-name-string (free-name 'a)))
-    (setf (v-context new-env) (remove :main (v-context new-env)))
-    (let* ((val-obj (varjo->glsl value-form new-env))
-           (mvals (multi-vals val-obj))
-           (mval-types (mapcar #'v-type mvals))
-           (glsl-names (mapcar #'v-glsl-name mvals)))
-      (unless (= (length vars) (length mvals))
-        (error "Length mismatch between values form and value-bind:~%~s~%~s"
-               vars mvals))
-      (let ((lvars (mapcar #'(lambda (x y) (list (list x (type->type-spec y))))
-                           vars mval-types)))
-        (varjo->glsl `(%clone-env-block
-                       (%multi-env-progn
-                        ,@(loop :for v :in lvars :for gname :in glsl-names
-                             :collect `(%glsl-let ,v t ,gname)))
-                       ,val-obj
-                       ,@body)
-                     env)))))
+;; {TODO} rewire this based of return
+;; (v-defspecial :multiple-value-bind (vars value-form &rest body)
+;;   :args-valid t
+;;   :return
+;;   (let ((new-env (clone-environment env)))
+;;     (unless (every #'symbolp vars)
+;;       (error "multiple-value-bind: all vars must symbols")) ;{TODO} proper error
+;;     (setf (v-multi-val-base new-env) (safe-glsl-name-string (free-name 'a)))
+;;     (setf (v-context new-env) (remove :main (v-context new-env)))
+;;     (let* ((val-obj (varjo->glsl value-form new-env))
+;;            (mvals (multi-vals val-obj))
+;;            (mval-types (mapcar #'v-type mvals))
+;;            (glsl-names (mapcar #'v-glsl-name mvals)))
+;;       (unless (= (length vars) (length mvals))
+;;         (error "Length mismatch between values form and value-bind:~%~s~%~s"
+;;                vars mvals))
+;;       (let ((lvars (mapcar #'(lambda (x y) (list (list x (type->type-spec y))))
+;;                            vars mval-types)))
+;;         (varjo->glsl `(%clone-env-block
+;;                        (%multi-env-progn
+;;                         ,@(loop :for v :in lvars :for gname :in glsl-names
+;;                              :collect `(%glsl-let ,v t ,gname)))
+;;                        ,val-obj
+;;                        ,@body)
+;;                      env)))))
 
 (v-defspecial :values (&rest values)
   :args-valid t
   :return
-  (if (tail-pos-p env)
-      (%values-for-normal-functions values env)
-      ;; (if (member :main (v-context env))
-      ;;     (%values-for-main values env)
-      ;;     (%values-for-normal-functions values env))
-      (expand->varjo->glsl `(prog1 ,@values) env)))
-
-(defun %values-for-normal-functions (values env)
-  (print "%values")
   (if (v-multi-val-base env)
-      (let* ((new-env (clone-environment env))
-             (objs (mapcar (lambda (x) (varjo->glsl x new-env)) values))
-             (names (loop for i in values :collect (free-name 'v)))
-             (base (v-multi-val-base env))
-             (glsl-names (loop :for i :below (length values) :collect
-                            (format nil "~a~a" base i)))
-             (bindings (mapcar (lambda (x y) (list (list x) y))  names values))
-             (result (varjo->glsl
-                      `(%clone-env-block
-                        (%multi-env-progn
-                         ,@(loop :for b :in bindings :for g :in glsl-names
-                              :collect `(%glsl-let ,b :env-and-set ,g))))
-                      (clone-environment env))))
-        (setf (multi-vals result)
-              (loop :for o :in objs :for n in glsl-names :collect
-                 (make-instance 'v-value :glsl-name n :type (code-type o))))
-        result)
+      (%values values env)
       (expand->varjo->glsl `(prog1 ,@values) env)))
 
-;; (defun %values-for-main (values env)
-;;   (print "%values-for-main")
-;;   (let ((code `(prog1 ,(first values)
-;;                  ,@(mapcar (lambda (x) (%main-value-form x env))
-;;                            (rest values)))))
-;;     (expand->varjo->glsl code env)))
+&&&&& AHH THE FUCK - here we put everything in mvals rather than using return
+&&&&&                need to fix this
 
-;; (defun %main-value-form (form env)
-;;   (cond
-;;     ((and (listp form) (keywordp (first form)))
-;;      `(%out (,(free-name :out env) ,@(butlast form)) ,(car (last form))))
-;;     (t `(%out ,(free-name :out env) ,form))))
+(defun %values (values env)
+  (print "%values")
+  (let* ((qualifier-lists (mapcar λ(butlast (listify %)) values))
+         (forms (mapcar λ(last1 (listify %)) values))
+         (new-env (clone-environment env))
+         (objs (mapcar λ(varjo->glsl % new-env) forms))
+         (base (v-multi-val-base env))
+         (glsl-names (loop :for i :below (length forms) :collect
+                        (format nil "~a~a" base i)))
+         (vals (loop :for o :in objs :for n in glsl-names :collect
+                  (make-instance 'v-value :glsl-name n :type (code-type o))))
+         (result (varjo->glsl `(progn ,@(loop :for o :in objs
+                                           :for v :in vals :collect
+                                           `(%setf ,(%v-value->code v)
+                                                   ,o)))
+                              env)))
+    (setf (multi-vals result)
+          (mapcar #'make-mval vals qualifier-lists))
+    result))
+
+;;--------------------------------------------------
+(defclass mval () ((value :initarg :value) (qualifiers :initarg :qualifiers)))
+
+(defun make-mval (v-value &optional qualifiers)
+  (make-instance 'mval :value v-value :qualifiers qualifiers))
+
+(defun mval->out-form (mval env)
+  (with-slots (value qualifiers) mval
+    `(%out (,(free-name :out env) ,@qualifiers) ,value)))
+;;--------------------------------------------------
+
+
 
 (v-defspecial :return (form)
   :args-valid t
@@ -149,20 +138,38 @@
   (let ((new-env (clone-environment env)))
     (print ":return")
     (setf (v-multi-val-base new-env) "return")
-    (let* ((obj (varjo->glsl form new-env))
-           (mvals (multi-vals obj))
-           (mval-types (mapcar #'v-type mvals))
+    (let* ((code-obj (varjo->glsl form new-env))
            (result
-            (cond ((member :main (v-context env)) (%main-return obj mvals env))
-                  ((null mvals) (%regular-return obj))
-                  (t (%regular-value-return obj mvals mval-types)))))
+            (cond ((member :main (v-context env)) (%main-return code-obj env))
+                  ((null (multi-vals code-obj)) (%regular-return code-obj))
+                  (t (%regular-value-return code-obj)))))
       result)))
 
-(defun %main-return (code-obj mvals env)
+;; Used when this is a labels (or otherwise local) function
+(defun %regular-value-return (code-obj)
+  (print "%regular-value-return")
+  (merge-obs
+   code-obj :type 'v-void
+   :current-line (format nil "return ~a" (current-line code-obj)) ;;(v-glsl-name (first mvals))
+   :returns (cons (multi-vals code-obj))))
+
+
+;; Used when this is the main stage function
+;; this
+(defun %main-return (code-obj env)
   (print "%main-return")
-  (if mvals
-      (%out-var-return code-obj)
-      (varjo->glsl (%default-out-for-stage code-obj env) env)))
+  ;;(varjo->glsl
+  (let* ((mvals (multi-vals code-obj)))
+    (varjo->glsl
+     `(%clone-env-block
+       (%multi-env-progn
+        ,@(loop :for v :in mvals :collect
+             `(%glsl-let ((,(free-name 'x env) ,(type->type-spec (v-type v))))
+                         t ,(v-glsl-name v))))
+       ,(%default-out-for-stage code-obj env)
+       ;; the meat
+       ,@(mapcar λ(mval->out-form % env) (multi-vals code-obj)))
+     env)))
 
 (defun %default-out-for-stage (form env)
   (let ((context (v-context env)))
@@ -171,26 +178,6 @@
                                              ,form))
           (t (error "Have not implemented #'values defaults for this stage ~a"
                     env)))))
-
-(defun %out-var-return (code-obj)
-  (print "%out-var-return")
-  `(progn ,code-obj))
-
-(defun %main-value-form (form n env)
-  (let ((val (make-instance 'v-value :glsl-name (format "return~" n) :type)))
-    (cond
-      ((and (listp form) (keywordp (first form)))
-       `(%out (,(free-name :out env) ,@(butlast form)) ,val))
-      (t `(%out ,(free-name :out env) ,form)))))
-
-(defun %regular-value-return (code-obj mvals mval-types)
-  (print "%regular-value-return")
-  (merge-obs
-   code-obj :type 'v-void
-   :current-line (format nil "return ~a" (v-glsl-name (first mvals)))
-   :returns mval-types))
-
-
 
 (v-defspecial :%clean-env-block (&rest body)
   :args-valid t

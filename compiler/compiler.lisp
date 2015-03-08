@@ -10,6 +10,7 @@
              (error 'cannot-compile :code code))
             ((listp code) (compile-form code env))
             ((typep code 'code) code)
+            ((typep code 'v-value) (%v-value->code code))
             (t (error 'cannot-compile :code code)))
     (values code (or new-env env))))
 
@@ -45,6 +46,9 @@
   (make-instance 'code :type (v-type v-value)
                  :current-line (gen-variable-string var-name v-value)))
 
+(defun %v-value->code (v-val)
+  (make-instance 'code :type (v-type v-val) :current-line (v-glsl-name v-val)))
+
 ;; [TODO] move error
 (defun compile-symbol (code env)
   (let* ((var-name code)
@@ -62,7 +66,7 @@
       (error 'keyword-in-function-position :form code))
     (dbind (func args) (find-function-for-args func-name args-code env)
       (cond
-        ((typep func 'v-function) (compile-function func-name func args env))
+        ((typep func 'v-function) (compile-function-call func-name func args env))
         ((typep func 'v-error) (if (v-payload func)
                                    (error (v-payload func))
                                    (error 'cannot-compile :code code)))
@@ -81,18 +85,18 @@
           args
           (v-argument-spec func)))
 
-(defun compile-function (func-name func args env)
+(defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)
       (cond
         ((v-special-functionp func) (compile-special-function func args env))
 
-        ((multi-return-vars func) (compile-multi-return-function
+        ((multi-return-vars func) (compile-multi-return-function-call
                                    func-name func args env))
 
-        (t (compile-regular-function func-name func args env)))
+        (t (compile-regular-function-call func-name func args env)))
     (values code-obj (or new-env env))))
 
-(defun compile-regular-function (func-name func args env)
+(defun compile-regular-function-call (func-name func args env)
   (let* ((args (make-stemcell-arguments-concrete args func))
          (c-line (gen-function-string func args))
          (type (resolve-func-type func args env)))
@@ -105,7 +109,7 @@
                :signatures (mapcan #'signatures args)
                :stemcells (mapcan #'stemcells args))))
 
-(defun compile-multi-return-function (func-name func args env)
+(defun compile-multi-return-function-call (func-name func args env)
   (let* ((args (make-stemcell-arguments-concrete args func))
          (type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
@@ -126,16 +130,18 @@
                  :to-top (mapcan #'to-top args)
                  :signatures (mapcan #'signatures args)
                  :stemcells (mapcan #'stemcells args)
-                 :multi-vals (mapcar (lambda (x y) (make-instance
-                                                    'v-value :type x
-                                                    :glsl-name y))
+                 :multi-vals (mapcar λ(make-instance
+                                       'v-value :type % :glsl-name %1)
                                      m-r-types
                                      m-r-names))))
         (varjo->glsl
          `(%clone-env-block
            (%multi-env-progn
-            ,@(loop :for v :in bindings :for gname :in m-r-names
-                 :collect `(%glsl-let ,v t ,gname)))
+            ;; when has-base is true then a return or mvbind has already
+            ;; written the lets for the vars
+            ,@(unless has-base
+                      (loop :for v :in bindings :for gname :in m-r-names
+                         :collect `(%glsl-let ,v t ,gname))))
            ,o) env)))))
 
 ;;[TODO] Maybe the error should be caught and returned,

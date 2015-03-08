@@ -6,6 +6,7 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 (in-package :varjo)
+(named-readtables:in-readtable fn_::fn_lambda)
 
 (defclass code ()
   ((type :initarg :type :initform nil :accessor code-type)
@@ -81,11 +82,7 @@
                  :signatures (if set-sigs signatures
                                  (mapcan #'signatures objs))
                  :to-block (if set-block to-block
-                               (append
-                                (mapcan #'to-block objs)
-                                (when (not multi-vals)
-                                  (merge-lines-into-block-list
-                                   (mapcan #'multi-vals objs)))))
+                               (mapcat #'to-block objs))
                  :to-top (if set-top to-top (mapcan #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
                  :invariant invariant
