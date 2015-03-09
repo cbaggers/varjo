@@ -68,7 +68,7 @@
   :args-valid t
   :return
   (let ((new-env (clone-environment env))
-        (base "mvb"))
+        (base (string-downcase (string (free-name 'mvb)))))
     (setf (v-multi-val-base new-env) base)
     (let ((code-obj (varjo->glsl value-form new-env)))
       (unless (= (length vars) (+ 1 (length (multi-vals code-obj))))
@@ -97,7 +97,6 @@
       (expand->varjo->glsl `(prog1 ,@values) env)))
 
 (defun %values (values env)
-  (print "%values")
   (let ((new-env (clone-environment env)))
     (setf (v-multi-val-base new-env) nil)
     (let* ((qualifier-lists (mapcar #'extract-value-qualifiers values))
@@ -165,7 +164,6 @@
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-value-return (code-obj)
-  (print "%regular-value-return")
   (merge-obs
    code-obj :type 'v-void
    :current-line (format nil "return ~a" (current-line code-obj))
@@ -175,7 +173,6 @@
 ;; Used when this is the main stage function
 ;; this
 (defun %main-return (code-obj env)
-  (print "%main-return")
   (if (multi-vals code-obj)
       (let* ((mvals (multi-vals code-obj))
              (v-vals (mapcar λ(slot-value % 'value) mvals))
