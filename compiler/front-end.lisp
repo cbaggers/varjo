@@ -323,7 +323,9 @@
 (defun gen-in-arg-strings (code env)
   (let* ((types (mapcar #'second (v-in-args env)))
          (type-objs (mapcar #'type-spec->type types))
-         (locations (calc-locations type-objs)))
+         (locations (if (member :vertex (v-context env))
+                        (calc-locations type-objs)
+                        (loop for i below (length type-objs) collect nil))))
     (setf (v-in-args env)
           (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
              :for location in locations
@@ -352,7 +354,9 @@
 (defun gen-out-var-strings (code env)
   (let* ((out-vars (dedup-out-vars (out-vars code)))
          (out-types (mapcar λ(v-type (third %)) out-vars))
-         (locations (calc-locations out-types)))
+         (locations (if (member :fragment (v-context env))
+                        (calc-locations out-types)
+                        (loop for i below (length out-types) collect nil))))
     (setf (out-vars code)
           (loop :for (name qualifiers value) :in out-vars
              :for type :in out-types
