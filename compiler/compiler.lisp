@@ -117,22 +117,27 @@
     (let* ((has-base (not (null (v-multi-val-base env))))
            (m-r-base (or (v-multi-val-base env)
                          (safe-glsl-name-string (free-name 'nc))))
-           (m-r-types (multi-return-vars func))
+           (mvals (multi-return-vars func))
            (start-index (if has-base 0 1))
            (m-r-names (loop :for i :from start-index
-                         :below (+ start-index (length m-r-types)) :collect
+                         :below (+ start-index (length mvals)) :collect
                          (fmt "~a~a" m-r-base i))))
-      (let* ((bindings (loop :for type :in m-r-types :collect
-                          `((,(free-name 'nc) ,(type->type-spec type)))))
+      (let* ((bindings (loop :for mval :in mvals :collect
+                          `((,(free-name 'nc)
+                              ,(type->type-spec
+                                (v-type (slot-value mval 'value)))))))
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
                  :to-top (mapcan #'to-top args)
                  :signatures (mapcan #'signatures args)
                  :stemcells (mapcan #'stemcells args)
-                 :multi-vals (mapcar λ(make-instance
-                                       'v-value :type % :glsl-name %1)
-                                     m-r-types
+                 :multi-vals (mapcar λ(make-mval
+                                       (make-instance
+                                        'v-value
+                                        :type (v-type (slot-value % 'value))
+                                        :glsl-name %1))
+                                     mvals
                                      m-r-names))))
         (varjo->glsl
          `(%clone-env-block

@@ -158,3 +158,9 @@
 (deferror stage-order-error (stage-type)
     "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists"
     stage-type)
+
+(deferror multi-val-bind-mismatch (bindings val-form)
+    "Multiple Value Bind - Number of values returned from value form does not match bindings:
+Bindings: ~a
+Value Form: ~a"
+    bindings val-form)
