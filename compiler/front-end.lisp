@@ -331,7 +331,7 @@
              :for location in locations
              :for type in type-objs
              :collect `(,name ,type ,qualifiers ,(gen-in-var-string
-                                                  glsl-name type
+                                                  (or glsl-name name) type
                                                   qualifiers location)))))
   (values code env))
 
