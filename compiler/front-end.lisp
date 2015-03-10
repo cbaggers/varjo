@@ -48,15 +48,33 @@
   (if previous-stage
       (with-stage () stage
         (list (if (args-compatiblep stage previous-stage)
-                  (mapcar λ(append (if (stringp (lastr %))
-                                       (butlast %) %)
-                                   (list (lastr %1)))
+                  (mapcar #'%merge-in-arg
                           in-args (out-vars previous-stage))
                   (error 'args-incompatible in-args (out-vars previous-stage)))
               uniforms
               context
               code))
       stage))
+
+(defmacro with-in-arg ((&optional (name (gensym "name")) (type (gensym "type"))
+                                  (qualifiers (gensym "qualifiers"))
+                                  (glsl-name (gensym "glsl-name")))
+                          arg-form &body body)
+  (let ((qn (gensym "qn")))
+    `(destructuring-bind (,name ,type . ,qn) ,arg-form
+       (declare (ignorable ,name ,type))
+       (let ((,qualifiers (if (stringp (last1 ,qn)) (butlast ,qn) ,qn))
+             (,glsl-name (when (stringp (last1 ,qn)) (last1 ,qn))))
+         (declare (ignorable ,qualifiers ,glsl-name))
+         ,@body))))
+
+(defun %merge-in-arg (previous current)
+  (with-in-arg (c-name c-type c-qual c-glsl-name) current
+    (with-in-arg (p-name p-type p-qual p-glsl-name) previous
+      `(,c-name
+        ,(or c-type p-type)
+        ,@(union c-qual p-qual)
+        ,(or p-glsl-name c-glsl-name)))))
 
 (defun compile-stage (accum stage)
   (destructuring-bind (last-stage remaining-stage-types)
@@ -89,15 +107,13 @@
           (remove (extract-stage-type stage) context)))))
 
 (defun in-arg-qualifiers (in-arg)
-  (let ((qualifiers (cddr in-arg)))
-    (if (stringp (lastr qualifiers))
-        (butlast qualifiers)
-        qualifiers)))
+  (with-in-arg (_ _1 q) in-arg q))
 
 (defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
   (let ((pq (in-arg-qualifiers prev-stage-in-arg))
         (cq (in-arg-qualifiers in-arg)))
     (every λ(member % pq) cq)))
+
 
 (defun out-var-to-in-arg (out-var)
   (destructuring-bind (name qualifiers value glsl-name) out-var
@@ -154,7 +170,7 @@
        ;; string at the end. The string is a declaration of what the name of the
        ;; var will be in glsl. This feature is intended for use only by the compiler
        ;; but I see not reason to lock this away.
-       (every #'keywordp (cddr (if (stringp (car (last arg))) (butlast arg) arg))))
+       (every #'keywordp (in-arg-qualifiers arg)))
     (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" arg))
   t)
 
@@ -200,28 +216,24 @@
 (defun process-in-args (code env)
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
-    (loop :for (name type . arg-details) :in in-args :do
-       (let* ((declared-glsl-name (when (stringp (lastr arg-details))
-                                    (lastr arg-details)))
-              (qualifiers (if declared-glsl-name
-                              (butlast arg-details)
-                              arg-details))
-              (type (if (and (not (type-specp type))
-                             (vtype-existsp (sym-down type)))
-                        (sym-down type)
-                        type))
-              (type-obj (type-spec->type type :place t))
-              (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
-         (if (typep type-obj 'v-struct)
-             (add-fake-struct name glsl-name type-obj qualifiers env)
-             (progn
-               (add-var name (make-instance 'v-value :type type-obj
-                                            :glsl-name glsl-name)
-                        env t)
-               (setf (v-in-args env)
-                     (append (v-in-args env)
-                             `((,name ,(type->type-spec type-obj) ,qualifiers
-                                      ,glsl-name))))))))
+    (loop :for in-arg :in in-args :do
+       (with-in-arg (name type qualifiers declared-glsl-name) in-arg
+         (let* ((type (if (and (not (type-specp type))
+                               (vtype-existsp (sym-down type)))
+                          (sym-down type)
+                          type))
+                (type-obj (type-spec->type type :place t))
+                (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
+           (if (typep type-obj 'v-struct)
+               (add-fake-struct name glsl-name type-obj qualifiers env)
+               (progn
+                 (add-var name (make-instance 'v-value :type type-obj
+                                              :glsl-name glsl-name)
+                          env t)
+                 (setf (v-in-args env)
+                       (append (v-in-args env)
+                               `((,name ,(type->type-spec type-obj) ,qualifiers
+                                        ,glsl-name)))))))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
