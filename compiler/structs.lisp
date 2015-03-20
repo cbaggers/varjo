@@ -23,7 +23,7 @@
           (signature :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
                                           name-string
                                           (mapcar #'gen-slot-string slots))
-                       :initarg :signature :reader v-signature)
+                       :initarg :signature :accessor v-signature)
           (slots :initform ',slots
                  :reader v-slots)
           (true-type :initform ',type-name :initarg :true-type :reader v-true-type)
@@ -41,7 +41,8 @@
             (let ((accessor (if (eq :accessor (first acc)) (second acc)
                                 (symb name '- slot-name))))
               `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
-                 ,(concatenate 'string "~a." (safe-glsl-name-string slot-name))
+                 ,(concatenate 'string "~a." (safe-glsl-name-string
+                                              (or accessor slot-name)))
                  (,type-name) ,slot-type :place t)))
        ',name)))
 
@@ -58,29 +59,52 @@
                   (v-glsl-string type-obj)
                   (safe-glsl-name-string name))))))
 
-(defgeneric add-fake-struct (in-var-name glsl-name type qualifiers env))
-(defmethod add-fake-struct (in-var-name glsl-name (type v-user-struct) qualifiers
-                            (env environment))
+(defun add-in-arg-fake-struct (in-var-name glsl-name type qualifiers env)
   (let* ((fake-type (v-fake-type type))
          (slots (v-slots type))
          (struct (make-instance fake-type))
-         (new-in-args))
-    (loop :for (slot-name slot-type . acc) :in slots
-       :for fake-slot-name = (fake-slot-name glsl-name slot-name)
-       :for accessor = (if (eq :accessor (first acc))
-                           (second acc)
-                           (symb (type->type-spec type) '- slot-name))
-       :do (add-function
-            accessor
-            (func-spec->function
-             (v-make-f-spec accessor
-                            fake-slot-name
-                            nil ;; {TODO} Must be context
-                            (list fake-type)
-                            slot-type :place nil) env) env t)
-       :do (push `(,fake-slot-name ,slot-type ,qualifiers) new-in-args))
-    (setf (v-in-args env) (append (v-in-args env) (reverse new-in-args)))
+         (new-in-args
+          (loop :for (slot-name slot-type . acc) :in slots
+             :for fake-slot-name = (fake-slot-name glsl-name slot-name)
+             :for accessor = (if (eq :accessor (first acc))
+                                 (second acc)
+                                 (symb (type->type-spec type) '- slot-name))
+             :do (add-function
+                  accessor
+                  (func-spec->function
+                   (v-make-f-spec accessor
+                                  fake-slot-name
+                                  nil ;; {TODO} Must be context
+                                  (list fake-type)
+                                  slot-type :place nil) env) env t)
+             :collect `(,fake-slot-name ,slot-type ,qualifiers))))
+    (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (add-var in-var-name
+             (make-instance 'v-value :type struct :glsl-name glsl-name)
+             env t)
+    env))
+
+(defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
+  (let* ((fake-type (v-fake-type type))
+         (slots (v-slots type))
+         (struct (make-instance fake-type))
+         (new-uniform-args
+          (loop :for (slot-name slot-type . acc) :in slots
+             :for fake-slot-name = (fake-slot-name uniform-name slot-name)
+             :for accessor = (if (eq :accessor (first acc))
+                                 (second acc)
+                                 (symb (type->type-spec type) '- slot-name))
+             :do (add-function
+                  accessor
+                  (func-spec->function
+                   (v-make-f-spec accessor
+                                  fake-slot-name
+                                  nil ;; {TODO} Must be context
+                                  (list fake-type)
+                                  slot-type :place nil) env) env t)
+             :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
+    (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
+    (add-var uniform-name
              (make-instance 'v-value :type struct :glsl-name glsl-name)
              env t)
     env))

@@ -56,7 +56,7 @@
               code))
       stage))
 
-(defmacro with-in-arg ((&optional (name (gensym "name")) (type (gensym "type"))
+(defmacro with-arg ((&optional (name (gensym "name")) (type (gensym "type"))
                                   (qualifiers (gensym "qualifiers"))
                                   (glsl-name (gensym "glsl-name")))
                           arg-form &body body)
@@ -69,8 +69,8 @@
          ,@body))))
 
 (defun %merge-in-arg (previous current)
-  (with-in-arg (c-name c-type c-qual c-glsl-name) current
-    (with-in-arg (p-name p-type p-qual p-glsl-name) previous
+  (with-arg (c-name c-type c-qual c-glsl-name) current
+    (with-arg (p-name p-type p-qual p-glsl-name) previous
       `(,c-name
         ,(or c-type p-type)
         ,@(union c-qual p-qual)
@@ -107,7 +107,7 @@
           (remove (extract-stage-type stage) context)))))
 
 (defun in-arg-qualifiers (in-arg)
-  (with-in-arg (_ _1 q) in-arg q))
+  (with-arg (_ _1 q) in-arg q))
 
 (defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
   (let ((pq (in-arg-qualifiers prev-stage-in-arg))
@@ -217,7 +217,7 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for in-arg :in in-args :do
-       (with-in-arg (name type qualifiers declared-glsl-name) in-arg
+       (with-arg (name type qualifiers declared-glsl-name) in-arg
          (let* ((type (if (and (not (type-specp type))
                                (vtype-existsp (sym-down type)))
                           (sym-down type)
@@ -225,7 +225,7 @@
                 (type-obj (type-spec->type type :place t))
                 (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
            (if (typep type-obj 'v-struct)
-               (add-fake-struct name glsl-name type-obj qualifiers env)
+               (add-in-arg-fake-struct name glsl-name type-obj qualifiers env)
                (progn
                  (add-var name (make-instance 'v-value :type type-obj
                                               :glsl-name glsl-name)
@@ -240,19 +240,47 @@
 
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
-    (loop :for (name type) :in uniforms :do
-       (let* ((type (if (and (not (keywordp type))
+    (mapcar
+     λ(with-arg (name type qualifiers glsl-name) %
+        (let ((type (if (and (not (keywordp type))
                              (not (vtype-existsp type))
                              (vtype-existsp (sym-down type)))
                         (sym-down type)
-                        type))
-              (true-type (v-true-type (type-spec->type type))))
-         (add-var name (make-instance 'v-value
-                                      :glsl-name (safe-glsl-name-string name)
-                                      :type (set-place-t true-type))
-                  env t))
-       (push (list name type) (v-uniforms env)))
+                        type)))
+          (case-member qualifiers
+            (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
+            (:fake (process-fake-uniform name glsl-name type qualifiers env))
+            (otherwise (process-regular-uniform name glsl-name type qualifiers env)))))
+     uniforms)
     (values code env)))
+
+;; mutates env
+(defun process-regular-uniform (name glsl-name type qualifiers env)
+  (let* ((true-type (type-spec->type (v-true-type (type-spec->type type)))))
+    (add-var name (make-instance 'v-value
+                                 :glsl-name (or glsl-name
+                                                (safe-glsl-name-string name))
+                                 :type (set-place-t true-type))
+             env t))
+  (push (list name type qualifiers glsl-name) (v-uniforms env))
+  env)
+
+;; mutates env
+(defun process-ubo-uniform (name glsl-name type qualifiers env)
+  (let* ((true-type (type-spec->type (v-true-type (type-spec->type type)))))
+    (add-var name (make-instance
+                   'v-value
+                   :glsl-name (or glsl-name (safe-glsl-name-string name))
+                   :type (set-place-t true-type))
+             env t))
+  (push (list name type qualifiers glsl-name) (v-uniforms env))
+  env)
+
+;; mutates env
+(defun process-fake-uniform (name glsl-name type qualifiers env)
+  (let ((type-obj (type-spec->type type :place t)))
+    (add-uniform-fake-struct name glsl-name type-obj qualifiers env))
+  env)
 
 ;;----------------------------------------------------------------------
 
@@ -340,11 +368,10 @@
                         (loop for i below (length type-objs) collect nil))))
     (setf (v-in-args env)
           (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
-             :for location in locations
-             :for type in type-objs
-             :collect `(,name ,type ,qualifiers ,(gen-in-var-string
-                                                  (or glsl-name name) type
-                                                  qualifiers location)))))
+             :for location :in locations :for type :in type-objs :collect
+             `(,name ,type ,qualifiers
+                     ,(gen-in-var-string (or glsl-name name) type
+                                         qualifiers location)))))
   (values code env))
 
 ;;----------------------------------------------------------------------
@@ -406,14 +433,19 @@
         (structs (used-types code))
         (uniforms (v-uniforms env))
         (implicit-uniforms nil))
-    (loop :for (name type) :in uniforms
+
+    (loop :for (name type qualifiers glsl-name) :in uniforms
        :for type-obj = (type-spec->type type) :do
-       (if (uniform-string-gen type-obj)
-           (loop :for x :in (funcall (uniform-string-gen type-obj)
-                                     name type)
-              :do (push x final-strings))
-           (push `(,name ,type ,(gen-uniform-decl-string name type-obj))
-                 final-strings))
+       (push `(,name ,type
+                     ,(if (member :ubo qualifiers)
+                          (varjo::write-interface-block
+                           :uniform (or glsl-name (safe-glsl-name-string name))
+                           (v-slots type-obj))
+                          (gen-uniform-decl-string
+                           (or glsl-name (safe-glsl-name-string name))
+                           type-obj
+                           qualifiers)))
+             final-strings)
        (when (and (v-typep type-obj 'v-user-struct)
                   (not (find (type->type-spec type-obj) structs
                              :key #'type->type-spec :test #'equal)))
@@ -423,7 +455,12 @@
     (loop :for (name string-name type) :in (stemcells code)
        :for type-obj = (type-spec->type type) :do
 
-       (push `(,name ,string-name ,type ,(gen-uniform-decl-string name type-obj))
+       (push `(,name ,string-name ,type
+                     ,(gen-uniform-decl-string
+                       (or string-name (safe-glsl-name-string name))
+                       ;;{TODO} ^^^ this is wrong
+                       type-obj
+                       nil))
              implicit-uniforms)
 
        (when (and (v-typep type-obj 'v-user-struct)

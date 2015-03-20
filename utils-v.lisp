@@ -247,3 +247,11 @@
 (defun range (n) (loop for i below n collect i))
 
 (defun lastr (x) (car (last x)))
+
+(defmacro case-member (member-form &body cases)
+  (let ((member-form (listify member-form)))
+    `(cond
+       ,@(loop :for (item . rest) :in cases :collect
+            (if (string-equal item 'otherwise)
+                `(t ,@rest)
+                `((member ,item ,@member-form) ,@rest))))))

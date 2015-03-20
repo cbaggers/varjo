@@ -159,8 +159,8 @@
   (format nil "~@[layout(location = ~a) ~]~a;" layout
           (prefix-type-to-string type glsl-name qualifiers 'in)))
 
-(defun gen-uniform-decl-string (name type)
-  (format nil "uniform ~a;" (prefix-type-to-string type (safe-glsl-name-string name))))
+(defun gen-uniform-decl-string (glsl-name type qualifiers)
+  (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
 ;;[TODO] make this properly
 (defun lisp-name->glsl-name (name)
@@ -177,6 +177,38 @@
                    (signatures code-obj)
                    (to-top code-obj))
              :if part :collect part)))
+
+;;----------------------------------------------------------------------
+
+;; storage_qualifier block_name
+;; {
+;;   <define members here>
+;; } instance_name;
+
+(defun write-interface-block (storage-qualifier block-name slots
+                              &optional (layout "std140"))
+  (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
+          layout
+          (string-downcase (symbol-name storage-qualifier))
+          (format nil "_UBO_~a" block-name)
+          (mapcar #'gen-interface-block-slot-string slots)
+          block-name))
+
+(defun gen-interface-block-slot-string (slot)
+  (destructuring-bind (slot-name slot-type &key accessor) slot
+    (let ((name (or accessor slot-name))
+          (type-obj (type-spec->type slot-type)))
+      (format nil "    ~{~a ~}~a"
+                ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
+nil
+                (if (typep type-obj 'v-array)
+                    (format nil "~a ~a[~a];"
+                            (v-glsl-string (type->type-spec (v-element-type type-obj)))
+                            (safe-glsl-name-string name)
+                            (v-dimensions type-obj))
+                    (format nil "~a ~a;"
+                            (v-glsl-string type-obj)
+                            (safe-glsl-name-string name)))))))
 
 ;;----------------------------------------------------------------------
 
