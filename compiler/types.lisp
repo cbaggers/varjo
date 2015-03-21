@@ -17,7 +17,7 @@
     (when (slot-value object 'element-type)
       (type-spec->type (slot-value object 'element-type)))))
 
-(defmethod type->type-spec ((type v-t-type)) 
+(defmethod type->type-spec ((type v-t-type))
   (class-name (class-of type)))
 (defmethod type->type-spec ((type v-spec-type))
   (class-name (class-of type)))
@@ -28,14 +28,14 @@
 
 (defun try-type-spec->type (spec &key place (env *global-env*))
   (declare (ignore env))
-  (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec)) 
+  (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec))
                     ((and (listp spec) (keywordp (first spec)))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
           ((and (symbolp spec) (vtype-existsp spec))
            (let ((type (make-instance spec)))
-             (when (slot-exists-p type 'place) 
+             (when (slot-exists-p type 'place)
                (setf (slot-value type 'place) place))
              type))
           ((and (listp spec) (vtype-existsp (first spec)))
@@ -50,8 +50,19 @@
 (defun type-specp (spec &optional (env *global-env*))
   (not (null (try-type-spec->type spec :place nil :env env))))
 
+(defvar *type-shadow* (make-hash-table))
+(defun add-type-shadow (type shadowing-this-type)
+  (assert (and (symbolp type) (symbolp shadowing-this-type)))
+  (setf (gethash type *type-shadow*) shadowing-this-type))
+(defun un-shadow (spec)
+  (if (listp spec)
+      `(,(or (gethash (first spec) *type-shadow*) (first spec)) ,@(rest spec))
+      (or (gethash spec *type-shadow*) spec)))
+
 (defun type-spec->type (spec &key place (env *global-env*))
   (or (try-type-spec->type spec :place place :env env)
+      (try-type-spec->type (un-shadow spec)
+                           :place place :env env)
       (error 'unknown-type-spec :type-spec spec)))
 
 (defmethod v-true-type ((object v-t-type))
@@ -61,7 +72,7 @@
   (slot-value type 'glsl-size))
 
 (defmethod v-glsl-size ((type v-array))
-  (* (apply #'* (v-dimensions type)) 
+  (* (apply #'* (v-dimensions type))
      (slot-value (v-element-type type) 'glsl-size)))
 
 (defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
@@ -92,7 +103,7 @@
   (if (v-typep from-type to-type)
       from-type
       (when (slot-exists-p from-type 'casts-to)
-        (loop :for cast-type :in (slot-value from-type 'casts-to)           
+        (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)
            :return cast-type))))
 
@@ -100,7 +111,7 @@
   (when (slot-exists-p from-type 'casts-to)
     (if (v-typep from-type to-type)
         from-type
-        (loop :for cast-type :in (slot-value from-type 'casts-to)           
+        (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)
            :return cast-type))))
 
@@ -117,24 +128,24 @@
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
                                          (if (symbolp type)
-                                             (slot-value (type-spec->type type) 
-                                                         'casts-to) 
+                                             (slot-value (type-spec->type type)
+                                                         'casts-to)
                                              (slot-value type 'casts-to))))
                                 #'> :key #'length))
                (master (first all-casts))
                (rest-casts (rest all-casts)))
-          (first (sort (loop :for type :in master 
-                          :if (loop :for casts :in rest-casts 
+          (first (sort (loop :for type :in master
+                          :if (loop :for casts :in rest-casts
                                  :always (find type casts))
                           :collect type) #'> :key #'v-superior-score))))))
 
-(let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2 
+(let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
                               v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
                               v-mat4x4)))
   (defun v-superior-score (type)
     (or (position type order-or-superiority) -1))
-  (defun v-superior (x y) 
+  (defun v-superior (x y)
     (< (or (position x order-or-superiority) -1)
        (or (position y order-or-superiority) -1))))
 

@@ -147,10 +147,6 @@
   (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers
                          storage-qual))
 
-;; (defun gen-out-var-string (glsl-name qualifiers value)
-;;   (format nil "~a;" (prefix-type-to-string (v-type value) glsl-name
-;;                                            qualifiers 'out)))
-
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~]~a;" layout
           (prefix-type-to-string type glsl-name qualifiers 'out)))
@@ -171,7 +167,7 @@
           (loop :for part :in
              (list (used-types code-obj)
                    (mapcar #'fourth (v-in-args env))
-                   (mapcar #'fifth (out-vars code-obj))
+                   (mapcar #'last1 (out-vars code-obj))
                    (concatenate 'list (mapcar #'third (v-uniforms env))
                                 (mapcar #'fourth (stemcells code-obj)))
                    (signatures code-obj)

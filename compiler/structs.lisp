@@ -12,39 +12,41 @@
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
-  (let ((name-string (safe-glsl-name-string name))
-        (name (sym-down name))
-        (type-name (symb 'varjo::true_ name))
-        (fake-type-name (symb 'varjo::fake_ name)))
-    `(progn
-       (defclass ,name (v-user-struct)
-         ((glsl-string :initform ,name-string :initarg :glsl-string
-                       :reader v-glsl-string)
-          (signature :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
+  (destructuring-bind (name &key shadowing) (listify name)
+    (let ((name-string (safe-glsl-name-string name))
+          (class-name (or shadowing name))
+          (true-type-name (symb 'varjo::true_ name))
+          (fake-type-name (symb 'varjo::fake_ name)))
+      `(progn
+         ,(when shadowing `(add-type-shadow ',name ',class-name))
+         (defclass ,class-name (v-user-struct)
+           ((glsl-string :initform ,name-string :initarg :glsl-string
+                         :reader v-glsl-string)
+            (signature :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
                                           name-string
                                           (mapcar #'gen-slot-string slots))
                        :initarg :signature :accessor v-signature)
-          (slots :initform ',slots
-                 :reader v-slots)
-          (true-type :initform ',type-name :initarg :true-type :reader v-true-type)
-          (fake-type :initform ',fake-type-name :initarg :fake-type :reader v-fake-type)))
-       (defclass ,type-name (,name) ())
-       (defclass ,fake-type-name (,name) ((signature :initform "")))
-       (v-defun ,(symb 'make- name)
-           ,(append (loop :for slot :in slots :collect (first slot))
-                    (when context `(&context ,@context)))
-         ,(format nil "~a(~{~a~^,~^ ~})" name-string
-                  (loop :for slot :in slots :collect "~a"))
-         ,(loop :for slot :in slots :collect (second slot))
-         ,type-name :place nil)
-       ,@(loop :for (slot-name slot-type . acc) :in slots :collect
-            (let ((accessor (if (eq :accessor (first acc)) (second acc)
-                                (symb name '- slot-name))))
-              `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
-                 ,(concatenate 'string "~a." (safe-glsl-name-string
-                                              (or accessor slot-name)))
-                 (,type-name) ,slot-type :place t)))
-       ',name)))
+            (slots :initform ',slots
+                   :reader v-slots)
+            (true-type :initform ',true-type-name :initarg :true-type :reader v-true-type)
+            (fake-type :initform ',fake-type-name :initarg :fake-type :reader v-fake-type)))
+         (defclass ,true-type-name (,class-name) ())
+         (defclass ,fake-type-name (,class-name) ((signature :initform "")))
+         (v-defun ,(symb 'make- name)
+             ,(append (loop :for slot :in slots :collect (first slot))
+                      (when context `(&context ,@context)))
+           ,(format nil "~a(~{~a~^,~^ ~})" name-string
+                    (loop :for slot :in slots :collect "~a"))
+           ,(loop :for slot :in slots :collect (second slot))
+           ,true-type-name :place nil)
+         ,@(loop :for (slot-name slot-type . acc) :in slots :collect
+              (let ((accessor (if (eq :accessor (first acc)) (second acc)
+                                  (symb name '- slot-name))))
+                `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
+                   ,(concatenate 'string "~a." (safe-glsl-name-string
+                                                (or accessor slot-name)))
+                   (,true-type-name) ,slot-type :place t)))
+         ',name))))
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot

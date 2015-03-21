@@ -49,7 +49,7 @@
       (with-stage () stage
         (list (if (args-compatiblep stage previous-stage)
                   (mapcar #'%merge-in-arg
-                          in-args (out-vars previous-stage))
+                          (out-vars previous-stage) in-args)
                   (error 'args-incompatible in-args (out-vars previous-stage)))
               uniforms
               context
@@ -95,13 +95,17 @@
 
 (defun args-compatiblep (stage previous-stage)
   (with-stage () stage
-    (and (loop :for p :in (mapcar #'out-var-to-in-arg (out-vars previous-stage))
+    (and (loop :for p :in (out-vars previous-stage)
             :for c :in in-args :always
             (and (v-type-eq (type-spec->type (second p))
                             (type-spec->type (second c)))
                  (%suitable-qualifiersp p c)))
          (loop :for u :in (uniforms previous-stage) :always
-            (find u uniforms :test #'equal))
+            (let ((match (find (first u) uniforms :key #'first)))
+              (if match
+                  (v-type-eq (type-spec->type (second u))
+                             (type-spec->type (second match)))
+                  t)))
          (context-ok-given-restriction
           (remove (extract-stage-type previous-stage) (context previous-stage))
           (remove (extract-stage-type stage) context)))))
@@ -114,11 +118,6 @@
         (cq (in-arg-qualifiers in-arg)))
     (every λ(member % pq) cq)))
 
-
-(defun out-var-to-in-arg (out-var)
-  (destructuring-bind (name qualifiers value glsl-name) out-var
-    `(,name ,(type->type-spec (v-type value))
-            ,@qualifiers ,glsl-name)))
 
 
 (let ((arg-transformers (list '(:geometry . (lambda (i u c code)
@@ -218,11 +217,7 @@
   (let ((in-args (v-raw-in-args env)))
     (loop :for in-arg :in in-args :do
        (with-arg (name type qualifiers declared-glsl-name) in-arg
-         (let* ((type (if (and (not (type-specp type))
-                               (vtype-existsp (sym-down type)))
-                          (sym-down type)
-                          type))
-                (type-obj (type-spec->type type :place t))
+         (let* ((type-obj (type-spec->type type :place t))
                 (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
            (if (typep type-obj 'v-struct)
                (add-in-arg-fake-struct name glsl-name type-obj qualifiers env)
@@ -242,15 +237,10 @@
   (let ((uniforms (v-raw-uniforms env)))
     (mapcar
      λ(with-arg (name type qualifiers glsl-name) %
-        (let ((type (if (and (not (keywordp type))
-                             (not (vtype-existsp type))
-                             (vtype-existsp (sym-down type)))
-                        (sym-down type)
-                        type)))
-          (case-member qualifiers
-            (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
-            (:fake (process-fake-uniform name glsl-name type qualifiers env))
-            (otherwise (process-regular-uniform name glsl-name type qualifiers env)))))
+        (case-member qualifiers
+          (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
+          (:fake (process-fake-uniform name glsl-name type qualifiers env))
+          (otherwise (process-regular-uniform name glsl-name type qualifiers env))))
      uniforms)
     (values code env)))
 
@@ -401,10 +391,10 @@
              :for type :in out-types
              :for location :in locations
              :collect (let ((glsl-name (v-glsl-name value)))
-                        (list name qualifiers value glsl-name
-                              (gen-out-var-string glsl-name type qualifiers
-                                                  location)))))
-    (out-vars code)
+                        `(,name ,(type->type-spec (v-type value))
+                                ,@qualifiers ,glsl-name
+                                ,(gen-out-var-string glsl-name type qualifiers
+                                                     location)))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -501,7 +491,7 @@
                  :in-args (loop :for i :in (v-in-args env) :collect
                              (subseq i 0 3))
                  :out-vars (loop :for i :in (out-vars code) :collect
-                             (subseq i 0 4))
+                              (subseq i 0 4))
                  :uniforms (loop :for i :in (v-uniforms env) :collect
                               (subseq i 0 2))
                  :implicit-uniforms (stemcells code)
