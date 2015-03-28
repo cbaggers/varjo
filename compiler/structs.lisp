@@ -48,6 +48,8 @@
                    (,true-type-name) ,slot-type :place t)))
          ',name))))
 
+()
+
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
     (let ((name (or accessor slot-name))

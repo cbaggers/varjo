@@ -246,11 +246,10 @@
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (type-spec->type (v-true-type (type-spec->type type)))))
-    (add-var name (make-instance 'v-value
-                                 :glsl-name (or glsl-name
-                                                (safe-glsl-name-string name))
-                                 :type (set-place-t true-type))
+  (let* ((true-type (v-true-type (type-spec->type type))))
+    (add-var name
+             (v-make-value (set-place-t true-type) env
+                           (or glsl-name (safe-glsl-name-string name)))
              env t))
   (push (list name type qualifiers glsl-name) (v-uniforms env))
   env)
@@ -487,12 +486,9 @@
   (make-instance 'varjo-compile-result
                  :glsl-code (current-line code)
                  :stage-type (loop for i in (v-context env)
-                          :if (find i *supported-stages*) :return i)
-                 :in-args (loop :for i :in (v-in-args env) :collect
-                             (subseq i 0 3))
-                 :out-vars (loop :for i :in (out-vars code) :collect
-                              (subseq i 0 4))
-                 :uniforms (loop :for i :in (v-uniforms env) :collect
-                              (subseq i 0 2))
+                                :if (find i *supported-stages*) :return i)
+                 :in-args (mapcar #'butlast (v-in-args env))
+                 :out-vars (mapcar #'butlast (out-vars code))
+                 :uniforms (mapcar #'butlast (v-uniforms env))
                  :implicit-uniforms (stemcells code)
                  :context (v-context env)))
