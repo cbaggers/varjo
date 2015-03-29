@@ -8,15 +8,18 @@
 ;;   (a v-float)
 ;;   (to-long-to-blah v-int :accessor b))
 
+(defun true-type-name (name) (symb 'varjo::true_ name))
+(defun fake-type-name (name) (symb 'varjo::fake_ name))
+
 ;;[TODO] should this use defun?
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
-  (destructuring-bind (name &key shadowing) (listify name)
+  (destructuring-bind (name &key shadowing constructor) (listify name)
     (let ((name-string (safe-glsl-name-string name))
           (class-name (or shadowing name))
-          (true-type-name (symb 'varjo::true_ name))
-          (fake-type-name (symb 'varjo::fake_ name)))
+          (true-type-name (true-type-name name))
+          (fake-type-name (fake-type-name name)))
       `(progn
          ,(when shadowing `(add-type-shadow ',name ',class-name))
          (defclass ,class-name (v-user-struct)
@@ -32,23 +35,24 @@
             (fake-type :initform ',fake-type-name :initarg :fake-type :reader v-fake-type)))
          (defclass ,true-type-name (,class-name) ())
          (defclass ,fake-type-name (,class-name) ((signature :initform "")))
-         (v-defun ,(symb 'make- name)
+         (v-defun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
                     (loop :for slot :in slots :collect "~a"))
            ,(loop :for slot :in slots :collect (second slot))
            ,true-type-name :place nil)
-         ,@(loop :for (slot-name slot-type . acc) :in slots :collect
-              (let ((accessor (if (eq :accessor (first acc)) (second acc)
-                                  (symb name '- slot-name))))
-                `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
-                   ,(concatenate 'string "~a." (safe-glsl-name-string
-                                                (or accessor slot-name)))
-                   (,true-type-name) ,slot-type :place t)))
+         ,@(make-struct-accessors name true-type-name context slots)
          ',name))))
 
-()
+(defun make-struct-accessors (name true-type-name context slots)
+  (loop :for (slot-name slot-type . acc) :in slots :collect
+     (let ((accessor (if (eq :accessor (first acc)) (second acc)
+                         (symb name '- slot-name))))
+       `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
+          ,(concatenate 'string "~a." (safe-glsl-name-string
+                                       (or accessor slot-name)))
+          (,true-type-name) ,slot-type :place t))))
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot

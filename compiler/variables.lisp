@@ -16,7 +16,7 @@
 (defmethod v-make-value ((type t) env &optional glsl-name)
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name))
 
-;;[TODO] this smells a bit, it is only used for glsl strings, and we should 
+;;[TODO] this smells a bit, it is only used for glsl strings, and we should
 ;;       rename this to that end
 (let ((num 0))
   (defun free-name (name &optional env counter)
@@ -27,9 +27,7 @@
         (error 'name-unsuitable :name name))))
 
 (defun valid-user-defined-name (name-symbol)
-  (let* ((name (string-downcase (symbol-name name-symbol)))
-         (matches (cl-ppcre:all-matches "[^a-zA-Z0-9-*]" name)))
-    (not (or matches (glsl-var-namep name-symbol)))))
+  (not (glsl-var-namep name-symbol)))
 
 (defun glsl-var-namep (name-symbol)
   (let ((name (symbol-name name-symbol)))
@@ -41,7 +39,7 @@
   (loop :for (restrict . vars) :in source
      :if (or (equal restrict t)
              (context-ok-given-restriction (v-context env) (listify restrict)))
-     :do (loop :for (name type-spec place) :in vars :do 
+     :do (loop :for (name type-spec place) :in vars :do
             (let ((type (type-spec->type type-spec)))
               (when place (setf (v-placep type) t))
               (add-var name (v-make-value type env (gen-reserved-var-string name))

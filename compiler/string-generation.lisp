@@ -1,10 +1,19 @@
 (in-package :varjo)
+(named-readtables:in-readtable fn_:fn_lambda)
+
+(defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
 (defun safe-glsl-name-string (name)
   (if (valid-user-defined-name name)
-      (let* ((sname (regex-replace-all "[-]" (symbol-name (symb name)) "_"))
-             (sname (regex-replace-all "\\*" sname "star")))
-        (string-downcase sname))
+      (let ((name (symbol-name name)))
+        (format nil "~@[~a~]~{~a~}"
+                (when (not (and (find (elt name 0) +ascii-alpha-num+)
+                                (alpha-char-p (elt name 0))))
+                  "_")
+                (map 'list λ(if (find % +ascii-alpha-num+) %
+                                (if (char= % #\-) #\_
+                                    (format nil "~a" (char-code %))))
+                     name)))
       (error 'name-unsuitable :name name)))
 
 (defun gen-reserved-var-string (name-symbol)
