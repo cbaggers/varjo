@@ -29,10 +29,11 @@
                                           name-string
                                           (mapcar #'gen-slot-string slots))
                        :initarg :signature :accessor v-signature)
-            (slots :initform ',slots
-                   :reader v-slots)
-            (true-type :initform ',true-type-name :initarg :true-type :reader v-true-type)
-            (fake-type :initform ',fake-type-name :initarg :fake-type :reader v-fake-type)))
+            (slots :initform ',slots :reader v-slots)))
+         (defmethod v-true-type ((object ,class-name))
+           (make-instance ',true-type-name))
+         (defmethod v-true-type ((object ,class-name))
+           (make-instance ',fake-type-name))
          (defclass ,true-type-name (,class-name) ())
          (defclass ,fake-type-name (,class-name) ((signature :initform "")))
          (v-defun ,(symb 'make- (or constructor name))

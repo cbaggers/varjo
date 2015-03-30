@@ -71,9 +71,7 @@
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
    (signature :initform nil :initarg :signature :accessor v-signature)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (slots :initform nil :initarg :slots :reader v-slots)
-   (true-type :initform nil :initarg :true-type :reader v-true-type)
-   (fake-type :initform nil :initarg :fake-type :reader v-fake-type)))
+   (slots :initform nil :initarg :slots :reader v-slots)))
 
 (defclass v-user-struct (v-struct) ())
 
