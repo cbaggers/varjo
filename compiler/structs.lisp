@@ -32,7 +32,7 @@
             (slots :initform ',slots :reader v-slots)))
          (defmethod v-true-type ((object ,class-name))
            (make-instance ',true-type-name))
-         (defmethod v-true-type ((object ,class-name))
+         (defmethod v-fake-type ((object ,class-name))
            (make-instance ',fake-type-name))
          (defclass ,true-type-name (,class-name) ())
          (defclass ,fake-type-name (,class-name) ((signature :initform "")))
@@ -69,9 +69,9 @@
                   (safe-glsl-name-string name))))))
 
 (defun add-in-arg-fake-struct (in-var-name glsl-name type qualifiers env)
-  (let* ((fake-type (v-fake-type type))
+  (let* ((struct (v-fake-type type))
+         (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
-         (struct (make-instance fake-type))
          (new-in-args
           (loop :for (slot-name slot-type . acc) :in slots
              :for fake-slot-name = (fake-slot-name glsl-name slot-name)
@@ -94,9 +94,9 @@
     env))
 
 (defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
-  (let* ((fake-type (v-fake-type type))
+  (let* ((struct (v-fake-type type))
+         (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
-         (struct (make-instance fake-type))
          (new-uniform-args
           (loop :for (slot-name slot-type . acc) :in slots
              :for fake-slot-name = (fake-slot-name uniform-name slot-name)
