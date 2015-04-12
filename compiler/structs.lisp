@@ -25,7 +25,7 @@
          (defclass ,class-name (v-user-struct)
            ((glsl-string :initform ,name-string :initarg :glsl-string
                          :reader v-glsl-string)
-            (signature :initform ,(format nil "struct ~(~a~) {~%~{~a~%~}};"
+            (signature :initform ,(format nil "struct ~a {~%~{~a~%~}};"
                                           name-string
                                           (mapcar #'gen-slot-string slots))
                        :initarg :signature :accessor v-signature)

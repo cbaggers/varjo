@@ -341,7 +341,7 @@
                                          :for g :in arg-glsl-names
                                          :collect `(%glsl-let ,b nil ,g)))
                                    ,body-code) env))
-         (glsl-name (safe-glsl-name-string (if mainp name (free-name name))))
+         (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
          (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
          (type (if mainp (type-spec->type 'v-void) primary-return)))

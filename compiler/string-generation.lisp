@@ -51,11 +51,11 @@
           (gen-arg-string args out-args)))
 
 (defun gen-arg-string (arg-pairs &optional out-pairs)
-  (let ((arg-string (format nil "~(~{~{~a ~a~}~^,~^ ~}~)" arg-pairs)))
+  (let ((arg-string (format nil "~{~{~a ~a~}~^,~^ ~}" arg-pairs)))
     (if out-pairs
         (if (> (length arg-string) 0)
-            (format nil "~a, ~(~{~{out ~a ~a~}~^,~^ ~}~)" arg-string out-pairs)
-            (format nil "~(~{~{out ~a ~a~}~^,~^ ~}~)" out-pairs))
+            (format nil "~a, ~{~{out ~a ~a~}~^,~^ ~}" arg-string out-pairs)
+            (format nil "~{~{out ~a ~a~}~^,~^ ~}" out-pairs))
         arg-string)))
 
 (defun gen-glsl-function-body-string (name args type glsl-string)
@@ -68,7 +68,7 @@
 (defun gen-function-body-string (name args out-args type body-obj)
   (format nil "~a ~a(~a) {~%~{~a~%~}~@[~a~%~]}~%"
           (v-glsl-string type)
-          (string-downcase (string name))
+          (string name)
           (gen-arg-string args out-args)
           (remove "" (to-block body-obj) :test #'equal)
           (current-line (end-line body-obj))))
@@ -120,6 +120,7 @@
              :for obj :in clause-body-objs
              :append
              (if (eq key default-symb)
+                 ;; {TODO}                     WTF! -vvvvvvvvvvvvvvv
                  (progn (setf default-clause (list "default" nil "jam")) nil)
                  (list key
                        (or (to-block obj) nil)
