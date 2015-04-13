@@ -193,11 +193,14 @@
            (%multi-env-progn ,(%default-out-for-stage code-obj env)))
          env)))
 
+;; fragment comes first as it doesnt restrict the exit type...this is a bug
+;; really as fragment out-var should be vec4...We should have a case for
+;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (form env)
   (let ((context (v-context env)))
-    (cond ((member :vertex context) `(setf gl-position ,form))
-          ((member :fragment context) `(%out (,(free-name :output-color env))
+    (cond ((member :fragment context) `(%out (,(free-name :output-color env))
                                              ,form))
+          ((member :vertex context) `(setf gl-position ,form))
           (t (error "Have not implemented #'values defaults for this stage ~a"
                     env)))))
 
