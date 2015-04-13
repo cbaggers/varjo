@@ -20,19 +20,25 @@
       (split-arguments args '(&uniform &context))
     `(translate ',in-args ',uniforms ',context '(progn ,@body))))
 
-(defmacro defpipeline (name args &body body)
+(defmacro defpipeline (name &body body)
   (declare (ignore name))
-  (destructuring-bind (in-args uniforms context)
-      (split-arguments args '(&uniform &context))
+  (destructuring-bind (in-args first-uniforms first-context)
+      (split-arguments (second (first body)) '(&uniform &context))
+    (declare (ignore in-args))
     `(format
       nil "~{~a~%~}"
       (mapcar #'glsl-code
               (rolling-translate
-               (cons ',(list in-args uniforms (cons (caar body) context)
-                             (cadar body))
-                     ',(mapcar λ(list nil uniforms (cons (first %) context)
-                                      (second %))
-                               (rest body))))))))
+               ',(mapcar λ(destructuring-bind
+                                (stage-in-args stage-uniforms stage-context)
+                              (split-arguments (second %) '(&uniform &context))
+                            (declare (ignore stage-context))
+                            (list stage-in-args
+                                  (concatenate 'list stage-uniforms
+                                               first-uniforms)
+                                  (cons (first %) first-context)
+                                  (third %)))
+                         body))))))
 
 (defun v-macroexpand (form &optional (env (make-varjo-environment)))
   (identity
