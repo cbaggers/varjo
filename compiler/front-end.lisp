@@ -34,8 +34,10 @@
                               (split-arguments (second %) '(&uniform &context))
                             (declare (ignore stage-context))
                             (list stage-in-args
-                                  (concatenate 'list stage-uniforms
-                                               first-uniforms)
+                                  (if (equal first-uniforms stage-uniforms)
+                                      stage-uniforms
+                                      (concatenate 'list stage-uniforms
+                                                   first-uniforms))
                                   (cons (first %) first-context)
                                   (third %)))
                          body))))))
