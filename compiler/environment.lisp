@@ -148,7 +148,7 @@
 (defun context-ok-given-restriction (context restriction)
   (loop :for item :in restriction :always
      (if (listp item)
-         (find-if λ(member % context) item)
+         (find-if λ(member _ context) item)
          (find item context))))
 
 (defmethod valid-for-contextp ((func list) (env environment))

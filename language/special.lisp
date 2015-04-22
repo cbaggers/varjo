@@ -74,7 +74,7 @@
       (unless (= (length vars) (+ 1 (length (multi-vals code-obj))))
         (error 'multi-val-bind-mismatch :val-form value-form :bindings vars))
       (let* ((mvals (multi-vals code-obj))
-             (v-vals (mapcar λ(slot-value % 'value) mvals))
+             (v-vals (mapcar λ(slot-value _ 'value) mvals))
              (types (cons (code-type code-obj)
                           (mapcar #'v-type v-vals))))
         (varjo->glsl
@@ -102,7 +102,7 @@
     (let* ((qualifier-lists (mapcar #'extract-value-qualifiers values))
            (forms (mapcar #'extract-value-form values))
 
-           (objs (mapcar λ(varjo->glsl % new-env) forms))
+           (objs (mapcar λ(varjo->glsl _ new-env) forms))
            (base (v-multi-val-base env))
            (glsl-names (loop :for i :below (length forms) :collect
                           (format nil "~a~a" base i)))
@@ -175,9 +175,9 @@
 (defun %main-return (code-obj env)
   (if (multi-vals code-obj)
       (let* ((mvals (multi-vals code-obj))
-             (v-vals (mapcar λ(slot-value % 'value) mvals))
+             (v-vals (mapcar λ(slot-value _ 'value) mvals))
              (types (mapcar #'v-type v-vals))
-             (glsl-lines (mapcar λ(v-glsl-name %) v-vals)))
+             (glsl-lines (mapcar λ(v-glsl-name _) v-vals)))
         (varjo->glsl
          `(%clone-env-block
            (%multi-env-progn
@@ -186,7 +186,7 @@
                              t ,line)))
            ;; the meat
            ,(%default-out-for-stage code-obj env)
-           ,@(mapcar λ(mval->out-form % env) (multi-vals code-obj)))
+           ,@(mapcar λ(mval->out-form _ env) (multi-vals code-obj)))
          env))
       (varjo->glsl
          `(%clone-env-block
@@ -296,17 +296,17 @@
   :args-valid t
   :return
   (if env-local-expessions
-      (let* ((e (mapcar λ(multiple-value-list (varjo->glsl % env))
+      (let* ((e (mapcar λ(multiple-value-list (varjo->glsl _ env))
                         env-local-expessions))
              (code-objs (mapcar #'first e))
              (env-objs (mapcar #'second e))
-             (merged-env (reduce λ(merge-env % %1) env-objs)))
+             (merged-env (reduce λ(merge-env _ _1) env-objs)))
         (values
          (merge-obs code-objs
                     :type (type-spec->type 'v-none)
                     :current-line nil
                     :to-block (append (mapcan #'to-block code-objs)
-                                      (mapcar λ(current-line (end-line %))
+                                      (mapcar λ(current-line (end-line _))
                                               code-objs))
                     :to-top (mapcan #'to-top code-objs))
          merged-env))

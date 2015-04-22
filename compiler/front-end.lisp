@@ -113,7 +113,7 @@
   (let ((context (typecase stage
                    (list (with-stage () stage context))
                    (varjo-compile-result (context stage)))))
-    (find-if λ(when (member % context) %) *stage-types*)))
+    (find-if λ(when (member _ context) _) *stage-types*)))
 
 (defun args-compatiblep (stage previous-stage)
   (with-stage () stage
@@ -138,7 +138,7 @@
 (defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
   (let ((pq (in-arg-qualifiers prev-stage-in-arg))
         (cq (in-arg-qualifiers in-arg)))
-    (every λ(member % pq) cq)))
+    (every λ(member _ pq) cq)))
 
 
 
@@ -258,7 +258,7 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (mapcar
-     λ(with-arg (name type qualifiers glsl-name) %
+     λ(with-arg (name type qualifiers glsl-name) _
         (case-member qualifiers
           (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
           (:fake (process-fake-uniform name glsl-name type qualifiers env))
@@ -403,7 +403,7 @@
 
 (defun gen-out-var-strings (code env)
   (let* ((out-vars (dedup-out-vars (out-vars code)))
-         (out-types (mapcar λ(v-type (third %)) out-vars))
+         (out-types (mapcar λ(v-type (third _)) out-vars))
          (locations (if (member :fragment (v-context env))
                         (calc-locations out-types)
                         (loop for i below (length out-types) collect nil))))

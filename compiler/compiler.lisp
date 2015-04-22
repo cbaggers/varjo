@@ -136,7 +136,7 @@
                                        (make-instance
                                         'v-value
                                         :type (v-type (slot-value % 'value))
-                                        :glsl-name %1))
+                                        :glsl-name _1))
                                      mvals
                                      m-r-names))))
         (varjo->glsl

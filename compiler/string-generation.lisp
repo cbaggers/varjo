@@ -10,9 +10,9 @@
                 (when (not (and (find (elt name 0) +ascii-alpha-num+)
                                 (alpha-char-p (elt name 0))))
                   "_")
-                (map 'list λ(if (find % +ascii-alpha-num+) %
-                                (if (char= % #\-) #\_
-                                    (format nil "~a" (char-code %))))
+                (map 'list λ(if (find _ +ascii-alpha-num+) _
+                                (if (char= _ #\-) #\_
+                                    (format nil "~a" (char-code _))))
                      name)))
       (error 'name-unsuitable :name name)))
 
