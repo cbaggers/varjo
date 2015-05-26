@@ -8,6 +8,7 @@
            :find-mutual-cast-type
 
            ;;environment
+           :environment
            :make-varjo-environment
 
            ;;type functions
@@ -42,6 +43,8 @@
            :v-true-type
 
            ;;types
+           :add-type-shadow
+           :un-shadow
            :v-t-type
            :v-type
            :v-stemcell
@@ -145,7 +148,7 @@
            :V-USAMPLER-BUFFER
            :V-USAMPLER-CUBE
            :V-USAMPLER-CUBE-ARRAY
-           
+
            ;;functions
            :TEXTURE-SIZE
            :TEXTURE
@@ -268,7 +271,9 @@
            ;;definitions
            :v-defstruct
            :v-defun
-           
+           :v-defmacro
+           :v-define-compiler-macro
+
            ;;compiler
            :varjo->glsl
 
@@ -278,11 +283,16 @@
            :split-arguments
            :v-macroexpand-all
            :v-compiler-macroexpand-all
-           
+           :*stage-types*
+
            ;;compile-result
            :glsl-code
            :stage-type
            :out-vars
            :in-args
            :uniforms
-           :context))
+           :context
+
+           ;;utils
+           :lambda-list-split
+           :pipe->))
