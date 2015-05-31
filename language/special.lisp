@@ -7,7 +7,7 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
-(named-readtables:in-readtable fn_::fn_lambda)
+(named-readtables:in-readtable fn:fn-reader)
 
 ;;{TODO} all special functions starting with :% should start with % as they
 ;;       are not directly used anyway. After his look into whether any glsl

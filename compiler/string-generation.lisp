@@ -1,5 +1,5 @@
 (in-package :varjo)
-(named-readtables:in-readtable fn_:fn_lambda)
+(named-readtables:in-readtable fn:fn-reader)
 
 (defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 

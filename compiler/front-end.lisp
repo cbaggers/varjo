@@ -7,7 +7,7 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
-(named-readtables:in-readtable fn_::fn_lambda)
+(named-readtables:in-readtable fn:fn-reader)
 
 ;;----------------------------------------------------------------------
 

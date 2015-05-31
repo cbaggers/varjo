@@ -6,7 +6,7 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 (in-package :varjo)
-(named-readtables:in-readtable fn_::fn_lambda)
+(named-readtables:in-readtable fn:fn-reader)
 
 (defclass code ()
   ((type :initarg :type :initform nil :accessor code-type)

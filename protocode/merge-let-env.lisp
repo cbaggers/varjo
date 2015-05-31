@@ -1,5 +1,5 @@
 (in-package :varjo)
-(named-readtables:in-readtable fn_::fn_lambda)
+(named-readtables:in-readtable fn:fn-reader)
 
 ;; (v-defun %merge-let-envs (bindings include-type-declarations)
 ;;   :special
