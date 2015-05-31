@@ -1,12 +1,19 @@
 ### Varjo
 
-Varjo is a Lisp to GLSL Language translator. It will allow you to write vertex, fragment & geometry shaders for any version of glsl greater than or equal to 1.20 (opengl version 2.1).
+Varjo is a Lisp to GLSL Language compiler. It allows you to write vertex & fragment shaders for any version of glsl greater than or equal to 1.20 (opengl version 2.1).
 
-This is currently WIP and is not ready for use.
+Varjo has no OpenGL dependency as is designed to be itegrated into other projects, see CEPL for an example.
 
 #### Features
-* Type Checking
-* GLSL Macros
-* Inline GLSL functions
-* Lisp Function Substitution: You can define how existing lisp functions map onto glsl functions. This means you can blur the line between lisp code and varjo code without having to shadow symbols. For example the cl:expt function maps to the varjo:pow function.
-* -More to come-
+
+* Subset of common lisp. Including:
+- Macros (Regular and Compiler - Reader macros work anyway)
+- Multiple-value return
+- local functions via "labels"
+- defstruct which can be used across multiple shaders (Less repeated code)
+
+* Type Checking - Works across shader stages
+
+* Rolling translate, where out vars from one stage can be automatically fed into the next
+
+* Easy to extend
