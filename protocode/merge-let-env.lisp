@@ -1,13 +1,12 @@
 (in-package :varjo)
-(named-readtables:in-readtable fn:fn-reader)
 
 ;; (v-defun %merge-let-envs (bindings include-type-declarations)
 ;;   :special
 ;;   :args-valid t
-;;   :return 
+;;   :return
 ;;   (let* ((res (loop :for binding :in bindings
 ;;                  :for new-env = (clone-environment original-env) :collect
-;;                  (multiple-value-list (varjo->glsl `(progn ,@body) new-env))))  
+;;                  (multiple-value-list (varjo->glsl `(progn ,@body) new-env))))
 ;;          (decl-objs (mapcar #'first res))
 ;;          (decl-envs (mapcar #'second res)))
 ;;     (values (if include-type-declarations
@@ -25,4 +24,3 @@
 ;;               env))))
 ;; meh dont need this now :)
 ;; well that is odd, body doesnt even exists, maybe I was drunk..who knows
-

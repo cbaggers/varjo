@@ -7,7 +7,6 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
-(named-readtables:in-readtable fn:fn-reader)
 
 ;;----------------------------------------------------------------------
 
@@ -37,17 +36,18 @@
       nil "~{~a~%~}"
       (mapcar #'glsl-code
               (rolling-translate
-               ',(mapcar λ(destructuring-bind
-                                (stage-in-args stage-uniforms stage-context)
-                              (split-arguments (second _) '(&uniform &context))
-                            (declare (ignore stage-context))
-                            (list stage-in-args
-                                  (if (equal first-uniforms stage-uniforms)
-                                      stage-uniforms
-                                      (concatenate 'list stage-uniforms
-                                                   first-uniforms))
-                                  (cons (first _) first-context)
-                                  (third _)))
+               ',(mapcar (lambda (_)
+                           (destructuring-bind
+                                 (stage-in-args stage-uniforms stage-context)
+                               (split-arguments (second _) '(&uniform &context))
+                             (declare (ignore stage-context))
+                             (list stage-in-args
+                                   (if (equal first-uniforms stage-uniforms)
+                                       stage-uniforms
+                                       (concatenate 'list stage-uniforms
+                                                    first-uniforms))
+                                   (cons (first _) first-context)
+                                   (third _))))
                          body))))))
 
 (defun v-macroexpand (form &optional (env (make-varjo-environment)))
@@ -121,7 +121,9 @@
   (let ((context (typecase stage
                    (list (with-stage () stage context))
                    (varjo-compile-result (context stage)))))
-    (find-if λ(when (member _ context) _) *stage-types*)))
+    (find-if (lambda (_)
+               (when (member _ context) _))
+             *stage-types*)))
 
 (defun args-compatiblep (stage previous-stage)
   (with-stage () stage
@@ -146,7 +148,9 @@
 (defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
   (let ((pq (in-arg-qualifiers prev-stage-in-arg))
         (cq (in-arg-qualifiers in-arg)))
-    (every λ(member _ pq) cq)))
+    (every (lambda (_)
+             (member _ pq))
+           cq)))
 
 
 
@@ -266,11 +270,13 @@
 (defun process-uniforms (code env)
   (let ((uniforms (v-raw-uniforms env)))
     (mapcar
-     λ(with-arg (name type qualifiers glsl-name) _
-        (case-member qualifiers
-          (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
-          (:fake (process-fake-uniform name glsl-name type qualifiers env))
-          (otherwise (process-regular-uniform name glsl-name type qualifiers env))))
+     (lambda (_)
+       (with-arg (name type qualifiers glsl-name) _
+         (case-member qualifiers
+           (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
+           (:fake (process-fake-uniform name glsl-name type qualifiers env))
+           (otherwise (process-regular-uniform name glsl-name type
+                                               qualifiers env)))))
      uniforms)
     (values code env)))
 
@@ -411,7 +417,9 @@
 
 (defun gen-out-var-strings (code env)
   (let* ((out-vars (dedup-out-vars (out-vars code)))
-         (out-types (mapcar λ(v-type (third _)) out-vars))
+         (out-types (mapcar (lambda (_)
+                              (v-type (third _)))
+                            out-vars))
          (locations (if (member :fragment (v-context env))
                         (calc-locations out-types)
                         (loop for i below (length out-types) collect nil))))

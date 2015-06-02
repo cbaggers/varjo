@@ -6,7 +6,6 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 (in-package :varjo)
-(named-readtables:in-readtable fn:fn-reader)
 
 (defparameter *global-env* :-genv-)
 (defparameter *global-env-funcs* (make-hash-table))
@@ -148,7 +147,8 @@
 (defun context-ok-given-restriction (context restriction)
   (loop :for item :in restriction :always
      (if (listp item)
-         (find-if λ(member _ context) item)
+         (find-if (lambda (_)
+                    (member _ context)) item)
          (find item context))))
 
 (defmethod valid-for-contextp ((func list) (env environment))

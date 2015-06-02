@@ -4,9 +4,8 @@
   :description "Common Lisp -> GLSL Compiler"
   :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
   :license "LLGPL"
-  :serial t  
-  :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:fn
-                          #:named-readtables)
+  :serial t
+  :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables)
   :components ((:file "package")
                (:file "utils-v")
                (:file "compiler/errors")

@@ -1,6 +1,5 @@
 (in-package :varjo)
 
-
 (defun varjo->glsl (code env)
   (multiple-value-bind (code new-env)
       (cond ((or (null code) (eq t code)) (compile-bool code env))
@@ -132,11 +131,12 @@
                  :to-top (mapcan #'to-top args)
                  :signatures (mapcan #'signatures args)
                  :stemcells (mapcan #'stemcells args)
-                 :multi-vals (mapcar λ(make-mval
-                                       (make-instance
-                                        'v-value
-                                        :type (v-type (slot-value % 'value))
-                                        :glsl-name _1))
+                 :multi-vals (mapcar (lambda (_)
+                                       (make-mval
+                                        (make-instance
+                                         'v-value
+                                         :type (v-type (slot-value % 'value))
+                                         :glsl-name _1)))
                                      mvals
                                      m-r-names))))
         (varjo->glsl

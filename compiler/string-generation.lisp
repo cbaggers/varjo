@@ -1,5 +1,4 @@
 (in-package :varjo)
-(named-readtables:in-readtable fn:fn-reader)
 
 (defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
@@ -10,9 +9,10 @@
                 (when (not (and (find (elt name 0) +ascii-alpha-num+)
                                 (alpha-char-p (elt name 0))))
                   "_")
-                (map 'list λ(if (find _ +ascii-alpha-num+) _
-                                (if (char= _ #\-) #\_
-                                    (format nil "~a" (char-code _))))
+                (map 'list (lambda (_)
+                             (if (find _ +ascii-alpha-num+) _
+                                 (if (char= _ #\-) #\_
+                                     (format nil "~a" (char-code _)))))
                      name)))
       (error 'name-unsuitable :name name)))
 
