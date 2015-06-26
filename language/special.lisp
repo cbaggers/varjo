@@ -54,7 +54,7 @@
                      :current-line (current-line last-obj)
                      :to-block (merge-lines-into-block-list body-objs)
                      :multi-vals (multi-vals (last1 body-objs)))))
-      (make-instance 'code :type (type-spec->type :none))))
+      (make-code-obj (type-spec->type :none))))
 
 (v-defmacro :prog1 (&body body)
   (let ((tmp (free-name 'progn-var)))
@@ -223,6 +223,8 @@
   :return (let ((new-env (clean-environment env)))
             (setf (v-functions new-env)
                   (v-functions env))
+            (setf (v-variables new-env)
+                  (v-variables env))
             (setf (v-context new-env)
                   (remove :main (v-context env)))
             (varjo->glsl `(progn ,@body) new-env)))
@@ -235,7 +237,7 @@
 (v-defspecial %merge-env (env-a new-env)
   :args-valid t
   :return
-  (let ((dummy-code-obj (make-instance 'code :current-line "")))
+  (let ((dummy-code-obj (make-code-obj nil "")))
     (values dummy-code-obj (merge-env env-a new-env))))
 
 ;;{TODO} this should have a and &optional for place
@@ -243,8 +245,7 @@
 ;;       should destructively modify the env
 (v-defspecial :%make-var (name-string type)
   :args-valid t
-  :return (make-instance 'code :type (set-place-t type)
-                         :current-line name-string))
+  :return (make-code-obj (set-place-t type) name-string))
 
 
 (v-defspecial :%typify (form &optional qualifiers)
@@ -298,7 +299,7 @@
                                  :to-block (append (to-block let-obj)
                                                    (list (current-line
                                                           (end-line let-obj)))))
-                      (make-instance 'code :type 'v-none))
+                      (make-code-obj 'v-none))
                   env))))))
 
 (v-defspecial %multi-env-progn (&rest env-local-expessions)
@@ -323,7 +324,7 @@
                                               code-objs))
                     :to-top (mapcan #'to-top code-objs))
          merged-env))
-      (make-instance 'code :type (type-spec->type :none) :current-line "")))
+      (make-code-obj (type-spec->type :none) "")))
 
 (v-defmacro :let (bindings &body body)
   `(%clone-env-block
@@ -338,15 +339,20 @@
        (setf result `(let (,binding) ,result)))
     result))
 
+(defun make-func-env (env mainp)
+  (let ((new-env (if mainp
+                     (let ((new-env (clone-environment env)))
+                       (push :main (v-context new-env))
+                       new-env)
+                     env)))
+    (incf (v-function-scope new-env))
+    new-env))
+
 (v-defspecial :%make-function (name raw-args &rest body)
   :args-valid t
   :return
   (let* ((mainp (eq name :main))
-         (env (if mainp
-                  (let ((new-env (clone-environment env)))
-                    (push :main (v-context new-env))
-                    new-env)
-                  env))
+         (env (make-func-env env mainp))
          (args (mapcar #'list raw-args))
          (arg-glsl-names (loop :for (name) :in raw-args :collect
                             (safe-glsl-name-string (free-name name))))
@@ -360,18 +366,24 @@
          (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
          (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
-         (type (if mainp (type-spec->type 'v-void) primary-return)))
-
+         (type (if mainp (type-spec->type 'v-void) primary-return))
+         (implicit-args (remove-if (lambda (_)
+                                     (= (v-function-scope _)
+                                        (v-function-scope env)))
+                         (normalize-out-of-scope-args
+                          (out-of-scope-args body-obj)))))
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
     (add-function
      name (func-spec->function
            (v-make-f-spec name
                           (gen-function-transform glsl-name raw-args
-                                                  multi-return-vars)
+                                                  multi-return-vars
+                                                  implicit-args)
                           nil ;;should be context
                           (mapcar #'second raw-args)
                           type :glsl-name glsl-name
-                          :multi-return-vars multi-return-vars) env) env t)
+                          :multi-return-vars multi-return-vars
+                          :implicit-args implicit-args) env) env t)
     (let* ((arg-pairs (loop :for (ignored type) :in raw-args
                          :for name :in arg-glsl-names :collect
                          `(,(v-glsl-string (type-spec->type type)) ,name)))
@@ -382,10 +394,12 @@
            (sigs (if mainp
                      (signatures body-obj)
                      (cons (gen-function-signature glsl-name arg-pairs
-                                                   out-arg-pairs type)
+                                                   out-arg-pairs type
+                                                   implicit-args)
                            (signatures body-obj))))
            (top (cons-end (gen-function-body-string
-                           glsl-name arg-pairs out-arg-pairs type body-obj)
+                           glsl-name arg-pairs out-arg-pairs type body-obj
+                           implicit-args)
                           (to-top body-obj))))
 
       (values (merge-obs body-obj
@@ -396,7 +410,8 @@
                          :to-block nil
                          :returns nil
                          :out-vars (out-vars body-obj)
-                         :multi-vals nil)
+                         :multi-vals nil
+                         :out-of-scope-args implicit-args)
               env))))
 
 (v-defmacro :labels (definitions &body body)

@@ -12,13 +12,18 @@
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)))
 
-(defmethod v-make-value ((type v-t-type) env &optional glsl-name)
+(defmethod v-make-value ((type v-t-type) env
+                         &optional (glsl-name (free-name 'unspecified)))
   (make-instance 'v-value :type type :glsl-name glsl-name
                  :function-scope (v-function-scope env)))
 
-(defmethod v-make-value ((type t) env &optional glsl-name)
+(defmethod v-make-value ((type t) env
+                         &optional (glsl-name (free-name 'unspecified)))
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name
                  :function-scope (v-function-scope env)))
+
+(defun v-value-equal (a b)
+  (equal (v-glsl-name a) (v-glsl-name b)))
 
 ;;[TODO] this smells a bit, it is only used for glsl strings, and we should
 ;;       rename this to that end

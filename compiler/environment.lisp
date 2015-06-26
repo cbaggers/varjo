@@ -424,39 +424,6 @@
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function-by-name func-name env))))
 
-(defun func-spec->function (spec env)
-  (destructuring-bind (transform arg-spec return-spec context place
-                                 glsl-spec-matching glsl-name
-                                 multi-return-vars name)
-      spec
-    (make-instance 'v-function :glsl-string transform
-                   :arg-spec (if (listp arg-spec)
-                                 (loop :for spec :in arg-spec :collect
-                                    (type-spec->type spec :env env))
-                                 arg-spec)
-                   :return-spec (if (type-specp return-spec)
-                                    (type-spec->type return-spec :env env)
-                                    return-spec)
-                   :restriction context :place place
-                   :glsl-spec-matching glsl-spec-matching
-                   :glsl-name glsl-name
-                   :multi-return-vars multi-return-vars
-                   :name name)))
-
-(defun function->func-spec (func)
-  (let ((arg-spec (v-argument-spec func)))
-    (v-make-f-spec (name func)
-                   (v-glsl-string func)
-                   nil ;;{TODO} this must be context
-                   (when (listp arg-spec)
-                     (loop :for a :in arg-spec :collect (type->type-spec a)))
-                   (if (type-specp (v-return-spec func))
-                       (type->type-spec (v-return-spec func))
-                       (v-return-spec func))
-                   :place (v-placep func)
-                   :glsl-spec-matching (v-glsl-spec-matchingp func)
-                   :glsl-name (v-glsl-name func))))
-
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))
   *global-env-funcs*)

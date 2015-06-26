@@ -3,41 +3,11 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass v-t-type () ())
-(defclass v-type (v-t-type)
-  ((core :initform nil :reader core-typep)
-   (place :initform t :initarg :place :accessor v-placep)
-   (glsl-string :initform "<invalid>" :reader v-glsl-string)
-   (glsl-size :initform 1)
-   (casts-to :initform nil)))
-
-(defclass v-stemcell (v-type) ())
-(defmethod v-dimensions ((object v-stemcell)) 0)
-(defun make-stem-cell (symbol)
-  (let ((string-name (string (safe-glsl-name-string symbol)))
-        (original-name symbol))
-    (make-instance
-     'code
-     :type 'v-stemcell
-     :current-line string-name
-     :stemcells `((,original-name ,string-name '|unknown-type|)))))
-
-(defun stemcellp (x)
-  (typep x 'v-stemcell))
-
-(defmethod set-place-t ((type v-type))
-  (setf (v-placep type) t) type)
-
-(defmethod core-typep ((type v-t-type))
-  nil)
-
 ;; [TODO] ensure all cast lists have the correct order.
 
 ;; spec types are to handle the manifest ugliness of the glsl spec.
 ;; dear god just one txt file with every permutation of every glsl
 ;; function would have save me so many hours work.
-(defclass v-spec-type ()
-  ((place :initform t :initarg :place :reader v-placep)))
 (defclass v-tfd (v-spec-type) ())
 (defclass v-tf (v-tfd) ()) ;; float vec*
 (defclass v-td (v-tfd) ()) ;; double dvec*
@@ -47,36 +17,6 @@
 (defclass v-ti (v-tiu) ()) ;; int ivec*
 (defclass v-tu (v-tiu) ()) ;; uint uvec*
 (defclass v-tvec (v-spec-type) ()) ;;vec* uvec* ivec* [notice no dvec]
-
-(defclass v-array (v-container)
-  ((element-type :initform nil :initarg :element-type)
-   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
-(defmethod v-glsl-string ((object v-array))
-  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object)) (v-dimensions object)))
-
-(defclass v-none (v-t-type) ())
-
-(defclass v-function (v-type)
-  ((restriction :initform nil :initarg :restriction :accessor v-restriction)
-   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
-   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
-   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (place :initform nil :initarg :place :accessor v-placep)
-   (glsl-spec-matching :initform nil :initarg :glsl-spec-matching :reader v-glsl-spec-matchingp)
-   (multi-return-vars :initform nil :initarg :multi-return-vars :reader multi-return-vars)
-   (name :initform nil :initarg :name :reader name)))
-
-(defclass v-struct (v-type)
-  ((restriction :initform nil :initarg :restriction :accessor v-restriction)
-   (signature :initform nil :initarg :signature :accessor v-signature)
-   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (slots :initform nil :initarg :slots :reader v-slots)))
-
-(defclass v-user-struct (v-struct) ())
-
-(defclass v-error (v-type)
-  ((payload :initform nil :initarg :payload :accessor v-payload)))
 
 (defclass v-void (v-t-type)
   ((core :initform t :reader core-typep)

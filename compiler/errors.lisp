@@ -47,7 +47,10 @@
     "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec (type-spec)
-    "Unknown specification for type: ~a" type-spec)
+    "Expected type specification but got: ~a~a"
+  type-spec
+  (when (typep type-spec 'v-type)
+    (format nil "~%It seems we recieved a type object instead of type spec")))
 
 (deferror duplicate-name (name)
     "This name appears more than once in this form list ~a" name)

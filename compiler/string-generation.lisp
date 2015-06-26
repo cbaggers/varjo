@@ -37,18 +37,19 @@
 
 (defun gen-function-string (func arg-objs &optional out-strings)
   (apply #'format nil (v-glsl-string func)
-         (append (mapcar #'current-line arg-objs) out-strings)))
+         (append (mapcar #'current-line arg-objs)
+                 out-strings
+                 (mapcar #'v-glsl-name (implicit-args func)))))
 
-(defun gen-function-transform (name args &optional out-args)
+(defun gen-function-transform (name args &optional out-args implicit-args)
   (format nil "~a(~{~a~^,~})" name
-          (loop :for i :below (+ (length args) (length out-args))
+          (loop :for i :below (+ (length args) (length out-args)
+                                 (length implicit-args))
              :collect "~a")))
 
-(defun gen-function-signature (name args out-args return-types)
-  (format nil "~a ~a(~a);"
-          (v-glsl-string return-types)
-          name
-          (gen-arg-string args out-args)))
+(defun gen-implicit-arg-pairs (implicit-args)
+  (loop :for a :in implicit-args :collect
+     `(,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
 
 (defun gen-arg-string (arg-pairs &optional out-pairs)
   (let ((arg-string (format nil "~{~{~a ~a~}~^,~^ ~}" arg-pairs)))
@@ -65,13 +66,21 @@
           (gen-arg-string args)
           glsl-string))
 
-(defun gen-function-body-string (name args out-args type body-obj)
-  (format nil "~a ~a(~a) {~%~{~a~%~}~@[~a~%~]}~%"
-          (v-glsl-string type)
-          (string name)
-          (gen-arg-string args out-args)
-          (remove "" (to-block body-obj) :test #'equal)
-          (current-line (end-line body-obj))))
+(defun gen-function-signature (name args out-args return-types implicit-args)
+  (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
+    (format nil "~a ~a(~a);"
+            (v-glsl-string return-types)
+            name
+            (gen-arg-string args out-args))))
+
+(defun gen-function-body-string (name args out-args type body-obj implicit-args)
+  (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
+    (format nil "~a ~a(~a) {~%~{~a~%~}~@[~a~%~]}~%"
+            (v-glsl-string type)
+            (string name)
+            (gen-arg-string args out-args)
+            (remove "" (to-block body-obj) :test #'equal)
+            (current-line (end-line body-obj)))))
 
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))

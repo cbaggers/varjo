@@ -18,7 +18,9 @@
    (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)
    (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)
-   (stem-cells :initarg :stemcells :initform nil :accessor stemcells)))
+   (stem-cells :initarg :stemcells :initform nil :accessor stemcells)
+   (out-of-scope-args :initarg :out-of-scope-args :initform nil
+                      :accessor out-of-scope-args)))
 
 ;; [TODO] Proper error needed here
 (defmethod initialize-instance :after
@@ -31,9 +33,26 @@
                (not (eq type-spec 'v-none)))
       (push (listify type-spec) (used-types code-obj)))))
 
+(defun add-higher-scope-val (code-obj value)
+  (push value (out-of-scope-args code-obj))
+  code-obj)
+
+(defun normalize-out-of-scope-args (args)
+  (remove-duplicates args :test #'v-value-equal))
+
+;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+(defun make-code-obj (type &optional (current-line ""))
+  (make-instance 'code :type type :current-line current-line))
+
+(defun make-none-ob () (make-code-obj :none nil))
+
+;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
 (defgeneric copy-code (code-obj &key type current-line to-block to-top
-                                  out-vars invariant returns multi-vals))
+                                  out-vars invariant returns multi-vals
+                                  stemcells out-of-scope-args))
 (defmethod copy-code ((code-obj code)
                       &key type
                         current-line
@@ -44,7 +63,8 @@
                         (invariant nil)
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
-                        (stemcells nil set-stemcells))
+                        (stemcells nil set-stemcells)
+                        (out-of-scope-args nil set-out-of-scope-args))
   (make-instance 'code
                  :type (if type type (code-type code-obj))
                  :current-line (if current-line current-line
@@ -57,11 +77,15 @@
                  :returns (listify (if set-returns returns (returns code-obj)))
                  :used-types (used-types code-obj)
                  :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
-                 :stemcells (if set-stemcells stemcells (stemcells code-obj))))
+                 :stemcells (if set-stemcells stemcells (stemcells code-obj))
+                 :out-of-scope-args (if set-out-of-scope-args
+                                        out-of-scope-args
+                                        (out-of-scope-args code-obj))))
 
 
 (defgeneric merge-obs (objs &key type current-line to-block
-                              to-top out-vars invariant returns multi-vals))
+                              to-top out-vars invariant returns multi-vals
+                              stemcells out-of-scope-args))
 
 (defmethod merge-obs ((objs list)
                       &key type
@@ -70,26 +94,30 @@
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (used-funcs nil set-used-funcs)
                         (invariant nil)
                         (returns nil set-returns)
                         multi-vals
-                        (stemcells nil set-stemcells))
+                        (stemcells nil set-stemcells)
+                        (out-of-scope-args nil set-out-of-scope-args))
   (make-instance 'code
                  :type (if type type (error "type is mandatory"))
                  :current-line current-line
                  :signatures (if set-sigs signatures
-                                 (mapcan #'signatures objs))
+                                 (mapcat #'signatures objs))
                  :to-block (if set-block to-block
                                (mapcat #'to-block objs))
-                 :to-top (if set-top to-top (mapcan #'to-top objs))
-                 :out-vars (if set-out-vars out-vars (mapcan #'out-vars objs))
+                 :to-top (if set-top to-top (mapcat #'to-top objs))
+                 :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
                  :invariant invariant
                  :returns (listify (if set-returns returns (merge-returns objs)))
                  :used-types (mapcar #'used-types objs)
                  :multi-vals multi-vals
                  :stemcells (if set-stemcells stemcells
-                                (mapcan #'stemcells objs))))
+                                (mapcat #'stemcells objs))
+                 :out-of-scope-args
+                 (normalize-out-of-scope-args
+                  (if set-out-of-scope-args out-of-scope-args
+                      (mapcat #'out-of-scope-args objs)))))
 
 (defmethod merge-obs ((objs code)
                       &key (type nil set-type)
@@ -98,10 +126,10 @@
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (used-funcs nil set-used-funcs)
                         (invariant nil) (returns nil set-returns)
                         multi-vals
-                        (stemcells nil set-stemcells))
+                        (stemcells nil set-stemcells)
+                        (out-of-scope-args nil set-out-of-scope-args))
   (make-instance 'code
                  :type (if set-type type (code-type objs))
                  :current-line (if set-current-line current-line
@@ -114,7 +142,10 @@
                  :returns (listify (if set-returns returns (returns objs)))
                  :used-types (used-types objs)
                  :multi-vals multi-vals
-                 :stemcells (if set-stemcells stemcells (stemcells objs))))
+                 :stemcells (if set-stemcells stemcells (stemcells objs))
+                 :out-of-scope-args (if set-out-of-scope-args
+                                        out-of-scope-args
+                                        (remove nil (out-of-scope-args objs)))))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))
@@ -139,8 +170,6 @@
                          :append (listify (current-line j)));this should work
                       (to-block (last1 objs)))))))
 
-(defun make-none-ob ()
-  (make-instance 'code :type :none :current-line nil))
 
 (defun normalize-used-types (types)
   (loop :for item :in (remove nil types) :append

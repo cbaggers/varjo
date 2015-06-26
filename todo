@@ -1,8 +1,22 @@
+Next need to:
+- add out-of-scope-args to the code object.
+* done
+- when compiling a symbol check if v-value is from same scope
+* done
+- if val scope not 0 or same as env then add to out-of-scope-args
+* done
+- labels needs to examine the out-of-scope-args from its body and
+  add the implicit args.
+* done
+- labels must not clear the environment vars in clean-env
+* done
+- calling a function needs to add the implicit args.
+*
 
 * need an across vector loop thing. We can then unroll these loops.
 * why does placep live in type? ... basically no reason, fix this ... Ah..
   ok so functions are types? yeah.
-  This seems weird, ok so the logic is that a block of code could have a type of 
+  This seems weird, ok so the logic is that a block of code could have a type of
   function and the function could be a place. arent functions a valeu with type of function?
   Surely we can handle this...we dont need first class functions to be supported anywhere
   but we need to pull the concept of a place out of the type....Do we?
@@ -12,7 +26,7 @@
   Functions can make something a place so they need that flag. functions can remain as
   types.
 * Code object also needs an inferred value field and a change-frequency field.
-  
+
 * add all of the following and all their permutations
 * also add all the arithmatic operators for non number datatypes
 * add aref, make-array and array constructors

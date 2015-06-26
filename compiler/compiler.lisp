@@ -25,8 +25,8 @@
 (defun compile-bool (code env)
   (declare (ignore env))
   (if code
-      (make-instance 'code :current-line "true" :type 'v-bool)
-      (make-instance 'code :current-line "false" :type 'v-bool)))
+      (make-code-obj 'v-bool "true")
+      (make-code-obj 'v-bool "false")))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -37,23 +37,26 @@
 (defun compile-number (code env)
   (declare (ignore env))
   (let ((num-type (get-number-type code)))
-    (make-instance 'code
-                   :current-line (gen-number-string code num-type)
-                   :type num-type)))
+    (make-code-obj num-type (gen-number-string code num-type))))
 
-(defun v-variable->code-obj (var-name v-value)
-  (make-instance 'code :type (v-type v-value)
-                 :current-line (gen-variable-string var-name v-value)))
+(defun v-variable->code-obj (var-name v-value from-higher-scope)
+  (let ((code-obj (make-code-obj (v-type v-value) (gen-variable-string var-name v-value))))
+    (if from-higher-scope
+        (add-higher-scope-val code-obj v-value)
+        code-obj)))
 
 (defun %v-value->code (v-val)
-  (make-instance 'code :type (v-type v-val) :current-line (v-glsl-name v-val)))
+  (make-code-obj (v-type v-val) (v-glsl-name v-val)))
 
 ;; [TODO] move error
 (defun compile-symbol (code env)
   (let* ((var-name code)
          (v-value (get-var var-name env)))
     (if v-value
-        (v-variable->code-obj var-name v-value)
+        (let* ((val-scope (v-function-scope v-value))
+               (from-higher-scope (and (> val-scope 0)
+                                       (< (v-function-scope env)))))
+          (v-variable->code-obj var-name v-value from-higher-scope))
         (if (allows-stemcellsp env)
             (make-stem-cell code)
             (error "Varjo: Symbol '~s' is unidentified." code)))))

@@ -6,11 +6,55 @@
 ;; GLSL Functions
 ;;----------------
 
+(defgeneric v-special-functionp (func))
+(defmethod v-special-functionp ((func v-function))
+  (eq :special (v-glsl-string func)))
+
+;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 (defun v-make-f-spec (name transform context arg-types return-spec
                       &key place glsl-spec-matching glsl-name
-                        multi-return-vars)
+                        multi-return-vars implicit-args)
   (list transform arg-types return-spec context place glsl-spec-matching
-        glsl-name multi-return-vars name))
+        glsl-name multi-return-vars name implicit-args))
+
+(defun func-spec->function (spec env)
+  (destructuring-bind (transform arg-spec return-spec context place
+                                 glsl-spec-matching glsl-name
+                                 multi-return-vars name
+                                 implicit-args)
+      spec
+    (make-instance 'v-function :glsl-string transform
+                   :arg-spec (if (listp arg-spec)
+                                 (loop :for spec :in arg-spec :collect
+                                    (type-spec->type spec :env env))
+                                 arg-spec)
+                   :return-spec (if (type-specp return-spec)
+                                    (type-spec->type return-spec :env env)
+                                    return-spec)
+                   :restriction context :place place
+                   :glsl-spec-matching glsl-spec-matching
+                   :glsl-name glsl-name
+                   :multi-return-vars multi-return-vars
+                   :name name
+                   :implicit-args implicit-args)))
+
+(defun function->func-spec (func)
+  (let ((arg-spec (v-argument-spec func)))
+    (v-make-f-spec (name func)
+                   (v-glsl-string func)
+                   nil ;;{TODO} this must be context
+                   (when (listp arg-spec)
+                     (loop :for a :in arg-spec :collect (type->type-spec a)))
+                   (if (type-specp (v-return-spec func))
+                       (type->type-spec (v-return-spec func))
+                       (v-return-spec func))
+                   :place (v-placep func)
+                   :glsl-spec-matching (v-glsl-spec-matchingp func)
+                   :glsl-name (v-glsl-name func)
+                   :implicit-args (implicit-args func))))
+
+;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defmacro v-defun (name args &body body)
   (destructuring-bind (in-args uniforms context)
@@ -101,7 +145,7 @@
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
-    (varjo-error (e) (make-instance 'code :type (make-instance 'v-error :payload e)))))
+    (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e)))))
 
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
