@@ -40,11 +40,16 @@
    (variables :initform nil :initarg :variables :accessor v-variables)
    (functions :initform nil :initarg :functions :accessor v-functions)
    (macros :initform nil :initarg :macros :accessor v-macros)
-   (symbol-macros :initform nil :initarg :symbol-macros :accessor v-symbol-macros)
-   (compiler-macros :initform nil :initarg :compiler-macros :accessor v-compiler-macros)
+   (symbol-macros :initform nil :initarg :symbol-macros
+                  :accessor v-symbol-macros)
+   (compiler-macros :initform nil :initarg :compiler-macros
+                    :accessor v-compiler-macros)
    (types :initform nil :initarg :types :accessor v-types)
    (context :initform nil :initarg :context :accessor v-context)
-   (multi-val-base :initform nil :initarg :multi-val-base :accessor v-multi-val-base)))
+   (multi-val-base :initform nil :initarg :multi-val-base
+                   :accessor v-multi-val-base)
+   (function-scope :initform 0 :initarg :function-scope
+                   :accessor v-function-scope)))
 
 (defun make-varjo-environment (&rest context)
   (let ((context (or context *default-context*)))
@@ -92,12 +97,14 @@
                  :raw-context (v-raw-context env)
                  :raw-uniforms (v-raw-uniforms env)
                  :raw-args (v-raw-in-args env)
-                 :multi-val-base (v-multi-val-base env)))
+                 :multi-val-base (v-multi-val-base env)
+                 :function-scope (v-function-scope env)))
 
 (defmethod clean-environment ((env environment))
   (make-instance 'environment :variables nil :functions nil
                  :macros nil :compiler-macros nil :types nil
-                 :context (copy-list (v-context env))))
+                 :context (copy-list (v-context env))
+                 :function-scope (v-function-scope env)))
 
 (defmethod normalize-environment (env &optional modify-env)
   (let ((env (if modify-env env (clone-environment env))))
@@ -115,6 +122,8 @@
 (defun merge-env (env new-env)
   (let ((a (clone-environment env))
         (b (clone-environment new-env)))
+    (unless (= (v-function-scope a) (v-function-scope b))
+      (error 'merge-env-func-scope-mismatch :env-a a :env-b b))
     (with-slots ((a-vars variables) (a-funcs functions) (a-macros macros)
                  (a-cmacros compiler-macros) (a-types types)) a
       (with-slots ((b-vars variables) (b-funcs functions) (b-macros macros)

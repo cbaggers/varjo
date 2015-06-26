@@ -8,13 +8,17 @@
   ((type :initarg :type :initform nil :accessor v-type)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
-   (inferring :initarg :inferring :initform nil :accessor v-inferringp)))
+   (inferring :initarg :inferring :initform nil :accessor v-inferringp)
+   (function-scope :initarg :function-scope :initform 0
+                   :accessor v-function-scope)))
 
 (defmethod v-make-value ((type v-t-type) env &optional glsl-name)
-  (make-instance 'v-value :type type :glsl-name glsl-name))
+  (make-instance 'v-value :type type :glsl-name glsl-name
+                 :function-scope (v-function-scope env)))
 
 (defmethod v-make-value ((type t) env &optional glsl-name)
-  (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name))
+  (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name
+                 :function-scope (v-function-scope env)))
 
 ;;[TODO] this smells a bit, it is only used for glsl strings, and we should
 ;;       rename this to that end

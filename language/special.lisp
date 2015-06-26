@@ -110,7 +110,7 @@
            (glsl-names (loop :for i :below (length forms) :collect
                           (format nil "~a~a" base i)))
            (vals (loop :for o :in objs :for n in glsl-names :collect
-                    (make-instance 'v-value :glsl-name n :type (code-type o))))
+                    (v-make-value (code-type o) env n)))
            (first-name (free-name 'v-tmp env))
            (result (expand->varjo->glsl
                     `(let ((,first-name ,(first objs)))
@@ -287,9 +287,9 @@
                         `(%typify (%make-var ,glsl-name ,type-spec)))))
                (let-obj (varjo->glsl glsl-let-code env)))
           (add-var name
-                   (make-instance 'v-value :glsl-name glsl-name
-                                  :type (set-place-t
-                                         (or type-spec (code-type code-obj))))
+                   (v-make-value (set-place-t
+                                  (or type-spec (code-type code-obj)))
+                                 env glsl-name)
                    env t)
           (values (if include-type-declaration
                       (merge-obs let-obj
@@ -424,8 +424,7 @@
           :to-block (to-block form-obj)
           :out-vars (cons `(,out-var-name
                             ,qualifiers
-                            ,(make-instance 'v-value :type (code-type form-obj)
-                                            :glsl-name glsl-name))
+                            ,(v-make-value (code-type form-obj) env glsl-name))
                           (out-vars form-obj))) t))))
 
 (v-defspecial :assert (kind form error-message)

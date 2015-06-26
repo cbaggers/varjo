@@ -256,9 +256,7 @@
            (if (typep type-obj 'v-struct)
                (add-in-arg-fake-struct name glsl-name type-obj qualifiers env)
                (progn
-                 (add-var name (make-instance 'v-value :type type-obj
-                                              :glsl-name glsl-name)
-                          env t)
+                 (add-var name (make-value type-obj env glsl-name) env t)
                  (setf (v-in-args env)
                        (append (v-in-args env)
                                `((,name ,(type->type-spec type-obj) ,qualifiers
