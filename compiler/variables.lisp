@@ -7,8 +7,6 @@
 (defclass v-value ()
   ((type :initarg :type :initform nil :accessor v-type)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
-   (inferred-val :initarg :inferred-val :initform nil :accessor v-inferred-val)
-   (inferring :initarg :inferring :initform nil :accessor v-inferringp)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)))
 

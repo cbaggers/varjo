@@ -476,22 +476,21 @@
                              :key #'type->type-spec :test #'equal)))
          (push type-obj structs)))
 
+    (loop :for (name string-name type) :in (stemcells code) :do
+       (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
+       (let ((type-obj (type-spec->type type)))
+         (push `(,name ,string-name ,type
+                       ,(gen-uniform-decl-string
+                         (or string-name (safe-glsl-name-string name))
+                         ;;{TODO} ^^^ this is wrong
+                         type-obj
+                         nil))
+               implicit-uniforms)
 
-    (loop :for (name string-name type) :in (stemcells code)
-       :for type-obj = (type-spec->type type) :do
-
-       (push `(,name ,string-name ,type
-                     ,(gen-uniform-decl-string
-                       (or string-name (safe-glsl-name-string name))
-                       ;;{TODO} ^^^ this is wrong
-                       type-obj
-                       nil))
-             implicit-uniforms)
-
-       (when (and (v-typep type-obj 'v-user-struct)
-                  (not (find (type->type-spec type-obj) structs
-                             :key #'type->type-spec :test #'equal)))
-         (push type-obj structs)))
+         (when (and (v-typep type-obj 'v-user-struct)
+                    (not (find (type->type-spec type-obj) structs
+                               :key #'type->type-spec :test #'equal)))
+           (push type-obj structs))))
 
     (setf (used-types code) structs)
     (setf (v-uniforms env) final-strings)

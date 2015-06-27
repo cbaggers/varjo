@@ -171,3 +171,6 @@ Value Form: ~a"
 (deferror merge-env-func-scope-mismatch (env-a env-b)
   "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
   (cons (v-function-scope env-a) (v-function-scope env-b)) env-a env-b)
+
+(deferror symbol-unidentified (sym)
+  "Varjo: Symbol '~s' is unidentified." sym)

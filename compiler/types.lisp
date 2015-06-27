@@ -61,7 +61,7 @@
      'code
      :type 'v-stemcell
      :current-line string-name
-     :stemcells `((,original-name ,string-name '|unknown-type|)))))
+     :stemcells `((,original-name ,string-name :|unknown-type|)))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

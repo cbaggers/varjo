@@ -561,9 +561,10 @@
                                 `((,(first stemcell)
                                     ,(second stemcell)
                                     ,type-name))))
-        (unless (v-typep compiled declared-type)
-          (error "Incorrect declaration that ~a was of type ~a"
-                 compiled type-name))))) ;{TODO} proper error here
+        (if (v-typep (code-type compiled) declared-type)
+            compiled
+            (error "Incorrect declaration that ~a was of type ~a"
+                   compiled type-name))))) ;{TODO} proper error here
 
 (v-defspecial :%break ()
   :return
