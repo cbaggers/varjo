@@ -46,10 +46,6 @@
   ((core :initform t :reader core-typep)
    (glsl-string :initform "double" :reader v-glsl-string)))
 
-(defclass v-container (v-type)
-  ((element-type :initform nil)
-   (dimensions :initform nil :accessor v-dimensions)))
-
 (defclass v-matrix (v-container) ())
 (defclass v-mat2 (v-matrix)
   ((core :initform t :reader core-typep)

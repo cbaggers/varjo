@@ -21,6 +21,10 @@
 
 (defclass v-none (v-t-type) ())
 
+(defclass v-container (v-type)
+  ((element-type :initform nil)
+   (dimensions :initform nil :accessor v-dimensions)))
+
 (defclass v-array (v-container)
   ((element-type :initform nil :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
