@@ -61,7 +61,8 @@
                 (and (allows-special-stemcellsp env)
                      (let ((str-name (symbol-name var-name)))
                        (and (char= (elt str-name 0) #\*)
-                            (elt str-name (1- (length str-name)))))))
+                            (char= (elt str-name (1- (length str-name)))
+                                   #\*)))))
             (make-stem-cell code)
             (error 'symbol-unidentified :sym code)))))
 

@@ -173,4 +173,4 @@ Value Form: ~a"
   (cons (v-function-scope env-a) (v-function-scope env-b)) env-a env-b)
 
 (deferror symbol-unidentified (sym)
-  "Varjo: Symbol '~s' is unidentified." sym)
+    "Varjo: Symbol '~s' is unidentified." sym)

@@ -479,12 +479,13 @@
     (loop :for (name string-name type) :in (stemcells code) :do
        (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
        (let ((type-obj (type-spec->type type)))
-         (push `(,name ,string-name ,type
+         (push `(,name ,type
                        ,(gen-uniform-decl-string
                          (or string-name (safe-glsl-name-string name))
                          ;;{TODO} ^^^ this is wrong
                          type-obj
-                         nil))
+                         nil)
+                       ,string-name)
                implicit-uniforms)
 
          (when (and (v-typep type-obj 'v-user-struct)
