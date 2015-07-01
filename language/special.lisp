@@ -552,16 +552,11 @@
 (v-defspecial :the (type-name form)
   :args-valid t
   :return
-  (let ((compiled (varjo->glsl form env))
-        (declared-type (type-spec->type type-name)))
+  (let ((compiled (varjo->glsl form env)))
     (if (stemcellp (code-type compiled))
-        (copy-code compiled
-                   :type declared-type
-                   :stemcells (let ((stemcell (first (stemcells compiled))))
-                                `((,(first stemcell)
-                                    ,(second stemcell)
-                                    ,type-name))))
-        (if (v-typep (code-type compiled) declared-type)
+        (add-type-to-stemcell-code compiled type-name)
+        (if (v-typep (code-type compiled)
+                     (type-spec->type type-name))
             compiled
             (error "Incorrect declaration that ~a was of type ~a"
                    compiled type-name))))) ;{TODO} proper error here

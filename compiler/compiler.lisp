@@ -48,6 +48,14 @@
 (defun %v-value->code (v-val)
   (make-code-obj (v-type v-val) (v-glsl-name v-val)))
 
+(defparameter *stemcell-infer-hook* (lambda (name) (declare (ignore name)) nil))
+
+(defmacro with-stemcell-infer-hook (func &body body)
+  (let ((func-name (gensym "hook")))
+    `(let* ((,func-name ,func)
+            (*stemcell-infer-hook* ,func-name))
+       ,@body)))
+
 ;; [TODO] move error
 (defun compile-symbol (code env)
   (let* ((var-name code)
@@ -57,14 +65,30 @@
                (from-higher-scope (and (> val-scope 0)
                                        (< (v-function-scope env)))))
           (v-variable->code-obj var-name v-value from-higher-scope))
-        (if (or (allows-stemcellsp env)
-                (and (allows-special-stemcellsp env)
-                     (let ((str-name (symbol-name var-name)))
-                       (and (char= (elt str-name 0) #\*)
-                            (char= (elt str-name (1- (length str-name)))
-                                   #\*)))))
-            (make-stem-cell code)
+        (if (suitable-symbol-for-stemcellp var-name env)
+            (let* ((scell (make-stem-cell code))
+                   (assumed-type (funcall *stemcell-infer-hook* var-name)))
+              (if assumed-type
+                  (add-type-to-stemcell-code scell assumed-type)
+                  scell))
             (error 'symbol-unidentified :sym code)))))
+
+(defun suitable-symbol-for-stemcellp (symb env)
+  (and (allows-stemcellsp env)
+       (let ((str-name (symbol-name symb)))
+         (and (char= (elt str-name 0) #\*)
+              (char= (elt str-name (1- (length str-name)))
+                     #\*)))))
+
+(defun add-type-to-stemcell-code (code-obj type-name)
+  (assert (stemcellp (code-type code-obj)))
+  (let ((type (type-spec->type type-name)))
+    (copy-code code-obj
+               :type type
+               :stemcells (let ((stemcell (first (stemcells code-obj))))
+                            `((,(first stemcell)
+                                ,(second stemcell)
+                                ,type-name))))))
 
 (defun compile-form (code env)
   (let* ((func-name (first code))

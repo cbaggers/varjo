@@ -276,6 +276,7 @@
 
            ;;compiler
            :varjo->glsl
+           :with-stemcell-infer-hook
 
            ;;front-end
            :translate

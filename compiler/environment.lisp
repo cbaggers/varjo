@@ -25,7 +25,7 @@
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
                                            ,@(copy-list *supported-draw-modes*)
-                                           :stemcells :special-stemcells))
+                                           :stemcells))
 
 
 
@@ -213,9 +213,6 @@
 
 (defun allows-stemcellsp (env)
   (context-ok-given-restriction (v-context env) '(:stemcells)))
-
-(defun allows-special-stemcellsp (env)
-  (context-ok-given-restriction (v-context env) '(:special-stemcells)))
 
 ;;-------------------------------------------------------------------------
 
