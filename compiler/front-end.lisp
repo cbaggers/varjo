@@ -481,8 +481,7 @@
        (let ((type-obj (type-spec->type type)))
          (push `(,name ,type
                        ,(gen-uniform-decl-string
-                         (or string-name (safe-glsl-name-string name))
-                         ;;{TODO} ^^^ this is wrong
+                         (or string-name (error "stem cell without glsl-name"))
                          type-obj
                          nil)
                        ,string-name)

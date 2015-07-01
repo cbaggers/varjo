@@ -188,7 +188,7 @@
                    (mapcar #'fourth (v-in-args env))
                    (mapcar #'last1 (out-vars code-obj))
                    (concatenate 'list (mapcar #'third (v-uniforms env))
-                                (mapcar #'fourth (stemcells code-obj)))
+                                (mapcar #'third (stemcells code-obj)))
                    (signatures code-obj)
                    (to-top code-obj))
              :if part :collect part)))
