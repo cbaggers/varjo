@@ -237,10 +237,14 @@
   (unless (loop :for item :in (v-raw-context env)
              :if (find item *supported-versions*) :return item)
     (push *default-version* (v-raw-context env)))
-  (setf (v-context env)
-        (loop :for item :in (v-raw-context env)
-           :if (find item *valid-contents-symbols*) :collect item
-           :else :do (error 'invalid-context-symbol :context-symb item)))
+  (let* ((raw-context (v-raw-context env))
+         (raw-context (if (member :no-iuniforms raw-context)
+                          (remove :iuniforms raw-context)
+                          raw-context)))
+    (setf (v-context env)
+          (loop :for item :in raw-context
+             :if (find item *valid-contents-symbols*) :collect item
+             :else :do (error 'invalid-context-symbol :context-symb item))))
   (values code env))
 
 ;;----------------------------------------------------------------------

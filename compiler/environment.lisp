@@ -25,7 +25,7 @@
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
                                            ,@(copy-list *supported-draw-modes*)
-                                           :iuniforms))
+                                           :iuniforms :no-iuniforms))
 
 
 
