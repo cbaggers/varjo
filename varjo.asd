@@ -20,6 +20,7 @@
                (:file "compiler/macros")
                (:file "language/macros")
                (:file "compiler/string-generation")
+               (:file "compiler/stemcells")
                (:file "compiler/compiler")
                (:file "language/special")
                (:file "language/functions")
