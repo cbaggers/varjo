@@ -47,7 +47,7 @@
     "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec (type-spec)
-    "Expected type specification but got: ~a~a"
+    "Expected type specification but got: ~a~@[ ~a~]"
   type-spec
   (when (typep type-spec 'v-type)
     (format nil "~%It seems we recieved a type object instead of type spec")))
@@ -174,3 +174,10 @@ Value Form: ~a"
 
 (deferror symbol-unidentified (sym)
     "Varjo: Symbol '~s' is unidentified." sym)
+
+(deferror if-form-type-mismatch (test-form then-form then-type
+                                           else-form else-type)
+    "The result if ~a is true is ~a which has type ~a
+however the false case returns ~a which has type ~a
+This is incompatible"
+    test-form then-form then-type else-form else-type)

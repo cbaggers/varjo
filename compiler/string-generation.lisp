@@ -88,6 +88,12 @@
 (defun gen-out-var-assignment-string (glsl-name val)
   (format nil "~a = ~a" glsl-name (current-line val)))
 
+(defun gen-bool-or-string (objs)
+  (format nil "~{~a~^ || ~}" (mapcar #'current-line objs)))
+
+(defun gen-bool-and-string (objs)
+  (format nil "~{~a~^ && ~}" (mapcar #'current-line objs)))
+
 (defun gen-if-string (test-obj then-obj else-obj)
   (if else-obj
       (format nil "~a~&if (~a) {~{~%~a~}~%~a~%} else {~{~%~a~}~%~a~%}"

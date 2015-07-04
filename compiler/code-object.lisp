@@ -42,6 +42,11 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+(defmethod v-code-type-eq ((a code) (b code) &optional (env *global-env*))
+  (v-type-eq (code-type a) (code-type b) env))
+
+;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 (defun make-code-obj (type &optional (current-line ""))
   (make-instance 'code :type type :current-line current-line))
 

@@ -56,20 +56,6 @@
    (name :initform nil :initarg :name :reader name)
    (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)))
 
-(defclass v-stemcell (v-type) ())
-(defmethod v-dimensions ((object v-stemcell)) 0)
-(defun make-stem-cell (symbol)
-  (let ((string-name (string (safe-glsl-name-string symbol)))
-        (original-name symbol))
-    (make-instance
-     'code
-     :type 'v-stemcell
-     :current-line string-name
-     :stemcells `((,original-name ,string-name :|unknown-type|)))))
-
-(defun stemcellp (x)
-  (typep x 'v-stemcell))
-
 (defmethod set-place-t ((type v-type))
   (setf (v-placep type) t) type)
 
@@ -162,8 +148,7 @@
   (v-typep a (type->type-spec b) env))
 (defmethod v-typep ((a v-type) b &optional (env *global-env*))
   (declare (ignore env))
-  (cond ((typep a 'v-stemcell) t)
-        ((symbolp b) (typep a b))
+  (cond ((symbolp b) (typep a b))
         ((and (listp b) (numberp (second b)))  (typep a (first b)))))
 
 (defmethod v-casts-to-p (from-type to-type env)
@@ -185,9 +170,6 @@
         (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)
            :return cast-type))))
-
-(defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
-  to-type)
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types

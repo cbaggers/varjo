@@ -452,8 +452,65 @@
             (varjo-error () (error error-message)))))
     (otherwise (error "Unknown assert kind ~s" kind))))
 
+(v-defspecial :boolify (form)
+  :args-valid t
+  :return
+  (let* ((form-obj (varjo->glsl form env))
+         (form-obj (when (not (v-typep (code-type form-obj) 'v-bool))
+                     (varjo->glsl t env))))
+    form-obj))
+
+
+(v-defspecial :or (&rest forms)
+  :args-valid t
+  :return
+  (let* ((objs (mapcar (lambda (x) (varjo->glsl x env)) forms)))
+    (unless (loop for o in objs always (v-code-type-eq o (first objs)))
+      (error "all forms of an 'OR' form must resolve to the same type"))
+    (if (v-typep (code-type (first objs)) (type-spec->type :bool))
+        (merge-obs objs :type :bool :current-line (gen-bool-or-string objs))
+        (first objs))))
+
+(v-defspecial :and (&rest forms)
+  :args-valid t
+  :return
+  (let* ((objs (mapcar (lambda (x) (varjo->glsl x env)) forms)))
+    (unless (loop for o in objs always (v-code-type-eq o (first objs)))
+      (error "all forms of an 'AND' form must resolve to the same type"))
+    (if (v-typep (code-type (first objs)) (type-spec->type :bool))
+        (merge-obs objs :type :bool :current-line (gen-bool-and-string objs))
+        (last1 objs))))
+
 ;; note that just like in lisp this only fails if false. 0 does not fail.
+;; the then and else statements must have the same type
+;; the return type is the type of the then/else form
 (v-defspecial :if (test-form then-form &optional else-form)
+  :args-valid t
+  :return
+  (let* ((test-obj (varjo->glsl test-form env))
+         (then-obj (end-line (varjo->glsl then-form env)))
+         (else-obj (when else-form (end-line (varjo->glsl else-form env)))))
+
+    (when (not (v-typep (code-type test-obj) 'v-bool))
+      (setf test-obj (varjo->glsl t env))
+      (setf else-obj nil))
+
+    (when else-obj (assert (v-code-type-eq then-obj else-obj)))
+
+    (let ((result (free-name :result-from-if))
+          (result-type (type->type-spec (code-type then-obj))))
+      (expand->varjo->glsl
+       `(let (((,result ,result-type)))
+          (%if ,test-form
+                 (setf ,result ,then-form)
+                 ,@(when else-form `((setf ,result ,else-form))))
+          ,result)
+       env))))
+
+;; note that just like in lisp this only fails if false. 0 does not fail.
+;; this is the if statement from gl. It has a return type type of :none
+;; and allows then and else statements that return different types
+(v-defspecial :%if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
