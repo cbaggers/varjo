@@ -5,7 +5,8 @@
   :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
   :license "LLGPL"
   :serial t
-  :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables)
+  :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
+                          #:vas-string-metrics)
   :components ((:file "package")
                (:file "utils-v")
                (:file "compiler/errors")

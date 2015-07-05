@@ -38,7 +38,7 @@
           args
           (v-argument-spec func)))
 
-(defclass v-stemcell (v-type) ())
+(def-v-type-class v-stemcell (v-type) ())
 (defmethod v-dimensions ((object v-stemcell)) 0)
 (defun make-stem-cell (symbol)
   (let ((string-name (string (safe-glsl-name-string symbol)))

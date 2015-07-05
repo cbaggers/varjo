@@ -47,10 +47,15 @@
     "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec (type-spec)
-    "Expected type specification but got: ~a~@[ ~a~]"
+    "Varjo: Could not find the correct type for type-spec ~a~@[ ~a~]~%~a"
   type-spec
   (when (typep type-spec 'v-type)
-    (format nil "~%It seems we recieved a type object instead of type spec")))
+    (format nil "~%It seems we recieved a type object instead of type spec"))
+  (let ((found (find-alternative-types-for-spec type-spec)))
+    (if found
+        (format nil "~%Perhaps you meant one of these types?:~%~(~{~s~%~}~)"
+                found)
+        "")))
 
 (deferror duplicate-name (name)
     "This name appears more than once in this form list ~a" name)

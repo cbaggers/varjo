@@ -9,40 +9,52 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defclass v-spec-type ()
+(defvar *registered-types* nil)
+
+(defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
+  (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
+                       `(append (list ,(kwd (subseq (symbol-name name) 2))
+                                      ',name)
+                                *registered-types*)
+                       `(cons ',name *registered-types*))))
+    `(progn (defclass ,name ,direct-superclass ,direct-slots ,@options)
+            (setf *registered-types* (remove-duplicates ,new-names))
+            ',name)))
+
+(def-v-type-class v-spec-type ()
   ((place :initform t :initarg :place :reader v-placep)))
-(defclass v-t-type () ())
-(defclass v-type (v-t-type)
+(def-v-type-class v-t-type () ())
+(def-v-type-class v-type (v-t-type)
   ((core :initform nil :reader core-typep)
    (place :initform t :initarg :place :accessor v-placep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)))
 
-(defclass v-none (v-t-type) ())
+(def-v-type-class v-none (v-t-type) ())
 
-(defclass v-container (v-type)
+(def-v-type-class v-container (v-type)
   ((element-type :initform nil)
    (dimensions :initform nil :accessor v-dimensions)))
 
-(defclass v-array (v-container)
+(def-v-type-class v-array (v-container)
   ((element-type :initform nil :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 (defmethod v-glsl-string ((object v-array))
   (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object)) (v-dimensions object)))
 
-(defclass v-error (v-type)
+(def-v-type-class v-error (v-type)
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 
-(defclass v-struct (v-type)
+(def-v-type-class v-struct (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
    (signature :initform nil :initarg :signature :accessor v-signature)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
-(defclass v-user-struct (v-struct) ())
+(def-v-type-class v-user-struct (v-struct) ())
 
-(defclass v-function (v-type)
+(def-v-type-class v-function (v-type)
   ((restriction :initform nil :initarg :restriction :accessor v-restriction)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
@@ -173,9 +185,9 @@
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types
-                         :collect (if (typep type 'v-t-type)
-                                      (type->type-spec type)
-                                      type))))
+                  :collect (if (typep type 'v-t-type)
+                               (type->type-spec type)
+                               type))))
     (if (loop :for name :in names :always (eq name (first names)))
         (first names)
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
@@ -214,3 +226,14 @@
 (defmethod initialize-instance :after ((type-obj v-t-type) &rest initargs)
   (declare (ignore initargs))
   (post-initialise type-obj))
+
+(defun find-alternative-types-for-spec (type-spec)
+  (when (symbolp type-spec)
+    (let ((sn (symbol-name type-spec)))
+      (append
+       (remove-if-not
+        (lambda (x)
+          (let ((x (symbol-name x)))
+            (or (string= sn x)
+                (> (vas-string-metrics:jaro-winkler-distance sn x) 0.9))))
+        *registered-types*)))))

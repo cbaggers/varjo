@@ -22,7 +22,7 @@
           (fake-type-name (fake-type-name name)))
       `(progn
          ,(when shadowing `(add-type-shadow ',name ',class-name))
-         (defclass ,class-name (v-user-struct)
+         (def-v-type-class ,class-name (v-user-struct)
            ((glsl-string :initform ,name-string :initarg :glsl-string
                          :reader v-glsl-string)
             (signature :initform ,(format nil "struct ~a {~%~{~a~%~}};"
@@ -34,8 +34,8 @@
            (make-instance ',true-type-name))
          (defmethod v-fake-type ((object ,class-name))
            (make-instance ',fake-type-name))
-         (defclass ,true-type-name (,class-name) ())
-         (defclass ,fake-type-name (,class-name) ((signature :initform "")))
+         (def-v-type-class ,true-type-name (,class-name) ())
+         (def-v-type-class ,fake-type-name (,class-name) ((signature :initform "")))
          (v-defun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
