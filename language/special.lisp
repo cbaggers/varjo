@@ -488,24 +488,27 @@
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
+         (always-true (or (eq test-form t)
+                          (not (v-typep (code-type test-obj) 'v-bool))))
          (then-obj (end-line (varjo->glsl then-form env)))
-         (else-obj (when else-form (end-line (varjo->glsl else-form env)))))
-
-    (when (not (v-typep (code-type test-obj) 'v-bool))
-      (setf test-obj (varjo->glsl t env))
-      (setf else-obj nil))
-
-    (when else-obj (assert (v-code-type-eq then-obj else-obj)))
-
-    (let ((result (free-name :result-from-if))
-          (result-type (type->type-spec (code-type then-obj))))
-      (expand->varjo->glsl
-       `(let (((,result ,result-type)))
-          (%if ,test-form
-                 (setf ,result ,then-form)
-                 ,@(when else-form `((setf ,result ,else-form))))
-          ,result)
-       env))))
+         (else-obj (if else-form
+                       (end-line (varjo->glsl else-form env))
+                       (if (not always-true)
+                           (error "Type mismatch: else-case is nil which is of bool type, yet the then form is of ~s type."
+                                  (type->type-spec (code-type then-obj)))
+                           (varjo->glsl nil env)))))
+    (if always-true
+        then-obj
+        (let ((result (free-name :result-from-if))
+              (result-type (type->type-spec (code-type then-obj))))
+          (when else-obj (assert (v-code-type-eq then-obj else-obj)))
+          (expand->varjo->glsl
+           `(let (((,result ,result-type)))
+              (%if ,test-form
+                   (setf ,result ,then-form)
+                   (setf ,result ,else-form))
+              ,result)
+           env)))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 ;; this is the if statement from gl. It has a return type type of :none

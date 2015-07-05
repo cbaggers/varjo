@@ -8,6 +8,12 @@
 
 (in-package :varjo)
 
+(v-defmacro :cond (&rest clauses)
+  `(if ,(caar clauses)
+       ,(cadar clauses)
+       ,@(when (rest clauses)
+               `((cond ,@(rest clauses))))))
+
 (v-define-compiler-macro :+ (&rest numbers)
   (cond
     ((= (length numbers) 1) (first numbers))
