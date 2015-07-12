@@ -9,15 +9,15 @@
 ;; [TODO] setf coudl change type, how do we handle this?
 (in-package :varjo)
 
-;; (V-DEFUN :LDEXP (X TI &CONTEXT (:330 :440)) "ldexp(~a,~a)" (TFD IN) 0 :PLACE NIL) 
-;; (V-DEFUN :BIT-COUNT (VALUE &CONTEXT (:330 :440)) "bitCount(~a)" (TIU) (#'TI 0) :PLACE NIL) 
-;; (V-DEFUN :FIND-L-S-B (VALUE &CONTEXT (:330 :440)) "findLSB(~a)" (TIU) (#'TI 0) :PLACE NIL) 
-;; (V-DEFUN :FIND-M-S-B (VALUE &CONTEXT (:330 :440)) "findMSB(~a)" (TIU) (#'TI 0) :PLACE NIL) 
-;; (V-DEFUN :FLOAT-BITS-TO-INT (VALUE &CONTEXT (:330 :440)) "floatBitsToInt(~a)" (TF) (#'TI 0) :PLACE NIL) 
-;; (V-DEFUN :FLOAT-BITS-TO-UINT (VALUE &CONTEXT (:330 :440)) "floatBitsToUint(~a)" (TF) (#'TU 0) :PLACE NIL) 
+;; (V-DEFUN :LDEXP (X TI &CONTEXT (:330 :440)) "ldexp(~a,~a)" (TFD IN) 0 :PLACE NIL)
+;; (V-DEFUN :BIT-COUNT (VALUE &CONTEXT (:330 :440)) "bitCount(~a)" (TIU) (#'TI 0) :PLACE NIL)
+;; (V-DEFUN :FIND-L-S-B (VALUE &CONTEXT (:330 :440)) "findLSB(~a)" (TIU) (#'TI 0) :PLACE NIL)
+;; (V-DEFUN :FIND-M-S-B (VALUE &CONTEXT (:330 :440)) "findMSB(~a)" (TIU) (#'TI 0) :PLACE NIL)
+;; (V-DEFUN :FLOAT-BITS-TO-INT (VALUE &CONTEXT (:330 :440)) "floatBitsToInt(~a)" (TF) (#'TI 0) :PLACE NIL)
+;; (V-DEFUN :FLOAT-BITS-TO-UINT (VALUE &CONTEXT (:330 :440)) "floatBitsToUint(~a)" (TF) (#'TU 0) :PLACE NIL)
 ;; (V-DEFUN :NOISEN (X &CONTEXT (:330 :440)) "noisen(~a)" (TF) (#'VECN 0) :PLACE NIL)
-;; (V-DEFUN :INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL) 
-;; (V-DEFUN :UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL) 
+;; (V-DEFUN :INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) & :PLACE NIL)
+;; (V-DEFUN :UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) & :PLACE NIL)
 
 (v-defun aref (x i) "~a[~a]" (v-array v-int) (:element 0))
 (v-defun aref (x i) "~a[~a]" (v-vector v-int) (:element 0))
@@ -102,6 +102,9 @@
 (v-defun :%- (a b) "(~a - ~a)" (v-vec2 v-vec2) 0 :glsl-spec-matching t)
 (v-defun :%- (a b) "(~a - ~a)" (v-vec3 v-vec3) 0 :glsl-spec-matching t)
 (v-defun :%- (a b) "(~a - ~a)" (v-vec4 v-vec4) 0 :glsl-spec-matching t)
+(v-defun :%- (a) "(-~a)" (v-vec2) 0 :glsl-spec-matching t)
+(v-defun :%- (a) "(-~a)" (v-vec3) 0 :glsl-spec-matching t)
+(v-defun :%- (a) "(-~a)" (v-vec4) 0 :glsl-spec-matching t)
 
 (v-defun :%- (a b) "(~a - ~a)" (v-ivec2 v-ivec2) 0 :glsl-spec-matching t)
 (v-defun :%- (a b) "(~a - ~a)" (v-ivec3 v-ivec3) 0 :glsl-spec-matching t)
@@ -130,8 +133,12 @@
 (v-defun :%* (a b) "(~a * ~a)" (v-vec2 v-float) 0 :glsl-spec-matching t)
 (v-defun :%* (a b) "(~a * ~a)" (v-vec3 v-float) 0 :glsl-spec-matching t)
 (v-defun :%* (a b) "(~a * ~a)" (v-vec4 v-float) 0 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-float v-vec2) 1 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-float v-vec3) 1 :glsl-spec-matching t)
+(v-defun :%* (a b) "(~a * ~a)" (v-float v-vec4) 1 :glsl-spec-matching t)
 
 (v-defun :%/ (a b) "(~a / ~a)" (v-number v-number) nil :glsl-spec-matching t)
+(v-defun :%/ (a b) "(~a / ~a)" (v-vector v-number) 0 :glsl-spec-matching t)
 
 (v-defun :v! (x y) "vec3(~a,~a)" (v-float v-vec2) v-vec3 :glsl-spec-matching t)
 (v-defun :v! (x y) "vec3(~a,~a)" (v-vec2 v-float) v-vec3 :glsl-spec-matching t)
@@ -146,25 +153,25 @@
 
 (v-defun :v! (x y) "vec2(~a,~a)" (v-float v-float) v-vec2 :glsl-spec-matching t)
 (v-defun :v! (x y z) "vec3(~a,~a,~a)" (v-float v-float v-float) v-vec3 :glsl-spec-matching t)
-(v-defun :v! (x y z w) "vec4(~a,~a,~a,~a)" (v-float v-float v-float v-float) 
+(v-defun :v! (x y z w) "vec4(~a,~a,~a,~a)" (v-float v-float v-float v-float)
          v-vec4 :glsl-spec-matching t)
 
 (v-defun :m! (a b c d) "mat2(~a,~a,~a,~a)" (v-float v-float v-float v-float)
          v-mat2 :glsl-spec-matching t)
 (v-defun :m! (a b) "mat2(~a,~a)" (v-vec2 v-vec2) v-mat2 :glsl-spec-matching t)
 
-(v-defun :m! (a b c d e f g h i) "mat3(~a,~a,~a,~a,~a,~a,~a,~a,~a)" 
+(v-defun :m! (a b c d e f g h i) "mat3(~a,~a,~a,~a,~a,~a,~a,~a,~a)"
          (v-float v-float v-float v-float v-float
                   v-float v-float v-float v-float) v-mat3 :glsl-spec-matching t)
 (v-defun :m! (a b c) "mat3(~a,~a,~a)" (v-vec3 v-vec3 v-vec3) v-mat3
          :glsl-spec-matching t)
 
-(v-defun :m! (a b c d e f g h i j k l m n o p) 
-  "mat4(~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a)" 
+(v-defun :m! (a b c d e f g h i j k l m n o p)
+  "mat4(~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a)"
   (v-float v-float v-float v-float v-float v-float v-float v-float v-float
-           v-float v-float v-float v-float v-float v-float v-float v-float) 
+           v-float v-float v-float v-float v-float v-float v-float v-float)
   v-mat4 :glsl-spec-matching t)
-(v-defun :m! (a b c d) 
+(v-defun :m! (a b c d)
   "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4
   :glsl-spec-matching t)
 

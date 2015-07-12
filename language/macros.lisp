@@ -14,6 +14,10 @@
        ,@(when (rest clauses)
                `((cond ,@(rest clauses))))))
 
+(v-defmacro :incf (place &optional (delta 1))
+  `(progn (setf ,place (+ ,place ,delta))
+          ,place))
+
 (v-define-compiler-macro :+ (&rest numbers)
   (cond
     ((= (length numbers) 1) (first numbers))
