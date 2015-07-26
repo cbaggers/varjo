@@ -91,8 +91,7 @@
     (values code-obj (or new-env env))))
 
 (defun compile-regular-function-call (func-name func args env)
-  (let* ((args (make-stemcell-arguments-concrete args func))
-         (c-line (gen-function-string func args))
+  (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
@@ -104,8 +103,7 @@
                :stemcells (mapcan #'stemcells args))))
 
 (defun compile-multi-return-function-call (func-name func args env)
-  (let* ((args (make-stemcell-arguments-concrete args func))
-         (type (resolve-func-type func args env)))
+  (let* ((type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
     (let* ((has-base (not (null (v-multi-val-base env))))
@@ -126,11 +124,11 @@
                  :to-top (mapcan #'to-top args)
                  :signatures (mapcan #'signatures args)
                  :stemcells (mapcan #'stemcells args)
-                 :multi-vals (mapcar (lambda (_)
+                 :multi-vals (mapcar (lambda (_ _1)
                                        (make-mval
                                         (make-instance
                                          'v-value
-                                         :type (v-type (slot-value % 'value))
+                                         :type (v-type (slot-value _ 'value))
                                          :glsl-name _1)))
                                      mvals
                                      m-r-names))))
