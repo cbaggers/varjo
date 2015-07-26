@@ -186,3 +186,27 @@ Value Form: ~a"
 however the false case returns ~a which has type ~a
 This is incompatible"
     test-form then-form then-type else-form else-type)
+
+(deferror bad-make-function-args (func-name arg-specs)
+    "Trying to define the function ~s but the following argument specifications
+are a bit odd:
+~{~s~^~%~}
+
+Generally arguments are defined in the format (arg-name arg-type)
+e.g. (~a :vec3)"
+    func-name arg-specs
+    ;; this bit below is so that, where possible, the error uses one of
+    ;; your arg names in the example of a valid arg spec.
+    ;; I hope this makes the error message a bit more relevent and approachable
+    (let* ((potential-spec (first arg-specs))
+           (potential-name (cond
+                             ((listp potential-spec) (first potential-spec))
+                             ((and (symbolp potential-spec)
+                                   (not (null potential-spec))
+                                   (not (keywordp potential-spec)))
+                              potential-spec))))
+      (if (and potential-name
+               (symbolp potential-name)
+               (not (keywordp potential-name)))
+          (string-downcase (symbol-name potential-name))
+          "x")))

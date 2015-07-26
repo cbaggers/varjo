@@ -351,68 +351,84 @@
 (v-defspecial :%make-function (name raw-args &rest body)
   :args-valid t
   :return
-  (let* ((mainp (eq name :main))
-         (env (make-func-env env mainp))
-         (args (mapcar #'list raw-args))
-         (arg-glsl-names (loop :for (name) :in raw-args :collect
-                            (safe-glsl-name-string (free-name name))))
-         (body-code `(return (progn ,@body)))
-         (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block-for-labels)
-                                   (%multi-env-progn
-                                    ,@(loop :for b :in args
-                                         :for g :in arg-glsl-names
-                                         :collect `(%glsl-let ,b nil ,g)))
-                                   ,body-code) env))
-         (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
-         (primary-return (first (returns body-obj)))
-         (multi-return-vars (rest (returns body-obj)))
-         (type (if mainp (type-spec->type 'v-void) primary-return))
-         (implicit-args (remove-if (lambda (_)
-                                     (= (v-function-scope _)
-                                        (v-function-scope env)))
-                         (normalize-out-of-scope-args
-                          (out-of-scope-args body-obj)))))
-    (unless (or mainp primary-return) (error 'no-function-returns :name name))
-    (add-function
-     name (func-spec->function
-           (v-make-f-spec name
-                          (gen-function-transform glsl-name raw-args
-                                                  multi-return-vars
-                                                  implicit-args)
-                          nil ;;should be context
-                          (mapcar #'second raw-args)
-                          type :glsl-name glsl-name
-                          :multi-return-vars multi-return-vars
-                          :implicit-args implicit-args) env) env t)
-    (let* ((arg-pairs (loop :for (ignored type) :in raw-args
-                         :for name :in arg-glsl-names :collect
-                         `(,(v-glsl-string (type-spec->type type)) ,name)))
-           (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
-                             :for name = (v-glsl-name (slot-value mval 'value)) :collect
-                             `(,(v-glsl-string (v-type (slot-value mval 'value)))
-                                ,name)))
-           (sigs (if mainp
-                     (signatures body-obj)
-                     (cons (gen-function-signature glsl-name arg-pairs
-                                                   out-arg-pairs type
-                                                   implicit-args)
-                           (signatures body-obj))))
-           (top (cons-end (gen-function-body-string
-                           glsl-name arg-pairs out-arg-pairs type body-obj
-                           implicit-args)
-                          (to-top body-obj))))
+  (progn
+    (unless (function-raw-args-validp raw-args)
+      (error 'bad-make-function-args
+             :func-name name
+             :arg-specs (remove-if #'function-raw-arg-validp raw-args)))
+    (let* ((mainp (eq name :main))
+           (env (make-func-env env mainp))
+           (args (mapcar #'list raw-args))
+           (arg-glsl-names (loop :for (name) :in raw-args :collect
+                              (safe-glsl-name-string (free-name name))))
+           (body-code `(return (progn ,@body)))
+           (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block-for-labels)
+                                     (%multi-env-progn
+                                      ,@(loop :for b :in args
+                                           :for g :in arg-glsl-names
+                                           :collect `(%glsl-let ,b nil ,g)))
+                                     ,body-code) env))
+           (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
+           (primary-return (first (returns body-obj)))
+           (multi-return-vars (rest (returns body-obj)))
+           (type (if mainp (type-spec->type 'v-void) primary-return))
+           (implicit-args (remove-if (lambda (_)
+                                       (= (v-function-scope _)
+                                          (v-function-scope env)))
+                                     (normalize-out-of-scope-args
+                                      (out-of-scope-args body-obj)))))
+      (unless (or mainp primary-return) (error 'no-function-returns :name name))
+      (add-function
+       name (func-spec->function
+             (v-make-f-spec name
+                            (gen-function-transform glsl-name raw-args
+                                                    multi-return-vars
+                                                    implicit-args)
+                            nil ;;should be context
+                            (mapcar #'second raw-args)
+                            type :glsl-name glsl-name
+                            :multi-return-vars multi-return-vars
+                            :implicit-args implicit-args) env) env t)
+      (let* ((arg-pairs (loop :for (ignored type) :in raw-args
+                           :for name :in arg-glsl-names :collect
+                           `(,(v-glsl-string (type-spec->type type)) ,name)))
+             (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
+                               :for name = (v-glsl-name (slot-value mval 'value)) :collect
+                               `(,(v-glsl-string (v-type (slot-value mval 'value)))
+                                  ,name)))
+             (sigs (if mainp
+                       (signatures body-obj)
+                       (cons (gen-function-signature glsl-name arg-pairs
+                                                     out-arg-pairs type
+                                                     implicit-args)
+                             (signatures body-obj))))
+             (top (cons-end (gen-function-body-string
+                             glsl-name arg-pairs out-arg-pairs type body-obj
+                             implicit-args)
+                            (to-top body-obj))))
 
-      (values (merge-obs body-obj
-                         :type (type-spec->type 'v-none)
-                         :current-line nil
-                         :signatures sigs
-                         :to-top top
-                         :to-block nil
-                         :returns nil
-                         :out-vars (out-vars body-obj)
-                         :multi-vals nil
-                         :out-of-scope-args implicit-args)
-              env))))
+        (values (merge-obs body-obj
+                           :type (type-spec->type 'v-none)
+                           :current-line nil
+                           :signatures sigs
+                           :to-top top
+                           :to-block nil
+                           :returns nil
+                           :out-vars (out-vars body-obj)
+                           :multi-vals nil
+                           :out-of-scope-args implicit-args)
+                env)))))
+
+(defun function-raw-args-validp (raw-args)
+  (every #'function-raw-arg-validp raw-args))
+
+(defun function-raw-arg-validp (raw-arg)
+  (and (listp raw-arg)
+       (>= (length raw-arg) 2)
+       (not (null (first raw-arg)))
+       (symbolp (first raw-arg))
+       (not (keywordp (first raw-arg)))
+       (type-specp (second raw-arg))))
 
 (v-defmacro :labels (definitions &body body)
   `(%clone-env-block
