@@ -222,8 +222,18 @@
       (if (or (null template)
               (every #'first-in-template-p split))
           (reverse-results (clean-alist split))
-          (error "'&' symbol found that was not specified in template ~s"
-                 (mapcar #'first split))))))
+          (let* ((&-syms (remove-if-not
+                          (lambda (x)
+                            (when (symbolp x) (eq (elt (symbol-name x) 0) #\&)))
+                          lam-list))
+                 (unknown (remove-if (lambda (x) (member x template))
+                                     &-syms)))
+            (error "~%Varjo: Found the symbol~a ~a. Given that it starts with '&' it looks
+like a lambda list keyword. Unfortunately the only lambda list keywords that
+are supported in this context are: ~s"
+                   (if (> (length unknown) 1) "s" "")
+                   (if (= (length unknown) 1) (first unknown) unknown)
+                   (remove nil template)))))))
 
 (defun split-arguments (args &optional (template '(&uniform &context &instancing)))
   (let* ((split (lambda-list-split template args))
