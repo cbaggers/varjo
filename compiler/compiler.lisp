@@ -55,7 +55,7 @@
     (if v-value
         (let* ((val-scope (v-function-scope v-value))
                (from-higher-scope (and (> val-scope 0)
-                                       (< (v-function-scope env)))))
+                                       (< val-scope (v-function-scope env)))))
           (v-variable->code-obj var-name v-value from-higher-scope))
         (if (suitable-symbol-for-stemcellp var-name env)
             (let* ((scell (make-stem-cell code))

@@ -348,48 +348,58 @@
     (incf (v-function-scope new-env))
     new-env))
 
-(v-defspecial :%make-function (name raw-args &rest body)
+(v-defmacro %make-function (name args &body body)
+  `(%%make-function ,name ,args ,body t))
+
+(v-defmacro %make-function-no-implicit (name args &body body)
+  `(%%make-function ,name ,args ,body nil))
+
+(v-defspecial :%%make-function (name args body allow-implicit-args)
   :args-valid t
   :return
   (progn
-    (unless (function-raw-args-validp raw-args)
+    (unless (function-raw-args-validp args)
       (error 'bad-make-function-args
              :func-name name
-             :arg-specs (remove-if #'function-raw-arg-validp raw-args)))
+             :arg-specs (remove-if #'function-raw-arg-validp args)))
     (let* ((mainp (eq name :main))
            (env (make-func-env env mainp))
-           (args (mapcar #'list raw-args))
-           (arg-glsl-names (loop :for (name) :in raw-args :collect
+           (arg-glsl-names (loop :for (name) :in args :collect
                               (safe-glsl-name-string (free-name name))))
            (body-code `(return (progn ,@body)))
            (body-obj (varjo->glsl `(,(if mainp 'progn '%clean-env-block-for-labels)
                                      (%multi-env-progn
                                       ,@(loop :for b :in args
                                            :for g :in arg-glsl-names
-                                           :collect `(%glsl-let ,b nil ,g)))
+                                           :collect `(%glsl-let (,b) nil ,g)))
                                      ,body-code) env))
            (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
            (primary-return (first (returns body-obj)))
            (multi-return-vars (rest (returns body-obj)))
            (type (if mainp (type-spec->type 'v-void) primary-return))
-           (implicit-args (remove-if (lambda (_)
-                                       (= (v-function-scope _)
-                                          (v-function-scope env)))
-                                     (normalize-out-of-scope-args
-                                      (out-of-scope-args body-obj)))))
+           (implicit-args (when allow-implicit-args
+                            (remove-if (lambda (_)
+                                         (= (v-function-scope _)
+                                            (v-function-scope env)))
+                                       (normalize-out-of-scope-args
+                                        (out-of-scope-args body-obj))))))
       (unless (or mainp primary-return) (error 'no-function-returns :name name))
-      (add-function
-       name (func-spec->function
-             (v-make-f-spec name
-                            (gen-function-transform glsl-name raw-args
-                                                    multi-return-vars
-                                                    implicit-args)
-                            nil ;;should be context
-                            (mapcar #'second raw-args)
-                            type :glsl-name glsl-name
-                            :multi-return-vars multi-return-vars
-                            :implicit-args implicit-args) env) env t)
-      (let* ((arg-pairs (loop :for (ignored type) :in raw-args
+      (add-function name
+                    (func-spec->function
+                     (v-make-f-spec name
+                                    (gen-function-transform
+                                     glsl-name args
+                                     multi-return-vars
+                                     (when allow-implicit-args implicit-args))
+                                    nil ;;should be context
+                                    (mapcar #'second args)
+                                    type :glsl-name glsl-name
+                                    :multi-return-vars multi-return-vars
+                                    :implicit-args (when allow-implicit-args
+                                                     implicit-args))
+                     env)
+                    env t)
+      (let* ((arg-pairs (loop :for (ignored type) :in args
                            :for name :in arg-glsl-names :collect
                            `(,(v-glsl-string (type-spec->type type)) ,name)))
              (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
@@ -400,13 +410,14 @@
                        (signatures body-obj)
                        (cons (gen-function-signature glsl-name arg-pairs
                                                      out-arg-pairs type
-                                                     implicit-args)
+                                                     (when allow-implicit-args
+                                                       implicit-args))
                              (signatures body-obj))))
              (top (cons-end (gen-function-body-string
-                             glsl-name arg-pairs out-arg-pairs type body-obj
-                             implicit-args)
+                             glsl-name (unless mainp arg-pairs)
+                             out-arg-pairs type body-obj
+                             (when allow-implicit-args implicit-args))
                             (to-top body-obj))))
-
         (values (merge-obs body-obj
                            :type (type-spec->type 'v-none)
                            :current-line nil
@@ -416,7 +427,8 @@
                            :returns nil
                            :out-vars (out-vars body-obj)
                            :multi-vals nil
-                           :out-of-scope-args implicit-args)
+                           :out-of-scope-args (when allow-implicit-args
+                                                implicit-args))
                 env)))))
 
 (defun function-raw-args-validp (raw-args)
@@ -433,6 +445,11 @@
 (v-defmacro :labels (definitions &body body)
   `(%clone-env-block
     ,@(loop :for d :in definitions :collect `(%make-function ,@d))
+    ,@body))
+
+(v-defmacro labels-no-implicit (definitions &body body)
+  `(%clone-env-block
+    ,@(loop :for d :in definitions :collect `(%make-function-no-implicit ,@d))
     ,@body))
 
 ;; {TODO} what if type of form is not value
