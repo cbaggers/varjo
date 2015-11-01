@@ -36,6 +36,8 @@
            (make-instance ',fake-type-name))
          (def-v-type-class ,true-type-name (,class-name) ())
          (def-v-type-class ,fake-type-name (,class-name) ((signature :initform "")))
+	 (defmethod type->type-spec ((type ,true-type-name))
+	   ',name)
          (v-defun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))

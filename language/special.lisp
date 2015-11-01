@@ -287,11 +287,11 @@
                         `(%make-var ,glsl-name ,type-spec)
                         `(%typify (%make-var ,glsl-name ,type-spec)))))
                (let-obj (varjo->glsl glsl-let-code env)))
-          (add-var name
-                   (v-make-value (set-place-t
-                                  (or type-spec (code-type code-obj)))
-                                 env glsl-name)
-                   env t)
+	  (add-var name
+		   (v-make-value (set-place-t
+				  (or type-spec (code-type code-obj)))
+				 env glsl-name)
+		   env t)
           (values (if include-type-declaration
                       (merge-obs let-obj
                                  :type (type-spec->type 'v-none)
@@ -311,8 +311,7 @@
                         env-local-expessions))
              (code-objs (mapcar #'first e))
              (env-objs (mapcar #'second e))
-             (merged-env (reduce (lambda (_ _1)
-                                   (merge-env _ _1))
+             (merged-env (reduce (lambda (_ _1) (merge-env _ _1))
                                  env-objs)))
         (values
          (merge-obs code-objs
@@ -365,6 +364,7 @@
              :func-name name
              :arg-specs (remove-if #'function-raw-arg-validp args)))
     (let* ((mainp (eq name :main))
+	   (*v-debug* (not mainp))
            (env (make-func-env env mainp))
            (arg-glsl-names (loop :for (name) :in args :collect
                               (safe-glsl-name-string (free-name name))))

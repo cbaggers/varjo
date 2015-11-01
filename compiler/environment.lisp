@@ -138,18 +138,22 @@
 (defun %merge-env-lists (a b)
   (reduce #'varjo::%merge-env-lists-item b :initial-value a))
 
-(defun %merge-env-lists-item (a item)
+(defun %merge-env-lists-item (a item-to-insert)
   "if item is in A then append its entry to item in A"
   ;; find item in a
-  (let ((entry (find (first item) a :key #'first)))
-    (if entry
-        ;; ensure item isn't already in there
-        (if (and entry (not (member (second item) entry)))
-            (cons (cons (first entry) (cons item (rest entry)))
-                  (remove (first item) a :key #'first))
-            a)
+  (let* ((pre-exisiting-item (find (first item-to-insert) a :key #'first))
+	 (pre-existing-members (rest pre-exisiting-item)))
+    (if pre-exisiting-item
+        ;; dont insert any item that's already in there
+	(let ((to-insert
+	       (remove-if (lambda (x) (not (member x pre-existing-members)))
+			  (rest item-to-insert))))
+	  (cons (cons (first pre-exisiting-item)
+		      (append to-insert pre-existing-members))
+		(remove (first item-to-insert) a :key #'first))
+	  a)
         ;; not found in A so add it
-        (cons item a))))
+        (cons item-to-insert a))))
 
 ;;-------------------------------------------------------------------------
 
