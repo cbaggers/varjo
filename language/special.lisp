@@ -8,12 +8,8 @@
 
 (in-package :varjo)
 
-;;{TODO} all special functions starting with :% should start with % as they
-;;       are not directly used anyway. After his look into whether any glsl
-;;       functions should use keyword names.
-
 ;;{TODO} make it handle multiple assignements like cl version
-(v-defspecial :setf ((place v-type) (val v-type))
+(v-defspecial setf ((place v-type) (val v-type))
   :return
   (cond ((not (v-placep (code-type place)))
          (error 'non-place-assign :place place :val val))
@@ -22,12 +18,12 @@
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)))))
 
-(v-defspecial :%setf ((place v-type) (val v-type))
+(v-defspecial %setf ((place v-type) (val v-type))
   :return
   (merge-obs (list place val) :type (code-type place)
              :current-line (gen-assignment-string place val)))
 
-(v-defspecial :progn (&rest body)
+(v-defspecial progn (&rest body)
   ;; this is super important as it is the only function that implements
   ;; imperitive coding. It does this by passing the env from one form
   ;; to the next.
@@ -56,14 +52,14 @@
                      :multi-vals (multi-vals (last1 body-objs)))))
       (make-code-obj (type-spec->type :none))))
 
-(v-defmacro :prog1 (&body body)
+(v-defmacro prog1 (&body body)
   (let ((tmp (free-name 'progn-var)))
     `(let ((,tmp ,(first body)))
        ,@(rest body)
        ,tmp)))
 
 
-(v-defspecial :multiple-value-bind (vars value-form &rest body)
+(v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
   (let ((new-env (clone-environment env))
@@ -90,7 +86,7 @@
            ,@body)
          env)))))
 
-(v-defspecial :values (&rest values)
+(v-defspecial values (&rest values)
   :args-valid t
   :return
   (if (v-multi-val-base env)
@@ -142,7 +138,7 @@
     `(%out (,(free-name :out env) ,@qualifiers) ,value)))
 ;;--------------------------------------------------
 
-(v-defspecial :return (form)
+(v-defspecial return (form)
   :args-valid t
   :return
   (let ((new-env (clone-environment env)))
@@ -213,12 +209,12 @@
           (t (error "Have not implemented #'values defaults for this stage ~a"
                     env)))))
 
-(v-defspecial :%clean-env-block (&rest body)
+(v-defspecial %clean-env-block (&rest body)
   :args-valid t
   :return (let ((new-env (clean-environment env)))
             (varjo->glsl `(progn ,@body) new-env)))
 
-(v-defspecial :%clean-env-block-for-labels (&rest body)
+(v-defspecial %clean-env-block-for-labels (&rest body)
   :args-valid t
   :return (let ((new-env (clean-environment env)))
             (setf (v-functions new-env)
@@ -229,26 +225,20 @@
                   (remove :main (v-context env)))
             (varjo->glsl `(progn ,@body) new-env)))
 
-(v-defspecial :%clone-env-block (&rest body)
+(v-defspecial %clone-env-block (&rest body)
   :args-valid t
   :return (let ((new-env (clone-environment env)))
             (varjo->glsl `(progn ,@body) new-env)))
 
-(v-defspecial %merge-env (env-a new-env)
-  :args-valid t
-  :return
-  (let ((dummy-code-obj (make-code-obj nil "")))
-    (values dummy-code-obj (merge-env env-a new-env))))
-
 ;;{TODO} this should have a and &optional for place
 ;;{TODO} could this take a form and infer the type? yes...it could
 ;;       should destructively modify the env
-(v-defspecial :%make-var (name-string type)
+(v-defspecial %make-var (name-string type)
   :args-valid t
   :return (make-code-obj (set-place-t type) name-string))
 
 
-(v-defspecial :%typify (form &optional qualifiers)
+(v-defspecial %typify (form &optional qualifiers)
   :args-valid t
   :return
   (let ((code (varjo->glsl form env)))
@@ -355,7 +345,7 @@
 (v-defmacro %make-function-no-implicit (name args &body body)
   `(%%make-function ,name ,args ,body nil))
 
-(v-defspecial :%%make-function (name args body allow-implicit-args)
+(v-defspecial %%make-function (name args body allow-implicit-args)
   :args-valid t
   :return
   (progn
@@ -455,7 +445,7 @@
     ,@body))
 
 ;; {TODO} what if type of form is not value
-(v-defspecial :%out (name-and-qualifiers form)
+(v-defspecial %out (name-and-qualifiers form)
   :args-valid t
   :return
   (let* ((form-obj (varjo->glsl form env))
@@ -477,26 +467,7 @@
                             ,(v-make-value (code-type form-obj) env glsl-name))
                           (out-vars form-obj))) t))))
 
-(v-defspecial :assert (kind form error-message)
-  :args-valid t
-  :return
-  (case kind
-    ((:valid-variable '(:valid-variable))
-     (and (symbolp form)
-          (handler-case (varjo->glsl form env)
-            (varjo-error () (error error-message)))))
-    (otherwise (error "Unknown assert kind ~s" kind))))
-
-(v-defspecial :boolify (form)
-  :args-valid t
-  :return
-  (let* ((form-obj (varjo->glsl form env))
-         (form-obj (when (not (v-typep (code-type form-obj) 'v-bool))
-                     (varjo->glsl t env))))
-    form-obj))
-
-
-(v-defspecial :or (&rest forms)
+(v-defspecial or (&rest forms)
   :args-valid t
   :return
   (let* ((objs (mapcar (lambda (x) (varjo->glsl x env)) forms)))
@@ -506,7 +477,7 @@
         (merge-obs objs :type :bool :current-line (gen-bool-or-string objs))
         (first objs))))
 
-(v-defspecial :and (&rest forms)
+(v-defspecial and (&rest forms)
   :args-valid t
   :return
   (let* ((objs (mapcar (lambda (x) (varjo->glsl x env)) forms)))
@@ -519,7 +490,7 @@
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 ;; the then and else statements must have the same type
 ;; the return type is the type of the then/else form
-(v-defspecial :if (test-form then-form &optional else-form)
+(v-defspecial if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
@@ -548,7 +519,7 @@
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 ;; this is the if statement from gl. It has a return type type of :none
 ;; and allows then and else statements that return different types
-(v-defspecial :%if (test-form then-form &optional else-form)
+(v-defspecial %if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
@@ -644,7 +615,7 @@
               (error 'for-loop-simple-expression))))))
 
 
-(v-defspecial :the (type-name form)
+(v-defspecial the (type-name form)
   :args-valid t
   :return
   (let ((compiled (varjo->glsl form env)))
@@ -656,7 +627,7 @@
             (error "Incorrect declaration that ~a was of type ~a"
                    compiled type-name))))) ;{TODO} proper error here
 
-(v-defspecial :%break ()
+(v-defspecial %break ()
   :return
   (progn
     (break "Varjo compiler breakpoint" env)
