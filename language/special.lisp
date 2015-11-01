@@ -519,7 +519,7 @@
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 ;; this is the if statement from gl. It has a return type type of :none
 ;; and allows then and else statements that return different types
-(v-defspecial %if (test-form then-form &optional else-form)
+(v-defspecial :%if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (let* ((test-obj (varjo->glsl test-form env))
