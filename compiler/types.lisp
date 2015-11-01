@@ -119,7 +119,10 @@
           (t nil))))
 
 (defun type-specp (spec &optional (env *global-env*))
-  (not (null (try-type-spec->type spec :place nil :env env))))
+  (handler-case (and (type-spec->type spec :env env) t)
+    (unknown-type-spec (e)
+      (declare (ignore e))
+      nil)))
 
 (defvar *type-shadow* (make-hash-table))
 (defun add-type-shadow (type shadowing-this-type)
