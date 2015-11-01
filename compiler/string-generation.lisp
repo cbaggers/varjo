@@ -173,6 +173,8 @@
                          storage-qual))
 
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)
+  (when (typep type 'v-none)
+    (error 'none-type-in-out-vars :glsl-name glsl-name))
   (format nil "~@[layout(location = ~a) ~]~a;" layout
           (prefix-type-to-string type glsl-name qualifiers 'out)))
 

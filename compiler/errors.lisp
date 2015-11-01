@@ -210,3 +210,11 @@ e.g. (~a :vec3)"
                (not (keywordp potential-name)))
           (string-downcase (symbol-name potential-name))
           "x")))
+
+(deferror none-type-in-out-vars (glsl-name)
+    "One of the values being returned from the shader (~s) is of type :none."
+    glsl-name)
+
+(deferror body-block-empty (form-name)
+    "In varjo it is not valid to have a ~s with an empty body."
+    form-name)

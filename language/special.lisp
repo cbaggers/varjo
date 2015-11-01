@@ -327,12 +327,14 @@
       (make-code-obj (type-spec->type :none) "")))
 
 (v-defmacro :let (bindings &body body)
+  (unless body (error 'body-block-empty :form-name 'let))
   `(%clone-env-block
     (%multi-env-progn
      ,@(loop :for b :in bindings :collect `(%glsl-let ,b t)))
     ,@body))
 
 (v-defmacro :let* (bindings &rest body)
+  (unless body (error 'body-block-empty :form-name 'let))
   (let* ((bindings (reverse bindings))
          (result `(let (,(first bindings)) ,@body)))
     (loop :for binding :in (rest bindings) :do
