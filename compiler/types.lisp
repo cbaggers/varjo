@@ -104,9 +104,10 @@
     (cond ((null spec) nil)
           ((and (symbolp spec) (vtype-existsp spec))
            (let ((type (make-instance spec)))
-             (when (slot-exists-p type 'place)
-               (setf (slot-value type 'place) place))
-             type))
+	     (when (typep type 'v-t-type)
+	       (when (slot-exists-p type 'place)
+		 (setf (slot-value type 'place) place))
+	       type)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp spec)
