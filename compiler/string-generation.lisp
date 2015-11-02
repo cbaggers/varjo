@@ -124,8 +124,8 @@
           var-string
           (current-line condition-obj)
           (current-line update-obj)
-          (to-block body-obj)
-          (current-line body-obj)))
+          (or (remove nil (to-block body-obj)) "")
+          (or (current-line body-obj) "")))
 
 (defun gen-switch-string (test-obj keys clause-body-objs
                           &optional (default-symb 'default))

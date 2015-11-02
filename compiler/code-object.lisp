@@ -177,17 +177,44 @@
 
 
 (defun normalize-used-types (types)
-  (loop :for item :in (remove nil types) :append
-     (cond ((atom item) (list item))
-           ((and (listp item) (numberp (second item))) (list item))
-           (t (normalize-used-types item)))))
+  (remove-duplicates
+   (loop :for item :in (remove nil types) :append
+      (cond ((atom item) (list item))
+	    ((and (listp item) (numberp (second item))) (list item))
+	    (t (normalize-used-types item))))
+   :from-end t))
 
 (defun find-used-user-structs (code-obj env)
   (declare (ignore env))
-  (let ((used-types (normalize-used-types (used-types code-obj))))
-    (remove nil (loop :for type :in used-types :collect
-                   (let ((principle-type (if (listp type) (first type) type)))
-                     (when (vtype-existsp principle-type)
-                       (when (typep (make-instance principle-type)
-                                    'v-user-struct)
-                         principle-type)))))))
+  (let* ((used-types (normalize-used-types (used-types code-obj)))
+	 (struct-types
+	  (remove nil
+		  (loop :for spec :in used-types
+		     :for type = (type-spec->type spec)
+		     :if (or (typep type 'v-struct)
+			     (and (typep type 'v-array)
+				  (typep (v-element-type type) 'v-struct)))
+		     :collect spec)))
+	 (result (order-structs-by-dependency struct-types)))
+    result))
+
+(defun order-structs-by-dependency (struct-types)
+  (let* ((types (mapcar #'type-spec->type struct-types))
+	 (type-graphs (mapcar (lambda (x n)
+				(cons n (walk-struct-dependencies x)))
+			      types struct-types))
+	 (flat-graphs (mapcar #'flatten type-graphs))
+	 (sorted-graphs (sort flat-graphs #'< :key #'length))
+	 (flat (flatten sorted-graphs)))
+    (remove-duplicates flat :from-end t)))
+
+(defun walk-struct-dependencies (type)
+  (remove
+   nil
+   (mapcar (lambda (x)
+	     (destructuring-bind (_ slot-type &rest _1) x
+	       (declare (ignore _ _1))
+	       (let ((stype (type-spec->type slot-type)))
+		 (when (typep stype 'v-struct)
+		   (cons slot-type (walk-struct-dependencies stype))))))
+	   (v-slots type))))

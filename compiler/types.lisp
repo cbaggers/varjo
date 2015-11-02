@@ -147,6 +147,7 @@
 	(or (gethash shadowed-type-spec shadow-ht-backward)
 	    shadowed-type-spec))))
 
+;; shouldnt the un-shadow be in try-type-spec->type?
 (defun type-spec->type (spec &key place (env *global-env*))
   (v-true-type
    (or (try-type-spec->type spec :place place :env env)

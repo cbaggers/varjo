@@ -139,6 +139,7 @@
 
 (v-defun :%/ (a b) "(~a / ~a)" (v-number v-number) nil :glsl-spec-matching t)
 (v-defun :%/ (a b) "(~a / ~a)" (v-vector v-number) 0 :glsl-spec-matching t)
+(v-defun :%/ (a b) "(~a / ~a)" (v-vector v-vector) nil :glsl-spec-matching t)
 
 (v-defun :v! (x y) "vec3(~a,~a)" (v-float v-vec2) v-vec3 :glsl-spec-matching t)
 (v-defun :v! (x y) "vec3(~a,~a)" (v-vec2 v-float) v-vec3 :glsl-spec-matching t)

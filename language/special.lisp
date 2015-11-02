@@ -605,7 +605,8 @@
                (condition-obj (varjo->glsl condition new-env))
                (update-obj (varjo->glsl update new-env))
                (body-obj (end-line (varjo->glsl `(progn ,@body) new-env))))
-          (unless (typep (code-type decl-obj) 'v-i-ui)
+          (unless (or (typep (code-type decl-obj) 'v-i-ui)
+		      (v-typep (code-type decl-obj) 'v-float))
             (error 'invalid-for-loop-type decl-obj))
           (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
               (merge-obs

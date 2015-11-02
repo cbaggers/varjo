@@ -370,7 +370,7 @@
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
   (setf (used-types code)
-        (loop :for i :in (remove-duplicates (find-used-user-structs code env))
+        (loop :for i :in (find-used-user-structs code env)
            :collect (type-spec->type i :env env)))
   (values code env))
 
@@ -462,7 +462,6 @@
         (structs (used-types code))
         (uniforms (v-uniforms env))
         (implicit-uniforms nil))
-
     (loop :for (name type qualifiers glsl-name) :in uniforms
        :for type-obj = (type-spec->type type) :do
        (push `(,name ,type
