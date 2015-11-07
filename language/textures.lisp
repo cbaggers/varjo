@@ -8,2582 +8,2582 @@
 
 (in-package :varjo)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-1D :INT)
-  :INT
-  :PLACE NIL)
+  (:sampler-1d :int)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-1D :INT)
-  :INT
-  :PLACE NIL)
+  (:isampler-1d :int)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-1D :INT)
-  :INT
-  :PLACE NIL)
+  (:usampler-1d :int)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-1D-SHADOW :INT)
-  :INT
-  :PLACE NIL)
+  (:sampler-1d-shadow :int)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-2d :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-2D :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:isampler-2d :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-2D :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:usampler-2d :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-CUBE :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-cube :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-CUBE :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:isampler-cube :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-CUBE :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:usampler-cube :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-SHADOW :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-2d-shadow :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-CUBE-SHADOW :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-cube-shadow :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-RECT :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-2d-rect :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-2D-RECT :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:isampler-2d-rect :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-2D-RECT :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:usampler-2d-rect :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-1D-ARRAY :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-1d-array :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:isampler-1d-array :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-1D-ARRAY :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:usampler-1d-array :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :INT)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :int)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-3D :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:sampler-3d :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-3D :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:isampler-3d :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-3D :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:usampler-3d :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-CUBE-ARRAY :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:sampler-cube-array :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-CUBE-ARRAY-SHADOW :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:sampler-cube-array-shadow :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-ARRAY :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:sampler-2d-array :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:isampler-2d-array :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-2D-ARRAY :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:usampler-2d-array :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER LOD &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler lod &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-ARRAY-SHADOW :INT)
-  :IVEC3
-  :PLACE NIL)
+  (:sampler-2d-array-shadow :int)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-BUFFER)
-  :INT
-  :PLACE NIL)
+  (:sampler-buffer)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-BUFFER)
-  :INT
-  :PLACE NIL)
+  (:isampler-buffer)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-BUFFER)
-  :INT
-  :PLACE NIL)
+  (:usampler-buffer)
+  :int
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-MS)
-  :IVEC2
-  :PLACE NIL)
+  (:sampler-2d-ms)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-2D-MS)
-  :IVEC2
-  :PLACE NIL)
+  (:isampler-2d-ms)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-2D-MS)
-  :IVEC2
-  :PLACE NIL)
+  (:usampler-2d-ms)
+  :ivec2
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:SAMPLER-2D-MS-ARRAY)
-  :IVEC3
-  :PLACE NIL)
+  (:sampler-2d-ms-array)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:ISAMPLER-2D-MS-ARRAY)
-  :IVEC3
-  :PLACE NIL)
+  (:isampler-2d-ms-array)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE-SIZE (SAMPLER &CONTEXT (:330 :440))
+(v-defun :texture-size (sampler &context (:330 :440))
   "textureSize(~a, ~a)"
-  (:USAMPLER-2D-MS-ARRAY)
-  :IVEC3
-  :PLACE NIL)
+  (:usampler-2d-ms-array)
+  :ivec3
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:ISAMPLER-CUBE :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-cube :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-array-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-CUBE :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-cube :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-CUBE-SHADOW :VEC4 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-cube-shadow :vec4 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture (sampler p bias &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:USAMPLER-CUBE :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-cube :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P COMPARE &CONTEXT (:330 :440))
+(v-defun :texture (sampler p compare &context (:330 :440))
   "texture(~a, ~a, ~a)"
-  (:SAMPLER-CUBE-ARRAY-SHADOW :VEC4 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-cube-array-shadow :vec4 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-1D :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-2D :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-3D :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:ISAMPLER-CUBE :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-cube :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-1D :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-2D :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-2D-ARRAY-SHADOW :VEC4)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-array-shadow :vec4)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC3)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec3)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-3D :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-CUBE :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-cube :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:SAMPLER-CUBE-SHADOW :VEC4)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-cube-shadow :vec4)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-1D :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-2D :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-3D :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture (sampler p &context (:330 :440))
   "texture(~a, ~a)"
-  (:USAMPLER-CUBE :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-cube :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-1D :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-1D :VEC4)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-2D :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-2D :VEC4)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC4)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec4)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:ISAMPLER-3D :VEC4)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-1D :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-1D :VEC4)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-2D :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-2D :VEC4)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC4)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec4)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC4)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec4)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:SAMPLER-3D :VEC4)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-1D :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-1D :VEC4)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-2D :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-2D :VEC4)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC4)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec4)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p &context (:330 :440))
   "textureProj(~a, ~a)"
-  (:USAMPLER-3D :VEC4)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ (SAMPLER P BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj (sampler p bias &context (:330 :440))
   "textureProj(~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:ISAMPLER-CUBE :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-cube :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:SAMPLER-CUBE :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-cube :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-lod (sampler p lod &context (:330 :440))
   "textureLod(~a, ~a, ~a)"
-  (:USAMPLER-CUBE :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-cube :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :INT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :int :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :INT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :int :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :IVEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :ivec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :IVEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :ivec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :IVEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :ivec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :INT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :int :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :INT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :int :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :INT :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :int :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :INT :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :int :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :IVEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :ivec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :IVEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :ivec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :IVEC2 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :ivec2 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :IVEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :ivec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :INT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :int :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :INT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :int :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :IVEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :ivec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :IVEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :ivec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset bias &context (:330 :440))
   "textureOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :IVEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :ivec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :IVEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :ivec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC3 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec3 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :IVEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :ivec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-offset (sampler p offset &context (:330 :440))
   "textureOffset(~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :IVEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :ivec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-1D :INT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :int :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :IVEC2 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :ivec2 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-2D :IVEC2 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :ivec2 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :IVEC3 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :ivec3 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P SAMPLE &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p sample &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-2D-MS :IVEC2 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-ms :ivec2 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P SAMPLE &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p sample &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-2D-MS-ARRAY :IVEC3 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-ms-array :ivec3 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:ISAMPLER-3D :IVEC3 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :ivec3 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-1D :INT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :int :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :IVEC2 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :ivec2 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-2D :IVEC2 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :ivec2 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :IVEC3 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :ivec3 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P SAMPLE &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p sample &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-2D-MS :IVEC2 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-ms :ivec2 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P SAMPLE &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p sample &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-2D-MS-ARRAY :IVEC3 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-ms-array :ivec3 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:SAMPLER-3D :IVEC3 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :ivec3 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-1D :INT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :int :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :IVEC2 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :ivec2 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-2D :IVEC2 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :ivec2 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :IVEC3 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :ivec3 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P SAMPLE &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p sample &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-2D-MS :IVEC2 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-ms :ivec2 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P SAMPLE &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p sample &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-2D-MS-ARRAY :IVEC3 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-ms-array :ivec3 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p lod &context (:330 :440))
   "texelFetch(~a, ~a, ~a)"
-  (:USAMPLER-3D :IVEC3 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :ivec3 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p &context (:330 :440))
   "texelFetch(~a, ~a)"
-  (:ISAMPLER-2D-RECT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p &context (:330 :440))
   "texelFetch(~a, ~a)"
-  (:ISAMPLER-BUFFER :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-buffer :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p &context (:330 :440))
   "texelFetch(~a, ~a)"
-  (:SAMPLER-2D-RECT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p &context (:330 :440))
   "texelFetch(~a, ~a)"
-  (:SAMPLER-BUFFER :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-buffer :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p &context (:330 :440))
   "texelFetch(~a, ~a)"
-  (:USAMPLER-2D-RECT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH (SAMPLER P &CONTEXT (:330 :440))
+(v-defun :texel-fetch (sampler p &context (:330 :440))
   "texelFetch(~a, ~a)"
-  (:USAMPLER-BUFFER :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-buffer :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :INT :INT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :int :int :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :IVEC2 :INT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :ivec2 :int :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :IVEC2 :INT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :ivec2 :int :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :IVEC3 :INT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :ivec3 :int :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :IVEC3 :INT :IVEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :ivec3 :int :ivec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :INT :INT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :int :int :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :IVEC2 :INT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :ivec2 :int :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :IVEC2 :INT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :ivec2 :int :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :IVEC3 :INT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :ivec3 :int :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :IVEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :ivec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :IVEC3 :INT :IVEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :ivec3 :int :ivec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :INT :INT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :int :int :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :IVEC2 :INT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :ivec2 :int :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :IVEC2 :INT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :ivec2 :int :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :IVEC3 :INT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :ivec3 :int :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texel-fetch-offset (sampler p lod offset &context (:330 :440))
   "texelFetchOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :IVEC3 :INT :IVEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :ivec3 :int :ivec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P OFFSET &CONTEXT (:|330|))
+(v-defun :texel-fetch-offset (sampler p offset &context (:|330|))
   "texelFetchOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :IVEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :ivec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXEL-FETCH-OFFSET (SAMPLER P OFFSET &CONTEXT (:|330|))
+(v-defun :texel-fetch-offset (sampler p offset &context (:|330|))
   "texelFetchOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :IVEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :ivec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :INT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :int :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :INT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :int :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :IVEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :ivec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :IVEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :ivec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :IVEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :ivec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC2 :INT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2 :int :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :INT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :int :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :INT :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :int :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :IVEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :ivec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :IVEC2 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :ivec2 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :IVEC2 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :ivec2 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :IVEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :ivec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :INT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :int :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :INT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :int :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :IVEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :ivec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :IVEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :ivec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET BIAS &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset bias &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :IVEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :ivec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC3 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec3 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC4 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec4 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :IVEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :ivec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC2 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC3 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec3 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC4 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec4 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC4 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec4 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :IVEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :ivec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC3 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec3 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC4 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec4 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-OFFSET (SAMPLER P OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-offset (sampler p offset &context (:330 :440))
   "textureProjOffset(~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :IVEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :ivec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :FLOAT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :float :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :FLOAT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :float :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :FLOAT :IVEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :float :ivec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :FLOAT :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :float :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :FLOAT :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :float :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :FLOAT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :float :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :FLOAT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :float :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :FLOAT :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :float :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :FLOAT :IVEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :float :ivec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :FLOAT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :float :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :FLOAT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :float :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-lod-offset (sampler p lod offset &context (:330 :440))
   "textureLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :FLOAT :IVEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :float :ivec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD (SAMPLER P LOD &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod (sampler p lod &context (:330 :440))
   "textureProjLod(~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :FLOAT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :float :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :FLOAT :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :float :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :FLOAT :IVEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :float :ivec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC2 :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2 :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :FLOAT :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :float :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :FLOAT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :float :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :FLOAT :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :float :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :FLOAT :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :float :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :FLOAT :IVEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :float :ivec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :FLOAT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :float :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :FLOAT :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :float :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-LOD-OFFSET (SAMPLER P LOD OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-lod-offset (sampler p lod offset &context (:330 :440))
   "textureProjLodOffset(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :FLOAT :IVEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :float :ivec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :FLOAT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :float :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :FLOAT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :float :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC2 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec2 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :VEC3 :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :vec3 :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-CUBE :VEC3 :VEC3 :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-cube :vec3 :vec3 :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :FLOAT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :float :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :FLOAT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :float :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :FLOAT :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :float :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :FLOAT :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :float :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY-SHADOW :VEC4 :VEC2 :VEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-array-shadow :vec4 :vec2 :vec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC2 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec2 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC3 :VEC2 :VEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec3 :vec2 :vec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :VEC2 :VEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :vec2 :vec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :VEC3 :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :vec3 :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-CUBE :VEC3 :VEC3 :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-cube :vec3 :vec3 :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-CUBE-SHADOW :VEC4 :VEC3 :VEC3)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-cube-shadow :vec4 :vec3 :vec3)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :FLOAT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :float :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :FLOAT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :float :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC2 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec2 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :VEC3 :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :vec3 :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-CUBE :VEC3 :VEC3 :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-cube :vec3 :vec3 :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :FLOAT :FLOAT :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :float :float :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D-ARRAY :VEC2 :FLOAT :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d-array :vec2 :float :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC2 :VEC2 :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec2 :vec2 :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-ARRAY :VEC3 :VEC2 :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-array :vec3 :vec2 :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC2 :VEC2 :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec2 :vec2 :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC3 :VEC3 :VEC3 :IVEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec3 :vec3 :vec3 :ivec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :FLOAT :FLOAT :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :float :float :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY :VEC2 :FLOAT :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d-array :vec2 :float :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-ARRAY-SHADOW :VEC3 :FLOAT :FLOAT :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-array-shadow :vec3 :float :float :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC3 :FLOAT :FLOAT :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec3 :float :float :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC2 :VEC2 :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec2 :vec2 :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY :VEC3 :VEC2 :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-array :vec3 :vec2 :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-ARRAY-SHADOW :VEC4 :VEC2 :VEC2 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-array-shadow :vec4 :vec2 :vec2 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC2 :VEC2 :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec2 :vec2 :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC3 :VEC2 :VEC2 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec3 :vec2 :vec2 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC3 :VEC2 :VEC2 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec3 :vec2 :vec2 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC3 :VEC3 :VEC3 :IVEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec3 :vec3 :vec3 :ivec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :FLOAT :FLOAT :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :float :float :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D-ARRAY :VEC2 :FLOAT :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d-array :vec2 :float :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC2 :VEC2 :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec2 :vec2 :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-ARRAY :VEC3 :VEC2 :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-array :vec3 :vec2 :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC2 :VEC2 :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec2 :vec2 :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC3 :VEC3 :VEC3 :IVEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec3 :vec3 :vec3 :ivec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :FLOAT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :float :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :FLOAT :FLOAT)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :float :float)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC3 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec3 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC4 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec4 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :VEC3 :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :vec3 :vec3)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC2 :FLOAT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2 :float :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :FLOAT :FLOAT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :float :float)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :FLOAT :FLOAT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :float :float)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC3 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec3 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC4 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec4 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC4 :VEC2 :VEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec4 :vec2 :vec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :VEC2 :VEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :vec2 :vec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :VEC3 :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :vec3 :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :FLOAT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :float :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :FLOAT :FLOAT)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :float :float)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC3 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec3 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC4 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec4 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD (SAMPLER P DPDX DPDY &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad (sampler p dpdx dpdy &context (:330 :440))
   "textureProjGrad(~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :VEC3 :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :vec3 :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC2 :FLOAT :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec2 :float :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-1D :VEC4 :FLOAT :FLOAT :INT)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-1d :vec4 :float :float :int)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC3 :VEC2 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec3 :vec2 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D :VEC4 :VEC2 :VEC2 :VEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-2d :vec4 :vec2 :vec2 :vec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC3 :VEC2 :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec3 :vec2 :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-2D-RECT :VEC4 :VEC2 :VEC2 :IVEC2)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-2d-rect :vec4 :vec2 :vec2 :ivec2)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:ISAMPLER-3D :VEC4 :VEC3 :VEC3 :VEC3)
-  :UVEC4
-  :PLACE NIL)
+  (:isampler-3d :vec4 :vec3 :vec3 :vec3)
+  :uvec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC2 :FLOAT :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec2 :float :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D :VEC4 :FLOAT :FLOAT :INT)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-1d :vec4 :float :float :int)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-1D-SHADOW :VEC4 :FLOAT :FLOAT :INT)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-1d-shadow :vec4 :float :float :int)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC3 :VEC2 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec3 :vec2 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D :VEC4 :VEC2 :VEC2 :VEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d :vec4 :vec2 :vec2 :vec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC3 :VEC2 :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec3 :vec2 :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT :VEC4 :VEC2 :VEC2 :IVEC2)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-2d-rect :vec4 :vec2 :vec2 :ivec2)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-RECT-SHADOW :VEC4 :VEC2 :VEC2 :IVEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-rect-shadow :vec4 :vec2 :vec2 :ivec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-2D-SHADOW :VEC4 :VEC2 :VEC2 :VEC2)
-  :FLOAT
-  :PLACE NIL)
+  (:sampler-2d-shadow :vec4 :vec2 :vec2 :vec2)
+  :float
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:SAMPLER-3D :VEC4 :VEC3 :VEC3 :VEC3)
-  :VEC4
-  :PLACE NIL)
+  (:sampler-3d :vec4 :vec3 :vec3 :vec3)
+  :vec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC2 :FLOAT :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec2 :float :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-1D :VEC4 :FLOAT :FLOAT :INT)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-1d :vec4 :float :float :int)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC3 :VEC2 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec3 :vec2 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D :VEC4 :VEC2 :VEC2 :VEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-2d :vec4 :vec2 :vec2 :vec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC3 :VEC2 :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec3 :vec2 :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-2D-RECT :VEC4 :VEC2 :VEC2 :IVEC2)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-2d-rect :vec4 :vec2 :vec2 :ivec2)
+  :ivec4
+  :place nil)
 
-(V-DEFUN :TEXTURE-PROJ-GRAD-OFFSET (SAMPLER P DPDX DPDY OFFSET &CONTEXT (:330 :440))
+(v-defun :texture-proj-grad-offset (sampler p dpdx dpdy offset &context (:330 :440))
   "textureProjGradOffset(~a, ~a, ~a, ~a, ~a)"
-  (:USAMPLER-3D :VEC4 :VEC3 :VEC3 :VEC3)
-  :IVEC4
-  :PLACE NIL)
+  (:usampler-3d :vec4 :vec3 :vec3 :vec3)
+  :ivec4
+  :place nil)
