@@ -49,7 +49,7 @@
     "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec (type-spec)
-    "Varjo: Could not find the correct type for type-spec ~a~@[ ~a~]~%~a"
+    "Could not find the correct type for type-spec ~a~@[ ~a~]~%~a"
   type-spec
   (when (typep type-spec 'v-type)
     (format nil "~%It seems we recieved a type object instead of type spec"))
@@ -180,7 +180,7 @@ Value Form: ~a"
   (cons (v-function-scope env-a) (v-function-scope env-b)) env-a env-b)
 
 (deferror symbol-unidentified (sym)
-    "Varjo: Symbol '~s' is unidentified." sym)
+    "Symbol '~s' is unidentified." sym)
 
 (deferror if-form-type-mismatch (test-form then-form then-type
                                            else-form else-type)

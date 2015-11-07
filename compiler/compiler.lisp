@@ -144,7 +144,7 @@
 
 ;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk
-;;{TODO} expand on this please. Future you couldnt work out what this meant
+;;{TODO} expand on this please. 'Future-you' couldnt work out what this meant
 (defun compile-special-function (func args env)
   (let ((env (clone-environment env)))
     (multiple-value-bind (code-obj new-env)
