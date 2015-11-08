@@ -245,5 +245,4 @@ nil
   (mapcan #'indent input))
 
 (defun indent-ob (code-obj)
-  (merge-obs code-obj
-             :to-block (indent (to-block code-obj))))
+  (merge-obs code-obj :to-block (indent (to-block code-obj))))
