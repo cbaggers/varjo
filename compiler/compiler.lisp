@@ -92,14 +92,24 @@
         (t (compile-regular-function-call func-name func args env)))
     (values code-obj (or new-env env))))
 
+(defun calc-function-return-ids-given-args (func func-name arg-code-objs)
+  ;; {TODO} This only makes sense for regular funcs, replace with more
+  ;;        sensible check once have flowcontrol types
+  (unless (<= (length (flow-ids func)) 1)
+    (error 'multiple-flow-ids-regular-func func-name func))
+  ;;
+  (labels ((calc (id)
+	     (let ((pos (position id (flow-ids func))))
+	       (if pos
+		   (flow-id (elt arg-code-objs pos))
+		   (gen-flow-id)))))
+    (mapcar #'calc (in-arg-flow-ids func))))
+
 (defun compile-regular-function-call (func-name func args env)
   (print (cons func-name (mapcar #'flow-id args)))
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
-	 (flow-id (if (> (length (flow-ids func)) 1)
-		      (error 'multiple-flow-ids-regular-func
-			     func-name func)
-		      (first (flow-ids func)))))
+	 (flow-id (calc-function-return-ids-given-args func func-name args)))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
     (merge-obs args
@@ -141,7 +151,7 @@
                                      mvals
                                      m-r-names
 				     flow-ids)
-		 :flow-id nil)))
+		 :flow-id (mapcar #'flow-id args))))
         (varjo->glsl
          `(%clone-env-block
            (%multi-env-progn

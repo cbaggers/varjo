@@ -504,7 +504,11 @@
       (error "all forms of an 'OR' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
         (merge-obs objs :type :bool :current-line (gen-bool-or-string objs)
+<<<<<<< HEAD
 		   :flow-id nil)
+=======
+		   :flow-id (gen-flow-id))
+>>>>>>> Start adding flow-ids
         (first objs))))
 
 (v-defspecial and (&rest forms)
@@ -515,7 +519,11 @@
       (error "all forms of an 'AND' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
         (merge-obs objs :type :bool :current-line (gen-bool-and-string objs)
+<<<<<<< HEAD
 		   :flow-id nil)
+=======
+		   :flow-id (gen-flow-id))
+>>>>>>> Start adding flow-ids
         (last1 objs))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
@@ -617,7 +625,11 @@
         (merge-obs vec-obj :type (type-spec->type
                                   (p-symb 'varjo 'v-vec new-len))
                    :current-line (gen-swizzle-string vec-obj comp-string)
+<<<<<<< HEAD
 		   :flow-id nil)
+=======
+		   :flow-id (gen-flow-id))
+>>>>>>> Start adding flow-ids
         (error "swizzle form invalid"))))
 
 
@@ -648,7 +660,11 @@
                body-obj :type 'v-none :current-line nil
                :to-block `(,(gen-for-loop-string var-string condition-obj
                                                  update-obj body-obj))
+<<<<<<< HEAD
 	       :flow-id nil)
+=======
+	       :flow-id (gen-flow-id))
+>>>>>>> Start adding flow-ids
               (error 'for-loop-simple-expression))))))
 
 
