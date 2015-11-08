@@ -14,15 +14,18 @@
 
 (defun v-make-f-spec (name transform context arg-types return-spec
                       &key place glsl-spec-matching glsl-name
-                        multi-return-vars implicit-args)
+                        multi-return-vars implicit-args flow-ids
+			in-arg-flow-ids)
   (list transform arg-types return-spec context place glsl-spec-matching
-        glsl-name multi-return-vars name implicit-args))
+        glsl-name multi-return-vars name implicit-args flow-ids
+	in-arg-flow-ids))
 
 (defun func-spec->function (spec env)
   (destructuring-bind (transform arg-spec return-spec context place
                                  glsl-spec-matching glsl-name
                                  multi-return-vars name
-                                 implicit-args)
+                                 implicit-args flow-ids
+				 in-arg-flow-ids)
       spec
     (make-instance 'v-function :glsl-string transform
                    :arg-spec (if (listp arg-spec)
@@ -37,7 +40,9 @@
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
                    :name name
-                   :implicit-args implicit-args)))
+                   :implicit-args implicit-args
+		   :flow-ids flow-ids
+		   :in-arg-flow-ids in-arg-flow-ids)))
 
 (defun function->func-spec (func)
   (let ((arg-spec (v-argument-spec func)))
@@ -52,7 +57,9 @@
                    :place (v-placep func)
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func)
-                   :implicit-args (implicit-args func))))
+                   :implicit-args (implicit-args func)
+		   :flow-ids (flow-ids func)
+		   :in-arg-flow-ids (in-arg-flow-ids func))))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

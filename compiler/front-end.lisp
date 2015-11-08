@@ -295,10 +295,11 @@
 ;; mutates env
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (v-true-type (type-spec->type type))))
-    (add-var name (make-instance
-                   'v-value
-                   :glsl-name (or glsl-name (safe-glsl-name-string name))
-                   :type (set-place-t true-type))
+    (add-var name (v-make-value (set-place-t true-type)
+				env
+				(or glsl-name (safe-glsl-name-string name))
+				(gen-flow-id)
+				0)
              env t))
   (push (list name type qualifiers glsl-name) (v-uniforms env))
   env)

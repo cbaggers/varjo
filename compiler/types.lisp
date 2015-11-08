@@ -66,7 +66,9 @@
    (multi-return-vars :initform nil :initarg :multi-return-vars
                       :reader multi-return-vars)
    (name :initform nil :initarg :name :reader name)
-   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)))
+   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
+   (in-arg-flow-ids :initform nil :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
+   (flow-ids :initform nil :initarg :flow-ids :reader flow-ids)))
 
 (defmethod set-place-t ((type v-type))
   (setf (v-placep type) t) type)

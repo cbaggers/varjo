@@ -20,7 +20,9 @@
    (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)
    (stem-cells :initarg :stemcells :initform nil :accessor stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
-                      :accessor out-of-scope-args)))
+                      :accessor out-of-scope-args)
+   (flow-id :initarg :flow-id :initform (error 'flow-id-must-be-specified-co)
+	    :accessor flow-id)))
 
 ;; [TODO] Proper error needed here
 (defmethod initialize-instance :after
@@ -47,17 +49,18 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defun make-code-obj (type &optional (current-line ""))
-  (make-instance 'code :type type :current-line current-line))
+(defun make-code-obj (type &optional (current-line "") flow-id)
+  (make-instance 'code :type type :current-line current-line
+		 :flow-id flow-id))
 
-(defun make-none-ob () (make-code-obj :none nil))
+(defun make-none-ob () (make-code-obj :none nil nil))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
 (defgeneric copy-code (code-obj &key type current-line to-block to-top
                                   out-vars invariant returns multi-vals
-                                  stemcells out-of-scope-args))
+                                  stemcells out-of-scope-args flow-id))
 (defmethod copy-code ((code-obj code)
                       &key type
                         current-line
@@ -69,7 +72,8 @@
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
                         (stemcells nil set-stemcells)
-                        (out-of-scope-args nil set-out-of-scope-args))
+                        (out-of-scope-args nil set-out-of-scope-args)
+			(flow-id nil set-flow-id))
   (make-instance 'code
                  :type (if type type (code-type code-obj))
                  :current-line (if current-line current-line
@@ -85,12 +89,13 @@
                  :stemcells (if set-stemcells stemcells (stemcells code-obj))
                  :out-of-scope-args (if set-out-of-scope-args
                                         out-of-scope-args
-                                        (out-of-scope-args code-obj))))
+                                        (out-of-scope-args code-obj))
+		 :flow-id (if set-flow-id flow-id (flow-id code-obj))))
 
 
 (defgeneric merge-obs (objs &key type current-line to-block
                               to-top out-vars invariant returns multi-vals
-                              stemcells out-of-scope-args))
+                              stemcells out-of-scope-args flow-id))
 
 (defmethod merge-obs ((objs list)
                       &key type
@@ -103,7 +108,8 @@
                         (returns nil set-returns)
                         multi-vals
                         (stemcells nil set-stemcells)
-                        (out-of-scope-args nil set-out-of-scope-args))
+                        (out-of-scope-args nil set-out-of-scope-args)
+			(flow-id nil set-flow-id))
   (make-instance 'code
                  :type (if type type (error "type is mandatory"))
                  :current-line current-line
@@ -122,7 +128,10 @@
                  :out-of-scope-args
                  (normalize-out-of-scope-args
                   (if set-out-of-scope-args out-of-scope-args
-                      (mapcat #'out-of-scope-args objs)))))
+                      (mapcat #'out-of-scope-args objs)))
+		 :flow-id (if set-flow-id
+			      flow-id
+			      (error 'flow-id-must-be-specified-co))))
 
 (defmethod merge-obs ((objs code)
                       &key (type nil set-type)
@@ -134,7 +143,8 @@
                         (invariant nil) (returns nil set-returns)
                         multi-vals
                         (stemcells nil set-stemcells)
-                        (out-of-scope-args nil set-out-of-scope-args))
+                        (out-of-scope-args nil set-out-of-scope-args)
+			(flow-id nil set-flow-id))
   (make-instance 'code
                  :type (if set-type type (code-type objs))
                  :current-line (if set-current-line current-line
@@ -150,7 +160,8 @@
                  :stemcells (if set-stemcells stemcells (stemcells objs))
                  :out-of-scope-args (if set-out-of-scope-args
                                         out-of-scope-args
-                                        (remove nil (out-of-scope-args objs)))))
+                                        (remove nil (out-of-scope-args objs)))
+		 :flow-id (if set-flow-id flow-id (stemcells objs))))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

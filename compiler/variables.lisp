@@ -8,17 +8,26 @@
   ((type :initarg :type :initform nil :accessor v-type)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (function-scope :initarg :function-scope :initform 0
-                   :accessor v-function-scope)))
+                   :accessor v-function-scope)
+   (flow-id :initarg :flow-id :initform (error 'flow-id-must-be-specified-vv)
+	    :reader flow-id)))
+
+(let ((flow-id -1))
+  (defun gen-flow-id () (incf flow-id)))
 
 (defmethod v-make-value ((type v-t-type) env
-                         &optional (glsl-name (free-name 'unspecified)))
+                         &optional (glsl-name (free-name 'unspecified))
+			   (flow-id (gen-flow-id)) function-scope)
   (make-instance 'v-value :type type :glsl-name glsl-name
-                 :function-scope (v-function-scope env)))
+                 :function-scope (or function-scope (v-function-scope env))
+		 :flow-id flow-id))
 
 (defmethod v-make-value ((type t) env
-                         &optional (glsl-name (free-name 'unspecified)))
+                         &optional (glsl-name (free-name 'unspecified))
+			   (flow-id (gen-flow-id)) function-scope)
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name
-                 :function-scope (v-function-scope env)))
+                 :function-scope (or function-scope (v-function-scope env))
+		 :flow-id flow-id))
 
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))
@@ -49,6 +58,7 @@
      :do (loop :for (name type-spec place) :in vars :do
             (let ((type (type-spec->type type-spec)))
               (when place (setf (v-placep type) t))
-              (add-var name (v-make-value type env (gen-reserved-var-string name))
+              (add-var name (v-make-value type env (gen-reserved-var-string name)
+					  (- (gen-flow-id)))
                        env t))))
   env)

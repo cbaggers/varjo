@@ -40,7 +40,9 @@
     (make-code-obj num-type (gen-number-string code num-type))))
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope)
-  (let ((code-obj (make-code-obj (v-type v-value) (gen-variable-string var-name v-value))))
+  (let ((code-obj (make-code-obj (v-type v-value)
+				 (gen-variable-string var-name v-value)
+				 (flow-id v-value))))
     (if from-higher-scope
         (add-higher-scope-val code-obj v-value)
         code-obj)))
@@ -91,8 +93,13 @@
     (values code-obj (or new-env env))))
 
 (defun compile-regular-function-call (func-name func args env)
+  (print (cons func-name (mapcar #'flow-id args)))
   (let* ((c-line (gen-function-string func args))
-         (type (resolve-func-type func args env)))
+         (type (resolve-func-type func args env))
+	 (flow-id (if (> (length (flow-ids func)) 1)
+		      (error 'multiple-flow-ids-regular-func
+			     func-name func)
+		      (first (flow-ids func)))))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
     (merge-obs args
@@ -100,7 +107,8 @@
                :current-line c-line
                :to-top (mapcan #'to-top args)
                :signatures (mapcan #'signatures args)
-               :stemcells (mapcan #'stemcells args))))
+               :stemcells (mapcan #'stemcells args)
+	       :flow-id flow-id)))
 
 (defun compile-multi-return-function-call (func-name func args env)
   (let* ((type (resolve-func-type func args env)))
@@ -118,20 +126,22 @@
                           `((,(free-name 'nc)
                               ,(type->type-spec
                                 (v-type (slot-value mval 'value)))))))
+	     (flow-ids (flow-ids func))
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
                  :to-top (mapcan #'to-top args)
                  :signatures (mapcan #'signatures args)
                  :stemcells (mapcan #'stemcells args)
-                 :multi-vals (mapcar (lambda (_ _1)
+                 :multi-vals (mapcar (lambda (_ _1 fid)
                                        (make-mval
-                                        (make-instance
-                                         'v-value
-                                         :type (v-type (slot-value _ 'value))
-                                         :glsl-name _1)))
+					(v-make-value
+					 (v-type (slot-value _ 'value))
+					 env _1 fid 0)))
                                      mvals
-                                     m-r-names))))
+                                     m-r-names
+				     flow-ids)
+		 :flow-id nil)))
         (varjo->glsl
          `(%clone-env-block
            (%multi-env-progn
