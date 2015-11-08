@@ -17,13 +17,13 @@
          (error 'setf-type-match :code-obj-a place :code-obj-b val))
         (t (merge-obs (list place val) :type (code-type place)
                       :current-line (gen-assignment-string place val)
-		      :flow-id (flow-id val)))))
+		      :flow-ids (flow-ids val)))))
 
 (v-defspecial %setf ((place v-type) (val v-type))
   :return
   (merge-obs (list place val) :type (code-type place)
              :current-line (gen-assignment-string place val)
-	     :flow-id (flow-id val)))
+	     :flow-ids (flow-ids val)))
 
 (v-defspecial progn (&rest body)
   ;; this is super important as it is the only function that implements
@@ -52,7 +52,7 @@
                      :current-line (current-line last-obj)
                      :to-block (merge-lines-into-block-list body-objs)
                      :multi-vals (multi-vals (last1 body-objs))
-		     :flow-id (flow-id last-obj))))
+		     :flow-ids (flow-ids last-obj))))
       (make-code-obj (type-spec->type :none))))
 
 (v-defmacro prog1 (&body body)
@@ -110,7 +110,7 @@
                           (format nil "~a~a" base i)))
            (vals (loop :for o :in objs :for n :in glsl-names :collect
                     (v-make-value (code-type o) env n
-				  :flow-id (flow-id o))))
+				  :flow-ids (flow-ids o))))
            (first-name (free-name 'v-tmp env))
            (result (expand->varjo->glsl
                     `(let ((,first-name ,(first objs)))
@@ -173,9 +173,9 @@
    code-obj :type 'v-void
    :current-line (format nil "return ~a" (current-line code-obj))
    :returns (cons (code-type code-obj) (multi-vals code-obj))
-   :flow-id (cons (flow-id code-obj)
-		  (mapcar (lambda (c) (flow-id (slot-value c 'value)))
-			  (multi-vals code-obj)))))
+   :flow-ids (cons (flow-ids code-obj)
+		   (mapcar (lambda (c) (flow-ids (slot-value c 'value)))
+			   (multi-vals code-obj)))))
 
 
 ;; Used when this is the main stage function
@@ -242,10 +242,9 @@
 ;;{TODO} this should have a and &optional for place
 ;;{TODO} could this take a form and infer the type? yes...it could
 ;;       should destructively modify the env
-(v-defspecial %make-var (name-string type flow-id)
+(v-defspecial %make-var (name-string type flow-ids)
   :args-valid t
-  :return (make-code-obj (set-place-t type)
-			 name-string))
+  :return (make-code-obj (set-place-t type) name-string flow-ids))
 
 
 (v-defspecial %typify (form &optional qualifiers)
@@ -253,7 +252,8 @@
   :return
   (let ((code (varjo->glsl form env)))
     (merge-obs code :type (code-type code)
-               :current-line (prefix-type-declaration code qualifiers))))
+               :current-line (prefix-type-declaration code qualifiers)
+	       :flow-ids (flow-ids code))))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
@@ -266,7 +266,7 @@
            (code-type code-obj) type))
   t)
 
-(v-defspecial %glsl-let (form &optional include-type-declaration arg-glsl-name flow-id)
+(v-defspecial %glsl-let (form &optional include-type-declaration arg-glsl-name flow-ids)
   :args-valid t
   :return
   (let* ((var-spec (listify (first form)))
@@ -277,29 +277,29 @@
       (declare (ignore qualifiers))
       (let ((type-spec (when type-spec (type-spec->type type-spec))))
         (%validate-var-types name type-spec code-obj)
-        (let* ((flow-id (or flow-id
-			    (when code-obj (flow-id code-obj))
-			    (gen-flow-id)))
+        (let* ((flow-ids (or flow-ids
+			     (when code-obj (flow-ids code-obj))
+			     (flow-id!)))
 	       (glsl-let-code
                 (if code-obj
                     (if (eq include-type-declaration :env-and-set)
                         `(setf (%make-var ,glsl-name
 					  ,(or type-spec (code-type code-obj))
-					  ,flow-id)
+					  ,flow-ids)
 			       ,code-obj)
                         `(setf (%typify
 				(%make-var ,glsl-name
 					   ,(or type-spec (code-type code-obj))
-					   ,flow-id))
+					   ,flow-ids))
                                ,code-obj))
                     (if (eq include-type-declaration :env-and-set)
-                        `(%make-var ,glsl-name ,type-spec ,(gen-flow-id))
-                        `(%typify (%make-var ,glsl-name ,type-spec ,(gen-flow-id))))))
+                        `(%make-var ,glsl-name ,type-spec ,(flow-id!))
+                        `(%typify (%make-var ,glsl-name ,type-spec ,(flow-id!))))))
                (let-obj (varjo->glsl glsl-let-code env)))
 	  (add-var name
 		   (v-make-value (set-place-t
 				  (or type-spec (code-type code-obj)))
-				 env glsl-name flow-id)
+				 env glsl-name flow-ids)
 		   env t)
           (values (if include-type-declaration
                       (merge-obs let-obj
@@ -308,7 +308,7 @@
                                  :to-block (append (to-block let-obj)
                                                    (list (current-line
                                                           (end-line let-obj))))
-				 :flow-id flow-id)
+				 :flow-ids flow-ids)
                       (make-code-obj 'v-none))
                   env))))))
 
@@ -332,7 +332,7 @@
                                                 (current-line (end-line _)))
                                               code-objs))
                     :to-top (mapcan #'to-top code-objs)
-		    :flow-id nil)
+		    :flow-ids nil)
          merged-env))
       (make-code-obj (type-spec->type :none) "")))
 
@@ -379,7 +379,7 @@
            (env (make-func-env env mainp))
 	   (in-arg-flow-ids (mapcar (lambda (_)
 				      (declare (ignore _))
-				      (gen-flow-id))
+				      (flow-id!))
 				    args))
            (arg-glsl-names (loop :for (name) :in args :collect
                               (safe-glsl-name-string (free-name name))))
@@ -415,7 +415,7 @@
                                     :multi-return-vars multi-return-vars
                                     :implicit-args (when allow-implicit-args
                                                      implicit-args)
-				    :flow-ids (flow-id body-obj)
+				    :flow-ids (flow-ids body-obj)
 				    :in-arg-flow-ids in-arg-flow-ids)
                      env)
                     env t)
@@ -449,7 +449,7 @@
                            :multi-vals nil
                            :out-of-scope-args (when allow-implicit-args
                                                 implicit-args)
-			   :flow-id nil)
+			   :flow-ids nil)
                 env)))))
 
 (defun function-raw-args-validp (raw-args)
@@ -504,11 +504,7 @@
       (error "all forms of an 'OR' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
         (merge-obs objs :type :bool :current-line (gen-bool-or-string objs)
-<<<<<<< HEAD
-		   :flow-id nil)
-=======
-		   :flow-id (gen-flow-id))
->>>>>>> Start adding flow-ids
+		   :flow-ids (flow-id!))
         (first objs))))
 
 (v-defspecial and (&rest forms)
@@ -519,11 +515,7 @@
       (error "all forms of an 'AND' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
         (merge-obs objs :type :bool :current-line (gen-bool-and-string objs)
-<<<<<<< HEAD
-		   :flow-id nil)
-=======
-		   :flow-id (gen-flow-id))
->>>>>>> Start adding flow-ids
+		   :flow-ids (flow-id!))
         (last1 objs))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
@@ -571,7 +563,7 @@
     (if (v-typep (code-type test-obj) 'v-bool)
         (merge-obs arg-objs :type :none :current-line nil
                    :to-block (list (gen-if-string test-obj then-obj else-obj))
-		   :flow-id nil)
+		   :flow-ids nil)
         (error "The result of the test must be a bool.~%~s"
                (code-type test-obj)))))
 
@@ -584,7 +576,7 @@
         (merge-obs (list body-obj test-obj)
                    :type 'v-none :current-line nil
                    :to-block (list (gen-while-string test-obj body-obj))
-		   :flow-id nil)
+		   :flow-ids nil)
         (error 'loop-will-never-halt :test-code test :test-obj test-obj))))
 
 
@@ -604,7 +596,7 @@
                    :current-line nil
                    :to-block (list (gen-switch-string test-obj keys
                                                       clause-body-objs))
-		   :flow-id nil)
+		   :flow-ids nil)
         (error 'switch-type-error test-obj keys))))
 
 (v-defmacro :s~ (&rest args) `(swizzle ,@args))
@@ -625,15 +617,8 @@
         (merge-obs vec-obj :type (type-spec->type
                                   (p-symb 'varjo 'v-vec new-len))
                    :current-line (gen-swizzle-string vec-obj comp-string)
-<<<<<<< HEAD
-		   :flow-id nil)
-=======
-		   :flow-id (gen-flow-id))
->>>>>>> Start adding flow-ids
+		   :flow-ids (flow-id!))
         (error "swizzle form invalid"))))
-
-
-
 
 
 
@@ -660,11 +645,7 @@
                body-obj :type 'v-none :current-line nil
                :to-block `(,(gen-for-loop-string var-string condition-obj
                                                  update-obj body-obj))
-<<<<<<< HEAD
-	       :flow-id nil)
-=======
-	       :flow-id (gen-flow-id))
->>>>>>> Start adding flow-ids
+	       :flow-ids (flow-id!))
               (error 'for-loop-simple-expression))))))
 
 

@@ -298,7 +298,7 @@
     (add-var name (v-make-value (set-place-t true-type)
 				env
 				(or glsl-name (safe-glsl-name-string name))
-				(gen-flow-id)
+				(flow-id!)
 				0)
              env t))
   (push (list name type qualifiers glsl-name) (v-uniforms env))

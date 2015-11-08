@@ -25,8 +25,8 @@
 (defun compile-bool (code env)
   (declare (ignore env))
   (if code
-      (make-code-obj 'v-bool "true")
-      (make-code-obj 'v-bool "false")))
+      (make-code-obj 'v-bool "true" (flow-id!))
+      (make-code-obj 'v-bool "false" (flow-id!))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -37,18 +37,19 @@
 (defun compile-number (code env)
   (declare (ignore env))
   (let ((num-type (get-number-type code)))
-    (make-code-obj num-type (gen-number-string code num-type))))
+    (make-code-obj num-type (gen-number-string code num-type) (flow-id!))))
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope)
   (let ((code-obj (make-code-obj (v-type v-value)
 				 (gen-variable-string var-name v-value)
-				 (flow-id v-value))))
+				 (flow-ids v-value))))
     (if from-higher-scope
         (add-higher-scope-val code-obj v-value)
         code-obj)))
 
 (defun %v-value->code (v-val)
-  (make-code-obj (v-type v-val) (v-glsl-name v-val)))
+  (make-code-obj (v-type v-val) (v-glsl-name v-val)
+		 (flow-ids v-val)))
 
 ;; [TODO] move error
 (defun compile-symbol (code env)
@@ -101,24 +102,25 @@
   (labels ((calc (id)
 	     (let ((pos (position id (flow-ids func))))
 	       (if pos
-		   (flow-id (elt arg-code-objs pos))
-		   (gen-flow-id)))))
+		   (flow-ids (elt arg-code-objs pos))
+		   (flow-id!)))))
     (mapcar #'calc (in-arg-flow-ids func))))
 
 (defun compile-regular-function-call (func-name func args env)
-  (print (cons func-name (mapcar #'flow-id args)))
+  (print (cons func-name (mapcar #'flow-ids args)))
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
-	 (flow-id (calc-function-return-ids-given-args func func-name args)))
+	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
+    (unless flow-ids (break "HOW?"))
     (merge-obs args
                :type type
                :current-line c-line
                :to-top (mapcan #'to-top args)
                :signatures (mapcan #'signatures args)
                :stemcells (mapcan #'stemcells args)
-	       :flow-id flow-id)))
+	       :flow-ids flow-ids)))
 
 (defun compile-multi-return-function-call (func-name func args env)
   (let* ((type (resolve-func-type func args env)))
@@ -151,7 +153,7 @@
                                      mvals
                                      m-r-names
 				     flow-ids)
-		 :flow-id (mapcar #'flow-id args))))
+		 :flow-ids (mapcar #'flow-ids args))))
         (varjo->glsl
          `(%clone-env-block
            (%multi-env-progn
@@ -179,7 +181,8 @@
         obj
         (if (null (current-line obj))
             obj
-            (merge-obs obj :current-line (format nil "~a;" (current-line obj)))))))
+            (merge-obs obj :current-line (format nil "~a;" (current-line obj))
+		       :flow-ids (flow-ids obj))))))
 
 ;; [TODO] this shouldnt live here
 (defclass varjo-compile-result ()

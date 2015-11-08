@@ -14,6 +14,7 @@
                (:file "compiler/code-object")
                (:file "compiler/stemcells")
                (:file "language/types")
+               (:file "compiler/flow")
                (:file "compiler/variables")
                (:file "compiler/environment")
                (:file "compiler/structs")

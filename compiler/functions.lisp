@@ -77,7 +77,10 @@
                  ',name
                  (v-make-f-spec ',name ,transform ',context ',arg-types ',return-spec
                                 :place ',place :glsl-name ',glsl-name
-                                :glsl-spec-matching ',glsl-spec-matching)
+                                :glsl-spec-matching ',glsl-spec-matching
+				:flow-ids ',(%flow-gl-id!)
+				:in-arg-flow-ids ',(loop :for i :in args :append
+						      (%flow-gl-id!)))
                  *global-env*)
                 ',name)))))
 

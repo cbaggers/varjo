@@ -152,7 +152,8 @@
 (defun %qualify (obj qualifiers)
   (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a"
                                        (string-downcase (string qualifiers))
-                                       (current-line obj))))
+                                       (current-line obj))
+	     :flow-ids (flow-ids obj)))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
@@ -245,4 +246,5 @@ nil
   (mapcan #'indent input))
 
 (defun indent-ob (code-obj)
-  (merge-obs code-obj :to-block (indent (to-block code-obj))))
+  (merge-obs code-obj :to-block (indent (to-block code-obj))
+	     :flow-ids (flow-ids code-obj)))

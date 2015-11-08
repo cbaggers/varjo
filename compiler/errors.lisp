@@ -235,6 +235,9 @@ e.g. (~a :vec3)"
     "In varjo it is not valid to have a ~s with an empty body."
     form-name)
 
+(deferror flow-ids-mandatory (:error-type varjo-critical-error) (for)
+    "~s must be given flow id/s when created" for)
+
 (deferror flow-id-must-be-specified-vv (:error-type varjo-critical-error) ()
     "v-values must be given a flow id when created")
 
