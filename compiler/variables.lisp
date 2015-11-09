@@ -56,6 +56,6 @@
             (let ((type (type-spec->type type-spec)))
               (when place (setf (v-placep type) t))
               (add-var name (v-make-value type env (gen-reserved-var-string name)
-					  (%flow-gl-id!))
+					  (%gl-flow-id!))
                        env t))))
   env)

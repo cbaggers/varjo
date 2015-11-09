@@ -12,11 +12,11 @@
 (v-defspecial setf ((place v-type) (val v-type))
   :return
   (cond ((not (v-placep (code-type place)))
-         (error 'non-place-assign :place place :val val))
-        ((not (v-type-eq (code-type place) (code-type val)))
-         (error 'setf-type-match :code-obj-a place :code-obj-b val))
-        (t (merge-obs (list place val) :type (code-type place)
-                      :current-line (gen-assignment-string place val)
+     (error 'non-place-assign :place place :val val))
+    ((not (v-type-eq (code-type place) (code-type val)))
+	 (error 'setf-type-match :code-obj-a place :code-obj-b val))
+	(t (merge-obs (list place val) :type (code-type place)
+		      :current-line (gen-assignment-string place val)
 		      :flow-ids (flow-ids val)))))
 
 (v-defspecial %setf ((place v-type) (val v-type))
@@ -24,6 +24,44 @@
   (merge-obs (list place val) :type (code-type place)
              :current-line (gen-assignment-string place val)
 	     :flow-ids (flow-ids val)))
+
+(defun update-var-binding-with-flow-id (target-flow-id new-flow-id env)
+  ;; THIS IS WRONG
+  ;; it's wrong because we need to update the binding not the flow-id
+  ;; for example:
+  ;;   (let ((a 1)
+  ;;         (b a)
+  ;;         (c a))
+  ;;     (setf b 10))
+  ;; if we update by flow-id it would be all of these, which is crap because
+  ;; it's b we are updating.
+  (let ((bindings (get-vars-by-flow-id target-flow-id env)))
+    (add-vars
+     (mapcar #'first bindings)
+     (mapcar #'(lambda (val)
+		 (v-make-value (v-type val)
+			       env
+			       (v-glsl-name val)
+			       new-flow-id
+			       (v-function-scope val)))
+	     bindings)
+     env)))
+
+;; (defgeneric get-var-by-flow-id (flow-id env))
+
+;; (defmethod get-vars-by-flow-id (flow-id (env environment))
+;;   (labels ((f (x) (id~= (flow-ids (second x)) flow-id)))
+;;     (remove-duplicates (append (remove-if-not #'f (v-variables env))
+;; 			       (get-var-by-flow-id flow-id :-genv-))
+;; 		       :from-end t :key #'first)))
+
+;; (defmethod get-vars-by-flow-id (flow-id (env (eql :-genv-)))
+;;   (let ((result nil))
+;;     (maphash (lambda (k v)
+;; 	       (when (id~= (flow-ids v) flow-id)
+;; 		 (push (list k v) result)))
+;; 	     *global-env-vars*)
+;;     (remove-duplicates (reverse result) :from-end t :key #'first)))
 
 (v-defspecial progn (&rest body)
   ;; this is super important as it is the only function that implements

@@ -75,12 +75,13 @@
                                      &key place glsl-spec-matching glsl-name) body
         `(progn (add-function
                  ',name
-                 (v-make-f-spec ',name ,transform ',context ',arg-types ',return-spec
-                                :place ',place :glsl-name ',glsl-name
-                                :glsl-spec-matching ',glsl-spec-matching
-				:flow-ids ',(%flow-gl-id!)
-				:in-arg-flow-ids ',(loop :for i :in args :append
-						      (%flow-gl-id!)))
+                 (v-make-f-spec
+		  ',name ,transform ',context ',arg-types ',return-spec
+		  :place ',place :glsl-name ',glsl-name
+		  :glsl-spec-matching ',glsl-spec-matching
+		  :flow-ids (list (%gl-flow-id!))
+		  :in-arg-flow-ids
+		  ,(cons 'list (loop :for i :in args :collect '(%gl-flow-id!))))
                  *global-env*)
                 ',name)))))
 

@@ -113,7 +113,6 @@
 	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
-    (unless flow-ids (break "HOW?"))
     (merge-obs args
                :type type
                :current-line c-line
