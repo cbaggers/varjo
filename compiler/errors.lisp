@@ -97,6 +97,11 @@
   (current-line place)
   (gen-assignment-string place val))
 
+(deferror setq-readonly () (var-name code)
+    "You cannot setq ~a as it is readonly ~%This was attempted as follows ~a"
+  var-name
+  code)
+
 (deferror setf-type-match () (code-obj-a code-obj-b)
     "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
   (code-type code-obj-a) (code-type code-obj-b))

@@ -148,7 +148,8 @@
                                        (make-mval
 					(v-make-value
 					 (v-type (slot-value _ 'value))
-					 env _1 fid 0)))
+					 env :glsl-name _1 :flow-ids fid
+					 :function-scope 0)))
                                      mvals
                                      m-r-names
 				     flow-ids)

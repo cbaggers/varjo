@@ -9,21 +9,21 @@
 (in-package :varjo)
 
 ;;{TODO} make it handle multiple assignements like cl version
-(v-defspecial setf ((place v-type) (val v-type))
-  :return
-  (cond ;; ((not (v-placep (code-type place)))
-	;;  (error 'non-place-assign :place place :val val))
-	((not (v-type-eq (code-type place) (code-type val)))
-	 (error 'setf-type-match :code-obj-a place :code-obj-b val))
-	(t (merge-obs (list place val) :type (code-type place)
-		      :current-line (gen-assignment-string place val)
-		      :flow-ids (flow-ids val)))))
+;; (v-defspecial setf ((place v-type) (val v-type))
+;;   :return
+;;   (cond ;; ((not (v-placep (code-type place)))
+;; 	;;  (error 'non-place-assign :place place :val val))
+;; 	((not (v-type-eq (code-type place) (code-type val)))
+;; 	 (error 'setf-type-match :code-obj-a place :code-obj-b val))
+;; 	(t (merge-obs (list place val) :type (code-type place)
+;; 		      :current-line (gen-assignment-string place val)
+;; 		      :flow-ids (flow-ids val)))))
 
-(v-defspecial %setf ((place v-type) (val v-type))
-  :return
-  (merge-obs (list place val) :type (code-type place)
-             :current-line (gen-assignment-string place val)
-	     :flow-ids (flow-ids val)))
+;; (v-defspecial %setf ((place v-type) (val v-type))
+;;   :return
+;;   (merge-obs (list place val) :type (code-type place)
+;;              :current-line (gen-assignment-string place val)
+;; 	     :flow-ids (flow-ids val)))
 
 (v-defspecial setq (var-name new-val-code)
   :args-valid t
@@ -32,6 +32,9 @@
     (assert (symbolp var-name))
     (let ((old-val (get-var var-name env)))
       (cond
+	((v-read-only old-val)
+	 (error 'setq-readonly :code `(setq ,var-name ,new-val-code)
+		:var-name var-name))
 	((not (v-type-eq (v-type old-val) (code-type new-val)))
 	 (error 'setq-type-match :var-name var-name :old-value old-val
 		:new-value new-val))
@@ -123,7 +126,7 @@
            (glsl-names (loop :for i :below (length forms) :collect
                           (format nil "~a~a" base i)))
            (vals (loop :for o :in objs :for n :in glsl-names :collect
-                    (v-make-value (code-type o) env n
+                    (v-make-value (code-type o) env :glsl-name n
 				  :flow-ids (flow-ids o))))
            (first-name (free-name 'v-tmp env))
            (result (expand->varjo->glsl
@@ -228,7 +231,7 @@
   (let ((context (v-context env)))
     (cond ((member :fragment context) `(%out (,(free-name :output-color env))
                                              ,form))
-          ((member :vertex context) `(setf gl-position ,form))
+          ((member :vertex context) `(setq gl-position ,form))
           (t (error "Have not implemented #'values defaults for this stage ~a"
                     env)))))
 
@@ -260,14 +263,26 @@
   :args-valid t
   :return (make-code-obj type name-string flow-ids))
 
+;; (v-defspecial %setf ((place v-type) (val v-type))
+;;   :return
+;;   (merge-obs (list place val) :type (code-type place)
+;;              :current-line (gen-assignment-string place val)
+;; 	     :flow-ids (flow-ids val)))
 
-(v-defspecial %typify (form &optional qualifiers)
+(v-defspecial %typify (form &optional qualifiers new-value)
   :args-valid t
   :return
-  (let ((code (varjo->glsl form env)))
-    (merge-obs code :type (code-type code)
-               :current-line (prefix-type-declaration code qualifiers)
-	       :flow-ids (flow-ids code))))
+  (let* ((code (varjo->glsl form env))
+	 (prefixed-line (prefix-type-declaration code qualifiers))
+	 (current-line (if new-value
+			   (%gen-assignment-string
+			    prefixed-line (current-line new-value))
+			   prefixed-line))
+	 (flow-ids (if new-value
+		       (flow-ids new-value)
+		       (flow-ids code))))
+    (merge-obs code :type (code-type code) :current-line current-line
+	       :flow-ids flow-ids)))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
@@ -297,22 +312,23 @@
 	       (glsl-let-code
                 (if code-obj
                     (if (eq include-type-declaration :env-and-set)
-                        `(setf (%make-var ,glsl-name
+                        `(setq (%make-var ,glsl-name
 					  ,(or type-spec (code-type code-obj))
 					  ,flow-ids)
 			       ,code-obj)
-                        `(setf (%typify
-				(%make-var ,glsl-name
-					   ,(or type-spec (code-type code-obj))
-					   ,flow-ids))
-                               ,code-obj))
+                        `(%typify
+			  (%make-var ,glsl-name
+				     ,(or type-spec (code-type code-obj))
+				     ,flow-ids)
+			  nil
+			  ,code-obj))
                     (if (eq include-type-declaration :env-and-set)
                         `(%make-var ,glsl-name ,type-spec ,(flow-id!))
                         `(%typify (%make-var ,glsl-name ,type-spec ,(flow-id!))))))
                (let-obj (varjo->glsl glsl-let-code env)))
 	  (add-var name
 		   (v-make-value (or type-spec (code-type code-obj))
-				 env glsl-name flow-ids)
+				 env :glsl-name glsl-name :flow-ids flow-ids)
 		   env t)
           (values (if include-type-declaration
                       (merge-obs let-obj
@@ -506,7 +522,8 @@
           :to-block (to-block form-obj)
           :out-vars (cons `(,out-var-name
                             ,qualifiers
-                            ,(v-make-value (code-type form-obj) env glsl-name))
+                            ,(v-make-value (code-type form-obj) env
+					   :glsl-name glsl-name))
                           (out-vars form-obj))) t))))
 
 (v-defspecial or (&rest forms)

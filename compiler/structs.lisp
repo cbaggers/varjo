@@ -91,7 +91,7 @@
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (add-var in-var-name
-             (v-make-value struct env glsl-name)
+             (v-make-value struct env :glsl-name glsl-name :read-only t)
              env t)
     env))
 
@@ -116,7 +116,7 @@
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (add-var uniform-name
-             (v-make-value struct env glsl-name)
+             (v-make-value struct env :glsl-name glsl-name :read-only t)
              env t)
     env))
 
