@@ -13,15 +13,15 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defun v-make-f-spec (name transform context arg-types return-spec
-                      &key place glsl-spec-matching glsl-name
+                      &key returns-place glsl-spec-matching glsl-name
                         multi-return-vars implicit-args flow-ids
 			in-arg-flow-ids)
-  (list transform arg-types return-spec context place glsl-spec-matching
+  (list transform arg-types return-spec context returns-place glsl-spec-matching
         glsl-name multi-return-vars name implicit-args flow-ids
 	in-arg-flow-ids))
 
 (defun func-spec->function (spec env)
-  (destructuring-bind (transform arg-spec return-spec context place
+  (destructuring-bind (transform arg-spec return-spec context returns-place
                                  glsl-spec-matching glsl-name
                                  multi-return-vars name
                                  implicit-args flow-ids
@@ -35,7 +35,7 @@
                    :return-spec (if (type-specp return-spec)
                                     (type-spec->type return-spec :env env)
                                     return-spec)
-                   :restriction context :place place
+                   :restriction context :returns-place returns-place
                    :glsl-spec-matching glsl-spec-matching
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
@@ -54,7 +54,7 @@
                    (if (type-specp (v-return-spec func))
                        (type->type-spec (v-return-spec func))
                        (v-return-spec func))
-                   :place (v-placep func)
+                   :returns-place (v-returns-placep func)
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
@@ -72,12 +72,12 @@
       (unless (stringp (first body))
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
-                                     &key place glsl-spec-matching glsl-name) body
+                                     &key returns-place glsl-spec-matching glsl-name) body
         `(progn (add-function
                  ',name
                  (v-make-f-spec
 		  ',name ,transform ',context ',arg-types ',return-spec
-		  :place ',place :glsl-name ',glsl-name
+		  :returns-place ',returns-place :glsl-name ',glsl-name
 		  :glsl-spec-matching ',glsl-spec-matching
 		  :flow-ids (list (%gl-flow-id!))
 		  :in-arg-flow-ids
@@ -97,7 +97,7 @@
                                    (when rest (cons '&rest rest))
                                    (when rest (cons '&optional optional)))))
           (func-name (symb :vs- name)))
-      (destructuring-bind (&key context place args-valid return) body
+      (destructuring-bind (&key context returns-place args-valid return) body
         (cond
           ((eq args-valid t)
            `(progn
@@ -111,7 +111,7 @@
                              ',context
                              t
                              #',func-name
-                             :place ',place)
+                             :returns-place ',returns-place)
                             *global-env*)
               ',name))
           (args-valid
@@ -128,7 +128,7 @@
                                (declare (ignorable env ,@arg-names))
                                (let ((res ,args-valid))
                                  (when res (list res 0))))
-                             :place ',place)
+                             :returns-place ',returns-place)
                             *global-env*)
               ',name))
           (t `(progn
@@ -142,7 +142,7 @@
                                ',context
                                ',(mapcar #'second args)
                                #',func-name
-                               :place ',place)
+                               :returns-place ',returns-place)
                               *global-env*)
                 ',name)))))))
 

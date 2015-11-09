@@ -21,12 +21,12 @@
             (setf *registered-types* (remove-duplicates ,new-names))
             ',name)))
 
-(def-v-type-class v-spec-type ()
-  ((place :initform t :initarg :place :reader v-placep)))
+(def-v-type-class v-spec-type () ())
+
 (def-v-type-class v-t-type () ())
+
 (def-v-type-class v-type (v-t-type)
   ((core :initform nil :reader core-typep)
-   (place :initform t :initarg :place :accessor v-placep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
    (casts-to :initform nil)))
@@ -60,7 +60,8 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (place :initform nil :initarg :place :accessor v-placep)
+   (returns-place :initform nil :initarg :returns-place
+		  :reader v-returns-placep)
    (glsl-spec-matching :initform nil :initarg :glsl-spec-matching
                        :reader v-glsl-spec-matchingp)
    (multi-return-vars :initform nil :initarg :multi-return-vars
@@ -72,8 +73,6 @@
    (flow-ids :initform (error 'flow-ids-mandatory :v-function)
 	     :initarg :flow-ids :reader flow-ids)))
 
-(defmethod set-place-t ((type v-type))
-  (setf (v-placep type) t) type)
 
 (defmethod core-typep ((type v-t-type))
   nil)
@@ -99,7 +98,7 @@
       (list (type->type-spec (v-element-type type)) (v-dimensions type))
       'v-array))
 
-(defun try-type-spec->type (spec &key place (env *global-env*))
+(defun try-type-spec->type (spec &key (env *global-env*))
   (declare (ignore env))
   (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec))
                     ((and (listp spec) (keywordp (first spec)))
@@ -110,15 +109,12 @@
            (let ((type (make-instance spec)))
 	     (when (or (typep type 'v-t-type)
 		       (typep type 'v-spec-type))
-	       (when (slot-exists-p type 'place)
-		 (setf (slot-value type 'place) place))
 	       type)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp spec)
                                                        (symb 'v- type)
                                                        type)
-                            :place place
                             :dimensions dimensions)))
           (t nil))))
 
@@ -152,11 +148,10 @@
 	    shadowed-type-spec))))
 
 ;; shouldnt the un-shadow be in try-type-spec->type?
-(defun type-spec->type (spec &key place (env *global-env*))
+(defun type-spec->type (spec &key (env *global-env*))
   (v-true-type
-   (or (try-type-spec->type spec :place place :env env)
-       (try-type-spec->type (un-shadow spec)
-			    :place place :env env)
+   (or (try-type-spec->type spec :env env)
+       (try-type-spec->type (un-shadow spec) :env env)
        (error 'unknown-type-spec :type-spec spec))))
 
 (defmethod v-true-type ((object v-t-type))

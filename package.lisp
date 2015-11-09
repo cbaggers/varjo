@@ -35,7 +35,6 @@
            :v-glsl-spec-matchingp
            :v-glsl-string
            :v-payload
-           :v-placep
            :v-restriction
            :v-return-spec
            :v-signature

@@ -52,9 +52,8 @@
   (loop :for (restrict . vars) :in source
      :if (or (equal restrict t)
              (context-ok-given-restriction (v-context env) (listify restrict)))
-     :do (loop :for (name type-spec place) :in vars :do
+     :do (loop :for (name type-spec set-able) :in vars :do
             (let ((type (type-spec->type type-spec)))
-              (when place (setf (v-placep type) t))
               (add-var name (v-make-value type env (gen-reserved-var-string name)
 					  (%gl-flow-id!))
                        env t))))

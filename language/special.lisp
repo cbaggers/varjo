@@ -11,8 +11,8 @@
 ;;{TODO} make it handle multiple assignements like cl version
 (v-defspecial setf ((place v-type) (val v-type))
   :return
-  (cond ((not (v-placep (code-type place)))
-	 (error 'non-place-assign :place place :val val))
+  (cond ;; ((not (v-placep (code-type place)))
+	;;  (error 'non-place-assign :place place :val val))
 	((not (v-type-eq (code-type place) (code-type val)))
 	 (error 'setf-type-match :code-obj-a place :code-obj-b val))
 	(t (merge-obs (list place val) :type (code-type place)
@@ -258,7 +258,7 @@
 ;;       should destructively modify the env
 (v-defspecial %make-var (name-string type flow-ids)
   :args-valid t
-  :return (make-code-obj (set-place-t type) name-string flow-ids))
+  :return (make-code-obj type name-string flow-ids))
 
 
 (v-defspecial %typify (form &optional qualifiers)
@@ -311,8 +311,7 @@
                         `(%typify (%make-var ,glsl-name ,type-spec ,(flow-id!))))))
                (let-obj (varjo->glsl glsl-let-code env)))
 	  (add-var name
-		   (v-make-value (set-place-t
-				  (or type-spec (code-type code-obj)))
+		   (v-make-value (or type-spec (code-type code-obj))
 				 env glsl-name flow-ids)
 		   env t)
           (values (if include-type-declaration

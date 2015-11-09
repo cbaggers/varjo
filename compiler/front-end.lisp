@@ -255,7 +255,7 @@
   (let ((in-args (v-raw-in-args env)))
     (loop :for in-arg :in in-args :do
        (with-arg (name type qualifiers declared-glsl-name) in-arg
-         (let* ((type-obj (type-spec->type type :place t))
+         (let* ((type-obj (type-spec->type type))
                 (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
            (if (typep type-obj 'v-struct)
                (add-in-arg-fake-struct name glsl-name type-obj qualifiers env)
@@ -286,7 +286,7 @@
 (defun process-regular-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (v-true-type (type-spec->type type))))
     (add-var name
-             (v-make-value (set-place-t true-type) env
+             (v-make-value true-type env
                            (or glsl-name (safe-glsl-name-string name)))
              env t))
   (push (list name type qualifiers glsl-name) (v-uniforms env))
@@ -295,7 +295,7 @@
 ;; mutates env
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (v-true-type (type-spec->type type))))
-    (add-var name (v-make-value (set-place-t true-type)
+    (add-var name (v-make-value true-type
 				env
 				(or glsl-name (safe-glsl-name-string name))
 				(flow-id!)
@@ -306,7 +306,7 @@
 
 ;; mutates env
 (defun process-fake-uniform (name glsl-name type qualifiers env)
-  (let ((type-obj (type-spec->type type :place t)))
+  (let ((type-obj (type-spec->type type)))
     (add-uniform-fake-struct name glsl-name type-obj qualifiers env))
   env)
 
