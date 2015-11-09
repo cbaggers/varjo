@@ -85,6 +85,10 @@
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))
 
+(defun gen-setq-assignment-string (old-value new-value-code-obj)
+  (format nil "~a = ~a" (v-glsl-name old-value)
+	  (current-line new-value-code-obj)))
+
 (defun gen-out-var-assignment-string (glsl-name val)
   (format nil "~a = ~a" glsl-name (current-line val)))
 

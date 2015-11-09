@@ -101,6 +101,10 @@
     "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
   (code-type code-obj-a) (code-type code-obj-b))
 
+(deferror setq-type-match () (var-name old-value new-value)
+    "Currently varjo cannot handle changing the type through a setq due to the static nature of glsl.~%var name: ~a (type-of ~a): ~a  (type-of new-value): ~a"
+  var-name var-name (v-type old-value) (code-type new-value))
+
 (deferror cannot-not-shadow-core () ()
     "You cannot shadow or replace core macros or special functions.")
 
