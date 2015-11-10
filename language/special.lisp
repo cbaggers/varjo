@@ -27,9 +27,14 @@
     (t (destructuring-bind (name value) (last1 (place-tree place))
 	 (when (v-read-only value)
 	   (error 'setf-readonly :var-name name))
-	 (merge-obs (list place val) :type (code-type place)
-		    :current-line (gen-assignment-string place val)
-		    :flow-ids (flow-ids val))))))
+	 (values (merge-obs (list place val) :type (code-type place)
+			    :current-line (gen-assignment-string place val)
+			    :flow-ids (flow-ids val))
+		 (replace-var-binding-with-new-flow-ids
+		  name
+		  value
+		  (flow-id! (flow-ids value) (flow-ids val))
+		  env))))))
 
 (v-defspecial %assign ((place v-type) (val v-type))
   :return
@@ -50,9 +55,21 @@
 	((not (v-type-eq (v-type old-val) (code-type new-val)))
 	 (error 'setq-type-match :var-name var-name :old-value old-val
 		:new-value new-val))
-	(t (merge-obs new-val :type (code-type new-val)
-		      :current-line (gen-setq-assignment-string old-val new-val)
-		      :flow-ids (flow-ids new-val)))))))
+	(t (values (merge-obs new-val :type (code-type new-val)
+			      :current-line (gen-setq-assignment-string old-val new-val)
+			      :flow-ids (flow-ids new-val))
+		   (replace-var-binding-with-new-flow-ids
+		    var-name old-val (flow-ids new-val) env)))))))
+
+(defun replace-var-binding-with-new-flow-ids (old-var-name old-val flow-ids env)
+  (add-var old-var-name
+	   (v-make-value (v-type old-val)
+			 env
+			 :read-only (v-read-only old-val)
+			 :function-scope (v-function-scope old-val)
+			 :flow-ids flow-ids
+			 :glsl-name (v-glsl-name old-val))
+	   env))
 
 (v-defspecial progn (&rest body)
   ;; this is super important as it is the only function that implements
