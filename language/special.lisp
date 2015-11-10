@@ -27,6 +27,10 @@
     (t (destructuring-bind (name value) (last1 (place-tree place))
 	 (when (v-read-only value)
 	   (error 'setf-readonly :var-name name))
+	 (unless (or (= (v-function-scope env) (v-function-scope value))
+		     (= (v-function-scope value) 0))
+	   (error 'cross-scope-mutate :var-name name
+		  :code (format nil "(setf (... ~s) ...)" name)))
 	 (values (merge-obs (list place val) :type (code-type place)
 			    :current-line (gen-assignment-string place val)
 			    :flow-ids (flow-ids val))
@@ -55,6 +59,10 @@
 	((not (v-type-eq (v-type old-val) (code-type new-val)))
 	 (error 'setq-type-match :var-name var-name :old-value old-val
 		:new-value new-val))
+	((and (not (= (v-function-scope old-val) (v-function-scope env)))
+	      (> (v-function-scope old-val) 0)) ;; ok if var is global
+	 (error 'cross-scope-mutate :var-name var-name
+		:code `(setq ,var-name ,new-val-code)))
 	(t (values (merge-obs new-val :type (code-type new-val)
 			      :current-line (gen-setq-assignment-string old-val new-val)
 			      :flow-ids (flow-ids new-val))
@@ -584,8 +592,7 @@
          (else-obj (if else-form
                        (end-line (varjo->glsl else-form env))
                        (if (not always-true)
-                           (error "Type mismatch: else-case is nil which is of bool type, yet the then form is of ~s type."
-                                  (type->type-spec (code-type then-obj)))
+                           (error 'if-branch-type-mismatch :then-obj then-obj)
                            (varjo->glsl nil env)))))
     (if always-true
         then-obj
@@ -617,8 +624,7 @@
         (merge-obs arg-objs :type :none :current-line nil
                    :to-block (list (gen-if-string test-obj then-obj else-obj))
 		   :flow-ids nil)
-        (error "The result of the test must be a bool.~%~s"
-               (code-type test-obj)))))
+        (error 'if-test-type-mismatch :test-obj test-obj))))
 
 (v-defspecial :while (test &rest body)
   :args-valid t

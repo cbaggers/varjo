@@ -265,3 +265,16 @@ multiple flow-ids.
 This is a compiler bug
 
 ~s" func-name func)
+
+(deferror if-branch-type-mismatch (:error-type varjo-critical-error) (then-obj)
+    "Type mismatch: else-case is nil which is of bool type, yet the then form is of ~s type."
+  (type->type-spec (code-type then-obj)))
+
+(deferror if-test-type-mismatch (:error-type varjo-critical-error) (test-obj)
+    "The result of the test must be a bool.~%~s" (code-type test-obj))
+
+(deferror cross-scope-mutate (:error-type varjo-critical-error) (var-name code)
+    "It is illegal to setf or setq variables from outside the function's own scope~%
+Tried to mutate ~s
+~s"
+  var-name code)
