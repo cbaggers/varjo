@@ -54,7 +54,7 @@
                    (if (type-specp (v-return-spec func))
                        (type->type-spec (v-return-spec func))
                        (v-return-spec func))
-                   :returns-place (v-returns-placep func)
+                   :returns-place (v-place-index func)
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
@@ -156,7 +156,7 @@
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (handler-case (varjo->glsl arg env)
-    (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e)))))
+    (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e) ""))))
 
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)

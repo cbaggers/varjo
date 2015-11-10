@@ -9,21 +9,33 @@
 (in-package :varjo)
 
 ;;{TODO} make it handle multiple assignements like cl version
-;; (v-defspecial setf ((place v-type) (val v-type))
-;;   :return
-;;   (cond ;; ((not (v-placep (code-type place)))
-;; 	;;  (error 'non-place-assign :place place :val val))
-;; 	((not (v-type-eq (code-type place) (code-type val)))
-;; 	 (error 'setf-type-match :code-obj-a place :code-obj-b val))
-;; 	(t (merge-obs (list place val) :type (code-type place)
-;; 		      :current-line (gen-assignment-string place val)
-;; 		      :flow-ids (flow-ids val)))))
+(v-defmacro setf (&rest args)
+  (labels ((make-set-form (p v)
+	     (if (symbolp p) `(setq ,p ,v) `(setf-1 ,p ,v))))
+    (let ((pairs (group args 2)))
+      (if (= (length pairs) 1)
+	  (make-set-form (first (first pairs)) (second (first pairs)))
+	  `(progn ,@(loop :for (p v) :in pairs :collect (make-set-form p v)))))))
 
-;; (v-defspecial %setf ((place v-type) (val v-type))
-;;   :return
-;;   (merge-obs (list place val) :type (code-type place)
-;;              :current-line (gen-assignment-string place val)
-;; 	     :flow-ids (flow-ids val)))
+(v-defspecial setf-1 ((place v-type) (val v-type))
+  :return
+  (cond
+    ((not (place-tree place))
+     (error 'non-place-assign :place place :val val))
+    ((not (v-type-eq (code-type place) (code-type val)))
+     (error 'setf-type-match :code-obj-a place :code-obj-b val))
+    (t (destructuring-bind (name value) (last1 (place-tree place))
+	 (when (v-read-only value)
+	   (error 'setf-readonly :var-name name))
+	 (merge-obs (list place val) :type (code-type place)
+		    :current-line (gen-assignment-string place val)
+		    :flow-ids (flow-ids val))))))
+
+(v-defspecial %assign ((place v-type) (val v-type))
+  :return
+  (merge-obs (list place val) :type (code-type place)
+             :current-line (gen-assignment-string place val)
+	     :flow-ids (flow-ids val)))
 
 (v-defspecial setq (var-name new-val-code)
   :args-valid t
@@ -70,7 +82,7 @@
                      :to-block (merge-lines-into-block-list body-objs)
                      :multi-vals (multi-vals (last1 body-objs))
 		     :flow-ids (flow-ids last-obj))))
-      (make-code-obj (type-spec->type :none))))
+      (make-code-obj (type-spec->type :none) "")))
 
 (v-defmacro prog1 (&body body)
   (let ((tmp (free-name 'progn-var)))
@@ -133,7 +145,7 @@
                     `(let ((,first-name ,(first objs)))
                        ,@(loop :for o :in (rest objs)
                             :for v :in (rest vals) :collect
-                            `(%setf ,v ,o))
+                            `(%assign ,v ,o))
                        ,first-name)
                     env)))
       (setf (multi-vals result)
@@ -261,13 +273,7 @@
 ;;       should destructively modify the env
 (v-defspecial %make-var (name-string type flow-ids)
   :args-valid t
-  :return (make-code-obj type name-string flow-ids))
-
-;; (v-defspecial %setf ((place v-type) (val v-type))
-;;   :return
-;;   (merge-obs (list place val) :type (code-type place)
-;;              :current-line (gen-assignment-string place val)
-;; 	     :flow-ids (flow-ids val)))
+  :return (make-code-obj type name-string :flow-ids flow-ids))
 
 (v-defspecial %typify (form &optional qualifiers new-value)
   :args-valid t
@@ -324,7 +330,7 @@
 			  ,code-obj))
                     (if (eq include-type-declaration :env-and-set)
                         `(%make-var ,glsl-name ,type-spec ,(flow-id!))
-                        `(%typify (%make-var ,glsl-name ,type-spec ,(flow-id!))))))
+                        `(%typify  (%make-var ,glsl-name ,type-spec ,(flow-id!))))))
                (let-obj (varjo->glsl glsl-let-code env)))
 	  (add-var name
 		   (v-make-value (or type-spec (code-type code-obj))
@@ -338,7 +344,7 @@
                                                    (list (current-line
                                                           (end-line let-obj))))
 				 :flow-ids flow-ids)
-                      (make-code-obj 'v-none))
+                      (make-code-obj 'v-none ""))
                   env))))))
 
 (v-defspecial %multi-env-progn (&rest env-local-expessions)

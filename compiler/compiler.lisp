@@ -25,8 +25,8 @@
 (defun compile-bool (code env)
   (declare (ignore env))
   (if code
-      (make-code-obj 'v-bool "true" (flow-id!))
-      (make-code-obj 'v-bool "false" (flow-id!))))
+      (make-code-obj 'v-bool "true" :flow-ids (flow-id!))
+      (make-code-obj 'v-bool "false" :flow-ids (flow-id!))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -37,19 +37,21 @@
 (defun compile-number (code env)
   (declare (ignore env))
   (let ((num-type (get-number-type code)))
-    (make-code-obj num-type (gen-number-string code num-type) (flow-id!))))
+    (make-code-obj num-type (gen-number-string code num-type)
+		   :flow-ids (flow-id!))))
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope)
   (let ((code-obj (make-code-obj (v-type v-value)
 				 (gen-variable-string var-name v-value)
-				 (flow-ids v-value))))
+				 :flow-ids (flow-ids v-value)
+				 :place-tree `((,var-name ,v-value)))))
     (if from-higher-scope
         (add-higher-scope-val code-obj v-value)
         code-obj)))
 
 (defun %v-value->code (v-val)
   (make-code-obj (v-type v-val) (v-glsl-name v-val)
-		 (flow-ids v-val)))
+		 :flow-ids (flow-ids v-val)))
 
 ;; [TODO] move error
 (defun compile-symbol (code env)
@@ -119,7 +121,13 @@
                :to-top (mapcan #'to-top args)
                :signatures (mapcan #'signatures args)
                :stemcells (mapcan #'stemcells args)
-	       :flow-ids flow-ids)))
+	       :flow-ids flow-ids
+	       :place-tree (calc-place-tree func args))))
+
+(defun calc-place-tree (func args)
+  (when (v-place-function-p func)
+    (let ((i (v-place-index func)))
+      (cons (list func (elt args i)) (place-tree (elt args i))))))
 
 (defun compile-multi-return-function-call (func-name func args env)
   (let* ((type (resolve-func-type func args env)))
@@ -153,7 +161,8 @@
                                      mvals
                                      m-r-names
 				     flow-ids)
-		 :flow-ids (mapcar #'flow-ids args))))
+		 :flow-ids (mapcar #'flow-ids args)
+		 :place-tree (calc-place-tree func args))))
         (varjo->glsl
          `(%clone-env-block
            (%multi-env-progn

@@ -60,8 +60,7 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (returns-place :initform nil :initarg :returns-place
-		  :reader v-returns-placep)
+   (returns-place :initform nil :initarg :returns-place :reader v-place-index)
    (glsl-spec-matching :initform nil :initarg :glsl-spec-matching
                        :reader v-glsl-spec-matchingp)
    (multi-return-vars :initform nil :initarg :multi-return-vars
@@ -72,6 +71,9 @@
 		    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
    (flow-ids :initform (error 'flow-ids-mandatory :v-function)
 	     :initarg :flow-ids :reader flow-ids)))
+
+(defmethod v-place-function-p ((f v-function))
+  (not (null (slot-value f 'returns-place))))
 
 
 (defmethod core-typep ((type v-t-type))
