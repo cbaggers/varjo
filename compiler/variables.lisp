@@ -11,23 +11,26 @@
                    :accessor v-function-scope)
    (read-only :initarg :read-only :initform nil :reader v-read-only)
    (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-vv)
-	     :reader flow-ids)))
+	     :reader flow-ids)
+   (mutated-from :initarg :mutated-from :initform nil :reader mutated-from)))
 
 (defmethod v-make-value ((type v-t-type) env
                          &key (glsl-name (free-name 'unspecified))
 			   (flow-ids (flow-id!)) function-scope
-			   read-only)
+			   read-only mutated-from)
   (make-instance 'v-value :type type :glsl-name glsl-name
                  :function-scope (or function-scope (v-function-scope env))
-		 :flow-ids flow-ids :read-only read-only))
+		 :flow-ids flow-ids :read-only read-only
+		 :mutated-from mutated-from))
 
 (defmethod v-make-value ((type t) env
                          &key (glsl-name (free-name 'unspecified))
 			   (flow-ids (flow-id!)) function-scope
-			   read-only)
+			   read-only mutated-from)
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name
                  :function-scope (or function-scope (v-function-scope env))
-		 :flow-ids flow-ids :read-only read-only))
+		 :flow-ids flow-ids :read-only read-only
+		 :mutated-from mutated-from))
 
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))

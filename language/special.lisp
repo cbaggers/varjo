@@ -76,7 +76,8 @@
 			 :read-only (v-read-only old-val)
 			 :function-scope (v-function-scope old-val)
 			 :flow-ids flow-ids
-			 :glsl-name (v-glsl-name old-val))
+			 :glsl-name (v-glsl-name old-val)
+			 :mutated-from old-val)
 	   env))
 
 (v-defspecial progn (&rest body)
@@ -98,15 +99,19 @@
                               code-obj))
                          (let ((code (last1 body)))
                            (setf (v-multi-val-base env) mvb)
-                           (list (varjo->glsl code env))))))
-
+			   (multiple-value-bind (code-obj new-env)
+			       (varjo->glsl code env)
+			     (when new-env (setf env new-env))
+			     (list code-obj))))))
         (let ((last-obj (last1 body-objs)))
-          (merge-obs body-objs
-                     :type (code-type last-obj)
-                     :current-line (current-line last-obj)
-                     :to-block (merge-lines-into-block-list body-objs)
-                     :multi-vals (multi-vals (last1 body-objs))
-		     :flow-ids (flow-ids last-obj))))
+	  (values
+	   (merge-obs body-objs
+		      :type (code-type last-obj)
+		      :current-line (current-line last-obj)
+		      :to-block (merge-lines-into-block-list body-objs)
+		      :multi-vals (multi-vals (last1 body-objs))
+		      :flow-ids (flow-ids last-obj))
+	   env)))
       (make-code-obj (type-spec->type :none) "")))
 
 (v-defmacro prog1 (&body body)
@@ -613,18 +618,57 @@
 (v-defspecial :%if (test-form then-form &optional else-form)
   :args-valid t
   :return
-  (let* ((test-obj (varjo->glsl test-form env))
-         (then-obj (end-line (varjo->glsl then-form env)))
-         (else-obj (when else-form (end-line (varjo->glsl else-form env))))
-         (arg-objs (remove-if #'null (list test-obj then-obj else-obj))))
-    (when (not (v-typep (code-type test-obj) 'v-bool))
-      (setf test-obj (varjo->glsl t env))
-      (setf else-obj nil))
-    (if (v-typep (code-type test-obj) 'v-bool)
-        (merge-obs arg-objs :type :none :current-line nil
-                   :to-block (list (gen-if-string test-obj then-obj else-obj))
-		   :flow-ids nil)
-        (error 'if-test-type-mismatch :test-obj test-obj))))
+  (let ((test-obj (varjo->glsl test-form env)))
+    (if (not (v-typep (code-type test-obj) 'v-bool))
+	(compile-constant-%if then-form env)
+	(compile-regular-%if test-obj then-form else-form env))))
+
+(defun compile-constant-%if (then-form env)
+  ;; the test form was not boolean, so the if would always
+  ;; be true, so in this case we just use the 'then' form
+  (let ((then-obj (end-line (varjo->glsl then-form env))))
+    (merge-obs then-obj :type :none :flow-ids nil)))
+
+;;---------------------------
+;; Cant use environment for tracking mutation
+;; it doesnt propagate down. Probably have to use code obj
+;; todo:
+;; - revert variables.lisp changes
+;; - understand if progn should return env (at least the last1 fix is needed
+;; - cleanup the stuff below this note
+;;---------------------------
+
+(defun compile-regular-%if (test-obj then-form else-form env)
+  (print then-form)
+  (multiple-value-bind (then-obj then-final-env)
+      (varjo->glsl then-form (clone-environment env))
+    (format t "~%mutations then-env: ~s" (find-mutations env then-final-env))
+    (multiple-value-bind (else-obj else-final-env)
+	(when else-form
+	  (varjo->glsl else-form (clone-environment env)))
+      (when else-form
+	(format t "~%mutations else-env: ~s" (find-mutations env else-final-env)))
+      ;; for convenience
+      (let ((arg-objs (remove-if #'null (list test-obj then-obj else-obj)))
+	    (then-obj (end-line then-obj))
+	    (else-obj (when else-obj (end-line else-obj))))
+	(merge-obs arg-objs :type :none :current-line nil
+		   :to-block (list (gen-if-string test-obj then-obj else-obj))
+		   :flow-ids nil)))))
+
+(defun find-mutations (old-env new-env)
+  (let* ((old-vars (remove-duplicates (v-variables old-env)
+				      :key #'first :from-end t))
+	 (new-vars (remove-duplicates (v-variables new-env)
+				      :key #'first :from-end t)))
+    (labels ((get-len-diff (x)
+	     (destructuring-bind (name . vals) x
+	       (let* ((old-version (find name old-vars :key #'first))
+		      (len-diff (- (length vals) (length (rest old-version)))))
+		 (cond ((not old-version) (cons name vals))
+		       ((> len-diff 0) (cons name (subseq vals 0 len-diff)))
+		       (t nil))))))
+      (remove nil (mapcar #'get-len-diff new-vars)))))
 
 (v-defspecial :while (test &rest body)
   :args-valid t
