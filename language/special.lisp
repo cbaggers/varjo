@@ -76,8 +76,7 @@
 			 :read-only (v-read-only old-val)
 			 :function-scope (v-function-scope old-val)
 			 :flow-ids flow-ids
-			 :glsl-name (v-glsl-name old-val)
-			 :mutated-from old-val)
+			 :glsl-name (v-glsl-name old-val))
 	   env))
 
 (v-defspecial progn (&rest body)
@@ -104,14 +103,15 @@
 			     (when new-env (setf env new-env))
 			     (list code-obj))))))
         (let ((last-obj (last1 body-objs)))
-	  (values
-	   (merge-obs body-objs
-		      :type (code-type last-obj)
-		      :current-line (current-line last-obj)
-		      :to-block (merge-lines-into-block-list body-objs)
-		      :multi-vals (multi-vals (last1 body-objs))
-		      :flow-ids (flow-ids last-obj))
-	   env)))
+	  ;; (values
+	  (merge-obs body-objs
+		     :type (code-type last-obj)
+		     :current-line (current-line last-obj)
+		     :to-block (merge-lines-into-block-list body-objs)
+		     :multi-vals (multi-vals (last1 body-objs))
+		     :flow-ids (flow-ids last-obj))
+	  ;; env)
+	  ))
       (make-code-obj (type-spec->type :none) "")))
 
 (v-defmacro prog1 (&body body)
