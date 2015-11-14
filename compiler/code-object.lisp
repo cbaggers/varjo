@@ -23,6 +23,7 @@
                       :accessor out-of-scope-args)
    (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
 	     :accessor flow-ids)
+   (mutations :initarg :mutations :initform nil :accessor mutations)
    (place-tree :initarg :place-tree :initform nil :accessor place-tree)))
 
 ;; [TODO] Proper error needed here
@@ -64,7 +65,7 @@
 (defgeneric copy-code (code-obj &key type current-line to-block to-top
                                   out-vars invariant returns multi-vals
                                   stemcells out-of-scope-args flow-ids
-				  place-tree))
+				  place-tree mutations))
 (defmethod copy-code ((code-obj code)
                       &key type
                         current-line
@@ -78,7 +79,8 @@
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
-			(place-tree nil set-place-tree))
+			(place-tree nil set-place-tree)
+			(mutations nil set-mutations))
   (make-instance 'code
                  :type (if type type (code-type code-obj))
                  :current-line (if current-line current-line
@@ -96,13 +98,14 @@
                                         out-of-scope-args
                                         (out-of-scope-args code-obj))
 		 :flow-ids (if set-flow-ids flow-ids (flow-ids code-obj))
-		 :place-tree (if set-place-tree place-tree (place-tree code-obj))))
+		 :place-tree (if set-place-tree place-tree (place-tree code-obj))
+		 :mutations (if set-mutations mutations (mutations code-obj))))
 
 
 (defgeneric merge-obs (objs &key type current-line to-block
                               to-top out-vars invariant returns multi-vals
                               stemcells out-of-scope-args flow-ids
-			      place-tree))
+			      place-tree mutations))
 
 (defmethod merge-obs ((objs list)
                       &key type
@@ -117,7 +120,8 @@
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
-			place-tree)
+			place-tree
+			(mutations nil set-mutations))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
     (error 'flow-ids-mandatory :for :code-object))
   (make-instance 'code
@@ -142,7 +146,9 @@
 		 :flow-ids (if set-flow-ids
 			      flow-ids
 			      (error 'flow-id-must-be-specified-co))
-		 :place-tree place-tree))
+		 :place-tree place-tree
+		 :mutations (if set-mutations mutations
+				(mapcat #'mutations objs))))
 
 (defmethod merge-obs ((objs code)
                       &key (type nil set-type)
@@ -156,7 +162,8 @@
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
-			place-tree)
+			place-tree
+			(mutations nil set-mutations))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
     (error 'flow-ids-mandatory :for :code-object))
   (make-instance 'code
@@ -176,7 +183,8 @@
                                         out-of-scope-args
                                         (remove nil (out-of-scope-args objs)))
 		 :flow-ids (if set-flow-ids flow-ids (stemcells objs))
-		 :place-tree place-tree))
+		 :place-tree place-tree
+		 :mutations (if set-mutations mutations (mutations objs))))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

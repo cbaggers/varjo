@@ -176,6 +176,14 @@
 ;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk
 ;;{TODO} expand on this please. 'Future-you' couldnt work out what this meant
+;; {TODO} you from both of your futures here. I think he was saying that
+;;        the errors coming out of a special function could have been the result
+;;        of the special func using #'varjo->glsl which tried compiling a
+;;        function call but while testing for the right function it threw and
+;;        error. I think that is wrong as the handler-case in compiler/functions
+;;        should catch those. We need to review all this stuff anyway.
+;;        In the case of special funcs there should never be any ambiguity, it
+;;        HAS to be the correct impl
 (defun compile-special-function (func args env)
   (let ((env (clone-environment env)))
     (multiple-value-bind (code-obj new-env)

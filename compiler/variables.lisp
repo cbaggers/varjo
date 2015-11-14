@@ -60,5 +60,5 @@
               (add-var name (v-make-value
 			     type env :glsl-name (gen-reserved-var-string name)
 			     :flow-ids (%gl-flow-id!) :read-only (not setable))
-                       env t))))
+                       env))))
   env)

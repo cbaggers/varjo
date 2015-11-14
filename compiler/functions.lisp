@@ -161,7 +161,7 @@
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
   (let ((method (v-argument-spec func))
-        (env (clone-environment env)))
+        (env (fresh-environment env)))
     (if (listp method)
         (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env))
         (if (eq method t)

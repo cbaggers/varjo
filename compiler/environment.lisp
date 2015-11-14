@@ -49,11 +49,34 @@
    (multi-val-base :initform nil :initarg :multi-val-base
                    :accessor v-multi-val-base)
    (function-scope :initform 0 :initarg :function-scope
-                   :accessor v-function-scope)))
+                   :accessor v-function-scope)
+   (parent-env :initform *global-env* :initarg :parent-env
+	       :reader v-parent-env)))
+
+(defmethod initialize-instance :after ((env environment) &rest initargs)
+  (declare (ignore initargs))
+  ;; parent checks
+  (let ((parent (v-parent-env env)))
+    (when parent
+      (unless (or (eq parent *global-env*)
+		  (equal (v-context env) (v-context parent)))
+	(error 'env-parent-context-mismatch :env-a env :env-b parent)))))
+
+(defun %make-varjo-environment ()
+  (make-instance 'environment))
 
 (defun make-varjo-environment (&rest context)
   (let ((context (or context *default-context*)))
     (make-instance 'environment :context context :raw-context context)))
+
+
+;;-------------------------------------------------------------------------
+;; global env
+
+(defmethod v-functions ((env (eql :-genv-)))
+  (declare (ignore env))
+  *global-env-funcs*)
+
 
 ;;-------------------------------------------------------------------------
 
@@ -98,32 +121,33 @@
                  :raw-uniforms (v-raw-uniforms env)
                  :raw-args (v-raw-in-args env)
                  :multi-val-base (v-multi-val-base env)
-                 :function-scope (v-function-scope env)))
+                 :function-scope (v-function-scope env)
+		 :parent-env (v-parent-env env)))
 
-(defmethod clean-environment ((env environment))
+(defmethod process-environment-for-main-labels ((env environment))
   (make-instance 'environment :variables nil :functions nil
                  :macros nil :compiler-macros nil :types nil
                  :context (copy-list (v-context env))
-                 :function-scope (v-function-scope env)))
+                 :function-scope (v-function-scope env)
+		 :parent-env (v-parent-env env)))
 
-(defmethod normalize-environment (env &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (labels ((norm-list (x) (loop :with seen = nil
-                               :for i :in x :do
-                               (when (not (find (first i) seen :key #'first))
-                                 (push i seen))
-                               :finally (return seen))))
-      (setf (v-variables env) (norm-list (v-variables env)))
-      (setf (v-functions env) (norm-list (v-functions env)))
-      (setf (v-macros env) (norm-list (v-macros env)))
-      (setf (v-compiler-macros env) (norm-list (v-compiler-macros env)))
-      env)))
+;; {TODO} just here until if we work out what to do with clean
+;;        and clone
+(defmethod fresh-environment ((env environment))
+  (make-instance 'environment :variables nil :functions nil
+                 :macros nil :compiler-macros nil :types nil
+                 :context (copy-list (v-context env))
+		 :multi-val-base (v-multi-val-base env)
+                 :function-scope (v-function-scope env)
+		 :parent-env (v-parent-env env)))
 
 (defun merge-env (env new-env)
   (let ((a (clone-environment env))
         (b (clone-environment new-env)))
     (unless (= (v-function-scope a) (v-function-scope b))
       (error 'merge-env-func-scope-mismatch :env-a a :env-b b))
+    (unless (eq (v-parent-env a) (v-parent-env b))
+      (error 'merge-env-parent-mismatch :env-a a :env-b b))
     (with-slots ((a-vars variables) (a-funcs functions) (a-macros macros)
                  (a-cmacros compiler-macros) (a-types types)) a
       (with-slots ((b-vars variables) (b-funcs functions) (b-macros macros)
@@ -221,18 +245,16 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-macro (macro-name (macro function) (context list)
-                      (env (eql :-genv-)) &optional modify-env)
-  (declare (ignore modify-env))
+                      (env (eql :-genv-)))
   (setf (gethash macro-name *global-env-macros*) `(,macro ,context))
   *global-env*)
 
 (defmethod add-macro (macro-name (macro function) (context list)
-                      (env environment) &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (when (shadow-global-check macro-name)
-      (a-remove-all macro-name (v-functions env))
-      (a-set macro-name `(,macro ,context) (v-macros env)))
-    env))
+                      (env environment))
+  (when (shadow-global-check macro-name)
+    (a-remove-all macro-name (v-functions env))
+    (a-set macro-name `(,macro ,context) (v-macros env)))
+  env)
 
 (defgeneric get-macro (macro-name env))
 
@@ -243,7 +265,7 @@
 (defmethod get-macro (macro-name (env environment))
   (let ((spec (or (a-get1 (kwd macro-name) (v-macros env))
                   (a-get1 macro-name (v-macros env))
-                  (get-macro macro-name *global-env*))))
+                  (get-macro macro-name (v-parent-env env)))))
     (when (and spec (valid-for-contextp spec env))
       (first spec))))
 
@@ -255,22 +277,20 @@
 
 
 (defmethod add-symbol-macro (macro-name macro (context list)
-                      (env (eql :-genv-)) &optional modify-env)
-  (declare (ignore modify-env))
+                      (env (eql :-genv-)))
   (unless (or (listp macro) (symbolp macro) (numberp macro))
     (error 'invalid-symbol-macro-form :name macro-name :form macro))
   (setf (gethash macro-name *global-env-symbol-macros*) `(,macro ,context))
   *global-env*)
 
 (defmethod add-symbol-macro (macro-name macro (context list)
-                             (env environment) &optional modify-env)
+                             (env environment))
   (unless (or (listp macro) (symbolp macro) (numberp macro))
     (error 'invalid-symbol-macro-form :name macro-name :form macro))
-  (let ((env (if modify-env env (clone-environment env))))
-    (when (shadow-global-check macro-name)
-      (a-remove-all macro-name (v-functions env))
-      (a-set macro-name `(,macro ,context) (v-symbol-macros env)))
-    env))
+  (when (shadow-global-check macro-name)
+    (a-remove-all macro-name (v-functions env))
+    (a-set macro-name `(,macro ,context) (v-symbol-macros env)))
+  env)
 
 (defgeneric get-symbol-macro (macro-name env))
 
@@ -281,7 +301,7 @@
 (defmethod get-symbol-macro (macro-name (env environment))
   (let ((spec (or (a-get1 (kwd macro-name) (v-symbol-macros env))
                   (a-get1 macro-name (v-symbol-macros env))
-                  (get-symbol-macro macro-name *global-env*))))
+                  (get-symbol-macro macro-name (v-parent-env env)))))
     (when (and spec (valid-for-contextp spec env))
       spec)))
 
@@ -292,17 +312,15 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
-                               (env (eql :-genv-)) &optional modify-env)
-  (declare (ignore modify-env))
+                               (env (eql :-genv-)))
   (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
   *global-env*)
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
-                               (env environment) &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
-      (a-set macro-name `(,macro ,context) (v-compiler-macros env)))
-    env))
+                               (env environment))
+  (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
+    (a-set macro-name `(,macro ,context) (v-compiler-macros env)))
+  env)
 
 (defgeneric get-compiler-macro (macro-name env))
 
@@ -313,7 +331,7 @@
 (defmethod get-compiler-macro (macro-name (env environment))
   (let ((spec (or (a-get1 (kwd macro-name) (v-compiler-macros env))
                   (a-get1 macro-name (v-compiler-macros env))
-                  (get-compiler-macro macro-name *global-env*))))
+                  (get-compiler-macro macro-name (v-parent-env env)))))
     (when (and spec (valid-for-contextp spec env))
       (first spec))))
 
@@ -333,45 +351,36 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-var (var-name (val v-value) (env (eql :-genv-))
-                    &optional modify-env)
-  (declare (ignore modify-env))
+(defmethod add-var (var-name (val v-value) (env (eql :-genv-)))
   (setf (gethash var-name *global-env-vars*) val)
   *global-env*)
 
-(defmethod add-var (var-name (val v-value) (env environment)
-                    &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (a-add var-name val (v-variables env))
-    env))
+(defmethod add-var (var-name (val v-value) (env environment))
+  (a-add var-name val (v-variables env))
+  env)
 
-(defmethod add-vars ((var-names list) (vals list) (env environment)
-                     &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (loop :for name in var-names :for val :in vals :do
-       (a-add name val (v-variables env)))
-    env))
+(defmethod add-vars ((var-names list) (vals list) (env environment))
+  (loop :for name in var-names :for val :in vals :do
+     (a-add name val (v-variables env)))
+  env)
 
 (defgeneric get-var (var-name env))
 (defmethod get-var (var-name (env (eql :-genv-)))
-  (or (gethash (kwd var-name) *global-env-vars*)
-      (gethash var-name *global-env-vars*)))
+  (let ((k (gethash (kwd var-name) *global-env-vars*))
+	(s (gethash var-name *global-env-vars*)))
+    (cond (k (values k *global-env*))
+	  (s (values s *global-env*))
+	  (t nil))))
 
 (defmethod get-var (var-name (env environment))
-  (or (first (a-get (kwd var-name) (v-variables env)))
-      (first (a-get var-name (v-variables env)))
-      (get-var var-name *global-env*)))
+  (let ((k (first (a-get (kwd var-name) (v-variables env))))
+	(s (first (a-get var-name (v-variables env)))))
+    (cond (k (values k env))
+	  (s (values s env))
+	  (t (get-var var-name (v-parent-env env))))))
 
 (defmethod v-boundp (var-name (env environment))
   (not (null (get-var var-name env))))
-
-;;-------------------------------------------------------------------------
-
-(defmethod add-type (type-name (type-obj v-type) (env environment)
-                     &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (a-add type-name type-obj (v-types env))
-    env))
 
 ;;-------------------------------------------------------------------------
 
@@ -382,19 +391,15 @@
         (when (context-ok-given-restriction context restriction) func)
         func)))
 
-(defmethod add-function (func-name (func-spec list) (env (eql :-genv-))
-                         &optional modify-env)
-  (declare (ignore modify-env))
+(defmethod add-function (func-name (func-spec list) (env (eql :-genv-)))
   (setf (gethash func-name *global-env-funcs*)
         (cons func-spec (gethash func-name *global-env-funcs*)))
   *global-env*)
 
-(defmethod add-function (func-name (func-spec v-function) (env environment)
-                         &optional modify-env)
-  (let ((env (if modify-env env (clone-environment env))))
-    (when (shadow-global-check func-name)
-      (a-add func-name func-spec (v-functions env)))
-    env))
+(defmethod add-function (func-name (func-spec v-function) (env environment))
+  (when (shadow-global-check func-name)
+    (a-add func-name func-spec (v-functions env)))
+  env)
 
 (defmethod get-function-by-name (func-name (env (eql :-genv-)))
   (sort-function-list
@@ -411,10 +416,13 @@
 
 (defmethod special-raw-argp ((func v-function))
   (eq (v-argument-spec func) t))
+
 (defmethod special-func-argp ((func v-function))
   (functionp (v-argument-spec func)))
+
 (defmethod special-basic-argp ((func v-function))
   (listp (v-argument-spec func)))
+
 (defmethod func-need-arguments-compiledp ((func v-function))
   (not (and (v-special-functionp func) (special-raw-argp func))))
 
@@ -430,10 +438,6 @@
 
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function-by-name func-name env))))
-
-(defmethod v-functions ((env (eql :-genv-)))
-  (declare (ignore env))
-  *global-env-funcs*)
 
 ;;-------------------------------------------------------------------------
 

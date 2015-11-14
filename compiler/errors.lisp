@@ -206,6 +206,14 @@ Value Form: ~a"
   "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
   (cons (v-function-scope env-a) (v-function-scope env-b)) env-a env-b)
 
+(deferror merge-env-parent-mismatch () (env-a env-b)
+  "Attempting to merge two environements with different parent environments ~s~%~s~%~s"
+  (cons (v-parent-env env-a) (v-parent-env env-b)) env-a env-b)
+
+(deferror env-parent-context-mismatch () (env-a env-b)
+    "Attempting to make an environment with different context to it's parent ~s~%~s~%~s"
+  (cons (v-context env-a) (v-context env-b)) env-a env-b)
+
 (deferror symbol-unidentified () (sym)
     "Symbol '~s' is unidentified." sym)
 
