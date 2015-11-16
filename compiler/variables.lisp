@@ -57,8 +57,21 @@
              (context-ok-given-restriction (v-context env) (listify restrict)))
      :do (loop :for (name type-spec setable) :in vars :do
             (let ((type (type-spec->type type-spec)))
-              (add-var name (v-make-value
-			     type env :glsl-name (gen-reserved-var-string name)
-			     :flow-ids (%gl-flow-id!) :read-only (not setable))
-                       env))))
+              (%add-var name (v-make-value
+			      type env :glsl-name (gen-reserved-var-string name)
+			      :flow-ids (%gl-flow-id!) :read-only (not setable))
+			env))))
   env)
+
+;;--------------------------------------------------
+
+(defclass mval ()
+  ((value :initarg :value :reader multi-val-value)
+   (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
+
+(defun make-mval (v-value &optional qualifiers)
+  (make-instance 'mval :value v-value :qualifiers qualifiers))
+
+(defun mval->out-form (mval env)
+  (with-slots (value qualifiers) mval
+    `(%out (,(free-name :out env) ,@qualifiers) ,value)))

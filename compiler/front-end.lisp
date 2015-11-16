@@ -169,18 +169,19 @@
         (error 'stage-order-error stage-type))))
 
 (defun translate (in-args uniforms context body)
-  (let ((env (%make-varjo-environment)))
+  (let ((env (%make-base-environment)))
     (pipe-> (in-args uniforms context body env)
       #'split-input-into-env
       #'process-context
+      #'add-context-glsl-vars
       #'process-in-args
       #'process-uniforms
       #'wrap-in-main-function
-      #'add-context-glsl-vars
       (equalp #'symbol-macroexpand-pass
               #'macroexpand-pass
               #'compiler-macroexpand-pass)
       #'compile-pass
+      #'make-post-process-obj
       #'filter-used-items
       #'check-stemcells
       #'gen-in-arg-strings
@@ -249,6 +250,11 @@
 
 ;;----------------------------------------------------------------------
 
+(defun add-context-glsl-vars (code env)
+  (values code (add-glsl-vars env *glsl-variables*)))
+
+;;----------------------------------------------------------------------
+
 ;; {TODO} get rid of all this ugly imperitive crap, what was I thinking?
 (defun process-in-args (code env)
   "Populate in-args and create fake-structs where they are needed"
@@ -260,8 +266,8 @@
            (if (typep type-obj 'v-struct)
                (add-in-arg-fake-struct name glsl-name type-obj qualifiers env)
                (progn
-                 (add-var name (v-make-value type-obj env :glsl-name glsl-name)
-			  env)
+                 (%add-var name (v-make-value type-obj env :glsl-name glsl-name)
+			   env)
                  (setf (v-in-args env)
                        (append (v-in-args env)
                                `((,name ,(type->type-spec type-obj) ,qualifiers
@@ -286,22 +292,22 @@
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (v-true-type (type-spec->type type))))
-    (add-var name
-             (v-make-value true-type env :glsl-name
-                           (or glsl-name (safe-glsl-name-string name))
-			   :read-only t)
-             env))
+    (%add-var name
+	      (v-make-value true-type env :glsl-name
+			    (or glsl-name (safe-glsl-name-string name))
+			    :read-only t)
+	      env))
   (push (list name type qualifiers glsl-name) (v-uniforms env))
   env)
 
 ;; mutates env
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (v-true-type (type-spec->type type))))
-    (add-var name (v-make-value
-		   true-type env
-		   :glsl-name (or glsl-name (safe-glsl-name-string name))
-		   :flow-ids (flow-id!) :function-scope 0 :read-only t)
-             env))
+    (%add-var name (v-make-value
+		    true-type env
+		    :glsl-name (or glsl-name (safe-glsl-name-string name))
+		    :flow-ids (flow-id!) :function-scope 0 :read-only t)
+	      env))
   (push (list name type qualifiers glsl-name) (v-uniforms env))
   env)
 
@@ -316,11 +322,6 @@
 (defun wrap-in-main-function (code env)
   (values `(%make-function-no-implicit :main () ,code)
           env))
-
-;;----------------------------------------------------------------------
-
-(defun add-context-glsl-vars (code env)
-  (values code (add-glsl-vars env *glsl-variables*)))
 
 ;;----------------------------------------------------------------------
 
@@ -368,13 +369,49 @@
 
 ;;----------------------------------------------------------------------
 
-(defun filter-used-items (code env)
+(defclass post-compile-process ()
+  ((code :initarg :code :accessor code)
+   (env :initarg :env :accessor env)
+   (in-args :initarg :in-args :accessor in-args)
+   (out-vars :initarg :out-vars :accessor out-vars)
+   (uniforms :initarg :uniforms :accessor uniforms)
+   (stemcells :initarg :stemcells :accessor stemcells)
+   (used-types :initarg :used-types :accessor used-types)))
+
+(defun make-post-process-obj (code env)
+  (make-instance 'post-compile-process :code code :env env))
+
+;;----------------------------------------------------------------------
+
+(defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
-  (setf (used-types code)
-        (loop :for i :in (find-used-user-structs code env)
-           :collect (type-spec->type i :env env)))
-  (values code env))
+  (with-slots (code env) post-proc-obj
+    (setf (used-types post-proc-obj)
+	  (loop :for i :in (find-used-user-structs code env)
+	     :collect (type-spec->type i :env env))))
+  post-proc-obj)
+
+;;----------------------------------------------------------------------
+
+(defun check-stemcells (post-proc-obj)
+  (with-slots (code) post-proc-obj
+    (let ((stemcells (stemcells code)))
+      (mapcar
+       (lambda (x)
+	 (dbind (name string type) x
+	   (declare (ignore string))
+	   (when (remove-if-not (lambda (x)
+				  (and (equal name (first x))
+				       (not (equal type (third x)))))
+				stemcells)
+	     (error "Symbol ~a used with different implied types" name))))
+       ;; {TODO} Proper error here
+       stemcells)
+      (setf (stemcells post-proc-obj)
+	    (remove-duplicates stemcells :test #'equal
+			       :key #'first))
+      post-proc-obj)))
 
 ;;----------------------------------------------------------------------
 
@@ -388,20 +425,20 @@
     (reverse (reduce #'%calc-location (butlast types) :initial-value '(0)))))
 
 
-
-(defun gen-in-arg-strings (code env)
-  (let* ((types (mapcar #'second (v-in-args env)))
-         (type-objs (mapcar #'type-spec->type types))
-         (locations (if (member :vertex (v-context env))
-                        (calc-locations type-objs)
-                        (loop for i below (length type-objs) collect nil))))
-    (setf (v-in-args env)
-          (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
-             :for location :in locations :for type :in type-objs :collect
-             `(,name ,type ,qualifiers
-                     ,(gen-in-var-string (or glsl-name name) type
-                                         qualifiers location)))))
-  (values code env))
+(defun gen-in-arg-strings (post-proc-obj)
+  (with-slots (env) post-proc-obj
+    (let* ((types (mapcar #'second (v-in-args env)))
+	   (type-objs (mapcar #'type-spec->type types))
+	   (locations (if (member :vertex (v-context env))
+			  (calc-locations type-objs)
+			  (loop for i below (length type-objs) collect nil))))
+      (setf (in-args post-proc-obj)
+	    (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
+	       :for location :in locations :for type :in type-objs :collect
+	       `(,name ,type ,qualifiers
+		       ,(gen-in-var-string (or glsl-name name) type
+					   qualifiers location))))))
+  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 
@@ -419,116 +456,102 @@
                                      deduped)))))
     (reverse deduped)))
 
-(defun gen-out-var-strings (code env)
-  (let* ((out-vars (dedup-out-vars (out-vars code)))
-         (out-types (mapcar (lambda (_)
-                              (v-type (third _)))
-                            out-vars))
-         (locations (if (member :fragment (v-context env))
-                        (calc-locations out-types)
-                        (loop for i below (length out-types) collect nil))))
-    (setf (out-vars code)
-          (loop :for (name qualifiers value) :in out-vars
-             :for type :in out-types
-             :for location :in locations
-             :collect (let ((glsl-name (v-glsl-name value)))
-                        `(,name ,(type->type-spec (v-type value))
-                                ,@qualifiers ,glsl-name
-                                ,(gen-out-var-string glsl-name type qualifiers
-                                                     location)))))
-    (values code env)))
+(defun gen-out-var-strings (post-proc-obj)
+  (with-slots (code env) post-proc-obj
+    (let* ((out-vars (dedup-out-vars (out-vars code)))
+	   (out-types (mapcar (lambda (_)
+				(v-type (third _)))
+			      out-vars))
+	   (locations (if (member :fragment (v-context env))
+			  (calc-locations out-types)
+			  (loop for i below (length out-types) collect nil))))
+      (setf (out-vars post-proc-obj)
+	    (loop :for (name qualifiers value) :in out-vars
+	       :for type :in out-types
+	       :for location :in locations
+	       :collect (let ((glsl-name (v-glsl-name value)))
+			  `(,name ,(type->type-spec (v-type value))
+				  ,@qualifiers ,glsl-name
+				  ,(gen-out-var-string glsl-name type qualifiers
+						       location)))))
+      post-proc-obj)))
 
 ;;----------------------------------------------------------------------
 
-(defun check-stemcells (code env)
-  (let ((stemcells (stemcells code)))
-    (mapcar
-     (lambda (x)
-       (dbind (name string type) x
-         (declare (ignore string))
-         (when (remove-if-not (lambda (x)
-                                (and (equal name (first x))
-                                     (not (equal type (third x)))))
-                              stemcells)
-           (error "Symbol ~a used with different implied types" name))))
-     ;; {TODO} Proper error here
-     stemcells)
-    (setf (stemcells code) (remove-duplicates stemcells :test #'equal
-                                              :key #'first)))
-  (values code env))
+(defun final-uniform-strings (post-proc-obj)
+  (with-slots (code env) post-proc-obj
+    (let ((final-strings nil)
+	  (structs (used-types post-proc-obj))
+	  (uniforms (v-uniforms env))
+	  (implicit-uniforms nil))
+      (loop :for (name type qualifiers glsl-name) :in uniforms
+	 :for type-obj = (type-spec->type type) :do
+	 (push `(,name ,type
+		       ,(if (member :ubo qualifiers)
+			    (varjo::write-interface-block
+			     :uniform (or glsl-name (safe-glsl-name-string name))
+			     (v-slots type-obj))
+			    (gen-uniform-decl-string
+			     (or glsl-name (safe-glsl-name-string name))
+			     type-obj
+			     qualifiers)))
+	       final-strings)
+	 (when (and (v-typep type-obj 'v-user-struct)
+		    (not (find (type->type-spec type-obj) structs
+			       :key #'type->type-spec :test #'equal)))
+	   (push type-obj structs)))
+
+      (loop :for (name string-name type) :in (stemcells post-proc-obj) :do
+	 (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
+	 (let ((type-obj (type-spec->type type)))
+	   (push `(,name ,type
+			 ,(gen-uniform-decl-string
+			   (or string-name (error "stem cell without glsl-name"))
+			   type-obj
+			   nil)
+			 ,string-name)
+		 implicit-uniforms)
+
+	   (when (and (v-typep type-obj 'v-user-struct)
+		      (not (find (type->type-spec type-obj) structs
+				 :key #'type->type-spec :test #'equal)))
+	     (push type-obj structs))))
+
+      (setf (used-types post-proc-obj) structs)
+      (setf (uniforms post-proc-obj) uniforms)
+      (setf (stemcells post-proc-obj) implicit-uniforms)
+      post-proc-obj)))
 
 ;;----------------------------------------------------------------------
 
-(defun final-uniform-strings (code env)
-  (let ((final-strings nil)
-        (structs (used-types code))
-        (uniforms (v-uniforms env))
-        (implicit-uniforms nil))
-    (loop :for (name type qualifiers glsl-name) :in uniforms
-       :for type-obj = (type-spec->type type) :do
-       (push `(,name ,type
-                     ,(if (member :ubo qualifiers)
-                          (varjo::write-interface-block
-                           :uniform (or glsl-name (safe-glsl-name-string name))
-                           (v-slots type-obj))
-                          (gen-uniform-decl-string
-                           (or glsl-name (safe-glsl-name-string name))
-                           type-obj
-                           qualifiers)))
-             final-strings)
-       (when (and (v-typep type-obj 'v-user-struct)
-                  (not (find (type->type-spec type-obj) structs
-                             :key #'type->type-spec :test #'equal)))
-         (push type-obj structs)))
-
-    (loop :for (name string-name type) :in (stemcells code) :do
-       (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
-       (let ((type-obj (type-spec->type type)))
-         (push `(,name ,type
-                       ,(gen-uniform-decl-string
-                         (or string-name (error "stem cell without glsl-name"))
-                         type-obj
-                         nil)
-                       ,string-name)
-               implicit-uniforms)
-
-         (when (and (v-typep type-obj 'v-user-struct)
-                    (not (find (type->type-spec type-obj) structs
-                               :key #'type->type-spec :test #'equal)))
-           (push type-obj structs))))
-
-    (setf (used-types code) structs)
-    (setf (v-uniforms env) final-strings)
-    (setf (stemcells code) implicit-uniforms))
-  (values code env))
+(defun dedup-strings (post-proc-obj)
+  (with-slots (code) post-proc-obj
+    (setf (to-top code)
+	  (remove-duplicates (to-top code) :test #'equal))
+    (setf (signatures code)
+	  (remove-duplicates (signatures code) :test #'equal))
+    (setf (used-types post-proc-obj)
+	  (remove-duplicates (mapcar #'v-signature (used-types post-proc-obj))
+			     :test #'equal)))
+  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 
-(defun dedup-strings (code env)
-  (setf (to-top code)
-        (remove-duplicates (to-top code) :test #'equal))
-  (setf (signatures code)
-        (remove-duplicates (signatures code) :test #'equal))
-  (setf (used-types code)
-        (remove-duplicates (mapcar #'v-signature (used-types code))
-                           :test #'equal))
-  (values code env))
+(defun final-string-compose (post-proc-obj)
+  (values (gen-shader-string post-proc-obj)
+	  post-proc-obj))
 
 ;;----------------------------------------------------------------------
 
-(defun final-string-compose (code env)
-  (setf (current-line code) (gen-shader-string code env))
-  (values code env))
-
-;;----------------------------------------------------------------------
-
-(defun code-obj->result-object (code env)
-  (make-instance 'varjo-compile-result
-                 :glsl-code (current-line code)
-                 :stage-type (loop for i in (v-context env)
-                                :if (find i *supported-stages*) :return i)
-                 :in-args (mapcar #'butlast (v-in-args env))
-                 :out-vars (mapcar #'butlast (out-vars code))
-                 :uniforms (mapcar #'butlast (v-uniforms env))
-                 :implicit-uniforms (stemcells code)
-                 :context (v-context env)))
+(defun code-obj->result-object (final-glsl-code post-proc-obj)
+  (with-slots (env) post-proc-obj
+    (let* ((context (v-context env)))
+      (make-instance 'varjo-compile-result
+		     :glsl-code final-glsl-code
+		     :stage-type (loop for i in context
+				    :if (find i *supported-stages*) :return i)
+		     :in-args (mapcar #'butlast (in-args post-proc-obj))
+		     :out-vars (mapcar #'butlast (out-vars post-proc-obj))
+		     :uniforms (mapcar #'butlast (uniforms post-proc-obj))
+		     :implicit-uniforms (stemcells post-proc-obj)
+		     :context context))))

@@ -95,10 +95,6 @@
      :do (print (format nil "~s -> ~s" x (gethash x hash-table))))
   hash-table)
 
-;; [TODO] as with fmt
-(defun printf (control-string &rest format-arguments)
-  (apply #'format (append (list t control-string) format-arguments)))
-
 (defun group (source n)
   "This takes a  flat list and emit a list of lists, each n long
    containing the elements of the original list"

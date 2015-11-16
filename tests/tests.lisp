@@ -1,46 +1,119 @@
-(in-package :varjo)
+(in-package :varjo-tests)
 
-(defparameter *env* (make-varjo-environment))
+(stefil:defsuite* test-all)
+(defsuite build-tests)
 
-(defun test-translate (in-args uniforms context body)
-  (let ((env (make-instance 'environment)))
-    (pipe-> (in-args uniforms context body env)
-      #'split-input-into-env
-      #'process-context
-      #'process-in-args
-      #'process-uniforms
-      #'add-context-glsl-vars
-      (equal #'macroexpand-pass
-             #'compiler-macroexpand-pass)
-      #'compile-pass)))
+(in-suite build-tests)
 
-(defmacro deftestshader (args &body body)
-  (destructuring-bind (in-args uniforms context)
-      (split-arguments args '(&uniform &context))
-    `(test-translate ',in-args ',uniforms ',context '(progn ,@body))))
+(deftest build-0 ()
+  (finishes
+    (defshader test ()
+      (v! 0 0 0 0))))
+
+(deftest build-1 ()
+  (finishes
+    (defshader test ()
+      (v! 0 0 0 0)
+      (v! 0 0 0 0))))
+
+(deftest build-2 ()
+  (finishes
+    (defshader test ()
+      (let ((x 1))
+	(v! 0 x 1 2))
+      (v! 0 0 0 0))))
+
+(deftest build-3 ()
+  (finishes
+    (defshader test ()
+      (let ((x 1)
+	    (y 2))
+	(v! x y 1 2))
+      (v! 0 0 0 0))))
+
+(deftest build-4 ()
+  (finishes
+    (defshader test ()
+      (labels ((test () 1))
+	(test))
+      (v! 0 0 0 0))))
+
+(deftest build-5 ()
+  (signals varjo::could-not-find-function
+    (defshader test ()
+      (labels ((test () 1))
+	(test))
+      (v! 0 (test) 0 0))))
+
+(deftest build-6 ()
+  (signals varjo::symbol-unidentified
+    (defshader test ()
+      (let ((x 1)
+	    (y 2))
+	(v! 0 x 1 2))
+      (v! 0 0 y 0))))
+
+(deftest build-7 ()
+  (finishes
+    (defshader test ()
+      (labels ((test () 1))
+	(v! 0 (test) 0 0)))))
+
+(deftest build-8 ()
+  (finishes
+    (defshader test ()
+      (let ((x 2))
+	(labels ((test () x))
+	  (v! 0 (test) 0 0))))))
+
+(deftest build-9 ()
+  (signals varjo::setq-type-match
+    (defshader test ()
+      ())))
+
+(deftest build-10 ()
+  (finishes
+    (defshader test ()
+      (labels ((test ((x :int)) (values x 2)))
+	(v! 0 (test 1))
+	(v! 0 0 0 0)))))
+
+(deftest build-11 ()
+  (finishes
+    (defshader test ()
+      (values (v! 1 2 3 4)
+	      (v! 1 2)))))
+
+(deftest build-12 ()
+  (finishes
+    (defshader test ()
+      (labels ((test ((x :int)) (values (v! 0 0 0 0) 2)))
+	(test 1)))))
+
+(deftest build-13 ()
+  (finishes
+    (defshader test ()
+      (labels ((test ((x :int)) (values x 2)))
+	(v! 0 (int (test 1)) 0 0)))))
 
 
-(defun test1 () (to-block (deftestshader () (let ((a 1))))))
-(defun test2 () (to-block (deftestshader () (let ((a nil))))))
+(deftest build-14 ()
+  (finishes
+    (defshader test ()
+      (values (v! 1 2 3 4)
+	      (v! 1 2))
+      (v! 10 20 30 40))))
 
-(defun test3 () (to-block (deftestshader ((arr (:int 5))) (let ((a arr))))))
+(deftest build-15 ()
+  (finishes
+    (defshader test ()
+      (labels ((test ((x :int)) (values (v! 0 0 0 0) 2)))
+	(test 1)
+	(v! 10 20 30 40)))))
 
-(defun test4 () (to-block (deftestshader () (let ((a 1))))))
-
-(defun test5 () (to-block (deftestshader () (%glsl-let (a 1) t))))
-(defun test6 () (to-block (deftestshader () (%glsl-let ((a :int)) t))))
-(defun test7 () (to-block (deftestshader () (%glsl-let ((a :int) 1) t))))
-
-(defun test8 () (to-block (deftestshader () (%glsl-let ((a (:int 5))) t))))
-
-
-(defun tests ()
-  (format t "~{~a~%~}" (mapcar #'first (list (test5) (test6) (test7) (test8)))))
-
-;; float a[5] = float[](3.4, 4.2, 5.0, 5.2, 1.1);
-
-;; why is b a v-number?
-(deftestshader () 
-  (wip-let (((a (:int 5)))
-            (b 1))
-           (+ b 2)))
+(deftest build-16 ()
+  (finishes
+    (defshader test ()
+      (labels ((test ((x :int)) (values x 2)))
+	(v! 0 (int (test 1)) 0 0)
+	(v! 10 20 30 40)))))

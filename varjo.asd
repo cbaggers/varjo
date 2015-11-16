@@ -6,9 +6,10 @@
   :license "LLGPL"
   :serial t
   :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
-                          #:vas-string-metrics)
+                          #:vas-string-metrics #:stefil)
   :components ((:file "package")
                (:file "utils-v")
+	       (:file "compiler/log")
                (:file "compiler/errors")
                (:file "compiler/types")
                (:file "compiler/code-object")
@@ -28,4 +29,6 @@
                (:file "language/functions")
                (:file "language/textures")
                (:file "compiler/front-end")
-               (:file "language/object-printers")))
+               (:file "language/object-printers")
+	       (:file "tests/package")
+	       (:file "tests/tests")))

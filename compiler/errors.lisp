@@ -82,7 +82,7 @@
 (deferror clean-global-env-error () ()
     "Cannot clean the global environment")
 
-(deferror could-not-find-function () (name)
+(deferror could-not-find-function (:error-type varjo-critical-error) (name)
     "No function called '~a' was found in this environment" name)
 
 (deferror no-valid-function () (name types)
@@ -106,11 +106,13 @@
     "setf failed as ~a is readonly"
   var-name)
 
-(deferror setf-type-match () (code-obj-a code-obj-b)
+(deferror setf-type-match (:error-type varjo-critical-error)
+    (code-obj-a code-obj-b)
     "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
   (code-type code-obj-a) (code-type code-obj-b))
 
-(deferror setq-type-match () (var-name old-value new-value)
+(deferror setq-type-match (:error-type varjo-critical-error)
+    (var-name old-value new-value)
     "Currently varjo cannot handle changing the type through a setq due to the static nature of glsl.~%var name: ~a (type-of ~a): ~a  (type-of new-value): ~a"
   var-name var-name (v-type old-value) (code-type new-value))
 
@@ -214,7 +216,7 @@ Value Form: ~a"
     "Attempting to make an environment with different context to it's parent ~s~%~s~%~s"
   (cons (v-context env-a) (v-context env-b)) env-a env-b)
 
-(deferror symbol-unidentified () (sym)
+(deferror symbol-unidentified (:error-type varjo-critical-error) (sym)
     "Symbol '~s' is unidentified." sym)
 
 (deferror if-form-type-mismatch () (test-form then-form then-type
@@ -256,8 +258,8 @@ e.g. (~a :vec3)"
     "In varjo it is not valid to have a ~s with an empty body."
     form-name)
 
-(deferror flow-ids-mandatory (:error-type varjo-critical-error) (for)
-    "~s must be given flow id/s when created" for)
+(deferror flow-ids-mandatory (:error-type varjo-critical-error) (for code-type)
+    "~s must be given flow id/s when created: type - ~s" for code-type)
 
 (deferror flow-id-must-be-specified-vv (:error-type varjo-critical-error) ()
     "v-values must be given a flow id when created")
@@ -286,3 +288,13 @@ This is a compiler bug
 Tried to mutate ~s
 ~s"
   var-name code)
+
+
+(deferror illegal-implicit-args (:error-type varjo-critical-error) (func-name)
+    "Implicit args are not allowed in the function ~s" func-name)
+
+(deferror invalid-flow-id-multi-return (:error-type varjo-critical-error)
+    (func-name return-type)
+    "Found a multiple-return-func ~s invalid return types:
+~{~s~}"
+  func-name return-type)

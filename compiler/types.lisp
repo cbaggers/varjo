@@ -73,7 +73,7 @@
 	     :initarg :flow-ids :reader flow-ids)))
 
 (defmethod v-place-function-p ((f v-function))
-  (not (null (slot-value f 'returns-place))))
+  (not (null (v-place-index f))))
 
 
 (defmethod core-typep ((type v-t-type))

@@ -155,8 +155,9 @@
 
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
-  (handler-case (varjo->glsl arg env)
-    (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e) ""))))
+  (let ((env (fresh-environment env :multi-val-base nil)))
+    (handler-case (varjo->glsl arg env)
+      (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e) "")))))
 
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)

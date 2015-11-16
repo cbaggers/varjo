@@ -15,7 +15,6 @@
    (to-top :initarg :to-top :initform nil :accessor to-top)
    (out-vars :initarg :out-vars :initform nil :accessor out-vars)
    (used-types :initarg :used-types :initform nil :accessor used-types)
-   (invariant :initarg :invariant :initform nil :accessor invariant)
    (returns :initarg :returns :initform nil :accessor returns)
    (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)
    (stem-cells :initarg :stemcells :initform nil :accessor stemcells)
@@ -32,7 +31,7 @@
   (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
          (type-spec (type->type-spec type-obj)))
-    (setf (slot-value code-obj 'type) type-obj)
+    (setf (code-type code-obj) type-obj)
     (when (and (not (find type-spec (used-types code-obj)))
                (not (eq type-spec 'v-none)))
       (push (listify type-spec) (used-types code-obj)))))
@@ -63,7 +62,7 @@
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
 (defgeneric copy-code (code-obj &key type current-line to-block to-top
-                                  out-vars invariant returns multi-vals
+                                  out-vars returns multi-vals
                                   stemcells out-of-scope-args flow-ids
 				  place-tree mutations))
 (defmethod copy-code ((code-obj code)
@@ -73,7 +72,6 @@
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (invariant nil)
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
                         (stemcells nil set-stemcells)
@@ -89,7 +87,6 @@
                  :to-block (if set-block to-block (to-block code-obj))
                  :to-top (if set-top to-top (to-top code-obj))
                  :out-vars (if set-out-vars out-vars (out-vars code-obj))
-                 :invariant (if invariant invariant (invariant code-obj))
                  :returns (listify (if set-returns returns (returns code-obj)))
                  :used-types (used-types code-obj)
                  :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
@@ -103,7 +100,7 @@
 
 
 (defgeneric merge-obs (objs &key type current-line to-block
-                              to-top out-vars invariant returns multi-vals
+                              to-top out-vars returns multi-vals
                               stemcells out-of-scope-args flow-ids
 			      place-tree mutations))
 
@@ -114,7 +111,6 @@
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (invariant nil)
                         (returns nil set-returns)
                         multi-vals
                         (stemcells nil set-stemcells)
@@ -133,7 +129,6 @@
                                (mapcat #'to-block objs))
                  :to-top (if set-top to-top (mapcat #'to-top objs))
                  :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
-                 :invariant invariant
                  :returns (listify (if set-returns returns (merge-returns objs)))
                  :used-types (mapcar #'used-types objs)
                  :multi-vals multi-vals
@@ -157,34 +152,34 @@
                         (to-block nil set-block)
                         (to-top nil set-top)
                         (out-vars nil set-out-vars)
-                        (invariant nil) (returns nil set-returns)
+			(returns nil set-returns)
                         multi-vals
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
 			place-tree
 			(mutations nil set-mutations))
-  (unless (or flow-ids (type-doesnt-need-flow-id type))
-    (error 'flow-ids-mandatory :for :code-object))
-  (make-instance 'code
-                 :type (if set-type type (code-type objs))
-                 :current-line (if set-current-line current-line
-                                   (current-line objs))
-                 :signatures (if set-sigs signatures (signatures objs))
-                 :to-block (if set-block to-block (remove nil (to-block objs)))
-                 :to-top (if set-top to-top (remove nil (to-top objs)))
-                 :out-vars (if set-out-vars out-vars (out-vars objs))
-                 :invariant invariant
-                 :returns (listify (if set-returns returns (returns objs)))
-                 :used-types (used-types objs)
-                 :multi-vals multi-vals
-                 :stemcells (if set-stemcells stemcells (stemcells objs))
-                 :out-of-scope-args (if set-out-of-scope-args
-                                        out-of-scope-args
-                                        (remove nil (out-of-scope-args objs)))
-		 :flow-ids (if set-flow-ids flow-ids (stemcells objs))
-		 :place-tree place-tree
-		 :mutations (if set-mutations mutations (mutations objs))))
+  (let ((type (if set-type type (code-type objs))))
+    (unless (or flow-ids (type-doesnt-need-flow-id type))
+      (error 'flow-ids-mandatory :for :code-object :code-type type))
+    (make-instance 'code
+		   :type type
+		   :current-line (if set-current-line current-line
+				     (current-line objs))
+		   :signatures (if set-sigs signatures (signatures objs))
+		   :to-block (if set-block to-block (remove nil (to-block objs)))
+		   :to-top (if set-top to-top (remove nil (to-top objs)))
+		   :out-vars (if set-out-vars out-vars (out-vars objs))
+		   :returns (listify (if set-returns returns (returns objs)))
+		   :used-types (used-types objs)
+		   :multi-vals multi-vals
+		   :stemcells (if set-stemcells stemcells (stemcells objs))
+		   :out-of-scope-args (if set-out-of-scope-args
+					  out-of-scope-args
+					  (remove nil (out-of-scope-args objs)))
+		   :flow-ids (if set-flow-ids flow-ids (stemcells objs))
+		   :place-tree place-tree
+		   :mutations (if set-mutations mutations (mutations objs)))))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

@@ -197,17 +197,19 @@
 (defun lisp-name->glsl-name (name)
   (string name))
 
-(defun gen-shader-string (code-obj env)
-  (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
-          (loop :for part :in
-             (list (used-types code-obj)
-                   (mapcar #'fourth (v-in-args env))
-                   (mapcar #'last1 (out-vars code-obj))
-                   (concatenate 'list (mapcar #'third (v-uniforms env))
-                                (mapcar #'third (stemcells code-obj)))
-                   (signatures code-obj)
-                   (to-top code-obj))
-             :if part :collect part)))
+(defun gen-shader-string (post-proc-obj)
+  (with-slots (code env) post-proc-obj
+    (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
+	    (loop :for part :in
+	       (list (used-types post-proc-obj)
+		     (mapcar #'fourth (in-args post-proc-obj))
+		     (mapcar #'last1 (out-vars post-proc-obj))
+		     (concatenate 'list
+				  (mapcar #'third (uniforms post-proc-obj))
+				  (mapcar #'third (stemcells post-proc-obj)))
+		     (signatures code)
+		     (to-top code))
+	       :if part :collect part))))
 
 ;;----------------------------------------------------------------------
 

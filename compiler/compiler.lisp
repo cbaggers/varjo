@@ -93,43 +93,63 @@
                                    func-name func args env))
 
         (t (compile-regular-function-call func-name func args env)))
-    (values code-obj (or new-env env))))
-
-(defun calc-function-return-ids-given-args (func func-name arg-code-objs)
-  ;; {TODO} This only makes sense for regular funcs, replace with more
-  ;;        sensible check once have flowcontrol types
-  (unless (<= (length (flow-ids func)) 1)
-    (error 'multiple-flow-ids-regular-func func-name func))
-  ;;
-  (labels ((calc (id)
-	     (let ((pos (position id (flow-ids func))))
-	       (if pos
-		   (flow-ids (elt arg-code-objs pos))
-		   (flow-id!)))))
-    (mapcar #'calc (in-arg-flow-ids func))))
-
-(defun compile-regular-function-call (func-name func args env)
-  (print (cons func-name (mapcar #'flow-ids args)))
-  (let* ((c-line (gen-function-string func args))
-         (type (resolve-func-type func args env))
-	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
-    (unless type (error 'unable-to-resolve-func-type
-                        :func-name func-name :args args))
-    (merge-obs args
-               :type type
-               :current-line c-line
-               :to-top (mapcan #'to-top args)
-               :signatures (mapcan #'signatures args)
-               :stemcells (mapcan #'stemcells args)
-	       :flow-ids flow-ids
-	       :place-tree (calc-place-tree func args))))
+    (assert new-env)
+    (values code-obj new-env)))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
     (let ((i (v-place-index func)))
       (cons (list func (elt args i)) (place-tree (elt args i))))))
 
+(defun compile-regular-function-call (func-name func args env)
+  (printf (cons func-name (mapcar #'flow-ids args)))
+  (let* ((c-line (gen-function-string func args))
+         (type (resolve-func-type func args env))
+	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
+    (unless type (error 'unable-to-resolve-func-type
+                        :func-name func-name :args args))
+    (values (merge-obs args
+		       :type type
+		       :current-line c-line
+		       :to-top (mapcan #'to-top args)
+		       :signatures (mapcan #'signatures args)
+		       :stemcells (mapcan #'stemcells args)
+		       :flow-ids flow-ids
+		       :place-tree (calc-place-tree func args))
+	    env)))
+
+(defun %calc-flow-id-given-args (in-arg-flow-ids return-flow-id arg-code-objs)
+  (let ((p (positions-if (lambda (x) (id~= return-flow-id x))
+			 in-arg-flow-ids)))
+    (if p
+	(reduce #'flow-id!
+		(mapcar (lambda (i) (flow-ids (elt arg-code-objs i)))
+			p))
+	(flow-id!))))
+
+(defun calc-function-return-ids-given-args (func func-name arg-code-objs)
+  (when (> (length (flow-ids func)) 1)
+    (error 'multiple-flow-ids-regular-func func-name func))
+  (unless (type-doesnt-need-flow-id (v-return-spec func))
+    (%calc-flow-id-given-args (in-arg-flow-ids func)
+			      (first (flow-ids func))
+			      arg-code-objs)))
+
+(defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
+  (let ((all-return-types (cons (v-return-spec func)
+				(mapcar #'v-type
+					(mapcar #'multi-val-value
+						(multi-return-vars func))))))
+    (if (some #'type-doesnt-need-flow-id all-return-types)
+	(error 'invalid-flow-id-multi-return :func-name func-name
+	       :return-type all-return-types)
+	(mapcar #'(lambda (x)
+		    (%calc-flow-id-given-args
+		     (in-arg-flow-ids func) x arg-code-objs))
+		(flow-ids func)))))
+
 (defun compile-multi-return-function-call (func-name func args env)
+  (printf (cons func-name (mapcar #'flow-ids args)))
   (let* ((type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
@@ -137,15 +157,16 @@
            (m-r-base (or (v-multi-val-base env)
                          (safe-glsl-name-string (free-name 'nc))))
            (mvals (multi-return-vars func))
-           (start-index (if has-base 0 1))
+           (start-index 1)
            (m-r-names (loop :for i :from start-index
                          :below (+ start-index (length mvals)) :collect
                          (fmt "~a~a" m-r-base i))))
       (let* ((bindings (loop :for mval :in mvals :collect
                           `((,(free-name 'nc)
                               ,(type->type-spec
-                                (v-type (slot-value mval 'value)))))))
-	     (flow-ids (flow-ids func))
+                                (v-type (multi-val-value mval)))))))
+	     (flow-ids (calc-mfunction-return-ids-given-args
+			func func-name args))
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
@@ -155,23 +176,25 @@
                  :multi-vals (mapcar (lambda (_ _1 fid)
                                        (make-mval
 					(v-make-value
-					 (v-type (slot-value _ 'value))
+					 (v-type (multi-val-value _))
 					 env :glsl-name _1 :flow-ids fid
 					 :function-scope 0)))
                                      mvals
                                      m-r-names
-				     flow-ids)
-		 :flow-ids (mapcar #'flow-ids args)
+				     (rest flow-ids))
+		 :flow-ids (list (first flow-ids))
 		 :place-tree (calc-place-tree func args))))
-        (varjo->glsl
-         `(%clone-env-block
-           (%multi-env-progn
-            ;; when has-base is true then a return or mvbind has already
-            ;; written the lets for the vars
-            ,@(unless has-base
-                      (loop :for v :in bindings :for gname :in m-r-names
-                         :collect `(%glsl-let ,v t ,gname))))
-           ,o) env)))))
+        (values (varjo->glsl
+		 `(%fresh-env-scope
+		   (%multi-env-progn
+		    ;; when has-base is true then a return or mvbind has already
+		    ;; written the lets for the vars
+		    ,@(unless has-base
+			      (loop :for v :in bindings :for gname :in m-r-names
+				 :collect `(%glsl-let ,v t ,gname))))
+		   ,o)
+		 env)
+		env)))))
 
 ;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk
@@ -185,20 +208,19 @@
 ;;        In the case of special funcs there should never be any ambiguity, it
 ;;        HAS to be the correct impl
 (defun compile-special-function (func args env)
-  (let ((env (clone-environment env)))
-    (multiple-value-bind (code-obj new-env)
-        (handler-case (apply (v-return-spec func) (cons env args))
-          (varjo-error (e) (invoke-debugger e)))
-      (values code-obj (or new-env env)))))
+  (multiple-value-bind (code-obj new-env)
+      (handler-case (apply (v-return-spec func) (cons env args))
+	(varjo-error (e) (invoke-debugger e)))
+    (values code-obj new-env)))
 
 
 (defun end-line (obj &optional force)
   (when obj
     (if (and (typep (code-type obj) 'v-none) (not force))
-        obj
-        (if (null (current-line obj))
-            obj
-            (merge-obs obj :current-line (format nil "~a;" (current-line obj))
+	obj
+	(if (null (current-line obj))
+	    obj
+	    (merge-obs obj :current-line (format nil "~a;" (current-line obj))
 		       :flow-ids (flow-ids obj))))))
 
 ;; [TODO] this shouldnt live here

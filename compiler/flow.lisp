@@ -12,7 +12,7 @@
   ((ids :initform nil :initarg :ids :reader ids)))
 
 (defmethod print-object ((o flow-identifier) stream)
-  (let* ((ids (slot-value o 'ids))
+  (let* ((ids (ids o))
 	 (ids (if (> (length ids) 6)
 		  (append (subseq ids 0 6) '(:etc))
 		  ids)))
@@ -25,15 +25,14 @@
   (defun %gen-flow-gl-id () (list (decf gl-flow-id))))
 
 (defun id~= (id-a id-b)
-  (not (null (intersection (slot-value id-a 'ids)
-			   (slot-value id-b 'ids)))))
+  (not (null (intersection (ids id-a) (ids id-b)))))
 
 (defun id= (id-a id-b)
-  (equal (sort (copy-list (slot-value id-a 'ids)) #'<)
-	 (sort (copy-list (slot-value id-b 'ids)) #'<)))
+  (equal (sort (copy-list (ids id-a)) #'<)
+	 (sort (copy-list (ids id-b)) #'<)))
 
 (defun flow-id! (&rest ids)
-  (labels ((internal-ids (x) (slot-value x 'ids)))
+  (labels ((internal-ids (x) (ids x)))
     (if (null ids)
 	(make-instance 'flow-identifier :ids (%gen-flow-id))
 	(make-instance 'flow-identifier

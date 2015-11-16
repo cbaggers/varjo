@@ -8,7 +8,6 @@
            :find-mutual-cast-type
 
            ;;environment
-           :environment
            :make-varjo-environment
 
            ;;type functions

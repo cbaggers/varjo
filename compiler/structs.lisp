@@ -11,6 +11,9 @@
 (defun true-type-name (name) (symb 'varjo::true_ name))
 (defun fake-type-name (name) (symb 'varjo::fake_ name))
 
+(defgeneric v-true-type (object))
+(defgeneric v-fake-type (object))
+
 ;;[TODO] should this use defun?
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.
@@ -80,19 +83,19 @@
              :for accessor = (if (eq :accessor (first acc))
                                  (second acc)
                                  (symb (type->type-spec type) '- slot-name))
-             :do (add-function
+             :do (%add-function
                   accessor
                   (func-spec->function
                    (v-make-f-spec accessor
                                   fake-slot-name
                                   nil ;; {TODO} Must be context
                                   (list fake-type)
-                                  slot-type :returns-place nil) env) env t)
+                                  slot-type :returns-place nil) env) env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
-    (add-var in-var-name
-             (v-make-value struct env :glsl-name glsl-name :read-only t)
-             env)
+    (%add-var in-var-name
+	      (v-make-value struct env :glsl-name glsl-name :read-only t)
+	      env)
     env))
 
 (defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
@@ -105,19 +108,19 @@
              :for accessor = (if (eq :accessor (first acc))
                                  (second acc)
                                  (symb (type->type-spec type) '- slot-name))
-             :do (add-function
+             :do (%add-function
                   accessor
                   (func-spec->function
                    (v-make-f-spec accessor
                                   fake-slot-name
                                   nil ;; {TODO} Must be context
                                   (list fake-type)
-                                  slot-type :returns-place nil) env) env t)
+                                  slot-type :returns-place nil) env) env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
-    (add-var uniform-name
-             (v-make-value struct env :glsl-name glsl-name :read-only t)
-             env)
+    (%add-var uniform-name
+	      (v-make-value struct env :glsl-name glsl-name :read-only t)
+	      env)
     env))
 
 (defun fake-slot-name (in-var-name slot-name)
