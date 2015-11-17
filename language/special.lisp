@@ -12,7 +12,7 @@
   :args-valid t
   :return (let ((new-env (fresh-environment env)))
 	    (vbind (v e) (varjo->glsl `(progn ,@body) new-env)
-	      (values v (env-splice env e)))))
+	      (values v (env-prune (env-depth env) e)))))
 
 ;;{TODO} make it handle multiple assignements like cl version
 (v-defmacro setf (&rest args)
@@ -73,28 +73,21 @@
 (defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
   (labels ((w (n)
 	     (if (eq n old-env)
-		 (add-var old-var-name
-			  (v-make-value
-			   (v-type old-val)
-			   n
-			   :read-only (v-read-only old-val)
-			   :function-scope (v-function-scope old-val)
-			   :flow-ids flow-ids
-			   :glsl-name (v-glsl-name old-val))
-			  n)
+		 (env-replace-parent
+		  n (v-parent-env n) :variables
+		  (a-add old-var-name
+			 (v-make-value
+			  (v-type old-val)
+			  n
+			  :read-only (v-read-only old-val)
+			  :function-scope (v-function-scope old-val)
+			  :flow-ids flow-ids
+			  :glsl-name (v-glsl-name old-val))
+			 (copy-list (v-variables n))))
 		 (env-replace-parent n (w (v-parent-env n))))))
-    (w env)))
-
-;; (defun replace-flow-ids
-;;     (old-var-name old-val flow-ids old-env)
-;;   (add-var old-var-name
-;; 	   (v-make-value (v-type old-val)
-;; 			 old-env
-;; 			 :read-only (v-read-only old-val)
-;; 			 :function-scope (v-function-scope old-val)
-;; 			 :flow-ids flow-ids
-;; 			 :glsl-name (v-glsl-name old-val))
-;; 	   old-env))
+    (if (or (eq old-env *global-env*) (typep old-env 'base-environment))
+	env
+	(w env))))
 
 (v-defspecial progn (&rest body)
   ;; this is super important as it is the only function that implements
@@ -614,27 +607,27 @@
 (v-defspecial if (test-form then-form &optional else-form)
   :args-valid t
   :return
-  (let* ((test-obj (varjo->glsl test-form env))
-         (always-true (or (eq test-form t)
-                          (not (v-typep (code-type test-obj) 'v-bool))))
-         (then-obj (end-line (varjo->glsl then-form env)))
-         (else-obj (if else-form
-                       (end-line (varjo->glsl else-form env))
-                       (if (not always-true)
-                           (error 'if-branch-type-mismatch :then-obj then-obj)
-                           (varjo->glsl nil env)))))
-    (if always-true
-        then-obj
-        (let ((result (free-name :result-from-if))
-              (result-type (type->type-spec (code-type then-obj))))
-          (when else-obj (assert (v-code-type-eq then-obj else-obj)))
-          (expand->varjo->glsl
-           `(let (((,result ,result-type)))
-              (%if ,test-form
-                   (setf ,result ,then-form)
-                   (setf ,result ,else-form))
-              ,result)
-           env)))))
+  (vbind (test-obj test-env) (varjo->glsl test-form env)
+    (let ((always-true (or (eq test-form t)
+			   (not (v-typep (code-type test-obj) 'v-bool)))))
+
+      (vbind (then-obj then-env) (varjo->glsl then-form test-env)
+	(if always-true
+	    (values (end-line then-obj) then-env)
+	    (vbind (else-obj) (if else-form
+				  (varjo->glsl else-form test-env)
+				  (error 'if-branch-type-mismatch
+					 :then-obj then-obj))
+	      (assert (v-code-type-eq then-obj else-obj))
+	      (let ((result (free-name :result-from-if))
+		    (result-type (type->type-spec (code-type then-obj))))
+		(expand->varjo->glsl
+		 `(let (((,result ,result-type)))
+		    (%if ,test-form
+			 (setq ,result ,then-form)
+			 (setq ,result ,else-form))
+		    ,result)
+		 env))))))))
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 ;; this is the if statement from gl. It has a return type type of :none
@@ -642,57 +635,40 @@
 (v-defspecial :%if (test-form then-form &optional else-form)
   :args-valid t
   :return
-  (let ((test-obj (varjo->glsl test-form env)))
-    (if (not (v-typep (code-type test-obj) 'v-bool))
-	(compile-constant-%if then-form env)
-	(compile-regular-%if test-obj then-form else-form env))))
+  (vbind (test-obj test-env) (varjo->glsl test-form env)
+    (let ((test-mutated-outer-scopes (not (env-same-vars env test-env))))
+      (if (v-typep (code-type test-obj) 'v-bool)
+	  (compile-regular-%if test-obj test-env then-form else-form)
+	  (if test-mutated-outer-scopes
+	      (expand->varjo->glsl `(progn ,test-form ,then-form) env)
+	      (compile-constant-%if then-form test-env))))))
 
 (defun compile-constant-%if (then-form env)
   ;; the test form was not boolean, so the if would always
   ;; be true, so in this case we just use the 'then' form
-  (let ((then-obj (end-line (varjo->glsl then-form env))))
-    (merge-obs then-obj :type :none :flow-ids nil)))
+  (vbind (then-obj then-env) (varjo->glsl then-form env)
+    (values (merge-obs (end-line then-obj) :type :none :flow-ids nil)
+	    then-env)))
 
-;;---------------------------
-;; Cant use environment for tracking mutation
-;; it doesnt propagate down. Probably have to use code obj
-;; todo:
-;; - revert variables.lisp changes
-;; - understand if progn should return env (at least the last1 fix is needed
-;; - cleanup the stuff below this note
-;;---------------------------
-
-(defun compile-regular-%if (test-obj then-form else-form env)
-  (print then-form)
-  (multiple-value-bind (then-obj then-final-env)
-      (varjo->glsl then-form (fresh-environment env))
-    (printf "~%mutations then-env: ~s" (find-mutations env then-final-env))
-    (multiple-value-bind (else-obj else-final-env)
-	(when else-form
-	  (varjo->glsl else-form (fresh-environment env)))
-      (when else-form
-	(printf "~%mutations else-env: ~s" (find-mutations env else-final-env)))
-      ;; for convenience
+(defun compile-regular-%if (test-obj test-env then-form else-form)
+  (multiple-value-bind (then-obj then-env)
+      (varjo->glsl then-form test-env)
+    (multiple-value-bind (else-obj else-env)
+	(when else-form (varjo->glsl else-form test-env))
+      ;; - - - -
       (let ((arg-objs (remove-if #'null (list test-obj then-obj else-obj)))
 	    (then-obj (end-line then-obj))
-	    (else-obj (when else-obj (end-line else-obj))))
-	(merge-obs arg-objs :type :none :current-line nil
-		   :to-block (list (gen-if-string test-obj then-obj else-obj))
-		   :flow-ids nil)))))
+	    (else-obj (end-line else-obj))) ;; returns nil if given nil
+	(values (merge-obs arg-objs :type :none :current-line nil
+			   :to-block (list (gen-if-string
+					    test-obj then-obj else-obj))
+			   :flow-ids nil)
+		(apply #'env-merge-history
+		       (env-prune* (env-depth test-env)
+				   then-env
+				   else-env)))))))
 
-(defun find-mutations (old-env new-env)
-  (let* ((old-vars (remove-duplicates (v-variables old-env)
-				      :key #'first :from-end t))
-	 (new-vars (remove-duplicates (v-variables new-env)
-				      :key #'first :from-end t)))
-    (labels ((get-len-diff (x)
-	     (destructuring-bind (name . vals) x
-	       (let* ((old-version (find name old-vars :key #'first))
-		      (len-diff (- (length vals) (length (rest old-version)))))
-		 (cond ((not old-version) (cons name vals))
-		       ((> len-diff 0) (cons name (subseq vals 0 len-diff)))
-		       (t nil))))))
-      (remove nil (mapcar #'get-len-diff new-vars)))))
+
 
 (v-defspecial :while (test &rest body)
   :args-valid t

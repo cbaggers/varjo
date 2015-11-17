@@ -117,3 +117,31 @@
       (labels ((test ((x :int)) (values x 2)))
 	(v! 0 (int (test 1)) 0 0)
 	(v! 10 20 30 40)))))
+
+(deftest build-17 ()
+  (finishes
+    (defshader test ()
+      (let ((x 1))
+	(let ((y 2)
+	      (z 3))
+	  (v! x y z)
+	  (%if (> x 2)
+	       (setq x y)
+	       (setq x z))
+	  (v! x 2 3 4))))))
+
+;; (defshader test ()
+;;   (let ((x 1)
+;; 	(y 2))
+;;     (let ((z 3))
+;;       (v! x y)
+;;       (setq x 2)
+;;       (v! x y 0 0))))
+
+;; (defshader test ()
+;;   (let ((x 1))
+;;     (v! x x)
+;;     (%if (> x 2)
+;; 	 1
+;; 	 2)
+;;     (v! x 2 3 4)))

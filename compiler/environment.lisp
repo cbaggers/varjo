@@ -152,11 +152,14 @@
                  :function-scope (or function-scope (v-function-scope env))
 		 :parent-env env))
 
-(defun env-replace-parent (env new-parent)
+(defun env-replace-parent (env new-parent
+			   &key (variables nil variables-set))
   (assert (typep env 'environment))
   (assert (typep new-parent 'environment))
   (make-instance 'environment
-		 :variables (v-variables env)
+		 :variables (if variables-set
+				variables
+				(v-variables env))
 		 :functions (v-functions env)
                  :macros (v-macros env)
 		 :symbol-macros (v-symbol-macros env)
@@ -166,19 +169,82 @@
                  :function-scope (v-function-scope env)
 		 :parent-env new-parent))
 
-(defun env-splice (env new-env)
-  (assert (typep env 'environment))
-  (assert (typep new-env 'environment))
+(defun env-depth (env)
   (labels ((dist (e &optional (accum 0))
 	     (let ((p (v-parent-env e)))
-	       (if (eq p *global-env*) accum (dist p (1+ accum)))))
-	   (up (e count)
-	     (if (> count 0) (up (v-parent-env e) (1- count)) e)))
-    (let ((ed (dist env))
-	  (ned (dist new-env)))
-      (assert (>= ned ed))
-      (up new-env (- ned ed)))))
+	       (if (eq p *global-env*) accum (dist p (1+ accum))))))
+    (dist env)))
 
+(defun env-prune* (to-depth &rest envs)
+  (labels ((%up (e count)
+	     (if (> count 0) (%up (v-parent-env e) (1- count)) e))
+	   (up (e)
+	     (let ((c (- (env-depth e) to-depth)))
+	       (assert (>= c 0))
+	       (%up e c))))
+    (mapcar #'up envs)))
+
+(defun env-prune (to-depth env)
+  (first (env-prune* to-depth env)))
+
+(defun env-merge-history (env-a env-b)
+  (assert (= (env-depth env-a) (env-depth env-b)))
+  (labels ((w (a b)
+	     (if (eq a b)
+		 a
+		 (env-replace-parent
+		  a (w (v-parent-env a) (v-parent-env b))
+		  :variables (merge-variable-histories a b)))))
+    (w env-a env-b)))
+
+(defun merge-variable-histories (env-a env-b)
+  ;; we can be sure that both have the var names as assignment
+  ;; can only affect flow id, not type
+  (let* ((a (v-variables env-a))
+	 (b (v-variables env-b))
+	 (v-names (mapcar #'first a)))
+    (mapcar
+     (lambda (n)
+       (let ((va (get-var n env-a))
+	     (vb (get-var n env-b)))
+	 (if (eq va vb)
+	     `(,n va)
+	     `(,n
+	       ,(v-make-value
+		 (v-type va)
+		 env-a ;; this is ignored as function-scope is provided
+		 :read-only (v-read-only va)
+		 :function-scope (v-function-scope va)
+		 :flow-ids (flow-id! (flow-ids va) (flow-ids vb))
+		 :glsl-name (v-glsl-name va))))))
+     v-names)))
+
+(defun env-var-names (env)
+  (labels ((w (e accum)
+	     (if (eq e *global-env*)
+		 accum
+		 (remove-duplicates
+		  (append (mapcar #'first (v-variables e)) accum)
+		  :test #'eq
+		  :from-end t))))
+    (w env nil)))
+
+(defun env-same-vars (env-a env-b)
+  (let ((n-a (env-var-names env-a))
+	(n-b (env-var-names env-a)))
+    (assert (equal n-a n-b))
+    (labels ((v-eq (n) (eq (get-var n env-a)
+			   (get-var n env-b))))
+      (every #'v-eq n-a))))
+
+(defun %same-vars (env-a env-b)
+  (let* ((a (v-variables env-a))
+	 (b (v-variables env-b))
+	 (a-names (mapcar #'first a))
+	 (b-names (mapcar #'first b)))
+    (and (equal a-names b-names)
+	 (every (lambda (n) (eq (get-var n env-a) (get-var n env-b)))
+		a-names))))
 
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))
