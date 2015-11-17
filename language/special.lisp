@@ -11,8 +11,8 @@
 (v-defspecial %fresh-env-scope (&rest body)
   :args-valid t
   :return (let ((new-env (fresh-environment env)))
-            (values (varjo->glsl `(progn ,@body) new-env)
-		    env)))
+	    (vbind (v e) (varjo->glsl `(progn ,@body) new-env)
+	      (values v (env-splice env e)))))
 
 ;;{TODO} make it handle multiple assignements like cl version
 (v-defmacro setf (&rest args)
@@ -37,14 +37,13 @@
 		     (= (v-function-scope value) 0))
 	   (error 'cross-scope-mutate :var-name name
 		  :code (format nil "(setf (... ~s) ...)" name)))
-	 (values (merge-obs (list place val) :type (code-type place)
-			    :current-line (gen-assignment-string place val)
-			    :flow-ids (flow-ids val))
-		 (replace-var-binding-with-new-flow-ids
-		  name
-		  value
-		  (flow-id! (flow-ids value) (flow-ids val))
-		  env))))))
+	 (multiple-value-bind (old-val old-env) (get-var name env)
+	   (assert (eq old-val value))
+	   (values (merge-obs (list place val) :type (code-type place)
+			      :current-line (gen-assignment-string place val)
+			      :flow-ids (flow-ids val))
+		   (replace-flow-ids name old-val (flow-ids val)
+				     old-env env)))))))
 
 (v-defspecial setq (var-name new-val-code)
   :args-valid t
@@ -68,19 +67,34 @@
 	(t (values (merge-obs new-val :type (code-type new-val)
 			      :current-line (gen-setq-assignment-string old-val new-val)
 			      :flow-ids (flow-ids new-val))
-		   (replace-var-binding-with-new-flow-ids
-		    var-name old-val (flow-ids new-val) old-env)))))))
+		   (replace-flow-ids var-name old-val (flow-ids new-val)
+				     old-env env)))))))
 
-(defun replace-var-binding-with-new-flow-ids
-    (old-var-name old-val flow-ids old-env)
-  (add-var old-var-name
-	   (v-make-value (v-type old-val)
-			 old-env
-			 :read-only (v-read-only old-val)
-			 :function-scope (v-function-scope old-val)
-			 :flow-ids flow-ids
-			 :glsl-name (v-glsl-name old-val))
-	   old-env))
+(defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
+  (labels ((w (n)
+	     (if (eq n old-env)
+		 (add-var old-var-name
+			  (v-make-value
+			   (v-type old-val)
+			   n
+			   :read-only (v-read-only old-val)
+			   :function-scope (v-function-scope old-val)
+			   :flow-ids flow-ids
+			   :glsl-name (v-glsl-name old-val))
+			  n)
+		 (env-replace-parent n (w (v-parent-env n))))))
+    (w env)))
+
+;; (defun replace-flow-ids
+;;     (old-var-name old-val flow-ids old-env)
+;;   (add-var old-var-name
+;; 	   (v-make-value (v-type old-val)
+;; 			 old-env
+;; 			 :read-only (v-read-only old-val)
+;; 			 :function-scope (v-function-scope old-val)
+;; 			 :flow-ids flow-ids
+;; 			 :glsl-name (v-glsl-name old-val))
+;; 	   old-env))
 
 (v-defspecial progn (&rest body)
   ;; this is super important as it is the only function that implements
