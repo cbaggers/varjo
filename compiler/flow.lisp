@@ -8,6 +8,9 @@
 ;;   itself. This is the collection of all the values that could flow through
 ;;   this point.
 
+;;----------------------------------------------------------------------
+;; internals
+
 (defclass flow-identifier ()
   ((ids :initform nil :initarg :ids :reader ids)))
 
@@ -18,23 +21,27 @@
 		  ids)))
     (format stream "#<FLOW-IDENTIFIER :ids ~s>" ids)))
 
-(let ((flow-id -1))
-  (defun %gen-flow-id () (list (incf flow-id))))
-
 (let ((gl-flow-id 0))
   (defun %gen-flow-gl-id () (list (decf gl-flow-id))))
 
-(defun id~= (id-a id-b)
-  (not (null (intersection (ids id-a) (ids id-b)))))
+(defvar %flow-id -1)
+(defvar flow-gen-func (lambda () (error "Trying to generate flow-id outside of a flow-id-scope")))
 
-(defun id= (id-a id-b)
-  (equal (sort (copy-list (ids id-a)) #'<)
-	 (sort (copy-list (ids id-b)) #'<)))
+;;----------------------------------------------------------------------
+;; scoping
+
+(defmacro flow-id-scope (&body body)
+  `(let ((%flow-id %flow-id)
+	 (flow-gen-func (lambda () (list (incf %flow-id)))))
+     ,@body))
+
+;;----------------------------------------------------------------------
+;; construction
 
 (defun flow-id! (&rest ids)
   (labels ((internal-ids (x) (ids x)))
     (if (null ids)
-	(make-instance 'flow-identifier :ids (%gen-flow-id))
+	(make-instance 'flow-identifier :ids (funcall flow-gen-func))
 	(make-instance 'flow-identifier
 		       :ids (sort (copy-list (remove-duplicates
 					      (mapcat #'internal-ids ids)))
@@ -52,5 +59,12 @@
       (eq type :void)
       (eq type :none)))
 
-(defun take (count func &rest args)
-  (loop for i below count collect (apply func args)))
+;;----------------------------------------------------------------------
+;; inspection
+
+(defun id~= (id-a id-b)
+  (not (null (intersection (ids id-a) (ids id-b)))))
+
+(defun id= (id-a id-b)
+  (equal (sort (copy-list (ids id-a)) #'<)
+	 (sort (copy-list (ids id-b)) #'<)))

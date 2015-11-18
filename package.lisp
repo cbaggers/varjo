@@ -7,9 +7,6 @@
            :v-casts-to
            :find-mutual-cast-type
 
-           ;;environment
-           :make-varjo-environment
-
            ;;type functions
            :v-spec-typep
            :type-specp

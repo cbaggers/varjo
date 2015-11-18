@@ -169,27 +169,28 @@
         (error 'stage-order-error stage-type))))
 
 (defun translate (in-args uniforms context body)
-  (let ((env (%make-base-environment)))
-    (pipe-> (in-args uniforms context body env)
-      #'split-input-into-env
-      #'process-context
-      #'add-context-glsl-vars
-      #'process-in-args
-      #'process-uniforms
-      #'wrap-in-main-function
-      (equalp #'symbol-macroexpand-pass
-              #'macroexpand-pass
-              #'compiler-macroexpand-pass)
-      #'compile-pass
-      #'make-post-process-obj
-      #'filter-used-items
-      #'check-stemcells
-      #'gen-in-arg-strings
-      #'gen-out-var-strings
-      #'final-uniform-strings
-      #'dedup-strings
-      #'final-string-compose
-      #'code-obj->result-object)))
+  (flow-id-scope
+    (let ((env (%make-base-environment)))
+      (pipe-> (in-args uniforms context body env)
+	#'split-input-into-env
+	#'process-context
+	#'add-context-glsl-vars
+	#'process-in-args
+	#'process-uniforms
+	#'wrap-in-main-function
+	(equalp #'symbol-macroexpand-pass
+		#'macroexpand-pass
+		#'compiler-macroexpand-pass)
+	#'compile-pass
+	#'make-post-process-obj
+	#'filter-used-items
+	#'check-stemcells
+	#'gen-in-arg-strings
+	#'gen-out-var-strings
+	#'final-uniform-strings
+	#'dedup-strings
+	#'final-string-compose
+	#'code-obj->result-object))))
 
 ;;----------------------------------------------------------------------
 

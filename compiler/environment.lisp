@@ -84,18 +84,12 @@
 (defun %make-base-environment ()
   (make-instance 'base-environment))
 
-(defun make-varjo-environment (&rest context)
-  (let ((context (or context *default-context*)))
-    (make-instance 'environment :context context :raw-context context)))
-
-
 ;;-------------------------------------------------------------------------
 ;; global env
 
 (defmethod v-functions ((env (eql :-genv-)))
   (declare (ignore env))
   *global-env-funcs*)
-
 
 ;;-------------------------------------------------------------------------
 
