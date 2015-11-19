@@ -670,9 +670,31 @@
 				   else-env)))))))
 
 
-
-
-
+;;   (for (a 0) (< a 10) (++ a)
+;;     (* a 2))
+(v-defspecial :for (var-form condition update &rest body)
+  :args-valid t
+  :return
+  (if (consp (first var-form))
+      (error 'for-loop-only-one-var)
+      (multiple-value-bind (code new-env)
+	  (varjo->glsl `(%glsl-let ,var-form t) env)
+        (let* ((var-string (subseq (first (to-block code)) 0 (1- (length (first (to-block code))))))
+               (decl-obj (varjo->glsl (second var-form) new-env))
+               (condition-obj (varjo->glsl condition new-env))
+               (update-obj (varjo->glsl update new-env)))
+          (unless (or (typep (code-type decl-obj) 'v-i-ui)
+		      (v-typep (code-type decl-obj) 'v-float))
+            (error 'invalid-for-loop-type decl-obj))
+	  (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
+	    (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
+		(values (merge-obs
+			 body-obj :type 'v-none :current-line nil
+			 :to-block `(,(gen-for-loop-string var-string condition-obj
+							   update-obj body-obj))
+			 :flow-ids (flow-id!))
+			final-env)
+		(error 'for-loop-simple-expression)))))))
 
 
 (v-defspecial :while (test &rest body)
@@ -798,34 +820,6 @@
                    :current-line (gen-swizzle-string vec-obj comp-string)
 		   :flow-ids (flow-id!))
         (error "swizzle form invalid"))))
-
-
-
-;;   (for (a 0) (< a 10) (++ a)
-;;     (* a 2))
-;; {TODO} double check implications of typify in compile-let-forms
-(v-defspecial :for (var-form condition update &rest body)
-  :args-valid t
-  :return
-  (if (consp (first var-form))
-      (error 'for-loop-only-one-var)
-      (multiple-value-bind (code new-env)
-          (varjo->glsl `(%glsl-let ,var-form t) env)
-        (let* ((var-string (subseq (first (to-block code)) 0 (1- (length (first (to-block code))))))
-               (decl-obj (varjo->glsl (second var-form) new-env))
-               (condition-obj (varjo->glsl condition new-env))
-               (update-obj (varjo->glsl update new-env))
-               (body-obj (end-line (varjo->glsl `(progn ,@body) new-env))))
-          (unless (or (typep (code-type decl-obj) 'v-i-ui)
-		      (v-typep (code-type decl-obj) 'v-float))
-            (error 'invalid-for-loop-type decl-obj))
-          (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
-              (merge-obs
-               body-obj :type 'v-none :current-line nil
-               :to-block `(,(gen-for-loop-string var-string condition-obj
-                                                 update-obj body-obj))
-	       :flow-ids (flow-id!))
-              (error 'for-loop-simple-expression))))))
 
 
 (v-defspecial the (type-name form)
