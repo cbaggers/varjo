@@ -213,15 +213,26 @@
 		 :glsl-name (v-glsl-name va))))))
      v-names)))
 
-(defun env-var-names (env)
+(defun env-var-names (env &key stop-at-base)
   (labels ((w (e accum)
-	     (if (eq e *global-env*)
+	     (if (or (eq e *global-env*)
+		     (and stop-at-base
+			  (typep e 'base-environment)))
 		 accum
-		 (remove-duplicates
-		  (append (mapcar #'first (v-variables e)) accum)
-		  :test #'eq
-		  :from-end t))))
+		 (w (v-parent-env e)
+		    (remove-duplicates
+		     (append (mapcar #'first (v-variables e))
+			     accum)
+		     :test #'eq
+		     :from-end t)))))
     (w env nil)))
+
+(defun find-env-vars (env-a env-b &key (test #'eq) stop-at-base)
+  (let ((n-a (env-var-names env-a :stop-at-base stop-at-base))
+	(n-b (env-var-names env-a :stop-at-base stop-at-base)))
+    (assert (equal n-a n-b))
+    (labels ((v-eq (n) (funcall test (get-var n env-a) (get-var n env-b))))
+      (loop for n in n-a if (v-eq n) collect n))))
 
 (defun env-same-vars (env-a env-b)
   (let ((n-a (env-var-names env-a))

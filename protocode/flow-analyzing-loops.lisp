@@ -149,6 +149,7 @@
 ;; Now the 3 iterations would look like this
 
 ;; x -> α    z -> β
+;; ----------------
 ;; x -> β    z -> χ
 ;; x -> β    z -> χ
 
@@ -160,13 +161,35 @@
 ;; to assume resetting flow Id would get that. Otherwise it would be
 
 ;; x -> α    z -> β
+;; ----------------
 ;; x -> β    z -> α
 ;; x -> α    z -> α
 
 ;; which is wrong.. BUT it is some kind of control over the flow id.
 ;; What is it? maybe we start the flow-ids at the highest id currently
 ;; in the outside scope. This should give the first pattern (the one
-;; we want)
+;; we want) .. no wait it doesnt
+
+;; x -> α    z -> β
+;; ----------------
+;; x -> β    z -> χ
+;; x -> χ    z -> δ
+
+;; Ok try again. This time we say we have reached a fixpoint if either
+;; - nothing changes
+;; - no new flow-ids are introduced from the outer scope
+
+;; x -> α    z -> β
+;; ----------------
+;; x -> β    z -> χ
+
+;; after first pass one of the changes, x=β is from the original scope
+;; so we keep going
+
+;; x -> χ    z -> δ
+
+;; by now, none of the new flow-ids came from the outer scope.
+;; We are done.
 
 
 ;;-    -    -    -    -    -    -    -    -    -    -    -

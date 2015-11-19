@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:varjo
-  (:use #:cl :split-sequence #:alexandria #:cl-ppcre)
+  (:use #:cl :split-sequence #:alexandria #:cl-ppcre #:named-readtables)
   (:export :v-glsl-size
            :v-casts-to-p
            :v-casts-to

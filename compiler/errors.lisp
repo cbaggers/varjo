@@ -298,3 +298,8 @@ Tried to mutate ~s
     "Found a multiple-return-func ~s invalid return types:
 ~{~s~}"
   func-name return-type)
+
+(deferror loop-flow-analysis-failure (:error-type varjo-critical-error) ()
+    "Varjo's flow analyzer has been unable to resolve the variable flow in this
+loop within a reasonable ammount of time. This counts as a compiler bug so
+please report it on github")

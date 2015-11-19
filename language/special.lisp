@@ -7,6 +7,7 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
+(in-readtable fn:fn-reader)
 
 (v-defspecial %fresh-env-scope (&rest body)
   :args-valid t
@@ -670,17 +671,92 @@
 
 
 
+
+
+
+
 (v-defspecial :while (test &rest body)
   :args-valid t
   :return
-  (let* ((test-obj (varjo->glsl test env))
-         (body-obj (varjo->glsl `(progn ,@body) env)))
-    (if (v-typep (code-type test-obj) 'v-bool)
-        (merge-obs (list body-obj test-obj)
-                   :type 'v-none :current-line nil
-                   :to-block (list (gen-while-string test-obj body-obj))
-		   :flow-ids nil)
-        (error 'loop-will-never-halt :test-code test :test-obj test-obj))))
+  (vbind (test-obj test-env) (varjo->glsl test env)
+    (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) test-env)
+      (if (v-typep (code-type test-obj) 'v-bool)
+	  (values (merge-obs (list body-obj test-obj)
+			     :type 'v-none :current-line nil
+			     :to-block (list (gen-while-string test-obj body-obj))
+			     :flow-ids nil)
+		  final-env)
+	  (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
+
+(defun search-for-flow-id-fixpoint (code starting-env)
+  (let ((envs (list starting-env))
+	(last-code-obj nil)
+	(flow-ids nil))
+    (loop :for pass :from 0
+       :for current-env = (first envs)
+       :until (vbind (o new-env) (varjo->glsl code current-env)
+		(let* ((new-flow-ids (get-new-flow-ids new-env current-env))
+		       (f-ids (or flow-ids
+				  (mapcar λ`(,_ . ,(flow-ids (get-var _ starting-env)))
+					  (mapcar #'car new-flow-ids)))))
+		  (setf last-code-obj o
+			envs (cons new-env envs)
+			flow-ids (accumulate-flow-ids f-ids new-flow-ids))
+		  (fixpoint-reached new-flow-ids starting-env pass))))
+    (values last-code-obj
+	    (create-post-loop-env flow-ids starting-env))))
+
+;; defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
+(defun create-post-loop-env (new-flow-id-pairs starting-env)
+  (labels ((splice-in-flow-id (accum-env id-pair)
+	     (dbind (vname . new-flow-id) id-pair
+	       (vbind (old-val old-env) (get-var vname accum-env)
+		 (replace-flow-ids vname old-val new-flow-id
+				   old-env accum-env)))))
+    (reduce #'splice-in-flow-id new-flow-id-pairs :initial-value starting-env)))
+
+(defun accumulate-flow-ids (flow-ids new-flow-ids)
+  (labels ((x (accum y)
+	     (dbind (vname . fid) y
+	       (acons vname (flow-id! (assocr vname accum)
+				      fid)
+		      accum))))
+    (remove-duplicates
+     (reduce #'x new-flow-ids :initial-value flow-ids)
+     :test #'eq :key #'first :from-end t)))
+
+(defvar *max-resolve-loop-flow-id-pass-count* 100)
+
+(defun get-new-flow-ids (latest-env last-env)
+  (let* ((variables-changed (find-env-vars latest-env last-env
+					   :test (complement #'eq)
+					   :stop-at-base t)))
+    (mapcar λ`(,_ . ,(flow-ids (get-var _ latest-env)))
+	    variables-changed)))
+
+(defun fixpoint-reached (new-flow-ids starting-env pass)
+  (unless (< pass *max-resolve-loop-flow-id-pass-count*)
+    (error 'loop-flow-analysis-failure))
+  (let* ((variables-changed (mapcar #'car new-flow-ids)))
+    (or
+     ;; if no variable from outer scope changed then we stop
+     (not variables-changed)
+     ;; if none of the variables that we changed were set to
+     ;; values from the outer scope we stop (as information
+     ;; has stopped flowing into the loop, there is nothing
+     ;; else to glean)
+     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-var _ starting-env))
+				       variables-changed))
+	    (starting-super-id (reduce #'flow-id! starting-flow-ids)))
+       (not (some λ(id~= _ starting-super-id)
+		  (mapcar #'cdr new-flow-ids)))))))
+
+
+
+
+
+
+
 
 
 ;; {TODO} check keys

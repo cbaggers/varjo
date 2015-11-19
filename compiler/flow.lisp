@@ -39,13 +39,14 @@
 ;; construction
 
 (defun flow-id! (&rest ids)
-  (labels ((internal-ids (x) (ids x)))
-    (if (null ids)
-	(make-instance 'flow-identifier :ids (funcall flow-gen-func))
-	(make-instance 'flow-identifier
-		       :ids (sort (copy-list (remove-duplicates
-					      (mapcat #'internal-ids ids)))
-				  #'<)))))
+  (let ((ids (remove nil ids)))
+    (labels ((internal-ids (x) (ids x)))
+      (if (null ids)
+	  (make-instance 'flow-identifier :ids (funcall flow-gen-func))
+	  (make-instance 'flow-identifier
+			 :ids (sort (copy-list (remove-duplicates
+						(mapcat #'internal-ids ids)))
+				    #'<))))))
 
 (defun %gl-flow-id! ()
   (make-instance 'flow-identifier :ids (%gen-flow-gl-id)))

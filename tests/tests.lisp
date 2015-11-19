@@ -145,3 +145,14 @@
 ;; 	 1
 ;; 	 2)
 ;;     (v! x 2 3 4)))
+
+;; (with-noise
+;;   (glsl-code
+;;    (defshader test ()
+;;      (let ((x 0)
+;; 	   (z 1))
+;;        (v! x z)
+;;        (while (< x 10)
+;; 	 (setq x z)
+;; 	 (setq z (+ 1 1)))
+;;        (v! x z 3 4)))))
