@@ -130,13 +130,36 @@
 	       (setq x z))
 	  (v! x 2 3 4))))))
 
-;; (defshader test ()
-;;   (let ((x 1)
-;; 	(y 2))
-;;     (let ((z 3))
-;;       (v! x y)
-;;       (setq x 2)
-;;       (v! x y 0 0))))
+(deftest build-18 ()
+  (finishes
+    (defshader test ()
+      (let ((x 0)
+	    (z 1))
+	(v! x z)
+	(switch x
+	  (0 (setq z 1))
+	  (1 (setq z x))
+	  (2 z))
+	(v! x z 3 4)))))
+
+(deftest build-19 ()
+  (finishes
+    (defshader test ()
+      (let ((x 0)
+	    (z 1))
+	(v! x z)
+	(while (< x 10)
+	  (setq x z)
+	  (setq z (+ 1 1)))
+	(v! x z 3 4)))))
+
+(deftest build-17 ()
+  (finishes
+    (defshader test ()
+      (let ((x 1)
+	    (y 2)
+	    (z 3))
+	(v! x y 0 0)))))
 
 ;; (defshader test ()
 ;;   (let ((x 1))
@@ -145,14 +168,3 @@
 ;; 	 1
 ;; 	 2)
 ;;     (v! x 2 3 4)))
-
-;; (with-noise
-;;   (glsl-code
-;;    (defshader test ()
-;;      (let ((x 0)
-;; 	   (z 1))
-;;        (v! x z)
-;;        (while (< x 10)
-;; 	 (setq x z)
-;; 	 (setq z (+ 1 1)))
-;;        (v! x z 3 4)))))

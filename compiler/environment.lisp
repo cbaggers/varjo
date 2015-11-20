@@ -253,8 +253,6 @@
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))
     (error 'merge-env-func-scope-mismatch :env-a env :env-b new-env))
-  (unless (eq (v-parent-env env) (v-parent-env new-env))
-    (error 'merge-env-parent-mismatch :env-a env :env-b new-env))
   (with-slots ((a-vars variables) (a-funcs functions) (a-macros macros)
 	       (a-cmacros compiler-macros)) env
     (with-slots ((b-vars variables) (b-funcs functions) (b-macros macros)
