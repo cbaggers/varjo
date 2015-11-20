@@ -303,3 +303,7 @@ Tried to mutate ~s
     "Varjo's flow analyzer has been unable to resolve the variable flow in this
 loop within a reasonable ammount of time. This counts as a compiler bug so
 please report it on github")
+
+(deferror invalid-env-vars  (:error-type varjo-critical-error) (vars)
+    "Attepted to create an environment which has invalid variable data:
+~s" vars)

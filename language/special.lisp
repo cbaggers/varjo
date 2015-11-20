@@ -669,6 +669,30 @@
 				   then-env
 				   else-env)))))))
 
+;; {TODO} check keys
+(v-defspecial :switch (test-form &rest clauses)
+  :args-valid t
+  :return
+  (vbind (test-obj test-env) (varjo->glsl test-form env)
+    (let* ((keys (mapcar #'first clauses))
+	   (clause-pairs (mapcar λ(multiple-value-list
+				   (varjo->glsl `(progn ,(second _)) env))
+				 clauses))
+	   (clause-objs (mapcar #'first clause-pairs)))
+      (if (and (v-typep (code-type test-obj) 'v-i-ui)
+	       (loop :for key :in keys :always
+		  (or (eq key 'default) (integerp key))))
+	  (values (merge-obs clause-objs :type 'v-none
+			     :current-line nil
+			     :to-block (list (gen-switch-string test-obj keys
+								clause-objs))
+			     :flow-ids nil)
+		  (let ((envs (apply #'env-prune* (env-depth test-env)
+				     (mapcar #'second clause-pairs))))
+		    (reduce #'env-merge-history
+			    (rest envs) :initial-value (first envs))))
+	  (error 'switch-type-error test-obj keys)))))
+
 
 ;;   (for (a 0) (< a 10) (++ a)
 ;;     (* a 2))
@@ -774,31 +798,6 @@
 		  (mapcar #'cdr new-flow-ids)))))))
 
 
-
-
-
-
-
-
-
-;; {TODO} check keys
-(v-defspecial :switch (test-form &rest clauses)
-  :args-valid t
-  :return
-  (let* ((test-obj (varjo->glsl test-form env))
-         (keys (mapcar #'first clauses))
-         (clause-body-objs (mapcar #'(lambda (x) (varjo->glsl
-                                                  `(progn ,(second x)) env))
-                           clauses)))
-    (if (and (v-typep (code-type test-obj) 'v-i-ui)
-             (loop :for key :in keys :always
-                (or (eq key 'default) (integerp key))))
-        (merge-obs clause-body-objs :type 'v-none
-                   :current-line nil
-                   :to-block (list (gen-switch-string test-obj keys
-                                                      clause-body-objs))
-		   :flow-ids nil)
-        (error 'switch-type-error test-obj keys))))
 
 (v-defmacro :s~ (&rest args) `(swizzle ,@args))
 (v-defspecial :swizzle (vec-form components)

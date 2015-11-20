@@ -76,10 +76,10 @@
 
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
-  (let ((parent (v-parent-env env)))
-    (when parent
-      ;; validity checks go here
-      )))
+  (unless (every λ(and (symbolp (first _))
+		       (every λ(typep _ 'v-value) (rest _)))
+		 (v-variables env))
+    (error 'invalid-env-vars :vars (v-variables env))))
 
 (defun %make-base-environment ()
   (make-instance 'base-environment))
@@ -195,14 +195,13 @@
   ;; we can be sure that both have the var names as assignment
   ;; can only affect flow id, not type
   (let* ((a (v-variables env-a))
-	 (b (v-variables env-b))
 	 (v-names (mapcar #'first a)))
     (mapcar
      (lambda (n)
        (let ((va (get-var n env-a))
 	     (vb (get-var n env-b)))
 	 (if (eq va vb)
-	     `(,n va)
+	     `(,n ,va)
 	     `(,n
 	       ,(v-make-value
 		 (v-type va)
