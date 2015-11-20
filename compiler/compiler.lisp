@@ -231,4 +231,5 @@
    (in-args :initarg :in-args :accessor in-args)
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
-   (context :initarg :context :accessor context)))
+   (context :initarg :context :accessor context)
+   (final-env :initarg :final-env :accessor final-env)))

@@ -51,13 +51,17 @@
    (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
-   (context :initform nil :initarg :context :accessor v-context)))
+   (context :initform nil :initarg :context :accessor v-context)
+   (function-code-cache :initform (make-hash-table) :reader v-code-cache)))
 
 (defun %get-base-env (env)
   (let ((parent (v-parent-env env)))
     (if (not (eq parent *global-env*))
 	(%get-base-env parent)
 	env)))
+
+(defmethod v-code-cache ((env environment))
+  (v-code-cache (%get-base-env env)))
 
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (%get-base-env env)))

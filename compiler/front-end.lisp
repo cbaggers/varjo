@@ -555,4 +555,5 @@
 		     :out-vars (mapcar #'butlast (out-vars post-proc-obj))
 		     :uniforms (mapcar #'butlast (uniforms post-proc-obj))
 		     :implicit-uniforms (stemcells post-proc-obj)
-		     :context context))))
+		     :context context
+		     :final-env (env post-proc-obj)))))
