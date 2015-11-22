@@ -96,13 +96,17 @@
     (assert new-env)
     (values code-obj new-env)))
 
+
+
+
+
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
     (let ((i (v-place-index func)))
       (cons (list func (elt args i)) (place-tree (elt args i))))))
 
 (defun compile-regular-function-call (func-name func args env)
-  (printf (cons func-name (mapcar #'flow-ids args)))
+  (log-function-call func (mapcar #'flow-ids args) env)
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
 	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
@@ -149,7 +153,7 @@
 		(flow-ids func)))))
 
 (defun compile-multi-return-function-call (func-name func args env)
-  (printf (cons func-name (mapcar #'flow-ids args)))
+  (log-function-call func (mapcar #'flow-ids args) env)
   (let* ((type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
@@ -232,4 +236,4 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (context :initarg :context :accessor context)
-   (final-env :initarg :final-env :accessor final-env)))
+   (function-calls :initarg :function-calls :accessor function-calls)))

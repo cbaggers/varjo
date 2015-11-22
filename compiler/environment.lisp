@@ -52,7 +52,8 @@
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
-   (function-code-cache :initform (make-hash-table) :reader v-code-cache)))
+   (function-code-cache :initform (make-hash-table) :reader v-code-cache)
+   (function-call-flow-tracking :initform nil)))
 
 (defun %get-base-env (env)
   (let ((parent (v-parent-env env)))
@@ -60,8 +61,16 @@
 	(%get-base-env parent)
 	env)))
 
+(defun function-call-flow-tracking (env)
+  (reverse (slot-value (%get-base-env env) 'function-call-flow-tracking)))
+
 (defmethod v-code-cache ((env environment))
   (v-code-cache (%get-base-env env)))
+
+(defun log-function-call (func-obj arg-flow-ids env)
+  (let ((base-env (%get-base-env env)))
+    (push `(,func-obj ,@arg-flow-ids)
+	  (slot-value base-env 'function-call-flow-tracking))))
 
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (%get-base-env env)))

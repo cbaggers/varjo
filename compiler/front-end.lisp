@@ -556,4 +556,5 @@
 		     :uniforms (mapcar #'butlast (uniforms post-proc-obj))
 		     :implicit-uniforms (stemcells post-proc-obj)
 		     :context context
-		     :final-env (env post-proc-obj)))))
+		     :function-calls (function-call-flow-tracking
+				      (env post-proc-obj))))))
