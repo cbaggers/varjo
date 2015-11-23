@@ -6,6 +6,7 @@
 ;; (http://opensource.franz.com/preamble.html),
 ;; known as the LLGPL.
 (in-package :varjo)
+(in-readtable fn:fn-reader)
 
 (defparameter *global-env* :-genv-)
 (defparameter *global-env-funcs* (make-hash-table))
