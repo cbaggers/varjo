@@ -7,6 +7,7 @@
 ;; known as the LLGPL.
 
 (in-package :varjo)
+(in-readtable fn:fn-reader)
 
 ;;----------------------------------------------------------------------
 
@@ -330,12 +331,22 @@
   (cond ((null form) nil)
         ((atom form)
          (let ((sm (get-symbol-macro form env)))
-           (or (first sm) form)))
-        ((consp form) (cons (v-symbol-macroexpand-all (car form))
-                            (v-symbol-macroexpand-all (cdr form))))))
+	   (if sm
+	       (values (first sm) `(,form))
+	       form)))
+        ((consp form)
+	 (vbind (expanded-a found-a) (v-symbol-macroexpand-all (car form))
+	   (vbind (expanded-b found-b) (v-symbol-macroexpand-all (cdr form))
+	     (values (cons expanded-a expanded-b)
+		     (append found-a found-b)))))))
 
 (defun symbol-macroexpand-pass (form env)
-  (values (v-symbol-macroexpand-all form env) env))
+  (vbind (form used) (v-symbol-macroexpand-all form env)
+    (push used (used-symbol-macros env))
+    (values form env)))
+
+(defun dedup-used (used)
+  (remove-duplicates (flatten used)))
 
 ;;----------------------------------------------------------------------
 
@@ -344,11 +355,16 @@
         (t (let* ((head (first code))
                   (m (get-macro head env)))
              (if m
-                 (v-macroexpand-all (apply m (rest code)) env)
-                 (loop :for c :in code :collect (v-macroexpand-all c env)))))))
+                 (vbind (f u) (v-macroexpand-all (apply m (rest code)) env)
+		   (values f (cons head u)))
+                 (let ((i (mapcar λ(vlist (v-macroexpand-all _ env))
+				  code)))
+		   (values (mapcar #'first i) (mapcar #'second i))))))))
 
 (defun macroexpand-pass (code env)
-  (values (v-macroexpand-all code env) env))
+  (vbind (form used) (v-macroexpand-all code env)
+    (push used (used-macros env))
+    (values form env)))
 
 ;;----------------------------------------------------------------------
 
@@ -357,11 +373,17 @@
         (t (let* ((head (first code))
                   (m (get-compiler-macro head env)))
              (if m
-                 (v-compiler-macroexpand-all (apply m (rest code)) env)
-                 (loop :for c :in code :collect (v-compiler-macroexpand-all c env)))))))
+		 (vbind (f u)
+		     (v-compiler-macroexpand-all (apply m (rest code)) env)
+		   (values f (cons head u)))
+		 (let ((i (mapcar λ(vlist (v-compiler-macroexpand-all _ env))
+				  code)))
+		   (values (mapcar #'first i) (mapcar #'second i))))))))
 
 (defun compiler-macroexpand-pass (code env)
-  (values (v-compiler-macroexpand-all code env) env))
+  (vbind (form used) (v-compiler-macroexpand-all code env)
+    (push used (used-compiler-macros env))
+    (values form env)))
 
 ;;----------------------------------------------------------------------
 
@@ -377,10 +399,18 @@
    (out-vars :initarg :out-vars :accessor out-vars)
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
-   (used-types :initarg :used-types :accessor used-types)))
+   (used-types :initarg :used-types :accessor used-types)
+   (used-symbol-macros :initarg :used-symbol-macros
+		       :accessor used-symbol-macros)
+   (used-macros :initarg :used-macros :accessor used-macros)
+   (used-compiler-macros :initarg :used-compiler-macros
+			 :accessor used-compiler-macros)))
 
 (defun make-post-process-obj (code env)
-  (make-instance 'post-compile-process :code code :env env))
+  (make-instance 'post-compile-process :code code :env env
+		 :used-symbol-macros (dedup-used (used-symbol-macros env))
+		 :used-macros (dedup-used (used-macros env))
+		 :used-compiler-macros (dedup-used (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
 
@@ -557,4 +587,8 @@
 		     :implicit-uniforms (stemcells post-proc-obj)
 		     :context context
 		     :function-calls (function-call-flow-tracking
-				      (env post-proc-obj))))))
+				      (env post-proc-obj))
+		     :used-macros
+		     `(:symbol ,(used-symbol-macros post-proc-obj)
+			       :regular ,(used-macros post-proc-obj)
+			       :compiler ,(used-compiler-macros post-proc-obj))))))

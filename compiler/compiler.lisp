@@ -97,9 +97,6 @@
     (values code-obj new-env)))
 
 
-
-
-
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
     (let ((i (v-place-index func)))
@@ -236,4 +233,5 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (context :initarg :context :accessor context)
-   (function-calls :initarg :function-calls :accessor function-calls)))
+   (function-calls :initarg :function-calls :accessor function-calls)
+   (used-macros :initarg :used-macros :reader used-macros)))

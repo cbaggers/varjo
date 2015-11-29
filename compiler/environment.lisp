@@ -54,7 +54,40 @@
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (function-code-cache :initform (make-hash-table) :reader v-code-cache)
-   (function-call-flow-tracking :initform nil)))
+   (function-call-flow-tracking :initform nil)
+   (used-symbol-macros :initform nil :initarg :used-symbol-macros)
+   (used-macros :initform nil :initarg :used-macros)
+   (used-compiler-macros :initform nil :initarg :used-compiler-macros)
+   (function-dedup :initform nil :initarg :function-dedup)))
+
+(defmethod push-non-implicit-function-for-dedup (code func (e environment))
+  (push (cons code func) (slot-value (%get-base-env e) 'function-dedup)))
+
+(defmethod dedup-function (code (e environment))
+  (cdr (find code (slot-value (%get-base-env e) 'function-dedup)
+	     :key #'car :test #'equal)))
+
+(defmethod used-symbol-macros ((e environment))
+  (slot-value (%get-base-env e) 'used-symbol-macros))
+
+(defmethod used-macros ((e environment))
+  (slot-value (%get-base-env e) 'used-macros))
+
+(defmethod used-compiler-macros ((e environment))
+  (slot-value (%get-base-env e) 'used-compiler-macros))
+
+;; ugh
+(defmethod (setf used-symbol-macros) (val (e environment))
+  (setf (slot-value (%get-base-env e) 'used-symbol-macros)
+	val))
+
+(defmethod (setf used-macros) (val (e environment))
+  (setf (slot-value (%get-base-env e) 'used-macros)
+	val))
+
+(defmethod (setf used-compiler-macros) (val (e environment))
+  (setf (slot-value (%get-base-env e) 'used-compiler-macros)
+	val))
 
 (defun %get-base-env (env)
   (let ((parent (v-parent-env env)))

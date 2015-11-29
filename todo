@@ -1,3 +1,8 @@
+hmm ok so we wanted to make a code graph which id which allow lookup into
+the function-call index. How shall we go about this?
+
+Also we need an index into what macros are used.
+
 Next need to:
 - add out-of-scope-args to the code object.
 * done

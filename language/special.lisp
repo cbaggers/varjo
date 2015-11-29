@@ -438,80 +438,71 @@
 (v-defspecial %%make-function (name args body allow-implicit-args)
   :args-valid t
   :return
-  (progn
+  (let ((deduped-func (dedup-function `(,args ,body) env)))
     (unless (function-raw-args-validp args)
       (error 'bad-make-function-args
              :func-name name
              :arg-specs (remove-if #'function-raw-arg-validp args)))
-    (let* ((mainp (eq name :main))
-	   (*v-debug* (not mainp))
-           (env (make-func-env env mainp))
-	   (in-arg-flow-ids (mapcar (lambda (_)
-				      (declare (ignore _))
-				      (flow-id!))
-				    args))
-           (arg-glsl-names (loop :for (name) :in args :collect
-                              (safe-glsl-name-string (free-name name))))
-           (body-code `(return (progn ,@body)))
-           (body-obj (varjo->glsl `(,(if mainp 'progn '%labels-block-for-main)
-                                     (%multi-env-progn
-                                      ,@(loop :for b :in args
-                                           :for g :in arg-glsl-names
-					   :for f :in in-arg-flow-ids
-                                           :collect `(%glsl-let (,b) nil ,g ,f)))
-                                     ,body-code) env))
-           (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
-           (primary-return (first (returns body-obj)))
-           (multi-return-vars (rest (returns body-obj)))
-           (type (if mainp (type-spec->type 'v-void) primary-return))
-	   (normalized-out-of-scope-args (normalize-out-of-scope-args
-					  (out-of-scope-args body-obj)))
-           (implicit-args (when allow-implicit-args
-			    (remove-if (lambda (_)
-					 (= (v-function-scope _)
-					    (v-function-scope env)))
-				       normalized-out-of-scope-args))))
-      (unless allow-implicit-args
-	(unless (every (lambda (_) (= (v-function-scope _)
-				      (v-function-scope env)))
-		       normalized-out-of-scope-args)
-	  (error 'illegal-implicit-args :func-name name)))
-      (unless (or mainp primary-return) (error 'no-function-returns :name name))
+    (if (and (not allow-implicit-args) deduped-func)
+	(values (make-none-ob) (add-function name deduped-func env))
+	(%make-new-function name args body allow-implicit-args env))))
 
-      (let* ((arg-pairs (loop :for (ignored type) :in args
-                           :for name :in arg-glsl-names :collect
-                           `(,(v-glsl-string (type-spec->type type)) ,name)))
-             (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
-                               :for name = (v-glsl-name (multi-val-value mval)) :collect
-                               `(,(v-glsl-string (v-type (multi-val-value mval)))
-                                  ,name)))
-             (sigs (if mainp
-                       (signatures body-obj)
-                       (cons (gen-function-signature glsl-name arg-pairs
-                                                     out-arg-pairs type
-                                                     (when allow-implicit-args
-                                                       implicit-args))
-                             (signatures body-obj))))
-             (top (cons-end (gen-function-body-string
-                             glsl-name (unless mainp arg-pairs)
-                             out-arg-pairs type body-obj
-                             (when allow-implicit-args implicit-args))
-                            (to-top body-obj))))
-        (values (merge-obs body-obj
-                           :type (type-spec->type 'v-none)
-                           :current-line nil
-                           :signatures sigs
-                           :to-top top
-                           :to-block nil
-                           :returns nil
-                           :out-vars (out-vars body-obj)
-                           :multi-vals nil
-                           :out-of-scope-args (when allow-implicit-args
-                                                implicit-args)
-			   :flow-ids nil)
-                (add-function
-		 name
-		 (func-spec->function
+(defun %make-new-function (name args body allow-implicit-args env)
+  (let* ((mainp (eq name :main))
+	 (*v-debug* (not mainp))
+	 (env (make-func-env env mainp))
+	 (in-arg-flow-ids (mapcar (lambda (_)
+				    (declare (ignore _))
+				    (flow-id!))
+				  args))
+	 (arg-glsl-names (loop :for (name) :in args :collect
+			    (safe-glsl-name-string (free-name name))))
+	 (body-code `(return (progn ,@body)))
+	 (body-obj (varjo->glsl `(,(if mainp 'progn '%labels-block-for-main)
+				   (%multi-env-progn
+				    ,@(loop :for b :in args
+					 :for g :in arg-glsl-names
+					 :for f :in in-arg-flow-ids
+					 :collect `(%glsl-let (,b) nil ,g ,f)))
+				   ,body-code) env))
+	 (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
+	 (primary-return (first (returns body-obj)))
+	 (multi-return-vars (rest (returns body-obj)))
+	 (type (if mainp (type-spec->type 'v-void) primary-return))
+	 (normalized-out-of-scope-args (normalize-out-of-scope-args
+					(out-of-scope-args body-obj)))
+	 (implicit-args (when allow-implicit-args
+			  (remove-if (lambda (_)
+				       (= (v-function-scope _)
+					  (v-function-scope env)))
+				     normalized-out-of-scope-args))))
+    (unless allow-implicit-args
+      (unless (every (lambda (_) (= (v-function-scope _)
+				    (v-function-scope env)))
+		     normalized-out-of-scope-args)
+	(error 'illegal-implicit-args :func-name name)))
+    (unless (or mainp primary-return) (error 'no-function-returns :name name))
+
+    (let* ((arg-pairs (loop :for (ignored type) :in args
+			 :for name :in arg-glsl-names :collect
+			 `(,(v-glsl-string (type-spec->type type)) ,name)))
+	   (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
+			     :for name = (v-glsl-name (multi-val-value mval)) :collect
+			     `(,(v-glsl-string (v-type (multi-val-value mval)))
+				,name)))
+	   (sigs (if mainp
+		     (signatures body-obj)
+		     (cons (gen-function-signature glsl-name arg-pairs
+						   out-arg-pairs type
+						   (when allow-implicit-args
+						     implicit-args))
+			   (signatures body-obj))))
+	   (top (cons-end (gen-function-body-string
+			   glsl-name (unless mainp arg-pairs)
+			   out-arg-pairs type body-obj
+			   (when allow-implicit-args implicit-args))
+			  (to-top body-obj)))
+	   (func (func-spec->function
 		  (v-make-f-spec name
 				 (gen-function-transform
 				  glsl-name args
@@ -525,8 +516,25 @@
 						  implicit-args)
 				 :flow-ids (flow-ids body-obj)
 				 :in-arg-flow-ids in-arg-flow-ids)
-		  env)
-		 env))))))
+		  env)))
+      (unless allow-implicit-args
+	(push-non-implicit-function-for-dedup `(,args ,body) func env))
+      (values (merge-obs body-obj
+			 :type (type-spec->type 'v-none)
+			 :current-line nil
+			 :signatures sigs
+			 :to-top top
+			 :to-block nil
+			 :returns nil
+			 :out-vars (out-vars body-obj)
+			 :multi-vals nil
+			 :out-of-scope-args (when allow-implicit-args
+					      implicit-args)
+			 :flow-ids nil)
+	      (add-function
+	       name
+	       func
+	       env)))))
 
 (v-defspecial %labels-block-for-main (&rest body)
   :args-valid t

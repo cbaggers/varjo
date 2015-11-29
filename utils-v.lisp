@@ -72,6 +72,8 @@
 (defmacro vbind (vars value-form &body body)
   `(multiple-value-bind ,vars ,value-form ,@body))
 
+(defmacro vlist (value-form)
+  `(multiple-value-list ,value-form))
 
 ;; [TODO] should dissapear as refactor goes on
 (defun acons-many (data a-list)
