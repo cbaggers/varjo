@@ -577,18 +577,16 @@
 (defun code-obj->result-object (final-glsl-code post-proc-obj)
   (with-slots (env) post-proc-obj
     (let* ((context (v-context env)))
-      (make-instance 'varjo-compile-result
-		     :glsl-code final-glsl-code
-		     :stage-type (loop for i in context
-				    :if (find i *supported-stages*) :return i)
-		     :in-args (mapcar #'butlast (in-args post-proc-obj))
-		     :out-vars (mapcar #'butlast (out-vars post-proc-obj))
-		     :uniforms (mapcar #'butlast (uniforms post-proc-obj))
-		     :implicit-uniforms (stemcells post-proc-obj)
-		     :context context
-		     :function-calls (function-call-flow-tracking
-				      (env post-proc-obj))
-		     :used-macros
-		     `(:symbol ,(used-symbol-macros post-proc-obj)
-			       :regular ,(used-macros post-proc-obj)
-			       :compiler ,(used-compiler-macros post-proc-obj))))))
+      (make-instance
+       'varjo-compile-result
+       :glsl-code final-glsl-code
+       :stage-type (find-if λ(find _ *supported-stages*) context)
+       :in-args (mapcar #'butlast (in-args post-proc-obj))
+       :out-vars (mapcar #'butlast (out-vars post-proc-obj))
+       :uniforms (mapcar #'butlast (uniforms post-proc-obj))
+       :implicit-uniforms (stemcells post-proc-obj)
+       :context context
+       :function-calls (function-call-flow-tracking (env post-proc-obj))
+       :used-symbol-macros (used-symbol-macros post-proc-obj)
+       :used-macros (used-macros post-proc-obj)
+       :used-compiler-macros (used-compiler-macros post-proc-obj)))))

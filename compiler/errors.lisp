@@ -49,7 +49,11 @@
   "This shouldnt have been possible so this needs a bug report. Sorry about that~%~s" target)
 
 (deferror cannot-compile () (code)
-  "Cannot compile the following code:~%~a" code)
+    "Cannot compile the following code:~%~a" code)
+
+(deferror invalid-form-list () (code)
+    "Tried to compile form however the first element of the form was a list:
+~s" code)
 
 (deferror no-function-returns () (name)
   "Function '~a' did not specify any return types" name)

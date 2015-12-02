@@ -6,7 +6,7 @@
             ((numberp code) (compile-number code env))
             ((symbolp code) (compile-symbol code env))
             ((and (listp code) (listp (first code)))
-             (error 'cannot-compile :code code))
+             (error 'invalid-form-list :code code))
             ((listp code) (compile-form code env))
             ((typep code 'code) code)
             ((typep code 'v-value) (%v-value->code code))
@@ -234,4 +234,8 @@
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (context :initarg :context :accessor context)
    (function-calls :initarg :function-calls :accessor function-calls)
-   (used-macros :initarg :used-macros :reader used-macros)))
+   (used-macros :initarg :used-macros :reader used-macros)
+   (used-compiler-macros :initarg :used-compiler-macros
+			 :reader used-compiler-macros)
+   (used-symbol-macros :initarg :used-symbol-macros
+		       :reader used-symbol-macros)))
