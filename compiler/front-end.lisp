@@ -549,7 +549,7 @@
 	     (push type-obj structs))))
 
       (setf (used-types post-proc-obj) structs)
-      (setf (uniforms post-proc-obj) uniforms)
+      (setf (uniforms post-proc-obj) final-strings)
       (setf (stemcells post-proc-obj) implicit-uniforms)
       post-proc-obj)))
 
