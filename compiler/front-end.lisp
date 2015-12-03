@@ -467,6 +467,7 @@
 	    (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
 	       :for location :in locations :for type :in type-objs :collect
 	       `(,name ,type ,qualifiers
+		       nil ;;,(flow-ids (get-var name env)) removed until structs supported
 		       ,(gen-in-var-string (or glsl-name name) type
 					   qualifiers location))))))
   post-proc-obj)
@@ -517,7 +518,7 @@
 	  (implicit-uniforms nil))
       (loop :for (name type qualifiers glsl-name) :in uniforms
 	 :for type-obj = (type-spec->type type) :do
-	 (push `(,name ,type
+	 (push `(,name ,type ,(flow-ids (get-var name env))
 		       ,(if (member :ubo qualifiers)
 			    (varjo::write-interface-block
 			     :uniform (or glsl-name (safe-glsl-name-string name))

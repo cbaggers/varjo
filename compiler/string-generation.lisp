@@ -202,10 +202,10 @@
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
 	    (loop :for part :in
 	       (list (used-types post-proc-obj)
-		     (mapcar #'fourth (in-args post-proc-obj))
+		     (mapcar #'last1 (in-args post-proc-obj))
 		     (mapcar #'last1 (out-vars post-proc-obj))
 		     (concatenate 'list
-				  (mapcar #'third (uniforms post-proc-obj))
+				  (mapcar #'last1 (uniforms post-proc-obj))
 				  (mapcar #'third (stemcells post-proc-obj)))
 		     (signatures code)
 		     (to-top code))
