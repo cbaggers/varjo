@@ -269,6 +269,11 @@
            :v-defmacro
            :v-define-compiler-macro
 
+	   ;;flow-ids
+	   :flow-id!
+	   :id=
+	   :id~=
+
            ;;compiler
            :varjo->glsl
            :with-stemcell-infer-hook
@@ -282,13 +287,17 @@
            :*stage-types*
 
            ;;compile-result
-           :glsl-code
-           :stage-type
-           :out-vars
-           :in-args
-           :uniforms
-           :implicit-uniforms
-           :context
+	   :glsl-code
+	   :stage-type
+	   :out-vars
+	   :in-args
+	   :uniforms
+	   :implicit-uniforms
+	   :context
+	   :function-calls
+	   :used-macros
+	   :used-compiler-macros
+	   :used-symbol-macros
 
            ;;utils
            :lambda-list-split
