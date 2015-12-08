@@ -101,9 +101,9 @@
 (defmethod v-code-cache ((env environment))
   (v-code-cache (%get-base-env env)))
 
-(defun log-function-call (func-obj arg-flow-ids env)
+(defun log-function-call (func-obj arg-flow-ids result-flow-id env)
   (let ((base-env (%get-base-env env)))
-    (push `(,func-obj ,@arg-flow-ids)
+    (push `(,func-obj ,arg-flow-ids ,result-flow-id)
 	  (slot-value base-env 'function-call-flow-tracking))))
 
 (defmethod v-raw-in-args ((env environment))

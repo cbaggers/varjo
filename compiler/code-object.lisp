@@ -8,37 +8,58 @@
 (in-package :varjo)
 
 (defclass code ()
-  ((type :initarg :type :initform nil :accessor code-type)
-   (current-line :initarg :current-line :initform "" :accessor current-line)
-   (signatures :initarg :signatures :initform nil :accessor signatures)
-   (to-block :initarg :to-block :initform nil :accessor to-block)
-   (to-top :initarg :to-top :initform nil :accessor to-top)
-   (out-vars :initarg :out-vars :initform nil :accessor out-vars)
-   (used-types :initarg :used-types :initform nil :accessor used-types)
-   (returns :initarg :returns :initform nil :accessor returns)
-   (multi-vals :initarg :multi-vals :initform nil :accessor multi-vals)
-   (stem-cells :initarg :stemcells :initform nil :accessor stemcells)
+  ((type :initarg :type :initform nil :reader code-type)
+   (current-line :initarg :current-line :initform "" :reader current-line)
+   (signatures :initarg :signatures :initform nil :reader signatures)
+   (to-block :initarg :to-block :initform nil :reader to-block)
+   (to-top :initarg :to-top :initform nil :reader to-top)
+   (out-vars :initarg :out-vars :initform nil :reader out-vars)
+   (used-types :initarg :used-types :initform nil :reader used-types)
+   (returns :initarg :returns :initform nil :reader returns)
+   (multi-valse :initarg :multi-vals :initform nil :reader multi-vals)
+   (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
-                      :accessor out-of-scope-args)
+                      :reader out-of-scope-args)
    (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
-	     :accessor flow-ids)
-   (mutations :initarg :mutations :initform nil :accessor mutations)
-   (place-tree :initarg :place-tree :initform nil :accessor place-tree)))
+	     :reader flow-ids)
+   (mutations :initarg :mutations :initform nil :reader mutations)
+   (place-tree :initarg :place-tree :initform nil :reader place-tree)
+   (node-tree :initarg :node-tree :initform nil :reader node-tree)))
 
-;; [TODO] Proper error needed here
-(defmethod initialize-instance :after
-    ((code-obj code) &key (type nil set-type))
-  (unless set-type (error "Type must be specified when creating an instance of varjo:code"))
+(defun code! (&key (type nil set-type) (current-line "") signatures to-block
+		to-top out-vars used-types returns multi-vals stemcells
+		out-of-scope-args flow-ids mutations place-tree
+		node-tree)
+  (unless set-type
+    (error "Type must be specified when creating an instance of varjo:code"))
+  (unless (or flow-ids (type-doesnt-need-flow-id type))
+    (error 'flow-ids-mandatory :for :code-object))
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
-         (type-spec (type->type-spec type-obj)))
-    (setf (code-type code-obj) type-obj)
-    (when (and (not (find type-spec (used-types code-obj)))
-               (not (eq type-spec 'v-none)))
-      (push (listify type-spec) (used-types code-obj)))))
+         (type-spec (type->type-spec type-obj))
+	 (used-types (if (and (not (find type-spec used-types))
+			      (not (eq type-spec 'v-none)))
+			 (cons (listify type-spec) used-types)
+			 used-types)))
+    (make-instance 'code
+		   :type type-obj
+		   :current-line current-line
+		   :signatures signatures
+		   :to-block to-block
+		   :to-top to-top
+		   :out-vars out-vars
+		   :returns returns
+		   :used-types used-types
+		   :multi-vals multi-vals
+		   :stemcells stemcells
+		   :out-of-scope-args out-of-scope-args
+		   :flow-ids flow-ids
+		   :place-tree place-tree
+		   :mutations mutations
+		   :node-tree node-tree)))
 
 (defun add-higher-scope-val (code-obj value)
-  (push value (out-of-scope-args code-obj))
-  code-obj)
+  (copy-code code-obj
+	     :out-of-scope-args (cons value (out-of-scope-args code-obj))))
 
 (defun normalize-out-of-scope-args (args)
   (remove-duplicates args :test #'v-value-equal))
@@ -50,11 +71,10 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defun make-code-obj (type current-line &key flow-ids place-tree)
-  (unless (or flow-ids (type-doesnt-need-flow-id type))
-    (error 'flow-ids-mandatory :for :code-object))
-  (make-instance 'code :type type :current-line current-line
-		 :flow-ids flow-ids :place-tree (listify place-tree)))
+(defun make-code-obj (type current-line &key flow-ids place-tree node-tree)
+  (code! :type type :current-line current-line
+	 :flow-ids flow-ids :place-tree (listify place-tree)
+	 :node-tree node-tree))
 
 (defun make-none-ob () (make-code-obj :none nil))
 
@@ -64,7 +84,7 @@
 (defgeneric copy-code (code-obj &key type current-line to-block to-top
                                   out-vars returns multi-vals
                                   stemcells out-of-scope-args flow-ids
-				  place-tree mutations))
+				  place-tree mutations node-tree))
 (defmethod copy-code ((code-obj code)
                       &key type
                         current-line
@@ -78,31 +98,32 @@
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
 			(place-tree nil set-place-tree)
-			(mutations nil set-mutations))
-  (make-instance 'code
-                 :type (if type type (code-type code-obj))
-                 :current-line (if current-line current-line
-                                   (current-line code-obj))
-                 :signatures (if set-sigs signatures (signatures code-obj))
-                 :to-block (if set-block to-block (to-block code-obj))
-                 :to-top (if set-top to-top (to-top code-obj))
-                 :out-vars (if set-out-vars out-vars (out-vars code-obj))
-                 :returns (listify (if set-returns returns (returns code-obj)))
-                 :used-types (used-types code-obj)
-                 :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
-                 :stemcells (if set-stemcells stemcells (stemcells code-obj))
-                 :out-of-scope-args (if set-out-of-scope-args
-                                        out-of-scope-args
-                                        (out-of-scope-args code-obj))
-		 :flow-ids (if set-flow-ids flow-ids (flow-ids code-obj))
-		 :place-tree (if set-place-tree place-tree (place-tree code-obj))
-		 :mutations (if set-mutations mutations (mutations code-obj))))
+			(mutations nil set-mutations)
+			(node-tree nil set-node-tree))
+  (code! :type (if type type (code-type code-obj))
+	 :current-line (if current-line current-line
+			   (current-line code-obj))
+	 :signatures (if set-sigs signatures (signatures code-obj))
+	 :to-block (if set-block to-block (to-block code-obj))
+	 :to-top (if set-top to-top (to-top code-obj))
+	 :out-vars (if set-out-vars out-vars (out-vars code-obj))
+	 :returns (listify (if set-returns returns (returns code-obj)))
+	 :used-types (used-types code-obj)
+	 :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
+	 :stemcells (if set-stemcells stemcells (stemcells code-obj))
+	 :out-of-scope-args (if set-out-of-scope-args
+				out-of-scope-args
+				(out-of-scope-args code-obj))
+	 :flow-ids (if set-flow-ids flow-ids (flow-ids code-obj))
+	 :place-tree (if set-place-tree place-tree (place-tree code-obj))
+	 :mutations (if set-mutations mutations (mutations code-obj))
+	 :node-tree (if set-node-tree node-tree (node-tree code-obj))))
 
 
 (defgeneric merge-obs (objs &key type current-line to-block
                               to-top out-vars returns multi-vals
                               stemcells out-of-scope-args flow-ids
-			      place-tree mutations))
+			      place-tree mutations node-tree))
 
 (defmethod merge-obs ((objs list)
                       &key type
@@ -117,33 +138,36 @@
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
 			place-tree
-			(mutations nil set-mutations))
+			(mutations nil set-mutations)
+			(node-tree nil set-node-tree))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
     (error 'flow-ids-mandatory :for :code-object))
-  (make-instance 'code
-                 :type (if type type (error "type is mandatory"))
-                 :current-line current-line
-                 :signatures (if set-sigs signatures
-                                 (mapcat #'signatures objs))
-                 :to-block (if set-block to-block
-                               (mapcat #'to-block objs))
-                 :to-top (if set-top to-top (mapcat #'to-top objs))
-                 :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
-                 :returns (listify (if set-returns returns (merge-returns objs)))
-                 :used-types (mapcar #'used-types objs)
-                 :multi-vals multi-vals
-                 :stemcells (if set-stemcells stemcells
-                                (mapcat #'stemcells objs))
-                 :out-of-scope-args
-                 (normalize-out-of-scope-args
-                  (if set-out-of-scope-args out-of-scope-args
-                      (mapcat #'out-of-scope-args objs)))
-		 :flow-ids (if set-flow-ids
-			      flow-ids
-			      (error 'flow-id-must-be-specified-co))
-		 :place-tree place-tree
-		 :mutations (if set-mutations mutations
-				(mapcat #'mutations objs))))
+  (code! :type (if type type (error "type is mandatory"))
+	 :current-line current-line
+	 :signatures (if set-sigs signatures
+			 (mapcat #'signatures objs))
+	 :to-block (if set-block to-block
+		       (mapcat #'to-block objs))
+	 :to-top (if set-top to-top (mapcat #'to-top objs))
+	 :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
+	 :returns (listify (if set-returns returns (merge-returns objs)))
+	 :used-types (mapcar #'used-types objs)
+	 :multi-vals multi-vals
+	 :stemcells (if set-stemcells stemcells
+			(mapcat #'stemcells objs))
+	 :out-of-scope-args
+	 (normalize-out-of-scope-args
+	  (if set-out-of-scope-args out-of-scope-args
+	      (mapcat #'out-of-scope-args objs)))
+	 :flow-ids (if set-flow-ids
+		       flow-ids
+		       (error 'flow-id-must-be-specified-co))
+	 :place-tree place-tree
+	 :mutations (if set-mutations mutations
+			(mapcat #'mutations objs))
+	 :node-tree (if set-node-tree
+			node-tree
+			(mapcat #'node-tree objs))))
 
 (defmethod merge-obs ((objs code)
                       &key (type nil set-type)
@@ -158,28 +182,29 @@
                         (out-of-scope-args nil set-out-of-scope-args)
 			(flow-ids nil set-flow-ids)
 			place-tree
-			(mutations nil set-mutations))
+			(mutations nil set-mutations)
+			(node-tree nil set-node-tree))
   (let ((type (if set-type type (code-type objs))))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object :code-type type))
-    (make-instance 'code
-		   :type type
-		   :current-line (if set-current-line current-line
-				     (current-line objs))
-		   :signatures (if set-sigs signatures (signatures objs))
-		   :to-block (if set-block to-block (remove nil (to-block objs)))
-		   :to-top (if set-top to-top (remove nil (to-top objs)))
-		   :out-vars (if set-out-vars out-vars (out-vars objs))
-		   :returns (listify (if set-returns returns (returns objs)))
-		   :used-types (used-types objs)
-		   :multi-vals multi-vals
-		   :stemcells (if set-stemcells stemcells (stemcells objs))
-		   :out-of-scope-args (if set-out-of-scope-args
-					  out-of-scope-args
-					  (remove nil (out-of-scope-args objs)))
-		   :flow-ids (if set-flow-ids flow-ids (stemcells objs))
-		   :place-tree place-tree
-		   :mutations (if set-mutations mutations (mutations objs)))))
+    (code! :type type
+	   :current-line (if set-current-line current-line
+			     (current-line objs))
+	   :signatures (if set-sigs signatures (signatures objs))
+	   :to-block (if set-block to-block (remove nil (to-block objs)))
+	   :to-top (if set-top to-top (remove nil (to-top objs)))
+	   :out-vars (if set-out-vars out-vars (out-vars objs))
+	   :returns (listify (if set-returns returns (returns objs)))
+	   :used-types (used-types objs)
+	   :multi-vals multi-vals
+	   :stemcells (if set-stemcells stemcells (stemcells objs))
+	   :out-of-scope-args (if set-out-of-scope-args
+				  out-of-scope-args
+				  (remove nil (out-of-scope-args objs)))
+	   :flow-ids (if set-flow-ids flow-ids (stemcells objs))
+	   :place-tree place-tree
+	   :mutations (if set-mutations mutations (mutations objs))
+	   :node-tree (if set-node-tree node-tree (node-tree objs)))))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

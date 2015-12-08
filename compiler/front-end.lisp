@@ -404,13 +404,15 @@
 		       :accessor used-symbol-macros)
    (used-macros :initarg :used-macros :accessor used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
-			 :accessor used-compiler-macros)))
+			 :accessor used-compiler-macros)
+   (ast :initarg :ast :reader ast)))
 
 (defun make-post-process-obj (code env)
   (make-instance 'post-compile-process :code code :env env
 		 :used-symbol-macros (dedup-used (used-symbol-macros env))
 		 :used-macros (dedup-used (used-macros env))
-		 :used-compiler-macros (dedup-used (used-compiler-macros env))))
+		 :used-compiler-macros (dedup-used (used-compiler-macros env))
+		 :ast (node-tree code)))
 
 ;;----------------------------------------------------------------------
 
@@ -558,10 +560,11 @@
 
 (defun dedup-strings (post-proc-obj)
   (with-slots (code) post-proc-obj
-    (setf (to-top code)
-	  (remove-duplicates (to-top code) :test #'equal))
-    (setf (signatures code)
-	  (remove-duplicates (signatures code) :test #'equal))
+    (setf code
+	  (copy-code
+	   code
+	   :to-top (remove-duplicates (to-top code) :test #'equal)
+	   :signatures (remove-duplicates (signatures code) :test #'equal)))
     (setf (used-types post-proc-obj)
 	  (remove-duplicates (mapcar #'v-signature (used-types post-proc-obj))
 			     :test #'equal)))
@@ -590,4 +593,5 @@
        :function-calls (function-call-flow-tracking (env post-proc-obj))
        :used-symbol-macros (used-symbol-macros post-proc-obj)
        :used-macros (used-macros post-proc-obj)
-       :used-compiler-macros (used-compiler-macros post-proc-obj)))))
+       :used-compiler-macros (used-compiler-macros post-proc-obj)
+       :ast (ast post-proc-obj)))))

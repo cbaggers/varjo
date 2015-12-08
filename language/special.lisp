@@ -186,9 +186,9 @@
 			  `(%assign ,v ,o))
 		     ,first-name)
 		  env)))
-    (setf (multi-vals result)
-	  (mapcar #'make-mval (rest vals) (rest qualifier-lists)))
-    (values result
+    (values (copy-code result
+		       :multi-vals (mapcar #'make-mval (rest vals)
+					   (rest qualifier-lists)))
 	    env)))
 
 ;; %assign is only used to set the current-line of the code object

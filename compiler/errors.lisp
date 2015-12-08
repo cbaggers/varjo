@@ -268,9 +268,6 @@ e.g. (~a :vec3)"
 (deferror flow-id-must-be-specified-vv (:error-type varjo-critical-error) ()
     "v-values must be given a flow id when created")
 
-(deferror flow-id-must-be-specified-co (:error-type varjo-critical-error) ()
-    "code objects must be given a flow id when created")
-
 (deferror multiple-flow-ids-regular-func (:error-type varjo-critical-error)
     (func-name func)
     "the function ~s is a regular function but has multiple flow ids.

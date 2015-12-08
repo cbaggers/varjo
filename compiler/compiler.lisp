@@ -61,6 +61,7 @@
         (let* ((val-scope (v-function-scope v-value))
                (from-higher-scope (and (> val-scope 0)
                                        (< val-scope (v-function-scope env)))))
+	  (log-function-call :-get- () (flow-ids v-value) env)
           (v-variable->code-obj var-name v-value from-higher-scope))
         (if (suitable-symbol-for-stemcellp var-name env)
             (let* ((scell (make-stem-cell code))
@@ -103,10 +104,11 @@
       (cons (list func (elt args i)) (place-tree (elt args i))))))
 
 (defun compile-regular-function-call (func-name func args env)
-  (log-function-call func (mapcar #'flow-ids args) env)
+
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
 	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
+    (log-function-call func (mapcar #'flow-ids args) flow-ids env)
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
     (values (merge-obs args
@@ -150,7 +152,6 @@
 		(flow-ids func)))))
 
 (defun compile-multi-return-function-call (func-name func args env)
-  (log-function-call func (mapcar #'flow-ids args) env)
   (let* ((type (resolve-func-type func args env)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
@@ -184,18 +185,19 @@
                                      m-r-names
 				     (rest flow-ids))
 		 :flow-ids (list (first flow-ids))
-		 :place-tree (calc-place-tree func args))))
-        (values (varjo->glsl
-		 `(%fresh-env-scope
-		   (%multi-env-progn
-		    ;; when has-base is true then a return or mvbind has already
-		    ;; written the lets for the vars
-		    ,@(unless has-base
-			      (loop :for v :in bindings :for gname :in m-r-names
-				 :collect `(%glsl-let ,v t ,gname))))
-		   ,o)
-		 env)
-		env)))))
+		 :place-tree (calc-place-tree func args)))
+	     (final (varjo->glsl
+		     `(%fresh-env-scope
+		       (%multi-env-progn
+			;; when has-base is true then a return or mvbind has already
+			;; written the lets for the vars
+			,@(unless has-base
+				  (loop :for v :in bindings :for gname :in m-r-names
+				     :collect `(%glsl-let ,v t ,gname))))
+		       ,o)
+		     env)))
+	(log-function-call func (mapcar #'flow-ids args) (flow-ids final) env)
+        (values final env)))))
 
 ;;[TODO] Maybe the error should be caught and returned,
 ;;       in case this is a bad walk
@@ -237,5 +239,6 @@
    (used-macros :initarg :used-macros :reader used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
 			 :reader used-compiler-macros)
+   (ast :initarg :ast :reader ast)
    (used-symbol-macros :initarg :used-symbol-macros
 		       :reader used-symbol-macros)))
