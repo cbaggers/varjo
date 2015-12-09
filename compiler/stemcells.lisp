@@ -25,29 +25,19 @@
                                 ,(second stemcell)
                                 ,type-name))))))
 
-(defun make-stemcell-arguments-concrete (args func)
-  (mapcar #'(lambda (arg actual-type)
-              (if (stemcellp (code-type arg))
-                  (let ((stemcell (first (stemcells arg))))
-                    (copy-code arg
-                               :type actual-type
-                               :stemcells `((,(first stemcell)
-                                              ,(second stemcell)
-                                              ,(type->type-spec actual-type)))))
-                  arg))
-          args
-          (v-argument-spec func)))
-
 (def-v-type-class v-stemcell (v-type) ())
+
 (defmethod v-dimensions ((object v-stemcell)) 0)
-(defun make-stem-cell (symbol)
+
+(defun make-stem-cell (symbol env)
   (let ((string-name (string (safe-glsl-name-string symbol)))
         (original-name symbol))
     (make-instance
      'code
      :type 'v-stemcell
      :current-line string-name
-     :stemcells `((,original-name ,string-name :|unknown-type|)))))
+     :stemcells `((,original-name ,string-name :|unknown-type|))
+     :node-tree (ast-node! :get symbol env env))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

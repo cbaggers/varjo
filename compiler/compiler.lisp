@@ -1,7 +1,23 @@
 (in-package :varjo)
 
+(defclass ast-node ()
+  ((starting-env :initarg :starting-env)
+   (ending-env :initarg :ending-env)
+   (node-kind :initarg :node-kind)
+   (args :initarg :args)))
+
+(defparameter *node-kinds* '(:function-call :get :literal))
+
+(defun ast-node! (node-kind args starting-env ending-env )
+  (assert (member node-kind *node-kinds*))
+  (make-instance 'ast-node
+		 :node-kind node-kind
+		 :args args
+		 :starting-env starting-env
+		 :ending-env ending-env))
+
 (defun varjo->glsl (code env)
-  (multiple-value-bind (code new-env)
+  (multiple-value-bind (code-obj new-env)
       (cond ((or (null code) (eq t code)) (compile-bool code env))
             ((numberp code) (compile-number code env))
             ((symbolp code) (compile-symbol code env))
@@ -11,7 +27,7 @@
             ((typep code 'code) code)
             ((typep code 'v-value) (%v-value->code code))
             (t (error 'cannot-compile :code code)))
-    (values code (or new-env env))))
+    (values code-obj (or new-env env))))
 
 (defun expand->varjo->glsl (code env)
   "Special case generally used by special functions that need to expand
@@ -23,10 +39,11 @@
     #'varjo->glsl))
 
 (defun compile-bool (code env)
-  (declare (ignore env))
   (if code
-      (make-code-obj 'v-bool "true" :flow-ids (flow-id!))
-      (make-code-obj 'v-bool "false" :flow-ids (flow-id!))))
+      (make-code-obj 'v-bool "true" :flow-ids (flow-id!)
+		     :node-tree (ast-node! :literal code env env))
+      (make-code-obj 'v-bool "false" :flow-ids (flow-id!)
+		     :node-tree (ast-node! :literal code env env))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -35,16 +52,17 @@
         (t (error "Varjo: Do not know the type of the number '~s'" x))))
 
 (defun compile-number (code env)
-  (declare (ignore env))
   (let ((num-type (get-number-type code)))
     (make-code-obj num-type (gen-number-string code num-type)
-		   :flow-ids (flow-id!))))
+		   :flow-ids (flow-id!)
+		   :node-tree (ast-node! :literal code env env))))
 
-(defun v-variable->code-obj (var-name v-value from-higher-scope)
+(defun v-variable->code-obj (var-name v-value from-higher-scope env)
   (let ((code-obj (make-code-obj (v-type v-value)
 				 (gen-variable-string var-name v-value)
 				 :flow-ids (flow-ids v-value)
-				 :place-tree `((,var-name ,v-value)))))
+				 :place-tree `((,var-name ,v-value))
+				 :node-tree (ast-node! :get var-name env env))))
     (if from-higher-scope
         (add-higher-scope-val code-obj v-value)
         code-obj)))
@@ -62,9 +80,9 @@
                (from-higher-scope (and (> val-scope 0)
                                        (< val-scope (v-function-scope env)))))
 	  (log-function-call :-get- () (flow-ids v-value) env)
-          (v-variable->code-obj var-name v-value from-higher-scope))
+          (v-variable->code-obj var-name v-value from-higher-scope env))
         (if (suitable-symbol-for-stemcellp var-name env)
-            (let* ((scell (make-stem-cell code))
+            (let* ((scell (make-stem-cell code env))
                    (assumed-type (funcall *stemcell-infer-hook* var-name)))
               (if assumed-type
                   (add-type-to-stemcell-code scell assumed-type)

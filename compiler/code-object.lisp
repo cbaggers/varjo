@@ -167,7 +167,7 @@
 			(mapcat #'mutations objs))
 	 :node-tree (if set-node-tree
 			node-tree
-			(mapcat #'node-tree objs))))
+			(mapcar #'node-tree objs))))
 
 (defmethod merge-obs ((objs code)
                       &key (type nil set-type)
