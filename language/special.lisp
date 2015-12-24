@@ -317,7 +317,7 @@
 (v-defspecial labels (definitions &rest body)
   :args-valid t
   :return
-  (vbind (r e)
+  (vbind ((func-def-objs body-obj) e)
       (with-fresh-env-scope (fresh-env env)
 	(env-> (p-env fresh-env)
 	  (mapcar-progn
@@ -326,12 +326,23 @@
 	       (%make-function name args body t env)))
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
-    (values (merge-progn (flatten r)) e)))
+    (let ((ast (ast-node! 'labels-no-implicit
+			  (list (remove nil (mapcar λ(when _1
+						       (cons-end
+							(node-tree _1)
+							(subseq _ 0 2)))
+						    definitions
+						    func-def-objs))
+				(node-tree body-obj))
+			  (code-type body-obj) env env)))
+      (values (copy-code (merge-progn (cons-end body-obj func-def-objs))
+			 :node-tree ast)
+	      e))))
 
 (v-defspecial labels-no-implicit (definitions &rest body)
   :args-valid t
   :return
-  (vbind (r e)
+  (vbind ((func-def-objs body-obj) e)
       (with-fresh-env-scope (fresh-env env)
 	(env-> (p-env fresh-env)
 	  (mapcar-progn
@@ -340,13 +351,23 @@
 	       (%make-function name args body nil env)))
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
-    (values (merge-progn (flatten r))
-	    e)))
+    (let ((ast (ast-node! 'labels-no-implicit
+			  (list (remove nil (mapcar λ(when _1
+						       `(,(subseq _ 0 2)
+							  ,(node-tree _1)))
+						    definitions
+						    func-def-objs))
+				(node-tree body-obj))
+			  (code-type body-obj) env env)))
+      (print ast)
+      (values (copy-code (merge-progn (cons-end body-obj func-def-objs))
+			 :node-tree ast)
+	      e))))
 
 (defun %make-function (name args body allow-implicit-args env)
   (let ((deduped-func (dedup-function `(,args ,body) env)))
     (if (and (not allow-implicit-args) deduped-func)
-	(values (make-none-ob) (add-function name deduped-func env))
+	(values nil (add-function name deduped-func env))
 	(%make-new-function name args body allow-implicit-args env))))
 
 (defun %make-new-function (name args body allow-implicit-args env)
@@ -404,7 +425,7 @@
 	   (sigs (if mainp
 		     (signatures body-obj)
 		     (cons (gen-function-signature glsl-name arg-pairs
-						   out-arg-pairs type
+p						   out-arg-pairs type
 						   (when allow-implicit-args
 						     implicit-args))
 			   (signatures body-obj))))
@@ -443,8 +464,7 @@
 			 :place-tree nil
 			 :out-of-scope-args (when allow-implicit-args
 					      implicit-args)
-			 :flow-ids nil
-			 :node-tree :ignored)
+			 :flow-ids nil)
 	      final-env))))
 
 (defun function-raw-args-validp (raw-args)
@@ -457,12 +477,6 @@
        (symbolp (first raw-arg))
        (not (keywordp (first raw-arg)))
        (type-specp (second raw-arg))))
-
-(v-defspecial %fresh-env-scope (&rest body)
-  :args-valid t
-  :return (let ((new-env (fresh-environment env)))
-	    (vbind (v e) (compile-form `(progn ,@body) new-env)
-	      (values v (env-prune (env-depth env) e)))))
 
 
 ;; {TODO} what if type of form is not value
@@ -661,7 +675,9 @@
       (multiple-value-bind (code new-env)
 	  (with-v-let-spec var-form
 	    (compile-let name type-spec value-form env t))
-        (let* ((var-string (subseq (first (to-block code)) 0 (1- (length (first (to-block code))))))
+        (let* ((var-string (subseq (first (to-block code))
+				   0
+				   (1- (length (first (to-block code))))))
                (decl-obj (compile-form (second var-form) new-env))
                (condition-obj (compile-form condition new-env))
                (update-obj (compile-form update new-env)))
@@ -692,11 +708,13 @@
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test env)
-    (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) test-env)
+    (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body)
+							     test-env)
       (if (v-typep (code-type test-obj) 'v-bool)
 	  (values (merge-obs (list body-obj test-obj)
 			     :type 'v-none :current-line nil
-			     :to-block (list (gen-while-string test-obj body-obj))
+			     :to-block (list (gen-while-string test-obj
+							       body-obj))
 			     :flow-ids nil
 			     :node-tree (ast-node!
 					 :while (mapcar #'node-tree
