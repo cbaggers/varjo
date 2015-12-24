@@ -251,6 +251,22 @@
 
 ;;----------------------------------------------------------------------
 
+(defun typify-code (code-obj &optional new-value)
+  (let* ((prefixed-line (prefix-type-declaration code-obj))
+	 (current-line
+	  (if new-value
+	      (%gen-assignment-string prefixed-line (current-line new-value))
+	      prefixed-line))
+	 (flow-ids
+	  (if new-value
+	      (flow-ids new-value)
+	      (flow-ids code-obj))))
+    (copy-code code-obj :type (code-type code-obj) :current-line current-line
+	       :flow-ids flow-ids :node-tree :ignored :multi-vals nil
+	       :place-tree nil)))
+
+;;----------------------------------------------------------------------
+
 (defmacro with-v-let-spec (form &body body)
   (let ((var-spec (gensym "var-spec"))
 	(qual (gensym "qualifiers"))
@@ -272,17 +288,18 @@
       (%validate-var-types name type-spec value-obj)
       (let* ((flow-ids
 	      (or flow-ids (when value-obj (flow-ids value-obj)) (flow-id!)))
-	     (glsl-let-code
+	     (let-obj
 	      (if value-obj
-		  `(%typify
-		    (%make-var ,glsl-name
-			       ,(or type-spec (code-type value-obj))
-			       ,flow-ids)
-		    nil ,value-obj)
-		  `(%typify (%make-var ,glsl-name
-				       ,type-spec
-				       ,(flow-id!)))))
-	     (let-obj (compile-form glsl-let-code env)))
+		  (typify-code (compile-form
+				`(%make-var ,glsl-name
+					    ,(or type-spec
+						 (code-type value-obj))
+					    ,flow-ids)
+				env)
+			       value-obj)
+		  (typify-code (compile-form
+				`(%make-var ,glsl-name ,type-spec ,(flow-id!))
+				env)))))
 	(values
 	 (copy-code let-obj :type (type-spec->type 'v-none)
 		    :current-line nil :to-block

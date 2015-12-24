@@ -298,27 +298,6 @@
 	   (compile-make-var name-string type flow-ids)
 	   env))
 
-;; %typify too only modifies the code object, it is not responsible
-;; for changing the environment
-(v-defspecial %typify (form &optional qualifiers new-value)
-  :args-valid t
-  :return
-  (let* ((code (compile-form form env))
-	 (prefixed-line (prefix-type-declaration code qualifiers))
-	 (current-line (if new-value
-			   (%gen-assignment-string
-			    prefixed-line (current-line new-value))
-			   prefixed-line))
-	 (flow-ids (if new-value
-		       (flow-ids new-value)
-		       (flow-ids code))))
-    (values (copy-code code :type (code-type code) :current-line current-line
-		       :flow-ids flow-ids
-		       :node-tree :ignored
-		       :multi-vals nil
-		       :place-tree nil)
-	    env)))
-
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
@@ -344,10 +323,17 @@
 	   p-env bindings)
 	  (compile-form `(progn ,@body) p-env)))
     (unless body (error 'body-block-empty :form-name 'let))
-    (values
-     (copy-code (merge-progn (cons-end body-obj new-var-objs))
-      :node-tree :wip)
-     env)))
+    (let* ((merged (merge-progn (cons-end body-obj new-var-objs)))
+	   (ast-args (mapcar λ(with-v-let-spec _
+				(if type-spec
+				    `((,name ,type-spec) ,(node-tree _1))
+				    `(,name ,(node-tree _1))))
+			     bindings
+			     new-var-objs)))
+      (values
+       (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
+					       env env))
+       env))))
 
 (v-defmacro let* (bindings &rest body)
   (unless body (error 'body-block-empty :form-name 'let))
