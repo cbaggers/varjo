@@ -35,11 +35,18 @@
 		  :code (format nil "(setf (... ~s) ...)" name)))
 	 (multiple-value-bind (old-val old-env) (get-var name env)
 	   (assert (eq old-val value))
-	   (values (merge-obs (list place val) :type (code-type place)
-			      :current-line (gen-assignment-string place val)
-			      :flow-ids (flow-ids val))
-		   (replace-flow-ids name old-val (flow-ids val)
-				     old-env env)))))))
+	   (let ((final-env (replace-flow-ids name old-val (flow-ids val)
+					      old-env env)))
+	     (values (merge-obs (list place val) :type (code-type place)
+				:current-line (gen-assignment-string place val)
+				:flow-ids (flow-ids val)
+				:node-tree (ast-node! 'setf
+						      (list (node-tree place)
+							    (node-tree val))
+						      (code-type place)
+						      env
+						      final-env))
+		     final-env)))))))
 
 (v-defspecial setq (var-name new-val-code)
   :args-valid t
@@ -60,13 +67,22 @@
 	      (> (v-function-scope old-val) 0)) ;; ok if var is global
 	 (error 'cross-scope-mutate :var-name var-name
 		:code `(setq ,var-name ,new-val-code)))
-	(t (values (copy-code new-val :type (code-type new-val)
-			      :current-line (gen-setq-assignment-string old-val new-val)
-			      :flow-ids (flow-ids new-val)
-			      :multi-vals nil
-			      :place-tree nil)
-		   (replace-flow-ids var-name old-val (flow-ids new-val)
-				     old-env env)))))))
+	(t (let ((final-env (replace-flow-ids var-name old-val
+					      (flow-ids new-val)
+					      old-env env)))
+	     (values (copy-code new-val :type (code-type new-val)
+				:current-line (gen-setq-assignment-string
+					       old-val new-val)
+				:flow-ids (flow-ids new-val)
+				:multi-vals nil
+				:place-tree nil
+				:node-tree (ast-node! 'setq
+						      (list var-name
+							    (node-tree new-val))
+						      (code-type new-val)
+						      env
+						      final-env))
+		     final-env)))))))
 
 (defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
   (labels ((w (n)
@@ -132,7 +148,7 @@
 	    (values
 	     (copy-code
 	      merged
-	      :node-tree (ast-node! 'multi-val-value
+	      :node-tree (ast-node! 'multiple-value-bind
 				    `(,vars ,(node-tree value-obj)
 					    ,@(mapcar #'node-tree b-objs))
 				    (code-type merged) env final-env))
@@ -164,9 +180,15 @@
 			  :for v :in (rest vals) :collect
 			  `(%assign ,v ,o))
 		     ,first-name)
-		  env)))
+		  env))
+	 (ast (ast-node! 'values
+			 (mapcar λ(if _1 `(,@_1 (node-tree _)) (node-tree _))
+				 objs
+				 qualifier-lists)
+			 (code-type result) env env)))
     (values (copy-code result :multi-vals (mapcar #'make-mval (rest vals)
-						  (rest qualifier-lists)))
+						  (rest qualifier-lists))
+		       :node-tree ast)
 	    env)))
 
 ;; %assign is only used to set the current-line of the code object

@@ -147,7 +147,7 @@
 			(flow-ids nil set-flow-ids)
 			place-tree
 			(mutations nil set-mutations)
-			(node-tree nil set-node-tree))
+			node-tree)
   (unless (or flow-ids (type-doesnt-need-flow-id type))
     (error 'flow-ids-mandatory :for :code-object))
   (code! :type (if type type (error "type is mandatory"))
@@ -173,9 +173,7 @@
 	 :place-tree place-tree
 	 :mutations (if set-mutations mutations
 			(mapcat #'mutations objs))
-	 :node-tree (if set-node-tree
-			node-tree
-			(mapcar #'node-tree objs))))
+	 :node-tree node-tree))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

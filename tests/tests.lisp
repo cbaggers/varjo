@@ -161,6 +161,12 @@
 	    (z 3))
 	(v! x y 0 0)))))
 
+(deftest build-21 ()
+  (finishes
+    (defshader test ()
+      (multiple-value-bind (x y) (values 1 2)
+	(v! 0 0 0 0)))))
+
 ;; (defshader test ()
 ;;   (let ((x 1))
 ;;     (v! x x)
