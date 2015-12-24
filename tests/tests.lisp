@@ -153,7 +153,7 @@
 	  (setq z (+ 1 1)))
 	(v! x z 3 4)))))
 
-(deftest build-17 ()
+(deftest build-20 ()
   (finishes
     (defshader test ()
       (let ((x 1)

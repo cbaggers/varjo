@@ -102,7 +102,7 @@
   :return
   (if body
       (vbind (code-objs final-env) (compile-progn body env)
-	(values (merge-progn code-objs) final-env))
+	(values (merge-progn code-objs env final-env) final-env))
       (values (make-code-obj (type-spec->type :none) "") env)))
 
 (v-defspecial multiple-value-bind (vars value-form &rest body)
@@ -127,7 +127,8 @@
 		(compile-form `(setq ,(first vars) ,value-obj) p-env)
 		(compile-progn body p-env)))
 	  (let* ((m-obj (merge-%multi-env-progn m-objs))
-		 (merged (merge-progn `(,m-obj ,s-obj ,@b-objs))))
+		 (merged (merge-progn `(,m-obj ,s-obj ,@b-objs)
+				      env final-env)))
 	    (values
 	     (copy-code
 	      merged
@@ -164,9 +165,8 @@
 			  `(%assign ,v ,o))
 		     ,first-name)
 		  env)))
-    (values (copy-code result
-		       :multi-vals (mapcar #'make-mval (rest vals)
-					   (rest qualifier-lists)))
+    (values (copy-code result :multi-vals (mapcar #'make-mval (rest vals)
+						  (rest qualifier-lists)))
 	    env)))
 
 ;; %assign is only used to set the current-line of the code object
@@ -176,12 +176,15 @@
   (values
    (merge-obs (list place val) :type (code-type place)
 	      :current-line (gen-assignment-string place val)
-	      :flow-ids (flow-ids val))
+	      :flow-ids (flow-ids val)
+	      :node-tree (ast-node! '%assign (list place val)
+				    (code-type place) env env))
    env))
 
 (defun extract-value-qualifiers (value-form)
   (when (and (listp value-form) (keywordp (first value-form)))
     (butlast value-form)))
+
 (defun extract-value-form (value-form)
   (if (and (listp value-form) (keywordp (first value-form)))
       (last1 value-form)
@@ -211,7 +214,11 @@
             (if (member :main (v-context env))
                 (%main-return code-obj env)
                 (%regular-value-return code-obj))))
-      (values result env))))
+      (values (copy-code result
+			 :node-tree (ast-node! '%return (node-tree code-obj)
+					       (code-type result)
+					       env env))
+	      env))))
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-value-return (code-obj)
@@ -246,7 +253,7 @@
 		(compile-form `(progn ,@(mapcar λ(mval->out-form _ env)
 						(multi-vals code-obj)))
 			      p-env)))
-	  (values (merge-progn (flatten r))
+	  (values (merge-progn (flatten r) env e)
 		  e)))
       (with-fresh-env-scope (fresh-env env)
 	(compile-form (%default-out-for-stage code-obj env)
@@ -288,13 +295,16 @@
 	   p-env bindings)
 	  (compile-form `(progn ,@body) p-env)))
     (unless body (error 'body-block-empty :form-name 'let))
-    (let* ((merged (merge-progn (cons-end body-obj new-var-objs)))
-	   (ast-args (mapcar λ(with-v-let-spec _
-				(if type-spec
-				    `((,name ,type-spec) ,(node-tree _1))
-				    `(,name ,(node-tree _1))))
-			     bindings
-			     new-var-objs)))
+    (let* ((merged (merge-progn (cons-end body-obj new-var-objs)
+				env final-env))
+	   (ast-args
+	    (list (mapcar λ(with-v-let-spec _
+			     (if type-spec
+				 `((,name ,type-spec) ,(node-tree _1))
+				 `(,name ,(node-tree _1))))
+			  bindings
+			  new-var-objs)
+		  (node-tree body-obj))))
       (values
        (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
 					       env final-env))
@@ -335,7 +345,7 @@
 						    func-def-objs))
 				(node-tree body-obj))
 			  (code-type body-obj) env env)))
-      (values (copy-code (merge-progn (cons-end body-obj func-def-objs))
+      (values (copy-code (merge-progn (cons-end body-obj func-def-objs) env e)
 			 :node-tree ast)
 	      e))))
 
@@ -360,7 +370,7 @@
 				(node-tree body-obj))
 			  (code-type body-obj) env env)))
       (print ast)
-      (values (copy-code (merge-progn (cons-end body-obj func-def-objs))
+      (values (copy-code (merge-progn (cons-end body-obj func-def-objs) env e)
 			 :node-tree ast)
 	      e))))
 
@@ -503,7 +513,9 @@ p						   out-arg-pairs type
 			     ,(v-make-value (code-type form-obj) env
 					    :glsl-name glsl-name))
 			   (out-vars form-obj))
-	   :node-tree (ast-node! '%out nil nil env env)
+	   :node-tree (ast-node! '%out (list name-and-qualifiers
+					     (node-tree form-obj))
+				 nil env env)
 	   :multi-vals nil
 	   :place-tree nil) t)
 	 env))))

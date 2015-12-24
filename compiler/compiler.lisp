@@ -1,24 +1,6 @@
 (in-package :varjo)
 (in-readtable fn:fn-reader)
 
-(defclass ast-node ()
-  ((starting-env :initarg :starting-env)
-   (ending-env :initarg :ending-env)
-   (node-kind :initarg :node-kind)
-   (return-type :initarg :return-type)
-   (args :initarg :args)))
-
-(defparameter *node-kinds* '(:function-call :get :literal))
-
-(defun ast-node! (node-kind args return-type starting-env ending-env)
-  ;;(assert (member node-kind *node-kinds*))
-  (make-instance 'ast-node
-		 :node-kind node-kind
-		 :args args
-		 :return-type return-type
-		 :starting-env starting-env
-		 :ending-env ending-env))
-
 (defun compile-form (code env)
   (multiple-value-bind (code-obj new-env)
       (cond ((or (null code) (eq t code)) (compile-bool code env))
@@ -28,7 +10,7 @@
              (error 'invalid-form-list :code code))
             ((listp code) (compile-list-form code env))
             ((typep code 'code) code)
-            ((typep code 'v-value) (%v-value->code code))
+            ((typep code 'v-value) (%v-value->code code env))
             (t (error 'cannot-compile :code code)))
     (values code-obj (or new-env env))))
 
@@ -72,9 +54,11 @@
         (add-higher-scope-val code-obj v-value)
         code-obj)))
 
-(defun %v-value->code (v-val)
+(defun %v-value->code (v-val env)
   (make-code-obj (v-type v-val) (v-glsl-name v-val)
-		 :flow-ids (flow-ids v-val)))
+		 :flow-ids (flow-ids v-val)
+		 :node-tree (ast-node! :get-v-value (list (v-glsl-name v-val))
+				       (v-type v-val) env env)))
 
 ;; [TODO] move error
 (defun compile-symbol (code env)
@@ -139,7 +123,9 @@
 		       :signatures (mapcan #'signatures args)
 		       :stemcells (mapcan #'stemcells args)
 		       :flow-ids flow-ids
-		       :place-tree (calc-place-tree func args))
+		       :place-tree (calc-place-tree func args)
+		       :node-tree (ast-node! func-name (mapcar #'node-tree args)
+					     type env env))
 	    env)))
 
 ;;----------------------------------------------------------------------
@@ -244,22 +230,27 @@
                                      m-r-names
 				     (rest flow-ids))
 		 :flow-ids (list (first flow-ids))
-		 :place-tree (calc-place-tree func args)))
+		 :place-tree (calc-place-tree func args)
+		 :node-tree :ignored))
 	     (final
 	      ;; when has-base is true then a return or mvbind has already
 	      ;; written the lets for the vars
-	      (if has-base
-		  o
-		  (merge-progn
-		   (flatten
-		    (with-fresh-env-scope (fresh-env env)
-		      (env-> (p-env fresh-env)
-			(mapcar-%multi-env-progn
-			 (lambda (env binding gname)
-			   (with-v-let-spec binding
-			     (compile-let name type-spec nil env t gname)))
-			 p-env bindings m-r-names)
-			(compile-form o p-env))))))))
+	      (copy-code
+	       (if has-base
+		   o
+		   (merge-progn
+		    (flatten
+		     (with-fresh-env-scope (fresh-env env)
+		       (env-> (p-env fresh-env)
+			 (mapcar-%multi-env-progn
+			  (lambda (env binding gname)
+			    (with-v-let-spec binding
+			      (compile-let name type-spec nil env t gname)))
+			  p-env bindings m-r-names)
+			 (compile-form o p-env))))
+		    env env))
+	       :node-tree (ast-node! func-name (mapcar #'node-tree args)
+				     type env env))))
         (values final env)))))
 
 
@@ -330,7 +321,10 @@
 			    (list (current-line (end-line let-obj))))
 		    :multi-vals nil
 		    :place-tree nil
-		    :flow-ids flow-ids :node-tree :ignored)
+		    :flow-ids flow-ids
+		    :node-tree (if value-form
+				   (node-tree value-obj)
+				   :ignoredg))
 	 (add-var name
 		  (v-make-value (or type-spec (code-type value-obj))
 				env
@@ -368,14 +362,17 @@
 		 (cons list more-lists))
 	  env))
 
-(defun merge-progn (code-objs)
+(defun merge-progn (code-objs starting-env final-env)
   (let ((last-obj (last1 code-objs)))
     (merge-obs code-objs
 	       :type (code-type last-obj)
 	       :current-line (current-line last-obj)
 	       :to-block (merge-lines-into-block-list code-objs)
 	       :multi-vals (multi-vals (last1 code-objs))
-	       :flow-ids (flow-ids last-obj))))
+	       :flow-ids (flow-ids last-obj)
+	       :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
+				     (code-type last-obj)
+				     starting-env final-env))))
 
 ;;----------------------------------------------------------------------
 

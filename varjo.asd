@@ -24,6 +24,7 @@
                (:file "compiler/macros")
                (:file "language/macros")
                (:file "compiler/string-generation")
+	       (:file "compiler/ast-node")
                (:file "compiler/compiler")
                (:file "language/special")
                (:file "language/functions")
