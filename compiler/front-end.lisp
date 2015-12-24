@@ -388,7 +388,7 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)
-  (varjo->glsl code env))
+  (compile-form code env))
 
 ;;----------------------------------------------------------------------
 
@@ -590,7 +590,6 @@
        :uniforms (mapcar #'butlast (uniforms post-proc-obj))
        :implicit-uniforms (stemcells post-proc-obj)
        :context context
-       :function-calls (function-call-flow-tracking (env post-proc-obj))
        :used-symbol-macros (used-symbol-macros post-proc-obj)
        :used-macros (used-macros post-proc-obj)
        :used-compiler-macros (used-compiler-macros post-proc-obj)

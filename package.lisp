@@ -275,7 +275,7 @@
 	   :id~=
 
            ;;compiler
-           :varjo->glsl
+           :compile-form
            :with-stemcell-infer-hook
 
            ;;front-end

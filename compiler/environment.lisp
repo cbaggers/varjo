@@ -54,7 +54,6 @@
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (function-code-cache :initform (make-hash-table) :reader v-code-cache)
-   (function-call-flow-tracking :initform nil)
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
@@ -95,16 +94,8 @@
 	(%get-base-env parent)
 	env)))
 
-(defun function-call-flow-tracking (env)
-  (reverse (slot-value (%get-base-env env) 'function-call-flow-tracking)))
-
 (defmethod v-code-cache ((env environment))
   (v-code-cache (%get-base-env env)))
-
-(defun log-function-call (func-obj arg-flow-ids result-flow-id env)
-  (let ((base-env (%get-base-env env)))
-    (push `(,func-obj ,arg-flow-ids ,result-flow-id)
-	  (slot-value base-env 'function-call-flow-tracking))))
 
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (%get-base-env env)))
@@ -162,6 +153,7 @@
 
 ;;-------------------------------------------------------------------------
 
+;; {TODO} this needs a better name, see comment in %make-new-function
 (defun process-environment-for-main-labels (env)
   (assert (typep env 'environment))
   (make-instance 'environment
@@ -173,8 +165,6 @@
                  :function-scope (v-function-scope env)
 		 :parent-env (v-parent-env env)))
 
-;; {TODO} just here until if we work out what to do with clean
-;;        and clone
 (defun fresh-environment (env &key context function-scope
 				functions macros symbol-macros
 				compiler-macros variables

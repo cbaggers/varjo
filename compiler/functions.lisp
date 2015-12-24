@@ -156,7 +156,7 @@
 ;;[TODO] catch cannot-compiler errors only here
 (defun try-compile-arg (arg env)
   (let ((env (fresh-environment env :multi-val-base nil)))
-    (handler-case (varjo->glsl arg env)
+    (handler-case (compile-form arg env)
       (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e) "")))))
 
 

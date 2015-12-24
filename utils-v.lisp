@@ -70,7 +70,20 @@
   `(destructuring-bind ,lambda-list ,expression ,@body))
 
 (defmacro vbind (vars value-form &body body)
-  `(multiple-value-bind ,vars ,value-form ,@body))
+  ;; {TODO} handle declare forms properly. It is complicated
+  ;;        as the declare has to be the first thing in the scope
+  ;;        but the vars are now split across multiple binds
+  (let* ((list? (mapcar #'listp vars))
+	 (mvb-vars (mapcar (lambda (v l?) (if l? (gensym) v)) vars list?))
+	 (d-vars (mapcar (lambda (v l?) (when l? v)) vars list?))
+	 (d-forms (mapcar (lambda (mvb d)
+			    (when d `(dbind ,d ,mvb)))
+			  mvb-vars d-vars))
+	 (d-forms (remove nil d-forms)))
+    `(multiple-value-bind ,mvb-vars ,value-form
+       ,@(reduce (lambda (accum x)
+		   (list (append x accum)))
+		 (cons body d-forms)))))
 
 (defmacro vlist (value-form)
   `(multiple-value-list ,value-form))

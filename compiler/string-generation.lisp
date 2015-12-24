@@ -157,9 +157,11 @@
   (%qualify obj qualifiers))
 
 (defun %qualify (obj qualifiers)
-  (merge-obs obj :current-line (format nil "~(~{~a ~}~)~a"
+  (copy-code obj :current-line (format nil "~(~{~a ~}~)~a"
                                        (string-downcase (string qualifiers))
                                        (current-line obj))
+	     :multi-vals nil
+	     :place-tree nil
 	     :flow-ids (flow-ids obj)))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
@@ -255,5 +257,7 @@ nil
   (mapcan #'indent input))
 
 (defun indent-ob (code-obj)
-  (merge-obs code-obj :to-block (indent (to-block code-obj))
+  (copy-code code-obj :to-block (indent (to-block code-obj))
+	     :multi-vals nil
+	     :place-tree nil
 	     :flow-ids (flow-ids code-obj)))

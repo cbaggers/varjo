@@ -1,7 +1,5 @@
 (in-package :varjo)
 
-(defvar *v-debug* nil)
-
 ;-----------INSPIRATION-----------;
 
 ;; (define-condition machine-error (error)

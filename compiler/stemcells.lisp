@@ -37,7 +37,7 @@
      :type 'v-stemcell
      :current-line string-name
      :stemcells `((,original-name ,string-name :|unknown-type|))
-     :node-tree (ast-node! :get symbol env env))))
+     :node-tree (ast-node! :get symbol nil env env))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))
