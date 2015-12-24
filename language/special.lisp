@@ -319,13 +319,16 @@
     (unless body (error 'body-block-empty :form-name 'let))
     (let* ((merged (merge-progn (cons-end body-obj new-var-objs)
 				env final-env))
+	   (val-ast-nodes (mapcar λ(unless (eq (node-tree _) :ignored)
+				     (list (node-tree _)))
+				  new-var-objs))
 	   (ast-args
 	    (list (mapcar λ(with-v-let-spec _
 			     (if type-spec
-				 `((,name ,type-spec) ,(node-tree _1))
-				 `(,name ,(node-tree _1))))
+				 `((,name ,type-spec) ,@_1)
+				 `(,name ,@_1)))
 			  bindings
-			  new-var-objs)
+			  val-ast-nodes)
 		  (node-tree body-obj))))
       (values
        (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
