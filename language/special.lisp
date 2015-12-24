@@ -314,20 +314,46 @@
 			 :context (cons :main (v-context env)))
       (fresh-environment env :function-scope (1+ (v-function-scope env)))))
 
-(v-defspecial %%make-function (name args body allow-implicit-args)
+(v-defspecial labels (definitions &rest body)
   :args-valid t
   :return
+  (vbind (r e)
+      (with-fresh-env-scope (fresh-env env)
+	(env-> (p-env fresh-env)
+	  (mapcar-progn
+	   (lambda (env d)
+	     (dbind (name args &rest body) d
+	       (%make-function name args body t env)))
+	   p-env definitions)
+	  (compile-form `(progn ,@body) p-env)))
+    (values (merge-progn (flatten r)) e)))
+
+(v-defspecial labels-no-implicit (definitions &rest body)
+  :args-valid t
+  :return
+  (vbind (r e)
+      (with-fresh-env-scope (fresh-env env)
+	(env-> (p-env fresh-env)
+	  (mapcar-progn
+	   (lambda (env d)
+	     (dbind (name args &rest body) d
+	       (%make-function name args body nil env)))
+	   p-env definitions)
+	  (compile-form `(progn ,@body) p-env)))
+    (values (merge-progn (flatten r))
+	    e)))
+
+(defun %make-function (name args body allow-implicit-args env)
   (let ((deduped-func (dedup-function `(,args ,body) env)))
-    (unless (function-raw-args-validp args)
-      (error 'bad-make-function-args
-             :func-name name
-             :arg-specs (remove-if #'function-raw-arg-validp args)))
     (if (and (not allow-implicit-args) deduped-func)
 	(values (make-none-ob) (add-function name deduped-func env))
 	(%make-new-function name args body allow-implicit-args env))))
 
-
 (defun %make-new-function (name args body allow-implicit-args env)
+  (unless (function-raw-args-validp args)
+    (error 'bad-make-function-args
+	   :func-name name
+	   :arg-specs (remove-if #'function-raw-arg-validp args)))
   (let* ((mainp (eq name :main))
 	 (env (make-func-env env mainp))
 	 (in-arg-flow-ids (mapcar (lambda (_)
@@ -438,34 +464,6 @@
 	    (vbind (v e) (compile-form `(progn ,@body) new-env)
 	      (values v (env-prune (env-depth env) e)))))
 
-
-(v-defspecial labels (definitions &rest body)
-  :args-valid t
-  :return
-  (vbind (r e)
-      (with-fresh-env-scope (fresh-env env)
-	(env-> (p-env fresh-env)
-	  (mapcar-progn
-	   (lambda (env d)
-	     (dbind (name args &rest body) d
-	       (compile-form `(%%make-function ,name ,args ,body t) env)))
-	   p-env definitions)
-	  (compile-form `(progn ,@body) p-env)))
-    (values (merge-progn (flatten r)) e)))
-
-(v-defspecial labels-no-implicit (definitions &rest body)
-  :args-valid t
-  :return
-  (vbind (r e)
-      (with-fresh-env-scope (fresh-env env)
-	(env-> (p-env fresh-env)
-	  (mapcar-progn
-	   (lambda (env d)
-	     (dbind (name args &rest body) d
-	       (compile-form `(%%make-function ,name ,args ,body nil) env)))
-	   p-env definitions)
-	  (compile-form `(progn ,@body) p-env)))
-    (values (merge-progn (flatten r)) e)))
 
 ;; {TODO} what if type of form is not value
 (v-defspecial %out (name-and-qualifiers form)

@@ -142,6 +142,44 @@
 		       :place-tree (calc-place-tree func args))
 	    env)))
 
+;;----------------------------------------------------------------------
+
+(defmacro env-> ((env-var env) &body compiling-forms)
+  "Kinda like varjo progn in that it accumulates the env and
+   returns the results of all the forms and the final env.
+   However it DOES NOT make a fresh environment to compile the forms in.
+   It expects that each form returns a result and optionally an env"
+  (let ((objs (gensym "results"))
+	(obj (gensym "result"))
+	(new-env (gensym "new-env")))
+    `(let ((,env-var ,env)
+	   (,objs nil))
+       (declare (ignorable ,env-var))
+       ,(reduce (lambda (_ _1)
+		  `(vbind (,obj ,new-env) ,_1
+		     (let ((,env-var (or ,new-env ,env-var)))
+		       (declare (ignorable ,env-var))
+		       (push ,obj ,objs)
+		       ,_)))
+		(cons `(values (reverse ,objs) ,env-var)
+		      (reverse compiling-forms))))))
+
+
+
+(defmacro with-v-let-spec (form &body body)
+  (let ((var-spec (gensym "var-spec"))
+	(qual (gensym "qualifiers"))
+	(full-spec (gensym "form")))
+    `(let* ((,full-spec ,form)
+	    (,var-spec (listify (first ,full-spec)))
+	    (value-form (second ,full-spec)))
+       (declare (ignorable value-form))
+       (destructuring-bind (name &optional type-spec ,qual) ,var-spec
+	 (declare (ignore ,qual))
+	 ,@body))))
+
+;;----------------------------------------------------------------------
+
 (defun %calc-flow-id-given-args (in-arg-flow-ids return-flow-id arg-code-objs)
   (let ((p (positions-if (lambda (x) (id~= return-flow-id x))
 			 in-arg-flow-ids)))
@@ -267,18 +305,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defmacro with-v-let-spec (form &body body)
-  (let ((var-spec (gensym "var-spec"))
-	(qual (gensym "qualifiers"))
-	(full-spec (gensym "form")))
-    `(let* ((,full-spec ,form)
-	    (,var-spec (listify (first ,full-spec)))
-	    (value-form (second ,full-spec)))
-       (declare (ignorable value-form))
-       (destructuring-bind (name &optional type-spec ,qual) ,var-spec
-	 (declare (ignore ,qual))
-	 ,@body))))
-
 (defun compile-let (name type-spec value-form env &optional glsl-name flow-ids)
   (let* ((value-obj (when value-form (compile-form value-form env)))
 	 (glsl-name (or glsl-name (safe-glsl-name-string
@@ -329,26 +355,6 @@
 	     (when new-env (setf env new-env))
 	     (list code-obj)))))
     (values body-objs env)))
-
-(defmacro env-> ((env-var env) &body compiling-forms)
-  "Kinda like varjo progn in that it accumulates the env and
-   returns the results of all the forms and the final env.
-   However it DOES NOT make a fresh environment to compile the forms in.
-   It expects that each form returns a result and optionally an env"
-  (let ((objs (gensym "results"))
-	(obj (gensym "result"))
-	(new-env (gensym "new-env")))
-    `(let ((,env-var ,env)
-	   (,objs nil))
-       (declare (ignorable ,env-var))
-       ,(reduce (lambda (_ _1)
-		  `(vbind (,obj ,new-env) ,_1
-		     (let ((,env-var (or ,new-env ,env-var)))
-		       (declare (ignorable ,env-var))
-		       (push ,obj ,objs)
-		       ,_)))
-		(cons `(values (reverse ,objs) ,env-var)
-		      (reverse compiling-forms))))))
 
 (defun mapcar-progn (func env list &rest more-lists)
   "Mapcar over the lists but pass the env as the first arg to the function

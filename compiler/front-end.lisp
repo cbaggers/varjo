@@ -178,7 +178,6 @@
 	#'add-context-glsl-vars
 	#'process-in-args
 	#'process-uniforms
-	#'wrap-in-main-function
 	(equalp #'symbol-macroexpand-pass
 		#'macroexpand-pass
 		#'compiler-macroexpand-pass)
@@ -321,12 +320,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defun wrap-in-main-function (code env)
-  (values `(%%make-function :main () ,(list code) nil)
-          env))
-
-;;----------------------------------------------------------------------
-
 (defun v-symbol-macroexpand-all (form &optional (env :-GENV-))
   (cond ((null form) nil)
         ((atom form)
@@ -388,7 +381,7 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)
-  (compile-form code env))
+  (%make-function :main () (list code) nil env))
 
 ;;----------------------------------------------------------------------
 
