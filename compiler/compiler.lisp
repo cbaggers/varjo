@@ -290,16 +290,13 @@
 	      (or flow-ids (when value-obj (flow-ids value-obj)) (flow-id!)))
 	     (let-obj
 	      (if value-obj
-		  (typify-code (compile-form
-				`(%make-var ,glsl-name
-					    ,(or type-spec
-						 (code-type value-obj))
-					    ,flow-ids)
-				env)
+		  (typify-code (compile-make-var glsl-name
+						 (or type-spec
+						     (code-type value-obj))
+						 flow-ids)
 			       value-obj)
-		  (typify-code (compile-form
-				`(%make-var ,glsl-name ,type-spec ,(flow-id!))
-				env)))))
+		  (typify-code (compile-make-var glsl-name type-spec
+						 (flow-id!))))))
 	(values
 	 (copy-code let-obj :type (type-spec->type 'v-none)
 		    :current-line nil :to-block

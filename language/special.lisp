@@ -290,14 +290,6 @@
           (t (error "Have not implemented #'values defaults for this stage ~a"
                     env)))))
 
-;; %make-var is another helper like %assign that only
-;; adds data to the code object.
-(v-defspecial %make-var (name-string type flow-ids)
-  :args-valid t
-  :return (values
-	   (compile-make-var name-string type flow-ids)
-	   env))
-
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
