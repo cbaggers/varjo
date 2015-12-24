@@ -314,12 +314,6 @@
 			 :context (cons :main (v-context env)))
       (fresh-environment env :function-scope (1+ (v-function-scope env)))))
 
-(v-defmacro %make-function (name args &body body)
-  `(%%make-function ,name ,args ,body t))
-
-(v-defmacro %make-function-no-implicit (name args &body body)
-  `(%%make-function ,name ,args ,body nil))
-
 (v-defspecial %%make-function (name args body allow-implicit-args)
   :args-valid t
   :return
@@ -444,15 +438,34 @@
 	    (vbind (v e) (compile-form `(progn ,@body) new-env)
 	      (values v (env-prune (env-depth env) e)))))
 
-(v-defmacro :labels (definitions &body body)
-  `(%fresh-env-scope
-    ,@(loop :for d :in definitions :collect `(%make-function ,@d))
-    ,@body))
 
-(v-defmacro labels-no-implicit (definitions &body body)
-  `(%fresh-env-scope
-    ,@(loop :for d :in definitions :collect `(%make-function-no-implicit ,@d))
-    ,@body))
+(v-defspecial labels (definitions &rest body)
+  :args-valid t
+  :return
+  (vbind (r e)
+      (with-fresh-env-scope (fresh-env env)
+	(env-> (p-env fresh-env)
+	  (mapcar-progn
+	   (lambda (env d)
+	     (dbind (name args &rest body) d
+	       (compile-form `(%%make-function ,name ,args ,body t) env)))
+	   p-env definitions)
+	  (compile-form `(progn ,@body) p-env)))
+    (values (merge-progn (flatten r)) e)))
+
+(v-defspecial labels-no-implicit (definitions &rest body)
+  :args-valid t
+  :return
+  (vbind (r e)
+      (with-fresh-env-scope (fresh-env env)
+	(env-> (p-env fresh-env)
+	  (mapcar-progn
+	   (lambda (env d)
+	     (dbind (name args &rest body) d
+	       (compile-form `(%%make-function ,name ,args ,body nil) env)))
+	   p-env definitions)
+	  (compile-form `(progn ,@body) p-env)))
+    (values (merge-progn (flatten r)) e)))
 
 ;; {TODO} what if type of form is not value
 (v-defspecial %out (name-and-qualifiers form)

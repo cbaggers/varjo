@@ -246,17 +246,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defmacro with-fresh-env-scope ((name starting-env) &body body)
-  (let ((s (gensym "starting-env"))
-	(r (gensym "result"))
-	(e (gensym "final-env")))
-    `(let* ((,s ,starting-env)
-	    (,name (fresh-environment ,s)))
-       (vbind (,r ,e) (progn ,@body)
-	 (values ,r (env-prune (env-depth ,s) ,e))))))
-
-;;----------------------------------------------------------------------
-
 (defun compile-make-var (name-string type flow-ids)
   (make-code-obj type name-string :flow-ids flow-ids :node-tree :ignored))
 

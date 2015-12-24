@@ -183,6 +183,15 @@
                  :function-scope (or function-scope (v-function-scope env))
 		 :parent-env env))
 
+(defmacro with-fresh-env-scope ((name starting-env) &body body)
+  (let ((s (gensym "starting-env"))
+	(r (gensym "result"))
+	(e (gensym "final-env")))
+    `(let* ((,s ,starting-env)
+	    (,name (fresh-environment ,s)))
+       (vbind (,r ,e) (progn ,@body)
+	 (values ,r (env-prune (env-depth ,s) ,e))))))
+
 (defun env-replace-parent (env new-parent
 			   &key (variables nil variables-set))
   (assert (typep env 'environment))

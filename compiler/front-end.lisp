@@ -322,7 +322,7 @@
 ;;----------------------------------------------------------------------
 
 (defun wrap-in-main-function (code env)
-  (values `(%make-function-no-implicit :main () ,code)
+  (values `(%%make-function :main () ,(list code) nil)
           env))
 
 ;;----------------------------------------------------------------------
