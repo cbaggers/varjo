@@ -246,6 +246,17 @@
 
 ;;----------------------------------------------------------------------
 
+(defmacro with-fresh-env-scope ((name starting-env) &body body)
+  (let ((s (gensym "starting-env"))
+	(r (gensym "result"))
+	(e (gensym "final-env")))
+    `(let* ((,s ,starting-env)
+	    (,name (fresh-environment ,s)))
+       (vbind (,r ,e) (progn ,@body)
+	 (values ,r (env-prune (env-depth ,s) ,e))))))
+
+;;----------------------------------------------------------------------
+
 (defun compile-make-var (name-string type flow-ids)
   (make-code-obj type name-string :flow-ids flow-ids :node-tree :ignored))
 
@@ -372,6 +383,11 @@
 	       :flow-ids (flow-ids last-obj))))
 
 ;;----------------------------------------------------------------------
+
+;; %multi-env-progn functions runs each form one after the other
+;; (just like progn) however, unlike progn, each form is evaluated with the
+;; same environment this means that bindings in one wont be visable in another.
+;; Finally the resulting environement is merged
 
 (defun compile-%multi-env-progn (env-local-expessions env)
   (let* ((e (mapcar (lambda (_) (vlist (compile-form _ env))) env-local-expessions))

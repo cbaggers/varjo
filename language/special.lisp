@@ -105,33 +105,6 @@
 	(values (merge-progn code-objs) final-env))
       (values (make-code-obj (type-spec->type :none) "") env)))
 
-;; %multi-env-progn runs each form one after the other (just like progn)
-;; however, unlike progn, each form is evaluated with the same environment
-;; this means that bindings in one wont be visable in another. Finally the
-;; resulting environement is merged
-;;
-;; This let's us share this implementation with let,labels,make-function etc
-(v-defspecial %multi-env-progn (&rest env-local-expessions)
-  :args-valid t
-  :return
-  (if env-local-expessions
-      (vbind (code-objs merged-env)
-	  (compile-%multi-env-progn env-local-expessions env)
-	(values (merge-%multi-env-progn code-objs) merged-env))
-      (values (make-code-obj (type-spec->type :none) "")
-	      env)))
-
-
-(v-defspecial %fresh-env-scope (&rest body)
-  :args-valid t
-  :return (let ((new-env (fresh-environment env)))
-	    (vbind (v e) (compile-form `(progn ,@body) new-env)
-	      (values v (env-prune (env-depth env) e)))))
-
-(defmacro with-fresh-env-scope ((name starting-env) &body body)
-  `(let* ((,name (fresh-environment ,starting-env)))
-     ,@body))
-
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
@@ -143,7 +116,7 @@
       (let* ((mvals (multi-vals value-obj))
              (v-vals (mapcar #'multi-val-value mvals))
              (types (cons (code-type value-obj) (mapcar #'v-type v-vals))))
-	(vbind ((m-objs s-obj b-objs)) ;;final-env
+	(vbind ((m-objs s-obj b-objs) final-env)
 	    (with-fresh-env-scope (fresh-env env)
 	      (env-> (p-env fresh-env)
 		(mapcar-%multi-env-progn
@@ -161,8 +134,8 @@
 	      :node-tree (ast-node! 'multi-val-value
 				    `(,vars ,(node-tree value-obj)
 					    ,@(mapcar #'node-tree b-objs))
-				    (code-type merged) env env))
-	     env)))))))
+				    (code-type merged) env final-env))
+	     final-env)))))))
 
 (v-defspecial values (&rest values)
   :args-valid t
@@ -261,23 +234,23 @@
              (v-vals (mapcar #'multi-val-value mvals))
              (types (mapcar #'v-type v-vals))
              (glsl-lines (mapcar #'v-glsl-name v-vals)))
-	(merge-progn
-	 (flatten
-	  (with-fresh-env-scope (fresh-env env)
-	    (env-> (p-env fresh-env)
-	      (mapcar-%multi-env-progn
-	       (lambda (p-env type gname)
-		 (compile-let (free-name 'x p-env) (type->type-spec type)
-			      nil p-env t gname))
-	       p-env types glsl-lines)
-	      (compile-form (%default-out-for-stage code-obj p-env) p-env)
-	      (compile-form `(progn ,@(mapcar λ(mval->out-form _ env)
-					      (multi-vals code-obj)))
-			    p-env))))))
-      (compile-form
-       `(%fresh-env-scope
-	 (%multi-env-progn ,(%default-out-for-stage code-obj env)))
-       env)))
+	(vbind (r e)
+	    (with-fresh-env-scope (fresh-env env)
+	      (env-> (p-env fresh-env)
+		(mapcar-%multi-env-progn
+		 (lambda (p-env type gname)
+		   (compile-let (free-name 'x p-env) (type->type-spec type)
+				nil p-env t gname))
+		 p-env types glsl-lines)
+		(compile-form (%default-out-for-stage code-obj p-env) p-env)
+		(compile-form `(progn ,@(mapcar λ(mval->out-form _ env)
+						(multi-vals code-obj)))
+			      p-env)))
+	  (values (merge-progn (flatten r))
+		  e)))
+      (with-fresh-env-scope (fresh-env env)
+	(compile-form (%default-out-for-stage code-obj env)
+		      fresh-env))))
 
 ;; fragment comes first as it doesnt restrict the exit type...this is a bug
 ;; really as fragment out-var should be vec4...We should have a case for
@@ -305,7 +278,7 @@
 (v-defspecial let (bindings &rest body)
   :args-valid t
   :return
-  (dbind (new-var-objs body-obj)
+  (vbind ((new-var-objs body-obj) final-env)
       (with-fresh-env-scope (fresh-env env)
 	(env-> (p-env fresh-env)
 	  (mapcar-%multi-env-progn
@@ -324,8 +297,8 @@
 			     new-var-objs)))
       (values
        (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
-					       env env))
-       env))))
+					       env final-env))
+       final-env))))
 
 (v-defmacro let* (bindings &rest body)
   (unless body (error 'body-block-empty :form-name 'let))
@@ -464,6 +437,12 @@
        (symbolp (first raw-arg))
        (not (keywordp (first raw-arg)))
        (type-specp (second raw-arg))))
+
+(v-defspecial %fresh-env-scope (&rest body)
+  :args-valid t
+  :return (let ((new-env (fresh-environment env)))
+	    (vbind (v e) (compile-form `(progn ,@body) new-env)
+	      (values v (env-prune (env-depth env) e)))))
 
 (v-defmacro :labels (definitions &body body)
   `(%fresh-env-scope
