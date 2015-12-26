@@ -274,6 +274,20 @@
 	   :id=
 	   :id~=
 
+	   ;; ast
+	   :ast-node
+	   :ast-node!
+	   :visit-ast-nodes
+	   :walk-ast
+	   :ast->pcode
+	   :ast-starting-env
+	   :ast-ending-env
+	   :ast-node-kind
+	   :ast-return-type
+	   :ast-flow-id
+	   :ast-flow-id-origin
+	   :ast-args
+
            ;;compiler
            :compile-form
            :with-stemcell-infer-hook
@@ -294,10 +308,10 @@
 	   :uniforms
 	   :implicit-uniforms
 	   :context
-	   :function-calls
 	   :used-macros
 	   :used-compiler-macros
 	   :used-symbol-macros
+	   :ast
 
            ;;utils
            :lambda-list-split

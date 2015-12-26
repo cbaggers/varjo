@@ -19,13 +19,15 @@
 	 (ids (if (> (length ids) 6)
 		  (append (subseq ids 0 6) '(:etc))
 		  ids)))
-    (format stream "#<FLOW-IDENTIFIER :ids ~s>" ids)))
+    (format stream "#<FLOW-ID :ids ~s>" ids)))
 
 (let ((gl-flow-id 0))
   (defun %gen-flow-gl-id () (list (decf gl-flow-id))))
 
 (defvar %flow-id -1)
-(defvar flow-gen-func (lambda () (error "Trying to generate flow-id outside of a flow-id-scope")))
+(defvar flow-gen-func
+  (lambda ()
+    (error "Trying to generate flow-id outside of a flow-id-scope")))
 
 ;;----------------------------------------------------------------------
 ;; scoping
@@ -64,8 +66,10 @@
 ;; inspection
 
 (defun id~= (id-a id-b)
-  (not (null (intersection (ids id-a) (ids id-b)))))
+  (unless (or (null id-a) (null id-b))
+    (not (null (intersection (ids id-a) (ids id-b))))))
 
 (defun id= (id-a id-b)
-  (equal (sort (copy-list (ids id-a)) #'<)
-	 (sort (copy-list (ids id-b)) #'<)))
+  (unless (or (null id-a) (null id-b))
+    (equal (sort (copy-list (ids id-a)) #'<)
+	   (sort (copy-list (ids id-b)) #'<))))

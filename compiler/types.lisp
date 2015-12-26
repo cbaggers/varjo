@@ -184,6 +184,10 @@
   (declare (ignore env))
   (eq (type->type-spec b) 'v-none))
 
+(defmethod v-typep ((a v-t-type) (b v-type) &optional (env *global-env*))
+  (declare (ignore env))
+  (typep a (type-of b)))
+
 (defmethod v-typep ((a v-type) (b v-spec-type) &optional (env *global-env*))
   (declare (ignore env))
   (typep a (type-of b)))

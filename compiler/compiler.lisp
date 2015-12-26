@@ -24,11 +24,14 @@
     #'compile-form))
 
 (defun compile-bool (code env)
-  (if code
-      (make-code-obj 'v-bool "true" :flow-ids (flow-id!)
-		     :node-tree (ast-node! :literal code :bool env env))
-      (make-code-obj 'v-bool "false" :flow-ids (flow-id!)
-		     :node-tree (ast-node! :literal code :bool env env))))
+  (let ((flow-id (flow-id!)))
+    (if code
+	(make-code-obj 'v-bool "true" :flow-ids flow-id
+		       :node-tree (ast-node! :literal code :bool flow-id
+					     env env))
+	(make-code-obj 'v-bool "false" :flow-ids flow-id
+		       :node-tree (ast-node! :literal code :bool flow-id
+					     env env)))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -37,10 +40,12 @@
         (t (error "Varjo: Do not know the type of the number '~s'" x))))
 
 (defun compile-number (code env)
-  (let ((num-type (get-number-type code)))
+  (let ((num-type (get-number-type code))
+	(flow-id (flow-id!)))
     (make-code-obj num-type (gen-number-string code num-type)
-		   :flow-ids (flow-id!)
-		   :node-tree (ast-node! :literal code num-type env env))))
+		   :flow-ids flow-id
+		   :node-tree (ast-node! :literal code num-type flow-id
+					 env env))))
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope env)
   (let ((code-obj (make-code-obj (v-type v-value)
@@ -49,6 +54,7 @@
 				 :place-tree `((,var-name ,v-value))
 				 :node-tree (ast-node! :get var-name
 						       (v-type v-value)
+						       (flow-ids v-value)
 						       env env))))
     (if from-higher-scope
         (add-higher-scope-val code-obj v-value)
@@ -58,7 +64,8 @@
   (make-code-obj (v-type v-val) (v-glsl-name v-val)
 		 :flow-ids (flow-ids v-val)
 		 :node-tree (ast-node! :get-v-value (list (v-glsl-name v-val))
-				       (v-type v-val) env env)))
+				       (v-type v-val) (flow-ids v-val)
+				       env env)))
 
 ;; [TODO] move error
 (defun compile-symbol (code env)
@@ -70,11 +77,11 @@
                                        (< val-scope (v-function-scope env)))))
           (v-variable->code-obj var-name v-value from-higher-scope env))
         (if (suitable-symbol-for-stemcellp var-name env)
-	    (vbind (scell new-env) (make-stem-cell code env)
-	      (let ((assumed-type (funcall *stemcell-infer-hook* var-name)))
-		(if assumed-type
-		    (add-type-to-stemcell-code scell assumed-type)
-		    scell)))
+	    (let ((scell (make-stem-cell code env))
+		   (assumed-type (funcall *stemcell-infer-hook* var-name)))
+	      (if assumed-type
+		  (add-type-to-stemcell-code scell assumed-type)
+		  scell))
             (error 'symbol-unidentified :sym code)))))
 
 (defun compile-list-form (code env)
@@ -125,7 +132,7 @@
 		       :flow-ids flow-ids
 		       :place-tree (calc-place-tree func args)
 		       :node-tree (ast-node! func-name (mapcar #'node-tree args)
-					     type env env))
+					     type flow-ids env env))
 	    env)))
 
 ;;----------------------------------------------------------------------
@@ -235,23 +242,25 @@
 	     (final
 	      ;; when has-base is true then a return or mvbind has already
 	      ;; written the lets for the vars
-	      (copy-code
-	       (if has-base
-		   o
-		   (merge-progn
-		    (with-fresh-env-scope (fresh-env env)
-		      (env-> (p-env fresh-env)
-			(merge-multi-env-progn
-			 (%mapcar-multi-env-progn
-			  (lambda (env binding gname)
-			    (with-v-let-spec binding
-			      (compile-let name type-spec nil env gname)))
-			  p-env bindings m-r-names))
-			(compile-form o p-env)))
-		    env env))
-	       :node-tree (ast-node! func-name (mapcar #'node-tree args)
-				     type env env))))
-        (values final env)))))
+	      (if has-base
+		  o
+		  (merge-progn
+		   (with-fresh-env-scope (fresh-env env)
+		     (env-> (p-env fresh-env)
+		       (merge-multi-env-progn
+			(%mapcar-multi-env-progn
+			 (lambda (env binding gname)
+			   (with-v-let-spec binding
+			     (compile-let name type-spec nil env gname)))
+			 p-env bindings m-r-names))
+		       (compile-form o p-env)))
+		   env env))))
+        (values (copy-code final :node-tree (ast-node! func-name
+						       (mapcar #'node-tree args)
+						       type
+						       (flow-ids final)
+						       env env))
+		env)))))
 
 
 
@@ -318,7 +327,6 @@
 			       value-obj)
 		  (typify-code (compile-make-var glsl-name type-spec
 						 (flow-id!))))))
-	(cepl:peek (list let-obj 1))
 	(values
 	 (copy-code let-obj
 		    :type (type-spec->type 'v-none)
@@ -377,7 +385,7 @@
 	       :multi-vals (multi-vals (last1 code-objs))
 	       :flow-ids (flow-ids last-obj)
 	       :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
-				     (code-type last-obj)
+				     (code-type last-obj) (flow-ids last-obj)
 				     starting-env final-env))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)

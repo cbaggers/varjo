@@ -182,6 +182,7 @@
 		#'macroexpand-pass
 		#'compiler-macroexpand-pass)
 	#'compile-pass
+	#'post-process-ast
 	#'make-post-process-obj
 	#'filter-used-items
 	#'check-stemcells
@@ -382,6 +383,27 @@
 
 (defun compile-pass (code env)
   (%make-function :main () (list code) nil env))
+
+;;----------------------------------------------------------------------
+
+(defun post-process-ast (code env)
+  ;; only need to process flow-ids in the ast tree as no others will
+  ;; be visible to the user
+  (let ((flow-origin-map nil))
+    (labels ((get-origin (node)
+	       (let* ((flow-id (ast-flow-id node)))
+		 (or (assocr flow-id flow-origin-map :test #'id~=)
+		     (progn
+		       (push (cons flow-id node) flow-origin-map)
+		       :this))))
+	     (post-process-flow-id (node walk)
+	       (let* ((args (mapcar walk (ast-args node))))
+		 (copy-ast-node node
+				:flow-id-origin (get-origin node)
+				:args args))))
+      (values (copy-code code :node-tree (walk-ast #'post-process-flow-id code))
+	      env))))
+
 
 ;;----------------------------------------------------------------------
 

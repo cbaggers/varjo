@@ -44,6 +44,7 @@
 						      (list (node-tree place)
 							    (node-tree val))
 						      (code-type place)
+						      (flow-ids val)
 						      env
 						      final-env))
 		     final-env)))))))
@@ -80,6 +81,7 @@
 						      (list var-name
 							    (node-tree new-val))
 						      (code-type new-val)
+						      (flow-ids new-val)
 						      env
 						      final-env))
 		     final-env)))))))
@@ -141,7 +143,7 @@
 		 p-env types vars (iota (length types)))
 		(compile-form `(setq ,(first vars) ,value-obj) p-env)
 		(compile-progn body p-env)))
-	  (let* ((m-obj (merge-%multi-env-progn m-objs))
+	  (let* ((m-obj (%merge-multi-env-progn m-objs))
 		 (merged (merge-progn `(,m-obj ,s-obj ,@b-objs)
 				      env final-env)))
 	    (values
@@ -150,7 +152,9 @@
 	      :node-tree (ast-node! 'multiple-value-bind
 				    `(,vars ,(node-tree value-obj)
 					    ,@(mapcar #'node-tree b-objs))
-				    (code-type merged) env final-env))
+				    (code-type merged)
+				    (flow-ids merged)
+				    env final-env))
 	     final-env)))))))
 
 (v-defspecial values (&rest values)
@@ -184,7 +188,7 @@
 			 (mapcar λ(if _1 `(,@_1 (node-tree _)) (node-tree _))
 				 objs
 				 qualifier-lists)
-			 (code-type result) env env)))
+			 (code-type result) (flow-ids result) env env)))
     (values (copy-code result :multi-vals (mapcar #'make-mval (rest vals)
 						  (rest qualifier-lists))
 		       :node-tree ast)
@@ -199,7 +203,7 @@
 	      :current-line (gen-assignment-string place val)
 	      :flow-ids (flow-ids val)
 	      :node-tree (ast-node! '%assign (list place val)
-				    (code-type place) env env))
+				    (code-type place) (flow-ids val) env env))
    env))
 
 (defun extract-value-qualifiers (value-form)
@@ -238,6 +242,7 @@
       (values (copy-code result
 			 :node-tree (ast-node! '%return (node-tree code-obj)
 					       (code-type result)
+					       (flow-ids result)
 					       env env))
 	      env))))
 
@@ -333,6 +338,7 @@
 		  (node-tree body-obj))))
       (values
        (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
+					       (flow-ids merged)
 					       env final-env))
        final-env))))
 
@@ -362,17 +368,17 @@
 	       (%make-function name args body t env)))
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
-    (let ((ast (ast-node! 'labels-no-implicit
-			  (list (remove nil (mapcar λ(when _1
-						       (cons-end
-							(node-tree _1)
-							(subseq _ 0 2)))
-						    definitions
-						    func-def-objs))
-				(node-tree body-obj))
-			  (code-type body-obj) env env)))
-      (values (copy-code (merge-progn (cons-end body-obj func-def-objs) env e)
-			 :node-tree ast)
+    (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
+	   (ast (ast-node! 'labels-no-implicit
+			   (list (remove nil (mapcar λ(when _1
+							(cons-end
+							 (node-tree _1)
+							 (subseq _ 0 2)))
+						     definitions
+						     func-def-objs))
+				 (node-tree body-obj))
+			   (code-type body-obj) (flow-ids merged) env env)))
+      (values (copy-code merged :node-tree ast)
 	      e))))
 
 (v-defspecial labels-no-implicit (definitions &rest body)
@@ -387,17 +393,17 @@
 	       (%make-function name args body nil env)))
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
-    (let ((ast (ast-node! 'labels-no-implicit
+    (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
+	   (ast (ast-node! 'labels-no-implicit
 			  (list (remove nil (mapcar λ(when _1
 						       `(,(subseq _ 0 2)
 							  ,(node-tree _1)))
 						    definitions
 						    func-def-objs))
 				(node-tree body-obj))
-			  (code-type body-obj) env env)))
+			  (code-type body-obj) (flow-ids merged) env env)))
       (print ast)
-      (values (copy-code (merge-progn (cons-end body-obj func-def-objs) env e)
-			 :node-tree ast)
+      (values (copy-code merged :node-tree ast)
 	      e))))
 
 (defun %make-function (name args body allow-implicit-args env)
@@ -541,7 +547,7 @@
 			   (out-vars form-obj))
 	   :node-tree (ast-node! '%out (list name-and-qualifiers
 					     (node-tree form-obj))
-				 nil env env)
+				 nil (flow-ids form-obj) env env)
 	   :multi-vals nil
 	   :place-tree nil) t)
 	 env))))
@@ -554,28 +560,34 @@
 (v-defspecial or (&rest forms)
   :args-valid t
   :return
-  (let* ((objs (mapcar (lambda (x) (compile-form x env)) forms)))
+  (let* ((objs (mapcar (lambda (x) (compile-form x env)) forms))
+	 (flow-id (flow-id!)))
     (unless (loop for o in objs always (v-code-type-eq o (first objs)))
       (error "all forms of an 'OR' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
-        (values (merge-obs objs :type :bool :current-line (gen-bool-or-string objs)
-			   :flow-ids (flow-id!)
+        (values (merge-obs objs
+			   :type :bool
+			   :current-line (gen-bool-or-string objs)
+			   :flow-ids flow-id
 			   :node-tree (ast-node! 'and (mapcar #'node-tree objs)
-						 :bool env env))
+						 :bool flow-id env env))
 		env)
         (values (first objs) env))))
 
 (v-defspecial and (&rest forms)
   :args-valid t
   :return
-  (let* ((objs (mapcar (lambda (x) (compile-form x env)) forms)))
+  (let* ((objs (mapcar (lambda (x) (compile-form x env)) forms))
+	 (flow-id (flow-id!)))
     (unless (loop for o in objs always (v-code-type-eq o (first objs)))
       (error "all forms of an 'AND' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
-        (values (merge-obs objs :type :bool :current-line (gen-bool-and-string objs)
-			   :flow-ids (flow-id!)
+        (values (merge-obs objs
+			   :type :bool
+			   :current-line (gen-bool-and-string objs)
+			   :flow-ids flow-id
 			   :node-tree (ast-node! 'and (mapcar #'node-tree objs)
-						 :bool env env))
+						 :bool flow-id env env))
 		env) ;; pretty sure this env is wrong, what if side effects in
 	;;              forms?
         (values (last1 objs) env))))
@@ -635,7 +647,7 @@
 			(mapcar #'node-tree
 				(list (node-tree (compile-form t starting-env))
 				      (node-tree then-obj)))
-			:none starting-env then-env)
+			:none nil starting-env then-env)
 		       :multi-vals nil
 		       :place-tree nil)
 	    then-env)))
@@ -664,7 +676,7 @@
 					       (list test-obj
 						     then-obj
 						     else-obj))
-				       :none starting-env final-env))
+				       :none nil starting-env final-env))
 		final-env)))))
 
 ;; {TODO} check keys
@@ -698,7 +710,7 @@
 							   ,(node-tree _1))
 						       clauses
 						       clause-objs))
-					 :none env final-env))
+					 :none nil env final-env))
 		  final-env)
 	  (error 'switch-type-error test-obj keys)))))
 
@@ -718,7 +730,8 @@
 				   (1- (length (first (to-block code))))))
                (decl-obj (compile-form (second var-form) new-env))
                (condition-obj (compile-form condition new-env))
-               (update-obj (compile-form update new-env)))
+               (update-obj (compile-form update new-env))
+	       (flow-id (flow-id!)))
           (unless (or (typep (code-type decl-obj) 'v-i-ui)
 		      (v-typep (code-type decl-obj) 'v-float))
             (error 'invalid-for-loop-type decl-obj))
@@ -728,14 +741,14 @@
 			 body-obj :type 'v-none :current-line nil
 			 :to-block `(,(gen-for-loop-string var-string condition-obj
 							   update-obj body-obj))
-			 :flow-ids (flow-id!)
+			 :flow-ids flow-id
 			 :node-tree (ast-node!
 				     :for (cons var-form
 						(mapcar #'node-tree
 							(list condition
 							      update-obj
 							      body-obj)))
-				     :none env final-env)
+				     :none flow-id env final-env)
 			 :multi-vals nil
 			 :place-tree nil)
 			final-env)
@@ -758,7 +771,7 @@
 					 :while (mapcar #'node-tree
 							(list test-obj
 							      body-obj))
-					 :none env final-env))
+					 :none nil env final-env))
 		  final-env)
 	  (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
@@ -842,14 +855,15 @@
              (v-typep (code-type vec-obj) 'v-vector)
              (loop :for c :across comp-string
                 :always (find c allowed)))
-	(let ((r-type (type-spec->type (p-symb 'varjo 'v-vec new-len))))
+	(let ((r-type (type-spec->type (p-symb 'varjo 'v-vec new-len)))
+	      (flow-id (flow-id!)))
 	  (values
 	   (copy-code vec-obj :type r-type
 		      :current-line (gen-swizzle-string vec-obj comp-string)
-		      :flow-ids (flow-id!)
+		      :flow-ids flow-id
 		      :node-tree (ast-node! :swizzle
 					    `(,(node-tree vec-obj) components)
-					    r-type env env)
+					    r-type flow-id env env)
 		      :multi-vals nil
 		      :place-tree nil)
 	   env))
@@ -859,18 +873,19 @@
 (v-defspecial the (type-name form)
   :args-valid t
   :return
-  (let ((compiled (compile-form form env)))
+  (let* ((compiled (compile-form form env))
+	 (obj (if (stemcellp (code-type compiled))
+		  (add-type-to-stemcell-code compiled type-name)
+		  (if (v-typep (code-type compiled)
+			       (type-spec->type type-name))
+		      compiled ;{TODO} proper error here
+		      (error "Incorrect declaration that ~a was of type ~a"
+			     compiled type-name)))))
     (values
      (copy-code
-      (if (stemcellp (code-type compiled))
-	  (add-type-to-stemcell-code compiled type-name)
-	  (if (v-typep (code-type compiled)
-		       (type-spec->type type-name))
-	      compiled
-	      (error "Incorrect declaration that ~a was of type ~a"
-		     compiled type-name))) ;{TODO} proper error here
+      obj
       :node-tree (ast-node! 'the (list type-name (node-tree compiled))
-			    (code-type compiled) env env))
+			    (code-type compiled) (flow-ids compiled) env env))
      env)))
 
 (v-defspecial %break ()
