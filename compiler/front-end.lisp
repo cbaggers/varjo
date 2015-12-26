@@ -390,18 +390,21 @@
   ;; only need to process flow-ids in the ast tree as no others will
   ;; be visible to the user
   (let ((flow-origin-map nil))
-    (labels ((get-origin (node)
-	       (let* ((flow-id (ast-flow-id node)))
-		 (or (assocr flow-id flow-origin-map :test #'id~=)
-		     (progn
-		       (push (cons flow-id node) flow-origin-map)
-		       :this))))
-	     (post-process-flow-id (node walk)
+    (labels ((get-origin (flow-id node)
+	       (or (assocr flow-id flow-origin-map :test #'id~=)
+		   (progn
+		     (push (cons flow-id node) flow-origin-map)
+		     node)))
+	     (get-origins (node)
+	       (let ((flow-ids (ast-flow-id node)))
+		 (mapcar λ(get-origin _ node) (listify flow-ids))))
+	     (post-process-node (node walk)
 	       (let* ((args (mapcar walk (ast-args node))))
 		 (copy-ast-node node
-				:flow-id-origin (get-origin node)
+				:flow-id-origin (get-origins node)
+				:flow-id (listify (ast-flow-id node))
 				:args args))))
-      (values (copy-code code :node-tree (walk-ast #'post-process-flow-id code))
+      (values (copy-code code :node-tree (walk-ast #'post-process-node code))
 	      env))))
 
 

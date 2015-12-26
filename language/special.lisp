@@ -369,7 +369,7 @@
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
-	   (ast (ast-node! 'labels-no-implicit
+	   (ast (ast-node! 'labels
 			   (list (remove nil (mapcar λ(when _1
 							(cons-end
 							 (node-tree _1)
