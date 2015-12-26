@@ -57,7 +57,15 @@
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
-   (function-dedup :initform nil :initarg :function-dedup)))
+   (function-dedup :initform nil :initarg :function-dedup)
+   (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)))
+
+(defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
+  (with-slots (stemcell->flow-id) (%get-base-env e)
+    (or (assocr stem-cell-symbol stemcell->flow-id)
+	(let ((flow-id (flow-id!)))
+	  (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
+	  flow-id))))
 
 (defmethod push-non-implicit-function-for-dedup (code func (e environment))
   (push (cons code func) (slot-value (%get-base-env e) 'function-dedup)))

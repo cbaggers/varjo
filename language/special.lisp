@@ -117,8 +117,7 @@
   :args-valid t
   :return
   (if body
-      (vbind (code-objs final-env) (compile-progn body env)
-	(values (merge-progn code-objs env final-env) final-env))
+      (merge-progn (compile-progn body env) env)
       (values (make-code-obj (type-spec->type :none) "") env)))
 
 (v-defspecial multiple-value-bind (vars value-form &rest body)
@@ -135,10 +134,10 @@
 	(vbind ((m-objs s-obj b-objs) final-env)
 	    (with-fresh-env-scope (fresh-env env)
 	      (env-> (p-env fresh-env)
-		(mapcar-%multi-env-progn
+		(%mapcar-multi-env-progn
 		 (lambda (env type name i)
 		   (compile-let name (type->type-spec type) nil env
-				t (format nil "~a~a" base i)))
+				(format nil "~a~a" base i)))
 		 p-env types vars (iota (length types)))
 		(compile-form `(setq ,(first vars) ,value-obj) p-env)
 		(compile-progn body p-env)))
@@ -263,20 +262,21 @@
              (v-vals (mapcar #'multi-val-value mvals))
              (types (mapcar #'v-type v-vals))
              (glsl-lines (mapcar #'v-glsl-name v-vals)))
-	(vbind (r e)
-	    (with-fresh-env-scope (fresh-env env)
-	      (env-> (p-env fresh-env)
-		(mapcar-%multi-env-progn
-		 (lambda (p-env type gname)
-		   (compile-let (free-name 'x p-env) (type->type-spec type)
-				nil p-env t gname))
-		 p-env types glsl-lines)
-		(compile-form (%default-out-for-stage code-obj p-env) p-env)
-		(compile-form `(progn ,@(mapcar λ(mval->out-form _ env)
-						(multi-vals code-obj)))
-			      p-env)))
-	  (values (merge-progn (flatten r) env e)
-		  e)))
+
+	(merge-progn
+	 (with-fresh-env-scope (fresh-env env)
+	   (env-> (p-env fresh-env)
+	     (merge-multi-env-progn
+	      (%mapcar-multi-env-progn
+	       (lambda (p-env type gname)
+		 (compile-let (free-name 'x p-env) (type->type-spec type)
+			      nil p-env gname))
+	       p-env types glsl-lines))
+	     (compile-form (%default-out-for-stage code-obj p-env) p-env)
+	     (compile-form `(progn ,@(mapcar λ(mval->out-form _ env)
+					     (multi-vals code-obj)))
+			   p-env)))
+	 env))
       (with-fresh-env-scope (fresh-env env)
 	(compile-form (%default-out-for-stage code-obj env)
 		      fresh-env))))
@@ -310,14 +310,15 @@
   (vbind ((new-var-objs body-obj) final-env)
       (with-fresh-env-scope (fresh-env env)
 	(env-> (p-env fresh-env)
-	  (mapcar-%multi-env-progn
+	  (%mapcar-multi-env-progn
 	   (lambda (p-env binding)
 	     (with-v-let-spec binding
-	       (compile-let name type-spec value-form p-env t)))
+	       (compile-let name type-spec value-form p-env)))
 	   p-env bindings)
 	  (compile-form `(progn ,@body) p-env)))
     (unless body (error 'body-block-empty :form-name 'let))
-    (let* ((merged (merge-progn (cons-end body-obj new-var-objs)
+    (let* ((merged (merge-progn (list (merge-multi-env-progn new-var-objs)
+				      body-obj)
 				env final-env))
 	   (val-ast-nodes (mapcar λ(unless (eq (node-tree _) :ignored)
 				     (list (node-tree _)))
@@ -460,7 +461,7 @@
 	   (sigs (if mainp
 		     (signatures body-obj)
 		     (cons (gen-function-signature glsl-name arg-pairs
-p						   out-arg-pairs type
+						   out-arg-pairs type
 						   (when allow-implicit-args
 						     implicit-args))
 			   (signatures body-obj))))
@@ -711,7 +712,7 @@ p						   out-arg-pairs type
       (error 'for-loop-only-one-var)
       (multiple-value-bind (code new-env)
 	  (with-v-let-spec var-form
-	    (compile-let name type-spec value-form env t))
+	    (compile-let name type-spec value-form env))
         (let* ((var-string (subseq (first (to-block code))
 				   0
 				   (1- (length (first (to-block code))))))

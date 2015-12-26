@@ -30,14 +30,15 @@
 (defmethod v-dimensions ((object v-stemcell)) 0)
 
 (defun make-stem-cell (symbol env)
-  (let ((string-name (string (safe-glsl-name-string symbol)))
-        (original-name symbol))
-    (make-instance
-     'code
+  (let* ((string-name (string (safe-glsl-name-string symbol)))
+	 (original-name symbol)
+	 (flow-id (get-flow-id-for-stem-cell original-name env)))
+    (code!
      :type 'v-stemcell
      :current-line string-name
      :stemcells `((,original-name ,string-name :|unknown-type|))
-     :node-tree (ast-node! :get symbol nil env env))))
+     :node-tree (ast-node! :get-stemcell symbol nil env env)
+     :flow-ids (list flow-id))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

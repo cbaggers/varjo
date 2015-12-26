@@ -70,11 +70,11 @@
                                        (< val-scope (v-function-scope env)))))
           (v-variable->code-obj var-name v-value from-higher-scope env))
         (if (suitable-symbol-for-stemcellp var-name env)
-            (let* ((scell (make-stem-cell code env))
-                   (assumed-type (funcall *stemcell-infer-hook* var-name)))
-              (if assumed-type
-                  (add-type-to-stemcell-code scell assumed-type)
-                  scell))
+	    (vbind (scell new-env) (make-stem-cell code env)
+	      (let ((assumed-type (funcall *stemcell-infer-hook* var-name)))
+		(if assumed-type
+		    (add-type-to-stemcell-code scell assumed-type)
+		    scell)))
             (error 'symbol-unidentified :sym code)))))
 
 (defun compile-list-form (code env)
@@ -239,15 +239,15 @@
 	       (if has-base
 		   o
 		   (merge-progn
-		    (flatten
-		     (with-fresh-env-scope (fresh-env env)
-		       (env-> (p-env fresh-env)
-			 (mapcar-%multi-env-progn
+		    (with-fresh-env-scope (fresh-env env)
+		      (env-> (p-env fresh-env)
+			(merge-multi-env-progn
+			 (%mapcar-multi-env-progn
 			  (lambda (env binding gname)
 			    (with-v-let-spec binding
-			      (compile-let name type-spec nil env t gname)))
-			  p-env bindings m-r-names)
-			 (compile-form o p-env))))
+			      (compile-let name type-spec nil env gname)))
+			  p-env bindings m-r-names))
+			(compile-form o p-env)))
 		    env env))
 	       :node-tree (ast-node! func-name (mapcar #'node-tree args)
 				     type env env))))
@@ -290,8 +290,12 @@
 	  (if new-value
 	      (flow-ids new-value)
 	      (flow-ids code-obj))))
-    (copy-code code-obj :type (code-type code-obj) :current-line current-line
-	       :flow-ids flow-ids :node-tree :ignored :multi-vals nil
+    (copy-code code-obj
+	       :type (code-type code-obj)
+	       :current-line current-line
+	       :flow-ids flow-ids
+	       :node-tree :ignored
+	       :multi-vals nil
 	       :place-tree nil)))
 
 ;;----------------------------------------------------------------------
@@ -314,11 +318,13 @@
 			       value-obj)
 		  (typify-code (compile-make-var glsl-name type-spec
 						 (flow-id!))))))
+	(cepl:peek (list let-obj 1))
 	(values
-	 (copy-code let-obj :type (type-spec->type 'v-none)
-		    :current-line nil :to-block
-		    (append (to-block let-obj)
-			    (list (current-line (end-line let-obj))))
+	 (copy-code let-obj
+		    :type (type-spec->type 'v-none)
+		    :current-line nil
+		    :to-block (cons-end (current-line (end-line let-obj))
+					(to-block let-obj))
 		    :multi-vals nil
 		    :place-tree nil
 		    :flow-ids flow-ids
@@ -362,7 +368,7 @@
 		 (cons list more-lists))
 	  env))
 
-(defun merge-progn (code-objs starting-env final-env)
+(defun %merge-progn (code-objs starting-env final-env)
   (let ((last-obj (last1 code-objs)))
     (merge-obs code-objs
 	       :type (code-type last-obj)
@@ -374,6 +380,19 @@
 				     (code-type last-obj)
 				     starting-env final-env))))
 
+(defmacro merge-progn (code-objs starting-env &optional final-env)
+  (let ((co (gensym "code-objs"))
+	(pe (gensym "potential-env"))
+	(se (gensym "starting-env"))
+	(fe (gensym "final-env")))
+    `(vbind (,co ,pe) ,code-objs
+	 (let* ((,se ,starting-env)
+		(,fe ,(if final-env
+			  `(or ,final-env ,pe ,se)
+			  `(or ,pe ,se))))
+	   (values (%merge-progn ,co ,se ,fe)
+		   ,fe)))))
+
 ;;----------------------------------------------------------------------
 
 ;; %multi-env-progn functions runs each form one after the other
@@ -381,16 +400,7 @@
 ;; same environment this means that bindings in one wont be visable in another.
 ;; Finally the resulting environement is merged
 
-(defun compile-%multi-env-progn (env-local-expessions env)
-  (let* ((e (mapcar (lambda (_) (vlist (compile-form _ env))) env-local-expessions))
-	 (code-objs (mapcar #'first e))
-	 (env-objs (mapcar #'second e))
-	 (merged-env (reduce (lambda (_ _1) (merge-env _ _1))
-			     env-objs)))
-    (values code-objs merged-env)))
-
-
-(defun mapcar-%multi-env-progn (func env list &rest more-lists)
+(defun %mapcar-multi-env-progn (func env list &rest more-lists)
   (let* ((e (apply #'mapcar
 		   (lambda (&rest args)
 		     (vlist (apply func (cons env args))))
@@ -401,7 +411,7 @@
 			     env-objs)))
     (values code-objs merged-env)))
 
-(defun merge-%multi-env-progn (code-objs)
+(defun %merge-multi-env-progn (code-objs)
   (merge-obs code-objs
 	     :type (type-spec->type 'v-none)
 	     :current-line nil
@@ -411,6 +421,13 @@
 	     :to-top (mapcan #'to-top code-objs)
 	     :flow-ids nil
 	     :node-tree :ignored))
+
+(defmacro merge-multi-env-progn (code-objs)
+  (let ((co (gensym "code-objs"))
+	(fe (gensym "final-env")))
+    `(vbind (,co ,fe) ,code-objs
+       (values (%merge-multi-env-progn ,co)
+	       ,fe))))
 
 ;;----------------------------------------------------------------------
 

@@ -91,7 +91,7 @@
 				  place-tree mutations node-tree))
 (defmethod copy-code ((code-obj code)
                       &key (type nil set-type)
-                        current-line
+                        (current-line nil set-current-line)
                         (signatures nil set-sigs)
                         (to-block nil set-block)
                         (to-top nil set-top)
@@ -109,7 +109,7 @@
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object :code-type type))
     (code! :type type
-	   :current-line (if current-line current-line
+	   :current-line (if set-current-line current-line
 			     (current-line code-obj))
 	   :signatures (if set-sigs signatures (signatures code-obj))
 	   :to-block (if set-block to-block (remove nil (to-block code-obj)))
