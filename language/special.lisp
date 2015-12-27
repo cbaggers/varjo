@@ -476,7 +476,7 @@
 			   out-arg-pairs type body-obj
 			   (when allow-implicit-args implicit-args))
 			  (to-top body-obj)))
-	   (func (func-spec->function
+	   (func (func-spec->user-function
 		  (v-make-f-spec name
 				 (gen-function-transform
 				  glsl-name args

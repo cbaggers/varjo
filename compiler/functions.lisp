@@ -20,14 +20,15 @@
         glsl-name multi-return-vars name implicit-args flow-ids
 	in-arg-flow-ids))
 
-(defun func-spec->function (spec env)
+(defun %func-spec->function (spec env userp)
   (destructuring-bind (transform arg-spec return-spec context returns-place
                                  glsl-spec-matching glsl-name
                                  multi-return-vars name
                                  implicit-args flow-ids
 				 in-arg-flow-ids)
       spec
-    (make-instance 'v-function :glsl-string transform
+    (make-instance (if userp 'v-user-function 'v-function)
+		   :glsl-string transform
                    :arg-spec (if (listp arg-spec)
                                  (loop :for spec :in arg-spec :collect
                                     (type-spec->type spec :env env))
@@ -43,6 +44,12 @@
                    :implicit-args implicit-args
 		   :flow-ids flow-ids
 		   :in-arg-flow-ids in-arg-flow-ids)))
+
+(defun func-spec->function (spec env)
+  (%func-spec->function spec env nil))
+
+(defun func-spec->user-function (spec env)
+  (%func-spec->function spec env t))
 
 (defun function->func-spec (func)
   (let ((arg-spec (v-argument-spec func)))

@@ -56,6 +56,7 @@
            :v-array
            :v-none
            :v-function
+	   :v-user-function
            :v-struct
            :v-user-struct
            :v-error

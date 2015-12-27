@@ -72,6 +72,8 @@
    (flow-ids :initform (error 'flow-ids-mandatory :v-function)
 	     :initarg :flow-ids :reader flow-ids)))
 
+(def-v-type-class v-user-function (v-function) ())
+
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))
 

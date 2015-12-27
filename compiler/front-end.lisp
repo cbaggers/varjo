@@ -390,22 +390,60 @@
   ;; only need to process flow-ids in the ast tree as no others will
   ;; be visible to the user
   (let ((flow-origin-map nil))
-    (labels ((get-origin (flow-id node)
-	       (or (assocr flow-id flow-origin-map :test #'id~=)
-		   (progn
-		     (push (cons flow-id node) flow-origin-map)
-		     node)))
+    (labels ((uniform-raw (val)
+	       (slot-value (first (ids (first (listify (flow-ids val))))) 'val))
+	     (prime-map-with-args (env)
+	       ;; {TODO} need to prime in-args & structs/array elements
+	       (let ((env (%get-base-env env)))
+		 (loop :for (name % %1) :in (v-uniforms env) :do
+		    (push (cons (uniform-raw (get-var name env))
+				(vector :uniform name))
+			  flow-origin-map))))
+	     (get-seen (raw-id &optional (errorp nil))
+	       (or (assocr raw-id flow-origin-map :test #'=)
+		   (when errorp
+		     (error "Could not find origin for ~s" raw-id))))
+	     (f-origin (val-id fcall-node)
+	       (let* ((func (ast-node-kind fcall-node))
+		      (return-pos (slot-value val-id 'return-pos)))
+		 (mapcar λ(get-seen (slot-value _ 'val) t)
+			 (ids (nth return-pos (flow-ids func))))))
+	     (per-val-id (val-id node)
+	       (let ((raw (slot-value val-id 'val)))
+		 (or (get-seen raw)
+		     (let* ((user-func (typep (ast-node-kind node)
+					      'v-user-function))
+			    (node (if user-func (f-origin val-id node) node)))
+		       (push (cons raw node) flow-origin-map)
+		       node))))
+	     (per-flow-id (flow-id node)
+	       (mapcar λ(per-val-id _ node) (ids flow-id)))
 	     (get-origins (node)
 	       (let ((flow-ids (ast-flow-id node)))
-		 (mapcar λ(get-origin _ node) (listify flow-ids))))
+		 (mapcar λ(flatten (per-flow-id _ node)) (listify flow-ids))))
 	     (post-process-node (node walk)
-	       (let* ((args (mapcar walk (ast-args node))))
-		 (copy-ast-node node
-				:flow-id-origin (get-origins node)
-				:flow-id (listify (ast-flow-id node))
-				:args args))))
+	       (let* ((args (mapcar walk (ast-args node)))
+		      (new (copy-ast-node node
+					  :flow-id (listify (ast-flow-id node))
+					  :args args)))
+		 (setf (slot-value new 'flow-id-origin) (get-origins new))
+		 new)))
+      (prime-map-with-args env)
       (values (copy-code code :node-tree (walk-ast #'post-process-node code))
 	      env))))
+
+(let* ((args (mapcar walk (ast-args node))))
+  (copy-ast-node node
+		 :flow-id-origin (get-origins node)
+		 :flow-id (listify (ast-flow-id node))
+		 :args args))
+
+(let* ((new-args (mapcar walk (ast-args node)))
+       (new (copy-ast-node node)))
+  (with-slots (flow-id-origin flow-id args) new
+    (setf flow-id-origin (get-origins node)
+	  flow-id (listify (ast-flow-id node))
+	  args new-args)))
 
 
 ;;----------------------------------------------------------------------

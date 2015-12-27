@@ -29,7 +29,7 @@
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
 		to-top out-vars used-types returns multi-vals stemcells
 		out-of-scope-args flow-ids mutations place-tree
-		node-tree)
+		node-tree )
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
@@ -37,7 +37,7 @@
   (unless (or (eq node-tree :ignored)
 	      (and (typep node-tree 'ast-node)
 		   (listp (slot-value node-tree 'args))))
-    (error "invalid ast node ~s" node-tree))
+    (error "invalid ast node-tree ~s" node-tree))
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
          (type-spec (type->type-spec type-obj))
 	 (used-types (if (and (not (find type-spec used-types))

@@ -117,7 +117,6 @@
       (cons (list func (elt args i)) (place-tree (elt args i))))))
 
 (defun compile-regular-function-call (func-name func args env)
-
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
 	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
@@ -131,7 +130,7 @@
 		       :stemcells (mapcan #'stemcells args)
 		       :flow-ids flow-ids
 		       :place-tree (calc-place-tree func args)
-		       :node-tree (ast-node! func-name (mapcar #'node-tree args)
+		       :node-tree (ast-node! func (mapcar #'node-tree args)
 					     type flow-ids env env))
 	    env)))
 
@@ -173,14 +172,15 @@
 
 ;;----------------------------------------------------------------------
 
-(defun %calc-flow-id-given-args (in-arg-flow-ids return-flow-id arg-code-objs)
+(defun %calc-flow-id-given-args (in-arg-flow-ids return-flow-id arg-code-objs
+				 &optional (multi-return-position 0))
   (let ((p (positions-if (lambda (x) (id~= return-flow-id x))
 			 in-arg-flow-ids)))
     (if p
 	(reduce #'flow-id!
 		(mapcar (lambda (i) (flow-ids (elt arg-code-objs i)))
 			p))
-	(flow-id!))))
+	(flow-id+meta! :return-pos multi-return-position))))
 
 (defun calc-function-return-ids-given-args (func func-name arg-code-objs)
   (when (> (length (flow-ids func)) 1)
@@ -194,14 +194,16 @@
   (let ((all-return-types (cons (v-return-spec func)
 				(mapcar #'v-type
 					(mapcar #'multi-val-value
-						(multi-return-vars func))))))
+						(multi-return-vars func)))))
+	(flow-ids (flow-ids func)))
     (if (some #'type-doesnt-need-flow-id all-return-types)
 	(error 'invalid-flow-id-multi-return :func-name func-name
 	       :return-type all-return-types)
-	(mapcar #'(lambda (x)
+	(mapcar #'(lambda (x i)
 		    (%calc-flow-id-given-args
-		     (in-arg-flow-ids func) x arg-code-objs))
-		(flow-ids func)))))
+		     (in-arg-flow-ids func) x arg-code-objs i))
+		flow-ids
+		(iota (length flow-ids))))))
 
 (defun compile-multi-return-function-call (func-name func args env)
   (let* ((type (resolve-func-type func args env)))
@@ -255,7 +257,7 @@
 			 p-env bindings m-r-names))
 		       (compile-form o p-env)))
 		   env env))))
-        (values (copy-code final :node-tree (ast-node! func-name
+        (values (copy-code final :node-tree (ast-node! func
 						       (mapcar #'node-tree args)
 						       type
 						       (flow-ids final)

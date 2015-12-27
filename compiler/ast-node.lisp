@@ -7,7 +7,9 @@
    (node-kind :initarg :node-kind :reader ast-node-kind)
    (return-type :initarg :return-type :reader ast-return-type)
    (flow-id :initarg :flow-id :reader ast-flow-id)
-   (flow-id-origin :initarg :flow-id-origin :reader ast-flow-id-origin)
+   (flow-id-origin :initarg :flow-id-origin
+		   :reader ast-flow-id-origin
+		   :initform nil)
    (args :initarg :args :reader ast-args)))
 
 (defparameter *node-kinds* '(:function-call :get :literal))
@@ -39,7 +41,7 @@
    :flow-id (if set-flow-id flow-id (ast-flow-id node))
    :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
    :starting-env (if set-starting-env starting-env (ast-starting-env node))
-   :ending-env (if set-ending-env ending-env (ast-ending-env node))))))
+   :ending-env (if set-ending-env ending-env (ast-ending-env node))))
 
 (defun walk-ast (func from-node)
   (labels ((walk-node (ast)
@@ -64,8 +66,13 @@
     (walk-ast #'f x)
     t))
 
-(defun ast->pcode (x)
+(defun ast->pcode (x &key show-flow-ids)
   (labels ((f (node walk)
 	     (with-slots (node-kind args) node
-	       (cons node-kind (mapcar walk args)))))
+	       (let ((name (if (typep node-kind 'v-function)
+			       (name node-kind)
+			       node-kind)))
+		 `(,@(when show-flow-ids
+			   (ast-flow-id node))
+		     ,name ,@(mapcar walk args))))))
     (walk-ast #'f x)))
