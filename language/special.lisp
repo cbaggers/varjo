@@ -623,7 +623,7 @@
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 ;; this is the if statement from gl. It has a return type type of :none
 ;; and allows then and else statements that return different types
-(v-defspecial :%if (test-form then-form &optional else-form)
+(v-defspecial %if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
@@ -680,7 +680,7 @@
 		final-env)))))
 
 ;; {TODO} check keys
-(v-defspecial :switch (test-form &rest clauses)
+(v-defspecial switch (test-form &rest clauses)
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
@@ -717,7 +717,7 @@
 
 ;;   (for (a 0) (< a 10) (++ a)
 ;;     (* a 2))
-(v-defspecial :for (var-form condition update &rest body)
+(v-defspecial for (var-form condition update &rest body)
   :args-valid t
   :return
   (if (consp (first var-form))
@@ -755,7 +755,7 @@
 		(error 'for-loop-simple-expression)))))))
 
 
-(v-defspecial :while (test &rest body)
+(v-defspecial while (test &rest body)
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test env)
@@ -840,8 +840,8 @@
 
 
 
-(v-defmacro :s~ (&rest args) `(swizzle ,@args))
-(v-defspecial :swizzle (vec-form components)
+(v-defmacro s~ (&rest args) `(swizzle ,@args))
+(v-defspecial swizzle (vec-form components)
   :args-valid t
   :return
   (let* ((vec-obj (compile-form vec-form env))

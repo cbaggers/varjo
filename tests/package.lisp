@@ -1,4 +1,4 @@
 (defpackage #:varjo-tests
-  (:use #:cl #:varjo #:stefil)
+  (:use #:cl #:varjo #:varjo-lang #:stefil)
   (:import-from :varjo
 		:defshader))

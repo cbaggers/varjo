@@ -10,18 +10,6 @@
 
 ;------------HELPER-----------;
 
-;;[TODO] need better arg test
-;; (defmacro deferror (name (&rest args) error-string &body body)
-;;   (unless (every #'symbolp args) (error "can only take simple args"))
-;;   (loop :for arg :in args :do
-;;      (setf body (subst `(,arg condition) arg body :test #'eq)))
-;;   `(define-condition ,name (varjo-error)
-;;      (,@(loop :for arg :in args :collect
-;;            `(,arg :initarg ,(kwd arg) :reader ,arg)))
-;;      (:report (lambda (condition stream)
-;;                 (declare (ignorable condition))
-;;                 (format stream ,(format nil "Varjo: ~a" error-string) ,@body)))))
-
 (defmacro deferror (name (&key (error-type 'varjo-error) prefix)
                             (&rest args) error-string &body body)
   (unless (every #'symbolp args) (error "can only take simple args"))

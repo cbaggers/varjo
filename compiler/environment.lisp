@@ -418,15 +418,13 @@
 (defgeneric get-macro (macro-name env))
 
 (defmethod get-macro (macro-name (env (eql :-genv-)))
-  (or (gethash (kwd macro-name) *global-env-macros*)
-      (gethash macro-name *global-env-macros*)))
+  (gethash macro-name *global-env-macros*))
 
 (defmethod %get-macro-spec (macro-name (env (eql :-genv-)))
   (get-macro macro-name env))
 
 (defmethod %get-macro-spec (macro-name (env environment))
-  (or (a-get1 (kwd macro-name) (v-macros env))
-      (a-get1 macro-name (v-macros env))
+  (or (a-get1 macro-name (v-macros env))
       (%get-macro-spec macro-name (v-parent-env env))))
 
 (defmethod get-macro (macro-name (env environment))
@@ -462,15 +460,13 @@
 (defgeneric get-symbol-macro (macro-name env))
 
 (defmethod get-symbol-macro (macro-name (env (eql :-genv-)))
-  (or (gethash (kwd macro-name) *global-env-symbol-macros*)
-      (gethash macro-name *global-env-symbol-macros*)))
+  (gethash macro-name *global-env-symbol-macros*))
 
 (defmethod %get-symbol-macro-spec (macro-name (env (eql :-genv-)))
   (get-symbol-macro macro-name env))
 
 (defmethod %get-symbol-macro-spec (macro-name (env environment))
-  (or (a-get1 (kwd macro-name) (v-symbol-macros env))
-      (a-get1 macro-name (v-symbol-macros env))
+  (or (a-get1 macro-name (v-symbol-macros env))
       (%get-symbol-macro-spec macro-name (v-parent-env env))))
 
 (defmethod get-symbol-macro (macro-name (env environment))
@@ -499,15 +495,13 @@
 (defgeneric get-compiler-macro (macro-name env))
 
 (defmethod get-compiler-macro (macro-name (env (eql :-genv-)))
-  (or (gethash (kwd macro-name) *global-env-compiler-macros*)
-      (gethash macro-name *global-env-compiler-macros*)))
+  (gethash macro-name *global-env-compiler-macros*))
 
 (defmethod %get-compiler-macro-spec (macro-name (env (eql :-genv-)))
   (get-compiler-macro macro-name env))
 
 (defmethod %get-compiler-macro-spec (macro-name (env environment))
-  (or (a-get1 (kwd macro-name) (v-compiler-macros env))
-      (a-get1 macro-name (v-compiler-macros env))
+  (or (a-get1 macro-name (v-compiler-macros env))
       (%get-compiler-macro-spec macro-name (v-parent-env env))))
 
 (defmethod get-compiler-macro (macro-name (env environment))
@@ -544,17 +538,13 @@
 
 (defgeneric get-var (var-name env))
 (defmethod get-var (var-name (env (eql :-genv-)))
-  (let ((k (gethash (kwd var-name) *global-env-vars*))
-	(s (gethash var-name *global-env-vars*)))
-    (cond (k (values k *global-env*))
-	  (s (values s *global-env*))
+  (let ((s (gethash var-name *global-env-vars*)))
+    (cond (s (values s *global-env*))
 	  (t nil))))
 
 (defmethod get-var (var-name (env environment))
-  (let ((k (first (a-get (kwd var-name) (v-variables env))))
-	(s (first (a-get var-name (v-variables env)))))
-    (cond (k (values k env))
-	  (s (values s env))
+  (let ((s (first (a-get var-name (v-variables env)))))
+    (cond (s (values s env))
 	  (t (get-var var-name (v-parent-env env))))))
 
 (defmethod v-boundp (var-name (env environment))
@@ -593,8 +583,7 @@
 
 (defmethod get-function-by-name (func-name (env (eql :-genv-)))
   (sort-function-list
-   (loop :for func-spec :in (append (gethash func-name *global-env-funcs*)
-                                    (gethash (kwd func-name) *global-env-funcs*))
+   (loop :for func-spec :in (gethash func-name *global-env-funcs*)
       :collect (func-spec->function func-spec env))))
 
 (defmethod %get-functions-by-name (func-name (env (eql :-genv-)))
@@ -602,7 +591,6 @@
 
 (defmethod %get-functions-by-name (func-name (env environment))
   (append (a-get func-name (v-functions env))
-	  (a-get (kwd func-name) (v-functions env))
 	  (%get-functions-by-name func-name (v-parent-env env))))
 
 (defmethod get-function-by-name (func-name (env environment))
