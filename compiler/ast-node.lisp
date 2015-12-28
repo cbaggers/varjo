@@ -9,7 +9,9 @@
    (flow-id :initarg :flow-id :reader ast-flow-id)
    (flow-id-origin :initarg :flow-id-origin
 		   :reader ast-flow-id-origin
-		   :initform nil)
+		   :initform :incomplete)
+   (val-origin :initarg :val-origin :initform :incomplete :reader val-origin)
+   (parent :initarg :parent :initform :incomplete :reader ast-parent)
    (args :initarg :args :reader ast-args)))
 
 (defparameter *node-kinds* '(:function-call :get :literal))
@@ -32,7 +34,8 @@
 			(flow-id nil set-flow-id)
 			(flow-id-origin nil set-fio)
 			(starting-env nil set-starting-env)
-			(ending-env nil set-ending-env))
+			(ending-env nil set-ending-env)
+			(parent nil set-parent))
   (make-instance
    'ast-node
    :node-kind (if set-node-kind node-kind (ast-node-kind node))
@@ -41,20 +44,25 @@
    :flow-id (if set-flow-id flow-id (ast-flow-id node))
    :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
    :starting-env (if set-starting-env starting-env (ast-starting-env node))
-   :ending-env (if set-ending-env ending-env (ast-ending-env node))))
+   :ending-env (if set-ending-env ending-env (ast-ending-env node))
+   :parent (if set-parent parent (ast-parent node))))
 
-(defun walk-ast (func from-node)
-  (labels ((walk-node (ast)
+(defun walk-ast (func from-node &key include-parent)
+  (labels ((walk-node (ast &key parent)
 	     (if (eq ast :ignored)
 		 :ignored
 		 (typecase ast
-		   (ast-node (funcall func ast #'walk-node))
-		   (list (mapcar #'walk-node ast))
+		   (ast-node
+		    (let ((args `(,ast
+				  ,#'walk-node
+				  ,@(when include-parent `(:parent ,parent)))))
+		      (apply func args)))
+		   (list (mapcar λ(walk-node _ :parent parent) ast))
 		   (t ast)))))
     (typecase from-node
-      (code (walk-node (node-tree from-node)))
-      (varjo-compile-result (walk-node (ast from-node)))
-      (ast-node (walk-node from-node))
+      (code (walk-node (node-tree from-node) :parent nil))
+      (varjo-compile-result (walk-node (ast from-node) :parent nil))
+      (ast-node (walk-node from-node :parent nil))
       (t (error "object with the invalid type ~s passed to ast->code"
 		(type-of from-node))))))
 

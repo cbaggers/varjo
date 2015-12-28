@@ -287,7 +287,9 @@
 	   :ast-return-type
 	   :ast-flow-id
 	   :ast-flow-id-origin
+	   :ast-val-origin
 	   :ast-args
+	   :ast-parent
 
            ;;compiler
            :compile-form
