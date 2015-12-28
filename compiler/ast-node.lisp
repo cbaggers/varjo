@@ -14,10 +14,12 @@
    (parent :initarg :parent :initform :incomplete :reader ast-parent)
    (args :initarg :args :reader ast-args)))
 
-(defparameter *node-kinds* '(:function-call :get :literal))
+(defparameter *node-kinds* '(:get :get-stemcell :get-v-value :literal))
 
 (defun ast-node! (node-kind args return-type flow-id starting-env ending-env)
-  ;;(assert (member node-kind *node-kinds*))
+  (assert (if (keywordp node-kind)
+	      (member node-kind *node-kinds*)
+	      t))
   (make-instance 'ast-node
 		 :node-kind node-kind
 		 :args (listify args)
@@ -84,3 +86,32 @@
 			   (ast-flow-id node))
 		     ,name ,@(mapcar walk args))))))
     (walk-ast #'f x)))
+
+(defun ast->code (x &key changes)
+  (let ((change-map (make-hash-table :test #'eq)))
+    (labels ((prep-changes (form)
+	       (let ((nodes (remove-if-not λ(typep _ 'ast-node) form)))
+		 (assert (= (length nodes) 1))
+		 (let* ((node (first nodes)))
+		   (setf (gethash node change-map) form))))
+
+	     (serialize-node (node walk)
+	       (with-slots (node-kind args) node
+		 (if (keywordp node-kind)
+		     (case node-kind
+		       (:get (first args))
+		       (:get-stemcell (first args))
+		       (:literal (first args))
+		       (t (error "invalid node kind ~s found in result"
+		       		 node-kind)))
+		     `(,node-kind ,@(mapcar walk args)))))
+
+	     (f (node walk)
+	       (let* ((expanded (serialize-node node walk)))
+		 (vbind (form found) (gethash node change-map)
+		   (if found
+		       (subst expanded node form)
+		       expanded)))))
+
+      (map 'nil #'prep-changes changes)
+      (walk-ast #'f x))))

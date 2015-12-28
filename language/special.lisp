@@ -643,7 +643,7 @@
 		       :flow-ids nil
 		       :node-tree
 		       (ast-node!
-			:%if
+			'%if
 			(mapcar #'node-tree
 				(list (node-tree (compile-form t starting-env))
 				      (node-tree then-obj)))
@@ -671,7 +671,7 @@
 					    test-obj then-obj else-obj))
 			   :flow-ids nil
 			   :node-tree (ast-node!
-				       :%if
+				       '%if
 				       (mapcar #'node-tree
 					       (list test-obj
 						     then-obj
@@ -703,7 +703,7 @@
 								clause-objs))
 			     :flow-ids nil
 			     :node-tree (ast-node!
-					 :switch
+					 'switch
 					 (cons (node-tree test-obj)
 
 					       (mapcar λ`(,(first _)
@@ -743,7 +743,7 @@
 							   update-obj body-obj))
 			 :flow-ids flow-id
 			 :node-tree (ast-node!
-				     :for (cons var-form
+				     'for (cons var-form
 						(mapcar #'node-tree
 							(list condition
 							      update-obj
@@ -768,7 +768,7 @@
 							       body-obj))
 			     :flow-ids nil
 			     :node-tree (ast-node!
-					 :while (mapcar #'node-tree
+					 'while (mapcar #'node-tree
 							(list test-obj
 							      body-obj))
 					 :none nil env final-env))
@@ -861,7 +861,7 @@
 	   (copy-code vec-obj :type r-type
 		      :current-line (gen-swizzle-string vec-obj comp-string)
 		      :flow-ids flow-id
-		      :node-tree (ast-node! :swizzle
+		      :node-tree (ast-node! 'swizzle
 					    `(,(node-tree vec-obj) components)
 					    r-type flow-id env env)
 		      :multi-vals nil
