@@ -360,22 +360,31 @@
 	   :flow-id!
 	   :id=
 	   :id~=
+	   :flow-ids
+
+	   ;;environment
+	   :get-var
 
 	   ;; ast
 	   :ast-node
 	   :ast-node!
 	   :visit-ast-nodes
+	   :filter-ast-nodes
 	   :walk-ast
-	   :ast->pcode
+	   :ast->code
 	   :ast-starting-env
 	   :ast-ending-env
-	   :ast-node-kind
+	   :ast-kind
+	   :ast-kindp
+	   :ast-typep
 	   :ast-return-type
 	   :ast-flow-id
 	   :ast-flow-id-origin
 	   :ast-val-origin
 	   :ast-args
 	   :ast-parent
+	   :flow-id-orgins
+	   :val-origins
 
            ;;compiler
            :compile-form

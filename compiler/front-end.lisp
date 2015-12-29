@@ -387,97 +387,64 @@
 ;;----------------------------------------------------------------------
 
 (defun post-process-ast (code env)
-  ;; only need to process flow-ids in the ast tree as no others will
-  ;; be visible to the user
-  (let ((flow-origin-map nil)
-	(val-origin-map nil)
+  (let ((flow-origin-map (make-hash-table))
+	(val-origin-map (make-hash-table))
 	(node-copy-map (make-hash-table :test #'eq)))
+    ;; prime maps with args (env)
+    ;; {TODO} need to prime in-args & structs/array elements
     (labels ((uniform-raw (val)
-	       (slot-value (first (ids (first (listify (flow-ids val))))) 'val))
+	       (slot-value (first (ids (first (listify (flow-ids val)))))
+			   'val)))
+      (let ((env (%get-base-env env)))
+	(loop :for (name % %1) :in (v-uniforms env) :do
+	   (let ((key (uniform-raw (get-var name env)))
+		 (val (vector :uniform name)))
+	     (setf (gethash key flow-origin-map) val)
+	     (setf (gethash key val-origin-map) val)))))
 
-	     (prime-map-with-args (env)
-	       ;; {TODO} need to prime in-args & structs/array elements
-	       (let ((env (%get-base-env env)))
-		 (loop :for (name % %1) :in (v-uniforms env) :do
-		    (let ((pair (cons (uniform-raw (get-var name env))
-				      (vector :uniform name))))
-		      (push pair flow-origin-map)
-		      (push pair val-origin-map)))))
-
-	     (get-seen (raw-id &optional (errorp nil) (source flow-origin-map))
-	       (or (assocr raw-id source :test #'=)
-		   (when errorp
-		     (error "Could not find origin for ~s" raw-id))))
-
-	     (f-origin (val-id fcall-node)
-	       (let* ((func (ast-node-kind fcall-node))
-		      (return-pos (slot-value val-id 'return-pos)))
-		 (mapcar λ(get-seen (slot-value _ 'val) t)
-			 (ids (nth return-pos (flow-ids func))))))
-
-	     (per-val-id (val-id node)
-	       (let ((raw (slot-value val-id 'val)))
-		 (or (get-seen raw)
-		     (let* ((user-func (typep (ast-node-kind node)
-					      'v-user-function))
-			    (o-node (if user-func (f-origin val-id node) node)))
-		       (push (cons raw node) val-origin-map)
-		       (push (cons raw o-node) flow-origin-map)
-		       o-node))))
-
-	     (per-flow-id (flow-id node)
-	       (vector (flatten (mapcar λ(per-val-id _ node)
-					(ids flow-id)))
-		       (flatten (mapcar λ(get-seen (slot-value _ 'val)
-						   t val-origin-map)
-					(ids flow-id)))))
-
-	     (get-origins (node)
-	       (let* ((flow-ids (ast-flow-id node))
-		      (pairs (mapcar λ(per-flow-id _ node) (listify flow-ids))))
-		 (list (mapcar λ(aref _ 0) pairs)
-		       (mapcar λ(aref _ 1) pairs))))
-
-	     (get-copy (n) (gethash n node-copy-map))
-
-	     (post-process-node (node walk parent &key replace-args)
-	       (let ((new (copy-ast-node node
-					  :flow-id (listify (ast-flow-id node))
-					  :parent (get-copy parent))))
-		 (setf (gethash node node-copy-map) new)
-		 (let* ((args (mapcar λ(funcall walk _ :parent node)
-				      (or replace-args (ast-args node)))))
-		   (setf (slot-value new 'args) args)
-		   (dbind (fo o) (get-origins new)
-		     (setf (slot-value new 'flow-id-origin) fo)
-		     (setf (slot-value new 'val-origin) o))
-		   (when (typep (ast-node-kind new) 'v-function)
-		     (setf (slot-value new 'node-kind)
-			   (name (ast-node-kind new))))
-		   new)))
+    (labels ((post-process-node (node walk parent &key replace-args)
+	       (let ((new (copy-ast-node
+			   node
+			   :flow-id (listify (ast-flow-id node))
+			   :parent (gethash parent node-copy-map))))
+		 (with-slots (args val-origin flow-id-origin kind) new
+		   (setf (gethash node node-copy-map) new
+			 ;;
+			 args (mapcar λ(funcall walk _ :parent node)
+				      (or replace-args (ast-args node)))
+			 ;;
+			 val-origin (val-origins new val-origin-map)
+			 ;;
+			 flow-id-origin (flow-id-origins new flow-origin-map))
+		   ;;
+		   (when (typep (ast-kind new) 'v-function)
+		     (setf kind (name (ast-kind new)))))
+		 new))
 
 	     (walk-node (node walk &key parent)
 	       (cond
 		 ;; remove progns with one form
-		 ((and (eq (ast-node-kind node) 'progn)
-		       (= (length (ast-args node)) 1))
+		 ((and (ast-kindp node 'progn) (= (length (ast-args node)) 1))
 		  (funcall walk (first (ast-args node)) :parent parent))
 
 		 ;; splice progns into let's implicit progn
-		 ((eq (ast-node-kind node) 'let)
+		 ((ast-kindp node 'let)
 		  (let ((args (ast-args node)))
 		    (post-process-node
 		     node walk parent :replace-args
 		     `(,(first args)
 			,@(loop :for a :in (rest args)
 			     :if (and (typep a 'ast-node)
-				      (eq (ast-node-kind a) 'progn))
+				      (ast-kindp a 'progn))
 			     :append (ast-args a)
 			     :else :collect a)))))
 
+		 ;; remove %return nodes
+		 ((ast-kindp node '%return)
+		  (funcall walk (first (ast-args node)) :parent parent))
+
 		 (t (post-process-node node walk parent)))))
 
-      (prime-map-with-args env)
       (values (copy-code code :node-tree (walk-ast #'walk-node code
 						   :include-parent t))
 	      env))))
