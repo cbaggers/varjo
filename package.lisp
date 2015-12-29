@@ -354,6 +354,7 @@
            :v-defun
            :v-defmacro
            :v-define-compiler-macro
+	   :add-equivalent-name
 
 	   ;;flow-ids
 	   :flow-id!

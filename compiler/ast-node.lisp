@@ -104,7 +104,9 @@
 		       (:literal (first args))
 		       (t (error "invalid node kind ~s found in result"
 		       		 node-kind)))
-		     `(,node-kind ,@(mapcar walk args)))))
+		     (if (eq node-kind '%return)
+			 (funcall walk (first args))
+			 `(,node-kind ,@(mapcar walk args))))))
 
 	     (f (node walk)
 	       (let* ((expanded (serialize-node node walk)))

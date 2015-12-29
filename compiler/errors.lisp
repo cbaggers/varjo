@@ -75,6 +75,9 @@
 (deferror could-not-find-function (:error-type varjo-critical-error) (name)
     "No function called '~a' was found in this environment" name)
 
+(deferror could-not-find-any (:error-type varjo-critical-error) (name)
+    "No function, macro or compiler-macro called '~a' could be found in this environment" name)
+
 (deferror no-valid-function () (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
 

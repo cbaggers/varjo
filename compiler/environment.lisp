@@ -566,6 +566,23 @@
         (when (context-ok-given-restriction context restriction) func)
         func)))
 
+(defmethod add-equivalent-name (existing-name new-name)
+  (let ((f (get-function-by-name existing-name *global-env*))
+	(c (get-compiler-macro existing-name *global-env*))
+	(m (get-macro existing-name *global-env*)))
+    (cond
+      ((or f c)
+       (when f
+	 (setf (gethash new-name *global-env-funcs*)
+	       (gethash existing-name *global-env-funcs*)))
+       (when c
+	 (setf (gethash new-name *global-env-compiler-macros*)
+	       (gethash existing-name *global-env-compiler-macros*))))
+      (m (setf (gethash new-name *global-env-compiler-macros*)
+	       (gethash existing-name *global-env-compiler-macros*)))
+      (t (error 'could-not-find-any :name existing-name))))
+  new-name)
+
 (defmethod add-function (func-name (func-spec list) (env (eql :-genv-)))
   (setf (gethash func-name *global-env-funcs*)
         (cons func-spec (gethash func-name *global-env-funcs*)))
