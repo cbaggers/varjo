@@ -71,8 +71,9 @@
      (declare (ignorable ,in-args ,uniforms ,context ,code))
      ,@body))
 
-(defun rolling-translate (stages)
-  (let ((result (reduce #'compile-stage stages :initial-value nil)))
+(defun rolling-translate (stages &optional (compile-func #'translate))
+  (let ((result (reduce λ(compile-stage _ _1 compile-func)
+			stages :initial-value nil)))
     (reverse (cons (caar result) (rest result)))))
 
 (defun merge-in-previous-stage-args (previous-stage stage)
@@ -107,14 +108,14 @@
         ,@(union c-qual p-qual)
         ,(or p-glsl-name c-glsl-name)))))
 
-(defun compile-stage (accum stage)
+(defun compile-stage (accum stage compile-func)
   (destructuring-bind (last-stage remaining-stage-types)
       (or (first accum) `(nil ,*stage-types*))
     (let ((remaining-stage-types (check-order (extract-stage-type stage)
                                               remaining-stage-types)))
-      (cons (list (apply #'translate (transform-stage-args
-                                      (merge-in-previous-stage-args last-stage
-                                                                    stage)))
+      (cons (list (apply compile-func (transform-stage-args
+				       (merge-in-previous-stage-args last-stage
+								     stage)))
                   remaining-stage-types)
             (cons last-stage (cddr accum))))))
 
