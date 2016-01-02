@@ -95,8 +95,8 @@
   (let ((qn (gensym "qn")))
     `(destructuring-bind (,name ,type . ,qn) ,arg-form
        (declare (ignorable ,name ,type))
-       (let ((,qualifiers (if (stringp (last1 ,qn)) (butlast ,qn) ,qn))
-             (,glsl-name (when (stringp (last1 ,qn)) (last1 ,qn))))
+       (let* ((,glsl-name (when (stringp (last1 ,qn)) (last1 ,qn)))
+	      (,qualifiers (if glsl-name (butlast ,qn) ,qn)))
          (declare (ignorable ,qualifiers ,glsl-name))
          ,@body))))
 
@@ -111,12 +111,16 @@
 (defun compile-stage (accum stage compile-func)
   (destructuring-bind (last-stage remaining-stage-types)
       (or (first accum) `(nil ,*stage-types*))
-    (let ((remaining-stage-types (check-order (extract-stage-type stage)
-                                              remaining-stage-types)))
-      (cons (list (apply compile-func (transform-stage-args
-				       (merge-in-previous-stage-args last-stage
-								     stage)))
-                  remaining-stage-types)
+    (let* ((remaining-stage-types (check-order (extract-stage-type stage)
+					       remaining-stage-types))
+	   (new-compile-result
+	    (apply compile-func (transform-stage-args
+				 (merge-in-previous-stage-args last-stage
+							       stage)))))
+      (when last-stage
+	(setf (slot-value new-compile-result 'third-party-metadata)
+	      (third-party-metadata last-stage)))
+      (cons (list new-compile-result remaining-stage-types)
             (cons last-stage (cddr accum))))))
 
 (defun extract-stage-type (stage)

@@ -410,6 +410,7 @@
 	   :used-compiler-macros
 	   :used-symbol-macros
 	   :ast
+	   :third-party-metadata
 
            ;;utils
            :lambda-list-split

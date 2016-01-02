@@ -1,6 +1,5 @@
 (in-package :varjo)
 
-;; [TODO] this shouldnt live here
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (stage-type :initarg :stage-type :accessor stage-type)
@@ -17,7 +16,11 @@
    (flow-id-origins :initarg :flow-id-origins)
    (val-origins :initarg :val-origins)
    (used-symbol-macros :initarg :used-symbol-macros
-		       :reader used-symbol-macros)))
+		       :reader used-symbol-macros)
+   (third-party-metadata :initarg :third-party-metadata
+			 :initform (make-hash-table)
+			 :reader third-party-metadata)))
+;; {NOTE} third-party-metadata only applies to rolling-translate
 
 (defun %compile-result-flow-id-origins (flow-id r error-on-missingp)
   (assert (typep r 'varjo-compile-result))
