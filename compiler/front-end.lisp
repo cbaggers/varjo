@@ -85,7 +85,7 @@
                   (mapcar #'%merge-in-arg
                           (out-vars previous-stage) in-args)
                   (error 'args-incompatible in-args (out-vars previous-stage)))
-              uniforms
+              (uniforms previous-stage) ;; [0]
               context
               code
 	      tp-meta))
@@ -95,6 +95,11 @@
               context
               code
 	      (or tp-meta (make-hash-table))))))
+;; [0] by allowing user-defined compile-functions we can now end a pass with
+;;     totally different uniforms than we started with. We need to give each
+;;     stage a chance with the original uniforms and then trust that the user
+;;     will reconcile any changes they have been allowing.
+
 
 (defmacro with-arg ((&optional (name (gensym "name")) (type (gensym "type"))
                                   (qualifiers (gensym "qualifiers"))
