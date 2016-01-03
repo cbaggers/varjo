@@ -656,6 +656,7 @@
       (make-instance
        'varjo-compile-result
        :glsl-code final-glsl-code
+       :stage-type (find-if λ(find _ *supported-stages*) context)
        :in-args (mapcar #'butlast (in-args post-proc-obj))
        :out-vars (mapcar #'butlast (out-vars post-proc-obj))
        :uniforms (mapcar #'butlast (uniforms post-proc-obj))

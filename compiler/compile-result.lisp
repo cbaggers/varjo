@@ -3,6 +3,7 @@
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
+   (stage-type :initarg :stage-type :accessor stage-type)
    (in-args :initarg :in-args :accessor in-args)
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
