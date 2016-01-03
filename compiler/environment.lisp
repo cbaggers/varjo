@@ -58,7 +58,9 @@
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
    (function-dedup :initform nil :initarg :function-dedup)
-   (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)))
+   (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
+   (third-party-metadata :initform (make-hash-table) :initarg
+			 :third-party-metadata)))
 
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (%get-base-env e)
@@ -127,8 +129,10 @@
 		 (v-variables env))
     (error 'invalid-env-vars :vars (v-variables env))))
 
-(defun %make-base-environment ()
-  (make-instance 'base-environment))
+(defun %make-base-environment (&optional (third-party-metadata
+					  (make-hash-table)))
+  (make-instance 'base-environment
+		 :third-party-metadata third-party-metadata))
 
 ;;-------------------------------------------------------------------------
 ;; global env

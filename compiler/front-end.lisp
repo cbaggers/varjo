@@ -51,7 +51,7 @@
                                    (third _))))
                          body))))))
 
-(defun v-macroexpand (form &optional (env (make-varjo-environment)))
+(defun v-macroexpand (form &optional (env (%make-base-environment)))
   (identity
    (pipe-> (form env)
      (equalp #'symbol-macroexpand-pass
@@ -65,10 +65,12 @@
 (defmacro with-stage ((&optional (in-args (symb :in-args))
                                  (uniforms (symb :uniforms))
                                  (context (symb :context))
-                                 (code (symb :code)))
+                                 (code (symb :code))
+				 (tp-meta (symb :tp-meta)))
                          stage &body body)
-  `(destructuring-bind (,in-args ,uniforms ,context ,code) ,stage
-     (declare (ignorable ,in-args ,uniforms ,context ,code))
+  `(destructuring-bind (,in-args ,uniforms ,context ,code &optional ,tp-meta)
+       ,stage
+     (declare (ignorable ,in-args ,uniforms ,context ,code ,tp-meta))
      ,@body))
 
 (defun rolling-translate (stages &optional (compile-func #'translate))
@@ -85,8 +87,14 @@
                   (error 'args-incompatible in-args (out-vars previous-stage)))
               uniforms
               context
-              code))
-      stage))
+              code
+	      tp-meta))
+      (with-stage () stage
+        (list in-args
+              uniforms
+              context
+              code
+	      (or tp-meta (make-hash-table))))))
 
 (defmacro with-arg ((&optional (name (gensym "name")) (type (gensym "type"))
                                   (qualifiers (gensym "qualifiers"))
@@ -96,7 +104,7 @@
     `(destructuring-bind (,name ,type . ,qn) ,arg-form
        (declare (ignorable ,name ,type))
        (let* ((,glsl-name (when (stringp (last1 ,qn)) (last1 ,qn)))
-	      (,qualifiers (if glsl-name (butlast ,qn) ,qn)))
+	      (,qualifiers (if ,glsl-name (butlast ,qn) ,qn)))
          (declare (ignorable ,qualifiers ,glsl-name))
          ,@body))))
 
@@ -117,9 +125,6 @@
 	    (apply compile-func (transform-stage-args
 				 (merge-in-previous-stage-args last-stage
 							       stage)))))
-      (when last-stage
-	(setf (slot-value new-compile-result 'third-party-metadata)
-	      (third-party-metadata last-stage)))
       (cons (list new-compile-result remaining-stage-types)
             (cons last-stage (cddr accum))))))
 
@@ -174,9 +179,10 @@
         (rest check)
         (error 'stage-order-error stage-type))))
 
-(defun translate (in-args uniforms context body)
+(defun translate (in-args uniforms context body
+		  &optional (third-party-metadata (make-hash-table)))
   (flow-id-scope
-    (let ((env (%make-base-environment)))
+    (let ((env (%make-base-environment third-party-metadata)))
       (pipe-> (in-args uniforms context body env)
 	#'split-input-into-env
 	#'process-context
@@ -412,15 +418,17 @@
 			   node
 			   :flow-id (listify (ast-flow-id node))
 			   :parent (gethash parent node-copy-map))))
+		 (setf (slot-value new 'flow-id-origins) flow-origin-map
+		       (slot-value new 'val-origins) val-origin-map)
 		 (with-slots (args val-origin flow-id-origin kind) new
 		   (setf (gethash node node-copy-map) new
 			 ;;
 			 args (mapcar λ(funcall walk _ :parent node)
 				      (or replace-args (ast-args node)))
 			 ;;
-			 val-origin (val-origins new val-origin-map)
+			 val-origin (val-origins new)
 			 ;;
-			 flow-id-origin (flow-id-origins new flow-origin-map))
+			 flow-id-origin (flow-id-origins new))
 		   ;;
 		   (when (typep (ast-kind new) 'v-function)
 		     (setf kind (name (ast-kind new)))))
@@ -532,8 +540,7 @@
       (setf (in-args post-proc-obj)
 	    (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
 	       :for location :in locations :for type :in type-objs :collect
-	       `(,name ,type ,qualifiers
-		       nil ;;,(flow-ids (get-var name env)) removed until structs supported
+	       `(,name ,type ,@qualifiers ,@(list glsl-name)
 		       ,(gen-in-var-string (or glsl-name name) type
 					   qualifiers location))))))
   post-proc-obj)
@@ -584,7 +591,7 @@
 	  (implicit-uniforms nil))
       (loop :for (name type qualifiers glsl-name) :in uniforms
 	 :for type-obj = (type-spec->type type) :do
-	 (push `(,name ,type ,(flow-ids (get-var name env))
+	 (push `(,name ,type
 		       ,(if (member :ubo qualifiers)
 			    (varjo::write-interface-block
 			     :uniform (or glsl-name (safe-glsl-name-string name))
@@ -644,11 +651,11 @@
 
 (defun code-obj->result-object (final-glsl-code post-proc-obj)
   (with-slots (env) post-proc-obj
-    (let* ((context (v-context env)))
+    (let* ((context (process-context-for-result (v-context env)))
+	   (base-env (%get-base-env env)))
       (make-instance
        'varjo-compile-result
        :glsl-code final-glsl-code
-       :stage-type (find-if λ(find _ *supported-stages*) context)
        :in-args (mapcar #'butlast (in-args post-proc-obj))
        :out-vars (mapcar #'butlast (out-vars post-proc-obj))
        :uniforms (mapcar #'butlast (uniforms post-proc-obj))
@@ -657,4 +664,9 @@
        :used-symbol-macros (used-symbol-macros post-proc-obj)
        :used-macros (used-macros post-proc-obj)
        :used-compiler-macros (used-compiler-macros post-proc-obj)
-       :ast (ast post-proc-obj)))))
+       :ast (ast post-proc-obj)
+       :third-party-metadata (slot-value base-env 'third-party-metadata)))))
+
+(defun process-context-for-result (context)
+  ;; {TODO} having to remove this is probably a bug
+  (remove :main context))

@@ -383,8 +383,10 @@
 	   :ast-val-origin
 	   :ast-args
 	   :ast-parent
-	   :flow-id-orgins
+	   :flow-id-origins
 	   :val-origins
+	   :ast-replace
+	   :ast~
 
            ;;compiler
            :compile-form

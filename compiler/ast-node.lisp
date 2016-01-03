@@ -12,7 +12,9 @@
    (val-origin :initarg :val-origin :initform :incomplete
 	       :reader ast-val-origin)
    (parent :initarg :parent :initform :incomplete :reader ast-parent)
-   (args :initarg :args :initform nil :reader ast-args)))
+   (args :initarg :args :initform nil :reader ast-args)
+   (val-origins :initarg :val-origins :initform :incomplete)
+   (flow-id-origins :initarg :flow-id-origins :initform :incomplete)))
 
 (defmethod get-var (var-name (node ast-node))
   (get-var var-name (ast-starting-env node)))
@@ -32,57 +34,84 @@
 		  (type-spec->type type))))
     (v-typep (ast-return-type node) type)))
 
+(defgeneric flow-id-origins (node &optional error-on-missingp context))
+
+(defmethod flow-id-origins ((flow-id flow-identifier)
+			    &optional (error-on-missingp t) context)
+  (assert error-on-missingp)
+  (let ((r (typecase context
+	     (ast-node (slot-value context 'flow-id-origins))
+	     (t (error "When passing a flow-id to flow-id-origins the context
+must be specified and must be of type 'ast-node")))))
+    (labels ((get-seen (raw-id)
+	       (or (gethash raw-id r)
+		   (error "Could not find origin for ~s" raw-id)))
+
+	     (per-id (val-id)
+	       (let ((raw (slot-value val-id 'val)))
+		 (get-seen raw)))
+
+	     (per-flow-id (flow-id)
+	       (mapcar #'per-id (ids flow-id))))
+
+      (flatten (mapcar #'per-flow-id (listify flow-id))))))
 
 (defmethod flow-id-origins ((node ast-node)
-			   &optional r error-on-missingp)
-  (labels ((get-seen (raw-id)
-	     (or (gethash raw-id r)
-		 (when error-on-missingp
-		   (error "Could not find origin for ~s" raw-id))))
+			    &optional error-on-missingp context)
+  (when context
+    (error "Do not pass context when node argument is of type ast-node as
+context is implicit"))
+  (let ((r (slot-value node 'flow-id-origins)))
+    (labels ((get-seen (raw-id)
+	       (or (gethash raw-id r)
+		   (when error-on-missingp
+		     (error "Could not find origin for ~s" raw-id))))
 
-	   (per-id (val-id node)
-	     (let ((raw (slot-value val-id 'val)))
-	       (or (get-seen raw)
-		   (setf (gethash raw r) (cons raw node)))))
+	     (per-id (val-id)
+	       (let ((raw (slot-value val-id 'val)))
+		 (or (get-seen raw)
+		     (setf (gethash raw r) node))))
 
-	   (per-flow-id (flow-id node)
-	     (flatten (mapcar λ(per-id _ node)
-			      (ids flow-id))))
+	     (per-flow-id (flow-id)
+	       (mapcar #'per-id (ids flow-id)))
 
-	   (get-origins (node)
-	     (mapcar λ(per-flow-id _ node) (listify (ast-flow-id node)))))
-    (typecase r
-      (hash-table (get-origins node))
-      (null (ast-flow-id-origin node)))))
+	     (get-origins ()
+	       (mapcar #'per-flow-id (listify (ast-flow-id node)))))
+      (flatten
+       (typecase r
+	 (hash-table (get-origins))
+	 (null (ast-flow-id-origin node)))))))
 
-(defmethod val-origins ((node ast-node) &optional r error-on-missingp)
-  (labels ((get-seen (raw-id errorp)
-	     (or (gethash raw-id r)
-		 (when errorp
-		   (error "Could not find origin for ~s" raw-id))))
+(defmethod val-origins ((node ast-node) &optional error-on-missingp)
+  (let ((r (slot-value node 'val-origins)))
+    (labels ((get-seen (raw-id errorp)
+	       (or (gethash raw-id r)
+		   (when errorp
+		     (error "Could not find origin for ~s" raw-id))))
 
-	   (f-origin (val-id fcall-node)
-	     (let* ((func (ast-kind fcall-node))
-		    (return-pos (slot-value val-id 'return-pos)))
-	       (mapcar λ(get-seen (slot-value _ 'val) t)
-		       (ids (nth return-pos (flow-ids func))))))
+	     (f-origin (val-id fcall-node)
+	       (let* ((func (ast-kind fcall-node))
+		      (return-pos (slot-value val-id 'return-pos)))
+		 (mapcar λ(get-seen (slot-value _ 'val) t)
+			 (ids (nth return-pos (flow-ids func))))))
 
-	   (per-id (val-id node)
-	     (let ((raw (slot-value val-id 'val)))
-	       (or (get-seen raw error-on-missingp)
-		   (setf (gethash raw r)
-			 (if (typep (ast-kind node) 'v-user-function)
-			     (f-origin val-id node)
-			     node)))))
+	     (per-id (val-id node)
+	       (let ((raw (slot-value val-id 'val)))
+		 (or (get-seen raw error-on-missingp)
+		     (setf (gethash raw r)
+			   (if (typep (ast-kind node) 'v-user-function)
+			       (f-origin val-id node)
+			       node)))))
 
-	   (per-flow-id (flow-id node)
-	     (flatten (mapcar λ(per-id _ node) (ids flow-id))))
+	     (per-flow-id (flow-id node)
+	       (mapcar λ(per-id _ node) (ids flow-id)))
 
-	   (get-origins (node)
-	     (mapcar λ(per-flow-id _ node) (listify (ast-flow-id node)))))
-    (typecase r
-      (hash-table (get-origins node))
-      (null (ast-val-origin node)))))
+	     (get-origins (node)
+	       (mapcar λ(per-flow-id _ node) (listify (ast-flow-id node)))))
+      (flatten
+       (typecase r
+	  (hash-table (get-origins node))
+	  (null (ast-val-origin node)))))))
 
 
 (defmethod flow-ids ((node ast-node))
@@ -109,6 +138,7 @@
 			(return-type nil set-return-type)
 			(flow-id nil set-flow-id)
 			(flow-id-origin nil set-fio)
+			(val-origin nil set-vo)
 			(starting-env nil set-starting-env)
 			(ending-env nil set-ending-env)
 			(parent nil set-parent))
@@ -117,11 +147,12 @@
    :kind (if set-kind kind (ast-kind node))
    :args (if set-args args (ast-args node))
    :return-type (if set-return-type return-type (ast-return-type node))
-   :flow-id (if set-flow-id flow-id (ast-flow-id node))
-   :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
    :starting-env (if set-starting-env starting-env (ast-starting-env node))
    :ending-env (if set-ending-env ending-env (ast-ending-env node))
-   :parent (if set-parent parent (ast-parent node))))
+   :parent (if set-parent parent (ast-parent node))
+   :flow-id (if set-flow-id flow-id (ast-flow-id node))
+   :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
+   :val-origin (if set-vo val-origin (ast-val-origin node))))
 
 (defun walk-ast (func from-node &key include-parent)
   (labels ((walk-node (ast &key parent)
@@ -166,14 +197,23 @@
 		     ,name ,@(mapcar walk args))))))
     (walk-ast #'f x)))
 
+(defstruct ast-replace
+  (node (error "ast-replace node slot is mandatory")
+	:type ast-node)
+  (form (error "ast-replace form slot is mandatory")))
+
+(defun ast-replace (node form)
+  (make-ast-replace :node node :form form))
+
+(defun ast~ (node form)
+  (ast-replace node form))
+
 (defun ast->code (x &key changes)
   (let ((change-map (make-hash-table :test #'eq)))
-    (labels ((prep-changes (form)
-	       (let ((nodes (remove-if-not λ(typep _ 'ast-node) form)))
-		 (assert (= (length nodes) 1))
-		 (let* ((node (first nodes)))
-		   (setf (gethash node change-map) form))))
-
+    (labels ((prep-changes (r)
+	       (assert (typep r 'ast-replace))
+	       (setf (gethash (ast-replace-node r) change-map)
+		     (ast-replace-form r)))
 	     (serialize-node (node walk)
 	       (with-slots (kind args) node
 		 (if (keywordp kind)
@@ -189,7 +229,7 @@
 	       (let* ((expanded (serialize-node node walk)))
 		 (vbind (form found) (gethash node change-map)
 		   (if found
-		       (subst expanded node form)
+		       (funcall walk (subst expanded node form))
 		       expanded)))))
 
       (map 'nil #'prep-changes changes)
