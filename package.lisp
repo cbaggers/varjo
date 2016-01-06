@@ -385,8 +385,6 @@
 	   :ast-parent
 	   :flow-id-origins
 	   :val-origins
-	   :ast-replace
-	   :ast~
 
            ;;compiler
            :compile-form

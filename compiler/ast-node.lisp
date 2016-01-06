@@ -197,23 +197,31 @@ context is implicit"))
 		     ,name ,@(mapcar walk args))))))
     (walk-ast #'f x)))
 
-(defstruct ast-replace
-  (node (error "ast-replace node slot is mandatory")
-	:type ast-node)
-  (form (error "ast-replace form slot is mandatory")))
+(let ((last nil)
+      (count 0))
+  (defun filter-&-func (node filter-func-pairs)
+    "run each filter, it it returns true"
+    (setf count (if (eq last node) (1+ count) 0))
+    (setf last node)
+    (when (> count 50)
+      (break "the fuck? ~s" node))
+    (let ((has-changed nil))
+      (labels ((ff (accum pair)
+		 (dbind (filter func) pair
+		   (if (and (typep accum 'ast-node)
+			    (funcall filter accum))
+		       (progn
+			 (setf has-changed t)
+			 (funcall func accum))
+		       accum))))
+	(let ((res (reduce #'ff filter-func-pairs :initial-value node)))
+	  (values res has-changed))))))
 
-(defun ast-replace (node form)
-  (make-ast-replace :node node :form form))
-
-(defun ast~ (node form)
-  (ast-replace node form))
-
-(defun ast->code (x &key changes)
-  (let ((change-map (make-hash-table :test #'eq)))
-    (labels ((prep-changes (r)
-	       (assert (typep r 'ast-replace))
-	       (setf (gethash (ast-replace-node r) change-map)
-		     (ast-replace-form r)))
+(defun ast->code (ast &key filter-func-pairs)
+  (let ((has-changed nil)
+	(seen nil))
+    (labels ((set-seen (node) (push node seen))
+	     (has-been-seen (node) (member node seen :test #'eq))
 	     (serialize-node (node walk)
 	       (with-slots (kind args) node
 		 (if (keywordp kind)
@@ -222,15 +230,16 @@ context is implicit"))
 		       (:get-stemcell (first args))
 		       (:literal (first args))
 		       (t (error "invalid node kind ~s found in result"
-		       		 kind)))
+				 kind)))
 		     `(,kind ,@(mapcar walk args)))))
-
 	     (f (node walk)
-	       (let* ((expanded (serialize-node node walk)))
-		 (vbind (form found) (gethash node change-map)
-		   (if found
-		       (funcall walk (subst expanded node form))
-		       expanded)))))
-
-      (map 'nil #'prep-changes changes)
-      (walk-ast #'f x))))
+	       (if (has-been-seen node)
+		   (serialize-node node walk)
+		   (progn
+		     (set-seen node)
+		     (vbind (node changed?) (filter-&-func node filter-func-pairs)
+		       (when changed? (setf has-changed t))
+		       (if changed?
+			   (funcall walk node)
+			   (serialize-node node walk)))))))
+      (values (walk-ast #'f ast) has-changed))))
