@@ -197,31 +197,30 @@ context is implicit"))
 		     ,name ,@(mapcar walk args))))))
     (walk-ast #'f x)))
 
-(let ((last nil)
-      (count 0))
-  (defun filter-&-func (node filter-func-pairs)
-    "run each filter, it it returns true"
-    (setf count (if (eq last node) (1+ count) 0))
-    (setf last node)
-    (when (> count 50)
-      (break "the fuck? ~s" node))
-    (let ((has-changed nil))
-      (labels ((ff (accum pair)
-		 (dbind (filter func) pair
-		   (if (and (typep accum 'ast-node)
-			    (funcall filter accum))
-		       (progn
-			 (setf has-changed t)
-			 (funcall func accum))
-		       accum))))
-	(let ((res (reduce #'ff filter-func-pairs :initial-value node)))
-	  (values res has-changed))))))
+(defun filter-&-func (node filter-func-pairs
+		      set-seen has-been-seen)
+  "run each filter, it it returns true"
+  (let ((has-changed nil))
+    (labels ((ff (accum pair)
+	       (dbind (filter func) pair
+		 (if (and (typep accum 'ast-node)
+			  (not (funcall has-been-seen node filter))
+			  (funcall filter accum))
+		     (progn
+		       (setf has-changed t)
+		       (funcall set-seen node filter)
+		       (funcall func accum))
+		     accum))))
+      (let ((res (reduce #'ff filter-func-pairs :initial-value node)))
+	(values res has-changed)))))
 
 (defun ast->code (ast &key filter-func-pairs)
   (let ((has-changed nil)
 	(seen nil))
-    (labels ((set-seen (node) (push node seen))
-	     (has-been-seen (node) (member node seen :test #'eq))
+    (labels ((set-seen (node filter)
+	       (push (cons node filter) seen))
+	     (has-been-seen (node filter)
+	       (member (cons node filter) seen :test #'equal))
 	     (serialize-node (node walk)
 	       (with-slots (kind args) node
 		 (if (keywordp kind)
@@ -233,13 +232,11 @@ context is implicit"))
 				 kind)))
 		     `(,kind ,@(mapcar walk args)))))
 	     (f (node walk)
-	       (if (has-been-seen node)
-		   (serialize-node node walk)
-		   (progn
-		     (set-seen node)
-		     (vbind (node changed?) (filter-&-func node filter-func-pairs)
-		       (when changed? (setf has-changed t))
-		       (if changed?
-			   (funcall walk node)
-			   (serialize-node node walk)))))))
+	       (vbind (node changed?)
+		   (filter-&-func node filter-func-pairs
+				  #'set-seen #'has-been-seen)
+		 (when changed? (setf has-changed t))
+		 (if changed?
+		     (funcall walk node)
+		     (serialize-node node walk)))))
       (values (walk-ast #'f ast) has-changed))))

@@ -201,6 +201,12 @@
 	 (typep a (un-shadow b)))
         ((and (listp b) (numberp (second b)))
 	 (typep a (un-shadow (first b))))))
+(defmethod v-typep ((a null) b &optional (env *global-env*))
+  (declare (ignore env))
+  nil)
+(defmethod v-typep (a (b null) &optional (env *global-env*))
+  (declare (ignore env))
+  nil)
 
 (defmethod v-casts-to-p (from-type to-type env)
   (not (null (v-casts-to from-type to-type env))))
