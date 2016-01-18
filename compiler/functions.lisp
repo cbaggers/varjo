@@ -160,11 +160,15 @@
    (func :initarg :func :reader func)
    (arguments :initarg :arguments :reader arguments)))
 
-;;[TODO] catch cannot-compiler errors only here
+;; [TODO] catch cannot-compiler errors only here
+;; {TODO} wat. seriously past-me what did that mean?
 (defun try-compile-arg (arg env)
   (let ((env (fresh-environment env :multi-val-base nil)))
     (handler-case (compile-form arg env)
-      (varjo-error (e) (make-code-obj (make-instance 'v-error :payload e) "")))))
+      (varjo-error (e) (make-code-obj
+			(make-instance 'v-error :payload e) ""
+			:node-tree (ast-node! :error nil :none
+					      nil env env))))))
 
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)

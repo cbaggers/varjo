@@ -117,7 +117,8 @@ context is implicit"))
 (defmethod flow-ids ((node ast-node))
   (ast-flow-id node))
 
-(defparameter *node-kinds* '(:get :get-stemcell :get-v-value :literal))
+(defparameter *node-kinds* '(:get :get-stemcell :get-v-value :literal
+			     :error))
 
 (defun ast-node! (kind args return-type flow-id starting-env ending-env)
   (assert (if (keywordp kind)
