@@ -206,7 +206,8 @@
    :texture-size))
 
 (defpackage #:varjo
-  (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre #:named-readtables)
+  (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre
+	#:named-readtables #:structy-defclass)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :v-glsl-size
            :v-casts-to-p
@@ -387,6 +388,14 @@
 	   :ast-parent
 	   :flow-id-origins
 	   :val-origins
+	   :ast-origin
+	   :stemcell-origin
+	   :uniform-origin
+	   :ast-origin-node
+	   :stemcell-origin-node
+	   :uniform-origin-node
+	   :uniform-origin-name
+	   :origin-name
 
            ;;compiler
            :compile-form

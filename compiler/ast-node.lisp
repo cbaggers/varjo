@@ -38,10 +38,34 @@
 		  (type-spec->type type))))
     (v-typep (ast-return-type node) type)))
 
+;;----------------------------------------------------------------------
+
+(deftclass origin)
+
+(deftclass (ast-origin (:include origin))
+  node)
+
+(deftclass (uniform-origin (:include origin))
+  name
+  node)
+
+(deftclass (stemcell-origin (:include origin))
+  name
+  node)
+
+(defmethod origin-name ((origin stemcell-origin))
+  (stemcell-origin-name origin))
+
+(defmethod origin-name ((origin uniform-origin))
+  (uniform-origin-name origin))
+
+;;----------------------------------------------------------------------
+
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
 (defmethod flow-id-origins ((flow-id flow-identifier)
 			    &optional (error-on-missingp t) context)
+  "Gets the ast-node/s where this flow-id originated"
   (assert error-on-missingp)
   (let ((r (typecase context
 	     (ast-node (slot-value context 'flow-id-origins))
@@ -53,15 +77,16 @@ must be specified and must be of type 'ast-node")))))
 
 	     (per-id (val-id)
 	       (let ((raw (slot-value val-id 'val)))
-		 (get-seen raw)))
+		 (get-seen raw))))
 
-	     (per-flow-id (flow-id)
-	       (mapcar #'per-id (ids flow-id))))
-
-      (flatten (mapcar #'per-flow-id (listify flow-id))))))
+      (flatten (mapcar #'per-id (ids flow-id))))))
 
 (defmethod flow-id-origins ((node ast-node)
 			    &optional error-on-missingp context)
+  "Gets the ast node/s where this node's flow-ids originated.
+   If it hasnt been found yet then this must be the origin and
+   it is added to the origins map.
+   To emphasise the above. THIS IS DESTRUCTIVE"
   (when context
     (error "Do not pass context when node argument is of type ast-node as
 context is implicit"))
@@ -74,7 +99,12 @@ context is implicit"))
 	     (per-id (val-id)
 	       (let ((raw (slot-value val-id 'val)))
 		 (or (get-seen raw)
-		     (setf (gethash raw r) node))))
+		     (setf (gethash raw r)
+			   (if (eq (ast-kind node) :get-stemcell)
+			       (make-stemcell-origin
+				:name (first (ast-args node))
+				:node node)
+			       (make-ast-origin :node node))))))
 
 	     (per-flow-id (flow-id)
 	       (mapcar #'per-id (ids flow-id)))

@@ -6,7 +6,7 @@
   :license "LLGPL"
   :serial t
   :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
-                          #:vas-string-metrics #:stefil #:fn)
+                          #:vas-string-metrics #:stefil #:fn #:structy-defclass)
   :components ((:file "package")
                (:file "utils-v")
 	       (:file "compiler/log")

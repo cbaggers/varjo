@@ -460,7 +460,7 @@
       (let ((env (%get-base-env (env post-proc-obj))))
 	(loop :for (name % %1) :in (v-uniforms env) :do
 	   (let ((key (uniform-raw (get-var name env)))
-		 (val (vector :uniform name)))
+		 (val (make-uniform-origin :name name)))
 	     (setf (gethash key flow-origin-map) val)
 	     (setf (gethash key val-origin-map) val)))))
 
@@ -483,7 +483,12 @@
 				      (or replace-args (ast-args node)))
 			 ;;
 			 val-origin (val-origins new)
-			 ;;
+			 ;; - - - - - - - - - - - - - - - - - - - - - -
+			 ;; flow-id-origins gets of DESTRUCTIVELY adds
+			 ;; the origin of the flow-id/s for this node.
+			 ;; - - - - - - - - - - - - - - - - - - - - - -
+			 ;; {TODO} redesign this madness
+			 ;; - - - - - - - - - - - - - - - - - - - - - -
 			 flow-id-origin (flow-id-origins new))
 		   ;;
 		   (when (typep (ast-kind new) 'v-function)
