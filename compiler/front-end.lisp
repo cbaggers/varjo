@@ -194,8 +194,8 @@
 		#'macroexpand-pass
 		#'compiler-macroexpand-pass)
 	#'compile-pass
-	#'post-process-ast
 	#'make-post-process-obj
+	#'post-process-ast
 	#'filter-used-items
 	#'check-stemcells
 	#'gen-in-arg-strings
@@ -398,7 +398,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defun post-process-ast (code env)
+(defun post-process-ast (post-proc-obj)
   (declare (optimize (debug 3) (speed 0)))
   (let ((flow-origin-map (make-hash-table))
 	(val-origin-map (make-hash-table))
@@ -408,7 +408,7 @@
     (labels ((uniform-raw (val)
 	       (slot-value (first (ids (first (listify (flow-ids val)))))
 			   'val)))
-      (let ((env (%get-base-env env)))
+      (let ((env (%get-base-env (env post-proc-obj))))
 	(loop :for (name % %1) :in (v-uniforms env) :do
 	   (let ((key (uniform-raw (get-var name env)))
 		 (val (vector :uniform name)))
@@ -459,10 +459,13 @@
 		  (funcall walk (first (ast-args node)) :parent parent))
 
 		 (t (post-process-node node walk parent)))))
+      (let ((ast (walk-ast #'walk-node (code post-proc-obj)
+			   :include-parent t)))
+	(setf (code post-proc-obj) (copy-code (code post-proc-obj)
+					      :node-tree ast)
+	      (slot-value post-proc-obj 'ast) ast))
 
-      (values (copy-code code :node-tree (walk-ast #'walk-node code
-						   :include-parent t))
-	      env))))
+      post-proc-obj)))
 
 ;;----------------------------------------------------------------------
 
@@ -485,8 +488,7 @@
   (make-instance 'post-compile-process :code code :env env
 		 :used-symbol-macros (dedup-used (used-symbol-macros env))
 		 :used-macros (dedup-used (used-macros env))
-		 :used-compiler-macros (dedup-used (used-compiler-macros env))
-		 :ast (node-tree code)))
+		 :used-compiler-macros (dedup-used (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
 
