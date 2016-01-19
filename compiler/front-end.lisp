@@ -195,9 +195,9 @@
 		#'compiler-macroexpand-pass)
 	#'compile-pass
 	#'make-post-process-obj
+	#'check-stemcells
 	#'post-process-ast
 	#'filter-used-items
-	#'check-stemcells
 	#'gen-in-arg-strings
 	#'gen-out-var-strings
 	#'final-uniform-strings
@@ -398,6 +398,55 @@
 
 ;;----------------------------------------------------------------------
 
+(defclass post-compile-process ()
+  ((code :initarg :code :accessor code)
+   (env :initarg :env :accessor env)
+   (in-args :initarg :in-args :accessor in-args)
+   (out-vars :initarg :out-vars :accessor out-vars)
+   (uniforms :initarg :uniforms :accessor uniforms)
+   (stemcells :initarg :stemcells :accessor stemcells)
+   (used-types :initarg :used-types :accessor used-types)
+   (used-symbol-macros :initarg :used-symbol-macros
+		       :accessor used-symbol-macros)
+   (used-macros :initarg :used-macros :accessor used-macros)
+   (used-compiler-macros :initarg :used-compiler-macros
+			 :accessor used-compiler-macros)
+   (ast :initarg :ast :reader ast)))
+
+(defun make-post-process-obj (code env)
+  (make-instance 'post-compile-process :code code :env env
+		 :used-symbol-macros (dedup-used (used-symbol-macros env))
+		 :used-macros (dedup-used (used-macros env))
+		 :used-compiler-macros (dedup-used (used-compiler-macros env))))
+
+;;----------------------------------------------------------------------
+
+(defun check-stemcells (post-proc-obj)
+  "find any stemcells in the result that that the same name and
+   a different type. Then remove duplicates"
+  (declare (optimize (speed 0) (debug 3)))
+  (with-slots (code) post-proc-obj
+    (let ((stemcells (stemcells code)))
+      (mapcar
+       (lambda (x)
+	 (with-slots (name (string string-name) type flow-id) x
+	   (declare (ignore string flow-id))
+	   (when (find-if (lambda (x)
+			    (with-slots ((iname name) (itype type)) x
+			      (and (equal name iname)
+				     (not (equal type itype)))))
+			  stemcells)
+	     (error "Symbol ~a used with different implied types" name))))
+       ;; {TODO} Proper error here
+       stemcells)
+      (setf (stemcells post-proc-obj)
+	    (remove-duplicates stemcells :test #'equal
+			       :key (lambda (x)
+				      (slot-value x 'name))))
+      post-proc-obj)))
+
+;;----------------------------------------------------------------------
+
 (defun post-process-ast (post-proc-obj)
   (declare (optimize (debug 3) (speed 0)))
   (let ((flow-origin-map (make-hash-table))
@@ -416,15 +465,20 @@
 	     (setf (gethash key val-origin-map) val)))))
 
     (labels ((post-process-node (node walk parent &key replace-args)
+	       ;; we want a new copy as we will be mutating it
 	       (let ((new (copy-ast-node
 			   node
 			   :flow-id (ast-flow-id node)
 			   :parent (gethash parent node-copy-map))))
+		 ;; store the lookup tables with every node
 		 (setf (slot-value new 'flow-id-origins) flow-origin-map
 		       (slot-value new 'val-origins) val-origin-map)
 		 (with-slots (args val-origin flow-id-origin kind) new
+		   ;;    maintain the relationship between this copied
+		   ;;    node and the original
 		   (setf (gethash node node-copy-map) new
-			 ;;
+			 ;; walk the args. OR, if the caller pass it,
+			 ;; walk the replacement args and store them instead
 			 args (mapcar λ(funcall walk _ :parent node)
 				      (or replace-args (ast-args node)))
 			 ;;
@@ -459,36 +513,13 @@
 		  (funcall walk (first (ast-args node)) :parent parent))
 
 		 (t (post-process-node node walk parent)))))
-      (let ((ast (walk-ast #'walk-node (code post-proc-obj)
-			   :include-parent t)))
-	(setf (code post-proc-obj) (copy-code (code post-proc-obj)
-					      :node-tree ast)
-	      (slot-value post-proc-obj 'ast) ast))
+
+      (symbol-macrolet ((code (code post-proc-obj)))
+	(let ((ast (walk-ast #'walk-node code :include-parent t)))
+	  (setf code (copy-code code :node-tree ast)
+		(slot-value post-proc-obj 'ast) ast)))
 
       post-proc-obj)))
-
-;;----------------------------------------------------------------------
-
-(defclass post-compile-process ()
-  ((code :initarg :code :accessor code)
-   (env :initarg :env :accessor env)
-   (in-args :initarg :in-args :accessor in-args)
-   (out-vars :initarg :out-vars :accessor out-vars)
-   (uniforms :initarg :uniforms :accessor uniforms)
-   (stemcells :initarg :stemcells :accessor stemcells)
-   (used-types :initarg :used-types :accessor used-types)
-   (used-symbol-macros :initarg :used-symbol-macros
-		       :accessor used-symbol-macros)
-   (used-macros :initarg :used-macros :accessor used-macros)
-   (used-compiler-macros :initarg :used-compiler-macros
-			 :accessor used-compiler-macros)
-   (ast :initarg :ast :reader ast)))
-
-(defun make-post-process-obj (code env)
-  (make-instance 'post-compile-process :code code :env env
-		 :used-symbol-macros (dedup-used (used-symbol-macros env))
-		 :used-macros (dedup-used (used-macros env))
-		 :used-compiler-macros (dedup-used (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
 
@@ -500,32 +531,6 @@
 	  (loop :for i :in (find-used-user-structs code env)
 	     :collect (type-spec->type i :env env))))
   post-proc-obj)
-
-;;----------------------------------------------------------------------
-
-(defun check-stemcells (post-proc-obj)
-  "find any stemcells in the result that that the same name and
-   a different type. Then remove duplicates"
-  (declare (optimize (speed 0) (debug 3)))
-  (with-slots (code) post-proc-obj
-    (let ((stemcells (stemcells code)))
-      (mapcar
-       (lambda (x)
-	 (with-slots (name (string string-name) type flow-id) x
-	   (declare (ignore string flow-id))
-	   (when (find-if (lambda (x)
-			    (with-slots ((iname name) (itype type)) x
-			      (and (equal name iname)
-				     (not (equal type itype)))))
-			  stemcells)
-	     (error "Symbol ~a used with different implied types" name))))
-       ;; {TODO} Proper error here
-       stemcells)
-      (setf (stemcells post-proc-obj)
-	    (remove-duplicates stemcells :test #'equal
-			       :key (lambda (x)
-				      (slot-value x 'name))))
-      post-proc-obj)))
 
 ;;----------------------------------------------------------------------
 
