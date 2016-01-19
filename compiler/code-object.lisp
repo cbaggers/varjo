@@ -16,7 +16,7 @@
    (out-vars :initarg :out-vars :initform nil :reader out-vars)
    (used-types :initarg :used-types :initform nil :reader used-types)
    (returns :initarg :returns :initform nil :reader returns)
-   (multi-valse :initarg :multi-vals :initform nil :reader multi-vals)
+   (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
@@ -30,6 +30,7 @@
 		to-top out-vars used-types returns multi-vals stemcells
 		out-of-scope-args flow-ids mutations place-tree
 		node-tree)
+  (assert-flow-id-singularity flow-ids)
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
   (unless (or flow-ids (type-doesnt-need-flow-id type))

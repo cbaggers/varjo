@@ -399,6 +399,7 @@
 ;;----------------------------------------------------------------------
 
 (defun post-process-ast (code env)
+  (declare (optimize (debug 3) (speed 0)))
   (let ((flow-origin-map (make-hash-table))
 	(val-origin-map (make-hash-table))
 	(node-copy-map (make-hash-table :test #'eq)))
@@ -417,7 +418,7 @@
     (labels ((post-process-node (node walk parent &key replace-args)
 	       (let ((new (copy-ast-node
 			   node
-			   :flow-id (listify (ast-flow-id node))
+			   :flow-id (ast-flow-id node)
 			   :parent (gethash parent node-copy-map))))
 		 (setf (slot-value new 'flow-id-origins) flow-origin-map
 		       (slot-value new 'val-origins) val-origin-map)

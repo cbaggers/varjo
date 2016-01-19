@@ -248,15 +248,20 @@
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-value-return (code-obj)
-  (copy-code
-   code-obj :type 'v-void
-   :current-line (format nil "return ~a" (current-line code-obj))
-   :returns (cons (code-type code-obj) (multi-vals code-obj))
-   :flow-ids (cons (flow-ids code-obj)
-		   (mapcar (lambda (c) (flow-ids (multi-val-value c)))
-			   (multi-vals code-obj)))
-   :multi-vals nil
-   :place-tree nil))
+  (let ((flow-result
+	 (if (multi-vals code-obj)
+	     (m-flow-id! (cons (flow-ids code-obj)
+			       (mapcar (lambda (c)
+					 (flow-ids (multi-val-value c)))
+				       (multi-vals code-obj))))
+	     (flow-ids code-obj))))
+    (copy-code
+     code-obj :type 'v-void
+     :current-line (format nil "return ~a" (current-line code-obj))
+     :returns (cons (code-type code-obj) (multi-vals code-obj))
+     :flow-ids flow-result
+     :multi-vals nil
+     :place-tree nil)))
 
 
 ;; Used when this is the main stage function

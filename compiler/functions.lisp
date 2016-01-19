@@ -86,7 +86,7 @@
 		  ',name ,transform ',context ',arg-types ',return-spec
 		  :returns-place ',returns-place :glsl-name ',glsl-name
 		  :glsl-spec-matching ',glsl-spec-matching
-		  :flow-ids (list (%gl-flow-id!))
+		  :flow-ids (%gl-flow-id!)
 		  :in-arg-flow-ids
 		  ,(cons 'list (loop :for i :in args :collect '(%gl-flow-id!))))
                  *global-env*)

@@ -64,11 +64,11 @@
 	(flow-id+meta! :return-pos multi-return-position))))
 
 (defun calc-function-return-ids-given-args (func func-name arg-code-objs)
-  (when (> (length (flow-ids func)) 1)
+  (when (typep (flow-ids func) 'multi-return-flow-id)
     (error 'multiple-flow-ids-regular-func func-name func))
   (unless (type-doesnt-need-flow-id (v-return-spec func))
     (%calc-flow-id-given-args (in-arg-flow-ids func)
-			      (first (flow-ids func))
+			      (flow-ids func)
 			      arg-code-objs)))
 
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
@@ -76,15 +76,17 @@
 				(mapcar #'v-type
 					(mapcar #'multi-val-value
 						(multi-return-vars func)))))
-	(flow-ids (flow-ids func)))
-    (if (some #'type-doesnt-need-flow-id all-return-types)
-	(error 'invalid-flow-id-multi-return :func-name func-name
-	       :return-type all-return-types)
-	(mapcar #'(lambda (x i)
-		    (%calc-flow-id-given-args
-		     (in-arg-flow-ids func) x arg-code-objs i))
-		flow-ids
-		(iota (length flow-ids))))))
+	(m-flow-id (flow-ids func)))
+    (assert (typep m-flow-id 'multi-return-flow-id))
+    (let ((flow-ids (m-value-ids m-flow-id)))
+      (if (some #'type-doesnt-need-flow-id all-return-types)
+	  (error 'invalid-flow-id-multi-return :func-name func-name
+		 :return-type all-return-types)
+	  (mapcar #'(lambda (x i)
+		      (%calc-flow-id-given-args
+		       (in-arg-flow-ids func) x arg-code-objs i))
+		  flow-ids
+		  (iota (length flow-ids)))))))
 
 (defun compile-multi-return-function-call (func-name func args env)
   (let* ((type (resolve-func-type func args env)))
@@ -119,7 +121,7 @@
                                      mvals
                                      m-r-names
 				     (rest flow-ids))
-		 :flow-ids (list (first flow-ids))
+		 :flow-ids (first flow-ids)
 		 :place-tree (calc-place-tree func args)
 		 :node-tree :ignored))
 	     (final

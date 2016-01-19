@@ -12,6 +12,15 @@
 ;;----------------------------------------------------------------------
 ;; internals
 
+(defclass multi-return-flow-id ()
+  ((m-value-ids :initform nil :initarg :m-value-ids :reader m-value-ids)))
+
+(defun m-flow-id-p (id)
+  (typep id 'multi-return-flow-id))
+
+(defun flow-id-p (id)
+  (typep id 'flow-identifier))
+
 (defclass flow-identifier ()
   ((ids :initform nil :initarg :ids :reader ids)))
 
@@ -49,6 +58,12 @@
 ;;----------------------------------------------------------------------
 ;; construction
 
+(defun m-flow-id! (flow-ids)
+  (assert (and (listp flow-ids)
+	       (every #'flow-id-p flow-ids)))
+  (make-instance 'multi-return-flow-id
+		 :m-value-ids flow-ids))
+
 (defun flow-id! (&rest ids)
   (let ((ids (remove nil ids)))
     (labels ((key (_) (slot-value _ 'val)))
@@ -78,6 +93,7 @@
       (eq type :void)
       (eq type :none)))
 
+
 ;;----------------------------------------------------------------------
 ;; inspection
 
@@ -95,3 +111,7 @@
     (unless (or (null id-a) (null id-b))
       (equal (sort (copy-list (ids id-a)) #'< :key #'key)
 	     (sort (copy-list (ids id-b)) #'< :key #'key)))))
+
+(defun assert-flow-id-singularity (flow-id)
+  (assert (or (null flow-id)
+	      (not (listp flow-id)))))

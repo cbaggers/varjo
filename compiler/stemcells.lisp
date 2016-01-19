@@ -56,7 +56,7 @@
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
 			      flow-id))
      :node-tree (ast-node! :get-stemcell symbol nil flow-id env env)
-     :flow-ids (list flow-id))))
+     :flow-ids flow-id)))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

@@ -1,5 +1,7 @@
 ;;;; package.lisp
 
+(proclaim '(optimize (debug 3)))
+
 (defpackage #:varjo-lang
   (:use #:cl)
   (:export

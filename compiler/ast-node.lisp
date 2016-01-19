@@ -16,6 +16,10 @@
    (val-origins :initarg :val-origins :initform :incomplete)
    (flow-id-origins :initarg :flow-id-origins :initform :incomplete)))
 
+(defmethod initialize-instance :after ((ast ast-node) &rest initargs)
+  (declare (ignore initargs))
+  (assert-flow-id-singularity (ast-flow-id ast)))
+
 (defmethod get-var (var-name (node ast-node))
   (get-var var-name (ast-starting-env node)))
 
@@ -91,9 +95,14 @@ context is implicit"))
 
 	     (f-origin (val-id fcall-node)
 	       (let* ((func (ast-kind fcall-node))
-		      (return-pos (slot-value val-id 'return-pos)))
-		 (mapcar λ(get-seen (slot-value _ 'val) t)
-			 (ids (nth return-pos (flow-ids func))))))
+		      (flow-result (flow-ids func)))
+		 (if (m-flow-id-p flow-result)
+		     (let ((return-pos (slot-value val-id 'return-pos)))
+		       (mapcar λ(get-seen (slot-value _ 'val) t)
+			       (ids (nth return-pos
+					 (m-value-ids flow-result)))))
+		     (mapcar λ(get-seen (slot-value _ 'val) t)
+		       (ids flow-result)))))
 
 	     (per-id (val-id node)
 	       (let ((raw (slot-value val-id 'val)))
