@@ -169,7 +169,9 @@
 		    :flow-ids flow-ids
 		    :node-tree (if value-form
 				   (node-tree value-obj)
-				   :ignored))
+				   :ignored)
+		    :stemcells (append (stemcells let-obj)
+				       (stemcells value-obj)))
 	 (add-var name
 		  (v-make-value (or type-spec (code-type value-obj))
 				env

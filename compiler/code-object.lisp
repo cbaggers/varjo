@@ -29,7 +29,7 @@
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
 		to-top out-vars used-types returns multi-vals stemcells
 		out-of-scope-args flow-ids mutations place-tree
-		node-tree )
+		node-tree)
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
