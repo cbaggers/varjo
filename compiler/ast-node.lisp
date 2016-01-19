@@ -200,7 +200,6 @@ context is implicit"))
 
 (defun filter-&-func (node filter-func-pairs
 		      set-seen has-been-seen)
-  "run each filter, it it returns true"
   (let ((has-changed nil))
     (labels ((ff (accum pair)
 	       (dbind (filter func) pair

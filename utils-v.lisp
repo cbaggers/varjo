@@ -4,6 +4,11 @@
   (concatenate 'list list (list thing)))
 
 (defun listify (x) (if (listp x) x (list x)))
+(defun delistify (x) (if (listp x)
+			 (progn
+			   (assert (= (length x) 1))
+			   (first x))
+			 x))
 
 (defun lambda-list-get-names (l-list)
   (let ((keywords '(&allow-other-keys &environment &rest &aux &key &whole &body

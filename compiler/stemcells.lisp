@@ -17,17 +17,34 @@
 
 (defun add-type-to-stemcell-code (code-obj type-name)
   (assert (stemcellp (code-type code-obj)))
-  (let ((type (type-spec->type type-name)))
+  (let ((type (type-spec->type type-name))
+	(stemcells (stemcells code-obj)))
+    (assert (= 1 (length stemcells)))
     (copy-code code-obj
                :type type
-               :stemcells (let ((stemcell (first (stemcells code-obj))))
-                            `((,(first stemcell)
-                                ,(second stemcell)
-                                ,type-name))))))
+               :stemcells (with-slots (name string-name flow-id)
+			      (first stemcells)
+			    (list (stemcell! name
+					     string-name
+					     type-name
+					     flow-id))))))
 
 (def-v-type-class v-stemcell (v-type) ())
 
 (defmethod v-dimensions ((object v-stemcell)) 0)
+
+(defclass stemcell ()
+  ((name :initarg :name)
+   (string-name :initarg :string-name)
+   (type :initarg :type)
+   (flow-id :initarg :flow-id)))
+
+(defun stemcell! (original-name string-name type flow-id)
+  (make-instance 'stemcell
+		 :name original-name
+		 :string-name string-name
+		 :type type
+		 :flow-id flow-id))
 
 (defun make-stem-cell (symbol env)
   (let* ((string-name (string (safe-glsl-name-string symbol)))
@@ -36,9 +53,10 @@
     (code!
      :type 'v-stemcell
      :current-line string-name
-     :stemcells `((,original-name ,string-name :|unknown-type|))
+     :stemcells `(,(stemcell! original-name string-name :|unknown-type|
+			      flow-id))
      :node-tree (ast-node! :get-stemcell symbol nil flow-id env env)
-     :flow-ids flow-id)))
+     :flow-ids (list flow-id))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

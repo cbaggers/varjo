@@ -501,22 +501,27 @@
 ;;----------------------------------------------------------------------
 
 (defun check-stemcells (post-proc-obj)
+  "find any stemcells in the result that that the same name and
+   a different type. Then remove duplicates"
+  (declare (optimize (speed 0) (debug 3)))
   (with-slots (code) post-proc-obj
     (let ((stemcells (stemcells code)))
       (mapcar
        (lambda (x)
-	 (dbind (name string type) x
-	   (declare (ignore string))
-	   (when (remove-if-not (lambda (x)
-				  (and (equal name (first x))
-				       (not (equal type (third x)))))
-				stemcells)
+	 (with-slots (name (string string-name) type flow-id) x
+	   (declare (ignore string flow-id))
+	   (when (find-if (lambda (x)
+			    (with-slots ((iname name) (itype type)) x
+			      (and (equal name iname)
+				     (not (equal type itype)))))
+			  stemcells)
 	     (error "Symbol ~a used with different implied types" name))))
        ;; {TODO} Proper error here
        stemcells)
       (setf (stemcells post-proc-obj)
 	    (remove-duplicates stemcells :test #'equal
-			       :key #'first))
+			       :key (lambda (x)
+				      (slot-value x 'name))))
       post-proc-obj)))
 
 ;;----------------------------------------------------------------------
@@ -585,6 +590,7 @@
 ;;----------------------------------------------------------------------
 
 (defun final-uniform-strings (post-proc-obj)
+  (declare (optimize (debug 3) (speed 0)))
   (with-slots (code env) post-proc-obj
     (let ((final-strings nil)
 	  (structs (used-types post-proc-obj))
@@ -607,21 +613,22 @@
 			       :key #'type->type-spec :test #'equal)))
 	   (push type-obj structs)))
 
-      (loop :for (name string-name type) :in (stemcells post-proc-obj) :do
-	 (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
-	 (let ((type-obj (type-spec->type type)))
-	   (push `(,name ,type
-			 ,(gen-uniform-decl-string
-			   (or string-name (error "stem cell without glsl-name"))
-			   type-obj
-			   nil)
-			 ,string-name)
-		 implicit-uniforms)
+      (loop :for s :in (stemcells post-proc-obj) :do
+	 (with-slots (name string-name type) s
+	   (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
+	   (let ((type-obj (type-spec->type type)))
+	     (push `(,name ,type
+			   ,(gen-uniform-decl-string
+			     (or string-name (error "stem cell without glsl-name"))
+			     type-obj
+			     nil)
+			   ,string-name)
+		   implicit-uniforms)
 
-	   (when (and (v-typep type-obj 'v-user-struct)
-		      (not (find (type->type-spec type-obj) structs
-				 :key #'type->type-spec :test #'equal)))
-	     (push type-obj structs))))
+	     (when (and (v-typep type-obj 'v-user-struct)
+			(not (find (type->type-spec type-obj) structs
+				   :key #'type->type-spec :test #'equal)))
+	       (push type-obj structs)))))
 
       (setf (used-types post-proc-obj) structs)
       (setf (uniforms post-proc-obj) final-strings)
