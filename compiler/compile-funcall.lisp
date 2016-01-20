@@ -27,13 +27,14 @@
     (assert new-env)
     (values code-obj new-env)))
 
-
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
     (let ((i (v-place-index func)))
       (cons (list func (elt args i)) (place-tree (elt args i))))))
 
-(defun compile-regular-function-call (func-name func args env)
+(defun compile-regular-function-call (func-name func args env
+				      ;; &optional retain-mvals
+					)
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
 	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
@@ -46,10 +47,24 @@
 		       :signatures (mapcan #'signatures args)
 		       :stemcells (mapcan #'stemcells args)
 		       :flow-ids flow-ids
+		       :multi-vals (when (v-multi-val-safe env)
+				     (handle-regular-function-mvals args))
 		       :place-tree (calc-place-tree func args)
 		       :node-tree (ast-node! func (mapcar #'node-tree args)
 					     type flow-ids env env))
 	    env)))
+
+(defun handle-regular-function-mvals (args)
+  ;; ok so by getting here a few things are true:
+  ;; - we were compiling a regular function which usually stops 'values
+  ;;   from propagating up the stack
+  ;; - someone is subverting this by using the 'value-safe special-form.
+  ;;   let's hope they know what they are doing :p
+  ;; - we now have to work out the mvals for a regular function.
+  (let ((count (count-if #'multi-vals args)))
+    (cond ((> count 1) (error 'values-safe-wasnt-safe :args args))
+	  ((= count 1) (multi-vals (find-if #'multi-vals args)))
+	  (t nil))))
 
 ;;----------------------------------------------------------------------
 

@@ -61,30 +61,37 @@
 	((v-read-only old-val)
 	 (error 'setq-readonly :code `(setq ,var-name ,new-val-code)
 		:var-name var-name))
-	((not (v-type-eq (v-type old-val) (code-type new-val)))
-	 (error 'setq-type-match :var-name var-name :old-value old-val
-		:new-value new-val))
 	((and (not (= (v-function-scope old-val) (v-function-scope env)))
 	      (> (v-function-scope old-val) 0)) ;; ok if var is global
 	 (error 'cross-scope-mutate :var-name var-name
-		:code `(setq ,var-name ,new-val-code)))
-	(t (let ((final-env (replace-flow-ids var-name old-val
-					      (flow-ids new-val)
-					      old-env env)))
-	     (values (copy-code new-val :type (code-type new-val)
-				:current-line (gen-setq-assignment-string
-					       old-val new-val)
-				:flow-ids (flow-ids new-val)
-				:multi-vals nil
-				:place-tree nil
-				:node-tree (ast-node! 'setq
-						      (list var-name
-							    (node-tree new-val))
-						      (code-type new-val)
-						      (flow-ids new-val)
-						      env
-						      final-env))
-		     final-env)))))))
+		:code `(setq ,var-name ,new-val-code))))
+
+      (let ((actual-type (get-setq-type new-val old-val var-name))
+	    (final-env (replace-flow-ids var-name old-val
+					 (flow-ids new-val)
+					 old-env env)))
+	(values (copy-code new-val :type actual-type
+			   :current-line (gen-setq-assignment-string
+					  old-val new-val)
+			   :flow-ids (flow-ids new-val)
+			   :multi-vals nil
+			   :place-tree nil
+			   :node-tree (ast-node! 'setq
+						 (list var-name
+						       (node-tree new-val))
+						 actual-type
+						 (flow-ids new-val)
+						 env
+						 final-env))
+		final-env)))))
+
+(defun get-setq-type (new-val old-val var-name)
+  (restart-case (if (v-type-eq (v-type old-val) (code-type new-val))
+		    (code-type new-val)
+		    (error 'setq-type-match :var-name var-name
+			   :old-value old-val :new-value new-val))
+    (setq-supply-alternate-type (replacement-type-spec)
+      (type-spec->type replacement-type-spec))))
 
 (defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
   (labels ((w (n)
@@ -156,6 +163,30 @@
 				    (flow-ids merged)
 				    env final-env))
 	     final-env)))))))
+
+(v-defspecial varjo-lang:values-safe (form)
+  ;; this special-form executes the form without destroying
+  ;; the multi-return 'values' travalling up the stack.
+  ;; Progn is implictly values-safe, but * isnt by default.
+  ;;
+  ;; it will take the values from whichever argument has them
+  ;; if two of the arguments have them then values-safe throws
+  ;; an error
+  :args-valid t
+  :return
+  (let ((safe-env (fresh-environment
+		   env :multi-val-base (v-multi-val-base env)
+		   :multi-val-safe t)))
+    (vbind (c e) (compile-list-form form safe-env)
+      (let* ((final-env (fresh-environment e :multi-val-safe nil))
+	     (ast (ast-node! 'varjo-lang:values-safe
+			     (list (node-tree c))
+			     (code-type c)
+			     (flow-ids c)
+			     env
+			     final-env)))
+	(values (copy-code c :node-tree ast)
+		final-env)))))
 
 (v-defspecial values (&rest values)
   :args-valid t
@@ -407,7 +438,6 @@
 						    func-def-objs))
 				(node-tree body-obj))
 			  (code-type body-obj) (flow-ids merged) env env)))
-      (print ast)
       (values (copy-code merged :node-tree ast)
 	      e))))
 

@@ -73,6 +73,7 @@
    :while
    :swizzle
    :%break
+   :values-safe
 
    ;; macros in special.lisp
    :s~

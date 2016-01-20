@@ -43,6 +43,8 @@
     :initform nil :initarg :compiler-macros :reader v-compiler-macros)
    (multi-val-base
     :initform nil :initarg :multi-val-base :reader v-multi-val-base)
+   (multi-val-safe
+    :initform nil :initarg :multi-val-safe :reader v-multi-val-safe)
    (function-scope
     :initform 0 :initarg :function-scope :reader v-function-scope)))
 
@@ -180,7 +182,8 @@
 (defun fresh-environment (env &key context function-scope
 				functions macros symbol-macros
 				compiler-macros variables
-				(multi-val-base nil set-mvb))
+				(multi-val-base nil set-mvb)
+				multi-val-safe)
   (assert (typep env 'environment))
   (make-instance 'environment
 		 :variables variables
@@ -192,6 +195,7 @@
 		 :multi-val-base (if set-mvb
 				     multi-val-base
 				     (v-multi-val-base env))
+		 :multi-val-safe multi-val-safe
                  :function-scope (or function-scope (v-function-scope env))
 		 :parent-env env))
 

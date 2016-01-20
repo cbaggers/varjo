@@ -160,10 +160,19 @@
    (func :initarg :func :reader func)
    (arguments :initarg :arguments :reader arguments)))
 
-;; [TODO] catch cannot-compiler errors only here
-;; {TODO} wat. seriously past-me what did that mean?
 (defun try-compile-arg (arg env)
-  (let ((env (fresh-environment env :multi-val-base nil)))
+  ;; This let is important
+  ;; By setting :multi-val-base to nil you stop 'values forms
+  ;; deeper in the code seeing that the can return. This is how
+  ;; the CL values logic works (values cant pass through function calls)
+  ;; however the 'values-safe special form allow you to get around that
+  ;; for one function call by setting multi-val-safe to true.
+  (let* ((mval-base (when (v-multi-val-safe env)
+		      (v-multi-val-base env)))
+	 ;; we dont have to set :multi-val-safe explicitly here
+	 ;; as it will be nil regardless, but I like it as documentation
+	 (env (fresh-environment env :multi-val-base mval-base
+				 :multi-val-safe nil)))
     (handler-case (compile-form arg env)
       (varjo-error (e) (make-code-obj
 			(make-instance 'v-error :payload e) ""

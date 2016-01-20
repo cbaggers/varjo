@@ -305,3 +305,14 @@ please report it on github")
 (deferror invalid-env-vars  (:error-type varjo-critical-error) (vars)
     "Attepted to create an environment which has invalid variable data:
 ~s" vars)
+
+(deferror values-safe-wasnt-safe (:error-type varjo-critical-error) (args)
+    "the 'value-safe special form has been used. However the target function it
+was run against had more than one argument with multi-value returns.
+This is an illegal configuration. If you did not use the 'values-safe form in
+your code knowingly, then contact the maintainer of the library that triggered
+this. It is certainly a bug on their end.
+
+Compiled Args:
+~{~s~%~}"
+  args)
