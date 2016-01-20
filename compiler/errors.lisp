@@ -106,7 +106,12 @@
 
 (deferror setq-type-match (:error-type varjo-critical-error)
     (var-name old-value new-value)
-    "Currently varjo cannot handle changing the type through a setq due to the static nature of glsl.~%var name: ~a (type-of ~a): ~a  (type-of new-value): ~a"
+    "Currently varjo cannot handle changing the type through a setq
+due to the static nature of glsl.
+
+var name: ~a
+type-of ~a: ~a
+type-of new-value: ~a"
   var-name var-name (v-type old-value) (code-type new-value))
 
 (deferror cannot-not-shadow-core () ()
