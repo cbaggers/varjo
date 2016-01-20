@@ -39,14 +39,14 @@
       (v! 0 0 0 0))))
 
 (deftest build-5 ()
-  (signals varjo::could-not-find-function
+  (signals varjo-conditions:could-not-find-function
     (defshader test ()
       (labels ((test () 1))
 	(test))
       (v! 0 (test) 0 0))))
 
 (deftest build-6 ()
-  (signals varjo::symbol-unidentified
+  (signals varjo-conditions:symbol-unidentified
     (defshader test ()
       (let ((x 1)
 	    (y 2))
@@ -67,7 +67,7 @@
 	  (v! 0 (test) 0 0))))))
 
 (deftest build-9 ()
-  (signals varjo::setq-type-match
+  (signals varjo-conditions:setq-type-match
     (defshader test ()
       ())))
 

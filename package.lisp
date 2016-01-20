@@ -206,9 +206,82 @@
    :texture-proj-offset
    :texture-size))
 
+(defpackage #:varjo-conditions
+  (:use #:cl)
+  (:shadowing-import-from :varjo-lang :clamp :switch)
+  (:export :missing-function-error
+	   :problem-with-the-compiler
+	   :cannot-compile
+	   :invalid-form-list
+	   :no-function-returns
+	   :not-core-type-error
+	   :invalid-function-return-spec
+	   :unknown-type-spec
+	   :duplicate-name
+	   :clone-global-env-error
+	   :clean-global-env-error
+	   :could-not-find-function
+	   :could-not-find-any
+	   :no-valid-function
+	   :return-type-mismatch
+	   :non-place-assign
+	   :setq-readonly
+	   :setf-readonly
+	   :setf-type-match
+	   :setq-type-match
+	   :cannot-not-shadow-core
+	   :out-var-name-taken
+	   :unknown-variable-type
+	   :var-type-mismatch
+	   :switch-type-error
+	   :loop-will-never-halt
+	   :for-loop-simple-expression
+	   :for-loop-only-one-var
+	   :invalid-for-loop-type
+	   :no-version-in-context
+	   :name-unsuitable
+	   :unable-to-resolve-func-type
+	   :out-var-type-mismatch
+	   :fake-type-global
+	   :invalid-context-symbol
+	   :args-incompatible
+	   :invalid-shader-stage
+	   :swizzle-keyword
+	   :multi-func-stemcells
+	   :uniform-in-sfunc
+	   :invalid-v-defun-template
+	   :keyword-in-function-position
+	   :invalid-symbol-macro-form
+	   :stage-order-error
+	   :multi-val-bind-mismatch
+	   :merge-env-func-scope-mismatch
+	   :merge-env-parent-mismatch
+	   :env-parent-context-mismatch
+	   :symbol-unidentified
+	   :if-form-type-mismatch
+	   :bad-make-function-args
+	   :none-type-in-out-vars
+	   :body-block-empty
+	   :flow-ids-mandatory
+	   :flow-id-must-be-specified-vv
+	   :flow-id-must-be-specified-co
+	   :multiple-flow-ids-regular-func
+	   :if-branch-type-mismatch
+	   :if-test-type-mismatch
+	   :cross-scope-mutate
+	   :illegal-implicit-args
+	   :invalid-flow-id-multi-return
+	   :loop-flow-analysis-failure
+	   :invalid-env-vars
+	   :values-safe-wasnt-safe
+
+	   ;; restarts
+	   :setq-supply-alternate-type
+	   ))
+
 (defpackage #:varjo
   (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre
-	#:named-readtables #:structy-defclass)
+	#:named-readtables #:structy-defclass #:varjo-conditions)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :v-glsl-size
            :v-casts-to-p
@@ -368,6 +441,8 @@
 
 	   ;;environment
 	   :get-var
+	   :get-base-env
+	   :get-primitive-type-from-context
 
 	   ;; ast
 	   :ast-node
@@ -401,6 +476,8 @@
            ;;compiler
            :compile-form
            :with-stemcell-infer-hook
+	   :safe-glsl-name-string
+	   :with-v-arg
 
            ;;front-end
            :translate

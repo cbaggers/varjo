@@ -65,64 +65,64 @@
 			 :third-party-metadata)))
 
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
-  (with-slots (stemcell->flow-id) (%get-base-env e)
+  (with-slots (stemcell->flow-id) (get-base-env e)
     (or (assocr stem-cell-symbol stemcell->flow-id)
 	(let ((flow-id (flow-id!)))
 	  (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
 	  flow-id))))
 
 (defmethod push-non-implicit-function-for-dedup (code func (e environment))
-  (push (cons code func) (slot-value (%get-base-env e) 'function-dedup)))
+  (push (cons code func) (slot-value (get-base-env e) 'function-dedup)))
 
 (defmethod dedup-function (code (e environment))
-  (cdr (find code (slot-value (%get-base-env e) 'function-dedup)
+  (cdr (find code (slot-value (get-base-env e) 'function-dedup)
 	     :key #'car :test #'equal)))
 
 (defmethod used-symbol-macros ((e environment))
-  (slot-value (%get-base-env e) 'used-symbol-macros))
+  (slot-value (get-base-env e) 'used-symbol-macros))
 
 (defmethod used-macros ((e environment))
-  (slot-value (%get-base-env e) 'used-macros))
+  (slot-value (get-base-env e) 'used-macros))
 
 (defmethod used-compiler-macros ((e environment))
-  (slot-value (%get-base-env e) 'used-compiler-macros))
+  (slot-value (get-base-env e) 'used-compiler-macros))
 
 ;; ugh
 (defmethod (setf used-symbol-macros) (val (e environment))
-  (setf (slot-value (%get-base-env e) 'used-symbol-macros)
+  (setf (slot-value (get-base-env e) 'used-symbol-macros)
 	val))
 
 (defmethod (setf used-macros) (val (e environment))
-  (setf (slot-value (%get-base-env e) 'used-macros)
+  (setf (slot-value (get-base-env e) 'used-macros)
 	val))
 
 (defmethod (setf used-compiler-macros) (val (e environment))
-  (setf (slot-value (%get-base-env e) 'used-compiler-macros)
+  (setf (slot-value (get-base-env e) 'used-compiler-macros)
 	val))
 
-(defun %get-base-env (env)
+(defun get-base-env (env)
   (let ((parent (v-parent-env env)))
     (if (not (eq parent *global-env*))
-	(%get-base-env parent)
+	(get-base-env parent)
 	env)))
 
 (defmethod v-code-cache ((env environment))
-  (v-code-cache (%get-base-env env)))
+  (v-code-cache (get-base-env env)))
 
 (defmethod v-raw-in-args ((env environment))
-  (v-raw-in-args (%get-base-env env)))
+  (v-raw-in-args (get-base-env env)))
 
 (defmethod v-raw-uniforms ((env environment))
-  (v-raw-uniforms (%get-base-env env)))
+  (v-raw-uniforms (get-base-env env)))
 
 (defmethod v-raw-context ((env environment))
-  (v-raw-context (%get-base-env env)))
+  (v-raw-context (get-base-env env)))
 
 (defmethod v-in-args ((env environment))
-  (v-in-args (%get-base-env env)))
+  (v-in-args (get-base-env env)))
 
 (defmethod v-uniforms ((env environment))
-  (v-uniforms (%get-base-env env)))
+  (v-uniforms (get-base-env env)))
 
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
@@ -327,7 +327,7 @@
        :compiler-macros (%merge-env-lists a-cmacros b-cmacros)))))
 
 (defun %merge-env-lists (a b)
-  (reduce #'varjo::%merge-env-lists-item b :initial-value a))
+  (reduce #'%merge-env-lists-item b :initial-value a))
 
 (defun %merge-env-lists-item (a item-to-insert)
   "if item is in A then append its entry to item in A"

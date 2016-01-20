@@ -8,8 +8,8 @@
 ;;   (a v-float)
 ;;   (to-long-to-blah v-int :accessor b))
 
-(defun true-type-name (name) (symb 'varjo::true_ name))
-(defun fake-type-name (name) (symb 'varjo::fake_ name))
+(defun true-type-name (name) (symb 'true_ name))
+(defun fake-type-name (name) (symb 'fake_ name))
 
 (defgeneric v-true-type (object))
 (defgeneric v-fake-type (object))

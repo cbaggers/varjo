@@ -97,10 +97,10 @@
 	      (or tp-meta (make-hash-table))))))
 
 
-(defmacro with-arg ((&optional (name (gensym "name")) (type (gensym "type"))
-                                  (qualifiers (gensym "qualifiers"))
-                                  (glsl-name (gensym "glsl-name")))
-                          arg-form &body body)
+(defmacro with-v-arg ((&optional (name (gensym "name")) (type (gensym "type"))
+				 (qualifiers (gensym "qualifiers"))
+				 (glsl-name (gensym "glsl-name")))
+			 arg-form &body body)
   (let ((qn (gensym "qn")))
     `(destructuring-bind (,name ,type . ,qn) ,arg-form
        (declare (ignorable ,name ,type))
@@ -110,8 +110,8 @@
          ,@body))))
 
 (defun %merge-in-arg (previous current)
-  (with-arg (c-name c-type c-qual c-glsl-name) current
-    (with-arg (p-name p-type p-qual p-glsl-name) previous
+  (with-v-arg (c-name c-type c-qual c-glsl-name) current
+    (with-v-arg (p-name p-type p-qual p-glsl-name) previous
       `(,c-name
         ,(or c-type p-type)
         ,@(union c-qual p-qual)
@@ -155,7 +155,7 @@
           (remove (extract-stage-type stage) context)))))
 
 (defun in-arg-qualifiers (in-arg)
-  (with-arg (_ _1 q) in-arg q))
+  (with-v-arg (_ _1 q) in-arg q))
 
 (defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
   (let ((pq (in-arg-qualifiers prev-stage-in-arg))
@@ -274,7 +274,7 @@
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for in-arg :in in-args :do
-       (with-arg (name type qualifiers declared-glsl-name) in-arg
+       (with-v-arg (name type qualifiers declared-glsl-name) in-arg
          (let* ((type-obj (type-spec->type type))
                 (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
            (if (typep type-obj 'v-struct)
@@ -294,7 +294,7 @@
   (let ((uniforms (v-raw-uniforms env)))
     (mapcar
      (lambda (_)
-       (with-arg (name type qualifiers glsl-name) _
+       (with-v-arg (name type qualifiers glsl-name) _
          (case-member qualifiers
            (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
            (:fake (process-fake-uniform name glsl-name type qualifiers env))
@@ -457,7 +457,7 @@
     (labels ((uniform-raw (val)
 	       (slot-value (first (ids (first (listify (flow-ids val)))))
 			   'val)))
-      (let ((env (%get-base-env (env post-proc-obj))))
+      (let ((env (get-base-env (env post-proc-obj))))
 	(loop :for (name % %1) :in (v-uniforms env) :do
 	   (let ((key (uniform-raw (get-var name env)))
 		 (val (make-uniform-origin :name name)))
@@ -613,7 +613,7 @@
 	 :for type-obj = (type-spec->type type) :do
 	 (push `(,name ,type
 		       ,(if (member :ubo qualifiers)
-			    (varjo::write-interface-block
+			    (write-interface-block
 			     :uniform (or glsl-name (safe-glsl-name-string name))
 			     (v-slots type-obj))
 			    (gen-uniform-decl-string
@@ -673,7 +673,7 @@
 (defun code-obj->result-object (final-glsl-code post-proc-obj)
   (with-slots (env) post-proc-obj
     (let* ((context (process-context-for-result (v-context env)))
-	   (base-env (%get-base-env env)))
+	   (base-env (get-base-env env)))
       (make-instance
        'varjo-compile-result
        :glsl-code final-glsl-code
