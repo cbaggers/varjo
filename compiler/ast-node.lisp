@@ -163,13 +163,18 @@ context is implicit"))
   (assert (if (keywordp kind)
 	      (member kind *node-kinds*)
 	      t))
-  (make-instance 'ast-node
-		 :kind kind
-		 :args (listify args)
-		 :return-type return-type
-		 :flow-id flow-id
-		 :starting-env starting-env
-		 :ending-env ending-env))
+  (let ((return-type (if (and return-type
+			      (or (listp return-type)
+				  (symbolp return-type)))
+			 (type-spec->type return-type)
+			 return-type)))
+    (make-instance 'ast-node
+		   :kind kind
+		   :args (listify args)
+		   :return-type return-type
+		   :flow-id flow-id
+		   :starting-env starting-env
+		   :ending-env ending-env)))
 
 (defun copy-ast-node (node
 		      &key
