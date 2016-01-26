@@ -461,6 +461,7 @@
 	   :filter-ast-nodes
 	   :walk-ast
 	   :ast->code
+	   :ast-deep-replace
 	   :ast-starting-env
 	   :ast-ending-env
 	   :ast-kind
