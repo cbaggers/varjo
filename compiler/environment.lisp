@@ -586,8 +586,8 @@
        (when c
 	 (setf (gethash new-name *global-env-compiler-macros*)
 	       (gethash existing-name *global-env-compiler-macros*))))
-      (m (print (setf (gethash new-name *global-env-macros*)
-		 (gethash existing-name *global-env-macros*))))
+      (m (setf (gethash new-name *global-env-macros*)
+	       (gethash existing-name *global-env-macros*)))
       (t (error 'could-not-find-any :name existing-name))))
   new-name)
 
