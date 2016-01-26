@@ -60,7 +60,7 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (returns-place :initform nil :initarg :returns-place :reader v-place-index)
+   (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
    (glsl-spec-matching :initform nil :initarg :glsl-spec-matching
                        :reader v-glsl-spec-matchingp)
    (multi-return-vars :initform nil :initarg :multi-return-vars

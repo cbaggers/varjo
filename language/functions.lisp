@@ -19,8 +19,8 @@
 ;; (V-DEFUN INT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "intBitsToFloat(~a)" (TI) &)
 ;; (V-DEFUN UINT-BITS-TO-FLOAT (VALUE &CONTEXT (:330 :440)) "uintBitsToFloat(~a)" (TF) &)
 
-(v-defun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :returns-place 0)
-(v-defun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :returns-place 0)
+(v-defun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
+(v-defun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :v-place-index 0)
 
 (v-defun break () "break" () v-void :glsl-spec-matching t)
 

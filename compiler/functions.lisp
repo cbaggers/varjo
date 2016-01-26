@@ -13,15 +13,15 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defun v-make-f-spec (name transform context arg-types return-spec
-                      &key returns-place glsl-spec-matching glsl-name
+                      &key v-place-index glsl-spec-matching glsl-name
                         multi-return-vars implicit-args flow-ids
 			in-arg-flow-ids)
-  (list transform arg-types return-spec context returns-place glsl-spec-matching
+  (list transform arg-types return-spec context v-place-index glsl-spec-matching
         glsl-name multi-return-vars name implicit-args flow-ids
 	in-arg-flow-ids))
 
 (defun %func-spec->function (spec env userp)
-  (destructuring-bind (transform arg-spec return-spec context returns-place
+  (destructuring-bind (transform arg-spec return-spec context v-place-index
                                  glsl-spec-matching glsl-name
                                  multi-return-vars name
                                  implicit-args flow-ids
@@ -36,7 +36,7 @@
                    :return-spec (if (type-specp return-spec)
                                     (type-spec->type return-spec :env env)
                                     return-spec)
-                   :restriction context :returns-place returns-place
+                   :restriction context :v-place-index v-place-index
                    :glsl-spec-matching glsl-spec-matching
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
@@ -61,7 +61,7 @@
                    (if (type-specp (v-return-spec func))
                        (type->type-spec (v-return-spec func))
                        (v-return-spec func))
-                   :returns-place (v-place-index func)
+                   :v-place-index (v-place-index func)
                    :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
@@ -79,12 +79,12 @@
       (unless (stringp (first body))
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
-                                     &key returns-place glsl-spec-matching glsl-name) body
+                                     &key v-place-index glsl-spec-matching glsl-name) body
         `(progn (add-function
                  ',name
                  (v-make-f-spec
 		  ',name ,transform ',context ',arg-types ',return-spec
-		  :returns-place ',returns-place :glsl-name ',glsl-name
+		  :v-place-index ',v-place-index :glsl-name ',glsl-name
 		  :glsl-spec-matching ',glsl-spec-matching
 		  :flow-ids (%gl-flow-id!)
 		  :in-arg-flow-ids
@@ -104,7 +104,7 @@
                                    (when rest (cons '&rest rest))
                                    (when rest (cons '&optional optional)))))
           (func-name (symb :vs- name)))
-      (destructuring-bind (&key context returns-place args-valid return) body
+      (destructuring-bind (&key context v-place-index args-valid return) body
         (cond
           ((eq args-valid t)
            `(progn
@@ -118,7 +118,7 @@
                              ',context
                              t
                              #',func-name
-                             :returns-place ',returns-place)
+                             :v-place-index ',v-place-index)
                             *global-env*)
               ',name))
           (args-valid
@@ -135,7 +135,7 @@
                                (declare (ignorable env ,@arg-names))
                                (let ((res ,args-valid))
                                  (when res (list res 0))))
-                             :returns-place ',returns-place)
+                             :v-place-index ',v-place-index)
                             *global-env*)
               ',name))
           (t `(progn
@@ -149,7 +149,7 @@
                                ',context
                                ',(mapcar #'second args)
                                #',func-name
-                               :returns-place ',returns-place)
+                               :v-place-index ',v-place-index)
                               *global-env*)
                 ',name)))))))
 

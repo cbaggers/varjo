@@ -47,7 +47,7 @@
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
                     (loop :for slot :in slots :collect "~a"))
            ,(loop :for slot :in slots :collect (second slot))
-           ,true-type-name :returns-place nil)
+           ,true-type-name :v-place-index nil)
          ,@(make-struct-accessors name true-type-name context slots)
          ',name))))
 
@@ -58,7 +58,7 @@
        `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
           ,(concatenate 'string "~a." (safe-glsl-name-string
                                        (or accessor slot-name)))
-          (,true-type-name) ,slot-type :returns-place t))))
+          (,true-type-name) ,slot-type :v-place-index 0))))
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
@@ -90,7 +90,7 @@
                                   fake-slot-name
                                   nil ;; {TODO} Must be context
                                   (list fake-type)
-                                  slot-type :returns-place nil) env) env)
+                                  slot-type :v-place-index nil) env) env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (%add-var in-var-name
@@ -115,7 +115,7 @@
                                   fake-slot-name
                                   nil ;; {TODO} Must be context
                                   (list fake-type)
-                                  slot-type :returns-place nil) env) env)
+                                  slot-type :v-place-index nil) env) env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (%add-var uniform-name

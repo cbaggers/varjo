@@ -32,9 +32,7 @@
     (let ((i (v-place-index func)))
       (cons (list func (elt args i)) (place-tree (elt args i))))))
 
-(defun compile-regular-function-call (func-name func args env
-				      ;; &optional retain-mvals
-					)
+(defun compile-regular-function-call (func-name func args env)
   (let* ((c-line (gen-function-string func args))
          (type (resolve-func-type func args env))
 	 (flow-ids (calc-function-return-ids-given-args func func-name args)))
