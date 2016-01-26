@@ -4,6 +4,16 @@
 
 (defpackage #:varjo-lang
   (:use #:cl)
+  (:import-from :cl-game-math.base-vectors
+		:v!)
+  (:import-from :cl-game-math.base-matrices
+		:m!)
+  (:import-from :cl-game-math.vectors
+		:swizzle
+		:s~
+		:dot
+		:normalize
+		:cross)
   (:export
    ;; variables
    :gl-max-clip-distances

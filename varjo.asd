@@ -6,7 +6,8 @@
   :license "LLGPL"
   :serial t
   :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
-                          #:vas-string-metrics #:stefil #:fn #:structy-defclass)
+                          #:vas-string-metrics #:stefil #:fn #:structy-defclass
+			  #:cl-game-math)
   :components ((:file "package")
                (:file "utils-v")
 	       (:file "compiler/log")
@@ -36,5 +37,6 @@
                (:file "language/textures")
                (:file "compiler/front-end")
                (:file "language/object-printers")
+	       (:file "language/cl-game-math-equivalents")
 	       (:file "tests/package")
 	       (:file "tests/tests")))
