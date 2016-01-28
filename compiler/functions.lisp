@@ -294,7 +294,7 @@
                            (some (lambda (x) (stemcellp (code-type x)))
                                  (arguments x)))
                          functions))
-              (error 'multi-func-stemcells functions)
+              (error 'multi-func-stemcells :func-name func-name)
               (first (sort functions #'< :key #'score)))))
     (list (func function) (arguments function))))
 

@@ -348,35 +348,36 @@
 (v-defspecial let (bindings &rest body)
   :args-valid t
   :return
-  (vbind ((new-var-objs body-obj) final-env)
-      (with-fresh-env-scope (fresh-env env)
-	(env-> (p-env fresh-env)
-	  (%mapcar-multi-env-progn
-	   (lambda (p-env binding)
-	     (with-v-let-spec binding
-	       (compile-let name type-spec value-form p-env)))
-	   p-env bindings)
-	  (compile-form `(progn ,@body) p-env)))
+  (progn
     (unless body (error 'body-block-empty :form-name 'let))
-    (let* ((merged (merge-progn (list (merge-multi-env-progn new-var-objs)
-				      body-obj)
-				env final-env))
-	   (val-ast-nodes (mapcar λ(unless (eq (node-tree _) :ignored)
-				     (list (node-tree _)))
-				  new-var-objs))
-	   (ast-args
-	    (list (mapcar λ(with-v-let-spec _
-			     (if type-spec
-				 `((,name ,type-spec) ,@_1)
-				 `(,name ,@_1)))
-			  bindings
-			  val-ast-nodes)
-		  (node-tree body-obj))))
-      (values
-       (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
-					       (flow-ids merged)
-					       env final-env))
-       final-env))))
+    (vbind ((new-var-objs body-obj) final-env)
+	(with-fresh-env-scope (fresh-env env)
+	  (env-> (p-env fresh-env)
+	    (%mapcar-multi-env-progn
+	     (lambda (p-env binding)
+	       (with-v-let-spec binding
+		 (compile-let name type-spec value-form p-env)))
+	     p-env bindings)
+	    (compile-form `(progn ,@body) p-env)))
+      (let* ((merged (merge-progn (list (merge-multi-env-progn new-var-objs)
+					body-obj)
+				  env final-env))
+	     (val-ast-nodes (mapcar λ(unless (eq (node-tree _) :ignored)
+				       (list (node-tree _)))
+				    new-var-objs))
+	     (ast-args
+	      (list (mapcar λ(with-v-let-spec _
+			       (if type-spec
+				   `((,name ,type-spec) ,@_1)
+				   `(,name ,@_1)))
+			    bindings
+			    val-ast-nodes)
+		    (node-tree body-obj))))
+	(values
+	 (copy-code merged :node-tree (ast-node! 'let ast-args (code-type merged)
+						 (flow-ids merged)
+						 env final-env))
+	 final-env)))))
 
 (v-defmacro let* (bindings &rest body)
   (unless body (error 'body-block-empty :form-name 'let))
