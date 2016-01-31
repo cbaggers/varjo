@@ -98,15 +98,15 @@
 ;; inspection
 
 (defun id~= (id-a id-b)
-  (assert (typep id-a 'flow-identifier))
-  (assert (typep id-b 'flow-identifier))
+  (assert (or (typep id-a 'flow-identifier) (null id-a)))
+  (assert (or (typep id-b 'flow-identifier) (null id-b)))
   (unless (or (null id-a) (null id-b))
     (not (null (intersection (listify (ids id-a)) (listify (ids id-b))
 			     :key λ(slot-value _ 'val))))))
 
 (defun id= (id-a id-b)
-  (assert (typep id-a 'flow-identifier))
-  (assert (typep id-b 'flow-identifier))
+  (assert (or (typep id-a 'flow-identifier) (null id-a)))
+  (assert (or (typep id-b 'flow-identifier) (null id-b)))
   (labels ((key (_) (slot-value _ 'val)))
     (unless (or (null id-a) (null id-b))
       (equal (sort (copy-list (ids id-a)) #'< :key #'key)
