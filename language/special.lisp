@@ -908,7 +908,7 @@
 		      :current-line (gen-swizzle-string vec-obj comp-string)
 		      :flow-ids flow-id
 		      :node-tree (ast-node! 'swizzle
-					    `(,(node-tree vec-obj) components)
+					    `(,(node-tree vec-obj) ,components)
 					    r-type flow-id env env)
 		      :multi-vals nil
 		      :place-tree nil)
