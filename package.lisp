@@ -70,6 +70,10 @@
    :gl-primitive-id
    :gl-frag-data
    :gl-frag-depth
+   :gl-depth-range
+   :near
+   :far
+   :diff
 
    ;; special functions
    :setf-1

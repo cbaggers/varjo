@@ -12,6 +12,7 @@
                (:file "utils-v")
 	       (:file "compiler/log")
                (:file "compiler/errors")
+	       (:file "compiler/names")
                (:file "compiler/types")
                (:file "compiler/code-object")
                (:file "compiler/stemcells")
