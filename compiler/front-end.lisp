@@ -612,6 +612,7 @@
       (loop :for (name type qualifiers glsl-name) :in uniforms
 	 :for type-obj = (type-spec->type type) :do
 	 (push `(,name ,type
+		       ,@qualifiers
 		       ,(if (member :ubo qualifiers)
 			    (write-interface-block
 			     :uniform (or glsl-name (safe-glsl-name-string name))
