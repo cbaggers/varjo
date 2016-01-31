@@ -421,7 +421,7 @@
 (v-defspecial labels-no-implicit (definitions &rest body)
   :args-valid t
   :return
-  (vbind ((func-def-objs body-obj) e)
+  (vbind ((func-def-objs body-obj) pruned-starting-env) ;;ending-env
       (with-fresh-env-scope (fresh-env env)
 	(env-> (p-env fresh-env)
 	  (mapcar-progn
@@ -430,17 +430,21 @@
 	       (%make-function name args body nil env)))
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
-    (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
+    (let* ((merged (merge-progn (cons-end body-obj (remove nil func-def-objs))
+				env
+				pruned-starting-env))
 	   (ast (ast-node! 'labels-no-implicit
-			  (list (remove nil (mapcar λ(when _1
-						       `(,(subseq _ 0 2)
-							  ,(node-tree _1)))
-						    definitions
-						    func-def-objs))
-				(node-tree body-obj))
+			   (list (remove nil (mapcar λ(if _1
+							  (cons-end
+							   (node-tree _1)
+							   (subseq _ 0 2))
+							  _)
+						     definitions
+						     func-def-objs))
+				 (node-tree body-obj))
 			  (code-type body-obj) (flow-ids merged) env env)))
       (values (copy-code merged :node-tree ast)
-	      e))))
+	      pruned-starting-env))))
 
 (defun %make-function (name args body allow-implicit-args env)
   (let ((deduped-func (dedup-function `(,args ,body) env)))
@@ -690,29 +694,32 @@
 
 (defun compile-regular-%if (test-obj test-env then-form else-form
 			    starting-env)
+  (declare (optimize (speed 0) (debug 3)))
   (multiple-value-bind (then-obj then-env)
       (compile-form then-form test-env)
     (multiple-value-bind (else-obj else-env)
 	(when else-form (compile-form else-form test-env))
       ;; - - - -
-      (let ((arg-objs (remove-if #'null (list test-obj then-obj else-obj)))
-	    (then-obj (end-line then-obj))
-	    (else-obj (end-line else-obj)) ;; returns nil if given nil
-	    (final-env (apply #'env-merge-history
-			      (env-prune* (env-depth test-env)
-					  then-env
-					  else-env))))
+      (let* ((arg-objs (remove-if #'null (list test-obj then-obj else-obj)))
+	     (then-obj (end-line then-obj))
+	     (else-obj (end-line else-obj)) ;; returns nil if given nil
+	     (final-env
+	      (if else-obj
+		  (apply #'env-merge-history
+			 (env-prune* (env-depth test-env) then-env else-env))
+		  then-env))
+	     (node-tree
+	      (if else-obj
+		  (ast-node! '%if (mapcar #'node-tree
+					  (list test-obj then-obj else-obj))
+			     :none nil starting-env final-env)
+		  (ast-node! '%if (mapcar #'node-tree (list test-obj then-obj))
+			     :none nil starting-env final-env))))
 	(values (merge-obs arg-objs :type :none :current-line nil
 			   :to-block (list (gen-if-string
 					    test-obj then-obj else-obj))
 			   :flow-ids nil
-			   :node-tree (ast-node!
-				       '%if
-				       (mapcar #'node-tree
-					       (list test-obj
-						     then-obj
-						     else-obj))
-				       :none nil starting-env final-env))
+			   :node-tree node-tree)
 		final-env)))))
 
 ;; {TODO} check keys

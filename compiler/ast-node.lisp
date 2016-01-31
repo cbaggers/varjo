@@ -300,8 +300,9 @@ context is implicit"))
 	     (let* ((first-pass (mapcar λ(multiple-value-list
 					  (ast-deep-replace _ filter func))
 					ast-args))
-		    (max-halted-depth (reduce #'or-max
-					      (mapcar #'second first-pass)))
+		    (max-halted-depth (when first-pass
+					(reduce #'or-max
+						(mapcar #'second first-pass))))
 		    (args (mapcar λ(if (or (null max-halted-depth)
 					   (and (second _)
 						(= (second _)

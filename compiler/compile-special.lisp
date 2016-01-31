@@ -52,7 +52,7 @@
 	  env))
 
 (defun %merge-progn (code-objs starting-env final-env)
-  (let ((last-obj (last1 code-objs)))
+  (let* ((last-obj (last1 (remove nil code-objs))))
     (merge-obs code-objs
 	       :type (code-type last-obj)
 	       :current-line (current-line last-obj)

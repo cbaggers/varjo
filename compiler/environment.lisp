@@ -232,6 +232,7 @@
     (dist env)))
 
 (defun env-prune* (to-depth &rest envs)
+  (assert (every (lambda (x) (typep x 'environment)) envs))
   (labels ((%up (e count)
 	     (if (> count 0) (%up (v-parent-env e) (1- count)) e))
 	   (up (e)

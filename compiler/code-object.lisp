@@ -191,7 +191,7 @@
 
 (defun merge-lines-into-block-list (objs)
   (when objs
-    (let ((%objs (butlast objs)))
+    (let ((%objs (remove nil (butlast objs))))
       (remove #'null
               (append (loop :for i :in %objs
                          :for j :in (mapcar #'end-line %objs)
