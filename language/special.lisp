@@ -216,7 +216,7 @@
 		     ,first-name)
 		  env))
 	 (ast (ast-node! 'values
-			 (mapcar λ(if _1 `(,@_1 (node-tree _)) (node-tree _))
+			 (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
 				 objs
 				 qualifier-lists)
 			 (code-type result) (flow-ids result) env env)))
