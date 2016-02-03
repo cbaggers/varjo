@@ -177,6 +177,7 @@
           (prefix-type-to-string type glsl-name qualifiers 'in)))
 
 (defun gen-uniform-decl-string (glsl-name type qualifiers)
+  (declare (ignore qualifiers))
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
 ;;[TODO] make this properly
@@ -230,8 +231,6 @@ nil
                             (safe-glsl-name-string name)))))))
 
 ;;----------------------------------------------------------------------
-
-(defgeneric indent (input))
 
 (defmethod indent ((input string))
   (mapcar #'(lambda (x) (format nil "    ~a" x))

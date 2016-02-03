@@ -60,8 +60,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defparameter *stage-types* '(:vertex :geometry :tess-eval :tess-control :fragment))
-
 (defmacro with-stage ((&optional (in-args (symb :in-args))
                                  (uniforms (symb :uniforms))
                                  (context (symb :context))

@@ -1,7 +1,5 @@
 (in-package :varjo)
 
-(defparameter *stemcell-infer-hook* (lambda (name) (declare (ignore name)) nil))
-
 (defmacro with-stemcell-infer-hook (func &body body)
   (let ((func-name (gensym "hook")))
     `(let* ((,func-name ,func)
@@ -28,8 +26,6 @@
 					     string-name
 					     type-name
 					     flow-id))))))
-
-(def-v-type-class v-stemcell (v-type) ())
 
 (defmethod v-dimensions ((object v-stemcell)) 0)
 
@@ -60,10 +56,3 @@
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))
-
-(defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
-  to-type)
-
-(defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
-  (declare (ignore env))
-  t)

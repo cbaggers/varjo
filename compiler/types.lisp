@@ -9,8 +9,6 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defvar *registered-types* nil)
-
 (defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
   (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
                        `(append (list ,(kwd (subseq (symbol-name name) 2))
@@ -74,6 +72,8 @@
 
 (def-v-type-class v-user-function (v-function) ())
 
+(def-v-type-class v-stemcell (v-type) ())
+
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))
 
@@ -87,7 +87,6 @@
   (and (typep obj 'v-spec-type)
        (not (typep obj 'v-type))))
 
-(defgeneric v-element-type (object))
 (defmethod v-element-type ((object v-t-type))
   (when (slot-exists-p object 'element-type)
     (when (slot-value object 'element-type)
@@ -207,6 +206,12 @@
 (defmethod v-typep (a (b null) &optional (env *global-env*))
   (declare (ignore env))
   nil)
+(defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
+  (declare (ignore env))
+  t)
+
+(defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
+  to-type)
 
 (defmethod v-casts-to-p (from-type to-type env)
   (not (null (v-casts-to from-type to-type env))))

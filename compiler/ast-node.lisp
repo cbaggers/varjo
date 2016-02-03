@@ -40,16 +40,16 @@
 
 ;;----------------------------------------------------------------------
 
-(deftclass origin)
+(defstruct origin)
 
-(deftclass (ast-origin (:include origin))
+(defstruct (ast-origin (:include origin))
   node)
 
-(deftclass (uniform-origin (:include origin))
+(defstruct (uniform-origin (:include origin))
   name
   node)
 
-(deftclass (stemcell-origin (:include origin))
+(defstruct (stemcell-origin (:include origin))
   name
   node)
 
@@ -60,8 +60,6 @@
   (uniform-origin-name origin))
 
 ;;----------------------------------------------------------------------
-
-(defgeneric flow-id-origins (node &optional error-on-missingp context))
 
 (defmethod flow-id-origins ((flow-id flow-identifier)
 			    &optional (error-on-missingp t) context)
@@ -156,12 +154,9 @@ context is implicit"))
 (defmethod flow-ids ((node ast-node))
   (ast-flow-id node))
 
-(defparameter *node-kinds* '(:get :get-stemcell :get-v-value :literal
-			     :error))
-
 (defun ast-node! (kind args return-type flow-id starting-env ending-env)
   (assert (if (keywordp kind)
-	      (member kind *node-kinds*)
+	      (member kind *ast-node-kinds*)
 	      t))
   (let ((return-type (if (and return-type
 			      (or (listp return-type)

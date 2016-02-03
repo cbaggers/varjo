@@ -11,9 +11,6 @@
 (defun true-type-name (name) (symb 'true_ name))
 (defun fake-type-name (name) (symb 'fake_ name))
 
-(defgeneric v-true-type (object))
-(defgeneric v-fake-type (object))
-
 ;;[TODO] should this use defun?
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.

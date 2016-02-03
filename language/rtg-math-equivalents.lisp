@@ -1,13 +1,5 @@
 (in-package :varjo)
 
-;; (add-equivalent-name 'varjo-lang:v! 'rtg-math.base-vectors:v!)
-;; (add-equivalent-name 'varjo-lang:m! 'rtg-math.base-matrices:m!)
-;; (add-equivalent-name 'varjo-lang:swizzle 'rtg-math.vectors:swizzle)
-;; (add-equivalent-name 'varjo-lang:s~ 'rtg-math.vectors:s~)
-;; (add-equivalent-name 'varjo-lang:dot 'rtg-math.vectors:dot)
-;; (add-equivalent-name 'varjo-lang:normalize 'rtg-math.vectors:normalize)
-;; (add-equivalent-name 'varjo-lang:normalize 'rtg-math.vectors:cross)
-
 (add-equivalent-name 'cl:length 'rtg-math.vectors:length)
 
 ;;

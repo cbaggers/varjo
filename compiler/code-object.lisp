@@ -86,10 +86,6 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ;; [TODO] this doesnt work (properly) yet but is a fine starting point
-(defgeneric copy-code (code-obj &key type current-line to-block to-top
-                                  out-vars returns multi-vals
-                                  stemcells out-of-scope-args flow-ids
-				  place-tree mutations node-tree))
 (defmethod copy-code ((code-obj code)
                       &key (type nil set-type)
                         (current-line nil set-current-line)
@@ -127,12 +123,6 @@
 	   :place-tree (if set-place-tree place-tree (place-tree code-obj))
 	   :mutations (if set-mutations mutations (mutations code-obj))
 	   :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
-
-
-(defgeneric merge-obs (objs &key type current-line to-block
-                              to-top out-vars returns multi-vals
-                              stemcells out-of-scope-args flow-ids
-			      place-tree mutations node-tree))
 
 (defmethod merge-obs ((objs list)
                       &key type

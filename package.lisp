@@ -5,6 +5,7 @@
 (defpackage #:varjo-lang
   (:use #:cl)
   (:import-from :rtg-math :v! :m! :s~)
+  (:import-from :rtg-math.base-vectors :x :y :z :w)
   (:import-from :rtg-math.vectors
 		:swizzle
 		:dot
@@ -291,7 +292,7 @@
 
 (defpackage #:varjo
   (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre
-	#:named-readtables #:structy-defclass #:varjo-conditions)
+	#:named-readtables #:varjo-conditions)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :v-glsl-size
            :v-casts-to-p

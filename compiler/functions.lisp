@@ -6,7 +6,6 @@
 ;; GLSL Functions
 ;;----------------
 
-(defgeneric v-special-functionp (func))
 (defmethod v-special-functionp ((func v-function))
   (eq :special (v-glsl-string func)))
 

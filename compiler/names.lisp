@@ -1,7 +1,5 @@
 (in-package :varjo)
 
-(defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-
 (defun safe-glsl-name-string (name)
   (if (valid-user-defined-name name)
       (let ((name (symbol-name name)))

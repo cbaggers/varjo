@@ -1,34 +1,5 @@
-;; This software is Copyright (c) 2012 Chris Bagley
-;; (techsnuffle<at>gmail<dot>com)
-;; Chris Bagley grants you the rights to
-;; distribute and use this software as governed
-;; by the terms of the Lisp Lesser GNU Public License
-;; (http://opensource.franz.com/preamble.html),
-;; known as the LLGPL.
 (in-package :varjo)
 (in-readtable fn:fn-reader)
-
-(defparameter *global-env* :-genv-)
-(defparameter *global-env-funcs* (make-hash-table))
-(defparameter *global-env-vars* (make-hash-table))
-(defparameter *global-env-macros* (make-hash-table))
-(defparameter *global-env-symbol-macros* (make-hash-table))
-(defparameter *global-env-compiler-macros* (make-hash-table))
-(defparameter *supported-versions* '(:330 :430 :440))
-(defparameter *supported-stages* '(:vertex :fragment))
-(defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
-                                       :line-strip-adjacency :lines-adjacency
-                                       :triangle-strip :triangle-fan :triangles
-                                       :triangle-strip-adjacency
-                                       :triangles-adjacency :patches))
-(defparameter *default-version* :330)
-(defparameter *default-context* '(:330 :vertex))
-(defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
-                                           ,@(copy-list *supported-stages*)
-                                           ,@(copy-list *supported-draw-modes*)
-                                           :iuniforms :no-iuniforms))
-
-
 
 ;;-------------------------------------------------------------------------
 
@@ -424,8 +395,6 @@
 	   (macros (a-set macro-name `(,macro ,context) (v-macros env))))
       (fresh-environment env :functions funcs :macros macros))))
 
-(defgeneric get-macro (macro-name env))
-
 (defmethod get-macro (macro-name (env (eql :-genv-)))
   (gethash macro-name *global-env-macros*))
 
@@ -466,8 +435,6 @@
 			     (v-symbol-macros env))))
       (fresh-environment env :functions funcs :symbol-macros sym-macros))))
 
-(defgeneric get-symbol-macro (macro-name env))
-
 (defmethod get-symbol-macro (macro-name (env (eql :-genv-)))
   (gethash macro-name *global-env-symbol-macros*))
 
@@ -500,8 +467,6 @@
     (let ((c-macros
 	   (a-set macro-name `(,macro ,context) (v-compiler-macros env))))
       (fresh-environment env :compiler-macros c-macros))))
-
-(defgeneric get-compiler-macro (macro-name env))
 
 (defmethod get-compiler-macro (macro-name (env (eql :-genv-)))
   (gethash macro-name *global-env-compiler-macros*))
@@ -545,7 +510,6 @@
 (defmethod add-var (var-name (val v-value) (env environment))
   (fresh-environment env :variables (a-add var-name val (v-variables env))))
 
-(defgeneric get-var (var-name env))
 (defmethod get-var (var-name (env (eql :-genv-)))
   (let ((s (gethash var-name *global-env-vars*)))
     (cond (s (values s *global-env*))
