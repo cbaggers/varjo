@@ -3,7 +3,7 @@
 (asdf:defsystem #:varjo
   :description "Common Lisp -> GLSL Compiler"
   :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
-  :license "LLGPL"
+  :license "BSD 2 Clause"
   :serial t
   :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
                           #:vas-string-metrics #:stefil #:fn
