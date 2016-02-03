@@ -4,13 +4,9 @@
 
 (defpackage #:varjo-lang
   (:use #:cl)
-  (:import-from :cl-game-math.base-vectors
-		:v!)
-  (:import-from :cl-game-math.base-matrices
-		:m!)
-  (:import-from :cl-game-math.vectors
+  (:import-from :rtg-math :v! :m! :s~)
+  (:import-from :rtg-math.vectors
 		:swizzle
-		:s~
 		:dot
 		:normalize
 		:cross)
