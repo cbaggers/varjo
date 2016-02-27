@@ -277,3 +277,6 @@ are supported in this context are: ~s"
             (if (string-equal item 'otherwise)
                 `(t ,@rest)
                 `((member ,item ,@member-form) ,@rest))))))
+
+(defun n-of (thing count)
+  (loop :for i :below count :collect thing))

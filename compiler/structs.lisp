@@ -42,7 +42,7 @@
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
-                    (loop :for slot :in slots :collect "~a"))
+		    (n-of "~a" (length slots)))
            ,(loop :for slot :in slots :collect (second slot))
            ,true-type-name :v-place-index nil)
          ,@(make-struct-accessors name true-type-name context slots)
