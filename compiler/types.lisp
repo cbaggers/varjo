@@ -58,9 +58,11 @@
                       :reader multi-return-vars)
    (name :initform nil :initarg :name :reader name)
    (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
-   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :v-function)
+   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
+				     :code-type :v-function)
 		    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
-   (flow-ids :initform (error 'flow-ids-mandatory :v-function)
+   (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
+			      :code-type :v-function)
 	     :initarg :flow-ids :reader flow-ids)))
 
 (def-v-type-class v-user-function (v-function) ())
@@ -194,16 +196,17 @@
         ((and (listp b) (numberp (second b)))
 	 (typep a (un-shadow (first b))))))
 (defmethod v-typep ((a null) b &optional (env *global-env*))
-  (declare (ignore env))
+  (declare (ignore env a b))
   nil)
 (defmethod v-typep (a (b null) &optional (env *global-env*))
-  (declare (ignore env))
+  (declare (ignore env a b))
   nil)
 (defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
-  (declare (ignore env))
+  (declare (ignore env a b))
   t)
 
 (defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
+  (declare (ignore env from-type))
   to-type)
 
 (defmethod v-casts-to-p (from-type to-type env)

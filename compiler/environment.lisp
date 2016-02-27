@@ -327,22 +327,6 @@
                     (member _ context)) item)
          (find item context))))
 
-(defmethod valid-for-contextp ((func list) (env environment))
-  (let ((restriction (second func))
-        (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
-
-(defmethod valid-for-contextp ((func v-function) (env environment))
-  (let ((restriction (v-restriction func))
-        (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
-
-(defun %valid-for-contextp (func restriction context)
-  (if restriction
-      (when (context-ok-given-restriction context restriction)
-        func)
-      func))
-
 (defun shadow-global-check (name &key (specials t) (macros t) (c-macros t))
   (when (or (and macros (get-macro name *global-env*))
             (and c-macros (get-compiler-macro name *global-env*)))
@@ -357,7 +341,7 @@
   (loop :for item :in (v-context env)
      :if (find item *supported-versions*)
      :return item
-     :finally (error 'no-version-in-context env)))
+     :finally (error 'no-version-in-context :env env)))
 
 (defun get-stage-from-env (env)
   (get-version-from-context (v-context env)))
@@ -410,9 +394,6 @@
     (when (and spec (valid-for-contextp spec env))
       (first spec))))
 
-(defmethod v-mboundp (macro-name (env environment))
-  (not (null (get-macro macro-name env))))
-
 ;;-------------------------------------------------------------------------
 
 
@@ -451,7 +432,9 @@
       spec)))
 
 (defmethod v-mboundp (macro-name (env environment))
-  (not (null (get-symbol-macro macro-name env))))
+  (or (not (null (get-symbol-macro macro-name env)))
+      (not (null (get-compiler-macro macro-name env)))
+      (not (null (get-macro macro-name env)))))
 
 
 ;;-------------------------------------------------------------------------
@@ -482,9 +465,6 @@
   (let ((spec (%get-compiler-macro-spec macro-name env)))
     (when (and spec (valid-for-contextp spec env))
       (first spec))))
-
-(defmethod v-mboundp (macro-name (env environment))
-  (not (null (get-compiler-macro macro-name env))))
 
 ;;-------------------------------------------------------------------------
 
@@ -528,16 +508,23 @@
 (defmethod valid-for-contextp ((func v-function) (env environment))
   (let ((restriction (v-restriction func))
         (context (v-context env)))
-    (if restriction
-        (when (context-ok-given-restriction context restriction) func)
-        func)))
+    (%valid-for-contextp func restriction context)))
 
 (defmethod valid-for-contextp ((func v-function) (env (eql *global-env*)))
   (let ((restriction (v-restriction func))
         (context (v-context env)))
-    (if restriction
-        (when (context-ok-given-restriction context restriction) func)
-        func)))
+    (%valid-for-contextp func restriction context)))
+
+(defmethod valid-for-contextp ((func list) (env environment))
+  (let ((restriction (second func))
+        (context (v-context env)))
+    (%valid-for-contextp func restriction context)))
+
+(defun %valid-for-contextp (func restriction context)
+  (if restriction
+      (when (context-ok-given-restriction context restriction)
+        func)
+      func))
 
 (defmethod add-equivalent-name (existing-name new-name)
   (let ((f (get-function-by-name existing-name *global-env*))
