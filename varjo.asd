@@ -6,7 +6,7 @@
   :license "BSD 2 Clause"
   :serial t
   :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
-                          #:vas-string-metrics #:stefil #:fn
+                          #:vas-string-metrics #:fn
                           #:rtg-math)
   :components ((:file "package")
                (:file "utils-v")
@@ -40,6 +40,14 @@
                (:file "language/textures")
                (:file "compiler/front-end")
                (:file "language/object-printers")
-               (:file "language/rtg-math-equivalents")
-               (:file "tests/package")
+               (:file "language/rtg-math-equivalents")))
+
+
+(asdf:defsystem #:varjo.tests
+  :description "Common Lisp -> GLSL Compiler"
+  :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
+  :license "BSD 2 Clause"
+  :serial t
+  :depends-on (#:varjo #:stefil)
+  :components ((:file "tests/package")
                (:file "tests/tests")))

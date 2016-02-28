@@ -168,7 +168,7 @@
   (let ((check (member stage-type remaining-stage-types)))
     (if check
         (rest check)
-        (error 'stage-order-error stage-type))))
+        (error 'stage-order-error :stage-type stage-type))))
 
 (defun translate (in-args uniforms context body
 		  &optional (third-party-metadata (make-hash-table)))
@@ -448,7 +448,7 @@
 	       (slot-value (first (ids (first (listify (flow-ids val)))))
 			   'val)))
       (let ((env (get-base-env (env post-proc-obj))))
-	(loop :for (name % %1) :in (v-uniforms env) :do
+	(loop :for (name) :in (v-uniforms env) :do
 	   (let ((key (uniform-raw (get-var name env)))
 		 (val (make-uniform-origin :name name)))
 	     (setf (gethash key flow-origin-map) val)
@@ -548,7 +548,9 @@
 			  (loop for i below (length type-objs) collect nil))))
       (setf (in-args post-proc-obj)
 	    (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
-	       :for location :in locations :for type :in type-objs :collect
+	       :for location :in locations :for type :in type-objs
+	       :do (identity type-spec)
+	       :collect
 	       `(,name ,type ,@qualifiers ,@(list glsl-name)
 		       ,(gen-in-var-string (or glsl-name name) type
 					   qualifiers location))))))

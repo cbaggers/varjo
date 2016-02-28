@@ -87,7 +87,7 @@
 		  :glsl-spec-matching ',glsl-spec-matching
 		  :flow-ids (%gl-flow-id!)
 		  :in-arg-flow-ids
-		  ,(cons 'list (loop :for i :in args :collect '(%gl-flow-id!))))
+		  ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
                  *global-env*)
                 ',name)))))
 

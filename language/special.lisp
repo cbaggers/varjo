@@ -490,7 +490,8 @@
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
 
     (let* ((arg-pairs (loop :for (ignored type) :in args
-			 :for name :in arg-glsl-names :collect
+			 :for name :in arg-glsl-names
+			 :do (identity ignored) :collect
 			 `(,(v-glsl-string (type-spec->type type)) ,name)))
 	   (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
 			     :for name = (v-glsl-name (multi-val-value mval)) :collect
@@ -565,7 +566,7 @@
                        (rest name-and-qualifiers)))
          (glsl-name (safe-glsl-name-string out-var-name)))
     (if (assoc out-var-name *glsl-variables*)
-        (error 'out-var-name-taken out-var-name)
+        (error 'out-var-name-taken :out-var-name out-var-name)
 	(values
 	 (end-line
 	  (copy-code
@@ -771,7 +772,7 @@
 		 (flow-id (flow-id!)))
 	    (unless (or (typep (code-type decl-obj) 'v-i-ui)
 			(v-typep (code-type decl-obj) 'v-float))
-	      (error 'invalid-for-loop-type decl-obj))
+	      (error 'invalid-for-loop-type :decl-obj decl-obj))
 	    (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
 	      (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
 		  (values (copy-code
