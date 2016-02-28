@@ -124,7 +124,7 @@
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
-  (let* ((base (string-downcase (string (free-name 'mvb))))
+  (let* ((base (safe-glsl-name-string (free-name 'mvb)))
 	 (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
       (unless (= (length vars) (+ 1 (length (multi-vals value-obj))))
