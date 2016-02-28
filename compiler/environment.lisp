@@ -471,7 +471,7 @@
 ;;[TODO] really no better way of doing this?
 (defun vtype-existsp (type-name)
   (and type-name
-       (handler-case (progn (typep t type-name) t) (error () nil))
+       (find-class type-name nil)
        (handler-case (progn (or (typep (make-instance type-name) 'v-t-type)
 				(typep (make-instance type-name) 'v-spec-type))
 			    t)
