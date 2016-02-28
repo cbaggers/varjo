@@ -94,7 +94,7 @@
               (current-line then-obj)
               (or (to-block else-obj) nil)
               (current-line else-obj))
-      (format nil "~a~&if (~a) {~{~%~a~}~%~a~%}"
+      (format nil "~a~&if (~a) {~{~%~a~}~%~@[~a~%~]}"
               (or (to-block test-obj) "")
               (current-line test-obj)
               (or (to-block then-obj) nil)
