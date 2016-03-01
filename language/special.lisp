@@ -687,7 +687,6 @@
 
 (defun compile-regular-%if (test-obj test-env then-form else-form
 			    starting-env)
-  (declare (optimize (speed 0) (debug 3)))
   (multiple-value-bind (then-obj then-env)
       (compile-form then-form test-env)
     (multiple-value-bind (else-obj else-env)
@@ -756,42 +755,40 @@
 (v-defspecial for (var-form condition update &rest body)
   :args-valid t
   :return
-  (locally
-      (declare (optimize (speed 0) (debug 3)))
-    (if (consp (first var-form))
-	(error 'for-loop-only-one-var)
-	(multiple-value-bind (code new-env)
-	    (with-v-let-spec var-form
-	      (compile-let name type-spec value-form env))
-	  (let* ((var-string (subseq (first (to-block code))
-				     0
-				     (1- (length (first (to-block code))))))
-		 (decl-obj (compile-form (second var-form) new-env))
-		 (condition-obj (compile-form condition new-env))
-		 (update-obj (compile-form update new-env))
-		 (flow-id (flow-id!)))
-	    (unless (or (typep (code-type decl-obj) 'v-i-ui)
-			(v-typep (code-type decl-obj) 'v-float))
-	      (error 'invalid-for-loop-type :decl-obj decl-obj))
-	    (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
-	      (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
-		  (values (copy-code
-			   body-obj :type 'v-none :current-line nil
-			   :to-block `(,(gen-for-loop-string
-					 var-string condition-obj update-obj
-					 (end-line body-obj)))
-			   :flow-ids flow-id
-			   :node-tree (ast-node!
-				       'for (cons var-form
-						  (mapcar #'node-tree
-							  (list condition-obj
-								update-obj
-								body-obj)))
-				       :none flow-id env final-env)
-			   :multi-vals nil
-			   :place-tree nil)
-			  final-env)
-		  (error 'for-loop-simple-expression))))))))
+  (if (consp (first var-form))
+      (error 'for-loop-only-one-var)
+      (multiple-value-bind (code new-env)
+	  (with-v-let-spec var-form
+	    (compile-let name type-spec value-form env))
+	(let* ((var-string (subseq (first (to-block code))
+				   0
+				   (1- (length (first (to-block code))))))
+	       (decl-obj (compile-form (second var-form) new-env))
+	       (condition-obj (compile-form condition new-env))
+	       (update-obj (compile-form update new-env))
+	       (flow-id (flow-id!)))
+	  (unless (or (typep (code-type decl-obj) 'v-i-ui)
+		      (v-typep (code-type decl-obj) 'v-float))
+	    (error 'invalid-for-loop-type :decl-obj decl-obj))
+	  (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
+	    (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
+		(values (copy-code
+			 body-obj :type 'v-none :current-line nil
+			 :to-block `(,(gen-for-loop-string
+				       var-string condition-obj update-obj
+				       (end-line body-obj)))
+			 :flow-ids flow-id
+			 :node-tree (ast-node!
+				     'for (cons var-form
+						(mapcar #'node-tree
+							(list condition-obj
+							      update-obj
+							      body-obj)))
+				     :none flow-id env final-env)
+			 :multi-vals nil
+			 :place-tree nil)
+			final-env)
+		(error 'for-loop-simple-expression)))))))
 
 
 (v-defspecial while (test &rest body)

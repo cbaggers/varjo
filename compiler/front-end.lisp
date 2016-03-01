@@ -414,7 +414,6 @@
 (defun check-stemcells (post-proc-obj)
   "find any stemcells in the result that that the same name and
    a different type. Then remove duplicates"
-  (declare (optimize (speed 0) (debug 3)))
   (with-slots (code) post-proc-obj
     (let ((stemcells (stemcells code)))
       (mapcar
@@ -438,7 +437,6 @@
 ;;----------------------------------------------------------------------
 
 (defun post-process-ast (post-proc-obj)
-  (declare (optimize (debug 3) (speed 0)))
   (let ((flow-origin-map (make-hash-table))
 	(val-origin-map (make-hash-table))
 	(node-copy-map (make-hash-table :test #'eq)))
@@ -595,7 +593,6 @@
 ;;----------------------------------------------------------------------
 
 (defun final-uniform-strings (post-proc-obj)
-  (declare (optimize (debug 3) (speed 0)))
   (with-slots (code env) post-proc-obj
     (let ((final-strings nil)
 	  (structs (used-types post-proc-obj))

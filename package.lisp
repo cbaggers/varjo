@@ -1,7 +1,5 @@
 ;;;; package.lisp
 
-(proclaim '(optimize (debug 3)))
-
 (defpackage #:varjo-lang
   (:use #:cl)
   (:import-from :rtg-math :v! :m! :s~ :radians :degrees)

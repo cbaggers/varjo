@@ -281,7 +281,6 @@ context is implicit"))
       (values (walk-ast #'f ast) has-changed))))
 
 (defun ast-deep-replace (ast filter func)
-  (declare (optimize (debug 3) (speed 0)))
   (labels ((to-code (x)
 	     (typecase x
 	       (ast-node (ast->code x))
