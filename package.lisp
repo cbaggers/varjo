@@ -4,7 +4,7 @@
 
 (defpackage #:varjo-lang
   (:use #:cl)
-  (:import-from :rtg-math :v! :m! :s~)
+  (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
   (:import-from :rtg-math.base-vectors :x :y :z :w)
   (:import-from :rtg-math.vectors
 		:swizzle
