@@ -3,7 +3,8 @@
 (defpackage #:varjo-lang
   (:use #:cl)
   (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
-  (:import-from :rtg-math.base-vectors :x :y :z :w)
+  (:import-from :rtg-math.base-vectors :x :y :z :w
+		:v!int :v!uint :v!bool :v!double)
   (:import-from :rtg-math.vectors
 		:swizzle
 		:dot
@@ -190,6 +191,10 @@
    :unpack-unorm-2x-1-6
    :unpack-unorm-4x-8
    :v!
+   :v!int
+   :v!uint
+   :v!bool
+   :v!double
    :v-equal
    :v-not
    :v-not-equal
