@@ -316,3 +316,6 @@ this. It is certainly a bug on their end.
 Compiled Args:
 ~{~s~%~}"
   args)
+
+(deferror empty-progn (:error-type varjo-critical-error) ()
+    "Varjo: progn with no body found, this is not currently allowed by varjo")

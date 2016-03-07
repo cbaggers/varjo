@@ -119,7 +119,7 @@
   :return
   (if body
       (merge-progn (compile-progn body env) env)
-      (values (make-code-obj (type-spec->type :none) "") env)))
+      (error 'empty-progn)))
 
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
