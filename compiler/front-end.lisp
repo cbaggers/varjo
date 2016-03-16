@@ -111,13 +111,18 @@
   (destructuring-bind (last-stage remaining-stage-types)
       (or (first accum) `(nil ,*stage-types*))
     (let* ((remaining-stage-types (check-order (extract-stage-type stage)
-					       remaining-stage-types))
-	   (new-compile-result
-	    (apply compile-func (transform-stage-args
-				 (merge-in-previous-stage-args last-stage
-							       stage)))))
-      (cons (list new-compile-result remaining-stage-types)
-            (cons last-stage (cddr accum))))))
+					       remaining-stage-types)))
+      (if (typep stage 'varjo-compile-result)
+	  (when (args-compatiblep stage last-stage)
+	    (cons (list stage remaining-stage-types)
+		  (cons last-stage (cddr accum))))
+	  (let ((new-compile-result ;;{TODO} ,- shouldnt we transform, then
+		 ;;                          v  merge? think geometry shader.
+		 (apply compile-func (transform-stage-args
+				      (merge-in-previous-stage-args last-stage
+								    stage)))))
+	    (cons (list new-compile-result remaining-stage-types)
+		  (cons last-stage (cddr accum))))))))
 
 (defun extract-stage-type (stage)
   (let ((context (typecase stage
@@ -127,7 +132,7 @@
                (when (member _ context) _))
              *stage-types*)))
 
-(defun args-compatiblep (stage previous-stage)
+(defmethod args-compatiblep ((stage list) (previous-stage varjo-compile-result))
   (with-stage () stage
     (and (loop :for p :in (out-vars previous-stage)
             :for c :in in-args :always
@@ -143,6 +148,15 @@
          (context-ok-given-restriction
           (remove (extract-stage-type previous-stage) (context previous-stage))
           (remove (extract-stage-type stage) context)))))
+
+(defmethod args-compatiblep ((stage varjo-compile-result)
+			     (previous-stage varjo-compile-result))
+  (args-compatiblep (list (mapcar λ(list nil (type->type-spec (second _)))
+				  (in-args stage))
+			  (uniforms stage)
+			  (context stage)
+			  nil)
+		    previous-stage))
 
 (defun in-arg-qualifiers (in-arg)
   (with-v-arg (_ _1 q) in-arg q))
