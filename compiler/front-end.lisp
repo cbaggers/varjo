@@ -614,17 +614,14 @@
 	  (implicit-uniforms nil))
       (loop :for (name type qualifiers glsl-name) :in uniforms
 	 :for type-obj = (type-spec->type type) :do
-	 (push `(,name ,type
-		       ,@qualifiers
-		       ,(if (member :ubo qualifiers)
-			    (write-interface-block
-			     :uniform (or glsl-name (safe-glsl-name-string name))
-			     (v-slots type-obj))
-			    (gen-uniform-decl-string
-			     (or glsl-name (safe-glsl-name-string name))
-			     type-obj
-			     qualifiers)))
-	       final-strings)
+	 (let* ((instance-name (or glsl-name (safe-glsl-name-string name))))
+	   (push `(,name ,type
+			 ,@qualifiers
+			 ,(if (member :ubo qualifiers)
+			      (write-ubo-interface-block instance-name type-obj)
+			      (gen-uniform-decl-string instance-name type-obj
+						       qualifiers)))
+		 final-strings))
 	 (when (and (v-typep type-obj 'v-user-struct)
 		    (not (find (type->type-spec type-obj) structs
 			       :key #'type->type-spec :test #'equal)))

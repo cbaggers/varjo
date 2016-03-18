@@ -206,29 +206,36 @@
 ;; } instance_name;
 
 (defun write-interface-block (storage-qualifier block-name slots
-                              &optional (layout "std140"))
-  (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
+                              &optional
+				(instance-name block-name)
+				(layout "std140"))
+  (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}}~@[ ~a~];"
           layout
           (string-downcase (symbol-name storage-qualifier))
-          (format nil "_UBO_~a" block-name)
+	  block-name
           (mapcar #'gen-interface-block-slot-string slots)
-          block-name))
+          instance-name))
 
 (defun gen-interface-block-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
     (let ((name (or accessor slot-name))
           (type-obj (type-spec->type slot-type)))
       (format nil "    ~{~a ~}~a"
-                ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
-nil
-                (if (typep type-obj 'v-array)
-                    (format nil "~a ~a[~a];"
-                            (v-glsl-string (type->type-spec (v-element-type type-obj)))
-                            (safe-glsl-name-string name)
-                            (v-dimensions type-obj))
-                    (format nil "~a ~a;"
-                            (v-glsl-string type-obj)
-                            (safe-glsl-name-string name)))))))
+	      ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
+	      nil
+	      (if (typep type-obj 'v-array)
+		  (format nil "~a ~a[~a];"
+			  (v-glsl-string (type->type-spec (v-element-type type-obj)))
+			  (safe-glsl-name-string name)
+			  (v-dimensions type-obj))
+		  (format nil "~a ~a;"
+			  (v-glsl-string type-obj)
+			  (safe-glsl-name-string name)))))))
+
+(defun write-ubo-interface-block (instance-name type-obj)
+  (let ((block-name (format nil "_UBO_~s" instance-name)))
+    (write-interface-block :uniform block-name
+			   (v-slots type-obj) instance-name)))
 
 ;;----------------------------------------------------------------------
 
