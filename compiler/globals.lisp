@@ -25,7 +25,7 @@
   '(:vertex :geometry :tess-eval :tess-control :fragment))
 
 (defparameter *ast-node-kinds*
-  '(:get :get-stemcell :get-v-value :literal :error))
+  '(:get :get-stemcell :get-v-value :literal :error :none))
 
 (defparameter *stemcell-infer-hook*
   (lambda (name)

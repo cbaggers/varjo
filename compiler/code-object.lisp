@@ -74,7 +74,10 @@
 	 :flow-ids flow-ids :place-tree (listify place-tree)
 	 :node-tree node-tree))
 
-(defun make-none-ob () (make-code-obj :none nil))
+(defun make-none-ob ()
+  (make-code-obj
+   :none nil
+   :node-tree (ast-node! :none nil :none nil nil nil)))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
