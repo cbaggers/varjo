@@ -488,7 +488,8 @@
 		     normalized-out-of-scope-args)
 	(error 'illegal-implicit-args :func-name name)))
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
-
+    (when (v-typep type (type-spec->type :none))
+      (error 'function-with-no-return-type :func-name name))
     (let* ((arg-pairs (loop :for (ignored type) :in args
 			 :for name :in arg-glsl-names
 			 :do (identity ignored) :collect

@@ -319,3 +319,13 @@ Compiled Args:
 
 (deferror empty-progn (:error-type varjo-critical-error) ()
     "Varjo: progn with no body found, this is not currently allowed by varjo")
+
+
+(deferror function-with-no-return-type (:error-type varjo-critical-error)
+    (func-name)
+    "Varjo: The function named ~s does not return anything, this is not
+currently allowed. The tail position of the function must be an expression with
+a return type.
+
+Most likely you currently have one of the following in the tail position:
+%if, for or while" func-name)
