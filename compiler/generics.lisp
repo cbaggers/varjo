@@ -63,3 +63,4 @@
 (defgeneric get-symbol-macro (macro-name env))
 (defgeneric get-compiler-macro (macro-name env))
 (defgeneric get-var (var-name env))
+(defgeneric raw-ids (flow-id))

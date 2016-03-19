@@ -817,7 +817,8 @@
 
   (let ((envs (list starting-env))
 	(last-code-obj nil)
-	(flow-ids nil))
+	(flow-ids nil)
+	(checkpoint (checkpoint-flow-ids)))
     (loop :for pass :from 0
        :for current-env = (first envs)
        :until (vbind (o new-env) (compile-form code current-env)
@@ -828,7 +829,10 @@
 		  (setf last-code-obj o
 			envs (cons new-env envs)
 			flow-ids (accumulate-flow-ids f-ids new-flow-ids))
-		  (fixpoint-reached new-flow-ids starting-env pass))))
+		  (let ((done (fixpoint-reached
+			       new-flow-ids starting-env pass)))
+		    (unless done (reset-flow-ids-to-checkpoint checkpoint))
+		    done))))
     (values last-code-obj
 	    (create-post-loop-env flow-ids starting-env))))
 
@@ -854,7 +858,6 @@
 (defvar *max-resolve-loop-flow-id-pass-count* 100)
 
 (defun get-new-flow-ids (latest-env last-env)
-  ;;(break "hey ~s ~s" (get-var 'd last-env) (get-var 'd latest-env))
   (let* ((variables-changed (find-env-vars latest-env last-env
 					   :test (complement #'eq)
 					   :stop-at-base t))
