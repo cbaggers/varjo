@@ -813,6 +813,8 @@
 	  (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
 (defun search-for-flow-id-fixpoint (code starting-env)
+  ;; Lets document this a bit and work out how to debug it from a crash
+
   (let ((envs (list starting-env))
 	(last-code-obj nil)
 	(flow-ids nil))
@@ -852,11 +854,24 @@
 (defvar *max-resolve-loop-flow-id-pass-count* 100)
 
 (defun get-new-flow-ids (latest-env last-env)
+  ;;(break "hey ~s ~s" (get-var 'd last-env) (get-var 'd latest-env))
   (let* ((variables-changed (find-env-vars latest-env last-env
 					   :test (complement #'eq)
-					   :stop-at-base t)))
+					   :stop-at-base t))
+	 ;; now we need to take these a remove any which have the
+	 ;; same flow-id. This can happen if a variable is set to
+	 ;; itself from within a loop
+	 (trimmed-changes
+	  (mapcar λ(let ((last-var (get-var _ last-env))
+			 (new-var (get-var _ latest-env)))
+		     (unless (or (not last-var)
+				 (not new-var)
+				 (id= (flow-ids last-var)
+				      (flow-ids new-var)))
+		       _))
+		  variables-changed)))
     (mapcar λ`(,_ . ,(flow-ids (get-var _ latest-env)))
-	    variables-changed)))
+	    (remove nil trimmed-changes))))
 
 (defun fixpoint-reached (new-flow-ids starting-env pass)
   (unless (< pass *max-resolve-loop-flow-id-pass-count*)
