@@ -26,8 +26,6 @@
   (assert-flow-id-singularity flow-ids)
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
-  (unless (or flow-ids (type-doesnt-need-flow-id type))
-    (error 'flow-ids-mandatory :for :code-object))
   (unless (or (eq node-tree :ignored)
 	      (and (typep node-tree 'ast-node)
 		   (listp (slot-value node-tree 'args))))
@@ -38,6 +36,8 @@
 			      (not (eq type-spec 'v-none)))
 			 (cons (listify type-spec) used-types)
 			 used-types)))
+    (unless (or flow-ids (type-doesnt-need-flow-id type))
+      (error 'flow-ids-mandatory :for :code-object :code-type type-spec))
     (make-instance 'code
 		   :type type-obj
 		   :current-line current-line
@@ -229,3 +229,5 @@
 		 (when (typep stype 'v-struct)
 		   (cons slot-type (walk-struct-dependencies stype))))))
 	   (v-slots type))))
+
+;;----------------------------------------------------------------------

@@ -929,3 +929,24 @@
   (progn
     (break "Varjo compiler breakpoint" env)
     (values (make-none-ob) env)))
+
+(v-defspecial glsl-expr (glsl-string type-spec)
+  :args-valid t
+  :return
+  (values
+   (compile-glsl-expression-string glsl-string type-spec)
+   env))
+
+(defun compile-glsl-expression-string (current-line type)
+  (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
+	 (type-spec (type->type-spec type-obj))
+	 (flow-id (flow-id!)))
+    (code! :type type-obj
+	   :current-line current-line
+	   :used-types (list type-spec)
+	   :node-tree (ast-node! 'glsl-string nil type-obj flow-id nil nil)
+	   :flow-ids flow-id)))
+
+(defun glsl-let (name-symbol name-string type value-form env)
+  (let ((type-spec (if (typep type 'v-t-type) (type->type-spec type) type)))
+    (compile-let name-symbol type-spec value-form env name-string)))

@@ -113,9 +113,8 @@
     (let* ((remaining-stage-types (check-order (extract-stage-type stage)
 					       remaining-stage-types)))
       (if (typep stage 'varjo-compile-result)
-	  (when (args-compatiblep stage last-stage)
-	    (cons (list stage remaining-stage-types)
-		  (cons last-stage (cddr accum))))
+	  (splice-in-precompiled-stage
+	   last-stage stage remaining-stage-types accum )
 	  (let ((new-compile-result ;;{TODO} ,- shouldnt we transform, then
 		 ;;                          v  merge? think geometry shader.
 		 (apply compile-func (transform-stage-args
@@ -123,6 +122,45 @@
 								    stage)))))
 	    (cons (list new-compile-result remaining-stage-types)
 		  (cons last-stage (cddr accum))))))))
+
+(defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
+				    accum)
+  (labels ((gen-aliases ()
+	     (loop :for (out-name . out-rest) :in (out-vars last-stage)
+		:for (in-name type . in-rest) :in (in-args stage) :append
+		(let ((out-glsl-name (last1 out-rest))
+		      (in-glsl-name (subseq (last1 in-rest) 1)))
+		  (when (not (equal out-glsl-name in-glsl-name))
+		    (flow-id-scope
+		      (to-block
+		       (glsl-let in-name in-glsl-name type
+				 (compile-glsl-expression-string out-glsl-name type)
+				 (%make-base-environment))))))))
+	   (swap-out-args (glsl-string)
+	     (loop :for out :in (out-vars last-stage)
+		:for in :in (in-args stage)
+		:for out-glsl-name := (last1 out)
+		:for in-glsl-name := (subseq (last1 in) 1) :do
+		(setf glsl-string
+		      (ppcre:regex-replace (format nil "@~a" in-glsl-name)
+					   glsl-string out-glsl-name)))
+	     glsl-string))
+
+    (when (args-compatiblep stage last-stage)
+      ;; we need to modify the result of the compiled stage if the in-args names
+      ;; dont match the names of the out args
+      (let* ((glsl-aliases (gen-aliases))
+	     (glsl-code-0 (glsl-code stage))
+	     (glsl-code-1 (swap-out-args glsl-code-0))
+	     (final-glsl-code (ppcre:regex-replace
+			       "void main"
+			       glsl-code-1
+			       (format nil "~{~a~}~%~%void main"
+				       glsl-aliases)))
+	     (new-compile-result
+	      (clone-compile-result stage :glsl-code final-glsl-code)))
+	(cons (list new-compile-result remaining-stage-types)
+	      (cons last-stage (cddr accum)))))))
 
 (defun extract-stage-type (stage)
   (let ((context (typecase stage
