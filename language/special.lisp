@@ -940,11 +940,20 @@
 			    (code-type compiled) (flow-ids compiled) env env))
      env)))
 
-(v-defspecial %break ()
+(v-defspecial %break (&optional datum &rest args)
+  :args-valid t
   :return
   (progn
-    (break "Varjo compiler breakpoint" env)
+    (break (format nil "Varjo compiler breakpoint:~%~s" (or datum ""))
+	   (mapcar λ(compile-form _ env) args))
     (values (make-none-ob) env)))
+
+(v-defspecial %peek (form)
+  :args-valid t
+  :return
+  (vbind (o e) (compile-form form env)
+    (break "Varjo Peek:~%:code-obj ~s~%:env ~s" o e)
+    (values o e)))
 
 (v-defspecial glsl-expr (glsl-string type-spec)
   :args-valid t
