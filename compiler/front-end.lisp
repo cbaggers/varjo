@@ -170,6 +170,7 @@
                (when (member _ context) _))
              *stage-types*)))
 
+(defgeneric args-compatiblep (stage previous-stage))
 (defmethod args-compatiblep ((stage list) (previous-stage varjo-compile-result))
   (with-stage () stage
     (and (loop :for p :in (out-vars previous-stage)
