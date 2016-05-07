@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:varjo-lang
-  (:use #:cl)
+  (:use #:cl #:rtg-math.base-maths)
   (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
   (:import-from :rtg-math.base-vectors :x :y :z :w
 		:v!int :v!uint :v!bool :v!double)
