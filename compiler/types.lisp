@@ -31,8 +31,14 @@
 (def-v-type-class v-array (v-container)
   ((element-type :initform nil :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
+
 (defmethod v-glsl-string ((object v-array))
-  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object)) (v-dimensions object)))
+  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object))
+          (mapcar (lambda (x)
+                    (if (numberp x) x ""))
+                  (v-dimensions object))))
+
+;; (v-glsl-string (type-spec->type '(:vec3 *)))
 
 (def-v-type-class v-error (v-type)
   ((payload :initform nil :initarg :payload :accessor v-payload)))
