@@ -186,16 +186,20 @@
                       (to-block (last1 objs)))))))
 
 
+(defun array-type-index-p (x)
+  (or (numberp x)
+      (and (symbolp x) (string= "*" x))))
+
 (defun normalize-used-types (types)
   (remove-duplicates
    (loop :for item :in (remove nil types) :append
       (cond ((atom item) (list item))
-	    ((and (listp item) (or (numberp (second item))
-				   (and (listp (second item))
-					(> (length (second item)) 0)
-					(every #'numberp (second item)))))
-	     (list item))
-	    (t (normalize-used-types item))))
+            ((and (listp item) (or (array-type-index-p (second item))
+                                   (and (listp (second item))
+                                        (> (length (second item)) 0)
+                                        (every #'array-type-index-p (second item)))))
+             (list item))
+            (t (normalize-used-types item))))
    :from-end t))
 
 (defun find-used-user-structs (code-obj env)
