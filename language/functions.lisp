@@ -1261,11 +1261,6 @@
   "tan(~a)"
   (v-tf) 0 :glsl-spec-matching t)
 
-(v-defun tan (angle) "tan(~a)" ("gentype") "gentype" :glsl-spec-matching t
-  :context
-  (:|110| :|120| :|130| :|140| :|150| :|330| :|400| :|410| :|420| :|430| :|440|
-   :|450|))
-
 (v-defun tanh (x &context (:330 :440))
   "tanh(~a)"
   (v-tf) 0 :glsl-spec-matching t)
