@@ -177,3 +177,60 @@
     "gsampler2DRectShadow" "gsampler1DArrayShadow"
     "gsampler2DArrayShadow" "gsamplerCubeArrayShadow"
     "mat" "vec" "dmat" "ivec" "bvec" "uvec"))
+
+;; take this ..
+(closer-mop:class-direct-subclasses
+ (find-class (translate-type "gvec4")))
+;; ..and this..
+(closer-mop:class-direct-subclasses
+ (find-class (translate-type "gsampler2DRect")))
+;; and use closer-mop to find the intersection of the element-types
+;;
+;; generate a new def for each subclass of the generic return type.
+;;
+
+(defun g-p (type-name)
+  (not (null (member type-name generic-types :test #'equal))))
+
+(defun subclasses-when-generic (type-name)
+  (when (g-p type-name)
+    (closer-mop:class-direct-subclasses
+     (find-class (translate-type type-name)))))
+
+(defun to-concrete (type-name)
+  (let ((gg (mapcar #'class-name
+		    (closer-mop:class-direct-subclasses
+		     (find-class (if (stringp type-name)
+				     (translate-type type-name)
+				     type-name))))))
+    (if gg
+	(remove-duplicates (mapcan #'to-concrete gg))
+	(list type-name))))
+
+(defun flerg (f)
+  (dbind (&key name return args versions) f
+    (if (g-p return)
+	(let ((b (first (remove-duplicates
+			 (remove-if-not #'g-p (mapcar #'second args))
+			 :test #'equal))))
+	  (when b
+	    (list f)))
+	nil ;;(list f)
+	)))
+
+;; (loop :for sub :in (to-concrete return) :collect
+;;    (let ((sub (slot-value (make-instance sub)
+;; 			  'glsl-string)))
+;;      `(:name ,name :return ,sub
+;; 	     :args ,(subst sub return args :test #'equal)
+;; 	     :versions ,versions)))
+
+(defun blerg (f)
+  (dbind (&key name return args versions) f
+    (let ((new-return (if (g-p return)
+			  (or (position return args :test #'equal :key #'second)
+			      (progn
+				(print name)
+				return))
+			  return)))
+      `(:name ,name :return ,new-return :args ,args :versions ,versions))))
