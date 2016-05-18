@@ -171,6 +171,7 @@
     "gimage2DRect" "gbufferImage" "gsamplerCube" "gsamplerRect"
     "gsampler2DMS" "gimage1DArray" "gimage2DArray" "gsampler2DRect"
     "gsamplerBuffer" "gimageCubeArray" "gimage2DMSArray"
+
     "gsampler1DArray" "gsampler2DArray" "gsampler2DDArray"
     "gsampler1DShadow" "gsampler2DShadow" "gsamplerCubeArray"
     "gsampler2DMSArray" "gsamplerCubeShadow" "gsamplerRectShadow"
@@ -209,21 +210,20 @@
 
 (defun flerg (f)
   (dbind (&key name return args versions) f
-    (if (g-p return)
-	(let ((b (first (remove-duplicates
-			 (remove-if-not #'g-p (mapcar #'second args))
-			 :test #'equal))))
-	  (when b
-	    (list f)))
-	nil ;;(list f)
-	)))
+    (let* ((arg-types (mapcar #'second args))
+	   (garg-types (remove-duplicates (remove-if-not #'g-p arg-types)
+					  :test #'equal))
+	   (the-gtype (first garg-types)))
+      (if the-gtype
+	  (loop :for concrete-type :in (to-concrete the-gtype) :collect
+	     (let ((ct-str (slot-value (make-instance concrete-type)
+				       'glsl-string)))
+	       `(:name ,name
+		       :return ,return
+		       :args ,(subst ct-str the-gtype args)
+		       :versions ,versions)))
+	  (list f)))))
 
-;; (loop :for sub :in (to-concrete return) :collect
-;;    (let ((sub (slot-value (make-instance sub)
-;; 			  'glsl-string)))
-;;      `(:name ,name :return ,sub
-;; 	     :args ,(subst sub return args :test #'equal)
-;; 	     :versions ,versions)))
 
 (defun blerg (f)
   (dbind (&key name return args versions) f
@@ -233,4 +233,37 @@
 				(print name)
 				return))
 			  return)))
-      `(:name ,name :return ,new-return :args ,args :versions ,versions))))
+      )))
+
+
+(defun flerg (f)
+  (dbind (&key name return args versions) f
+    (if (g-p return)
+	(let* ((b (first (remove-duplicates
+p			  (remove-if-not #'g-p (mapcar #'second args))
+			  :test #'equal))))
+	  (print f)
+	  (when b
+	    (let* ((con-arg (to-concrete b))
+		   (con-arg-elem
+		    (mapcar
+		     λ(when (member 'element-type
+				    (mapcar #'closer-mop:slot-definition-name
+					    (closer-mop:compute-slots
+					     (class-of _))))
+
+			(slot-value _ 'element-type))
+		     (mapcar #'make-instance con-arg)))
+		   (con-return (to-concrete return)))
+	      (if (every λ(find _ con-return) con-arg-elem)
+		  (loop :for ca :in con-arg :for cae :in con-arg-elem :collect
+		     (let ((cae-str (slot-value (make-instance cae) 'glsl-string))
+			   (ca-str (slot-value (make-instance ca) 'glsl-string)))
+		       `(:name ,name
+			       :return ,cae-str
+			       :args ,(subst ca-str b args)
+			       :versions ,versions)))
+		  nil ;;(list f)
+		  ))))
+	nil ;;(list f)
+	)))

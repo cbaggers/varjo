@@ -686,4 +686,4 @@
 
 (def-v-type-class v-buffer-image (v-t-type v-gbuffer-image)
   ((core :initform t :reader core-typep)
-   (glsl-string :initform "gbufferImage" :reader v-glsl-string)))
+   (glsl-string :initform "bufferImage" :reader v-glsl-string)))
