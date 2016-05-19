@@ -595,7 +595,7 @@
       (cond ((special-raw-argp func) 0)
             ((special-func-argp func) 1)
             ((special-basic-argp func) 2))
-      (if (v-glsl-spec-matchingp func) 3 4)))
+      3))
 
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function-by-name func-name env))))

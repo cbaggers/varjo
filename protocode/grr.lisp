@@ -37,8 +37,7 @@
       (add-function
        lisp-name
        (v-make-f-spec lisp-name transform versions lisp-arg-types lisp-return
-		      :v-place-index nil :glsl-name nil :glsl-spec-matching t
-		      :flow-ids (%gl-flow-id!)
+		      :v-place-index nil :glsl-name nil :flow-ids (%gl-flow-id!)
 		      :in-arg-flow-ids (n-of (%gl-flow-id!) (length args)))
        *global-env*))))
 
@@ -214,56 +213,4 @@
 	   (garg-types (remove-duplicates (remove-if-not #'g-p arg-types)
 					  :test #'equal))
 	   (the-gtype (first garg-types)))
-      (if the-gtype
-	  (loop :for concrete-type :in (to-concrete the-gtype) :collect
-	     (let ((ct-str (slot-value (make-instance concrete-type)
-				       'glsl-string)))
-	       `(:name ,name
-		       :return ,return
-		       :args ,(subst ct-str the-gtype args)
-		       :versions ,versions)))
-	  (list f)))))
-
-
-(defun blerg (f)
-  (dbind (&key name return args versions) f
-    (let ((new-return (if (g-p return)
-			  (or (position return args :test #'equal :key #'second)
-			      (progn
-				(print name)
-				return))
-			  return)))
-      )))
-
-
-(defun flerg (f)
-  (dbind (&key name return args versions) f
-    (if (g-p return)
-	(let* ((b (first (remove-duplicates
-p			  (remove-if-not #'g-p (mapcar #'second args))
-			  :test #'equal))))
-	  (print f)
-	  (when b
-	    (let* ((con-arg (to-concrete b))
-		   (con-arg-elem
-		    (mapcar
-		     λ(when (member 'element-type
-				    (mapcar #'closer-mop:slot-definition-name
-					    (closer-mop:compute-slots
-					     (class-of _))))
-
-			(slot-value _ 'element-type))
-		     (mapcar #'make-instance con-arg)))
-		   (con-return (to-concrete return)))
-	      (if (every λ(find _ con-return) con-arg-elem)
-		  (loop :for ca :in con-arg :for cae :in con-arg-elem :collect
-		     (let ((cae-str (slot-value (make-instance cae) 'glsl-string))
-			   (ca-str (slot-value (make-instance ca) 'glsl-string)))
-		       `(:name ,name
-			       :return ,cae-str
-			       :args ,(subst ca-str b args)
-			       :versions ,versions)))
-		  nil ;;(list f)
-		  ))))
-	nil ;;(list f)
-	)))
+      (when the-gtype '(t)))))

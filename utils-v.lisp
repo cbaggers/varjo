@@ -20,9 +20,16 @@
 ;; [TODO] fully implement positions-if to match position-if spec
 ;; [TODO] also add positions-if-not and positions: could be all be useful
 (defun positions-if (predicate sequence)
-  (loop :for element :in sequence :for i :from 0
-     :if (funcall predicate element) :collect i))
+  (let ((i -1))
+    (labels ((f (accum x)
+	       (incf i)
+	       (if (funcall predicate x)
+		   (cons i accum)
+		   accum)))
+      (reverse (reduce #'f sequence :initial-value nil)))))
 
+(defun split (predicate sequence)
+  (positions-if predicate sequence))
 
 (define-compiler-macro mapcat (function &rest lists)
   `(apply #'concatenate 'list (mapcar ,function ,@lists)))
@@ -280,3 +287,15 @@ are supported in this context are: ~s"
 
 (defun n-of (thing count)
   (loop :for i :below count :collect thing))
+
+(defun split-seq (predicate sequence &key keep-split)
+  (let* ((start -1)
+	 (r (loop :for end = (position-if predicate sequence :start (1+ start))
+	       :collect (prog1 (subseq sequence (max 0 start) end)
+			  (when end
+			    (setf start
+				  (if keep-split
+				      end
+				      (1+ end)))))
+	       :while end)))
+    (remove-if (lambda (x) (= 0 (length x))) r)))

@@ -323,7 +323,6 @@
            :v-element-type
            :v-fake-type
            :v-glsl-name
-           :v-glsl-spec-matchingp
            :v-glsl-string
            :v-payload
            :v-restriction
