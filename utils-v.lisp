@@ -28,9 +28,6 @@
 		   accum)))
       (reverse (reduce #'f sequence :initial-value nil)))))
 
-(defun split (predicate sequence)
-  (positions-if predicate sequence))
-
 (define-compiler-macro mapcat (function &rest lists)
   `(apply #'concatenate 'list (mapcar ,function ,@lists)))
 

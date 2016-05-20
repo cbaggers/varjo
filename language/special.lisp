@@ -321,7 +321,7 @@
   (let ((context (v-context env)))
     (cond ((member :fragment context) `(%out (,(free-name :output-color env))
                                              ,form))
-          ((member :vertex context) `(setq gl-position ,form))
+          ((member :vertex context) `(setq varjo-lang::gl-position ,form))
           (t (error "Have not implemented #'values defaults for this stage ~a"
                     env)))))
 

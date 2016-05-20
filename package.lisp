@@ -11,65 +11,6 @@
 		:normalize
 		:cross)
   (:export
-   ;; variables
-   :gl-max-clip-distances
-   :gl-max-clip-planes
-   :gl-max-draw-Buffers
-   :gl-max-texture-units
-   :gl-max-texture-coords
-   :gl-max-geometry-texture-image-units
-   :gl-max-texture-image-units
-   :gl-max-vertex-attribs
-   :gl-max-vertex-texture-image-units
-   :gl-max-combined-texture-image-units
-   :gl-max-geometry-varying-components
-   :gl-max-varying-floats
-   :gl-max-geometry-output-vertices
-   :gl-max-fragment-uniform-components
-   :gl-max-geometry-total-output-components
-   :gl-max-geometry-uniform-components
-   :gl-max-vertex-uniform-components
-   :gl-vertex-id
-   :gl-instance-id
-   :gl-color
-   :gl-secondary-color
-   :gl-normal
-   :gl-vertex
-   :gl-multi-tex-coord-0
-   :gl-multi-tex-coord-1
-   :gl-multi-tex-coord-2
-   :gl-multi-tex-coord-3
-   :gl-multi-tex-coord-4
-   :gl-multi-tex-coord-5
-   :gl-multi-tex-coord-6
-   :gl-multi-tex-coord-7
-   :gl-fog-coord
-   :gl-position
-   :gl-point-size
-   :gl-clip-distance
-   :gl-clip-vertex
-   :gl-front-color
-   :gl-back-color
-   :gl-front-secondary-color
-   :gl-back-secondary-color
-   :gl-tex-coord
-   :gl-fog-frag-coord
-   :gl-in
-   :gl-primitive-id-in
-   :gl-position
-   :gl-primitive-id
-   :gl-layer
-   :gl-frag-coord
-   :gl-front-facing
-   :gl-clip-distance
-   :gl-point-coord
-   :gl-primitive-id
-   :gl-frag-data
-   :gl-frag-depth
-   :gl-depth-range
-   :near
-   :far
-   :diff
 
    ;; special functions
    :setf-1
@@ -100,125 +41,15 @@
    :%>=
    :%eql
    :%equal
-   :++
    :--
-   :all
-   :any
    :atomic-counter
-   :atomic-counter-decrement
-   :atomic-counter-increment
-   :barrier
-   :bitfield-extract
-   :bitfield-insert
-   :bitfield-reverse
    :bool
-   :ceil
-   :clamp
-   :cross
-   :d-fdx
-   :d-fdy
-   :degrees
-   :determinant
-   :distance
-   :dot
    :double
-   :emit-stream-vertex
-   :emit-vertex
-   :end-primitive
-   :end-stream-primitive
-   :exp-2
-   :faceforward
-   :fma
-   :fract
-   :fwidth
-   :greater-than
-   :greater-than-equal
-   :group-memory-barrier
-   :image-atomic-add
-   :image-atomic-and
-   :image-atomic-comp-swap
-   :image-atomic-exchange
-   :image-atomic-max
-   :image-atomic-min
-   :image-atomic-or
-   :image-atomic-xor
-   :image-load
-   :image-size
-   :image-store
    :int
-   :interpolate-at-centroid
-   :interpolate-at-offset
-   :interpolate-at-sample
-   :inverse
-   :inversesqrt
-   :isinf
-   :isnan
-   :less-than
-   :less-than-equal
-   :log-2
-   :m!
-   :matrix-comp-mult
-   :memory-barrier
-   :memory-barrier-atomic-counter
-   :memory-barrier-buffer
-   :memory-barrier-image
-   :memory-barrier-shared
-   :mix
-   :noise-1
-   :normalize
-   :not-equal
-   :outer-product
-   :pack-double-2x-3-2
-   :pack-half-2x-1-6
-   :pack-snorm-2x-1-6
-   :pack-snorm-4x-8
-   :pack-unorm-2x-1-6
-   :pack-unorm-4x-8
-   :pow
-   :radians
-   :reflect
-   :refract
-   :round-even
-   :sign
-   :smoothstep
-   :transpose
-   :trunc
    :uint
-   :unpack-double-2x-3-2
-   :unpack-half-2x-1-6
-   :unpack-snorm-2x-1-6
-   :unpack-snorm-4x-8
-   :unpack-unorm-2x-1-6
-   :unpack-unorm-4x-8
-   :v!
-   :v!int
-   :v!uint
-   :v!bool
-   :v!double
    :v-equal
    :v-not
-   :v-not-equal
-   :w
-   :x
-   :y
-   :z
-
-   ;; texture functions
-   :texel-fetch
-   :texel-fetch-offset
-   :texture
-   :texture-grad
-   :texture-grad-offset
-   :texture-lod
-   :texture-lod-offset
-   :texture-offset
-   :texture-proj
-   :texture-proj-grad
-   :texture-proj-grad-offset
-   :texture-proj-lod
-   :texture-proj-lod-offset
-   :texture-proj-offset
-   :texture-size))
+   :v-not-equal))
 
 (defpackage #:varjo-conditions
   (:use #:cl)
@@ -296,6 +127,14 @@
 (defpackage #:varjo
   (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre
 	#:named-readtables #:varjo-conditions)
+  (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
+  (:import-from :rtg-math.base-vectors :x :y :z :w
+		:v!int :v!uint :v!bool :v!double)
+  (:import-from :rtg-math.vectors
+		:swizzle
+		:dot
+		:normalize
+		:cross)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :v-glsl-size
            :v-casts-to-p
