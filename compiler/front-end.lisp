@@ -70,20 +70,26 @@
 
 (defun merge-in-previous-stage-args (previous-stage stage)
   (if previous-stage
-      (with-stage () stage
-        (list (if (args-compatiblep stage previous-stage)
-                  (mapcar #'%merge-in-arg
-                          (out-vars previous-stage) in-args)
-                  (error 'args-incompatible in-args (out-vars previous-stage)))
-              uniforms
-              context
-              code
-	      tp-meta))
+      (let ((out-vars (transform-previous-stage-out-vars previous-stage stage)))
+	(with-stage () stage
+	  (list (if (and (in-args-compatiblep in-args out-vars)
+			 (uniforms-compatiblep
+			  uniforms (uniforms previous-stage))
+			 (context-compatiblep stage previous-stage))
+		    (mapcar #'%merge-in-arg
+			    out-vars
+			    in-args)
+		    (error 'args-incompatible
+			   in-args (out-vars previous-stage)))
+		uniforms
+		context
+		code
+		tp-meta)))
       (with-stage () stage
         (list in-args
-              uniforms
-              context
-              code
+	      uniforms
+	      context
+	      code
 	      (or tp-meta (make-hash-table))))))
 
 
@@ -115,11 +121,9 @@
       (if (typep stage 'varjo-compile-result)
 	  (splice-in-precompiled-stage
 	   last-stage stage remaining-stage-types accum )
-	  (let ((new-compile-result ;;{TODO} ,- shouldnt we transform, then
-		 ;;                          v  merge? think geometry shader.
-		 (apply compile-func (transform-stage-args
-				      (merge-in-previous-stage-args last-stage
-								    stage)))))
+	  (let ((new-compile-result
+		 (apply compile-func (merge-in-previous-stage-args last-stage
+								   stage))))
 	    (cons (list new-compile-result remaining-stage-types)
 		  (cons last-stage (cddr accum))))))))
 
@@ -171,22 +175,37 @@
              *stage-types*)))
 
 (defgeneric args-compatiblep (stage previous-stage))
+(defgeneric in-args-compatiblep (in-args last-out-vars))
+(defgeneric uniforms-compatiblep (uniforms last-uniforms))
+(defgeneric context-compatiblep (stage previous-stage))
+
+(defmethod in-args-compatiblep ((in-args list) (last-out-vars list))
+  (loop :for p :in last-out-vars
+     :for c :in in-args :always
+     (and (v-type-eq (type-spec->type (second p))
+		     (type-spec->type (second c)))
+	  (%suitable-qualifiersp p c))))
+
+(defmethod uniforms-compatiblep ((uniforms list) (last-uniforms list))
+  (loop :for u :in last-uniforms :always
+     (let ((match (find (first u) uniforms :key #'first)))
+       (if match
+	   (v-type-eq (type-spec->type (second u))
+		      (type-spec->type (second match)))
+	   t))))
+
+(defmethod context-compatiblep ((stage list)
+				(previous-stage varjo-compile-result))
+  (with-stage () stage
+    (context-ok-given-restriction
+     (remove (extract-stage-type previous-stage) (context previous-stage))
+     (remove (extract-stage-type stage) context))))
+
 (defmethod args-compatiblep ((stage list) (previous-stage varjo-compile-result))
   (with-stage () stage
-    (and (loop :for p :in (out-vars previous-stage)
-            :for c :in in-args :always
-            (and (v-type-eq (type-spec->type (second p))
-                            (type-spec->type (second c)))
-                 (%suitable-qualifiersp p c)))
-         (loop :for u :in (uniforms previous-stage) :always
-            (let ((match (find (first u) uniforms :key #'first)))
-              (if match
-                  (v-type-eq (type-spec->type (second u))
-                             (type-spec->type (second match)))
-                  t)))
-         (context-ok-given-restriction
-          (remove (extract-stage-type previous-stage) (context previous-stage))
-          (remove (extract-stage-type stage) context)))))
+    (and (in-args-compatiblep in-args (out-vars previous-stage))
+	 (uniforms-compatiblep uniforms (uniforms previous-stage))
+	 (context-compatiblep stage previous-stage))))
 
 (defmethod args-compatiblep ((stage varjo-compile-result)
 			     (previous-stage varjo-compile-result))
@@ -198,7 +217,8 @@
 		    previous-stage))
 
 (defun in-arg-qualifiers (in-arg)
-  (with-v-arg (_ _1 q) in-arg q))
+  (with-v-arg (_ _1 q) in-arg
+    q))
 
 (defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
   (let ((pq (in-arg-qualifiers prev-stage-in-arg))
@@ -207,14 +227,27 @@
              (member _ pq))
            cq)))
 
+;;----------------------------------------------------------------------
 
+(defun vertex->geometry-args (stage)
+  (mapcar λ(with-v-arg (name type qualifiers glsl-name) _
+	     `(,name (,type *) ,@qualifiers
+		     ,@(when glsl-name (list glsl-name))))
+	  (out-vars stage)))
 
-(let ((arg-transformers (list '(:geometry . (lambda (i u c code)
-                                              (list i u c code))))))
-  (defun transform-stage-args (stage)
-    (let* ((stage-type (extract-stage-type stage))
-           (transform (cdr (assoc stage-type arg-transformers))))
-      (if transform (apply transform stage) stage))))
+(defun in-args-identity (stage)
+  (with-stage () stage
+    in-args))
+
+(let ((arg-transformers (list (cons '(:vertex . :geometry) #'vertex->geometry-args))))
+  (defun transform-previous-stage-out-vars (stage next-stage)
+    (let* ((key (cons (extract-stage-type stage)
+		      (extract-stage-type next-stage))))
+      (funcall (or (assocr key arg-transformers :test #'equal)
+		   #'in-args-identity)
+	       stage))))
+
+;;----------------------------------------------------------------------
 
 ;;{TODO} make proper error
 (defun check-order (stage-type remaining-stage-types)
