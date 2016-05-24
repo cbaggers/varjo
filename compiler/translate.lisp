@@ -439,11 +439,33 @@
 
 ;;----------------------------------------------------------------------
 
+(defun merge-in-injected-uniforms (code env)
+  ;; - format injected-uniforms correctly
+  ;; - remove-duplicates
+  ;; - find duplicate names
+  ;; - boom!
+  (let* ((formatted (mapcar λ`(,@_ nil nil) (injected-uniforms code)))
+	 (joined (append formatted  (v-uniforms env)))
+	 (dedup (remove-duplicates joined :test #'equal))
+	 (names (mapcar #'first dedup))
+	 (counts (mapcar λ(cons (count _ names) _) (remove-duplicates names)))
+	 (issues (mapcar #'cdr (remove-if λ(<= (car _) 1) counts))))
+    (when issues
+      (error "Varjo: The current stage has incompatible uniforms that have been introduced by
+the use of function.
+
+The following uniforms have incompatible definitions: ~s
+
+The full list: ~s
+" issues dedup))
+    dedup))
+
+
 (defun final-uniform-strings (post-proc-obj)
   (with-slots (code env) post-proc-obj
     (let ((final-strings nil)
 	  (structs (used-types post-proc-obj))
-	  (uniforms (v-uniforms env))
+	  (uniforms (merge-in-injected-uniforms (code post-proc-obj) env))
 	  (implicit-uniforms nil))
       (loop :for (name type qualifiers glsl-name) :in uniforms
 	 :for type-obj = (type-spec->type type) :do

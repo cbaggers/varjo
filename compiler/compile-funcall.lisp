@@ -7,11 +7,12 @@
     (when (keywordp func-name)
       (error 'keyword-in-function-position :form code))
     (dbind (func args) (find-function-for-args func-name args-code env)
-      (cond
-        ((typep func 'v-function) (compile-function-call func-name func args env))
-        ((typep func 'v-error) (if (v-payload func)
-                                   (error (v-payload func))
-                                   (error 'cannot-compile :code code)))
+      (typecase func
+        (v-function (compile-function-call func-name func args env))
+	(external-function (compile-external-function-call func args env))
+        (v-error (if (v-payload func)
+		     (error (v-payload func))
+		     (error 'cannot-compile :code code)))
         (t (error 'problem-with-the-compiler :target func))))))
 
 
@@ -26,6 +27,13 @@
         (t (compile-regular-function-call func-name func args env)))
     (assert new-env)
     (values code-obj new-env)))
+
+(defun compile-external-function-call (func args env)
+  (copy-code (compile-list-form
+	      `(labels ((,(name func) ,(in-args func) ,@(code func)))
+		 (,(name func) ,@args))
+	      env)
+	     :injected-uniforms (uniforms func)))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)

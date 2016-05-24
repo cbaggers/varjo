@@ -572,8 +572,10 @@
 
 (defmethod get-function-by-name (func-name (env environment))
   (sort-function-list
-   (loop :for func :in (%get-functions-by-name func-name env)
-      :if (and func (valid-for-contextp func env)) :collect func)))
+   (append
+    (loop :for func :in (%get-functions-by-name func-name env)
+       :if (and func (valid-for-contextp func env)) :collect func)
+    (get-external-function-by-name func-name))))
 
 (defmethod special-raw-argp ((func v-function))
   (eq (v-argument-spec func) t))

@@ -22,6 +22,7 @@
 	       (:file "language/types")
 	       (:file "compiler/flow")
 	       (:file "compiler/variables")
+	       (:file "compiler/external-functions")
 	       (:file "compiler/environment")
 	       (:file "compiler/structs")
 	       (:file "compiler/functions")
