@@ -41,6 +41,7 @@
 	       (:file "language/functions-from-spec")
 	       (:file "language/special")
 	       (:file "language/functions")
+	       (:file "compiler/translate")
 	       (:file "compiler/front-end")
 	       (:file "language/object-printers")
 	       (:file "language/rtg-math-equivalents")))

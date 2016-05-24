@@ -322,8 +322,8 @@
     (cond ((member :fragment context) `(%out (,(free-name :output-color env))
                                              ,form))
           ((member :vertex context) `(setq varjo-lang::gl-position ,form))
-          (t (error "Have not implemented #'values defaults for this stage ~a"
-                    env)))))
+          (t `(%out (,(free-name :output-var env))
+		    ,form)))))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
