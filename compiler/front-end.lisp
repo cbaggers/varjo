@@ -3,45 +3,58 @@
 
 ;;----------------------------------------------------------------------
 
-;; These two are example macros to show how to use the compiler.
-;; They dont provide anything
 
-(defmacro defshader (name args &body body)
-  (declare (ignore name))
-  (destructuring-bind (in-args uniforms context)
-      (split-arguments args '(&uniform &context))
-    `(translate ',in-args ',uniforms ',context '(progn ,@body))))
+(defun v-compile (uniforms version
+                  &key vertex tesselation-control tesselation-evaluation
+                    geometry fragment)
+  "
+This function takes lisp code as lists and returns the results of compiling that
+code to glsl.
 
-;; (defpipeline blah
-;;     (:vertex ((pos :vec3) &uniform (a :float))
-;;              (values (v! pos 1.0) a))
-;;     (:fragment ((hmm :float))
-;;                (labels ((fun ((x :float))
-;;                           (* x x)))
-;;                  (v! 1.0 1.0 hmm (fun a)))))
+Each result is an object of type 'varjo-compile-result.
 
-(defmacro defpipeline (name &body body)
-  (declare (ignore name))
-  (destructuring-bind (in-args first-uniforms first-context)
-      (split-arguments (second (first body)) '(&uniform &context))
-    (declare (ignore in-args))
-    `(format
-      nil "~{~a~%~}"
-      (mapcar #'glsl-code
-              (rolling-translate
-               ',(mapcar (lambda (_)
-                           (destructuring-bind
-                                 (stage-in-args stage-uniforms stage-context)
-                               (split-arguments (second _) '(&uniform &context))
-                             (declare (ignore stage-context))
-                             (list stage-in-args
-                                   (if (equal first-uniforms stage-uniforms)
-                                       stage-uniforms
-                                       (concatenate 'list stage-uniforms
-                                                    first-uniforms))
-                                   (cons (first _) first-context)
-                                   (third _))))
-                         body))))))
+The stages must be defined in the following way.
+
+- The first element of the list is the input args to the stage as pairs of
+  names and types.
+- The rest of the list is the body code of that stage.
+
+Example:
+
+    (v-compile '((a :float)) :330
+               :vertex '(((pos :vec3))
+                         (values (v! pos 1.0) a))
+               :fragment '(((hmm :float))
+                           (labels ((fun ((x :float))
+                                      (* x x)))
+                             (v! 1.0 1.0 hmm (fun a)))))
+"
+  (let ((stages (list (when vertex
+                        (list (first vertex)
+                              uniforms
+                              (list  :vertex version)
+                              `(progn ,@(rest vertex))))
+                      (when tesselation-control
+                        (list (first tesselation-control)
+                              uniforms
+                              (list :tesselation-control version)
+                              `(progn ,@(rest tesselation-control))))
+                      (when tesselation-evaluation
+                        (list (first tesselation-evaluation)
+                              uniforms
+                              (list :tesselation-evaluation version)
+                              `(progn ,@(rest tesselation-evaluation))))
+                      (when geometry
+                        (list (first geometry)
+                              uniforms
+                              (list :geometry version)
+                              `(progn ,(rest geometry))))
+                      (when fragment
+                        (list (first fragment)
+                              uniforms
+                              (list :fragment version)
+                              `(progn ,@(rest fragment)))))))
+    (rolling-translate (remove nil stages))))
 
 (defun v-macroexpand (form &optional (env (%make-base-environment)))
   (identity

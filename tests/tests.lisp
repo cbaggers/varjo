@@ -1,5 +1,45 @@
 (in-package :varjo-tests)
 
+;; These two are example macros to show how to use the compiler.
+;; They dont provide anything
+
+(defmacro defshader (name args &body body)
+  (declare (ignore name))
+  (destructuring-bind (in-args uniforms context)
+      (split-arguments args '(&uniform &context))
+    `(translate ',in-args ',uniforms ',context '(progn ,@body))))
+
+;; (defpipeline blah
+;;     (:vertex ((pos :vec3) &uniform (a :float))
+;;              (values (v! pos 1.0) a))
+;;     (:fragment ((hmm :float))
+;;                (labels ((fun ((x :float))
+;;                           (* x x)))
+;;                  (v! 1.0 1.0 hmm (fun a)))))
+
+(defmacro defpipeline (name &body body)
+  (declare (ignore name))
+  (destructuring-bind (in-args first-uniforms first-context)
+      (split-arguments (second (first body)) '(&uniform &context))
+    (declare (ignore in-args))
+    `(format
+      nil "~{~a~%~}"
+      (mapcar #'glsl-code
+              (rolling-translate
+               ',(mapcar (lambda (_)
+                           (destructuring-bind
+                                 (stage-in-args stage-uniforms stage-context)
+                               (split-arguments (second _) '(&uniform &context))
+                             (declare (ignore stage-context))
+                             (list stage-in-args
+                                   (if (equal first-uniforms stage-uniforms)
+                                       stage-uniforms
+                                       (concatenate 'list stage-uniforms
+                                                    first-uniforms))
+                                   (cons (first _) first-context)
+                                   (third _))))
+                         body))))))
+
 (stefil:defsuite* test-all)
 (defsuite build-tests)
 
