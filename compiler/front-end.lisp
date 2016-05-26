@@ -48,7 +48,7 @@ Example:
                         (list (first geometry)
                               uniforms
                               (list :geometry version)
-                              `(progn ,(rest geometry))))
+                              `(progn ,@(rest geometry))))
                       (when fragment
                         (list (first fragment)
                               uniforms
@@ -76,10 +76,14 @@ Example:
      (declare (ignorable ,in-args ,uniforms ,context ,code ,tp-meta))
      ,@body))
 
+(defclass rolling-result ()
+  ((remaining-stages :initform *stage-types* :initarg :remaining-stages)
+   (compiled-stages :initform nil :initarg :compiled-stages)))
+
 (defun rolling-translate (stages &optional (compile-func #'translate))
   (let ((result (reduce λ(compile-stage _ _1 compile-func)
-			stages :initial-value nil)))
-    (reverse (cons (caar result) (rest result)))))
+                        stages :initial-value (make-instance 'rolling-result))))
+    (reverse (slot-value result 'compiled-stages))))
 
 (defun merge-in-previous-stage-args (previous-stage stage)
   (declare (optimize debug))
@@ -161,18 +165,20 @@ Example:
 		(cons last-stage (cddr accum))))))))
 
 (defun compile-stage (accum stage compile-func)
-  (destructuring-bind (last-stage remaining-stage-types)
-      (or (first accum) `(nil ,*stage-types*))
-    (let* ((remaining-stage-types (check-order (extract-stage-type stage)
-					       remaining-stage-types)))
+  (with-slots (remaining-stages compiled-stages) accum
+    (let* ((last-stage (first compiled-stages))
+           (remaining-stages (check-order (extract-stage-type stage)
+                                          remaining-stages)))
       (if (typep stage 'varjo-compile-result)
-	  (splice-in-precompiled-stage
-	   last-stage stage remaining-stage-types accum )
-	  (let ((new-compile-result
-		 (apply compile-func (merge-in-previous-stage-args last-stage
-								   stage))))
-	    (cons (list new-compile-result remaining-stage-types)
-		  (cons last-stage (cddr accum))))))))
+          (splice-in-precompiled-stage
+           last-stage stage remaining-stages accum )
+          (let ((new-compile-result
+                 (apply compile-func (merge-in-previous-stage-args last-stage
+                                                                   stage))))
+            (make-instance 'rolling-result
+                           :compiled-stages (cons new-compile-result
+                                                  compiled-stages)
+                           :remaining-stages remaining-stages))))))
 
 (defgeneric extract-stage-type (stage))
 
