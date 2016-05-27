@@ -188,8 +188,11 @@
     (push used (used-symbol-macros env))
     (values form env)))
 
-(defun dedup-used (used)
+(defun dedup-used-macros (used)
   (remove-duplicates (flatten used)))
+
+(defun dedup-used-external-functions (used)
+  (remove-duplicates used))
 
 ;;----------------------------------------------------------------------
 
@@ -243,18 +246,23 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
    (used-types :initarg :used-types :accessor used-types)
+   (used-external-functions :initarg :used-external-functions
+                            :accessor used-external-functions)
    (used-symbol-macros :initarg :used-symbol-macros
-		       :accessor used-symbol-macros)
+                       :accessor used-symbol-macros)
    (used-macros :initarg :used-macros :accessor used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
-			 :accessor used-compiler-macros)
+                         :accessor used-compiler-macros)
    (ast :initarg :ast :reader ast)))
 
 (defun make-post-process-obj (code env)
-  (make-instance 'post-compile-process :code code :env env
-		 :used-symbol-macros (dedup-used (used-symbol-macros env))
-		 :used-macros (dedup-used (used-macros env))
-		 :used-compiler-macros (dedup-used (used-compiler-macros env))))
+  (make-instance
+   'post-compile-process :code code :env env
+   :used-external-functions (dedup-used-external-functions
+                             (used-external-functions env))
+   :used-symbol-macros (dedup-used-macros (used-symbol-macros env))
+   :used-macros (dedup-used-macros (used-macros env))
+   :used-compiler-macros (dedup-used-macros (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
 
@@ -542,6 +550,7 @@ The full list: ~s
        :uniforms (mapcar #'butlast (uniforms post-proc-obj))
        :implicit-uniforms (stemcells post-proc-obj)
        :context context
+       :used-external-functions (used-external-functions post-proc-obj)
        :used-symbol-macros (used-symbol-macros post-proc-obj)
        :used-macros (used-macros post-proc-obj)
        :used-compiler-macros (used-compiler-macros post-proc-obj)

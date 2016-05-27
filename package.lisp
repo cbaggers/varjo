@@ -283,6 +283,7 @@
            :v-defun
            :v-defmacro
            :v-define-compiler-macro
+           :add-external-function
 	   :add-equivalent-name
 
 	   ;;flow-ids
@@ -348,6 +349,7 @@
 	   :uniforms
 	   :implicit-uniforms
 	   :context
+       :used-external-functions
 	   :used-macros
 	   :used-compiler-macros
 	   :used-symbol-macros

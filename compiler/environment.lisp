@@ -27,6 +27,7 @@
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (function-code-cache :initform (make-hash-table) :reader v-code-cache)
+   (used-external-functions :initform nil :initarg :used-external-functions)
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
@@ -49,6 +50,9 @@
   (cdr (find code (slot-value (get-base-env e) 'function-dedup)
 	     :key #'car :test #'equal)))
 
+(defmethod used-external-functions ((e environment))
+  (slot-value (get-base-env e) 'used-external-functions))
+
 (defmethod used-symbol-macros ((e environment))
   (slot-value (get-base-env e) 'used-symbol-macros))
 
@@ -59,6 +63,10 @@
   (slot-value (get-base-env e) 'used-compiler-macros))
 
 ;; ugh
+(defmethod (setf used-external-functions) (val (e environment))
+  (setf (slot-value (get-base-env e) 'used-external-functions)
+	val))
+
 (defmethod (setf used-symbol-macros) (val (e environment))
   (setf (slot-value (get-base-env e) 'used-symbol-macros)
 	val))

@@ -8,13 +8,18 @@
       (error 'keyword-in-function-position :form code))
     (dbind (func args) (find-function-for-args func-name args-code env)
       (typecase func
-        (v-function (compile-function-call func-name func args env))
-	(external-function (compile-external-function-call func args env))
+        (v-function (compile-function-call
+                     func-name func args env))
+        (external-function (compile-external-function-call
+                            (record-func-usage func env) args env))
         (v-error (if (v-payload func)
-		     (error (v-payload func))
-		     (error 'cannot-compile :code code)))
+                     (error (v-payload func))
+                     (error 'cannot-compile :code code)))
         (t (error 'problem-with-the-compiler :target func))))))
 
+(defmethod record-func-usage ((func external-function) env)
+  (push func (used-external-functions env))
+  func)
 
 (defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)

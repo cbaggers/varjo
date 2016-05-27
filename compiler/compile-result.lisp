@@ -8,6 +8,8 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (context :initarg :context :accessor context)
+   (used-external-functions :initarg :used-external-functions
+                            :reader used-external-functions)
    (used-macros :initarg :used-macros :reader used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
 			 :reader used-compiler-macros)
@@ -28,6 +30,7 @@
 			       (uniforms nil uniforms-set)
 			       (implicit-uniforms nil implicit-uniforms-set)
 			       (context nil context-set)
+                   (used-external-functions nil used-external-functions-set)
 			       (used-macros nil used-macros-set)
 			       (used-compiler-macros nil used-compiler-macros-set)
 			       (ast nil ast-set)
@@ -42,6 +45,9 @@
    :uniforms (if uniforms-set uniforms (uniforms original))
    :implicit-uniforms (if implicit-uniforms-set implicit-uniforms (implicit-uniforms original))
    :context (if context-set context (context original))
+   :used-external-functions (if used-external-functions-set
+                                used-external-functions
+                                (used-external-functions original))
    :used-macros (if used-macros-set used-macros (used-macros original))
    :used-compiler-macros (if used-compiler-macros-set used-compiler-macros (used-compiler-macros original))
    :ast (if ast-set ast (ast original))
