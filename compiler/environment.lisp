@@ -514,23 +514,23 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod valid-for-contextp ((func v-function) (env environment))
-  (let ((restriction (v-restriction func))
+  (let ((versions (v-versions func))
         (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
+    (%valid-for-contextp func versions context)))
 
 (defmethod valid-for-contextp ((func v-function) (env (eql *global-env*)))
-  (let ((restriction (v-restriction func))
+  (let ((versions (v-versions func))
         (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
+    (%valid-for-contextp func versions context)))
 
 (defmethod valid-for-contextp ((func list) (env environment))
-  (let ((restriction (second func))
+  (let ((versions (second func))
         (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
+    (%valid-for-contextp func versions context)))
 
-(defun %valid-for-contextp (func restriction context)
-  (if restriction
-      (when (context-ok-given-restriction context restriction)
+(defun %valid-for-contextp (func versions context)
+  (if versions
+      (when (some λ(member _ context) versions)
         func)
       func))
 

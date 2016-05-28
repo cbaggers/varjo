@@ -11,7 +11,8 @@
 		   (lisp-return (parse-gl-type-name return))
 		   (transform (format nil "~a(~{~a~^,~})" name
 				      (loop :for i :below (length args) :collect
-					 "~a"))))
+					 "~a")))
+		   (versions (mapcar #'kwd versions)))
 	      (unless (some #'third args)
 		`((add-function
 		   ',lisp-name

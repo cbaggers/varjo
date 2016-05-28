@@ -11,15 +11,15 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defun v-make-f-spec (name transform context arg-types return-spec
+(defun v-make-f-spec (name transform versions arg-types return-spec
                       &key v-place-index glsl-name multi-return-vars
 			implicit-args flow-ids in-arg-flow-ids)
-  (list transform arg-types return-spec context v-place-index
+  (list transform arg-types return-spec versions v-place-index
         glsl-name multi-return-vars name implicit-args flow-ids
 	in-arg-flow-ids))
 
 (defun %func-spec->function (spec env userp)
-  (destructuring-bind (transform arg-spec return-spec context v-place-index
+  (destructuring-bind (transform arg-spec return-spec versions v-place-index
                                  glsl-name multi-return-vars name
                                  implicit-args flow-ids in-arg-flow-ids)
       spec
@@ -32,7 +32,7 @@
                    :return-spec (if (type-specp return-spec)
                                     (type-spec->type return-spec :env env)
                                     return-spec)
-                   :restriction context :v-place-index v-place-index
+                   :versions versions :v-place-index v-place-index
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
                    :name name
@@ -50,7 +50,7 @@
   (let ((arg-spec (v-argument-spec func)))
     (v-make-f-spec (name func)
                    (v-glsl-string func)
-                   nil ;;{TODO} this must be context
+                   nil ;;{TODO} this must be versions
                    (when (listp arg-spec)
                      (loop :for a :in arg-spec :collect (type->type-spec a)))
                    (if (type-specp (v-return-spec func))
