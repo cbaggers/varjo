@@ -49,7 +49,13 @@
    :uint
    :v-equal
    :v-not
-   :v-not-equal))
+   :v-not-equal
+
+   ;; struct slot names
+   :near
+   :far
+   :diff
+   ))
 
 (defpackage #:varjo-conditions
   (:use #:cl)
@@ -340,6 +346,7 @@
            :v-macroexpand-all
            :v-compiler-macroexpand-all
            :*stage-types*
+	   :v-compile
 
            ;;compile-result
 	   :glsl-code
@@ -349,7 +356,7 @@
 	   :uniforms
 	   :implicit-uniforms
 	   :context
-       :used-external-functions
+	   :used-external-functions
 	   :used-macros
 	   :used-compiler-macros
 	   :used-symbol-macros

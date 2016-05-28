@@ -262,6 +262,7 @@ Example:
 ;;----------------------------------------------------------------------
 
 (defgeneric transform-arg-types (last next stage))
+(defgeneric transform-previous-stage-out-vars (stage next-stage))
 
 (defmethod transform-arg-types ((last (eql :vertex)) (next (eql :geometry))
 				stage)
