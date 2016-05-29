@@ -147,8 +147,7 @@ Example:
       (when (and (in-args-compatiblep (in-args stage) out-vars)
 		 (uniforms-compatiblep (uniforms stage)
 				       (uniforms last-stage))
-		 (context-compatiblep (context stage)
-				      (context last-stage)))
+		 (context-compatiblep stage last-stage))
 	;; we need to modify the result of the compiled stage if the in-args names
 	;; dont match the names of the out args
 	(let* ((glsl-aliases (gen-aliases))
@@ -161,8 +160,11 @@ Example:
 					 glsl-aliases)))
 	       (new-compile-result
 		(clone-compile-result stage :glsl-code final-glsl-code)))
-	  (cons (list new-compile-result remaining-stage-types)
-		(cons last-stage (cddr accum))))))))
+	  (with-slots (compiled-stages) accum
+	    (make-instance 'rolling-result
+			   :compiled-stages (cons new-compile-result
+						  compiled-stages)
+			   :remaining-stages remaining-stage-types)))))))
 
 (defun compile-stage (accum stage compile-func)
   (with-slots (remaining-stages compiled-stages) accum
@@ -246,6 +248,12 @@ Example:
     (context-ok-given-restriction
      (remove (extract-stage-type previous-stage) (context previous-stage))
      (remove (extract-stage-type stage) context))))
+
+(defmethod context-compatiblep ((stage varjo-compile-result)
+				(previous-stage varjo-compile-result))
+  (context-ok-given-restriction
+   (remove (extract-stage-type previous-stage) (context previous-stage))
+   (remove (extract-stage-type stage) (context stage))))
 
 
 (defun in-arg-qualifiers (in-arg)

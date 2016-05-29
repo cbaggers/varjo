@@ -33,10 +33,18 @@
     (assert new-env)
     (values code-obj new-env)))
 
+(defun expand-macros-for-external-func (form env)
+  (pipe-> (form env)
+    (equalp #'symbol-macroexpand-pass
+	    #'macroexpand-pass
+	    #'compiler-macroexpand-pass)))
+
 (defun compile-external-function-call (func args env)
   (copy-code (compile-list-form
-	      `(labels ((,(name func) ,(in-args func) ,@(code func)))
-		 (,(name func) ,@args))
+	      (expand-macros-for-external-func
+	       `(labels ((,(name func) ,(in-args func) ,@(code func)))
+		  (,(name func) ,@args))
+	       env)
 	      env)
 	     :injected-uniforms (uniforms func)))
 
