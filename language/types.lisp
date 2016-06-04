@@ -695,3 +695,14 @@
 (def-v-type-class v-ubuffer-image (v-t-type v-gbuffer-image)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "ubufferImage" :reader v-glsl-string)))
+
+;;----------------------------------------------------------------------
+
+(defun vec-of (type len)
+  (assert (and (>= len 2) (<= len 4)))
+  (type-spec->type
+   (etypecase type
+     (v-uint (nth (- len 2) '(:uvec2 :uvec3 :uvec4)))
+     (v-int (nth (- len 2) '(:ivec2 :ivec3 :ivec4)))
+     (v-float (nth (- len 2) '(:vec2 :vec3 :vec4)))
+     (v-double (nth (- len 2) '(:dvec2 :dvec3 :dvec4))))))

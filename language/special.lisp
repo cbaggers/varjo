@@ -905,12 +905,16 @@
          (comp-string (if (keywordp components)
                           (string-downcase (symbol-name components))
                           (error 'swizzle-keyword :item components)))
-         (new-len (length comp-string)))
-    (if (and (>= new-len 2) (<= new-len 4)
-             (v-typep (code-type vec-obj) 'v-vector)
+         (new-len (length comp-string))
+	 (vec-type (code-type vec-obj))
+	 (element-type (v-element-type vec-type)))
+    (if (and (>= new-len 1) (<= new-len 4)
+             (v-typep vec-type 'v-vector)
              (loop :for c :across comp-string
                 :always (find c allowed)))
-	(let ((r-type (type-spec->type (p-symb 'varjo 'v-vec new-len)))
+	(let ((r-type (if (= new-len 1)
+			  element-type
+			  (vec-of element-type new-len)))
 	      (flow-id (flow-id!)))
 	  (values
 	   (copy-code vec-obj :type r-type
