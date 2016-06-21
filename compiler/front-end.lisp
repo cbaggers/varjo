@@ -74,17 +74,17 @@
         (list (if (args-compatiblep stage previous-stage)
                   (mapcar #'%merge-in-arg
                           (out-vars previous-stage) in-args)
-                  (error 'args-incompatible in-args (out-vars previous-stage)))
+                  (error 'args-incompatible :current-args in-args :previous-args (out-vars previous-stage)))
               uniforms
               context
               code
-	      tp-meta))
+              tp-meta))
       (with-stage () stage
         (list in-args
               uniforms
               context
               code
-	      (or tp-meta (make-hash-table))))))
+              (or tp-meta (make-hash-table))))))
 
 
 (defmacro with-v-arg ((&optional (name (gensym "name")) (type (gensym "type"))
