@@ -50,3 +50,9 @@
 (v-defun rtg-math.vectors:w (a) "~a.w" (v-ivec4) v-int)
 (v-defun rtg-math.vectors:w (a) "~a.w" (v-uvec4) v-uint)
 (v-defun rtg-math.vectors:w (a) "~a.w" (v-dvec4) v-double)
+
+(v-defun m3:from-columns (a b c) "mat3(~a, ~a, ~a)" (v-vec3 v-vec3 v-vec3)
+	 v-mat3)
+
+(v-defun m4:from-columns (a b c d) "mat4(~a, ~a, ~a, ~a)"
+	 (v-vec4 v-vec4 v-vec4 v-vec4) v-mat3)
