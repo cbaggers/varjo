@@ -99,7 +99,8 @@ Example:
 			    out-vars
 			    in-args)
 		    (error 'args-incompatible
-			   in-args (out-vars previous-stage)))
+			   :current-args in-args
+			   :previous-args  (out-vars previous-stage)))
 		uniforms
 		context
 		code
