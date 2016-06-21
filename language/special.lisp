@@ -166,19 +166,21 @@
   ;; an error
   :args-valid t
   :return
-  (let ((safe-env (fresh-environment
-		   env :multi-val-base (v-multi-val-base env)
-		   :multi-val-safe t)))
-    (vbind (c e) (compile-list-form form safe-env)
-      (let* ((final-env (fresh-environment e :multi-val-safe nil))
-	     (ast (ast-node! 'varjo-lang:values-safe
-			     (list (node-tree c))
-			     (code-type c)
-			     (flow-ids c)
-			     env
-			     final-env)))
-	(values (copy-code c :node-tree ast)
-		final-env)))))
+  (if (listp form)
+      (let ((safe-env (fresh-environment
+		       env :multi-val-base (v-multi-val-base env)
+		       :multi-val-safe t)))
+	(vbind (c e) (compile-list-form form safe-env)
+	  (let* ((final-env (fresh-environment e :multi-val-safe nil))
+		 (ast (ast-node! 'varjo-lang:values-safe
+				 (list (node-tree c))
+				 (code-type c)
+				 (flow-ids c)
+				 env
+				 final-env)))
+	    (values (copy-code c :node-tree ast)
+		    final-env))))
+      (compile-form form env )))
 
 (v-defspecial values (&rest values)
   :args-valid t
