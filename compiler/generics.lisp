@@ -1,5 +1,6 @@
 (in-package :varjo)
 
+(defgeneric compile-form (code env))
 (defgeneric v-place-function-p (f))
 (defgeneric type->type-spec (type))
 (defgeneric v-true-type (object))

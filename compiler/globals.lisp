@@ -33,6 +33,11 @@
     (declare (ignore name))
     nil))
 
+(defparameter *constant-inject-hook*
+  (lambda (name)
+    (declare (ignore name))
+    nil))
+
 (defvar *registered-types* nil)
 
 (defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")

@@ -336,6 +336,7 @@
            ;;compiler
            :compile-form
            :with-stemcell-infer-hook
+	   :with-constant-inject-hook
 	   :safe-glsl-name-string
 	   :with-v-arg
 
