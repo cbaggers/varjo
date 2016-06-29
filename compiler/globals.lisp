@@ -9,8 +9,9 @@
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
 
-(defparameter *supported-stages* '(:vertex :geometry :tesselation-control
-				   :tesselation-evaluation :fragment))
+(defparameter *stage-types* '(:vertex :geometry :tess-eval :tess-control :fragment))
+(defparameter *supported-stages* *stage-types*) ;; not supported well but theoretically these are supported :p
+
 (defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
                                        :line-strip-adjacency :lines-adjacency
                                        :triangle-strip :triangle-fan :triangles
@@ -23,8 +24,6 @@
                                            ,@(copy-list *supported-draw-modes*)
                                            :iuniforms :no-iuniforms))
 
-(defparameter *stage-types*
-  '(:vertex :geometry :tess-eval :tess-control :fragment))
 
 (defparameter *ast-node-kinds*
   '(:get :get-stemcell :get-v-value :literal :error :none))

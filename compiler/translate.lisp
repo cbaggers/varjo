@@ -78,7 +78,10 @@
     (setf (v-raw-in-args env) in-args)
     (setf (v-raw-uniforms env) uniforms)
     (setf (v-raw-context env) context)
-    (when (not context) (setf (v-raw-context env) *default-context*))
+    (when (not context)
+      (setf (v-raw-context env) *default-context*))
+    (when (not (intersection *supported-versions* (v-raw-context env)))
+      (push :vertex (v-raw-context env)))
     (when (check-for-stage-specific-limitations env)
       (values body env))))
 
@@ -90,13 +93,15 @@
              :if (find item *supported-versions*) :return item)
     (push *default-version* (v-raw-context env)))
   (let* ((raw-context (v-raw-context env))
-         (raw-context (if (member :no-iuniforms raw-context)
-                          (remove :iuniforms raw-context)
-                          raw-context)))
+	 (iuniforms (and (member :iuniforms raw-context)
+			 (not (member :no-iuniforms raw-context))))
+         (raw-context (remove-if λ(member _ '(:iuniforms :no-iuniforms))
+				 raw-context)))
     (setf (v-context env)
           (loop :for item :in raw-context
              :if (find item *valid-contents-symbols*) :collect item
-             :else :do (error 'invalid-context-symbol :context-symb item))))
+             :else :do (error 'invalid-context-symbol :context-symb item)))
+    (setf (v-iuniforms env) iuniforms))
   (values code env))
 
 ;;----------------------------------------------------------------------

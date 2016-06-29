@@ -26,6 +26,7 @@
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
+   (iuniforms :initform nil :initarg :iuniforms :accessor v-iuniforms)
    (function-code-cache :initform (make-hash-table) :reader v-code-cache)
    (used-external-functions :initform nil :initarg :used-external-functions)
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
@@ -84,6 +85,9 @@
     (if (not (eq parent *global-env*))
 	(get-base-env parent)
 	env)))
+
+(defmethod v-iuniforms ((e environment))
+  (v-iuniforms (get-base-env e)))
 
 (defmethod v-code-cache ((env environment))
   (v-code-cache (get-base-env env)))
@@ -329,11 +333,15 @@
 ;;-------------------------------------------------------------------------
 
 (defun context-ok-given-restriction (context restriction)
-  (loop :for item :in restriction :always
-     (if (listp item)
-         (find-if (lambda (_)
-                    (member _ context)) item)
-         (find item context))))
+  (labels ((clean (x)
+	     (let ((ignored '(:iuniforms)))
+	       (remove-if λ(member _ ignored) x))))
+    (let ((context (clean context))
+	  (restriction (clean restriction)))
+      (loop :for item :in restriction :always
+	 (if (listp item)
+	     (find-if (lambda (_) (member _ context)) item)
+	     (find item context))))))
 
 (defun shadow-global-check (name &key (specials t) (macros t) (c-macros t))
   (when (or (and macros (get-macro name *global-env*))
@@ -371,7 +379,7 @@
   )
 
 (defun allows-stemcellsp (env)
-  (context-ok-given-restriction (v-context env) '(:iuniforms)))
+  (v-iuniforms env))
 
 ;;-------------------------------------------------------------------------
 
