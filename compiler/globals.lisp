@@ -7,7 +7,8 @@
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-symbol-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
-(defparameter *supported-versions* '(:330 :430 :440))
+(defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
+
 (defparameter *supported-stages* '(:vertex :geometry :tesselation-control
 				   :tesselation-evaluation :fragment))
 (defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
