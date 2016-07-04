@@ -153,6 +153,9 @@
 (v-defun %/ (a b) "(~a / ~a)" (v-vector v-number) 0)
 (v-defun %/ (a b) "(~a / ~a)" (v-vector v-vector) nil)
 
+(v-defun v! (v) "~a" (v-vec2) v-vec2)
+(v-defun v! (v) "~a" (v-vec2) v-vec3)
+(v-defun v! (v) "~a" (v-vec4) v-vec4)
 (v-defun v! (x y) "vec3(~a,~a)" (v-float v-vec2) v-vec3)
 (v-defun v! (x y) "vec3(~a,~a)" (v-vec2 v-float) v-vec3)
 
@@ -256,12 +259,10 @@
            v-float v-float v-float v-float v-float v-float v-float v-float)
   v-mat4)
 (v-defun m! (a b c d)
-  "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4
- )
+  "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4)
 
 (v-defun v-not (x &context (:330 :440)) "not(~a)"
-	 (v-bvector) 0
-        )
+	 (v-bvector) 0)
 
 (v-defun v-equal (x y &context (:330 :440))
   "equal(~a,~a)"
