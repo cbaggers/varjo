@@ -67,3 +67,5 @@
 (defgeneric get-compiler-macro (macro-name env))
 (defgeneric get-var (var-name env))
 (defgeneric raw-ids (flow-id))
+(defgeneric add-external-function (name in-args uniforms code))
+(defgeneric record-func-usage (func env))
