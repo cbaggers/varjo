@@ -30,10 +30,21 @@
                (from-higher-scope (and (> val-scope 0)
                                        (< val-scope (v-function-scope env)))))
           (v-variable->code-obj var-name v-value from-higher-scope env))
-        (if (suitable-symbol-for-stemcellp var-name env)
-	    (let ((scell (make-stem-cell code env))
+	(let ((constant-to-inject (when (constantp var-name)
+				    (funcall *constant-inject-hook* var-name))))
+	  (cond
+	    (constant-to-inject (compile-form constant-to-inject env))
+	    ((suitable-symbol-for-stemcellp var-name env)
+	     (let ((scell (make-stem-cell code env))
 		   (assumed-type (funcall *stemcell-infer-hook* var-name)))
-	      (if assumed-type
-		  (add-type-to-stemcell-code scell assumed-type)
-		  scell))
-            (error 'symbol-unidentified :sym code)))))
+	       (if assumed-type
+		   (add-type-to-stemcell-code scell assumed-type)
+		   scell)))
+	    (t (error 'symbol-unidentified :sym code)))))))
+
+
+(defmacro with-constant-inject-hook (func &body body)
+  (let ((func-name (gensym "hook")))
+    `(let* ((,func-name ,func)
+            (*constant-inject-hook* ,func-name))
+       ,@body)))

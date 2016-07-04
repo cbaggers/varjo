@@ -7,13 +7,19 @@
     (when (keywordp func-name)
       (error 'keyword-in-function-position :form code))
     (dbind (func args) (find-function-for-args func-name args-code env)
-      (cond
-        ((typep func 'v-function) (compile-function-call func-name func args env))
-        ((typep func 'v-error) (if (v-payload func)
-                                   (error (v-payload func))
-                                   (error 'cannot-compile :code code)))
+      (typecase func
+        (v-function (compile-function-call
+                     func-name func args env))
+        (external-function (compile-external-function-call
+                            (record-func-usage func env) args env))
+        (v-error (if (v-payload func)
+                     (error (v-payload func))
+                     (error 'cannot-compile :code code)))
         (t (error 'problem-with-the-compiler :target func))))))
 
+(defmethod record-func-usage ((func external-function) env)
+  (push func (used-external-functions env))
+  func)
 
 (defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)
@@ -26,6 +32,21 @@
         (t (compile-regular-function-call func-name func args env)))
     (assert new-env)
     (values code-obj new-env)))
+
+(defun expand-macros-for-external-func (form env)
+  (pipe-> (form env)
+    (equalp #'symbol-macroexpand-pass
+	    #'macroexpand-pass
+	    #'compiler-macroexpand-pass)))
+
+(defun compile-external-function-call (func args env)
+  (copy-code (compile-list-form
+	      (expand-macros-for-external-func
+	       `(labels ((,(name func) ,(in-args func) ,@(code func)))
+		  (,(name func) ,@args))
+	       env)
+	      env)
+	     :injected-uniforms (uniforms func)))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)

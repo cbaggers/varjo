@@ -11,20 +11,17 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defun v-make-f-spec (name transform context arg-types return-spec
-                      &key v-place-index glsl-spec-matching glsl-name
-                        multi-return-vars implicit-args flow-ids
-			in-arg-flow-ids)
-  (list transform arg-types return-spec context v-place-index glsl-spec-matching
+(defun v-make-f-spec (name transform versions arg-types return-spec
+                      &key v-place-index glsl-name multi-return-vars
+			implicit-args flow-ids in-arg-flow-ids)
+  (list transform arg-types return-spec versions v-place-index
         glsl-name multi-return-vars name implicit-args flow-ids
 	in-arg-flow-ids))
 
 (defun %func-spec->function (spec env userp)
-  (destructuring-bind (transform arg-spec return-spec context v-place-index
-                                 glsl-spec-matching glsl-name
-                                 multi-return-vars name
-                                 implicit-args flow-ids
-				 in-arg-flow-ids)
+  (destructuring-bind (transform arg-spec return-spec versions v-place-index
+                                 glsl-name multi-return-vars name
+                                 implicit-args flow-ids in-arg-flow-ids)
       spec
     (make-instance (if userp 'v-user-function 'v-function)
 		   :glsl-string transform
@@ -35,8 +32,7 @@
                    :return-spec (if (type-specp return-spec)
                                     (type-spec->type return-spec :env env)
                                     return-spec)
-                   :restriction context :v-place-index v-place-index
-                   :glsl-spec-matching glsl-spec-matching
+                   :versions versions :v-place-index v-place-index
                    :glsl-name glsl-name
                    :multi-return-vars multi-return-vars
                    :name name
@@ -54,14 +50,13 @@
   (let ((arg-spec (v-argument-spec func)))
     (v-make-f-spec (name func)
                    (v-glsl-string func)
-                   nil ;;{TODO} this must be context
+                   nil ;;{TODO} this must be versions
                    (when (listp arg-spec)
                      (loop :for a :in arg-spec :collect (type->type-spec a)))
                    (if (type-specp (v-return-spec func))
                        (type->type-spec (v-return-spec func))
                        (v-return-spec func))
                    :v-place-index (v-place-index func)
-                   :glsl-spec-matching (v-glsl-spec-matchingp func)
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
 		   :flow-ids (flow-ids func)
@@ -78,13 +73,12 @@
       (unless (stringp (first body))
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
-                                     &key v-place-index glsl-spec-matching glsl-name) body
+                                     &key v-place-index glsl-name) body
         `(progn (add-function
                  ',name
                  (v-make-f-spec
 		  ',name ,transform ',context ',arg-types ',return-spec
 		  :v-place-index ',v-place-index :glsl-name ',glsl-name
-		  :glsl-spec-matching ',glsl-spec-matching
 		  :flow-ids (%gl-flow-id!)
 		  :in-arg-flow-ids
 		  ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
@@ -191,29 +185,6 @@
                            :arguments (apply method (cons env arg-code)))
               (varjo-error () nil))))))
 
-(defun glsl-arg-matchp (func arg-types arg-objs env)
-  (let* ((spec-types (v-argument-spec func))
-         (spec-generics (positions-if #'v-spec-typep spec-types))
-         (g-dim (when spec-generics
-                  (when (v-typep (nth (first spec-generics) arg-types) 'v-array
-                                 env)
-                    (v-dimensions (nth (first spec-generics) arg-types))))))
-    (when (and (eql (length arg-objs) (length spec-types))
-               (or (null g-dim)
-                   (loop :for i :in spec-generics :always
-                      (equal (v-dimensions (nth i arg-types)) g-dim))))
-      (if (loop :for a :in arg-types :for s :in spec-types :always
-             (v-typep a s env))
-          (make-instance 'func-match :score 0 :func func
-                         :arguments (mapcar #'copy-code arg-objs))
-          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
-                               :collect (v-casts-to a s env))))
-            (when (not (some #'null cast-types))
-              (make-instance 'func-match :score 1 :func func
-                             :arguments (loop :for obj :in arg-objs :for type
-                                           :in cast-types :collect
-                                           (copy-code obj :type type)))))))))
-
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
   (let ((spec-types (v-argument-spec func)))
@@ -237,9 +208,7 @@
         (special-arg-matchp candidate args-code compiled-args arg-types
                             any-errors env)
         (when (not any-errors)
-          (if (v-glsl-spec-matchingp candidate)
-              (glsl-arg-matchp candidate arg-types compiled-args env)
-              (basic-arg-matchp candidate arg-types compiled-args env))))))
+          (basic-arg-matchp candidate arg-types compiled-args env)))))
 
 
 (defun find-functions-for-args (func-name args-code env)

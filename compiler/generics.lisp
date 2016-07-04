@@ -1,5 +1,6 @@
 (in-package :varjo)
 
+(defgeneric compile-form (code env))
 (defgeneric v-place-function-p (f))
 (defgeneric type->type-spec (type))
 (defgeneric v-true-type (object))
@@ -16,6 +17,8 @@
 (defgeneric used-symbol-macros (e))
 (defgeneric (setf used-symbol-macros) (value e))
 (defgeneric used-macros (e))
+(defgeneric used-external-functions (e))
+(defgeneric (setf used-external-functions) (value e))
 (defgeneric (setf used-macros) (value e))
 (defgeneric used-compiler-macros (e))
 (defgeneric (setf used-compiler-macros) (value e))

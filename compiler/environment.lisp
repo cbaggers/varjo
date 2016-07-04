@@ -27,7 +27,9 @@
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
+   (iuniforms :initform nil :initarg :iuniforms :accessor v-iuniforms)
    (function-code-cache :initform (make-hash-table) :reader v-code-cache)
+   (used-external-functions :initform nil :initarg :used-external-functions)
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
@@ -50,6 +52,9 @@
   (cdr (find code (slot-value (get-base-env e) 'function-dedup)
 	     :key #'car :test #'equal)))
 
+(defmethod used-external-functions ((e environment))
+  (slot-value (get-base-env e) 'used-external-functions))
+
 (defmethod used-symbol-macros ((e environment))
   (slot-value (get-base-env e) 'used-symbol-macros))
 
@@ -60,6 +65,10 @@
   (slot-value (get-base-env e) 'used-compiler-macros))
 
 ;; ugh
+(defmethod (setf used-external-functions) (val (e environment))
+  (setf (slot-value (get-base-env e) 'used-external-functions)
+	val))
+
 (defmethod (setf used-symbol-macros) (val (e environment))
   (setf (slot-value (get-base-env e) 'used-symbol-macros)
 	val))
@@ -514,23 +523,23 @@
 ;;-------------------------------------------------------------------------
 
 (defmethod valid-for-contextp ((func v-function) (env environment))
-  (let ((restriction (v-restriction func))
+  (let ((versions (v-versions func))
         (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
+    (%valid-for-contextp func versions context)))
 
 (defmethod valid-for-contextp ((func v-function) (env (eql *global-env*)))
-  (let ((restriction (v-restriction func))
+  (let ((versions (v-versions func))
         (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
+    (%valid-for-contextp func versions context)))
 
 (defmethod valid-for-contextp ((func list) (env environment))
-  (let ((restriction (second func))
+  (let ((versions (second func))
         (context (v-context env)))
-    (%valid-for-contextp func restriction context)))
+    (%valid-for-contextp func versions context)))
 
-(defun %valid-for-contextp (func restriction context)
-  (if restriction
-      (when (context-ok-given-restriction context restriction)
+(defun %valid-for-contextp (func versions context)
+  (if versions
+      (when (some λ(member _ context) versions)
         func)
       func))
 
@@ -580,8 +589,10 @@
 
 (defmethod get-function-by-name (func-name (env environment))
   (sort-function-list
-   (loop :for func :in (%get-functions-by-name func-name env)
-      :if (and func (valid-for-contextp func env)) :collect func)))
+   (append
+    (loop :for func :in (%get-functions-by-name func-name env)
+       :if (and func (valid-for-contextp func env)) :collect func)
+    (get-external-function-by-name func-name))))
 
 (defmethod special-raw-argp ((func v-function))
   (eq (v-argument-spec func) t))
@@ -603,7 +614,7 @@
       (cond ((special-raw-argp func) 0)
             ((special-func-argp func) 1)
             ((special-basic-argp func) 2))
-      (if (v-glsl-spec-matchingp func) 3 4)))
+      3))
 
 (defmethod v-fboundp (func-name (env environment))
   (not (null (get-function-by-name func-name env))))

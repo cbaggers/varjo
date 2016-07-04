@@ -166,19 +166,21 @@
   ;; an error
   :args-valid t
   :return
-  (let ((safe-env (fresh-environment
-		   env :multi-val-base (v-multi-val-base env)
-		   :multi-val-safe t)))
-    (vbind (c e) (compile-list-form form safe-env)
-      (let* ((final-env (fresh-environment e :multi-val-safe nil))
-	     (ast (ast-node! 'varjo-lang:values-safe
-			     (list (node-tree c))
-			     (code-type c)
-			     (flow-ids c)
-			     env
-			     final-env)))
-	(values (copy-code c :node-tree ast)
-		final-env)))))
+  (if (listp form)
+      (let ((safe-env (fresh-environment
+		       env :multi-val-base (v-multi-val-base env)
+		       :multi-val-safe t)))
+	(vbind (c e) (compile-list-form form safe-env)
+	  (let* ((final-env (fresh-environment e :multi-val-safe nil))
+		 (ast (ast-node! 'varjo-lang:values-safe
+				 (list (node-tree c))
+				 (code-type c)
+				 (flow-ids c)
+				 env
+				 final-env)))
+	    (values (copy-code c :node-tree ast)
+		    final-env))))
+      (compile-form form env )))
 
 (v-defspecial values (&rest values)
   :args-valid t
@@ -321,9 +323,9 @@
   (let ((context (v-context env)))
     (cond ((member :fragment context) `(%out (,(free-name :output-color env))
                                              ,form))
-          ((member :vertex context) `(setq gl-position ,form))
-          (t (error "Have not implemented #'values defaults for this stage ~a"
-                    env)))))
+          ((member :vertex context) `(setq varjo-lang::gl-position ,form))
+          (t `(%out (,(free-name :output-var env))
+		    ,form)))))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
@@ -905,12 +907,16 @@
          (comp-string (if (keywordp components)
                           (string-downcase (symbol-name components))
                           (error 'swizzle-keyword :item components)))
-         (new-len (length comp-string)))
-    (if (and (>= new-len 2) (<= new-len 4)
-             (v-typep (code-type vec-obj) 'v-vector)
+         (new-len (length comp-string))
+	 (vec-type (code-type vec-obj))
+	 (element-type (v-element-type vec-type)))
+    (if (and (>= new-len 1) (<= new-len 4)
+             (v-typep vec-type 'v-vector)
              (loop :for c :across comp-string
                 :always (find c allowed)))
-	(let ((r-type (type-spec->type (p-symb 'varjo 'v-vec new-len)))
+	(let ((r-type (if (= new-len 1)
+			  element-type
+			  (vec-of element-type new-len)))
 	      (flow-id (flow-id!)))
 	  (values
 	   (copy-code vec-obj :type r-type

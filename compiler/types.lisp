@@ -44,7 +44,7 @@
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 
 (def-v-type-class v-struct (v-type)
-  ((restriction :initform nil :initarg :restriction :accessor v-restriction)
+  ((versions :initform nil :initarg :versions :accessor v-versions)
    (signature :initform nil :initarg :signature :accessor v-signature)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
@@ -52,14 +52,12 @@
 (def-v-type-class v-user-struct (v-struct) ())
 
 (def-v-type-class v-function (v-type)
-  ((restriction :initform nil :initarg :restriction :accessor v-restriction)
+  ((versions :initform nil :initarg :versions :accessor v-versions)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
-   (glsl-spec-matching :initform nil :initarg :glsl-spec-matching
-                       :reader v-glsl-spec-matchingp)
    (multi-return-vars :initform nil :initarg :multi-return-vars
                       :reader multi-return-vars)
    (name :initform nil :initarg :name :reader name)

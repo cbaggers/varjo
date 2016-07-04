@@ -1,7 +1,7 @@
 (in-package :varjo)
 (in-readtable fn:fn-reader)
 
-(defun compile-form (code env)
+(defmethod compile-form (code env)
   (multiple-value-bind (code-obj new-env)
       (cond ((or (null code) (eq t code)) (compile-bool code env))
             ((numberp code) (compile-number code env))
