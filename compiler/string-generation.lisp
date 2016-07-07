@@ -9,11 +9,12 @@
                                    (string-upcase part)
                                    (string-capitalize part))))))
 
-(defun num-suffix (type)
-  (or (assocr (type->type-spec type) '((v-double . "lf") (v-float . "f") (v-uint . "u"))) ""))
-
 (defun gen-number-string (number type)
-  (format nil "~a~a" number (num-suffix type)))
+  (typecase type
+    (v-double (format nil "~flf" number))
+    (v-float (format nil "~ff" number))
+    (v-uint (format nil "~au" number))
+    (otherwise (format nil "~a" number))))
 
 (defun gen-variable-string (var-name v-value)
   (format nil "~a" (or (v-glsl-name v-value) ()

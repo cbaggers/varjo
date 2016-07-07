@@ -13,9 +13,11 @@
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
-  (cond ((floatp x) (type-spec->type 'v-float))
-        ((integerp x) (type-spec->type 'v-int))
-        (t (error "Varjo: Do not know the type of the number '~s'" x))))
+  (typecase x
+    (single-float (type-spec->type 'v-float))
+    (double-float (type-spec->type 'v-double))
+    (integer (type-spec->type 'v-int))
+    (otherwise (error "Varjo: Do not know the type of the number '~s'" x))))
 
 (defun compile-number (code env)
   (let ((num-type (get-number-type code))
