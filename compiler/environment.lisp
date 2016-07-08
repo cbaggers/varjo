@@ -366,8 +366,7 @@
   (find-if (lambda (x) (member x *supported-stages*)) context))
 
 ;;{TODO} move errors to correct place
-(let ((prims '(:points :line_strip :line_loop :lines :triangle_strip
-               :triangle_fan :triangles)))
+(let ((prims *supported-draw-modes*))
   (defun get-primitive-type-from-context (context)
     (or (loop :for i :in context :if (member i prims) :return i)
         :triangles))
