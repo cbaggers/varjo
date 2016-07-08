@@ -365,17 +365,18 @@
 (defun get-stage-from-context (context)
   (find-if (lambda (x) (member x *supported-stages*)) context))
 
+
+(defun get-primitive-type-from-context (context)
+  (or (find-if λ(member _ *supported-draw-modes*) context)
+      :triangles))
+
 ;;{TODO} move errors to correct place
-(let ((prims *supported-draw-modes*))
-  (defun get-primitive-type-from-context (context)
-    (or (loop :for i :in context :if (member i prims) :return i)
-        :triangles))
-  ;; (defun get-primitive-length (prim-type)
-  ;;   (let ((pos (position prim-type prims)))
-  ;;     (if pos
-  ;;         (1+ pos)
-  ;;         (error "Varjo: Not a valid primitive type"))))
-  )
+;; (defun get-primitive-length (prim-type)
+;;   (let ((pos (position prim-type prims)))
+;;     (if pos
+;;         (1+ pos)
+;;         (error "Varjo: Not a valid primitive type"))))
+
 
 (defun allows-stemcellsp (env)
   (v-iuniforms env))
