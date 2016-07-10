@@ -68,4 +68,5 @@
 (defgeneric get-var (var-name env))
 (defgeneric raw-ids (flow-id))
 (defgeneric add-external-function (name in-args uniforms code))
+(defgeneric delete-external-function (name in-args-types))
 (defgeneric record-func-usage (func env))

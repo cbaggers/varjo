@@ -28,6 +28,13 @@
 			       :from-end t))
       func)))
 
+(defmethod delete-external-function (name in-args-types)
+  (labels ((get-types (x) (mapcar #'second (in-args x))))
+    (let* ((funcs (get-external-function-by-name name)))
+      (setf (gethash name *external-functions*)
+	    (remove in-args-types funcs :key #'get-types :test #'equal))
+      t)))
+
 (defmethod func-need-arguments-compiledp ((func external-function))
   t)
 
