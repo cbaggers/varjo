@@ -190,6 +190,14 @@
          v-bvec4)
 
 
+(v-defun v!int (x) "~a" (v-ivec2) v-ivec2)
+(v-defun v!int (x) "~a" (v-ivec3) v-ivec3)
+(v-defun v!int (x) "~a" (v-ivec4) v-ivec4)
+
+(v-defun v!int (x) "ivec2(~a)" (v-vec2) v-ivec2)
+(v-defun v!int (x) "ivec3(~a)" (v-vec3) v-ivec3)
+(v-defun v!int (x) "ivec4(~a)" (v-vec4) v-ivec4)
+
 (v-defun v!int (x y) "ivec3(~a,~a)" (v-int v-ivec2) v-ivec3)
 (v-defun v!int (x y) "ivec3(~a,~a)" (v-ivec2 v-int) v-ivec3)
 
