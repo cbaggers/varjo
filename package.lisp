@@ -29,6 +29,10 @@
    :%break
    :values-safe
 
+   ;; bitwise operators
+   :>>
+   :<<
+
    ;; macros in special.lisp
    :s~
 

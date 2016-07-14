@@ -42,6 +42,7 @@
 	       (:file "language/functions-from-spec")
 	       (:file "language/special")
 	       (:file "language/functions")
+	       (:file "language/bitwise-operators")
 	       (:file "compiler/translate")
 	       (:file "compiler/front-end")
 	       (:file "language/object-printers")
