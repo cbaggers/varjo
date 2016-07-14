@@ -11,11 +11,11 @@
           ,place))
 
 (v-define-compiler-macro + (&rest numbers)
-  (cond
-    ((= (length numbers) 1) (first numbers))
-    ((> (length numbers) 2)
-     `(%+ ,(first numbers) (+ ,@(rest numbers))))
-    (t `(%+ ,@numbers))))
+  (case= (length numbers)
+    (0 0)
+    (1 (first numbers))
+    (2 `(%+ ,@numbers))
+    (otherwise `(%+ ,(first numbers) (+ ,@(rest numbers))))))
 
 (v-define-compiler-macro - (&rest numbers)
   (if (> (length numbers) 2)
@@ -23,14 +23,17 @@
       `(%- ,@numbers)))
 
 (v-define-compiler-macro * (&rest numbers)
-  (if (> (length numbers) 2)
-      `(%* ,(first numbers) (* ,@(rest numbers)))
-      `(%* ,@numbers)))
+  (case= (length numbers)
+    (0 1)
+    (1 (first numbers))
+    (2 `(%* ,@numbers))
+    (otherwise `(%* ,(first numbers) (* ,@(rest numbers))))))
 
 (v-define-compiler-macro / (&rest numbers)
-  (if (> (length numbers) 2)
-      `(%/ ,(first numbers) (/ ,@(rest numbers)))
-      `(%/ ,@numbers)))
+  (case= (length numbers)
+    (1 (first numbers))
+    (2 `(%/ ,@numbers))
+    (otherwise `(%/ ,(first numbers) (/ ,@(rest numbers))))))
 
 (v-define-compiler-macro = (&rest numbers)
   (if (> (length numbers) 2)
