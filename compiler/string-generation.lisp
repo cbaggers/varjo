@@ -245,3 +245,10 @@ nil
 	     :multi-vals nil
 	     :place-tree nil
 	     :flow-ids (flow-ids code-obj)))
+
+;;----------------------------------------------------------------------
+
+(defun cast-string (type code-obj)
+  (format nil "(~a)~a"
+          (v-glsl-string type)
+          (current-line code-obj)))

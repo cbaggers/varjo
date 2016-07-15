@@ -185,6 +185,14 @@
                            :arguments (apply method (cons env arg-code)))
               (varjo-error () nil))))))
 
+(defun cast-code (obj cast-to-type)
+  (if (v-type-eq (code-type obj) cast-to-type)
+      (copy-code obj :type cast-to-type)
+      (copy-code
+       obj
+       :current-line (cast-string cast-to-type obj)
+       :type cast-to-type)))
+
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
   (let ((spec-types (v-argument-spec func)))
@@ -199,7 +207,7 @@
                'func-match :score 1 :func func
                :arguments (loop :for obj :in arg-objs
                              :for type :in cast-types
-                             :collect (copy-code obj :type type)))))))))
+                             :collect (cast-code obj type)))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
   (let* ((arg-types (mapcar #'code-type compiled-args))

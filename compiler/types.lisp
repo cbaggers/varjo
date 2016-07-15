@@ -227,7 +227,7 @@
       (when (slot-exists-p from-type 'casts-to)
         (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)
-           :return cast-type))))
+           :return (type-spec->type cast-type)))))
 
 (defmethod v-casts-to ((from-type v-type) (to-type v-spec-type) env)
   (when (slot-exists-p from-type 'casts-to)
@@ -235,7 +235,7 @@
         from-type
         (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)
-           :return cast-type))))
+           :return (type-spec->type cast-type)))))
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types
