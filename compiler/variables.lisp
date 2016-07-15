@@ -38,9 +38,14 @@
   (defun free-name (name &optional env counter)
     (declare (ignore env))
     (when counter (setf num counter))
-    (if (valid-user-defined-name name)
-        (progn (incf num) (symb name '- num 'v))
-        (error 'name-unsuitable :name name))))
+    (let ((package (symbol-package name)))
+      (if (valid-user-defined-name name)
+	  (progn (incf num) (p-symb :varjo.free-vars
+				    (if package
+					(package-name package)
+					nil)
+				    name '- num 'v))
+	  (error 'name-unsuitable :name name)))))
 
 (defun valid-user-defined-name (name-symbol)
   (not (glsl-var-namep name-symbol)))

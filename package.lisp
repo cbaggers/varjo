@@ -378,3 +378,5 @@
            ;;utils
            :lambda-list-split
            :pipe->))
+
+(defpackage #:varjo.free-vars (:use #:cl))
