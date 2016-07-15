@@ -42,8 +42,9 @@
 (defun compile-external-function-call (func args env)
   (copy-code (compile-list-form
 	      (expand-macros-for-external-func
-	       `(labels ((,(name func) ,(in-args func) ,@(code func)))
-		  (,(name func) ,@args))
+	       `(labels-no-implicit
+		 ((,(name func) ,(in-args func) ,@(code func)))
+		 (,(name func) ,@args))
 	       env)
 	      env)
 	     :injected-uniforms (uniforms func)))
