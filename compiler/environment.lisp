@@ -591,7 +591,7 @@
    (append
     (loop :for func :in (%get-functions-by-name func-name env)
        :if (and func (valid-for-contextp func env)) :collect func)
-    (get-external-function-by-name func-name))))
+    (get-external-function-by-name func-name env))))
 
 (defmethod special-raw-argp ((func v-function))
   (eq (v-argument-spec func) t))

@@ -6,23 +6,32 @@
 (defparameter *external-functions*
   (make-hash-table))
 
-(defun get-external-function-by-name (name)
-  (gethash name *external-functions*))
+(defun get-external-function-by-name (name env)
+  (let ((funcs (gethash name *external-functions*)))
+    (if env
+	(let ((v (get-version-from-context env)))
+	  (remove-if-not λ(or (null (glsl-versions _))
+			      (member v (glsl-versions _)))
+			 funcs))
+	funcs)))
 
 (defclass external-function ()
   ((name :initarg :name :reader name)
    (in-args :initarg :in-args :reader in-args)
    (uniforms :initarg :uniforms :reader uniforms)
-   (code :initarg :code :reader code)))
+   (code :initarg :code :reader code)
+   (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
 
-(defmethod add-external-function (name in-args uniforms code)
+(defmethod add-external-function (name in-args uniforms code
+				  &optional valid-glsl-versions)
   (labels ((get-types (x) (mapcar #'second (in-args x))))
     (let* ((func (make-instance 'external-function
 				:name name
 				:in-args in-args
 				:uniforms uniforms
-				:code code))
-	   (funcs (cons func (get-external-function-by-name name))))
+				:code code
+				:glsl-versions valid-glsl-versions))
+	   (funcs (cons func (get-external-function-by-name name nil))))
       (setf (gethash name *external-functions*)
 	    (remove-duplicates funcs :key #'get-types :test #'equal
 			       :from-end t))
