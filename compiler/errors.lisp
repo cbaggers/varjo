@@ -329,3 +329,21 @@ a return type.
 
 Most likely you currently have one of the following in the tail position:
 %if, for or while" func-name)
+
+(deferror external-function-invalid-in-arg-types
+    (:error-type varjo-critical-error) (name args)
+    "Varjo: When defining the function ~a we found some args with types that
+we didnt recognise:
+
+~{> ~s~}
+
+~@[
+Here are some types we think may have been meant:
+~{~a~}
+~]
+"
+  name args
+  (loop :for a :in args
+     :for suggestion := (find-alternative-types-for-spec (second a))
+     :when suggestion
+     :collect (format nil "~%> ~s~{~%~s~}" (first a) suggestion)))
