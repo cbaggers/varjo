@@ -249,6 +249,6 @@ nil
 ;;----------------------------------------------------------------------
 
 (defun cast-string (type code-obj)
-  (format nil "(~a)~a"
+  (format nil "~a(~a)"
           (v-glsl-string type)
           (current-line code-obj)))
