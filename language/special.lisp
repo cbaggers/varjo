@@ -750,7 +750,7 @@
 						       clause-objs))
 					 :none nil env final-env))
 		  final-env)
-	  (error 'switch-type-error test-obj keys)))))
+	  (error 'switch-type-error :test-obj test-obj :keys keys)))))
 
 
 ;;   (for (a 0) (< a 10) (++ a)
