@@ -5,6 +5,12 @@
 
 (v-defun break () "break" () v-void)
 
+(v-defun int (x) "~a" (v-int) v-int)
+(v-defun uint (x) "~a" (v-uint) v-uint)
+(v-defun bool (x) "~a" (v-bool) v-bool)
+(v-defun float (x) "~a" (v-float) v-float)
+(v-defun double (x) "~a" (v-double)  v-double)
+
 (v-defun int (x) "int(~a)" (v-uint) v-int)
 (v-defun int (x) "int(~a)" (v-bool) v-int)
 (v-defun int (x) "int(~a)" (v-float) v-int)
