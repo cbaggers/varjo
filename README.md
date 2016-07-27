@@ -1,6 +1,6 @@
 ### Varjo
 
-Varjo is a Lisp to GLSL Language compiler. It currently only supports vertex & fragment shaders.
+Varjo is a Lisp to GLSL Language compiler.
 
 Varjo has no OpenGL dependency as is designed to be itegrated into other projects, see CEPL for an example.
 
