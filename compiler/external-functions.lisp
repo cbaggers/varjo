@@ -53,7 +53,7 @@
 
 (defmethod delete-external-function (name in-args-types)
   (labels ((get-types (x) (mapcar #'second (in-args x))))
-    (let* ((funcs (get-external-function-by-name name)))
+    (let* ((funcs (get-external-function-by-name name nil)))
       (setf (gethash name *external-functions*)
 	    (remove in-args-types funcs :key #'get-types :test #'equal))
       t)))
