@@ -49,12 +49,12 @@
 	       (:file "language/rtg-math-equivalents")))
 
 
-(asdf:defsystem #:varjo.tests
-  :description "Common Lisp -> GLSL Compiler"
-  :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
-  :license "BSD 2 Clause"
-  #+asdf-unicode :encoding #+asdf-unicode :utf-8
-  :serial t
-  :depends-on (#:varjo #:stefil)
-  :components ((:file "tests/package")
-	       (:file "tests/tests")))
+;; (asdf:defsystem #:varjo.tests
+;;   :description "Common Lisp -> GLSL Compiler"
+;;   :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
+;;   :license "BSD 2 Clause"
+;;   #+asdf-unicode :encoding #+asdf-unicode :utf-8
+;;   :serial t
+;;   :depends-on (#:varjo #:stefil)
+;;   :components ((:file "tests/package")
+;; 	       (:file "tests/tests")))
