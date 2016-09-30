@@ -63,9 +63,9 @@
     (values (merge-obs args
 		       :type type
 		       :current-line c-line
-		       :to-top (mapcan #'to-top args)
-		       :signatures (mapcan #'signatures args)
-		       :stemcells (mapcan #'stemcells args)
+		       :to-top (mapcat #'to-top args)
+		       :signatures (mapcat #'signatures args)
+		       :stemcells (mapcat #'stemcells args)
 		       :flow-ids flow-ids
 		       :multi-vals (when (v-multi-val-safe env)
 				     (handle-regular-function-mvals args))
@@ -144,9 +144,9 @@
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
-                 :to-top (mapcan #'to-top args)
-                 :signatures (mapcan #'signatures args)
-                 :stemcells (mapcan #'stemcells args)
+                 :to-top (mapcat #'to-top args)
+                 :signatures (mapcat #'signatures args)
+                 :stemcells (mapcat #'stemcells args)
                  :multi-vals (mapcar (lambda (_ _1 fid)
                                        (make-mval
 					(v-make-value

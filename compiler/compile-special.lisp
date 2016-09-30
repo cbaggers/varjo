@@ -99,10 +99,10 @@
   (merge-obs code-objs
 	     :type (type-spec->type 'v-none)
 	     :current-line nil
-	     :to-block (append (mapcan #'to-block code-objs)
+	     :to-block (append (mapcat #'to-block code-objs)
 			       (mapcar (lambda (_) (current-line (end-line _)))
 				       code-objs))
-	     :to-top (mapcan #'to-top code-objs)
+	     :to-top (mapcat #'to-top code-objs)
 	     :flow-ids nil
 	     :node-tree :ignored))
 

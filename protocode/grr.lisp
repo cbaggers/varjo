@@ -204,7 +204,7 @@
 				     (translate-type type-name)
 				     type-name))))))
     (if gg
-	(remove-duplicates (mapcan #'to-concrete gg))
+	(remove-duplicates (mapcat #'to-concrete gg))
 	(list type-name))))
 
 (defun flerg (f)
