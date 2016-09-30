@@ -238,7 +238,7 @@ nil
           (split-sequence:split-sequence #\newline input)))
 
 (defmethod indent ((input list))
-  (mapcan #'indent input))
+  (mapcat #'indent input))
 
 (defun indent-ob (code-obj)
   (copy-code code-obj :to-block (indent (to-block code-obj))
