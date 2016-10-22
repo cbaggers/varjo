@@ -999,6 +999,27 @@
    (compile-glsl-expression-string glsl-string type-spec)
    env))
 
+(defun func-literal-p (x)
+  (and (listp x)
+       (= (length x) 2)
+       (eq (first x) 'function)))
+
+(v-defspecial funcall (function &rest params)
+  :args-valid t
+  :return
+  (progn
+    (if (func-literal-p function)
+        (%funcall-literal function params env)
+        (%funcall-val function params env))))
+
+(defun %funcall-literal (function params env)
+  (expand-and-compile-form `(,(second function) ,@params) env))
+
+(defun %funcall-val (function params env)
+  (break "sup! ~s ~s" function params)
+  (values nil env))
+
+
 (defun compile-glsl-expression-string (current-line type)
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
 	 (type-spec (type->type-spec type-obj))
