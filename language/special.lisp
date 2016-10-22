@@ -1016,7 +1016,12 @@
   (expand-and-compile-form `(,(second function) ,@params) env))
 
 (defun %funcall-val (function params env)
-  (break "sup! ~s ~s" function params)
+  (assert (symbolp function))
+  (let ((var (get-var function env)))
+    (unless var
+      (error "No var named ~a found" function))
+    (assert (v-typep (v-type var) 'v-func-val))
+    (break "sup! ~s ~s" var params))
   (values nil env))
 
 
