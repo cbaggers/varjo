@@ -605,7 +605,7 @@
 			   :type :bool
 			   :current-line (gen-bool-or-string objs)
 			   :flow-ids flow-id
-			   :node-tree (ast-node! 'and (mapcar #'node-tree objs)
+			   :node-tree (ast-node! 'or (mapcar #'node-tree objs)
 						 :bool flow-id env env))
 		env)
         (values (first objs) env))))
