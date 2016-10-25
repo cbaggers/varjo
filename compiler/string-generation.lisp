@@ -172,10 +172,6 @@
   (declare (ignore qualifiers))
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
-;;[TODO] make this properly
-(defun lisp-name->glsl-name (name)
-  (string name))
-
 (defun gen-shader-string (post-proc-obj)
   (with-slots (code env) post-proc-obj
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)

@@ -71,3 +71,4 @@
 				   &optional valid-glsl-versions))
 (defgeneric delete-external-function (name in-args-types))
 (defgeneric record-func-usage (func env))
+(defgeneric v-name-map (env))

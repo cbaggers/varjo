@@ -108,6 +108,9 @@
 (defmethod v-uniforms ((env environment))
   (v-uniforms (get-base-env env)))
 
+(defmethod v-name-map ((env environment))
+  (slot-value (get-base-env env) 'name-map))
+
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
   (unless (every λ(and (symbolp (first _))
@@ -119,14 +122,6 @@
 					  (make-hash-table)))
   (make-instance 'base-environment
 		 :third-party-metadata third-party-metadata))
-
-(defun get-glsl-name (symbol env)
-  (assert (symbolp symbol))
-  (let ((name-map (slot-value (get-base-env env) 'name-map)))
-    (or (gethash symbol name-map)
-        (let ((str (%get-free-glsl-name symbol name-map)))
-          (setf (gethash str name-map) symbol)
-          (setf (gethash symbol name-map) str)))))
 
 ;;-------------------------------------------------------------------------
 ;; global env
