@@ -32,29 +32,6 @@
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))
 
-;;[TODO] this smells a bit, it is only used for glsl strings, and we should
-;;       rename this to that end
-(let ((num 0))
-  (defun free-name (name &optional env counter)
-    (declare (ignore env))
-    (when counter (setf num counter))
-    (let ((package (symbol-package name)))
-      (if (valid-user-defined-name name)
-	  (progn (incf num) (p-symb :varjo.free-vars
-				    (if package
-					(package-name package)
-					nil)
-				    name '- num 'v))
-	  (error 'name-unsuitable :name name)))))
-
-(defun valid-user-defined-name (name-symbol)
-  (not (glsl-var-namep name-symbol)))
-
-(defun glsl-var-namep (name-symbol)
-  (let ((name (symbol-name name-symbol)))
-    (or (when (> (length name) 2) (equal "GL-" (subseq name 0 3)))
-        (when (> (length name) 2) (equal "FK-" (subseq name 0 3)))
-        (when (> (length name) 3) (equal "-SC-" (subseq name 0 4))))))
 
 (defun add-glsl-vars (env source)
   (loop :for (restrict . vars) :in source
@@ -79,4 +56,4 @@
 
 (defun mval->out-form (mval env)
   (with-slots (value qualifiers) mval
-    `(%out (,(free-name :out env) ,@qualifiers) ,value)))
+    `(%out (,(free-name :out) ,@qualifiers) ,value)))

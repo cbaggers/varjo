@@ -1,14 +1,5 @@
 (in-package :varjo)
 
-(defun gen-reserved-var-string (name-symbol)
-  (let* ((name-string (symbol-name name-symbol))
-         (split-name (split-sequence #\- name-string :test #'equal)))
-    (format nil "gl_~{~a~}" (loop :for part :in split-name
-                               :if (not (equal part "GL")) :collect
-                               (if (<= (length part) 2)
-                                   (string-upcase part)
-                                   (string-capitalize part))))))
-
 (defun gen-number-string (number type)
   (typecase type
     (v-double (format nil "~flf" number))

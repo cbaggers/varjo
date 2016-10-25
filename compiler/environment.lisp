@@ -35,7 +35,8 @@
    (function-dedup :initform nil :initarg :function-dedup)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
-			 :third-party-metadata)))
+			 :third-party-metadata)
+   (name-map :initform (make-hash-table))))
 
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (get-base-env e)
@@ -118,6 +119,14 @@
 					  (make-hash-table)))
   (make-instance 'base-environment
 		 :third-party-metadata third-party-metadata))
+
+(defun get-glsl-name (symbol env)
+  (assert (symbolp symbol))
+  (let ((name-map (slot-value (get-base-env env) 'name-map)))
+    (or (gethash symbol name-map)
+        (let ((str (%get-free-glsl-name symbol name-map)))
+          (setf (gethash str name-map) symbol)
+          (setf (gethash symbol name-map) str)))))
 
 ;;-------------------------------------------------------------------------
 ;; global env

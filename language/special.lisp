@@ -201,7 +201,7 @@
 	 (vals (loop :for o :in objs :for n :in glsl-names :collect
 		  (v-make-value (code-type o) env :glsl-name n
 				:flow-ids (flow-ids o))))
-	 (first-name (free-name 'v-tmp env))
+	 (first-name (free-name 'v-tmp))
 	 (result (expand-and-compile-form
 		  `(let ((,first-name ,(first objs)))
 		     ,@(loop :for o :in (rest objs)
@@ -304,7 +304,7 @@
 	     (merge-multi-env-progn
 	      (%mapcar-multi-env-progn
 	       (lambda (p-env type gname)
-		 (compile-let (free-name 'x p-env) (type->type-spec type)
+		 (compile-let (free-name 'x) (type->type-spec type)
 			      nil p-env gname))
 	       p-env types glsl-lines))
 	     (compile-form (%default-out-for-stage code-obj p-env) p-env)
@@ -321,10 +321,10 @@
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (form env)
   (let ((context (v-context env)))
-    (cond ((member :fragment context) `(%out (,(free-name :output-color env))
+    (cond ((member :fragment context) `(%out (,(free-name :output-color))
                                              ,form))
           ((member :vertex context) `(setq varjo-lang::gl-position ,form))
-          (t `(%out (,(free-name :output-var env))
+          (t `(%out (,(free-name :output-var))
 		    ,form)))))
 
 (defun %validate-var-types (var-name type code-obj)
