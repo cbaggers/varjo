@@ -41,17 +41,14 @@
 
 ;;-------------------------------------------------------------------------
 
-;; AH. One of the reasons for free-name was scoping, we may want many unique
-;; glsl strings for the same lisp symbol
-;;
-;; (let ((x 1))
-;;   (let ((x x))
-;;     x))
-;;
-;; Needs to be somehting like
-;; int x = 1;
-;; int x0 = x;
-;; x0;
+;; The (safe-glsl-name-string (free-name ..)) combo can be replaced with
+;; (new-lisp-name->glsl-name ..)
+
+;; safe-glsl-name-string was used on it's own those when we wanted a direct
+;; translation from lisp name. For example with in-args/uniforms/structs
+
+;; free-name used on it's own returned a symbol and feels like
+;; (new-lisp-name->glsl-name (gensym ..)) to me
 
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
@@ -64,27 +61,26 @@
   "Returns false if name is reserved"
   (not (glsl-var-namep name-symbol)))
 
-(defun lisp-name->glsl-name (symbol env)
+(defun new-lisp-name->glsl-name (symbol env)
   (assert (symbolp symbol))
   (assert (valid-user-defined-name symbol) () 'name-unsuitable :name symbol)
   (let ((name-map (v-name-map env)))
-    (or (gethash symbol name-map)
-        (let ((str (if (symbol-package symbol)
-                       (%get-free-glsl-name symbol name-map)
-                       (%get-gensym-name symbol))))
-          (add-lisp->glsl-name-mapping name-map symbol str)
-          str))))
+    (let ((str (if (symbol-package symbol)
+                   (%get-free-glsl-name symbol name-map)
+                   (%get-gensym-name symbol))))
+      (add-lisp->glsl-name-mapping name-map symbol str)
+      str)))
 
 (defun add-lisp->glsl-name-mapping (name-map symbol string)
   (setf (gethash string name-map) symbol)
-  (setf (gethash symbol name-map) string)
   nil)
 
 (defun %get-free-glsl-name (symbol name-map)
-  (let ((str-name (gen-glsl-string-for-symbol symbol)))
-    (loop :until (not (gethash str-name name-map)) :for i :from 0 :do
-       (setf str-name (format nil "~a~a" str-name i)))
-    str-name))
+  (let* ((orig-str-name (gen-glsl-string-for-symbol symbol))
+         (curr-str-name orig-str-name))
+    (loop :until (not (gethash curr-str-name name-map)) :for i :from 0 :do
+       (setf curr-str-name (format nil "~a~a" orig-str-name i)))
+    curr-str-name))
 
 (defun %get-gensym-name (symbol)
   (format nil "SYM_~a" symbol))
@@ -101,10 +97,3 @@
                              (if (char= _ #\-) #\_
                                  (format nil "~a" (char-code _)))))
                  name))))
-
-
-
-;; {TODO} remove
-;; (defvar *v-gensym-count* 0)
-;; (defun v-gensym (&optional name)
-;;   (intern (format nil "SYM-~a-~a" name (incf *v-gensym-count*)) :varjo-syms))

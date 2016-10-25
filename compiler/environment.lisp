@@ -36,7 +36,7 @@
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
 			 :third-party-metadata)
-   (name-map :initform (make-hash-table))))
+   (name-map :initform (make-hash-table :test #'equal))))
 
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (get-base-env e)
