@@ -13,11 +13,23 @@
 			           ((char= #\-) #\_) ;replace - with _
 			           (t (format nil "~a" (char-code _)))));numify
                      name)))))
+;; WHO CALLS THIS? NO-ONE?
+(defun gen-glsl-string-for-symbol (name)
+  (let ((name (symbol-name name)))
+    (format nil "~@[~a~]~{~a~}"
+            (unless (find (elt name 0) +ascii-alpha-num+ :start 10)
+              "_")
+            (map 'list (lambda (_)
+                         (cond ((find _ +ascii-alpha-num+) _ ) ;no change
+			       ((char= #\-) #\_) ;replace - with _
+			       (t (format nil "~a" (char-code _)))))
+                 name))))
 
 ;; {TODO} Why is this needed? Surely we use the name straight from the spec
+;; Also, do you mean to eat every "GL" in the middle of the name? (stacksmith)
 (defun gen-reserved-var-string (name-symbol)
   (let* ((name-string (symbol-name name-symbol))
-         (split-name (split-sequence #\- name-string :test #'equal)))
+         (split-name (split-sequence #\- name-string)))
     (format nil "gl_~{~a~}" (loop :for part :in split-name
                                :if (not (equal part "GL")) :collect
                                (if (<= (length part) 2)
@@ -29,14 +41,14 @@
 ;;       rename this to that end
 (let ((num 0))
   (defun free-name (name)
-    (let ((package (symbol-package name)))
-      (if (valid-user-defined-name name)
-	  (progn (incf num) (p-symb :varjo.free-vars
-				    (if package
-					(package-name package)
-					nil)
-				    name '- num 'v))
-	  (error 'name-unsuitable :name name)))))
+    (let* ((package (symbol-package name))
+	   (package-name (when package (package-name package))))
+      (if (glsl-var-namep name)
+	  (error 'name-unsuitable :name name)
+	  (progn (incf num)
+		 (p-symb :varjo.free-vars
+			 package-name
+			 name '- num 'v))))))
 
 ;;-------------------------------------------------------------------------
 
@@ -49,12 +61,11 @@
 ;; free-name used on it's own returned a symbol and feels like
 ;; (new-lisp-name->glsl-name (gensym ..)) to me
 
+
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
-  (let ((name (symbol-name name-symbol)))
-    (or (when (> (length name) 2) (equal "GL-" (subseq name 0 3)))
-        (when (> (length name) 2) (equal "FK-" (subseq name 0 3))) ;; fk use for fake structs
-        (when (> (length name) 3) (equal "SYM-" (print (subseq name 0 4)))))))
+  (prefixed-p (symbol-name name-symbol)
+	      '("GL-" "FK-" "SYM-")))
 
 (defun valid-user-defined-name (name-symbol)
   "Returns false if name is reserved"
@@ -84,15 +95,4 @@
 (defun %get-gensym-name (symbol)
   (format nil "SYM_~a" symbol))
 
-(defun gen-glsl-string-for-symbol (name)
-  (let ((name (symbol-name name)))
-    (format nil "~@[~a~]~{~a~}"
-            (when (not (and (find (elt name 0) +ascii-alpha-num+)
-                            (alpha-char-p (elt name 0))))
 
-              "_")
-            (map 'list (lambda (_)
-                         (if (find _ +ascii-alpha-num+) _
-                             (if (char= _ #\-) #\_
-                                 (format nil "~a" (char-code _)))))
-                 name))))
