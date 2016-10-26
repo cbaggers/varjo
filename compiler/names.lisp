@@ -1,19 +1,18 @@
 (in-package :varjo)
 
 (defun safe-glsl-name-string (name)
-  (if (valid-user-defined-name name)
+  "return a namestring that follows GLSL conventions"
+  (if (glsl-var-namep name) 
+      (error 'name-unsuitable :name name) ;name is used as a variable
       (let ((name (symbol-name name)))
         (format nil "~@[~a~]~{~a~}"
-                (when (not (and (find (elt name 0) +ascii-alpha-num+)
-                                (alpha-char-p (elt name 0))))
-
-                  "_")
+                (unless (find (elt name 0) +ascii-alpha-num+ :start 10)
+                  "_") ;; first character must be alpha or _
                 (map 'list (lambda (_)
-                             (if (find _ +ascii-alpha-num+) _
-                                 (if (char= _ #\-) #\_
-                                     (format nil "~a" (char-code _)))))
-                     name)))
-      (error 'name-unsuitable :name name)))
+			     (cond ((find _ +ascii-alpha-num+) _ ) ;no change
+			           ((char= #\-) #\_) ;replace - with _
+			           (t (format nil "~a" (char-code _)))));numify
+                     name)))))
 
 ;; {TODO} Why is this needed? Surely we use the name straight from the spec
 (defun gen-reserved-var-string (name-symbol)
