@@ -35,7 +35,8 @@
    (function-dedup :initform nil :initarg :function-dedup)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
-			 :third-party-metadata)))
+			 :third-party-metadata)
+   (name-map :initform (make-hash-table :test #'equal))))
 
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (get-base-env e)
@@ -106,6 +107,9 @@
 
 (defmethod v-uniforms ((env environment))
   (v-uniforms (get-base-env env)))
+
+(defmethod v-name-map ((env environment))
+  (slot-value (get-base-env env) 'name-map))
 
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))

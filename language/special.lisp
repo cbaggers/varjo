@@ -105,7 +105,7 @@
 	(w env))))
 
 (v-defmacro prog1 (&body body)
-  (let ((tmp (free-name 'progn-var)))
+  (let ((tmp (gensym "PROG1-TMP")))
     `(let ((,tmp ,(first body)))
        ,@(rest body)
        ,tmp)))
@@ -124,7 +124,7 @@
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
-  (let* ((base (safe-glsl-name-string (free-name 'mvb)))
+  (let* ((base (lisp-name->glsl-name 'mvb env))
 	 (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
       (unless (= (length vars) (+ 1 (length (multi-vals value-obj))))
@@ -201,7 +201,7 @@
 	 (vals (loop :for o :in objs :for n :in glsl-names :collect
 		  (v-make-value (code-type o) env :glsl-name n
 				:flow-ids (flow-ids o))))
-	 (first-name (free-name 'v-tmp env))
+	 (first-name (gensym))
 	 (result (expand-and-compile-form
 		  `(let ((,first-name ,(first objs)))
 		     ,@(loop :for o :in (rest objs)
@@ -304,7 +304,7 @@
 	     (merge-multi-env-progn
 	      (%mapcar-multi-env-progn
 	       (lambda (p-env type gname)
-		 (compile-let (free-name 'x p-env) (type->type-spec type)
+		 (compile-let (gensym) (type->type-spec type)
 			      nil p-env gname))
 	       p-env types glsl-lines))
 	     (compile-form (%default-out-for-stage code-obj p-env) p-env)
@@ -321,10 +321,10 @@
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (form env)
   (let ((context (v-context env)))
-    (cond ((member :fragment context) `(%out (,(free-name :output-color env))
+    (cond ((member :fragment context) `(%out (,(gensym "OUTPUT-COLOR"))
                                              ,form))
           ((member :vertex context) `(setq varjo-lang::gl-position ,form))
-          (t `(%out (,(free-name :output-var env))
+          (t `(%out (,(gensym "OUTPUT-VAR"))
 		    ,form)))))
 
 (defun %validate-var-types (var-name type code-obj)
@@ -458,7 +458,7 @@
 				    (flow-id!))
 				  args))
 	 (arg-glsl-names (loop :for (name) :in args :collect
-			    (safe-glsl-name-string (free-name name))))
+			    (lisp-name->glsl-name name env)))
 	 (body-env (reduce
 		    (lambda (env tripple)
 		      (dbind (arg glsl-name flow-ids) tripple
@@ -475,7 +475,7 @@
 				       (process-environment-for-main-labels
 					env))))
 	 (body-obj (compile-form `(%return (progn ,@body)) body-env))
-	 (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
+	 (glsl-name (if mainp "main" (lisp-name->glsl-name name env)))
 	 (primary-return (first (returns body-obj)))
 	 (multi-return-vars (rest (returns body-obj)))
 	 (type (if mainp (type-spec->type 'v-void) primary-return))
@@ -646,7 +646,7 @@
 				  (error 'if-branch-type-mismatch
 					 :then-obj then-obj))
 	      (assert (v-code-type-eq then-obj else-obj))
-	      (let ((result (free-name :result-from-if))
+	      (let ((result (gensym "IF-TMP"))
 		    (result-type (type->type-spec (code-type then-obj))))
 		(expand-and-compile-form
 		 `(let (((,result ,result-type)))
@@ -775,22 +775,23 @@
 	    (error 'invalid-for-loop-type :decl-obj decl-obj))
 	  (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
 	    (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
-		(values (copy-code
-			 body-obj :type 'v-none :current-line nil
-			 :to-block `(,(gen-for-loop-string
-				       var-string condition-obj update-obj
-				       (end-line body-obj)))
-			 :flow-ids flow-id
-			 :node-tree (ast-node!
-				     'for (cons var-form
-						(mapcar #'node-tree
-							(list condition-obj
-							      update-obj
-							      body-obj)))
-				     :none flow-id env final-env)
-			 :multi-vals nil
-			 :place-tree nil)
-			final-env)
+		(let ((loop-str (gen-for-loop-string
+                                 var-string condition-obj update-obj
+                                 (end-line body-obj))))
+                 (values (copy-code
+                           body-obj :type 'v-none :current-line nil
+                           :to-block (list loop-str)
+                           :flow-ids flow-id
+                           :node-tree (ast-node!
+                                       'for (cons var-form
+                                                  (mapcar #'node-tree
+                                                          (list condition-obj
+                                                                update-obj
+                                                                body-obj)))
+                                       :none flow-id env final-env)
+                           :multi-vals nil
+                           :place-tree nil)
+                          final-env))
 		(error 'for-loop-simple-expression)))))))
 
 

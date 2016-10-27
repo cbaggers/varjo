@@ -1,14 +1,5 @@
 (in-package :varjo)
 
-(defun gen-reserved-var-string (name-symbol)
-  (let* ((name-string (symbol-name name-symbol))
-         (split-name (split-sequence #\- name-string :test #'equal)))
-    (format nil "gl_~{~a~}" (loop :for part :in split-name
-                               :if (not (equal part "GL")) :collect
-                               (if (<= (length part) 2)
-                                   (string-upcase part)
-                                   (string-capitalize part))))))
-
 (defun gen-number-string (number type)
   (typecase type
     (v-double (format nil "~flf" number))
@@ -60,12 +51,12 @@
 
 (defun gen-function-body-string (name args out-args type body-obj implicit-args)
   (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
-    (format nil "~a ~a(~a) {~%~{~a~%~}~@[~a~%~]}~%"
+    (format nil "~a ~a(~a) {~%~{~a~%~}~{~a~%~}}~%"
             (v-glsl-string type)
             (string name)
             (gen-arg-string args out-args)
-            (remove "" (to-block body-obj) :test #'equal)
-            (current-line (end-line body-obj)))))
+            (mapcat #'indent (remove "" (to-block body-obj) :test #'equal))
+            (indent (current-line (end-line body-obj))))))
 
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))
@@ -88,36 +79,45 @@
 
 (defun gen-if-string (test-obj then-obj else-obj)
   (if else-obj
-      (format nil "~a~&if (~a) {~{~%~a~}~%~a~%} else {~{~%~a~}~%~a~%}"
+      (format nil "~a~&if (~a) {~{~%~a~}~%} else {~{~%~a~}~%}"
               (or (to-block test-obj) "")
               (current-line test-obj)
-              (or (to-block then-obj) nil)
-              (current-line then-obj)
-              (or (to-block else-obj) nil)
-              (current-line else-obj))
-      (format nil "~a~&if (~a) {~{~%~a~}~%~@[~a~%~]}"
+              (append (remove-empty (mapcat #'indent (to-block then-obj)))
+                      (indent (current-line then-obj)))
+              (append (remove-empty (mapcat #'indent (to-block else-obj)))
+                      (indent (current-line else-obj))))
+      (format nil "~a~&if (~a) {~%~{~a~%~}}"
               (or (to-block test-obj) "")
               (current-line test-obj)
-              (or (to-block then-obj) nil)
-              (current-line then-obj))))
+              (append (remove-empty (mapcat #'indent (to-block then-obj)))
+                      (indent (current-line then-obj))))))
 
 (defun gen-while-string (test-obj body-obj)
-  (format nil "~{~a~%~}while (~a) {~%~{~a~%~}~a;~%}"
+  (format nil "~{~a~%~}while (~a) {~{~%~a~}~%}"
           (to-block test-obj)
           (current-line test-obj)
-          (to-block body-obj)
-          (current-line body-obj)))
+          (append (remove-empty (mapcat #'indent (to-block body-obj)))
+                  (indent (current-line body-obj)))))
 
 (defun gen-swizzle-string (vec-obj components-string)
   (format nil "~a.~a" (current-line vec-obj) (string-downcase components-string)))
 
+(defun remove-empty (list)
+  (labels ((empty-p (x)
+             (uiop:emptyp
+              (if (stringp x)
+                  (string-trim '(#\space) x)
+                  x))))
+    (remove-if #'empty-p list)))
+
 (defun gen-for-loop-string (var-string condition-obj update-obj body-obj)
-  (format nil "for (~a;~a;~a) {~%~{~a~%~}~a~%}"
-          var-string
-          (current-line condition-obj)
-          (current-line update-obj)
-          (or (remove nil (to-block body-obj)) (list ""))
-          (or (current-line body-obj) "")))
+  (let ((prog-strs (or (remove nil (to-block body-obj)) (list ""))))
+    (format nil "for (~a;~a;~a) {~{~%~a~}~{~%~a~}~%}"
+            var-string
+            (current-line condition-obj)
+            (current-line update-obj)
+            (remove-empty (mapcat #'indent prog-strs))
+            (remove-empty (indent (current-line body-obj))))))
 
 (defun gen-switch-string (test-obj keys clause-body-objs
                           &optional (default-symb 'default))
@@ -127,16 +127,16 @@
              :for obj :in clause-body-objs
              :append
              (if (eq key default-symb)
-                 ;; {TODO}                     WTF! -vvvvvvvvvvvvvvv
-                 (progn (setf default-clause (list "default" nil "jam")) nil)
+                 (error "Varjo: switch default not implemented") ;; {TODO}
                  (list key
-                       (or (to-block obj) nil)
-                       (current-line obj))) :into result
+                       (append (mapcat #'indent (to-block obj))
+                               (indent (current-line (end-line obj))))))
+             :into result
              :finally (return (append result default-clause)))))
-    (format nil "~a~%switch (~a) {~{~%case ~a:~%~{~a~^~%~}~a;~%break;~}}"
+    (format nil "~a~%switch (~a) {~{~%    case ~a:~%~{~a~^~%~}~%    break;~%~}}"
             (or (to-block test-obj) "")
             (current-line test-obj)
-                  format-clauses)))
+            format-clauses)))
 
 (defun qualify (obj &rest qualifiers)
   (%qualify obj qualifiers))
@@ -180,10 +180,6 @@
 (defun gen-uniform-decl-string (glsl-name type qualifiers)
   (declare (ignore qualifiers))
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
-
-;;[TODO] make this properly
-(defun lisp-name->glsl-name (name)
-  (string name))
 
 (defun gen-shader-string (post-proc-obj)
   (with-slots (code env) post-proc-obj
@@ -233,18 +229,11 @@ nil
 
 ;;----------------------------------------------------------------------
 
-(defmethod indent ((input string))
-  (mapcar #'(lambda (x) (format nil "    ~a" x))
-          (split-sequence:split-sequence #\newline input)))
-
-(defmethod indent ((input list))
-  (mapcat #'indent input))
-
-(defun indent-ob (code-obj)
-  (copy-code code-obj :to-block (indent (to-block code-obj))
-	     :multi-vals nil
-	     :place-tree nil
-	     :flow-ids (flow-ids code-obj)))
+(defmethod indent ((input string) &optional (count 4))
+  (let ((spaces (make-array count :element-type 'character
+                            :initial-element #\space)))
+    (mapcar #'(lambda (x) (format nil "~a~a" spaces x))
+            (split-sequence:split-sequence #\newline input))))
 
 ;;----------------------------------------------------------------------
 

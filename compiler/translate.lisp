@@ -124,6 +124,7 @@
                (progn
                  (%add-var name (v-make-value type-obj env :glsl-name glsl-name)
 			   env)
+                 (add-lisp-name name env glsl-name)
                  (setf (v-in-args env)
                        (append (v-in-args env)
                                `((,name ,(type->type-spec type-obj) ,qualifiers
@@ -147,24 +148,24 @@
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type (type-spec->type type))))
+  (let* ((true-type (v-true-type (type-spec->type type)))
+         (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-var name
-	      (v-make-value true-type env :glsl-name
-			    (or glsl-name (safe-glsl-name-string name))
-			    :read-only t)
-	      env))
-  (push (list name type qualifiers glsl-name) (v-uniforms env))
+	      (v-make-value true-type env :glsl-name glsl-name :read-only t)
+	      env)
+    (add-lisp-name name env glsl-name)
+    (push (list name type qualifiers glsl-name) (v-uniforms env)))
   env)
 
 ;; mutates env
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type (type-spec->type type))))
-    (%add-var name (v-make-value
-		    true-type env
-		    :glsl-name (or glsl-name (safe-glsl-name-string name))
-		    :flow-ids (flow-id!) :function-scope 0 :read-only t)
-	      env))
-  (push (list name type qualifiers glsl-name) (v-uniforms env))
+  (let* ((true-type (v-true-type (type-spec->type type)))
+         (glsl-name (or glsl-name (safe-glsl-name-string name))))
+    (%add-var name (v-make-value true-type env :glsl-name glsl-name
+                                 :flow-ids (flow-id!) :function-scope 0
+                                 :read-only t)
+	      env)
+    (push (list name type qualifiers glsl-name) (v-uniforms env)))
   env)
 
 ;; mutates env
@@ -192,12 +193,6 @@
   (vbind (form used) (v-symbol-macroexpand-all form env)
     (push used (used-symbol-macros env))
     (values form env)))
-
-(defun dedup-used-macros (used)
-  (remove-duplicates (flatten used)))
-
-(defun dedup-used-external-functions (used)
-  (remove-duplicates used))
 
 ;;----------------------------------------------------------------------
 
@@ -263,11 +258,11 @@
 (defun make-post-process-obj (code env)
   (make-instance
    'post-compile-process :code code :env env
-   :used-external-functions (dedup-used-external-functions
+   :used-external-functions (remove-duplicates
                              (used-external-functions env))
-   :used-symbol-macros (dedup-used-macros (used-symbol-macros env))
-   :used-macros (dedup-used-macros (used-macros env))
-   :used-compiler-macros (dedup-used-macros (used-compiler-macros env))))
+   :used-symbol-macros (remove-duplicates (used-symbol-macros env))
+   :used-macros (remove-duplicates (used-macros env))
+   :used-compiler-macros (remove-duplicates (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
 

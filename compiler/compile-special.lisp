@@ -148,8 +148,7 @@
 
 (defun compile-let (name type-spec value-form env &optional glsl-name flow-ids)
   (let* ((value-obj (when value-form (compile-form value-form env)))
-	 (glsl-name (or glsl-name (safe-glsl-name-string
-				   (free-name name env)))))
+	 (glsl-name (or glsl-name (lisp-name->glsl-name name env))))
 
     (let ((type-spec (when type-spec (type-spec->type type-spec))))
       (%validate-var-types name type-spec value-obj)

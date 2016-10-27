@@ -53,7 +53,7 @@
     "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec () (type-spec)
-    "Could not find the correct type for type-spec ~a~@[ ~a~]~%~a"
+    "Could not find the correct type for type-spec ~s~@[ ~a~]~%~a"
   type-spec
   (when (typep type-spec 'v-type)
     (format nil "~%It seems we recieved a type object instead of type spec"))
@@ -149,7 +149,7 @@ type-of new-value: ~a"
   (v-context env))
 
 (deferror name-unsuitable () (name)
-    "Names of variables and functions must start with an alpha char.~%They also may not start with 'gl-' or '-sc-' ~%Supplied Name: ~a~%" name)
+    "Names of variables and functions must start with an alpha char.~%They also may not start with 'gl-' 'fk-' or 'sym-' ~%Supplied Name: ~a~%" name)
 
 (deferror unable-to-resolve-func-type () (func-name args)
     "Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%" func-name (mapcar #'code-type args))
@@ -320,6 +320,19 @@ Compiled Args:
 (deferror empty-progn (:error-type varjo-critical-error) ()
     "Varjo: progn with no body found, this is not currently allowed by varjo")
 
+(deferror name-clash (:error-type varjo-critical-error) (lisp glsl)
+    "Varjo: The glsl name ~s was generated for the lisp-name ~s
+However this name was already taken. This is Varjo bug, please raise an issue
+on github.
+Sorry for the inconvenience"
+  glsl lisp)
+
+(deferror name-mismatch (:error-type varjo-critical-error) (lisp glsl taken)
+    "Varjo: The glsl name ~s was generated for the lisp-name ~s
+However this clashes with glsl name for the previous symbol ~s.
+This is Varjo bug, please raise an issue on github.
+Sorry for the inconvenience"
+  glsl lisp taken)
 
 (deferror function-with-no-return-type (:error-type varjo-critical-error)
     (func-name)
