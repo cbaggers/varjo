@@ -129,7 +129,7 @@
                         :args args))
     (let* ((has-base (not (null (v-multi-val-base env))))
            (m-r-base (or (v-multi-val-base env)
-                         (new-lisp-name->glsl-name 'nc env)))
+                         (lisp-name->glsl-name 'nc env)))
            (mvals (multi-return-vars func))
            (start-index 1)
            (m-r-names (loop :for i :from start-index

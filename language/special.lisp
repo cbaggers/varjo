@@ -124,7 +124,7 @@
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
-  (let* ((base (new-lisp-name->glsl-name 'mvb env))
+  (let* ((base (lisp-name->glsl-name 'mvb env))
 	 (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
       (unless (= (length vars) (+ 1 (length (multi-vals value-obj))))
@@ -458,7 +458,7 @@
 				    (flow-id!))
 				  args))
 	 (arg-glsl-names (loop :for (name) :in args :collect
-			    (new-lisp-name->glsl-name name env)))
+			    (lisp-name->glsl-name name env)))
 	 (body-env (reduce
 		    (lambda (env tripple)
 		      (dbind (arg glsl-name flow-ids) tripple
@@ -475,7 +475,7 @@
 				       (process-environment-for-main-labels
 					env))))
 	 (body-obj (compile-form `(%return (progn ,@body)) body-env))
-	 (glsl-name (if mainp "main" (new-lisp-name->glsl-name name env)))
+	 (glsl-name (if mainp "main" (lisp-name->glsl-name name env)))
 	 (primary-return (first (returns body-obj)))
 	 (multi-return-vars (rest (returns body-obj)))
 	 (type (if mainp (type-spec->type 'v-void) primary-return))
