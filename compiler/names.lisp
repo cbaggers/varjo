@@ -64,7 +64,7 @@
 
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
-  (prefixed-p (symbol-name name-symbol)
+  (starts-with (symbol-name name-symbol)
 	      '("GL-" "FK-" "SYM-")))
 
 (defun valid-user-defined-name (name-symbol)
