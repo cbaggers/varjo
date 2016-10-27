@@ -322,7 +322,7 @@ are supported in this context are: ~s"
 	   (cond ,@cases))))))
 
 
-(defun prefixed-p (str prefix)
+(defun starts-with-p (str prefix)
     "Returns T if string starts with prefix. 
 Prefix may be a string, or a list of strings."
   (labels ((prefixed-with-p (prefix)
