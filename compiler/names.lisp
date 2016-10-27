@@ -44,17 +44,21 @@
 (defun add-lisp-name (symbol env &optional glsl-name)
   (assert (symbolp symbol))
   (assert (valid-user-defined-name symbol) () 'name-unsuitable :name symbol)
-  (%add-lisp-name symbol env glsl-name))
+  (%add-lisp-name symbol env glsl-name nil))
 
 (defun add-reserved-lisp-name (symbol env &optional glsl-name)
   (assert (symbolp symbol))
-  (%add-lisp-name symbol env glsl-name))
+  (%add-lisp-name symbol env glsl-name t))
 
-(defun %add-lisp-name (symbol env glsl-name)
+(defun %add-lisp-name (symbol env glsl-name allow-collisions-for-same-symbol)
   (let ((name-map (v-name-map env)))
     (let ((str (or glsl-name (gen-glsl-string-for-symbol symbol))))
-      (assert (not (gethash str name-map)) ()
-              'name-clash :lisp symbol :glsl str)
+      (if allow-collisions-for-same-symbol
+          (let ((symb (gethash str name-map)))
+            (when (and symb (not (eq symb symbol)))
+              (error 'name-mismatch :lisp symbol :glsl str :taken symb)))
+          (assert (not (gethash str name-map)) ()
+                  'name-clash :lisp symbol :glsl str))
       (add-lisp->glsl-name-mapping name-map symbol str)
       str)))
 

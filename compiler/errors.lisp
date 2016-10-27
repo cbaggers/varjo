@@ -327,6 +327,13 @@ on github.
 Sorry for the inconvenience"
   glsl lisp)
 
+(deferror name-mismatch (:error-type varjo-critical-error) (lisp glsl taken)
+    "Varjo: The glsl name ~s was generated for the lisp-name ~s
+However this clashes with glsl name for the previous symbol ~s.
+This is Varjo bug, please raise an issue on github.
+Sorry for the inconvenience"
+  glsl lisp taken)
+
 (deferror function-with-no-return-type (:error-type varjo-critical-error)
     (func-name)
     "Varjo: The function named ~s does not return anything, this is not
