@@ -105,7 +105,7 @@
 	(w env))))
 
 (v-defmacro prog1 (&body body)
-  (let ((tmp (free-name 'progn-var)))
+  (let ((tmp (gensym "PROG1-TMP")))
     `(let ((,tmp ,(first body)))
        ,@(rest body)
        ,tmp)))
@@ -124,7 +124,7 @@
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
   :return
-  (let* ((base (safe-glsl-name-string (free-name 'mvb)))
+  (let* ((base (new-lisp-name->glsl-name 'mvb env))
 	 (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
       (unless (= (length vars) (+ 1 (length (multi-vals value-obj))))
@@ -201,7 +201,7 @@
 	 (vals (loop :for o :in objs :for n :in glsl-names :collect
 		  (v-make-value (code-type o) env :glsl-name n
 				:flow-ids (flow-ids o))))
-	 (first-name (free-name 'v-tmp))
+	 (first-name (gensym))
 	 (result (expand-and-compile-form
 		  `(let ((,first-name ,(first objs)))
 		     ,@(loop :for o :in (rest objs)
@@ -304,7 +304,7 @@
 	     (merge-multi-env-progn
 	      (%mapcar-multi-env-progn
 	       (lambda (p-env type gname)
-		 (compile-let (free-name 'x) (type->type-spec type)
+		 (compile-let (gensym) (type->type-spec type)
 			      nil p-env gname))
 	       p-env types glsl-lines))
 	     (compile-form (%default-out-for-stage code-obj p-env) p-env)
@@ -321,10 +321,10 @@
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (form env)
   (let ((context (v-context env)))
-    (cond ((member :fragment context) `(%out (,(free-name :output-color))
+    (cond ((member :fragment context) `(%out (,(gensym "OUTPUT-COLOR"))
                                              ,form))
           ((member :vertex context) `(setq varjo-lang::gl-position ,form))
-          (t `(%out (,(free-name :output-var))
+          (t `(%out (,(gensym "OUTPUT-VAR"))
 		    ,form)))))
 
 (defun %validate-var-types (var-name type code-obj)
@@ -458,7 +458,7 @@
 				    (flow-id!))
 				  args))
 	 (arg-glsl-names (loop :for (name) :in args :collect
-			    (safe-glsl-name-string (free-name name))))
+			    (new-lisp-name->glsl-name name env)))
 	 (body-env (reduce
 		    (lambda (env tripple)
 		      (dbind (arg glsl-name flow-ids) tripple
@@ -475,7 +475,7 @@
 				       (process-environment-for-main-labels
 					env))))
 	 (body-obj (compile-form `(%return (progn ,@body)) body-env))
-	 (glsl-name (if mainp "main" (safe-glsl-name-string (free-name name))))
+	 (glsl-name (if mainp "main" (new-lisp-name->glsl-name name env)))
 	 (primary-return (first (returns body-obj)))
 	 (multi-return-vars (rest (returns body-obj)))
 	 (type (if mainp (type-spec->type 'v-void) primary-return))
@@ -646,7 +646,7 @@
 				  (error 'if-branch-type-mismatch
 					 :then-obj then-obj))
 	      (assert (v-code-type-eq then-obj else-obj))
-	      (let ((result (free-name :result-from-if))
+	      (let ((result (gensym "IF-TMP"))
 		    (result-type (type->type-spec (code-type then-obj))))
 		(expand-and-compile-form
 		 `(let (((,result ,result-type)))

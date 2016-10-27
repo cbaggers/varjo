@@ -129,14 +129,14 @@
                         :args args))
     (let* ((has-base (not (null (v-multi-val-base env))))
            (m-r-base (or (v-multi-val-base env)
-                         (safe-glsl-name-string (free-name 'nc))))
+                         (new-lisp-name->glsl-name 'nc env)))
            (mvals (multi-return-vars func))
            (start-index 1)
            (m-r-names (loop :for i :from start-index
                          :below (+ start-index (length mvals)) :collect
                          (fmt "~a~a" m-r-base i))))
       (let* ((bindings (loop :for mval :in mvals :collect
-                          `((,(free-name 'nc)
+                          `((,(gensym "NC")
                               ,(type->type-spec
                                 (v-type (multi-val-value mval)))))))
 	     (flow-ids (calc-mfunction-return-ids-given-args

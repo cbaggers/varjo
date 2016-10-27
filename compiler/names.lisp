@@ -53,9 +53,9 @@
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
   (let ((name (symbol-name name-symbol)))
-    (or (when (> (length name) 2) (equal "GL-" (subseq name 0 3)))
-        (when (> (length name) 2) (equal "FK-" (subseq name 0 3))) ;; fk use for fake structs
-        (when (> (length name) 3) (equal "SYM-" (print (subseq name 0 4)))))))
+    (or (uiop:string-prefix-p "GL-" name)
+        (uiop:string-prefix-p "FK-" name) ;; fk use for fake structs
+        (uiop:string-prefix-p "SYM-" name))))
 
 (defun valid-user-defined-name (name-symbol)
   "Returns false if name is reserved"
@@ -83,7 +83,7 @@
     curr-str-name))
 
 (defun %get-gensym-name (symbol)
-  (format nil "SYM_~a" symbol))
+  (format nil "g_~a" (gen-glsl-string-for-symbol symbol)))
 
 (defun gen-glsl-string-for-symbol (name)
   (let ((name (symbol-name name)))

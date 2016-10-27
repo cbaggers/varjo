@@ -14,7 +14,7 @@
 	     :reader flow-ids)))
 
 (defmethod v-make-value ((type v-t-type) env
-                         &key (glsl-name (free-name 'unspecified))
+                         &key (glsl-name (gensym))
 			   (flow-ids (flow-id!)) function-scope
 			   read-only)
   (make-instance 'v-value :type type :glsl-name glsl-name
@@ -22,7 +22,7 @@
 		 :flow-ids flow-ids :read-only read-only))
 
 (defmethod v-make-value ((type t) env
-                         &key (glsl-name (free-name 'unspecified))
+                         &key (glsl-name (gensym))
 			   (flow-ids (flow-id!)) function-scope
 			   read-only)
   (make-instance 'v-value :type (type-spec->type type) :glsl-name glsl-name
@@ -55,5 +55,6 @@
   (make-instance 'mval :value v-value :qualifiers qualifiers))
 
 (defun mval->out-form (mval env)
+  (declare (ignore env))
   (with-slots (value qualifiers) mval
-    `(%out (,(free-name :out) ,@qualifiers) ,value)))
+    `(%out (,(gensym "OUT") ,@qualifiers) ,value)))
