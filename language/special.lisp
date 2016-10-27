@@ -395,12 +395,37 @@
 	(env-> (p-env fresh-env)
 	  (mapcar-progn
 	   (lambda (env d)
-	     (dbind (name args &rest body) d
+             (dbind (name args &rest body) d
 	       (%make-function name args body t env)))
 	   p-env definitions)
 	  (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
 	   (ast (ast-node! 'labels
+			   (list (remove nil (mapcar λ(when _1
+							(cons-end
+							 (node-tree _1)
+							 (subseq _ 0 2)))
+						     definitions
+						     func-def-objs))
+				 (node-tree body-obj))
+			   (code-type body-obj) (flow-ids merged) env env)))
+      (values (copy-code merged :node-tree ast)
+	      e))))
+
+(v-defspecial flet (definitions &rest body)
+  :args-valid t
+  :return
+  (vbind ((func-def-objs body-obj) e)
+      (with-fresh-env-scope (fresh-env env)
+	(env-> (p-env fresh-env)
+	  (%mapcar-multi-env-progn
+	   (lambda (env d)
+             (dbind (name args &rest body) d
+	       (%make-function name args body t env)))
+	   p-env definitions)
+	  (compile-form `(progn ,@body) p-env)))
+    (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
+	   (ast (ast-node! 'flet
 			   (list (remove nil (mapcar λ(when _1
 							(cons-end
 							 (node-tree _1)
