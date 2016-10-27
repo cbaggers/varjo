@@ -320,3 +320,16 @@ are supported in this context are: ~s"
 	     (cases (append cases-but1 (list last-case))))
 	`(let ((,g ,form))
 	   (cond ,@cases))))))
+
+
+(defun starts-with-p (str prefix)
+    "Returns T if string starts with prefix. 
+Prefix may be a string, or a list of strings."
+  (labels ((prefixed-with-p (prefix)
+	     (let ((len (length prefix)))
+	       (and (>= (length str) len)
+		    (string= str prefix :end1 len)))))
+    (typecase prefix
+      (string (prefixed-with-p prefix))
+      (list (some #'prefixed-with-p prefix))
+      (t (format t "PREFIXED-P: THIS CAN'T HAPPEN!")))))
