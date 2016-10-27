@@ -7,7 +7,7 @@
   #+asdf-unicode :encoding #+asdf-unicode :utf-8
   :serial t
   :depends-on (#:cl-ppcre #:split-sequence #:alexandria #:named-readtables
-			  #:vas-string-metrics #:fn
+			  #:vas-string-metrics #:fn #:uiop
 			  #:rtg-math #:glsl-spec)
   :components ((:file "package")
 	       (:file "utils-v")
