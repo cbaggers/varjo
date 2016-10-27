@@ -124,6 +124,7 @@
                (progn
                  (%add-var name (v-make-value type-obj env :glsl-name glsl-name)
 			   env)
+                 (add-lisp-name name env glsl-name)
                  (setf (v-in-args env)
                        (append (v-in-args env)
                                `((,name ,(type->type-spec type-obj) ,qualifiers
@@ -147,24 +148,24 @@
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type (type-spec->type type))))
+  (let* ((true-type (v-true-type (type-spec->type type)))
+         (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-var name
-	      (v-make-value true-type env :glsl-name
-			    (or glsl-name (safe-glsl-name-string name))
-			    :read-only t)
-	      env))
-  (push (list name type qualifiers glsl-name) (v-uniforms env))
+	      (v-make-value true-type env :glsl-name glsl-name :read-only t)
+	      env)
+    (add-lisp-name name env glsl-name)
+    (push (list name type qualifiers glsl-name) (v-uniforms env)))
   env)
 
 ;; mutates env
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type (type-spec->type type))))
-    (%add-var name (v-make-value
-		    true-type env
-		    :glsl-name (or glsl-name (safe-glsl-name-string name))
-		    :flow-ids (flow-id!) :function-scope 0 :read-only t)
-	      env))
-  (push (list name type qualifiers glsl-name) (v-uniforms env))
+  (let* ((true-type (v-true-type (type-spec->type type)))
+         (glsl-name (or glsl-name (safe-glsl-name-string name))))
+    (%add-var name (v-make-value true-type env :glsl-name glsl-name
+                                 :flow-ids (flow-id!) :function-scope 0
+                                 :read-only t)
+	      env)
+    (push (list name type qualifiers glsl-name) (v-uniforms env)))
   env)
 
 ;; mutates env

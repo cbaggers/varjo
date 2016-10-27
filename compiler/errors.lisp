@@ -53,7 +53,7 @@
     "Return type spec of function ~a is invalid:~%~a" func spec)
 
 (deferror unknown-type-spec () (type-spec)
-    "Could not find the correct type for type-spec ~a~@[ ~a~]~%~a"
+    "Could not find the correct type for type-spec ~s~@[ ~a~]~%~a"
   type-spec
   (when (typep type-spec 'v-type)
     (format nil "~%It seems we recieved a type object instead of type spec"))
@@ -320,6 +320,12 @@ Compiled Args:
 (deferror empty-progn (:error-type varjo-critical-error) ()
     "Varjo: progn with no body found, this is not currently allowed by varjo")
 
+(deferror name-clash (:error-type varjo-critical-error) (lisp glsl)
+    "Varjo: The glsl name ~s was generated for the lisp-name ~s
+However this name was already taken. This is Varjo bug, please raise an issue
+on github.
+Sorry for the inconvenience"
+  glsl lisp)
 
 (deferror function-with-no-return-type (:error-type varjo-critical-error)
     (func-name)

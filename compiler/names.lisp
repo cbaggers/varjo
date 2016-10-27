@@ -31,7 +31,7 @@
   "Returns false if name is reserved"
   (not (glsl-var-namep name-symbol)))
 
-(defun new-lisp-name->glsl-name (symbol env)
+(defun lisp-name->glsl-name (symbol env)
   (assert (symbolp symbol))
   (assert (valid-user-defined-name symbol) () 'name-unsuitable :name symbol)
   (let ((name-map (v-name-map env)))
@@ -39,6 +39,24 @@
                    (%get-free-glsl-name symbol name-map)
                    (%get-gensym-name symbol))))
       (add-lisp->glsl-name-mapping name-map symbol str)
+      str)))
+
+(defun add-lisp-name (symbol env &optional glsl-name)
+  (assert (symbolp symbol))
+  (assert (valid-user-defined-name symbol) () 'name-unsuitable :name symbol)
+  (%add-lisp-name symbol env glsl-name))
+
+(defun add-reserved-lisp-name (symbol env &optional glsl-name)
+  (assert (symbolp symbol))
+  (%add-lisp-name symbol env glsl-name))
+
+(defun %add-lisp-name (symbol env glsl-name)
+  (let ((name-map (v-name-map env)))
+    (let ((str (or (gen-glsl-string-for-symbol symbol) glsl-name)))
+      (assert (not (gethash str name-map)) ()
+              'name-clash :lisp symbol :glsl str)
+      (add-lisp->glsl-name-mapping
+       name-map symbol str)
       str)))
 
 (defun add-lisp->glsl-name-mapping (name-map symbol string)

@@ -42,7 +42,8 @@
               (%add-var lisp-name (v-make-value
                                    type env :glsl-name glsl-name
                                    :flow-ids (%gl-flow-id!) :read-only (not setable))
-			env))))
+			env)
+              (add-reserved-lisp-name lisp-name env glsl-name))))
   env)
 
 ;;--------------------------------------------------
