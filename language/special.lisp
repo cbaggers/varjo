@@ -775,22 +775,23 @@
 	    (error 'invalid-for-loop-type :decl-obj decl-obj))
 	  (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
 	    (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
-		(values (copy-code
-			 body-obj :type 'v-none :current-line nil
-			 :to-block `(,(gen-for-loop-string
-				       var-string condition-obj update-obj
-				       (end-line body-obj)))
-			 :flow-ids flow-id
-			 :node-tree (ast-node!
-				     'for (cons var-form
-						(mapcar #'node-tree
-							(list condition-obj
-							      update-obj
-							      body-obj)))
-				     :none flow-id env final-env)
-			 :multi-vals nil
-			 :place-tree nil)
-			final-env)
+		(let ((loop-str (gen-for-loop-string
+                                 var-string condition-obj update-obj
+                                 (end-line body-obj))))
+                 (values (copy-code
+                           body-obj :type 'v-none :current-line nil
+                           :to-block (list loop-str)
+                           :flow-ids flow-id
+                           :node-tree (ast-node!
+                                       'for (cons var-form
+                                                  (mapcar #'node-tree
+                                                          (list condition-obj
+                                                                update-obj
+                                                                body-obj)))
+                                       :none flow-id env final-env)
+                           :multi-vals nil
+                           :place-tree nil)
+                          final-env))
 		(error 'for-loop-simple-expression)))))))
 
 

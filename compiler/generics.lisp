@@ -46,7 +46,7 @@
 (defgeneric ast-typep (node type))
 (defgeneric origin-name (origin))
 (defgeneric val-origins (node &optional error-on-missingp))
-(defgeneric indent (input))
+(defgeneric indent (input &optional count))
 (defgeneric v-fake-type (object))
 (defgeneric v-special-functionp (func))
 (defgeneric v-element-type (object))
