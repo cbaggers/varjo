@@ -52,11 +52,10 @@
 
 (defun %add-lisp-name (symbol env glsl-name)
   (let ((name-map (v-name-map env)))
-    (let ((str (or (gen-glsl-string-for-symbol symbol) glsl-name)))
+    (let ((str (or glsl-name (gen-glsl-string-for-symbol symbol))))
       (assert (not (gethash str name-map)) ()
               'name-clash :lisp symbol :glsl str)
-      (add-lisp->glsl-name-mapping
-       name-map symbol str)
+      (add-lisp->glsl-name-mapping name-map symbol str)
       str)))
 
 (defun add-lisp->glsl-name-mapping (name-map symbol string)
