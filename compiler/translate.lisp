@@ -193,12 +193,6 @@
     (push used (used-symbol-macros env))
     (values form env)))
 
-(defun dedup-used-macros (used)
-  (remove-duplicates (flatten used)))
-
-(defun dedup-used-external-functions (used)
-  (remove-duplicates used))
-
 ;;----------------------------------------------------------------------
 
 (defun v-macroexpand-all (code &optional (env :-GENV-))
@@ -263,11 +257,11 @@
 (defun make-post-process-obj (code env)
   (make-instance
    'post-compile-process :code code :env env
-   :used-external-functions (dedup-used-external-functions
+   :used-external-functions (remove-duplicates
                              (used-external-functions env))
-   :used-symbol-macros (dedup-used-macros (used-symbol-macros env))
-   :used-macros (dedup-used-macros (used-macros env))
-   :used-compiler-macros (dedup-used-macros (used-compiler-macros env))))
+   :used-symbol-macros (remove-duplicates (used-symbol-macros env))
+   :used-macros (remove-duplicates (used-macros env))
+   :used-compiler-macros (remove-duplicates (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
 

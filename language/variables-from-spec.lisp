@@ -8,7 +8,7 @@
 			 (let* ((lisp-name (intern (parse-gl-var-name name)
 						   :varjo-lang))
 				(lisp-type (parse-gl-type-name type)))
-			   `(,stage ,lisp-name ,lisp-type ,place-p)))
+			   `(,stage ,lisp-name ,name ,lisp-type ,place-p)))
 		      glsl-spec:*variables*)))
 
     `(progn
