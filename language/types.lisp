@@ -26,7 +26,7 @@
 (def-v-type-class v-short-float (v-number)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "short-float" :reader v-glsl-string)))
-(def-v-type-class v-double (v-number v-td)
+(def-v-type-class v-double (v-number)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "double" :reader v-glsl-string)))
 
