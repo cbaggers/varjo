@@ -196,15 +196,6 @@
            :v-type
            :v-stemcell
            :v-spec-type
-           :v-tfd
-           :v-tf
-           :v-td
-           :v-tb
-           :v-tiu
-           :v-i-ui
-           :v-ti
-           :v-tu
-           :v-tvec
            :v-array
            :v-none
            :v-function

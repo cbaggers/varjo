@@ -757,7 +757,8 @@
 			       (mapcar #'second clause-pairs))))
 	      (reduce #'env-merge-history
 		      (rest envs) :initial-value (first envs)))))
-      (if (and (v-typep (code-type test-obj) 'v-i-ui)
+      (if (and (or (v-typep (code-type test-obj) 'v-uint)
+                   (v-typep (code-type test-obj) 'v-int))
 	       (loop :for key :in keys :always
 		  (or (eq key 'default) (integerp key))))
 	  (values (merge-obs clause-objs :type 'v-none
@@ -795,7 +796,8 @@
 	       (condition-obj (compile-form condition new-env))
 	       (update-obj (compile-form update new-env))
 	       (flow-id (flow-id!)))
-	  (unless (or (typep (code-type decl-obj) 'v-i-ui)
+	  (unless (or (v-typep (code-type test-obj) 'v-uint)
+                      (v-typep (code-type test-obj) 'v-int)
 		      (v-typep (code-type decl-obj) 'v-float))
 	    (error 'invalid-for-loop-type :decl-obj decl-obj))
 	  (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
