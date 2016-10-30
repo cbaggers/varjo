@@ -354,6 +354,7 @@
 	   :v-compile
 
            ;;compile-result
+           :varjo-compile-result
 	   :glsl-code
 	   :stage-type
 	   :out-vars
