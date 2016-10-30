@@ -5,7 +5,9 @@
   `(progn
      ,@(loop :for func-spec :in glsl-spec:*functions* :append
 	  (destructuring-bind (&key name return args versions) func-spec
-	    (let* ((lisp-name (intern (parse-gl-func-name name) :varjo-lang))
+	    (let* ((parsed-name (parse-gl-func-name name))
+                   (lisp-name (or (find-symbol parsed-name :cl )
+                                  (intern parsed-name  :varjo-lang)))
 		   (arg-types (mapcar #'second args))
 		   (lisp-arg-types (mapcar #'parse-gl-type-name arg-types))
 		   (lisp-return (parse-gl-type-name return))
