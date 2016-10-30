@@ -241,3 +241,24 @@
                     f (min f (dot z z)))))
        (setf f (+ 1.0 (/ (log f) 16)))
        (v! f (* f f) (* f f f ) 1.0)))))
+
+
+(5am:test build-24
+  ;; same as build-22 but in fragment shader
+  (is (ast-stabalizes-p
+       (compile-frag (&uniform (iresolution :vec2) (iglobaltime :float)) :450
+         (let* (((z :vec2) (/ (* 1.15 (- (* (s~ gl-frag-coord :xy) 2.0)
+                                         (s~ iResolution :xy)))
+                              (y iResolution)))
+                (vtemp (v2! 0.0 1.5708))
+                (vtime (v2! (* .05 iGlobalTime)))
+                (an  (- (* 0.51 (cos (+ vtemp vtime)))
+                        (* 0.25 (cos (+ vtemp vtime vtime)))))
+                (f 1e20))
+           (for (i 0) (< i 120) (++ i)
+                (let ((xz (x z)) (yz (y z)))
+                  (setf z (+ an (v! (- (* xz xz) (* yz yz))
+                                    (* 2.0 xz yz)))
+                        f (min f (dot z z)))))
+           (setf f (+ 1.0 (/ (log f) 16)))
+           (v! f (* f f) (* f f f ) 1.0))))))
