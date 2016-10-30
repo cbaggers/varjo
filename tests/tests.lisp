@@ -15,6 +15,22 @@
       (v-compile ',uniforms ,version
                  :fragment '(,in-args ,@body)))))
 
+(defun ast-stabalizes-p (compile-result &optional (depth 0) (max-depth 20))
+  "Returns t if compile the ast->code of compile-result gives the same ast
+   It is allowed to recompile up to 'max-depth' times in order to find
+   convergence"
+  (let* ((code (ast->code compile-result))
+         (version (varjo::get-version-from-context-list
+                   (context compile-result)))
+         (recomp (first (v-compile (uniforms compile-result) version
+                                   (stage-type compile-result)
+                                   (list (in-args compile-result)
+                                         code))))
+         (recomp-code (ast->code recomp)))
+    (or (values (equal code recomp-code) depth)
+        (when (< depth max-depth)
+          (ast-stabalizes-p recomp (incf depth))))))
+
 (defmacro finishes-p (form)
   `(is (typep ,form 'varjo-compile-result)))
 
@@ -28,7 +44,7 @@
   (finishes-p
    (compile-vert () :450
      (v! 0 0 0 0))))
-%inner-test-build-8
+
 (5am:test build-1
   (finishes-p
     (compile-vert () :450

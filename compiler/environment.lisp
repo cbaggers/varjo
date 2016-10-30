@@ -358,10 +358,13 @@
   t)
 
 (defun get-version-from-context (env)
-  (loop :for item :in (v-context env)
-     :if (find item *supported-versions*)
-     :return item
-     :finally (error 'no-version-in-context :env env)))
+  (or (get-version-from-context-list (v-context env))
+      (error 'no-version-in-context :env env)))
+
+(defun get-version-from-context-list (list)
+  (loop :for item :in list
+     :when (find item *supported-versions*)
+     :return item))
 
 (defun get-stage-from-env (env)
   (get-version-from-context (v-context env)))
