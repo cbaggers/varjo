@@ -76,7 +76,6 @@
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))
 
-
 (defmethod core-typep ((type v-t-type))
   nil)
 
