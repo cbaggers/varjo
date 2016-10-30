@@ -113,7 +113,7 @@
 	       type)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
-             (make-instance 'v-array :element-type (if (keywordp spec)
+             (make-instance 'v-array :element-type (if (keywordp type)
                                                        (symb 'v- type)
                                                        type)
                             :dimensions dimensions)))
