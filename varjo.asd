@@ -14,6 +14,7 @@
 	       (:file "compiler/generics")
 	       (:file "compiler/globals")
 	       (:file "compiler/log")
+               (:file "compiler/internal-types")
 	       (:file "compiler/errors")
 	       (:file "compiler/names")
 	       (:file "compiler/types")

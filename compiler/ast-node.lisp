@@ -1,21 +1,6 @@
 (in-package :varjo)
 (in-readtable fn:fn-reader)
 
-(defclass ast-node ()
-  ((starting-env :initarg :starting-env :reader ast-starting-env)
-   (ending-env :initarg :ending-env :reader ast-ending-env)
-   (kind :initarg :kind :reader ast-kind)
-   (return-type :initarg :return-type :reader ast-return-type)
-   (flow-id :initarg :flow-id :reader ast-flow-id)
-   (flow-id-origin :initarg :flow-id-origin :initform :incomplete
-		   :reader ast-flow-id-origin)
-   (val-origin :initarg :val-origin :initform :incomplete
-	       :reader ast-val-origin)
-   (parent :initarg :parent :initform :incomplete :reader ast-parent)
-   (args :initarg :args :initform nil :reader ast-args)
-   (val-origins :initarg :val-origins :initform :incomplete)
-   (flow-id-origins :initarg :flow-id-origins :initform :incomplete)))
-
 (defmethod initialize-instance :after ((ast ast-node) &rest initargs)
   (declare (ignore initargs))
   (assert-flow-id-singularity (ast-flow-id ast)))

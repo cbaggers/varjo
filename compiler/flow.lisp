@@ -12,17 +12,6 @@
 ;;----------------------------------------------------------------------
 ;; internals
 
-(defclass multi-return-flow-id ()
-  ((m-value-ids :initform nil :initarg :m-value-ids :reader m-value-ids)))
-
-(defclass flow-identifier ()
-  ((ids :initform nil :initarg :ids :reader ids)))
-
-(defclass bare-flow-id ()
-  ((val :initarg :val)
-   (return-pos :initform 0 :initarg :return-pos)))
-
-
 (defun m-flow-id-p (id)
   (typep id 'multi-return-flow-id))
 

@@ -3,41 +3,6 @@
 
 ;;-------------------------------------------------------------------------
 
-(defclass environment ()
-  ((parent-env :initform *global-env* :initarg :parent-env :reader v-parent-env)
-   (context :initform nil :initarg :context :reader v-context)
-   (variables :initform nil :initarg :variables :reader v-variables)
-   (functions :initform nil :initarg :functions :reader v-functions)
-   (macros :initform nil :initarg :macros :reader v-macros)
-   (symbol-macros :initform nil :initarg :symbol-macros :reader v-symbol-macros)
-   (compiler-macros
-    :initform nil :initarg :compiler-macros :reader v-compiler-macros)
-   (multi-val-base
-    :initform nil :initarg :multi-val-base :reader v-multi-val-base)
-   (multi-val-safe
-    :initform nil :initarg :multi-val-safe :reader v-multi-val-safe)
-   (function-scope
-    :initform 0 :initarg :function-scope :reader v-function-scope)))
-
-(defclass base-environment (environment)
-  ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
-   (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
-   (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
-   (iuniforms :initform nil :initarg :iuniforms :accessor v-iuniforms)
-   (in-args :initform nil :initarg :in-args :accessor v-in-args)
-   (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
-   (context :initform nil :initarg :context :accessor v-context)
-   (function-code-cache :initform (make-hash-table) :reader v-code-cache)
-   (used-external-functions :initform nil :initarg :used-external-functions)
-   (used-symbol-macros :initform nil :initarg :used-symbol-macros)
-   (used-macros :initform nil :initarg :used-macros)
-   (used-compiler-macros :initform nil :initarg :used-compiler-macros)
-   (function-dedup :initform nil :initarg :function-dedup)
-   (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
-   (third-party-metadata :initform (make-hash-table) :initarg
-			 :third-party-metadata)
-   (name-map :initform (make-hash-table :test #'equal))))
-
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (get-base-env e)
     (or (assocr stem-cell-symbol stemcell->flow-id)

@@ -29,12 +29,6 @@
 
 (defmethod v-dimensions ((object v-stemcell)) 0)
 
-(defclass stemcell ()
-  ((name :initarg :name)
-   (string-name :initarg :string-name)
-   (type :initarg :type)
-   (flow-id :initarg :flow-id)))
-
 (defun stemcell! (original-name string-name type flow-id)
   (make-instance 'stemcell
 		 :name original-name

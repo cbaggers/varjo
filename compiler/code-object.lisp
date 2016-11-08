@@ -1,26 +1,5 @@
 (in-package :varjo)
 
-(defclass code ()
-  ((type :initarg :type :initform nil :reader code-type)
-   (current-line :initarg :current-line :initform "" :reader current-line)
-   (signatures :initarg :signatures :initform nil :reader signatures)
-   (to-block :initarg :to-block :initform nil :reader to-block)
-   (to-top :initarg :to-top :initform nil :reader to-top)
-   (out-vars :initarg :out-vars :initform nil :reader out-vars)
-   (used-types :initarg :used-types :initform nil :reader used-types)
-   (returns :initarg :returns :initform nil :reader returns)
-   (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
-   (stem-cells :initarg :stemcells :initform nil :reader stemcells)
-   (injected-uniforms :initarg :injected-uniforms :initform nil
-		      :reader injected-uniforms)
-   (out-of-scope-args :initarg :out-of-scope-args :initform nil
-                      :reader out-of-scope-args)
-   (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
-	     :reader flow-ids)
-   (mutations :initarg :mutations :initform nil :reader mutations)
-   (place-tree :initarg :place-tree :initform nil :reader place-tree)
-   (node-tree :initarg :node-tree :initform nil :reader node-tree)))
-
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
 		to-top out-vars used-types returns multi-vals stemcells
 		out-of-scope-args injected-uniforms flow-ids mutations place-tree

@@ -148,11 +148,6 @@
 
 ;;------------------------------------------------------------
 
-(defclass func-match ()
-  ((score :initarg :score :reader score)
-   (func :initarg :func :reader func)
-   (arguments :initarg :arguments :reader arguments)))
-
 (defun try-compile-arg (arg env)
   ;; This let is important
   ;; By setting :multi-val-base to nil you stop 'values forms

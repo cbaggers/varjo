@@ -4,14 +4,7 @@
 ;; GLSL Variables
 ;;----------------
 
-(defclass v-value ()
-  ((type :initarg :type :initform nil :accessor v-type)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
-   (function-scope :initarg :function-scope :initform 0
-                   :accessor v-function-scope)
-   (read-only :initarg :read-only :initform nil :reader v-read-only)
-   (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-vv)
-	     :reader flow-ids)))
+
 
 (defmethod v-make-value ((type v-t-type) env
                          &key (glsl-name (gensym))
@@ -48,9 +41,7 @@
 
 ;;--------------------------------------------------
 
-(defclass mval ()
-  ((value :initarg :value :reader multi-val-value)
-   (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
+
 
 (defun make-mval (v-value &optional qualifiers)
   (make-instance 'mval :value v-value :qualifiers qualifiers))

@@ -238,23 +238,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass post-compile-process ()
-  ((code :initarg :code :accessor code)
-   (env :initarg :env :accessor env)
-   (in-args :initarg :in-args :accessor in-args)
-   (out-vars :initarg :out-vars :accessor out-vars)
-   (uniforms :initarg :uniforms :accessor uniforms)
-   (stemcells :initarg :stemcells :accessor stemcells)
-   (used-types :initarg :used-types :accessor used-types)
-   (used-external-functions :initarg :used-external-functions
-                            :accessor used-external-functions)
-   (used-symbol-macros :initarg :used-symbol-macros
-                       :accessor used-symbol-macros)
-   (used-macros :initarg :used-macros :accessor used-macros)
-   (used-compiler-macros :initarg :used-compiler-macros
-                         :accessor used-compiler-macros)
-   (ast :initarg :ast :reader ast)))
-
 (defun make-post-process-obj (code env)
   (make-instance
    'post-compile-process :code code :env env

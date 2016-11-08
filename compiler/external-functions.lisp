@@ -15,13 +15,6 @@
 			 funcs))
 	funcs)))
 
-(defclass external-function ()
-  ((name :initarg :name :reader name)
-   (in-args :initarg :in-args :reader in-args)
-   (uniforms :initarg :uniforms :reader uniforms)
-   (code :initarg :code :reader code)
-   (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
-
 (defmethod add-external-function (name in-args uniforms code
 				  &optional valid-glsl-versions)
   (quick-check-the-types name (append in-args uniforms))

@@ -2,26 +2,6 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
-  (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
-                       `(append (list ,(kwd (subseq (symbol-name name) 2))
-                                      ',name)
-                                *registered-types*)
-                       `(cons ',name *registered-types*))))
-    `(progn (defclass ,name ,direct-superclass ,direct-slots ,@options)
-            (setf *registered-types* (remove-duplicates ,new-names))
-            ',name)))
-
-(def-v-type-class v-spec-type () ())
-
-(def-v-type-class v-t-type () ())
-
-(def-v-type-class v-type (v-t-type)
-  ((core :initform nil :reader core-typep)
-   (glsl-string :initform "<invalid>" :reader v-glsl-string)
-   (glsl-size :initform 1)
-   (casts-to :initform nil)))
-
 (def-v-type-class v-none (v-t-type) ())
 
 (def-v-type-class v-container (v-type)

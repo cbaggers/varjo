@@ -76,10 +76,6 @@ Example:
      (declare (ignorable ,in-args ,uniforms ,context ,code ,tp-meta))
      ,@body))
 
-(defclass rolling-result ()
-  ((remaining-stages :initform *stage-types* :initarg :remaining-stages)
-   (compiled-stages :initform nil :initarg :compiled-stages)))
-
 (defun rolling-translate (stages &optional (compile-func #'translate))
   (let ((result (reduce λ(compile-stage _ _1 compile-func)
                         stages :initial-value (make-instance 'rolling-result))))
