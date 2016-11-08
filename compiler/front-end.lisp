@@ -120,7 +120,7 @@ Example:
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
 				    accum)
   (labels ((gen-aliases ()
-	     (loop :for (out-name . out-rest) :in (out-vars last-stage)
+	     (loop :for (nil . out-rest) :in (out-vars last-stage)
 		:for (in-name type . in-rest) :in (in-args stage) :append
 		(let ((out-glsl-name (last1 out-rest))
 		      (in-glsl-name (subseq (last1 in-rest) 1)))
@@ -278,12 +278,14 @@ Example:
 	  (out-vars stage)))
 
 (defmethod transform-arg-types (last next (stage list))
-  (declare (optimize debug))
+  (declare (optimize debug)
+           (ignore last next))
   (with-stage () stage
     (out-vars stage)))
 
 (defmethod transform-arg-types (last next (stage varjo-compile-result))
-  (declare (optimize debug))
+  (declare (optimize debug)
+           (ignore last next))
   (out-vars stage))
 
 (defmethod transform-previous-stage-out-vars (stage next-stage)
