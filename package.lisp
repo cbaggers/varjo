@@ -1,6 +1,6 @@
 ;;;; package.lisp
 
-(defpackage #:varjo-lang
+(uiop:define-package #:varjo-lang
   (:use #:cl #:rtg-math.base-maths)
   (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
   (:import-from :rtg-math.base-vectors :x :y :z :w
@@ -66,7 +66,7 @@
 
 (uiop:define-package #:varjo-syms)
 
-(defpackage #:varjo-conditions
+(uiop:define-package #:varjo-conditions
   (:use #:cl)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :missing-function-error
@@ -139,7 +139,7 @@
 	   :setq-supply-alternate-type
 	   ))
 
-(defpackage #:varjo
+(uiop:define-package #:varjo
   (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre
 	#:named-readtables #:varjo-conditions)
   (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
@@ -373,4 +373,4 @@
            :lambda-list-split
            :pipe->))
 
-(defpackage #:varjo.free-vars (:use #:cl))
+(uiop:define-package #:varjo.free-vars (:use #:cl))
