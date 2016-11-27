@@ -26,8 +26,8 @@
       (cond
         ((v-special-functionp func) (compile-special-function func args env))
 
-        ((multi-return-vars func) (compile-multi-return-function-call
-                                   func-name func args env))
+        ((> (length (v-return-spec func)) 1)
+         (compile-multi-return-function-call func-name func args env))
 
         (t (compile-regular-function-call func-name func args env)))
     (assert new-env)
@@ -101,16 +101,16 @@
 (defun calc-function-return-ids-given-args (func func-name arg-code-objs)
   (when (typep (flow-ids func) 'multi-return-flow-id)
     (error 'multiple-flow-ids-regular-func func-name func))
-  (unless (type-doesnt-need-flow-id (v-return-spec func))
+  (unless (type-doesnt-need-flow-id (first (v-return-spec func)))
     (%calc-flow-id-given-args (in-arg-flow-ids func)
 			      (flow-ids func)
 			      arg-code-objs)))
 
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
-  (let ((all-return-types (cons (v-return-spec func)
+  (let ((all-return-types (cons (first (v-return-spec func))
 				(mapcar #'v-type
 					(mapcar #'multi-val-value
-						(multi-return-vars func)))))
+                                                (rest (v-return-spec func))))))
 	(m-flow-id (flow-ids func)))
     (assert (typep m-flow-id 'multi-return-flow-id))
     (let ((flow-ids (m-value-ids m-flow-id)))
@@ -130,7 +130,7 @@
     (let* ((has-base (not (null (v-multi-val-base env))))
            (m-r-base (or (v-multi-val-base env)
                          (lisp-name->glsl-name 'nc env)))
-           (mvals (multi-return-vars func))
+           (mvals (rest (v-return-spec func)))
            (start-index 1)
            (m-r-names (loop :for i :from start-index
                          :below (+ start-index (length mvals)) :collect

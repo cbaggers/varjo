@@ -12,16 +12,16 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defun v-make-f-spec (name transform versions arg-types return-spec
-                      &key v-place-index glsl-name multi-return-vars
+                      &key v-place-index glsl-name
 			implicit-args flow-ids in-arg-flow-ids)
+  (assert (listp return-spec))
   (list transform arg-types return-spec versions v-place-index
-        glsl-name multi-return-vars name implicit-args flow-ids
-	in-arg-flow-ids))
+        glsl-name name implicit-args flow-ids in-arg-flow-ids))
 
 (defun %func-spec->function (spec env userp)
   (destructuring-bind (transform arg-spec return-spec versions v-place-index
-                                 glsl-name multi-return-vars name
-                                 implicit-args flow-ids in-arg-flow-ids)
+                                 glsl-name name implicit-args flow-ids
+                                 in-arg-flow-ids)
       spec
     (make-instance (if userp 'v-user-function 'v-function)
 		   :glsl-string transform
@@ -29,12 +29,14 @@
                                  (loop :for spec :in arg-spec :collect
                                     (type-spec->type spec :env env))
                                  arg-spec)
-                   :return-spec (if (type-specp return-spec)
-                                    (type-spec->type return-spec :env env)
-                                    return-spec)
+                   :return-spec
+                   (mapcar (lambda (rspec)
+                             (if (type-specp rspec)
+                                 (type-spec->type rspec :env env)
+                                 rspec))
+                           return-spec)
                    :versions versions :v-place-index v-place-index
                    :glsl-name glsl-name
-                   :multi-return-vars multi-return-vars
                    :name name
                    :implicit-args implicit-args
 		   :flow-ids flow-ids
@@ -53,9 +55,11 @@
                    nil ;;{TODO} this must be versions
                    (when (listp arg-spec)
                      (loop :for a :in arg-spec :collect (type->type-spec a)))
-                   (if (type-specp (v-return-spec func))
-                       (type->type-spec (v-return-spec func))
-                       (v-return-spec func))
+                   (mapcar (lambda (spec)
+                             (if (type-specp spec)
+                                 (type->type-spec spec)
+                                 spec))
+                           (v-return-spec func))
                    :v-place-index (v-place-index func)
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
@@ -77,7 +81,7 @@
         `(progn (add-function
                  ',name
                  (v-make-f-spec
-		  ',name ,transform ',context ',arg-types ',return-spec
+		  ',name ,transform ',context ',arg-types '(,return-spec)
 		  :v-place-index ',v-place-index :glsl-name ',glsl-name
 		  :flow-ids (%gl-flow-id!)
 		  :in-arg-flow-ids
@@ -110,24 +114,7 @@
                              :special
                              ',context
                              t
-                             #',func-name
-                             :v-place-index ',v-place-index)
-                            *global-env*)
-              ',name))
-          (args-valid
-           `(progn
-              (defun ,func-name ,(cons 'env args)
-                (declare (ignorable env ,@arg-names))
-                ,return)
-              (add-function ',name
-                            (v-make-f-spec
-                             ',name
-                             :special
-                             ',context
-                             (lambda ,(cons 'env args)
-                               (declare (ignorable env ,@arg-names))
-                               (let ((res ,args-valid))
-                                 (when res (list res 0))))
+                             (list #',func-name)
                              :v-place-index ',v-place-index)
                             *global-env*)
               ',name))
@@ -141,7 +128,7 @@
                                :special
                                ',context
                                ',(mapcar #'second args)
-                               #',func-name
+                               (list #',func-name)
                                :v-place-index ',v-place-index)
                               *global-env*)
                 ',name)))))))
@@ -275,7 +262,7 @@
    function - call the function
    (:element n) - element type of nth arg
    list - type spec"
-  (let ((spec (v-return-spec func))
+  (let ((spec (first (v-return-spec func)))
         (arg-types (mapcar #'code-type args)))
     (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
           ((typep spec 'v-t-type) spec)

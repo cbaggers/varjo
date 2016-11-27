@@ -16,7 +16,7 @@
 ;;        HAS to be the correct impl
 (defun compile-special-function (func args env)
   (multiple-value-bind (code-obj new-env)
-      (handler-case (apply (v-return-spec func) (cons env args))
+      (handler-case (apply (first (v-return-spec func)) (cons env args))
 	(varjo-error (e) (invoke-debugger e)))
     ;;(assert (node-tree code-obj))
     (values code-obj new-env)))

@@ -545,8 +545,8 @@
 				  (when allow-implicit-args implicit-args))
 				 nil ;;should be context
 				 (mapcar #'second args)
-				 type :glsl-name glsl-name
-				 :multi-return-vars multi-return-vars
+				 (cons type multi-return-vars)
+                                 :glsl-name glsl-name
 				 :implicit-args (when allow-implicit-args
 						  implicit-args)
 				 :flow-ids (flow-ids body-obj)

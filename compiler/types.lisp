@@ -42,8 +42,6 @@
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
-   (multi-return-vars :initform nil :initarg :multi-return-vars
-                      :reader multi-return-vars)
    (name :initform nil :initarg :name :reader name)
    (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
    (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
@@ -84,8 +82,9 @@
       'v-array))
 (defmethod type->type-spec ((type v-func-val))
   (with-slots (argument-spec return-spec) type
-    (let* ((return-spec (ensure-list return-spec))
-           (in (mapcar #'type->type-spec argument-spec))
+    ;; {TODO} remove this, done now
+    (assert (listp return-spec))
+    (let* ((in (mapcar #'type->type-spec argument-spec))
            (out (if (= (length return-spec) 1)
                     (type->type-spec (first return-spec))
                     (mapcar #'type->type-spec return-spec))))

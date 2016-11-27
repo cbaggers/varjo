@@ -10,7 +10,8 @@
                                   (intern parsed-name  :varjo-lang)))
 		   (arg-types (mapcar #'second args))
 		   (lisp-arg-types (mapcar #'parse-gl-type-name arg-types))
-		   (lisp-return (parse-gl-type-name return))
+                   (spec-returns (ensure-list return))
+		   (lisp-return (mapcar #'parse-gl-type-name spec-returns))
 		   (transform (format nil "~a(~{~a~^,~})" name
 				      (loop :for i :below (length args) :collect
 					 "~a")))

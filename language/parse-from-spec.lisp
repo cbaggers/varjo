@@ -156,6 +156,7 @@
   (%parse name 3 "GL-"))
 
 (defun parse-gl-type-name (name)
+  (assert (stringp name))
   (if (char= (aref name 0) #\[)
       (list (parse-gl-type-name (subseq name 1)) '*)
       (or (first (assocr name *glsl-type->varjo-type* :test #'equal))
