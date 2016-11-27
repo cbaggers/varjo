@@ -360,3 +360,10 @@ Here are some types we think may have been meant:
      :for suggestion := (find-alternative-types-for-spec (second a))
      :when suggestion
      :collect (format nil "~%> ~s~{~%~s~}" (first a) suggestion)))
+
+(deferror invalid-special-function-arg-spec (:error-type varjo-critical-error)
+    (name spec)
+    "Varjo: The special function named ~s has an invalid argument spec:
+~a
+
+Please report this bug on github" name spec)

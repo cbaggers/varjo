@@ -169,16 +169,16 @@
 
 
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
-  (let ((method (v-argument-spec func))
+  (let ((arg-spec (v-argument-spec func))
         (env (fresh-environment env)))
-    (if (listp method)
-        (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env))
-        (if (eq method t)
-            (make-instance 'func-match :score t :func func :arguments arg-code)
-            (handler-case (make-instance
-                           'func-match :score 0 :func func
-                           :arguments (apply method (cons env arg-code)))
-              (varjo-error () nil))))))
+    (cond
+      ((listp arg-spec)
+       (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env)))
+      ((eq arg-spec t)
+       (make-instance 'func-match :score t :func func :arguments arg-code))
+      (t (error 'invalid-special-function-arg-spec
+                :name (name func)
+                :spec arg-spec)))))
 
 (defun cast-code (obj cast-to-type)
   (if (v-type-eq (code-type obj) cast-to-type)
