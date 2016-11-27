@@ -306,3 +306,14 @@
   (find-if (curry #'exact-match-function-to-types arg-types env)
            (or (get-function-by-name func-name env)
                (error 'could-not-find-function :name func-name))))
+
+;;------------------------------------------------------------
+
+(defun find-function-by-literal (func-name env)
+  (destructuring-bind (name &rest arg-types) func-name
+    (let ((arg-types (mapcar (lambda (x) (type-spec->type x :env env))
+                             arg-types)))
+      (or (if arg-types
+              (find-function-for-types name arg-types env)
+              (get-function-by-name name env))
+          (error "No function yada {TODO} ~a" name)))))

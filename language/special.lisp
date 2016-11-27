@@ -1005,27 +1005,20 @@
        (eq (first x) 'function)))
 
 ;; {TODO} allow qualifying the arg types to disabiguate from
-; ;       overloads. Not neccesary if only one possible
+;;       overloads. Not neccesary if only one possible
 (v-defspecial function (func-name)
   :args-valid t
   :return
-  (destructuring-bind (name &rest arg-types) func-name
-    (let ((arg-types (mapcar (lambda (x) (type-spec->type x :env env))
-                             arg-types)))
-      (let ((func
-             (or (if arg-types
-                     (find-function-for-types name arg-types env)
-                     (get-function-by-name name env))
-                 (error "No function yada {TODO} ~a" name))))
-        (let ((flow-id (flow-id!)))
-          (values
-           (code! :type func
-                  :current-line (format nil "<(function ~a)>" name)
-                  :used-types (list func)
-                  :node-tree (ast-node! 'function (list name)
-                                        func flow-id nil nil)
-                  :flow-ids flow-id)
-           env))))))
+  (let ((func (find-function-by-literal func-name env))
+        (flow-id (flow-id!)))
+    (values
+     (code! :type func
+            :current-line (format nil "<(function ~a)>" (name func))
+            :used-types (list func)
+            :node-tree (ast-node! 'function (list func-name)
+                                  func flow-id nil nil)
+            :flow-ids flow-id)
+     env)))
 
 (v-defspecial funcall (function &rest params)
   :args-valid t
