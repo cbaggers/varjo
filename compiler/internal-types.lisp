@@ -188,8 +188,6 @@
             (setf *registered-types* (remove-duplicates ,new-names))
             ',name)))
 
-(def-v-type-class v-spec-type () ())
-
 (def-v-type-class v-t-type () ())
 
 (def-v-type-class v-type (v-t-type)

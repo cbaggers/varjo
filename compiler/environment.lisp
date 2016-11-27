@@ -460,8 +460,7 @@
 (defun vtype-existsp (type-name)
   (and type-name
        (find-class type-name nil)
-       (handler-case (progn (or (typep (make-instance type-name) 'v-t-type)
-				(typep (make-instance type-name) 'v-spec-type))
+       (handler-case (progn (typep (make-instance type-name) 'v-t-type)
 			    t)
 	 (error () nil))))
 

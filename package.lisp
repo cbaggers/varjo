@@ -161,7 +161,6 @@
            :find-mutual-cast-type
 
            ;;type functions
-           :v-spec-typep
            :type-specp
            :type->type-spec
            :type-spec->type
@@ -195,7 +194,6 @@
            :v-t-type
            :v-type
            :v-stemcell
-           :v-spec-type
            :v-array
            :v-none
            :v-function

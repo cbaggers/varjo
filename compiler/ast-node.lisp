@@ -18,7 +18,7 @@
 
 
 (defmethod ast-typep (node type)
-  (let ((type (if (or (typep type 'v-spec-type) (typep type 'v-t-type))
+  (let ((type (if (typep type 'v-t-type)
 		  type
 		  (type-spec->type type))))
     (v-typep (ast-return-type node) type)))

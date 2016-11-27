@@ -64,10 +64,6 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defun v-spec-typep (obj)
-  (and (typep obj 'v-spec-type)
-       (not (typep obj 'v-type))))
-
 (defmethod v-element-type ((object v-t-type))
   (when (slot-exists-p object 'element-type)
     (when (slot-value object 'element-type)
@@ -75,12 +71,12 @@
 
 (defmethod type->type-spec ((type v-t-type))
   (class-name (class-of type)))
-(defmethod type->type-spec ((type v-spec-type))
-  (class-name (class-of type)))
+
 (defmethod type->type-spec ((type v-array))
   (if (and (v-element-type type) (v-dimensions type))
       (list (type->type-spec (v-element-type type)) (v-dimensions type))
       'v-array))
+
 (defmethod type->type-spec ((type v-func-val))
   (with-slots (argument-spec return-spec) type
     ;; {TODO} remove this, done now
@@ -99,8 +95,7 @@
     (cond ((null spec) nil)
           ((and (symbolp spec) (vtype-existsp spec))
            (let ((type (make-instance spec)))
-	     (when (or (typep type 'v-t-type)
-		       (typep type 'v-spec-type))
+	     (when (typep type 'v-t-type)
 	       type)))
           ((and (listp spec) (eq (first spec) 'function))
            (make-instance
@@ -154,9 +149,6 @@
 (defmethod v-true-type ((object v-t-type))
   object)
 
-(defmethod v-true-type ((object v-spec-type))
-  object)
-
 (defmethod v-glsl-size ((type t))
   (slot-value type 'glsl-size))
 
@@ -202,9 +194,6 @@
   (declare (ignore env))
   (typep a (type-of b)))
 
-(defmethod v-typep ((a v-type) (b v-spec-type) &optional (env *global-env*))
-  (declare (ignore env))
-  (typep a (type-of b)))
 (defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
   (v-typep a (type->type-spec b) env))
 (defmethod v-typep ((a v-type) b &optional (env *global-env*))
@@ -239,13 +228,6 @@
            :if (v-typep (type-spec->type cast-type) to-type env)
            :return (type-spec->type cast-type)))))
 
-(defmethod v-casts-to ((from-type v-type) (to-type v-spec-type) env)
-  (when (slot-exists-p from-type 'casts-to)
-    (if (v-typep from-type to-type)
-        from-type
-        (loop :for cast-type :in (slot-value from-type 'casts-to)
-           :if (v-typep (type-spec->type cast-type) to-type env)
-           :return (type-spec->type cast-type)))))
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types
