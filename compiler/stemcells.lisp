@@ -41,7 +41,7 @@
 	 (original-name symbol)
 	 (flow-id (get-flow-id-for-stem-cell original-name env)))
     (code!
-     :type 'v-stemcell
+     :type (type-spec->type 'v-stemcell)
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
 			      flow-id))

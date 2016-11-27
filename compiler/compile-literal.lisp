@@ -2,13 +2,14 @@
 (in-readtable fn:fn-reader)
 
 (defun compile-bool (code env)
-  (let ((flow-id (flow-id!)))
+  (let ((flow-id (flow-id!))
+        (bool-type (type-spec->type 'v-bool)))
     (if code
-	(make-code-obj 'v-bool "true" :flow-ids flow-id
-		       :node-tree (ast-node! :literal code :bool flow-id
+	(make-code-obj bool-type "true" :flow-ids flow-id
+		       :node-tree (ast-node! :literal code bool-type flow-id
 					     env env))
-	(make-code-obj 'v-bool "false" :flow-ids flow-id
-		       :node-tree (ast-node! :literal code :bool flow-id
+	(make-code-obj bool-type "false" :flow-ids flow-id
+		       :node-tree (ast-node! :literal code bool-type flow-id
 					     env env)))))
 
 (defun get-number-type (x)

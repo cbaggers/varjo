@@ -2,6 +2,7 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+(def-v-type-class v-void (v-t-type) ())
 (def-v-type-class v-none (v-t-type) ())
 
 (def-v-type-class v-container (v-type)
@@ -90,8 +91,7 @@
                     (mapcar #'type->type-spec return-spec))))
       `(function ,in ,out))))
 
-(defun try-type-spec->type (spec &key (env *global-env*))
-  (declare (ignore env))
+(defun try-type-spec->type (spec)
   (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec))
                     ((and (listp spec) (keywordp (first spec)))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
@@ -115,8 +115,8 @@
                             :dimensions dimensions)))
           (t nil))))
 
-(defun type-specp (spec &optional (env *global-env*))
-  (handler-case (and (type-spec->type spec :env env) t)
+(defun type-specp (spec)
+  (handler-case (and (type-spec->type spec) t)
     (unknown-type-spec (e)
       (declare (ignore e))
       nil)))
@@ -145,10 +145,10 @@
 	    shadowed-type-spec))))
 
 ;; shouldnt the un-shadow be in try-type-spec->type?
-(defun type-spec->type (spec &key (env *global-env*))
+(defun type-spec->type (spec)
   (v-true-type
-   (or (try-type-spec->type spec :env env)
-       (try-type-spec->type (un-shadow spec) :env env)
+   (or (try-type-spec->type spec)
+       (try-type-spec->type (un-shadow spec))
        (error 'unknown-type-spec :type-spec spec))))
 
 (defmethod v-true-type ((object v-t-type))
@@ -171,13 +171,28 @@
   (declare (ignore env))
   (equal (type->type-spec a) (type->type-spec (type-spec->type b))))
 (defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
-  (equal (type->type-spec a) (type->type-spec (type-spec->type b :env env))))
+  (declare (ignore env))
+  (equal (type->type-spec a) (type->type-spec (type-spec->type b))))
+
+(defmethod v-type-eq ((a v-void) (b v-void) &optional (env *global-env*))
+  (declare (ignore env))
+  t)
+(defmethod v-type-eq (a (b v-void) &optional (env *global-env*))
+  (declare (ignore env))
+  nil)
+(defmethod v-type-eq ((a v-void) b &optional (env *global-env*))
+  (declare (ignore env))
+  nil)
+
+(defmethod v-type-eq ((a v-none) (b v-none) &optional (env *global-env*))
+  (declare (ignore env))
+  t)
 (defmethod v-type-eq (a (b v-none) &optional (env *global-env*))
   (declare (ignore env))
-  (eq (type->type-spec a) 'v-none))
+  nil)
 (defmethod v-type-eq ((a v-none) b &optional (env *global-env*))
   (declare (ignore env))
-  (eq (type->type-spec b) 'v-none))
+  nil)
 
 (defmethod v-typep ((a t) (b v-none) &optional (env *global-env*))
   (declare (ignore env))
@@ -238,7 +253,7 @@
                                (type->type-spec type)
                                type))))
     (if (loop :for name :in names :always (eq name (first names)))
-        (first names)
+        (type-spec->type (first names))
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
                                          (if (symbolp type)
@@ -248,10 +263,11 @@
                                 #'> :key #'length))
                (master (first all-casts))
                (rest-casts (rest all-casts)))
-          (first (sort (loop :for type :in master
-                          :if (loop :for casts :in rest-casts
-                                 :always (find type casts))
-                          :collect type) #'> :key #'v-superior-score))))))
+          (type-spec->type
+           (first (sort (loop :for type :in master
+                           :if (loop :for casts :in rest-casts
+                                  :always (find type casts))
+                           :collect type) #'> :key #'v-superior-score)))))))
 
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4

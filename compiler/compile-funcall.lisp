@@ -61,17 +61,17 @@
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
     (values (merge-obs args
-		       :type type
-		       :current-line c-line
-		       :to-top (mapcat #'to-top args)
-		       :signatures (mapcat #'signatures args)
-		       :stemcells (mapcat #'stemcells args)
-		       :flow-ids flow-ids
-		       :multi-vals (when (v-multi-val-safe env)
-				     (handle-regular-function-mvals args))
-		       :place-tree (calc-place-tree func args)
-		       :node-tree (ast-node! func (mapcar #'node-tree args)
-					     type flow-ids env env))
+                       :type type
+                       :current-line c-line
+                       :to-top (mapcat #'to-top args)
+                       :signatures (mapcat #'signatures args)
+                       :stemcells (mapcat #'stemcells args)
+                       :flow-ids flow-ids
+                       :multi-vals (when (v-multi-val-safe env)
+                                     (handle-regular-function-mvals args))
+                       :place-tree (calc-place-tree func args)
+                       :node-tree (ast-node! func (mapcar #'node-tree args)
+                                             type flow-ids env env))
 	    env)))
 
 (defun handle-regular-function-mvals (args)

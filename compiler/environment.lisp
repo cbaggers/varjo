@@ -565,11 +565,6 @@
        :if (and func (valid-for-contextp func env)) :collect func)
     (get-external-function-by-name func-name env))))
 
-(defmethod get-function-by-name-and-arg-types (func-name arg-types env)
-  (let ((funcs (get-function-by-name func-name))
-        (types (mapcar #'type-spec->type arg-types)))
-    &&&&__HORSE__&&&&))
-
 (defmethod special-raw-argp ((func v-function))
   (eq (v-argument-spec func) t))
 

@@ -155,7 +155,7 @@
 
 (5am:test build-17
   (finishes-p
-    (compile-vert () :450
+   (compile-vert () :450
       (let ((x 1))
 	(let ((y 2)
 	      (z 3))
@@ -205,7 +205,7 @@
 (5am:test build-22
   ;; trying to use gl-frag-coord in vertex shader
   (signals varjo-conditions:symbol-unidentified
-   (compile-vert (&uniform (iresolution :vec2) (iglobaltime :float)) :450
+    (compile-vert (&uniform (iresolution :vec2) (iglobaltime :float)) :450
      (let* (((z :vec2) (/ (* 1.15 (- (* (s~ gl-frag-coord :xy) 2.0)
                                      (s~ iResolution :xy)))
                           (y iResolution)))

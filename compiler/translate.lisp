@@ -359,8 +359,7 @@
    'user' defined structs."
   (with-slots (code env) post-proc-obj
     (setf (used-types post-proc-obj)
-	  (loop :for i :in (find-used-user-structs code env)
-	     :collect (type-spec->type i :env env))))
+	  (find-used-user-structs code env)))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -472,8 +471,8 @@ The full list: ~s
 			     qualifiers)))
 	       final-strings)
 	 (when (and (v-typep type-obj 'v-user-struct)
-		    (not (find (type->type-spec type-obj) structs
-			       :key #'type->type-spec :test #'equal)))
+		    (not (find type-obj structs :key #'type->type-spec
+                               :test #'v-type-eq)))
 	   (push type-obj structs)))
 
       (loop :for s :in (stemcells post-proc-obj) :do
@@ -489,8 +488,9 @@ The full list: ~s
 		   implicit-uniforms)
 
 	     (when (and (v-typep type-obj 'v-user-struct)
-			(not (find (type->type-spec type-obj) structs
-				   :key #'type->type-spec :test #'equal)))
+			(not (find type-obj structs
+				   :key #'type->type-spec
+                                   :test #'v-type-eq)))
 	       (push type-obj structs)))))
 
       (setf (used-types post-proc-obj) structs)
@@ -508,8 +508,9 @@ The full list: ~s
 	   :to-top (remove-duplicates (to-top code) :test #'equal)
 	   :signatures (remove-duplicates (signatures code) :test #'equal)))
     (setf (used-types post-proc-obj)
-	  (remove-duplicates (mapcar #'v-signature (used-types post-proc-obj))
-			     :test #'equal)))
+          (remove-duplicates
+           (mapcar #'v-signature (used-types post-proc-obj))
+           :test #'v-type-eq)))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------

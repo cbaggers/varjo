@@ -143,18 +143,15 @@ context is implicit"))
   (assert (if (keywordp kind)
 	      (member kind *ast-node-kinds*)
 	      t))
-  (let ((return-type (if (and return-type
-			      (or (listp return-type)
-				  (symbolp return-type)))
-			 (type-spec->type return-type)
-			 return-type)))
-    (make-instance 'ast-node
-		   :kind kind
-		   :args (listify args)
-		   :return-type return-type
-		   :flow-id flow-id
-		   :starting-env starting-env
-		   :ending-env ending-env)))
+  (assert (or (null return-type)
+              (typep return-type 'v-t-type)))
+  (make-instance 'ast-node
+                 :kind kind
+                 :args (listify args)
+                 :return-type return-type
+                 :flow-id flow-id
+                 :starting-env starting-env
+                 :ending-env ending-env))
 
 (defun copy-ast-node (node
 		      &key
@@ -167,17 +164,20 @@ context is implicit"))
 			(starting-env nil set-starting-env)
 			(ending-env nil set-ending-env)
 			(parent nil set-parent))
-  (make-instance
-   'ast-node
-   :kind (if set-kind kind (ast-kind node))
-   :args (if set-args args (ast-args node))
-   :return-type (if set-return-type return-type (ast-return-type node))
-   :starting-env (if set-starting-env starting-env (ast-starting-env node))
-   :ending-env (if set-ending-env ending-env (ast-ending-env node))
-   :parent (if set-parent parent (ast-parent node))
-   :flow-id (if set-flow-id flow-id (ast-flow-id node))
-   :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
-   :val-origin (if set-vo val-origin (ast-val-origin node))))
+  (let ((return-type (if set-return-type return-type (ast-return-type node))))
+    (assert (or (null return-type)
+                (typep return-type 'v-t-type)))
+    (make-instance
+     'ast-node
+     :kind (if set-kind kind (ast-kind node))
+     :args (if set-args args (ast-args node))
+     :return-type return-type
+     :starting-env (if set-starting-env starting-env (ast-starting-env node))
+     :ending-env (if set-ending-env ending-env (ast-ending-env node))
+     :parent (if set-parent parent (ast-parent node))
+     :flow-id (if set-flow-id flow-id (ast-flow-id node))
+     :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
+     :val-origin (if set-vo val-origin (ast-val-origin node)))))
 
 (defun walk-ast (func from-node &key include-parent)
   (labels ((walk-node (ast &key parent)

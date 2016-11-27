@@ -34,7 +34,7 @@
 			 code-obj))
 	   (vbind (code-obj new-env)
 	       (compile-form (last1 body)
-			    (fresh-environment env :multi-val-base mvb))
+                             (fresh-environment env :multi-val-base mvb))
 	     (when new-env (setf env new-env))
 	     (list code-obj)))))
     (values body-objs env)))
@@ -150,18 +150,18 @@
   (let* ((value-obj (when value-form (compile-form value-form env)))
 	 (glsl-name (or glsl-name (lisp-name->glsl-name name env))))
 
-    (let ((type-spec (when type-spec (type-spec->type type-spec))))
-      (%validate-var-types name type-spec value-obj)
+    (let ((type-obj (when type-spec (type-spec->type type-spec))))
+      (%validate-var-types name type-obj value-obj)
       (let* ((flow-ids
 	      (or flow-ids (when value-obj (flow-ids value-obj)) (flow-id!)))
 	     (let-obj
 	      (if value-obj
 		  (typify-code (compile-make-var glsl-name
-						 (or type-spec
+						 (or type-obj
 						     (code-type value-obj))
 						 flow-ids)
 			       value-obj)
-		  (typify-code (compile-make-var glsl-name type-spec
+		  (typify-code (compile-make-var glsl-name type-obj
 						 (flow-id!))))))
 	(values
 	 (copy-code let-obj
@@ -178,7 +178,7 @@
 		    :stemcells (append (and let-obj (stemcells let-obj))
 				       (and value-obj (stemcells value-obj))))
 	 (add-var name
-		  (v-make-value (or type-spec (code-type value-obj))
+		  (v-make-value (or type-obj (code-type value-obj))
 				env
 				:glsl-name glsl-name
 				:flow-ids flow-ids)

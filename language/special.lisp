@@ -281,7 +281,7 @@
 				       (multi-vals code-obj))))
 	     (flow-ids code-obj))))
     (copy-code
-     code-obj :type 'v-void
+     code-obj :type (type-spec->type 'v-void)
      :current-line (format nil "return ~a" (current-line code-obj))
      :returns (cons (code-type code-obj) (multi-vals code-obj))
      :flow-ids flow-result
@@ -598,7 +598,7 @@
 	(values
 	 (end-line
 	  (copy-code
-	   form-obj :type 'v-none
+	   form-obj :type (type-spec->type 'v-none)
 	   :current-line (gen-out-var-assignment-string glsl-name form-obj)
 	   :to-block (to-block form-obj)
 	   :out-vars (cons `(,out-var-name
@@ -627,11 +627,12 @@
       (error "all forms of an 'OR' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
         (values (merge-obs objs
-			   :type :bool
+			   :type (type-spec->type :bool)
 			   :current-line (gen-bool-or-string objs)
 			   :flow-ids flow-id
 			   :node-tree (ast-node! 'or (mapcar #'node-tree objs)
-						 :bool flow-id env env))
+						 (type-spec->type :bool)
+                                                 flow-id env env))
 		env)
         (values (first objs) env))))
 
@@ -644,11 +645,12 @@
       (error "all forms of an 'AND' form must resolve to the same type"))
     (if (v-typep (code-type (first objs)) (type-spec->type :bool))
         (values (merge-obs objs
-			   :type :bool
+			   :type (type-spec->type :bool)
 			   :current-line (gen-bool-and-string objs)
 			   :flow-ids flow-id
 			   :node-tree (ast-node! 'and (mapcar #'node-tree objs)
-						 :bool flow-id env env))
+						 (type-spec->type :bool)
+                                                 flow-id env env))
 		env) ;; pretty sure this env is wrong, what if side effects in
 	;;              forms?
         (values (last1 objs) env))))
@@ -700,7 +702,7 @@
   ;; be true, so in this case we just use the 'then' form
   (vbind (then-obj then-env) (compile-form then-form env)
     (values (copy-code (end-line then-obj)
-		       :type :none
+		       :type (type-spec->type :none)
 		       :flow-ids nil
 		       :node-tree
 		       (ast-node!
@@ -708,7 +710,8 @@
 			(mapcar #'node-tree
 				(list (node-tree (compile-form t starting-env))
 				      (node-tree then-obj)))
-			:none nil starting-env then-env)
+			(type-spec->type :none)
+                        nil starting-env then-env)
 		       :multi-vals nil
 		       :place-tree nil)
 	    then-env)))
@@ -732,10 +735,13 @@
 	      (if else-obj
 		  (ast-node! '%if (mapcar #'node-tree
 					  (list test-obj then-obj else-obj))
-			     :none nil starting-env final-env)
+			     (type-spec->type :none) nil
+                             starting-env final-env)
 		  (ast-node! '%if (mapcar #'node-tree (list test-obj then-obj))
-			     :none nil starting-env final-env))))
-	(values (merge-obs arg-objs :type :none :current-line nil
+			     (type-spec->type :none) nil
+                             starting-env final-env))))
+	(values (merge-obs arg-objs
+                           :type (type-spec->type :none) :current-line nil
 			   :to-block (list (gen-if-string
 					    test-obj then-obj else-obj))
 			   :flow-ids nil
@@ -761,7 +767,7 @@
                    (v-typep (code-type test-obj) 'v-int))
 	       (loop :for key :in keys :always
 		  (or (eq key 'default) (integerp key))))
-	  (values (merge-obs clause-objs :type 'v-none
+	  (values (merge-obs clause-objs :type (type-spec->type 'v-none)
 			     :current-line nil
 			     :to-block (list (gen-switch-string test-obj keys
 								clause-objs))
@@ -774,7 +780,8 @@
 							   ,(node-tree _1))
 						       clauses
 						       clause-objs))
-					 :none nil env final-env))
+					 (type-spec->type :none)
+                                         nil env final-env))
 		  final-env)
 	  (error 'switch-type-error :test-obj test-obj :keys keys)))))
 
@@ -806,7 +813,8 @@
                                  var-string condition-obj update-obj
                                  (end-line body-obj))))
                  (values (copy-code
-                           body-obj :type 'v-none :current-line nil
+                          body-obj :type (type-spec->type 'v-none)
+                          :current-line nil
                            :to-block (list loop-str)
                            :flow-ids flow-id
                            :node-tree (ast-node!
@@ -815,7 +823,8 @@
                                                           (list condition-obj
                                                                 update-obj
                                                                 body-obj)))
-                                       :none flow-id env final-env)
+                                       (type-spec->type :none)
+                                       flow-id env final-env)
                            :multi-vals nil
                            :place-tree nil)
                           final-env))
@@ -830,7 +839,8 @@
 							     test-env)
       (if (v-typep (code-type test-obj) 'v-bool)
 	  (values (merge-obs (list body-obj test-obj)
-			     :type 'v-none :current-line nil
+			     :type (type-spec->type 'v-none)
+                             :current-line nil
 			     :to-block (list (gen-while-string
 					      test-obj (end-line body-obj)))
 			     :flow-ids nil
@@ -838,7 +848,8 @@
 					 'while (mapcar #'node-tree
 							(list test-obj
 							      body-obj))
-					 :none nil env final-env))
+					 (type-spec->type :none)
+                                         nil env final-env))
 		  final-env)
 	  (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
@@ -1032,6 +1043,7 @@
   (expand-and-compile-form `(,(second function) ,@params) env))
 
 (defun %funcall-val (function params env)
+  ;; {TODO} how should we handle compiler-macros?
   (assert (symbolp function))
   (let ((var (get-var function env)))
     (unless var
@@ -1055,11 +1067,10 @@
 
 (defun compile-glsl-expression-string (current-line type)
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
-	 (type-spec (type->type-spec type-obj))
 	 (flow-id (flow-id!)))
     (code! :type type-obj
 	   :current-line current-line
-	   :used-types (list type-spec)
+	   :used-types (list type-obj)
 	   :node-tree (ast-node! 'glsl-string nil type-obj flow-id nil nil)
 	   :flow-ids flow-id)))
 

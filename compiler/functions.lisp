@@ -27,12 +27,12 @@
 		   :glsl-string transform
                    :arg-spec (if (listp arg-spec)
                                  (loop :for spec :in arg-spec :collect
-                                    (type-spec->type spec :env env))
+                                    (type-spec->type spec))
                                  arg-spec)
                    :return-spec
                    (mapcar (lambda (rspec)
                              (if (type-specp rspec)
-                                 (type-spec->type rspec :env env)
+                                 (type-spec->type rspec)
                                  rspec))
                            return-spec)
                    :versions versions :v-place-index v-place-index
@@ -199,7 +199,7 @@
         (if wrap-errors-p
             (make-code-obj
              (make-instance 'v-error :payload e) ""
-             :node-tree (ast-node! :error nil :none
+             :node-tree (ast-node! :error nil (type-spec->type :none)
                                    nil env env))
             (error e))))))
 
@@ -267,16 +267,20 @@
    function - call the function
    (:element n) - element type of nth arg
    list - type spec"
-  (let ((spec (first (v-return-spec func)))
-        (arg-types (mapcar #'code-type args)))
-    (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
-          ((typep spec 'v-t-type) spec)
-          ((numberp spec) (nth spec arg-types))
-          ((functionp spec) (apply spec args))
-          ((and (listp spec) (eq (first spec) :element))
-           (v-element-type (nth (second spec) arg-types)))
-          ((or (symbolp spec) (listp spec)) (type-spec->type spec :env env))
-          (t (error 'invalid-function-return-spec :func func :spec spec)))))
+  (declare (ignore env))
+  (let* ((spec (first (v-return-spec func)))
+         (arg-types (mapcar #'code-type args))
+         (result
+          (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
+                ((typep spec 'v-t-type) spec)
+                ((numberp spec) (nth spec arg-types))
+                ((functionp spec) (apply spec args))
+                ((and (listp spec) (eq (first spec) :element))
+                 (v-element-type (nth (second spec) arg-types)))
+                ((or (symbolp spec) (listp spec)) (type-spec->type spec))
+                (t (error 'invalid-function-return-spec :func func :spec spec)))))
+    (assert (typep result 'v-t-type))
+    result))
 
 ;;------------------------------------------------------------
 
@@ -311,7 +315,7 @@
 
 (defun find-function-by-literal (func-name env)
   (destructuring-bind (name &rest arg-types) func-name
-    (let ((arg-types (mapcar (lambda (x) (type-spec->type x :env env))
+    (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
                              arg-types)))
       (or (if arg-types
               (find-function-for-types name arg-types env)

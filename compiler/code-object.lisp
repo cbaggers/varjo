@@ -11,16 +11,17 @@
 	      (and (typep node-tree 'ast-node)
 		   (listp (slot-value node-tree 'args))))
     (error "invalid ast node-tree ~s" node-tree))
-  (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
-         (type-spec (type->type-spec type-obj))
-	 (used-types (if (and (not (find type-spec used-types))
-			      (not (eq type-spec 'v-none)))
-			 (cons (listify type-spec) used-types)
+  (assert (typep type 'v-t-type))
+  (let* ((used-types (if (and (not (find type used-types :test #'v-type-eq))
+			      (not (v-type-eq type (type-spec->type 'v-none))))
+			 (cons type used-types)
 			 used-types)))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
-      (error 'flow-ids-mandatory :for :code-object :code-type type-spec))
+      (error 'flow-ids-mandatory :for :code-object
+             :code-type (type->type-spec type)))
+
     (make-instance 'code
-		   :type type-obj
+		   :type type
 		   :current-line current-line
 		   :signatures signatures
 		   :to-block to-block
@@ -58,8 +59,8 @@
 
 (defun make-none-ob ()
   (make-code-obj
-   :none nil
-   :node-tree (ast-node! :none nil :none nil nil nil)))
+   (type-spec->type :none) nil
+   :node-tree (ast-node! (type-spec->type :none) nil :none nil nil nil)))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -122,9 +123,11 @@
 			place-tree
 			(mutations nil set-mutations)
 			node-tree)
+  (assert type () "type is mandatory")
+  (assert (typep type 'v-t-type))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
     (error 'flow-ids-mandatory :for :code-object))
-  (code! :type (if type type (error "type is mandatory"))
+  (code! :type type
 	 :current-line current-line
 	 :signatures (if set-sigs signatures
 			 (mapcat #'signatures objs))
@@ -133,7 +136,7 @@
 	 :to-top (if set-top to-top (mapcat #'to-top objs))
 	 :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
 	 :returns (listify (if set-returns returns (merge-returns objs)))
-	 :used-types (mapcar #'used-types objs)
+	 :used-types (mapcat #'used-types objs)
 	 :multi-vals multi-vals
 	 :stemcells (if set-stemcells stemcells
 			(mapcat #'stemcells objs))
@@ -181,40 +184,28 @@
       (and (symbolp x) (string= "*" x))))
 
 (defun normalize-used-types (types)
-  (remove-duplicates
-   (loop :for item :in (remove nil types) :append
-      (cond ((atom item) (list item))
-            ((and (listp item) (or (array-type-index-p (second item))
-                                   (and (listp (second item))
-                                        (> (length (second item)) 0)
-                                        (every #'array-type-index-p (second item)))))
-             (list item))
-            (t (normalize-used-types item))))
-   :from-end t))
+  (remove-duplicates (flatten types) :from-end t :test #'v-type-eq))
 
 (defun find-used-user-structs (code-obj env)
   (declare (ignore env))
   (let* ((used-types (normalize-used-types (used-types code-obj)))
 	 (struct-types
 	  (remove nil
-		  (loop :for spec :in used-types
-		     :for type = (type-spec->type spec)
+		  (loop :for type :in used-types
 		     :if (or (typep type 'v-struct)
 			     (and (typep type 'v-array)
 				  (typep (v-element-type type) 'v-struct)))
-		     :collect spec)))
+		     :collect type)))
 	 (result (order-structs-by-dependency struct-types)))
     result))
 
 (defun order-structs-by-dependency (struct-types)
-  (let* ((types (mapcar #'type-spec->type struct-types))
-	 (type-graphs (mapcar (lambda (x n)
-				(cons n (walk-struct-dependencies x)))
-			      types struct-types))
+  (let* ((type-graphs (mapcar (lambda (x) (cons x (walk-struct-dependencies x)))
+			      struct-types))
 	 (flat-graphs (mapcar #'flatten type-graphs))
 	 (sorted-graphs (sort flat-graphs #'< :key #'length))
 	 (flat (flatten sorted-graphs)))
-    (remove-duplicates flat :from-end t)))
+    (remove-duplicates flat :from-end t :test #'v-type-eq)))
 
 (defun walk-struct-dependencies (type)
   (remove
