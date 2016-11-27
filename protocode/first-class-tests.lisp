@@ -19,4 +19,5 @@
     () :450
     :vertex '(()
               (let ((x #'(sin :float)))
-                (funcall x 10))))))
+                (funcall x 10)
+                (v! 1 2 3 4))))))

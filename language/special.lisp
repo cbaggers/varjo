@@ -1043,10 +1043,22 @@
   (let ((var (get-var function env)))
     (unless var
       (error "No var named ~a found" function))
-    (assert (v-typep (v-type var) 'v-func-val))
-    (break "sup! ~s ~s" var params))
-  (values nil env))
+    (let ((v-type (v-type var)))
+      (etypecase v-type
+        (v-function
+         (let ((args (compile-and-assert-args-for-func v-type params env)))
+           (compile-function-call (name v-type) v-type args env)))
+        (v-func-val (break "sup! ~s ~s" var params)
+                    (values nil env))))))
 
+(defun compile-and-assert-args-for-func (func args-code env)
+  (assert (= (length args-code) (length (v-argument-spec func))))
+  (let ((args (try-compile-args args-code env))
+        (func-arg-types (v-argument-spec func)))
+    (assert (every (lambda (s a) (v-casts-to a s env))
+                   func-arg-types
+                   (mapcar #'code-type args)))
+    (mapcar #'cast-code args func-arg-types)))
 
 (defun compile-glsl-expression-string (current-line type)
   (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))

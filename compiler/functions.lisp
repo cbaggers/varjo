@@ -135,26 +135,6 @@
 
 ;;------------------------------------------------------------
 
-(defun try-compile-arg (arg env)
-  ;; This let is important
-  ;; By setting :multi-val-base to nil you stop 'values forms
-  ;; deeper in the code seeing that the can return. This is how
-  ;; the CL values logic works (values cant pass through function calls)
-  ;; however the 'values-safe special form allow you to get around that
-  ;; for one function call by setting multi-val-safe to true.
-  (let* ((mval-base (when (v-multi-val-safe env)
-		      (v-multi-val-base env)))
-	 ;; we dont have to set :multi-val-safe explicitly here
-	 ;; as it will be nil regardless, but I like it as documentation
-	 (env (fresh-environment env :multi-val-base mval-base
-				 :multi-val-safe nil)))
-    (handler-case (compile-form arg env)
-      (varjo-error (e) (make-code-obj
-			(make-instance 'v-error :payload e) ""
-			:node-tree (ast-node! :error nil :none
-					      nil env env))))))
-
-
 (defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
   (let ((arg-spec (v-argument-spec func))
         (env (fresh-environment env)))
@@ -201,12 +181,37 @@
           (basic-arg-matchp candidate arg-types compiled-args env)))))
 
 
+(defun try-compile-arg (arg env &optional (wrap-errors-p t))
+  ;; This let is important
+  ;; By setting :multi-val-base to nil you stop 'values forms
+  ;; deeper in the code seeing that the can return. This is how
+  ;; the CL values logic works (values cant pass through function calls)
+  ;; however the 'values-safe special form allow you to get around that
+  ;; for one function call by setting multi-val-safe to true.
+  (let* ((mval-base (when (v-multi-val-safe env)
+		      (v-multi-val-base env)))
+	 ;; we dont have to set :multi-val-safe explicitly here
+	 ;; as it will be nil regardless, but I like it as documentation
+	 (env (fresh-environment env :multi-val-base mval-base
+				 :multi-val-safe nil)))
+    (handler-case (compile-form arg env)
+      (varjo-error (e)
+        (if wrap-errors-p
+            (make-code-obj
+             (make-instance 'v-error :payload e) ""
+             :node-tree (ast-node! :error nil :none
+                                   nil env env))
+            (error e))))))
+
+(defun try-compile-args (args-code env)
+  ;; {TODO} Why don't we care about the env here?
+  (mapcar (rcurry #'try-compile-arg env) args-code))
 
 (defun find-functions-for-args (func-name args-code env)
   (let* ((candidates (or (get-function-by-name func-name env)
                          (error 'could-not-find-function :name func-name)))
          (compiled-args (when (some #'func-need-arguments-compiledp candidates)
-                          (mapcar (rcurry #'try-compile-arg env) args-code)))
+                          (try-compile-args args-code env)))
          (match-fn (curry #'match-function-to-args args-code compiled-args env))
          (matches (remove nil (mapcar match-fn candidates)))
          (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
