@@ -32,28 +32,10 @@
 (def-v-type-class v-user-struct (v-struct) ())
 
 (def-v-type-class v-func-val (v-type)
-  ((arg-types :initform nil :initarg :arg-types :reader v-arg-types)
-   (return-types :initform nil :initarg :return-types :reader v-return-types)))
+  ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
+   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
 
-(def-v-type-class v-function (v-type)
-  ((versions :initform nil :initarg :versions :accessor v-versions)
-   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
-   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
-   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
-   (multi-return-vars :initform nil :initarg :multi-return-vars
-                      :reader multi-return-vars)
-   (name :initform nil :initarg :name :reader name)
-   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
-   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-				     :code-type :v-function)
-		    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
-   (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-			      :code-type :v-function)
-	     :initarg :flow-ids :reader flow-ids)))
-
-(def-v-type-class v-function (v-type)
+(def-v-type-class v-function (v-func-val)
   ((versions :initform nil :initarg :versions :accessor v-versions)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
@@ -101,11 +83,12 @@
       (list (type->type-spec (v-element-type type)) (v-dimensions type))
       'v-array))
 (defmethod type->type-spec ((type v-func-val))
-  (with-slots (arg-types return-types) type
-    (let ((in (mapcar #'type->type-spec arg-types))
-          (out (if (= (length return-types) 1)
-                   (type->type-spec (first return-types))
-                   (mapcar #'type->type-spec return-types))))
+  (with-slots (argument-spec return-spec) type
+    (let* ((return-spec (ensure-list return-spec))
+           (in (mapcar #'type->type-spec argument-spec))
+           (out (if (= (length return-spec) 1)
+                    (type->type-spec (first return-spec))
+                    (mapcar #'type->type-spec return-spec))))
       `(function ,in ,out))))
 
 (defun try-type-spec->type (spec &key (env *global-env*))
@@ -122,9 +105,9 @@
 	       type)))
           ((and (listp spec) (eq (first spec) 'function))
            (make-instance
-            'v-func-val :arg-types (mapcar #'type-spec->type (second spec))
-            :return-types (mapcar #'type-spec->type
-                                  (uiop:ensure-list (third spec)))))
+            'v-func-val :arg-spec (mapcar #'type-spec->type (second spec))
+            :return-spec (mapcar #'type-spec->type
+                                 (uiop:ensure-list (third spec)))))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp type)

@@ -214,6 +214,7 @@
           (basic-arg-matchp candidate arg-types compiled-args env)))))
 
 
+
 (defun find-functions-for-args (func-name args-code env)
   (let* ((candidates (or (get-function-by-name func-name env)
                          (error 'could-not-find-function :name func-name)))
@@ -232,14 +233,14 @@
                      :func (func x) :arguments (arguments x))))
                 matches
                 (iota (length matches)))
-        (func-find-failure func-name compiled-args))))
+        (func-find-failure func-name (mapcar #'code-type compiled-args)))))
 
 ;; if there were no candidates then pass errors back
-(defun func-find-failure (func-name arg-objs)
-  (loop :for arg-obj :in arg-objs
-     :if (typep (code-type arg-obj) 'v-error)
+(defun func-find-failure (func-name arg-types)
+  (loop :for arg-type :in arg-types
+     :if (typep arg-type 'v-error)
 
-     :return `(,(make-instance 'func-match :score t :func (code-type arg-obj)
+     :return `(,(make-instance 'func-match :score t :func arg-type
                                :arguments nil))
      :finally (return
                 `(,(make-instance
@@ -248,8 +249,7 @@
                     :func (make-instance 'v-error :payload
                                          (make-instance 'no-valid-function
                                                         :name func-name
-                                                        :types (mapcar #'code-type
-                                                                       arg-objs)))
+                                                        :types arg-types))
                     :arguments nil)))))
 
 (defun find-function-for-args (func-name args-code env)
@@ -287,3 +287,30 @@
           (t (error 'invalid-function-return-spec :func func :spec spec)))))
 
 ;;------------------------------------------------------------
+
+
+(defun basic-exact-type-matchp (func arg-types env)
+  (let ((spec-types (v-argument-spec func)))
+    (when (eql (length arg-types) (length spec-types))
+      (loop :for a :in arg-types :for s :in spec-types
+         :always (v-type-eq a s env)))))
+
+(defun special-exact-type-matchp (func arg-types env)
+  (let ((arg-spec (v-argument-spec func))
+        (env (fresh-environment env)))
+    (cond
+      ((listp arg-spec) (basic-exact-type-matchp func arg-types env))
+      ((eq arg-spec t) t)
+      (t (error 'invalid-special-function-arg-spec
+                :name (name func)
+                :spec arg-spec)))))
+
+(defun exact-match-function-to-types (arg-types env candidate)
+  (if (v-special-functionp candidate)
+      (special-exact-type-matchp candidate arg-types env)
+      (basic-exact-type-matchp candidate arg-types env)))
+
+(defun find-function-for-types (func-name arg-types env)
+  (find-if (curry #'exact-match-function-to-types arg-types env)
+           (or (get-function-by-name func-name env)
+               (error 'could-not-find-function :name func-name))))

@@ -1010,21 +1010,22 @@
   :args-valid t
   :return
   (destructuring-bind (name &rest arg-types) func-name
-    (destructuring-bind (func &rest rest)
-        (or (if arg-types
-                (find-function-for-args name  )
-                (or (get-function-by-name name env)
-                    (error "No function yada {TODO} ~a" name))))
-      (assert (null rest))
-      (let ((flow-id (flow-id!)))
-        (values
-         (code! :type func
-                :current-line (format nil "<(function ~a)>" name)
-                :used-types (list func)
-                :node-tree (ast-node! 'function (list name)
-                                      func flow-id nil nil)
-                :flow-ids flow-id)
-         env)))))
+    (let ((arg-types (mapcar (lambda (x) (type-spec->type x :env env))
+                             arg-types)))
+      (let ((func
+             (or (if arg-types
+                     (find-function-for-types name arg-types env)
+                     (get-function-by-name name env))
+                 (error "No function yada {TODO} ~a" name))))
+        (let ((flow-id (flow-id!)))
+          (values
+           (code! :type func
+                  :current-line (format nil "<(function ~a)>" name)
+                  :used-types (list func)
+                  :node-tree (ast-node! 'function (list name)
+                                        func flow-id nil nil)
+                  :flow-ids flow-id)
+           env))))))
 
 (v-defspecial funcall (function &rest params)
   :args-valid t
