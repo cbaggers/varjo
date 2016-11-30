@@ -1010,6 +1010,20 @@
    (compile-glsl-expression-string glsl-string type-spec)
    env))
 
+(defun compile-glsl-expression-string (current-line type)
+  (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
+	 (flow-id (flow-id!)))
+    (code! :type type-obj
+	   :current-line current-line
+	   :used-types (list type-obj)
+	   :node-tree (ast-node! 'glsl-string nil type-obj flow-id nil nil)
+	   :flow-ids flow-id)))
+
+(defun glsl-let (name-symbol name-string type value-form env)
+  (let ((type-spec (if (typep type 'v-t-type) (type->type-spec type) type)))
+    (compile-let name-symbol type-spec value-form env name-string)))
+
+
 (defun func-literal-p (x)
   (and (listp x)
        (= (length x) 2)
@@ -1064,16 +1078,3 @@
                    func-arg-types
                    (mapcar #'code-type args)))
     (mapcar #'cast-code args func-arg-types)))
-
-(defun compile-glsl-expression-string (current-line type)
-  (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
-	 (flow-id (flow-id!)))
-    (code! :type type-obj
-	   :current-line current-line
-	   :used-types (list type-obj)
-	   :node-tree (ast-node! 'glsl-string nil type-obj flow-id nil nil)
-	   :flow-ids flow-id)))
-
-(defun glsl-let (name-symbol name-string type value-form env)
-  (let ((type-spec (if (typep type 'v-t-type) (type->type-spec type) type)))
-    (compile-let name-symbol type-spec value-form env name-string)))

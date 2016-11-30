@@ -29,6 +29,12 @@
 (defmethod used-compiler-macros ((e environment))
   (slot-value (get-base-env e) 'used-compiler-macros))
 
+(defun get-base-env (env)
+  (let ((parent (v-parent-env env)))
+    (if (not (eq parent *global-env*))
+	(get-base-env parent)
+	env)))
+
 ;; ugh
 (defmethod (setf used-external-functions) (val (e environment))
   (setf (slot-value (get-base-env e) 'used-external-functions)
@@ -46,33 +52,31 @@
   (setf (slot-value (get-base-env e) 'used-compiler-macros)
 	val))
 
-(defun get-base-env (env)
-  (let ((parent (v-parent-env env)))
-    (if (not (eq parent *global-env*))
-	(get-base-env parent)
-	env)))
-
+;; WARNING:: This is mutated in translate.lisp
 (defmethod v-iuniforms ((e environment))
   (v-iuniforms (get-base-env e)))
 
-(defmethod v-code-cache ((env environment))
-  (v-code-cache (get-base-env env)))
-
+;; WARNING:: This is mutated in translate.lisp
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (get-base-env env)))
 
+;; WARNING:: This is mutated in translate.lisp
 (defmethod v-raw-uniforms ((env environment))
   (v-raw-uniforms (get-base-env env)))
 
+;; WARNING:: This is mutated in translate.lisp
 (defmethod v-raw-context ((env environment))
   (v-raw-context (get-base-env env)))
 
+;; WARNING:: This is mutated in translate.lisp & structs.lisp
 (defmethod v-in-args ((env environment))
   (v-in-args (get-base-env env)))
 
+;; WARNING:: This is mutated in translate.lisp & structs.lisp
 (defmethod v-uniforms ((env environment))
   (v-uniforms (get-base-env env)))
 
+;; WARNING: This is mutated in names.lisp
 (defmethod v-name-map ((env environment))
   (slot-value (get-base-env env) 'name-map))
 
