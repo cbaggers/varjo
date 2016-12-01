@@ -19,7 +19,8 @@
 (def-v-type-class v-compile-time-value () ())
 
 (defmethod initialize-instance ((obj v-compile-time-value) &key)
-  (assert (typep obj 'v-t-type) (obj) 'ctv-mixin-error :obj obj))
+  (assert (typep obj 'v-t-type) (obj) 'ctv-mixin-error :obj obj)
+  (call-next-method))
 
 (defmethod compute-ctv-argument (ctv-type function arg-code env)
   (error "Varjo: The function ~a has an argument which takes a compile-time
@@ -80,7 +81,8 @@ value. "))
 			      :code-type :v-function)
 	     :initarg :flow-ids :reader flow-ids)))
 
-(def-v-type-class v-user-function (v-function) ())
+(def-v-type-class v-user-function (v-function)
+  ((code :initform nil :initarg :code :reader v-code)))
 
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))

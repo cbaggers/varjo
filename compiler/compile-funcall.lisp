@@ -22,12 +22,19 @@
   func)
 
 (defun compile-function-call (func-name func args env)
+  (when (eq func-name 'foo)
+    (break "foo ~a" func))
   (vbind (code-obj new-env)
       (cond
         ((v-special-functionp func) (compile-special-function func args env))
 
         ((> (length (v-return-spec func)) 1)
          (compile-multi-return-function-call func-name func args env))
+
+        ((and (typep func 'v-user-function)
+              (some λ(typep _ 'v-compile-time-value)
+                    (v-argument-spec func)))
+         (compile-function-taking-ctvs func-name func args env))
 
         (t (compile-regular-function-call func-name func args env)))
     (assert new-env)
@@ -38,6 +45,9 @@
     (equalp #'symbol-macroexpand-pass
 	    #'macroexpand-pass
 	    #'compiler-macroexpand-pass)))
+
+(defun compile-function-taking-ctvs (func-name func args env)
+  (break "We go to compile-function-taking-ctvs!"))
 
 (defun compile-external-function-call (func args env)
   (copy-code (compile-list-form

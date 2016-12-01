@@ -466,16 +466,35 @@
 	      pruned-starting-env))))
 
 (defun %make-function (name args body allow-implicit-args env)
-  (let ((deduped-func (dedup-function `(,args ,body) env)))
-    (if (and (not allow-implicit-args) deduped-func)
-	(values nil (add-function name deduped-func env))
-	(%make-new-function name args body allow-implicit-args env))))
-
-(defun %make-new-function (name args body allow-implicit-args env)
   (unless (function-raw-args-validp args)
     (error 'bad-make-function-args
 	   :func-name name
 	   :arg-specs (remove-if #'function-raw-arg-validp args)))
+  (let ((arg-types (mapcar λ(type-spec->type (second _)) args))
+        (deduped-func (dedup-function `(,args ,body) env)))
+    (cond
+      ((and (not allow-implicit-args) deduped-func)
+       (values nil (add-function name deduped-func env)))
+      ((some λ(typep _ 'v-compile-time-value) arg-types)
+       (make-new-function-with-ctvs name args body allow-implicit-args env))
+      (t (%make-new-function name args body allow-implicit-args env)))))
+
+(defun make-new-function-with-ctvs (name args body allow-implicit-args
+                                    env)
+  (declare (ignore allow-implicit-args))
+  (let ((mainp (eq name :main)))
+    (assert (not (eq name :main)))
+    (let* ((env (make-func-env env mainp))
+           (func (func-spec->user-function
+                  (v-make-f-spec name nil nil (mapcar #'second args) nil
+                                 :code (list args body) )
+                  env)))
+      (values (code! :type (type-spec->type 'v-none)
+                     :place-tree nil
+                     :flow-ids nil)
+              (add-function name func env)))))
+
+(defun %make-new-function (name args body allow-implicit-args env)
   (let* ((mainp (eq name :main))
 	 (env (make-func-env env mainp))
 	 (in-arg-flow-ids (mapcar (lambda (_)
@@ -517,9 +536,8 @@
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
     (when (v-typep type (type-spec->type :none))
       (error 'function-with-no-return-type :func-name name))
-    (let* ((arg-pairs (loop :for (ignored type) :in args
-			 :for name :in arg-glsl-names
-			 :do (identity ignored) :collect
+    (let* ((arg-pairs (loop :for (nil type) :in args
+			 :for name :in arg-glsl-names :collect
 			 `(,(v-glsl-string (type-spec->type type)) ,name)))
 	   (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
 			     :for name = (v-glsl-name (multi-val-value mval)) :collect
@@ -1067,8 +1085,7 @@
         (v-function
          (let ((args (compile-and-assert-args-for-func v-type params env)))
            (compile-function-call (name v-type) v-type args env)))
-        (v-func-val (break "sup! ~s ~s" var params)
-                    (values nil env))))))
+        (v-func-val (error "Called a function signature instead of a function"))))))
 
 (defun compile-and-assert-args-for-func (func args-code env)
   (assert (= (length args-code) (length (v-argument-spec func))))

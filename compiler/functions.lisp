@@ -13,34 +13,56 @@
 
 (defun v-make-f-spec (name transform versions arg-types return-spec
                       &key v-place-index glsl-name
-			implicit-args flow-ids in-arg-flow-ids)
+			implicit-args flow-ids in-arg-flow-ids
+                        code)
   (assert (listp return-spec))
   (list transform arg-types return-spec versions v-place-index
-        glsl-name name implicit-args flow-ids in-arg-flow-ids))
+        glsl-name name implicit-args flow-ids in-arg-flow-ids
+        code))
 
 (defun %func-spec->function (spec env userp)
   (destructuring-bind (transform arg-spec return-spec versions v-place-index
                                  glsl-name name implicit-args flow-ids
-                                 in-arg-flow-ids)
+                                 in-arg-flow-ids code)
       spec
-    (make-instance (if userp 'v-user-function 'v-function)
-		   :glsl-string transform
-                   :arg-spec (if (listp arg-spec)
-                                 (loop :for spec :in arg-spec :collect
-                                    (type-spec->type spec))
-                                 arg-spec)
-                   :return-spec
-                   (mapcar (lambda (rspec)
-                             (if (type-specp rspec)
-                                 (type-spec->type rspec)
-                                 rspec))
-                           return-spec)
-                   :versions versions :v-place-index v-place-index
-                   :glsl-name glsl-name
-                   :name name
-                   :implicit-args implicit-args
-		   :flow-ids flow-ids
-		   :in-arg-flow-ids in-arg-flow-ids)))
+    (if userp
+        (make-instance 'v-user-function
+                       :glsl-string transform
+                       :arg-spec (if (listp arg-spec)
+                                     (loop :for spec :in arg-spec :collect
+                                        (type-spec->type spec))
+                                     arg-spec)
+                       :return-spec
+                       (mapcar (lambda (rspec)
+                                 (if (type-specp rspec)
+                                     (type-spec->type rspec)
+                                     rspec))
+                               return-spec)
+                       :versions versions :v-place-index v-place-index
+                       :glsl-name glsl-name
+                       :name name
+                       :implicit-args implicit-args
+                       :flow-ids flow-ids
+                       :in-arg-flow-ids in-arg-flow-ids
+                       :code code)
+        (make-instance 'v-function
+                       :glsl-string transform
+                       :arg-spec (if (listp arg-spec)
+                                     (loop :for spec :in arg-spec :collect
+                                        (type-spec->type spec))
+                                     arg-spec)
+                       :return-spec
+                       (mapcar (lambda (rspec)
+                                 (if (type-specp rspec)
+                                     (type-spec->type rspec)
+                                     rspec))
+                               return-spec)
+                       :versions versions :v-place-index v-place-index
+                       :glsl-name glsl-name
+                       :name name
+                       :implicit-args implicit-args
+                       :flow-ids flow-ids
+                       :in-arg-flow-ids in-arg-flow-ids))))
 
 (defun func-spec->function (spec env)
   (%func-spec->function spec env nil))
@@ -64,7 +86,9 @@
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
 		   :flow-ids (flow-ids func)
-		   :in-arg-flow-ids (in-arg-flow-ids func))))
+		   :in-arg-flow-ids (in-arg-flow-ids func)
+                   :code (when (typep func 'v-user-function)
+                           (v-code func)))))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
