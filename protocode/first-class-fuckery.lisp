@@ -178,4 +178,43 @@ the glsl text as we go (we need to fix this).
 We can use checkpointing of flow-ids, but we have things that mutate the
 base-environment (I knew that was gonna bite me in the arse eventually).
 
+
+
+
+
+Oh shit wait! Capture won't work!
+
+||#
+
+(defun bar ((b :int))
+  (let ((x b))
+    (lambda ((a :int))
+      (+ x a))))
+
+(defun-g foo ()
+  (let ((f0 (bar 1))
+        (f2 (bar 2)))
+    (funcall f0 10)   ;; did you see the problem?
+    (funcall f1 10))) ;; both will return '12'
+
+#||
+
+The declaration for 'x' will get moved to foo, but will get mutated by EACH call
+to 'bar'. This break the issusion of capture.
+
+That's ok though! we just use a new var for each call to 'bar'. We end up with
+something like:
+
+void foo() {
+  int x0;
+  int x1;
+  bar(1, x0);
+  bar(1, x1);
+  lambda0(10, x0);
+  lambda0(10, x1);
+}
+
+Phew, it'll be fine. And lambda0 will still dedup! :D compilers are too much
+fun.
+
 ||#

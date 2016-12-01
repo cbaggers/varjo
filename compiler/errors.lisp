@@ -367,3 +367,12 @@ Here are some types we think may have been meant:
 ~a
 
 Please report this bug on github" name spec)
+
+(deferror ctv-mixin-error (:error-type varjo-critical-error)
+    (obj)
+    "Varjo:The type v-compile-time-value is a mixin type and must be used on an
+instance of v-t-type.
+
+Attempted to instance ~s as a
+v-compile-time-value type"
+  obj)

@@ -1,9 +1,31 @@
 (in-package :varjo)
 
-;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;;------------------------------------------------------------
+
+(defmethod core-typep ((type v-t-type))
+  nil)
+
+;;------------------------------------------------------------
 
 (def-v-type-class v-void (v-t-type) ())
 (def-v-type-class v-none (v-t-type) ())
+
+;;------------------------------------------------------------
+
+(def-v-type-class v-error (v-type)
+  ((payload :initform nil :initarg :payload :accessor v-payload)))
+
+;;------------------------------------------------------------
+(def-v-type-class v-compile-time-value () ())
+
+(defmethod initialize-instance ((obj v-compile-time-value) &key)
+  (assert (typep obj 'v-t-type) (obj) 'ctv-mixin-error :obj obj))
+
+(defmethod compute-ctv-argument (ctv-type function arg-code env)
+  (error "Varjo: The function ~a has an argument which takes a compile-time
+value. "))
+
+;;------------------------------------------------------------
 
 (def-v-type-class v-container (v-type)
   ((element-type :initform nil)
@@ -21,8 +43,12 @@
 
 ;; (v-glsl-string (type-spec->type '(:vec3 *)))
 
-(def-v-type-class v-error (v-type)
-  ((payload :initform nil :initarg :payload :accessor v-payload)))
+(defmethod v-element-type ((object v-t-type))
+  (when (slot-exists-p object 'element-type)
+    (when (slot-value object 'element-type)
+      (type-spec->type (slot-value object 'element-type)))))
+
+;;------------------------------------------------------------
 
 (def-v-type-class v-struct (v-type)
   ((versions :initform nil :initarg :versions :accessor v-versions)
@@ -32,7 +58,9 @@
 
 (def-v-type-class v-user-struct (v-struct) ())
 
-(def-v-type-class v-func-val (v-type)
+;;------------------------------------------------------------
+
+(def-v-type-class v-func-val (v-type v-compile-time-value)
   ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
 
@@ -54,20 +82,14 @@
 
 (def-v-type-class v-user-function (v-function) ())
 
-(def-v-type-class v-stemcell (v-type) ())
-
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))
 
-(defmethod core-typep ((type v-t-type))
-  nil)
+;;------------------------------------------------------------
 
-;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+(def-v-type-class v-stemcell (v-type) ())
 
-(defmethod v-element-type ((object v-t-type))
-  (when (slot-exists-p object 'element-type)
-    (when (slot-value object 'element-type)
-      (type-spec->type (slot-value object 'element-type)))))
+;;------------------------------------------------------------
 
 (defmethod type->type-spec ((type v-t-type))
   (class-name (class-of type)))
