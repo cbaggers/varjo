@@ -20,6 +20,7 @@
                (:file "compiler/errors")
                (:file "compiler/names")
                (:file "compiler/types")
+               (:file "compiler/function-obj")
                (:file "compiler/code-object")
                (:file "compiler/stemcells")
                (:file "language/types")
@@ -48,5 +49,4 @@
                (:file "language/bitwise-operators")
                (:file "compiler/translate")
                (:file "compiler/front-end")
-               (:file "language/object-printers")
                (:file "language/rtg-math-equivalents")))

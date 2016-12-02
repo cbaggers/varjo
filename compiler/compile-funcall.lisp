@@ -2,6 +2,11 @@
 (in-readtable fn:fn-reader)
 
 (defun compile-list-form (code env)
+  (if (eq (first code) 'funcall)
+      (compile-funcall-form code env)
+      (compile-func-form code env)))
+
+(defun compile-func-form (code env)
   (let* ((func-name (first code))
          (args-code (rest code)))
     (when (keywordp func-name)
@@ -16,6 +21,27 @@
                      (error (v-payload func))
                      (error 'cannot-compile :code code)))
         (t (error 'problem-with-the-compiler :target func))))))
+
+(defun compile-funcall-form (code env)
+  (dbind (fc func-form . arg-forms) code
+    (assert (eq fc 'funcall))
+    (vbind (func-code-obj f-env) (compile-form func-form)
+
+
+
+
+
+
+
+           (error "&&&& HERE &&&&")
+
+
+
+
+
+
+
+           )))
 
 (defmethod record-func-usage ((func external-function) env)
   (push func (used-external-functions env))

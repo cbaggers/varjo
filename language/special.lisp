@@ -1044,21 +1044,18 @@
     (compile-let name-symbol type-spec value-form env name-string)))
 
 
-(defun func-literal-p (x)
-  (and (listp x)
-       (= (length x) 2)
-       (eq (first x) 'function)))
-
 ;; {TODO} qualify the arg types to disambiguate from overloads.
 (v-defspecial function (func-name)
   :args-valid t
   :return
-  (let ((func (find-function-by-literal func-name env))
-        (flow-id (flow-id!)))
+  (let* ((func (find-function-by-literal func-name env))
+         (type (v-type-of func))
+         (flow-id (flow-id!)))
+    (setf (ctv type) func) ;; make the func the compile-time-val in this type
     (values
-     (code! :type func
+     (code! :type type
             :current-line (format nil "<(function ~a)>" (name func))
-            :used-types (list func)
+            :used-types (list type)
             :node-tree (ast-node! 'function (list func-name)
                                   func flow-id nil nil)
             :flow-ids flow-id)
@@ -1067,32 +1064,27 @@
 (v-defspecial funcall (function &rest params)
   :args-valid t
   :return
-  (progn
-    (if (func-literal-p function)
-        (%funcall-literal function params env)
-        (%funcall-val function params env))))
+  (%funcall-val function params env))
 
-(defun %funcall-literal (function params env)
-  (expand-and-compile-form `(,(second function) ,@params) env))
 
-(defun %funcall-val (function params env)
-  ;; {TODO} how should we handle compiler-macros?
-  (assert (symbolp function))
-  (let ((var (get-var function env)))
-    (unless var
-      (error "No var named ~a found" function))
-    (let ((v-type (v-type var)))
-      (etypecase v-type
-        (v-function
-         (let ((args (compile-and-assert-args-for-func v-type params env)))
-           (compile-function-call (name v-type) v-type args env)))
-        (v-func-val (error "Called a function signature instead of a function"))))))
+;; (defun %funcall-val (function params env)
+;;   ;; {TODO} how should we handle compiler-macros?
+;;   (assert (symbolp function))
+;;   (let ((var (get-var function env)))
+;;     (unless var
+;;       (error "No var named ~a found" function))
+;;     (let ((v-type (v-type var)))
+;;       (etypecase v-type
+;;         (v-function
+;;          (let ((args (compile-and-assert-args-for-func v-type params env)))
+;;            (compile-function-call (name v-type) v-type args env)))
+;;         (v-func-val (error "Called a function signature instead of a function"))))))
 
-(defun compile-and-assert-args-for-func (func args-code env)
-  (assert (= (length args-code) (length (v-argument-spec func))))
-  (let ((args (try-compile-args args-code env))
-        (func-arg-types (v-argument-spec func)))
-    (assert (every (lambda (s a) (v-casts-to a s env))
-                   func-arg-types
-                   (mapcar #'code-type args)))
-    (mapcar #'cast-code args func-arg-types)))
+;; (defun compile-and-assert-args-for-func (func args-code env)
+;;   (assert (= (length args-code) (length (v-argument-spec func))))
+;;   (let ((args (try-compile-args args-code env))
+;;         (func-arg-types (v-argument-spec func)))
+;;     (assert (every (lambda (s a) (v-casts-to a s env))
+;;                    func-arg-types
+;;                    (mapcar #'code-type args)))
+;;     (mapcar #'cast-code args func-arg-types)))

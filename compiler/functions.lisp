@@ -1,7 +1,5 @@
 (in-package :varjo)
 
-(defconstant +order-bias+ 0.0001)
-
 ;;------------------------------------------------------------
 ;; GLSL Functions
 ;;----------------
@@ -230,6 +228,8 @@
 (defun try-compile-args (args-code env)
   ;; {TODO} Why don't we care about the env here?
   (mapcar (rcurry #'try-compile-arg env) args-code))
+
+(defconstant +order-bias+ 0.0001)
 
 (defun find-functions-for-args (func-name args-code env)
   (let* ((candidates (or (get-function-by-name func-name env)
