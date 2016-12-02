@@ -8,4 +8,4 @@
   :serial t
   :depends-on (#:varjo #:fiveam)
   :components ((:file "tests/package")
-	       (:file "tests/tests")))
+               (:file "tests/tests")))

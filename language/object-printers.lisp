@@ -6,7 +6,7 @@
             name
             (if (eq t argument-spec)
                 '(t*)
-		(mapcar #'type-of argument-spec))
+                (mapcar #'type-of argument-spec))
             (typecase (first return-spec)
               (function t)
               (v-t-type (type-of (first return-spec)))

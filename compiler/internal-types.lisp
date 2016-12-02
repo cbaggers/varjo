@@ -7,9 +7,9 @@
    (return-type :initarg :return-type :reader ast-return-type)
    (flow-id :initarg :flow-id :reader ast-flow-id)
    (flow-id-origin :initarg :flow-id-origin :initform :incomplete
-		   :reader ast-flow-id-origin)
+                   :reader ast-flow-id-origin)
    (val-origin :initarg :val-origin :initform :incomplete
-	       :reader ast-val-origin)
+               :reader ast-val-origin)
    (parent :initarg :parent :initform :incomplete :reader ast-parent)
    (args :initarg :args :initform nil :reader ast-args)
    (val-origins :initarg :val-origins :initform :incomplete)
@@ -29,11 +29,11 @@
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (injected-uniforms :initarg :injected-uniforms :initform nil
-		      :reader injected-uniforms)
+                      :reader injected-uniforms)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
    (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
-	     :reader flow-ids)
+             :reader flow-ids)
    (mutations :initarg :mutations :initform nil :reader mutations)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
@@ -71,13 +71,13 @@
                             :reader used-external-functions)
    (used-macros :initarg :used-macros :reader used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
-			 :reader used-compiler-macros)
+                         :reader used-compiler-macros)
    (ast :initarg :ast :reader ast)
    (used-symbol-macros :initarg :used-symbol-macros
-		       :reader used-symbol-macros)
+                       :reader used-symbol-macros)
    (third-party-metadata :initarg :third-party-metadata
-			 :initform (make-hash-table)
-			 :reader third-party-metadata)))
+                         :initform (make-hash-table)
+                         :reader third-party-metadata)))
 
 ;;----------------------------------------------------------------------
 
@@ -113,7 +113,7 @@
    (function-dedup :initform nil :initarg :function-dedup)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
-			 :third-party-metadata)
+                         :third-party-metadata)
    (name-map :initform (make-hash-table :test #'equal))))
 
 ;;----------------------------------------------------------------------
@@ -167,7 +167,7 @@
                    :accessor v-function-scope)
    (read-only :initarg :read-only :initform nil :reader v-read-only)
    (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-vv)
-	     :reader flow-ids)))
+             :reader flow-ids)))
 
 ;;----------------------------------------------------------------------
 

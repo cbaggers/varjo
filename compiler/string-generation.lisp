@@ -66,7 +66,7 @@
 
 (defun gen-setq-assignment-string (old-value new-value-code-obj)
   (format nil "~a = ~a" (v-glsl-name old-value)
-	  (current-line new-value-code-obj)))
+          (current-line new-value-code-obj)))
 
 (defun gen-out-var-assignment-string (glsl-name val)
   (format nil "~a = ~a" glsl-name (current-line val)))
@@ -145,9 +145,9 @@
   (copy-code obj :current-line (format nil "~(~{~a ~}~)~a"
                                        (string-downcase (string qualifiers))
                                        (current-line obj))
-	     :multi-vals nil
-	     :place-tree nil
-	     :flow-ids (flow-ids obj)))
+             :multi-vals nil
+             :place-tree nil
+             :flow-ids (flow-ids obj)))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
@@ -184,16 +184,16 @@
 (defun gen-shader-string (post-proc-obj)
   (with-slots (code env) post-proc-obj
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
-	    (loop :for part :in
-	       (list (used-types post-proc-obj)
-		     (mapcar #'last1 (in-args post-proc-obj))
-		     (mapcar #'last1 (out-vars post-proc-obj))
-		     (concatenate 'list
-				  (mapcar #'last1 (uniforms post-proc-obj))
-				  (mapcar #'third (stemcells post-proc-obj)))
-		     (signatures code)
-		     (to-top code))
-	       :if part :collect part))))
+            (loop :for part :in
+               (list (used-types post-proc-obj)
+                     (mapcar #'last1 (in-args post-proc-obj))
+                     (mapcar #'last1 (out-vars post-proc-obj))
+                     (concatenate 'list
+                                  (mapcar #'last1 (uniforms post-proc-obj))
+                                  (mapcar #'third (stemcells post-proc-obj)))
+                     (signatures code)
+                     (to-top code))
+               :if part :collect part))))
 
 ;;----------------------------------------------------------------------
 
@@ -216,16 +216,16 @@
     (let ((name (or accessor slot-name))
           (type-obj (type-spec->type slot-type)))
       (format nil "    ~{~a ~}~a"
-                ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
-nil
-                (if (typep type-obj 'v-array)
-                    (format nil "~a ~a[~a];"
-                            (v-glsl-string (type->type-spec (v-element-type type-obj)))
-                            (safe-glsl-name-string name)
-                            (v-dimensions type-obj))
-                    (format nil "~a ~a;"
-                            (v-glsl-string type-obj)
-                            (safe-glsl-name-string name)))))))
+              ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
+              nil
+              (if (typep type-obj 'v-array)
+                  (format nil "~a ~a[~a];"
+                          (v-glsl-string (type->type-spec (v-element-type type-obj)))
+                          (safe-glsl-name-string name)
+                          (v-dimensions type-obj))
+                  (format nil "~a ~a;"
+                          (v-glsl-string type-obj)
+                          (safe-glsl-name-string name)))))))
 
 ;;----------------------------------------------------------------------
 

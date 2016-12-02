@@ -13,7 +13,7 @@
 
 (defun v-make-f-spec (name transform versions arg-types return-spec
                       &key v-place-index glsl-name
-			implicit-args flow-ids in-arg-flow-ids
+                        implicit-args flow-ids in-arg-flow-ids
                         code)
   (assert (listp return-spec))
   (list transform arg-types return-spec versions v-place-index
@@ -85,8 +85,8 @@
                    :v-place-index (v-place-index func)
                    :glsl-name (v-glsl-name func)
                    :implicit-args (implicit-args func)
-		   :flow-ids (flow-ids func)
-		   :in-arg-flow-ids (in-arg-flow-ids func)
+                   :flow-ids (flow-ids func)
+                   :in-arg-flow-ids (in-arg-flow-ids func)
                    :code (when (typep func 'v-user-function)
                            (v-code func)))))
 
@@ -105,11 +105,11 @@
         `(progn (add-function
                  ',name
                  (v-make-f-spec
-		  ',name ,transform ',context ',arg-types '(,return-spec)
-		  :v-place-index ',v-place-index :glsl-name ',glsl-name
-		  :flow-ids (%gl-flow-id!)
-		  :in-arg-flow-ids
-		  ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
+                  ',name ,transform ',context ',arg-types '(,return-spec)
+                  :v-place-index ',v-place-index :glsl-name ',glsl-name
+                  :flow-ids (%gl-flow-id!)
+                  :in-arg-flow-ids
+                  ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
                  *global-env*)
                 ',name)))))
 
@@ -143,9 +143,9 @@
                             *global-env*)
               ',name))
           (t `(progn
-              (defun ,func-name ,(cons 'env (mapcar #'first args))
-                (declare (ignorable env ,@arg-names))
-                ,return)
+                (defun ,func-name ,(cons 'env (mapcar #'first args))
+                  (declare (ignorable env ,@arg-names))
+                  ,return)
                 (add-function ',name
                               (v-make-f-spec
                                ',name
@@ -213,11 +213,11 @@
   ;; however the 'values-safe special form allow you to get around that
   ;; for one function call by setting multi-val-safe to true.
   (let* ((mval-base (when (v-multi-val-safe env)
-		      (v-multi-val-base env)))
-	 ;; we dont have to set :multi-val-safe explicitly here
-	 ;; as it will be nil regardless, but I like it as documentation
-	 (env (fresh-environment env :multi-val-base mval-base
-				 :multi-val-safe nil)))
+                      (v-multi-val-base env)))
+         ;; we dont have to set :multi-val-safe explicitly here
+         ;; as it will be nil regardless, but I like it as documentation
+         (env (fresh-environment env :multi-val-base mval-base
+                                 :multi-val-safe nil)))
     (handler-case (compile-form arg env)
       (varjo-error (e)
         (if wrap-errors-p

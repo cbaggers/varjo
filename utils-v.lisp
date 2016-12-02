@@ -5,10 +5,10 @@
 
 (defun listify (x) (if (listp x) x (list x)))
 (defun delistify (x) (if (listp x)
-			 (progn
-			   (assert (= (length x) 1))
-			   (first x))
-			 x))
+                         (progn
+                           (assert (= (length x) 1))
+                           (first x))
+                         x))
 
 (defun lambda-list-get-names (l-list)
   (let ((keywords '(&allow-other-keys &environment &rest &aux &key &whole &body
@@ -22,10 +22,10 @@
 (defun positions-if (predicate sequence)
   (let ((i -1))
     (labels ((f (accum x)
-	       (incf i)
-	       (if (funcall predicate x)
-		   (cons i accum)
-		   accum)))
+               (incf i)
+               (if (funcall predicate x)
+                   (cons i accum)
+                   accum)))
       (reverse (reduce #'f sequence :initial-value nil)))))
 
 (define-compiler-macro mapcat (function &rest lists)
@@ -83,16 +83,16 @@
   ;;        as the declare has to be the first thing in the scope
   ;;        but the vars are now split across multiple binds
   (let* ((list? (mapcar #'listp vars))
-	 (mvb-vars (mapcar (lambda (v l?) (if l? (gensym) v)) vars list?))
-	 (d-vars (mapcar (lambda (v l?) (when l? v)) vars list?))
-	 (d-forms (mapcar (lambda (mvb d)
-			    (when d `(dbind ,d ,mvb)))
-			  mvb-vars d-vars))
-	 (d-forms (remove nil d-forms)))
+         (mvb-vars (mapcar (lambda (v l?) (if l? (gensym) v)) vars list?))
+         (d-vars (mapcar (lambda (v l?) (when l? v)) vars list?))
+         (d-forms (mapcar (lambda (mvb d)
+                            (when d `(dbind ,d ,mvb)))
+                          mvb-vars d-vars))
+         (d-forms (remove nil d-forms)))
     `(multiple-value-bind ,mvb-vars ,value-form
        ,@(reduce (lambda (accum x)
-		   (list (append x accum)))
-		 (cons body d-forms)))))
+                   (list (append x accum)))
+                 (cons body d-forms)))))
 
 (defmacro vlist (value-form)
   `(multiple-value-list ,value-form))
@@ -212,19 +212,19 @@
   (labels ((kwd (x) (intern (format nil "~a" x) :keyword))
            (symbol-name= (x y) (equal (symbol-name x) (symbol-name y)))
            (collector (lam-list &optional current-modifier accum)
-                (let ((item (first lam-list)))
-                  (cond ((null lam-list) accum)
-                        ((and (symbolp item) (eql (elt (symbol-name item) 0) #\&))
-                         (collector (rest lam-list)
-                                    (kwd item)
-                                    accum))
-                        (t (collector (rest lam-list)
-                                      current-modifier
-                                      (acons current-modifier
-                                             (cons item
-                                                   (cdr (assoc current-modifier
-                                                               accum)))
-                                             accum))))))
+             (let ((item (first lam-list)))
+               (cond ((null lam-list) accum)
+                     ((and (symbolp item) (eql (elt (symbol-name item) 0) #\&))
+                      (collector (rest lam-list)
+                                 (kwd item)
+                                 accum))
+                     (t (collector (rest lam-list)
+                                   current-modifier
+                                   (acons current-modifier
+                                          (cons item
+                                                (cdr (assoc current-modifier
+                                                            accum)))
+                                          accum))))))
            (clean-alist (alist &optional accum)
              (let ((item (first alist)))
                (cond ((null alist) accum)
@@ -287,36 +287,36 @@ are supported in this context are: ~s"
 
 (defun split-seq (predicate sequence &key keep-split)
   (let* ((start -1)
-	 (r (loop :for end = (position-if predicate sequence :start (1+ start))
-	       :collect (prog1 (subseq sequence (max 0 start) end)
-			  (when end
-			    (setf start
-				  (if keep-split
-				      end
-				      (1+ end)))))
-	       :while end)))
+         (r (loop :for end = (position-if predicate sequence :start (1+ start))
+               :collect (prog1 (subseq sequence (max 0 start) end)
+                          (when end
+                            (setf start
+                                  (if keep-split
+                                      end
+                                      (1+ end)))))
+               :while end)))
     (remove-if (lambda (x) (= 0 (length x))) r)))
 
 (defmacro asserting (assert-forms error-form &rest error-args)
   `(let ,assert-forms
      (unless (and ,@(mapcar #'first assert-forms))
        ,(typecase error-form
-		  (symbol `(error ',error-form ,@error-args))
-		  (string `(error ',(format nil "~a~%~{~a~%~}" error-form
-					    (n-of "~@[~a~]" (length error-args)))
-				  ,@(loop :for e :in error-args
-				       :for f :in assert-forms :collect
-				       `(unless ,(first f) ,e))))
-		  (otherwise (error "The error-form used in the asserting macro must be a symbol or a string"))))))
+                  (symbol `(error ',error-form ,@error-args))
+                  (string `(error ',(format nil "~a~%~{~a~%~}" error-form
+                                            (n-of "~@[~a~]" (length error-args)))
+                                  ,@(loop :for e :in error-args
+                                       :for f :in assert-forms :collect
+                                       `(unless ,(first f) ,e))))
+                  (otherwise (error "The error-form used in the asserting macro must be a symbol or a string"))))))
 
 (defmacro case= (form &body cases)
   (let ((g (gensym "val")))
     (labels ((wrap-case (c) `((= ,g ,(first c)) ,@(rest c))))
       (let* ((cases-but1 (mapcar #'wrap-case (butlast cases)))
-	     (last-case (car (last cases)))
-	     (last-case (if (eq (car last-case) 'otherwise)
-			    `(t ,@(rest last-case))
-			    (wrap-case last-case)))
-	     (cases (append cases-but1 (list last-case))))
-	`(let ((,g ,form))
-	   (cond ,@cases))))))
+             (last-case (car (last cases)))
+             (last-case (if (eq (car last-case) 'otherwise)
+                            `(t ,@(rest last-case))
+                            (wrap-case last-case)))
+             (cases (append cases-but1 (list last-case))))
+        `(let ((,g ,form))
+           (cond ,@cases))))))

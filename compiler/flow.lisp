@@ -28,9 +28,9 @@
 
 (defmethod print-object ((o flow-identifier) stream)
   (let* ((ids (mapcar λ(slot-value _ 'val) (listify (ids o))))
-	 (ids (if (> (length ids) 6)
-		  (append (subseq ids 0 6) '(:etc))
-		  ids)))
+         (ids (if (> (length ids) 6)
+                  (append (subseq ids 0 6) '(:etc))
+                  ids)))
     (format stream "#<FLOW-ID ~{~s~^ ~}>" ids)))
 
 (let ((gl-flow-id 0))
@@ -46,26 +46,26 @@
 
 (defun %make-flow-id-source-func (from)
   (let ((%flow-id (typecase from
-		     (function (funcall from :dump))
-		     (integer from)
-		     (otherwise (error "invalid 'from'")))))
+                    (function (funcall from :dump))
+                    (integer from)
+                    (otherwise (error "invalid 'from'")))))
     (lambda (&optional x)
       (if (eq x :dump)
-	  %flow-id
-	  (bare-id! (incf %flow-id))))))
+          %flow-id
+          (bare-id! (incf %flow-id))))))
 
 (defstruct flow-id-checkpoint func)
 
 (defmethod print-object ((obj flow-id-checkpoint) stream)
   (format stream "#<flow-id-checkpoint ~s>"
-	  (funcall (flow-id-checkpoint-func obj) :dump)))
+          (funcall (flow-id-checkpoint-func obj) :dump)))
 
 ;;----------------------------------------------------------------------
 ;; scoping
 
 (defmacro flow-id-scope (&body body)
   `(let ((flow-gen-func
-	  (%make-flow-id-source-func -1)))
+          (%make-flow-id-source-func -1)))
      ,@body))
 
 (defun checkpoint-flow-ids ()
@@ -74,7 +74,7 @@
 
 (defun reset-flow-ids-to-checkpoint (checkpoint)
   (setf flow-gen-func (%make-flow-id-source-func
-			(flow-id-checkpoint-func checkpoint)))
+                       (flow-id-checkpoint-func checkpoint)))
   t)
 
 ;;----------------------------------------------------------------------
@@ -82,25 +82,25 @@
 
 (defun m-flow-id! (flow-ids)
   (assert (and (listp flow-ids)
-	       (every #'flow-id-p flow-ids)))
+               (every #'flow-id-p flow-ids)))
   (make-instance 'multi-return-flow-id
-		 :m-value-ids flow-ids))
+                 :m-value-ids flow-ids))
 
 (defun flow-id! (&rest ids)
   (let ((ids (remove nil ids)))
     (labels ((key (_) (slot-value _ 'val)))
       (if (null ids)
-	  (make-instance 'flow-identifier :ids (list (funcall flow-gen-func)))
-	  (make-instance 'flow-identifier
-			 :ids (sort (copy-list (remove-duplicates
-						(mapcat #'ids ids)
-						:key #'key))
-				    #'< :key #'key))))))
+          (make-instance 'flow-identifier :ids (list (funcall flow-gen-func)))
+          (make-instance 'flow-identifier
+                         :ids (sort (copy-list (remove-duplicates
+                                                (mapcat #'ids ids)
+                                                :key #'key))
+                                    #'< :key #'key))))))
 
 (defun flow-id+meta! (&key return-pos)
   (let ((r (flow-id!)))
     (setf (slot-value (first (listify (ids r))) 'return-pos)
-	  return-pos)
+          return-pos)
     r))
 
 (defun %gl-flow-id! ()
@@ -125,15 +125,15 @@
   (assert (or (typep id-b 'flow-identifier) (null id-b)))
   (unless (or (null id-a) (null id-b))
     (not (null (intersection (listify (ids id-a)) (listify (ids id-b))
-			     :key λ(slot-value _ 'val))))))
+                             :key λ(slot-value _ 'val))))))
 
 (defun id= (id-a id-b)
   (assert (or (typep id-a 'flow-identifier) (null id-a)))
   (assert (or (typep id-b 'flow-identifier) (null id-b)))
   (unless (or (null id-a) (null id-b))
     (equal (sort (copy-list (raw-ids id-a)) #'<)
-	   (sort (copy-list (raw-ids id-b)) #'<))))
+           (sort (copy-list (raw-ids id-b)) #'<))))
 
 (defun assert-flow-id-singularity (flow-id)
   (assert (or (null flow-id)
-	      (not (listp flow-id)))))
+              (not (listp flow-id)))))

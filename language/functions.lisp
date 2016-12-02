@@ -216,7 +216,7 @@
          (v-float v-float v-float v-float v-float
                   v-float v-float v-float v-float) v-mat3)
 (v-defun m! (a b c) "mat3(~a,~a,~a)" (v-vec3 v-vec3 v-vec3) v-mat3
-        )
+         )
 
 (v-defun m! (a b c d e f g h i j k l m n o p)
   "mat4(~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a)"
@@ -227,7 +227,7 @@
   "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4)
 
 (v-defun v-not (x &context (:330 :440)) "not(~a)"
-	 (v-bvector) 0)
+         (v-bvector) 0)
 
 (v-defun v-equal (x y &context (:330 :440))
   "equal(~a,~a)"

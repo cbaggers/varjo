@@ -69,7 +69,7 @@ Example:
                                  (uniforms (symb :uniforms))
                                  (context (symb :context))
                                  (code (symb :code))
-				 (tp-meta (symb :tp-meta)))
+                                 (tp-meta (symb :tp-meta)))
                          stage &body body)
   `(destructuring-bind (,in-args ,uniforms ,context ,code &optional ,tp-meta)
        ,stage
@@ -85,28 +85,28 @@ Example:
   (declare (optimize debug))
   (if previous-stage
       (let ((out-vars (transform-previous-stage-out-vars previous-stage stage)))
-	(with-stage () stage
+        (with-stage () stage
 
-	  (list (if (and (in-args-compatiblep in-args out-vars)
-			 (uniforms-compatiblep
-			  uniforms (uniforms previous-stage))
-			 (context-compatiblep stage previous-stage))
-		    (mapcar #'%merge-in-arg
-			    out-vars
-			    in-args)
-		    (error 'args-incompatible
-			   :current-args in-args
-			   :previous-args  (out-vars previous-stage)))
-		uniforms
-		context
-		code
-		tp-meta)))
+          (list (if (and (in-args-compatiblep in-args out-vars)
+                         (uniforms-compatiblep
+                          uniforms (uniforms previous-stage))
+                         (context-compatiblep stage previous-stage))
+                    (mapcar #'%merge-in-arg
+                            out-vars
+                            in-args)
+                    (error 'args-incompatible
+                           :current-args in-args
+                           :previous-args  (out-vars previous-stage)))
+                uniforms
+                context
+                code
+                tp-meta)))
       (with-stage () stage
         (list in-args
-	      uniforms
-	      context
-	      code
-	      (or tp-meta (make-hash-table))))))
+              uniforms
+              context
+              code
+              (or tp-meta (make-hash-table))))))
 
 
 (defun %merge-in-arg (previous current)
@@ -118,50 +118,50 @@ Example:
         ,(or p-glsl-name c-glsl-name)))))
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
-				    accum)
+                                    accum)
   (labels ((gen-aliases ()
-	     (loop :for (nil . out-rest) :in (out-vars last-stage)
-		:for (in-name type . in-rest) :in (in-args stage) :append
-		(let ((out-glsl-name (last1 out-rest))
-		      (in-glsl-name (subseq (last1 in-rest) 1)))
-		  (when (not (equal out-glsl-name in-glsl-name))
-		    (flow-id-scope
-		      (to-block
-		       (glsl-let in-name in-glsl-name type
-				 (compile-glsl-expression-string out-glsl-name type)
-				 (%make-base-environment))))))))
-	   (swap-out-args (glsl-string)
-	     (loop :for out :in (out-vars last-stage)
-		:for in :in (in-args stage)
-		:for out-glsl-name := (last1 out)
-		:for in-glsl-name := (subseq (last1 in) 1) :do
-		(setf glsl-string
-		      (ppcre:regex-replace (format nil "@~a" in-glsl-name)
-					   glsl-string out-glsl-name)))
-	     glsl-string))
+             (loop :for (nil . out-rest) :in (out-vars last-stage)
+                :for (in-name type . in-rest) :in (in-args stage) :append
+                (let ((out-glsl-name (last1 out-rest))
+                      (in-glsl-name (subseq (last1 in-rest) 1)))
+                  (when (not (equal out-glsl-name in-glsl-name))
+                    (flow-id-scope
+                      (to-block
+                       (glsl-let in-name in-glsl-name type
+                                 (compile-glsl-expression-string out-glsl-name type)
+                                 (%make-base-environment))))))))
+           (swap-out-args (glsl-string)
+             (loop :for out :in (out-vars last-stage)
+                :for in :in (in-args stage)
+                :for out-glsl-name := (last1 out)
+                :for in-glsl-name := (subseq (last1 in) 1) :do
+                (setf glsl-string
+                      (ppcre:regex-replace (format nil "@~a" in-glsl-name)
+                                           glsl-string out-glsl-name)))
+             glsl-string))
 
     (let ((out-vars (transform-previous-stage-out-vars last-stage stage)))
       (when (and (in-args-compatiblep (in-args stage) out-vars)
-		 (uniforms-compatiblep (uniforms stage)
-				       (uniforms last-stage))
-		 (context-compatiblep stage last-stage))
-	;; we need to modify the result of the compiled stage if the in-args names
-	;; dont match the names of the out args
-	(let* ((glsl-aliases (gen-aliases))
-	       (glsl-code-0 (glsl-code stage))
-	       (glsl-code-1 (swap-out-args glsl-code-0))
-	       (final-glsl-code (ppcre:regex-replace
-				 "void main"
-				 glsl-code-1
-				 (format nil "~{~a~}~%~%void main"
-					 glsl-aliases)))
-	       (new-compile-result
-		(clone-compile-result stage :glsl-code final-glsl-code)))
-	  (with-slots (compiled-stages) accum
-	    (make-instance 'rolling-result
-			   :compiled-stages (cons new-compile-result
-						  compiled-stages)
-			   :remaining-stages remaining-stage-types)))))))
+                 (uniforms-compatiblep (uniforms stage)
+                                       (uniforms last-stage))
+                 (context-compatiblep stage last-stage))
+        ;; we need to modify the result of the compiled stage if the in-args names
+        ;; dont match the names of the out args
+        (let* ((glsl-aliases (gen-aliases))
+               (glsl-code-0 (glsl-code stage))
+               (glsl-code-1 (swap-out-args glsl-code-0))
+               (final-glsl-code (ppcre:regex-replace
+                                 "void main"
+                                 glsl-code-1
+                                 (format nil "~{~a~}~%~%void main"
+                                         glsl-aliases)))
+               (new-compile-result
+                (clone-compile-result stage :glsl-code final-glsl-code)))
+          (with-slots (compiled-stages) accum
+            (make-instance 'rolling-result
+                           :compiled-stages (cons new-compile-result
+                                                  compiled-stages)
+                           :remaining-stages remaining-stage-types)))))))
 
 (defun compile-stage (accum stage compile-func)
   (with-slots (remaining-stages compiled-stages) accum
@@ -228,26 +228,26 @@ Example:
   (loop :for p :in last-out-vars
      :for c :in in-args :always
      (and (v-type-eq (type-spec->type (second p))
-		     (type-spec->type (second c)))
-	  (%suitable-qualifiersp p c))))
+                     (type-spec->type (second c)))
+          (%suitable-qualifiersp p c))))
 
 (defmethod uniforms-compatiblep ((uniforms list) (last-uniforms list))
   (loop :for u :in last-uniforms :always
      (let ((match (find (first u) uniforms :key #'first)))
        (if match
-	   (v-type-eq (type-spec->type (second u))
-		      (type-spec->type (second match)))
-	   t))))
+           (v-type-eq (type-spec->type (second u))
+                      (type-spec->type (second match)))
+           t))))
 
 (defmethod context-compatiblep ((stage list)
-				(previous-stage varjo-compile-result))
+                                (previous-stage varjo-compile-result))
   (with-stage () stage
     (context-ok-given-restriction
      (remove (extract-stage-type previous-stage) (context previous-stage))
      (remove (extract-stage-type stage) context))))
 
 (defmethod context-compatiblep ((stage varjo-compile-result)
-				(previous-stage varjo-compile-result))
+                                (previous-stage varjo-compile-result))
   (context-ok-given-restriction
    (remove (extract-stage-type previous-stage) (context previous-stage))
    (remove (extract-stage-type stage) (context stage))))
@@ -270,12 +270,12 @@ Example:
 (defgeneric transform-previous-stage-out-vars (stage next-stage))
 
 (defmethod transform-arg-types ((last (eql :vertex)) (next (eql :geometry))
-				stage)
+                                stage)
   (declare (optimize debug))
   (mapcar λ(with-v-arg (name type qualifiers glsl-name) _
-	     `(,name (,type *) ,@qualifiers
-		     ,@(when glsl-name (list glsl-name))))
-	  (out-vars stage)))
+             `(,name (,type *) ,@qualifiers
+                     ,@(when glsl-name (list glsl-name))))
+          (out-vars stage)))
 
 (defmethod transform-arg-types (last next (stage list))
   (declare (optimize debug)
@@ -291,8 +291,8 @@ Example:
 (defmethod transform-previous-stage-out-vars (stage next-stage)
   (declare (optimize debug))
   (transform-arg-types (extract-stage-type stage)
-		       (extract-stage-type next-stage)
-		       stage))
+                       (extract-stage-type next-stage)
+                       stage))
 
 ;;----------------------------------------------------------------------
 

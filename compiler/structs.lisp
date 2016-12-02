@@ -36,13 +36,13 @@
            (make-instance ',fake-type-name))
          (def-v-type-class ,true-type-name (,class-name) ())
          (def-v-type-class ,fake-type-name (,class-name) ((signature :initform "")))
-	 (defmethod type->type-spec ((type ,true-type-name))
-	   ',name)
+         (defmethod type->type-spec ((type ,true-type-name))
+           ',name)
          (v-defun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
-		    (n-of "~a" (length slots)))
+                    (n-of "~a" (length slots)))
            ,(loop :for slot :in slots :collect (second slot))
            ,true-type-name :v-place-index nil)
          ,@(make-struct-accessors name true-type-name context slots)
@@ -91,8 +91,8 @@
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (%add-var in-var-name
-	      (v-make-value struct env :glsl-name glsl-name :read-only t)
-	      env)
+              (v-make-value struct env :glsl-name glsl-name :read-only t)
+              env)
     env))
 
 (defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
@@ -116,8 +116,8 @@
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (%add-var uniform-name
-	      (v-make-value struct env :glsl-name glsl-name :read-only t)
-	      env)
+              (v-make-value struct env :glsl-name glsl-name :read-only t)
+              env)
     env))
 
 (defun fake-slot-name (in-var-name slot-name)

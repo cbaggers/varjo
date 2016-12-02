@@ -130,24 +130,24 @@
 (defun %parse (name &optional (start-at 0) (prefix ""))
   (with-input-from-string (seq name :start start-at)
     (let (last-case
-	  case-changed
-	  (frist t))
+          case-changed
+          (frist t))
       (labels ((readc (seq)
-		 (let ((r (read-char seq nil :eos)))
-		   (unless (eq r :eos)
-		     (setf case-changed (and (not last-case)
-					     (upper-case-p r))
-			   last-case (upper-case-p r)))
-		   r)))
-	(format nil "~a~{~a~}"
-		prefix
-		(loop :for char = (readc seq)
-		   :while (not (eq char :eos)) :collect
-		   (prog1
-		       (if (and case-changed (not frist))
-			   (format nil "-~a" (string-upcase char))
-			   (string-upcase char))
-		     (setf frist nil))))))))
+                 (let ((r (read-char seq nil :eos)))
+                   (unless (eq r :eos)
+                     (setf case-changed (and (not last-case)
+                                             (upper-case-p r))
+                           last-case (upper-case-p r)))
+                   r)))
+        (format nil "~a~{~a~}"
+                prefix
+                (loop :for char = (readc seq)
+                   :while (not (eq char :eos)) :collect
+                   (prog1
+                       (if (and case-changed (not frist))
+                           (format nil "-~a" (string-upcase char))
+                           (string-upcase char))
+                     (setf frist nil))))))))
 
 (defun parse-gl-func-name (name)
   (%parse name))
@@ -160,4 +160,4 @@
   (if (char= (aref name 0) #\[)
       (list (parse-gl-type-name (subseq name 1)) '*)
       (or (first (assocr name *glsl-type->varjo-type* :test #'equal))
-	  (error "Could not find varjo type for ~s" name))))
+          (error "Could not find varjo type for ~s" name))))

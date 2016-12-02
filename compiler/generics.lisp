@@ -53,11 +53,11 @@
 (defgeneric merge-obs (objs &key type current-line to-block
                               to-top out-vars returns multi-vals
                               stemcells out-of-scope-args flow-ids
-			      place-tree mutations node-tree))
+                              place-tree mutations node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block to-top
                                   out-vars returns multi-vals
                                   stemcells out-of-scope-args flow-ids
-				  place-tree mutations node-tree))
+                                  place-tree mutations node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
 (defgeneric push-non-implicit-function-for-dedup (code func e))
@@ -68,7 +68,7 @@
 (defgeneric get-var (var-name env))
 (defgeneric raw-ids (flow-id))
 (defgeneric add-external-function (name in-args uniforms code
-				   &optional valid-glsl-versions))
+                                   &optional valid-glsl-versions))
 (defgeneric delete-external-function (name in-args-types))
 (defgeneric record-func-usage (func env))
 (defgeneric v-name-map (env))

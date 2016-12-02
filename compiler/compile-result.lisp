@@ -3,20 +3,20 @@
 ;; {NOTE} third-party-metadata only applies to rolling-translate
 
 (defun clone-compile-result (original
-			     &key
-			       (glsl-code nil glsl-code-set)
-			       (out-vars nil out-vars-set)
-			       (stage-type nil stage-type-set)
-			       (in-args nil in-args-set)
-			       (uniforms nil uniforms-set)
-			       (implicit-uniforms nil implicit-uniforms-set)
-			       (context nil context-set)
-                   (used-external-functions nil used-external-functions-set)
-			       (used-macros nil used-macros-set)
-			       (used-compiler-macros nil used-compiler-macros-set)
-			       (ast nil ast-set)
-			       (used-symbol-macros nil used-symbol-macros-set)
-			       (third-party-metadata nil third-party-metadata-set))
+                             &key
+                               (glsl-code nil glsl-code-set)
+                               (out-vars nil out-vars-set)
+                               (stage-type nil stage-type-set)
+                               (in-args nil in-args-set)
+                               (uniforms nil uniforms-set)
+                               (implicit-uniforms nil implicit-uniforms-set)
+                               (context nil context-set)
+                               (used-external-functions nil used-external-functions-set)
+                               (used-macros nil used-macros-set)
+                               (used-compiler-macros nil used-compiler-macros-set)
+                               (ast nil ast-set)
+                               (used-symbol-macros nil used-symbol-macros-set)
+                               (third-party-metadata nil third-party-metadata-set))
   (make-instance
    'varjo-compile-result
    :glsl-code (if glsl-code-set glsl-code (glsl-code original))

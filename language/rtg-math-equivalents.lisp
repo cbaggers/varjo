@@ -60,17 +60,17 @@
   v-mat3)
 
 (v-defun m3:melm (m r c) "~a[~a, ~a]" (v-mat3 v-int v-int)
-	 v-float)
+         v-float)
 
 (v-defun m3:melm (m r c) "~a[~a, ~a]" (v-dmat3 v-int v-int)
-	 v-double)
+         v-double)
 
 
 (v-defun m3:identity () "mat3(1.0)" () v-mat3)
 (v-defun m3:0! () "mat3(0.0)" () v-mat3)
 
 (v-defun m3:from-columns (a b c) "mat3(~a, ~a, ~a)" (v-vec3 v-vec3 v-vec3)
-	 v-mat3)
+         v-mat3)
 
 ;; m4
 
@@ -81,16 +81,16 @@
   v-mat4)
 
 (v-defun m4:melm (m r c) "~a[~a, ~a]" (v-mat4 v-int v-int)
-	 v-float)
+         v-float)
 
 (v-defun m4:melm (m r c) "~a[~a, ~a]" (v-dmat4 v-int v-int)
-	 v-double)
+         v-double)
 
 (v-defun m4:identity () "mat4(1.0)" () v-mat4)
 (v-defun m4:0! () "mat4(0.0)" () v-mat4)
 
 (v-defun m4:from-columns (a b c d) "mat4(~a, ~a, ~a, ~a)"
-	 (v-vec4 v-vec4 v-vec4 v-vec4) v-mat3)
+         (v-vec4 v-vec4 v-vec4 v-vec4) v-mat3)
 
 (v-defun rtg-math.matrix4:to-mat3 (m) "mat3(~a)" (v-mat4) v-mat3)
 
