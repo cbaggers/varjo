@@ -44,3 +44,13 @@
                     (let ((z (foo y)))
                       (funcall z 10)))
                   (v! 1 2 3 4)))))))
+
+
+(glsl-code
+ (varjo.tests::compile-vert () :450
+   (labels ((bar ((a :int))
+              (* 2 a))
+            (foo ((a :int) (f (function (:int) :int)))
+              (funcall f a)))
+     (foo 10 #'(bar :int)))
+   (v! 1 2 3 4)))

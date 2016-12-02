@@ -61,6 +61,28 @@ value. "))
 
 ;;------------------------------------------------------------
 
+;; - rename v-func-val to v-function-type
+;; - make v-compile-time-value a subclass of v-type (not a mixin)
+;; - add 'value' slot to v-compile-time-value class
+;; - remove v-compile-time-value's initialize-instance method
+;; - remove the v-type from v-function-type's superclass list
+;; - change (def-v-type-class v-function ..) to (defclass v-function ..)
+;; - move v-function & v-place-function-p out of types.lisp
+;; - comment out 'funcall' special func for now
+;; - make tests pass.
+;; - modify add-function to add function-types to type-pool
+;; - make the special function 'function' return a v-function-type with
+;;   the 'value' slot populated.
+;; - remove #'%funcall-literal, just us val always
+;; - in compile-funcall.lisp modify #'compile-list-form so that the first
+;;   arg can be the name OR a code-object with function-type (and value)
+;; - modify 'funcall' special function to just compile the func arg and then
+;;   emit `(,func-code-obj ,@args)
+;; - now logic will live in compile-funcall.lisp (yay!)
+;; - get simple function calls to work again (tests 0->2 in first-class-tests)
+;; - get the 'break' in #'compile-function-taking-ctvs to fire.
+;; We are now in exciting new teritory! make a new plan
+
 (def-v-type-class v-func-val (v-type v-compile-time-value)
   ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))

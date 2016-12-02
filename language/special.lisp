@@ -491,6 +491,8 @@
                   env)))
       (values (code! :type (type-spec->type 'v-none)
                      :place-tree nil
+                     :node-tree (ast-node!
+                                 :none nil (type-spec->type 'v-none) nil env env)
                      :flow-ids nil)
               (add-function name func env)))))
 
@@ -1047,8 +1049,7 @@
        (= (length x) 2)
        (eq (first x) 'function)))
 
-;; {TODO} allow qualifying the arg types to disabiguate from
-;;       overloads. Not neccesary if only one possible
+;; {TODO} qualify the arg types to disambiguate from overloads.
 (v-defspecial function (func-name)
   :args-valid t
   :return

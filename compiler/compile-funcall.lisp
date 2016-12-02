@@ -26,16 +26,20 @@
     (break "foo ~a" func))
   (vbind (code-obj new-env)
       (cond
+        ;; special funcs
         ((v-special-functionp func) (compile-special-function func args env))
 
+        ;; funcs with multiple return values
         ((> (length (v-return-spec func)) 1)
          (compile-multi-return-function-call func-name func args env))
 
+        ;; funcs taking compile time values as arguments
         ((and (typep func 'v-user-function)
               (some λ(typep _ 'v-compile-time-value)
                     (v-argument-spec func)))
          (compile-function-taking-ctvs func-name func args env))
 
+        ;; all the other funcs :)
         (t (compile-regular-function-call func-name func args env)))
     (assert new-env)
     (values code-obj new-env)))
