@@ -37,9 +37,11 @@
   (assert (= (length args-code) (length (v-argument-spec func))))
   (let ((args (try-compile-args args-code env))
         (func-arg-types (v-argument-spec func)))
-    (assert (every (lambda (s a) (v-casts-to-p a s env))
-                   func-arg-types
-                   (mapcar #'code-type args)))
+    (assert (and
+             (= (length func-arg-types) (length args))
+             (every (lambda (s a) (v-casts-to-p a s env))
+                    func-arg-types
+                    (mapcar #'code-type args))))
     (mapcar #'cast-code args func-arg-types)))
 
 (defmethod record-func-usage ((func external-function) env)
@@ -74,7 +76,22 @@
             #'compiler-macroexpand-pass)))
 
 (defun compile-function-taking-ctvs (func-name func args env)
-  (break "We go to compile-function-taking-ctvs!"))
+  (assert (v-code func))
+  (labels ((ctv-p (x) (typep (v-type-of x) 'v-compile-time-value)))
+    (dbind (args-code body-code) (v-code func)
+      (dbind (trimmed-args hard-coded)
+          (loop :for arg-code :in args-code :for arg :in args
+             :if (ctv-p arg)
+             :collect (list (first arg-code) arg) :into h
+             :else
+             :collect arg-code :into a
+             :finally (return (list a h)))
+        (expand-and-compile-form
+         `(labels ((,func-name ,trimmed-args
+                     (let ,hard-coded
+                       ,@body-code)))
+            (,func-name ,@(remove-if #'ctv-p args)))
+         env)))))
 
 (defun compile-external-function-call (func args env)
   (copy-code (compile-list-form

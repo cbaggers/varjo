@@ -38,6 +38,9 @@
                    :mutations mutations
                    :node-tree node-tree)))
 
+(defmethod v-type-of ((obj code))
+  (code-type obj))
+
 (defun add-higher-scope-val (code-obj value)
   (copy-code code-obj
              :out-of-scope-args (cons value (out-of-scope-args code-obj))))

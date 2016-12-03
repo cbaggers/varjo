@@ -169,13 +169,26 @@
                 :name (name func)
                 :spec arg-spec)))))
 
-(defun cast-code (obj cast-to-type)
+(defmethod cast-code (obj cast-to-type)
   (if (v-type-eq (code-type obj) cast-to-type)
       (copy-code obj :type cast-to-type)
       (copy-code
        obj
        :current-line (cast-string cast-to-type obj)
        :type cast-to-type)))
+
+(defmethod cast-code (obj (cast-to-type v-function-type))
+  (let ((new-type (make-instance
+                   'v-function-type
+                   :arg-spec (v-argument-spec cast-to-type)
+                   :return-spec (v-return-spec cast-to-type)
+                   :ctv (ctv (v-type-of obj)))))
+    (if (v-type-eq (code-type obj) new-type)
+        (copy-code obj :type new-type)
+        (copy-code
+         obj
+         :current-line (cast-string new-type obj)
+         :type new-type))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
