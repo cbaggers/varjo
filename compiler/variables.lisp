@@ -4,8 +4,6 @@
 ;; GLSL Variables
 ;;----------------
 
-
-
 (defmethod v-make-value ((type v-t-type) env
                          &key (glsl-name (gensym))
                            (flow-ids (flow-id!)) function-scope
@@ -25,6 +23,8 @@
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))
 
+(defmethod v-type-of ((val v-value))
+  (v-type val))
 
 (defun add-glsl-vars (env source)
   (loop :for (restrict . vars) :in source

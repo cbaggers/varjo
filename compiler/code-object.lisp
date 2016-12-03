@@ -2,8 +2,9 @@
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
                 to-top out-vars used-types returns multi-vals stemcells
-                out-of-scope-args injected-uniforms flow-ids mutations place-tree
-                node-tree)
+                out-of-scope-args injected-uniforms flow-ids mutations
+                place-tree node-tree)
+  ;;(print out-of-scope-args)
   (assert-flow-id-singularity flow-ids)
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
@@ -19,7 +20,6 @@
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object
              :code-type (type->type-spec type)))
-
     (make-instance 'code
                    :type type
                    :current-line current-line
@@ -42,8 +42,15 @@
   (code-type obj))
 
 (defun add-higher-scope-val (code-obj value)
-  (copy-code code-obj
-             :out-of-scope-args (cons value (out-of-scope-args code-obj))))
+  (let* ((type (v-type-of value))
+         (ctv (when (typep type 'v-function-type)
+                (ctv type)))
+         (new-oos-args
+          (if ctv
+              (append (implicit-args ctv)
+                      (out-of-scope-args code-obj))
+              (cons value (out-of-scope-args code-obj)))))
+    (copy-code code-obj :out-of-scope-args new-oos-args)))
 
 (defun normalize-out-of-scope-args (args)
   (remove-duplicates args :test #'v-value-equal))
@@ -130,7 +137,8 @@
   (assert type () "type is mandatory")
   (assert (typep type 'v-t-type))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
-    (error 'flow-ids-mandatory :for :code-object))
+    (error 'flow-ids-mandatory :for :code-object
+           :code-type type))
   (code! :type type
          :current-line current-line
          :signatures (if set-sigs signatures

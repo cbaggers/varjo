@@ -30,7 +30,13 @@
         (assert (typep func 'v-function))
         (let ((args (compile-and-assert-args-for-funcall
                      func arg-forms f-env)))
-          (compile-function-call (name func) func args f-env))))))
+          (vbind (o e) (compile-function-call (name func) func args f-env)
+            (values (merge-obs (list func-code-obj o)
+                               :type (code-type o)
+                               :flow-ids (flow-ids o)
+                               :node-tree (node-tree o)
+                               :current-line (current-line o))
+                    e)))))))
 
 (defun compile-and-assert-args-for-funcall (func args-code env)
   ;; {TODO} handle and return env
@@ -81,16 +87,14 @@
     (dbind (args-code body-code) (v-code func)
       (dbind (trimmed-args hard-coded)
           (loop :for arg-code :in args-code :for arg :in args
-             :if (ctv-p arg)
-             :collect (list (first arg-code) arg) :into h
-             :else
-             :collect arg-code :into a
+             :if (ctv-p arg) :collect (list (first arg-code) arg) :into h
+             :else :collect arg-code :into a
              :finally (return (list a h)))
         (expand-and-compile-form
-         `(labels ((,func-name ,trimmed-args
-                     (let ,hard-coded
-                       ,@body-code)))
-            (,func-name ,@(remove-if #'ctv-p args)))
+         `(let ,hard-coded
+            (labels ((,func-name ,trimmed-args
+                       ,@body-code))
+              (,func-name ,@(remove-if #'ctv-p args))))
          env)))))
 
 (defun compile-external-function-call (func args env)
