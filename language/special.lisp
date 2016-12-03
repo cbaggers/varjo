@@ -404,7 +404,9 @@
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (assert body-obj)
-    (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
+    ;; can be nil in case of cvt funcs--↓↓↓
+    (let* ((merged (merge-progn (remove nil (cons-end body-obj func-def-objs))
+                                env e))
            (ast (ast-node!
                  'labels
                  (list (remove nil (mapcar λ(when _1
@@ -527,7 +529,8 @@
                                        (process-environment-for-main-labels
                                         env))))
          (body-obj (compile-form `(%return (progn ,@body)) body-env))
-         (deduped-func (dedup-function (func-dedup-key args body-obj) env))
+         (dedup-key (func-dedup-key args body-obj))
+         (deduped-func (dedup-function dedup-key env))
          (normalized-out-of-scope-args (normalize-out-of-scope-args
                                         (out-of-scope-args body-obj)))
          (implicit-args (when allow-implicit-args

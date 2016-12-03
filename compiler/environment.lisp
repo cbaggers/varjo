@@ -14,10 +14,8 @@
   (push (cons key func) (slot-value (get-base-env e) 'function-dedup)))
 
 (defmethod dedup-function (key (e environment))
-  nil
-  ;; (cdr (find key (slot-value (get-base-env e) 'function-dedup)
-  ;;            :key #'car :test #'equal))
-  )
+  (cdr (find key (slot-value (get-base-env e) 'function-dedup)
+             :key #'car :test #'equal)))
 
 (defmethod func-dedup-key (args body-obj)
   (let* ((original-arg-names (mapcar #'first args))
@@ -34,6 +32,7 @@
                       (:get (list :get (map-name (first args))))
                       (:get-stemcell (first args))
                       (:literal (first args))
+                      (:code-section (first args))
                       (t (error "invalid node kind ~s found in result"
                                 kind))))
                    (v-function (name kind))
