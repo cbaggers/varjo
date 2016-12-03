@@ -115,11 +115,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defun compile-make-var (name-string type flow-ids)
-  (make-code-obj type name-string :flow-ids flow-ids :node-tree :ignored))
-
-;;----------------------------------------------------------------------
-
 (defun typify-code (code-obj &optional new-value)
   (let* ((prefixed-line (prefix-type-declaration code-obj))
          (current-line
@@ -147,10 +142,13 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-let (name type-spec value-form env &optional glsl-name flow-ids)
-  (let* ((value-obj (when value-form (compile-form value-form env)))
-         (glsl-name (or glsl-name (lisp-name->glsl-name name env))))
-
-    (let ((type-obj (when type-spec (type-spec->type type-spec))))
+  (labels ((compile-make-var (name-string type flow-ids)
+             (make-code-obj type name-string
+                            :flow-ids flow-ids :node-tree :ignored)))
+    ;;
+    (let* ((value-obj (when value-form (compile-form value-form env)))
+           (glsl-name (or glsl-name (lisp-name->glsl-name name env)))
+           (type-obj (when type-spec (type-spec->type type-spec))))
       (%validate-var-types name type-obj value-obj)
       (let* ((flow-ids
               (or flow-ids (when value-obj (flow-ids value-obj)) (flow-id!)))
@@ -162,13 +160,18 @@
                                                  flow-ids)
                                value-obj)
                   (typify-code (compile-make-var glsl-name type-obj
-                                                 (flow-id!))))))
+                                                 (flow-id!)))))
+             (to-block
+              (if (and value-obj (typep (v-type-of value-obj)
+                                        'v-compile-time-value))
+                  (to-block let-obj)
+                  (cons-end (current-line (end-line let-obj))
+                            (to-block let-obj)))))
         (values
          (copy-code let-obj
                     :type (type-spec->type 'v-none)
                     :current-line nil
-                    :to-block (cons-end (current-line (end-line let-obj))
-                                        (to-block let-obj))
+                    :to-block to-block
                     :multi-vals nil
                     :place-tree nil
                     :flow-ids flow-ids

@@ -400,15 +400,16 @@
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
-           (ast (ast-node! 'labels
-                           (list (remove nil (mapcar λ(when _1
-                                                        (cons-end
-                                                         (node-tree _1)
-                                                         (subseq _ 0 2)))
-                                                     definitions
-                                                     func-def-objs))
-                                 (node-tree body-obj))
-                           (code-type body-obj) (flow-ids merged) env env)))
+           (ast (ast-node!
+                 'labels
+                 (list (remove nil (mapcar λ(when _1
+                                              (cons-end
+                                               (node-tree _1)
+                                               (subseq _ 0 2)))
+                                           definitions
+                                           func-def-objs))
+                       (node-tree body-obj))
+                 (code-type body-obj) (flow-ids merged) env env)))
       (values (copy-code merged :node-tree ast)
               e))))
 
@@ -425,15 +426,16 @@
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
-           (ast (ast-node! 'flet
-                           (list (remove nil (mapcar λ(when _1
-                                                        (cons-end
-                                                         (node-tree _1)
-                                                         (subseq _ 0 2)))
-                                                     definitions
-                                                     func-def-objs))
-                                 (node-tree body-obj))
-                           (code-type body-obj) (flow-ids merged) env env)))
+           (ast (ast-node!
+                 'flet
+                 (list (remove nil (mapcar λ(when _1
+                                              (cons-end
+                                               (node-tree _1)
+                                               (subseq _ 0 2)))
+                                           definitions
+                                           func-def-objs))
+                       (node-tree body-obj))
+                 (code-type body-obj) (flow-ids merged) env env)))
       (values (copy-code merged :node-tree ast)
               e))))
 
@@ -452,16 +454,17 @@
     (let* ((merged (merge-progn (cons-end body-obj (remove nil func-def-objs))
                                 env
                                 pruned-starting-env))
-           (ast (ast-node! 'labels-no-implicit
-                           (list (remove nil (mapcar λ(if _1
-                                                          (cons-end
-                                                           (node-tree _1)
-                                                           (subseq _ 0 2))
-                                                          _)
-                                                     definitions
-                                                     func-def-objs))
-                                 (node-tree body-obj))
-                           (code-type body-obj) (flow-ids merged) env env)))
+           (ast (ast-node!
+                 'labels-no-implicit
+                 (list (remove nil (mapcar λ(if _1
+                                                (cons-end
+                                                 (node-tree _1)
+                                                 (subseq _ 0 2))
+                                                _)
+                                           definitions
+                                           func-def-objs))
+                       (node-tree body-obj))
+                 (code-type body-obj) (flow-ids merged) env env)))
       (values (copy-code merged :node-tree ast)
               pruned-starting-env))))
 
@@ -491,8 +494,10 @@
                   env)))
       (values (code! :type (type-spec->type 'v-none)
                      :place-tree nil
-                     :node-tree (ast-node!
-                                 :none nil (type-spec->type 'v-none) nil env env)
+                     :node-tree (ast-node! :code-section
+                                           `(progn ,@body)
+                                           (type-spec->type 'v-none)
+                                           nil env env)
                      :flow-ids nil)
               (add-function name func env)))))
 
@@ -1048,7 +1053,9 @@
 (v-defspecial function (func-name)
   :args-valid t
   :return
-  (let* ((func (find-function-by-literal func-name env))
+  (let* ((func (etypecase func-name
+                 (symbol (%function-1 func-name env))
+                 (list (find-function-by-literal func-name env))))
          (type (v-type-of func))
          (flow-id (flow-id!)))
     (setf (ctv type) func) ;; make the func the compile-time-val in this type
@@ -1060,3 +1067,9 @@
                                   type flow-id nil nil)
             :flow-ids flow-id)
      env)))
+
+(defun %function-1 (func-name env)
+  (let ((funcs (get-function-by-name func-name env)))
+    (if (= (length funcs) 1)
+        (first funcs)
+        (error "dfkjhdfoidfh garbl warrr"))))

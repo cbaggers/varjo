@@ -252,6 +252,7 @@ context is implicit"))
                        (:get (first args))
                        (:get-stemcell (first args))
                        (:literal (first args))
+                       (:code-section args)
                        (t (error "invalid node kind ~s found in result"
                                  kind)))
                      `(,kind ,@(mapcar walk args)))))

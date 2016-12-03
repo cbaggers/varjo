@@ -61,9 +61,10 @@
          :node-tree node-tree))
 
 (defun make-none-ob ()
-  (make-code-obj
-   (type-spec->type :none) nil
-   :node-tree (ast-node! (type-spec->type :none) nil :none nil nil nil)))
+  (let ((none-type (type-spec->type :none)))
+    (make-code-obj
+     none-type nil
+     :node-tree (ast-node! :none nil none-type nil nil nil))))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
