@@ -10,12 +10,35 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
-(defmethod push-non-implicit-function-for-dedup (code func (e environment))
-  (push (cons code func) (slot-value (get-base-env e) 'function-dedup)))
+(defmethod push-non-implicit-function-for-dedup (key func (e environment))
+  (push (cons key func) (slot-value (get-base-env e) 'function-dedup)))
 
-(defmethod dedup-function (code (e environment))
-  (cdr (find code (slot-value (get-base-env e) 'function-dedup)
-             :key #'car :test #'equal)))
+(defmethod dedup-function (key (e environment))
+  nil
+  ;; (cdr (find key (slot-value (get-base-env e) 'function-dedup)
+  ;;            :key #'car :test #'equal))
+  )
+
+(defmethod func-dedup-key (args body-obj)
+  (let* ((original-arg-names (mapcar #'first args))
+         (arg-names (loop :for i :below (length args) :collect i))
+         (args (mapcar λ(cons _ (rest _1)) arg-names args))
+         (name-map (mapcar #'cons original-arg-names arg-names)))
+    (labels ((map-name (x)
+               (or (assocr x name-map) x))
+             (visitor (node walk)
+               (with-slots (kind args) node
+                 (typecase kind
+                   (keyword
+                    (case kind
+                      (:get (list :get (map-name (first args))))
+                      (:get-stemcell (first args))
+                      (:literal (first args))
+                      (t (error "invalid node kind ~s found in result"
+                                kind))))
+                   (v-function (name kind))
+                   (otherwise `(,kind ,@(mapcar walk args)))))))
+      (list args (walk-ast #'visitor body-obj)))))
 
 (defmethod used-external-functions ((e environment))
   (slot-value (get-base-env e) 'used-external-functions))
