@@ -219,6 +219,13 @@
   (declare (ignore env a b))
   t)
 
+(defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type) env)
+  (when (and (every #'v-type-eq (v-argument-spec from-type)
+                    (v-argument-spec to-type))
+             (every #'v-type-eq (v-return-spec from-type)
+                    (v-return-spec to-type)))
+    to-type))
+
 (defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
   (declare (ignore env from-type))
   to-type)

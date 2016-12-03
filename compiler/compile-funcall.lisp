@@ -25,31 +25,28 @@
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
     (assert (eq fc 'funcall))
-    (vbind (func-code-obj f-env) (compile-form func-form)
+    (vbind (func-code-obj f-env) (compile-form func-form env)
+      (let ((func (ctv (code-type func-code-obj))))
+        (assert (typep func 'v-function))
+        (let ((args (compile-and-assert-args-for-funcall
+                     func arg-forms f-env)))
+          (compile-function-call (name func) func args f-env))))))
 
-
-
-
-
-
-
-           (error "&&&& HERE &&&&")
-
-
-
-
-
-
-
-           )))
+(defun compile-and-assert-args-for-funcall (func args-code env)
+  ;; {TODO} handle and return env
+  (assert (= (length args-code) (length (v-argument-spec func))))
+  (let ((args (try-compile-args args-code env))
+        (func-arg-types (v-argument-spec func)))
+    (assert (every (lambda (s a) (v-casts-to-p a s env))
+                   func-arg-types
+                   (mapcar #'code-type args)))
+    (mapcar #'cast-code args func-arg-types)))
 
 (defmethod record-func-usage ((func external-function) env)
   (push func (used-external-functions env))
   func)
 
 (defun compile-function-call (func-name func args env)
-  (when (eq func-name 'foo)
-    (break "foo ~a" func))
   (vbind (code-obj new-env)
       (cond
         ;; special funcs

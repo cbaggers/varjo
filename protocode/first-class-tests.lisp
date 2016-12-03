@@ -9,7 +9,7 @@
    (v-compile
     () :450
     :vertex '(()
-              (funcall #'sin 10)
+              (funcall #'(sin :float) 10)
               (v! 1 2 3 4)))))
 
 

@@ -1057,34 +1057,6 @@
             :current-line (format nil "<(function ~a)>" (name func))
             :used-types (list type)
             :node-tree (ast-node! 'function (list func-name)
-                                  func flow-id nil nil)
+                                  type flow-id nil nil)
             :flow-ids flow-id)
      env)))
-
-(v-defspecial funcall (function &rest params)
-  :args-valid t
-  :return
-  (%funcall-val function params env))
-
-
-;; (defun %funcall-val (function params env)
-;;   ;; {TODO} how should we handle compiler-macros?
-;;   (assert (symbolp function))
-;;   (let ((var (get-var function env)))
-;;     (unless var
-;;       (error "No var named ~a found" function))
-;;     (let ((v-type (v-type var)))
-;;       (etypecase v-type
-;;         (v-function
-;;          (let ((args (compile-and-assert-args-for-func v-type params env)))
-;;            (compile-function-call (name v-type) v-type args env)))
-;;         (v-func-val (error "Called a function signature instead of a function"))))))
-
-;; (defun compile-and-assert-args-for-func (func args-code env)
-;;   (assert (= (length args-code) (length (v-argument-spec func))))
-;;   (let ((args (try-compile-args args-code env))
-;;         (func-arg-types (v-argument-spec func)))
-;;     (assert (every (lambda (s a) (v-casts-to a s env))
-;;                    func-arg-types
-;;                    (mapcar #'code-type args)))
-;;     (mapcar #'cast-code args func-arg-types)))

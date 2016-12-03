@@ -15,15 +15,15 @@
 ;; - √ make the special function 'function' return a v-function-type with
 ;;     the 'value' slot populated.
 ;; - √ remove #'%funcall-literal, just use val always
-;; - in compile-funcall.lisp modify #'compile-list-form so that the first
-;;   arg can be the name OR a code-object with function-type (and value)
-;; - modify 'funcall' special function to just compile the func arg and then
-;;   emit `(,func-code-obj ,@args)
-;; - now logic will live in compile-funcall.lisp (yay!)
-;; - get simple function calls to work again (tests 0->2 in first-class-tests)
-;; - get the 'break' in #'compile-function-taking-ctvs to fire.
+;; - X in compile-funcall.lisp modify #'compile-list-form so that the first
+;  ;   arg can be the name OR a code-object with function-type (and value)
+;; - X modify 'funcall' special function to just compile the func arg and then
+;;     emit `(,func-code-obj ,@args)
+;; - √ now logic will live in compile-funcall.lisp (yay!)
+;; - √ get simple function calls to work again (tests 0->2 in first-class-tests)
+;; - √ get the 'break' in #'compile-function-taking-ctvs to fire.
+;;
 ;; We are now in exciting new teritory! make a new plan
-;; - make v-type-of work for v-values & code-objects
 
 (defclass v-function ()
   ((versions :initform nil :initarg :versions :accessor v-versions)
