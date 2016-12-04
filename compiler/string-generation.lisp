@@ -1,4 +1,5 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
 (defun gen-number-string (number type)
   (typecase type
@@ -23,34 +24,37 @@
                                  (length implicit-args))
              :collect "~a")))
 
-(defun gen-implicit-arg-pairs (implicit-args)
+(defun gen-implicit-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `(,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+     `(nil ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
 
-(defun gen-arg-string (arg-pairs &optional out-pairs)
-  (let ((arg-string (format nil "~{~{~a ~a~}~^,~^ ~}" arg-pairs)))
+(defun gen-in-out-arg-tripples (implicit-args)
+  (loop :for a :in implicit-args :collect
+     `("inout" ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+
+(defun gen-arg-string (arg-tripples &optional out-pairs)
+  (let ((arg-string (format nil "~{~{~@[~a ~]~a ~a~}~^,~^ ~}" arg-tripples)))
     (if out-pairs
         (if (> (length arg-string) 0)
             (format nil "~a, ~{~{out ~a ~a~}~^,~^ ~}" arg-string out-pairs)
             (format nil "~{~{out ~a ~a~}~^,~^ ~}" out-pairs))
         arg-string)))
 
-(defun gen-glsl-function-body-string (name args type glsl-string)
-  (format nil "~a ~a(~a) {~%~a~%}~%"
-          (v-glsl-string type)
-          (string-downcase (string name))
-          (gen-arg-string args)
-          glsl-string))
-
-(defun gen-function-signature (name args out-args return-types implicit-args)
-  (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
+(defun gen-function-signature (name args out-args return-types implicit-args
+                               in-out-args)
+  (let ((args (append (mapcar λ(cons nil _) args)
+                      (gen-implicit-arg-tripples implicit-args)
+                      (gen-in-out-arg-tripples in-out-args))))
     (format nil "~a ~a(~a);"
             (v-glsl-string return-types)
             name
             (gen-arg-string args out-args))))
 
-(defun gen-function-body-string (name args out-args type body-obj implicit-args)
-  (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
+(defun gen-function-body-string (name args out-args type body-obj implicit-args
+                                 in-out-args)
+  (let ((args (append (mapcar λ(cons nil _) args)
+                      (gen-implicit-arg-tripples implicit-args)
+                      (gen-in-out-arg-tripples in-out-args))))
     (format nil "~a ~a(~a) {~%~{~a~%~}~{~a~%~}}~%"
             (v-glsl-string type)
             (string name)
