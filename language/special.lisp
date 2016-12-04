@@ -284,6 +284,7 @@
                                          (flow-ids (multi-val-value c)))
                                        (multi-vals code-obj))))
              (flow-ids code-obj))))
+    ;; {TODO} why not 'end-line' here? who is doing that?
     (copy-code
      code-obj :type (type-spec->type 'v-void)
      :current-line (format nil "return ~a" (current-line code-obj))
@@ -1090,7 +1091,7 @@
     (setf (ctv type) func) ;; make the func the compile-time-val in this type
     (values
      (code! :type type
-            :current-line (format nil "<(function ~a)>" (name func))
+            :current-line nil
             :used-types (list type)
             :node-tree (ast-node! 'function (list func-name)
                                   type flow-id nil nil)
