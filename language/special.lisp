@@ -570,16 +570,26 @@
                              :for name = (v-glsl-name (multi-val-value mval)) :collect
                              `(,(v-glsl-string (v-type (multi-val-value mval)))
                                 ,name)))
+           (in-out-args
+            ;; {TODO} handle multiple returns
+            (when (and (typep type 'v-function-type)
+                       (ctv type)
+                       (implicit-args (ctv type)))
+              (let ((closure (ctv type)))
+                (print
+                 (append (in-out-args closure)
+                         (implicit-args closure))))))
            (sigs (if mainp
                      (signatures body-obj)
                      (cons (gen-function-signature glsl-name arg-pairs
                                                    out-arg-pairs type
-                                                   implicit-args)
+                                                   implicit-args
+                                                   in-out-args)
                            (signatures body-obj))))
            (top (cons-end (gen-function-body-string
                            glsl-name (unless mainp arg-pairs)
                            out-arg-pairs type body-obj
-                           implicit-args)
+                           implicit-args in-out-args)
                           (to-top body-obj)))
            (func (func-spec->user-function
                   (v-make-f-spec name
@@ -592,6 +602,7 @@
                                  (cons type multi-return-vars)
                                  :glsl-name glsl-name
                                  :implicit-args implicit-args
+                                 :in-out-args in-out-args
                                  :flow-ids (flow-ids body-obj)
                                  :in-arg-flow-ids in-arg-flow-ids)
                   env))

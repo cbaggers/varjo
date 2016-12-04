@@ -153,20 +153,21 @@
       (let* ((flow-ids
               (or flow-ids (when value-obj (flow-ids value-obj)) (flow-id!)))
              (let-obj
-              (if value-obj
-                  (typify-code (compile-make-var glsl-name
-                                                 (or type-obj
-                                                     (code-type value-obj))
-                                                 flow-ids)
-                               value-obj)
-                  (typify-code (compile-make-var glsl-name type-obj
-                                                 (flow-id!)))))
+              (cond
+                ((and value-obj (typep (v-type-of value-obj)
+                                       'v-compile-time-value))
+                 value-obj)
+                (value-obj
+                 (typify-code (compile-make-var glsl-name
+                                                (or type-obj
+                                                    (code-type value-obj))
+                                                flow-ids)
+                              value-obj))
+                (t (typify-code (compile-make-var glsl-name type-obj
+                                                  (flow-id!))))))
              (to-block
-              (if (and value-obj (typep (v-type-of value-obj)
-                                        'v-compile-time-value))
-                  (to-block let-obj)
-                  (cons-end (current-line (end-line let-obj))
-                            (to-block let-obj)))))
+              (cons-end (current-line (end-line let-obj))
+                        (to-block let-obj))))
         (values
          (copy-code let-obj
                     :type (type-spec->type 'v-none)
