@@ -87,7 +87,7 @@
                                   fake-slot-name
                                   nil ;; {TODO} Must be context
                                   (list fake-type)
-                                  slot-type :v-place-index nil) env) env)
+                                  (list slot-type) :v-place-index nil) env) env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (%add-var in-var-name
@@ -112,7 +112,7 @@
                                   fake-slot-name
                                   nil ;; {TODO} Must be context
                                   (list fake-type)
-                                  slot-type :v-place-index nil) env) env)
+                                  (list slot-type) :v-place-index nil) env) env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (%add-var uniform-name
