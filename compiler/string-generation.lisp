@@ -117,7 +117,8 @@
             (current-line condition-obj)
             (current-line update-obj)
             (remove-empty (mapcat #'indent prog-strs))
-            (remove-empty (indent (current-line body-obj))))))
+            (remove-empty (when (current-line body-obj)
+                            (indent (current-line body-obj)))))))
 
 (defun gen-switch-string (test-obj keys clause-body-objs
                           &optional (default-symb 'default))
