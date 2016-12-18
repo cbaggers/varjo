@@ -106,7 +106,6 @@
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
-   (function-code-cache :initform (make-hash-table) :reader v-code-cache)
    (used-external-functions :initform nil :initarg :used-external-functions)
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)

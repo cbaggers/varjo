@@ -55,9 +55,6 @@
 (defmethod v-iuniforms ((e environment))
   (v-iuniforms (get-base-env e)))
 
-(defmethod v-code-cache ((env environment))
-  (v-code-cache (get-base-env env)))
-
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (get-base-env env)))
 
