@@ -245,6 +245,7 @@
                              (used-external-functions env))
    :used-symbol-macros (remove-duplicates (used-symbol-macros env))
    :used-macros (remove-duplicates (used-macros env))
+   :func-defs-glsl (func-defs-glsl env)
    :used-compiler-macros (remove-duplicates (used-compiler-macros env))))
 
 ;;----------------------------------------------------------------------
@@ -505,7 +506,6 @@ The full list: ~s
     (setf code
 	  (copy-code
 	   code
-	   :to-top (remove-duplicates (to-top code) :test #'equal)
 	   :signatures (remove-duplicates (signatures code) :test #'equal)))
     (setf (used-types post-proc-obj)
 	  (remove-duplicates (mapcar #'v-signature (used-types post-proc-obj))

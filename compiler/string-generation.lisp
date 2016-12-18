@@ -193,7 +193,7 @@
 				  (mapcar #'last1 (uniforms post-proc-obj))
 				  (mapcar #'third (stemcells post-proc-obj)))
 		     (signatures code)
-		     (to-top code))
+		     (func-defs-glsl post-proc-obj))
 	       :if part :collect part))))
 
 ;;----------------------------------------------------------------------

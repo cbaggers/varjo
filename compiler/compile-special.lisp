@@ -102,7 +102,6 @@
 	     :to-block (append (mapcat #'to-block code-objs)
 			       (mapcar (lambda (_) (current-line (end-line _)))
 				       code-objs))
-	     :to-top (mapcat #'to-top code-objs)
 	     :flow-ids nil
 	     :node-tree :ignored))
 
@@ -131,15 +130,12 @@
 	      (flow-ids new-value)
 	      (flow-ids code-obj)))
 	 (to-block (when new-value
-		     (to-block new-value)))
-	 (to-top (when new-value
-		   (to-top new-value))))
+		     (to-block new-value))))
     (copy-code code-obj
 	       :type (code-type code-obj)
 	       :current-line current-line
 	       :flow-ids flow-ids
 	       :to-block to-block
-	       :to-top to-top
 	       :node-tree :ignored
 	       :multi-vals nil
 	       :place-tree nil)))
