@@ -100,10 +100,10 @@ context is implicit"))
 	 (null (ast-flow-id-origin node)))))))
 
 (defmethod val-origins ((node ast-node) &optional error-on-missingp)
-  (let ((r (slot-value node 'val-origins)))
-    (labels ((get-seen (raw-id errorp)
-	       (or (gethash raw-id r)
-		   (when errorp
+  (let ((origins-dict (slot-value node 'val-origins)))
+    (labels ((get-seen (raw-id)
+	       (or (gethash raw-id origins-dict)
+		   (when error-on-missingp
 		     (error "Could not find origin for ~s" raw-id))))
 
 	     (f-origin (val-id fcall-node)
@@ -111,16 +111,18 @@ context is implicit"))
 		      (flow-result (flow-ids func)))
 		 (if (m-flow-id-p flow-result)
 		     (let ((return-pos (slot-value val-id 'return-pos)))
-		       (mapcar λ(get-seen (slot-value _ 'val) t)
+		       (mapcar λ(or (get-seen (slot-value _ 'val))
+                                    fcall-node)
 			       (ids (nth return-pos
 					 (m-value-ids flow-result)))))
-		     (mapcar λ(get-seen (slot-value _ 'val) t)
-		       (ids flow-result)))))
+		     (mapcar λ(or (get-seen (slot-value _ 'val))
+                                  fcall-node)
+                             (ids flow-result)))))
 
 	     (per-id (val-id node)
 	       (let ((raw (slot-value val-id 'val)))
-		 (or (get-seen raw error-on-missingp)
-		     (setf (gethash raw r)
+		 (or (get-seen raw)
+		     (setf (gethash raw origins-dict)
 			   (if (typep (ast-kind node) 'v-user-function)
 			       (f-origin val-id node)
 			       node)))))
@@ -131,9 +133,9 @@ context is implicit"))
 	     (get-origins (node)
 	       (mapcar λ(per-flow-id _ node) (listify (ast-flow-id node)))))
       (flatten
-       (typecase r
-	  (hash-table (get-origins node))
-	  (null (ast-val-origin node)))))))
+       (typecase origins-dict
+         (hash-table (get-origins node))
+         (null (ast-val-origin node)))))))
 
 
 (defmethod flow-ids ((node ast-node))

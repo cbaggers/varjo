@@ -1,7 +1,7 @@
 (in-package :varjo)
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
-		to-top out-vars used-types returns multi-vals stemcells
+		out-vars used-types returns multi-vals stemcells
 		out-of-scope-args injected-uniforms flow-ids mutations place-tree
 		node-tree)
   (assert-flow-id-singularity flow-ids)
@@ -24,7 +24,6 @@
 		   :current-line current-line
 		   :signatures signatures
 		   :to-block to-block
-		   :to-top to-top
 		   :out-vars out-vars
 		   :returns returns
 		   :used-types used-types
@@ -69,7 +68,6 @@
                         (current-line nil set-current-line)
                         (signatures nil set-sigs)
                         (to-block nil set-block)
-                        (to-top nil set-top)
                         (out-vars nil set-out-vars)
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
@@ -89,7 +87,6 @@
 			     (current-line code-obj))
 	   :signatures (if set-sigs signatures (signatures code-obj))
 	   :to-block (if set-block to-block (remove nil (to-block code-obj)))
-	   :to-top (if set-top to-top (remove nil (to-top code-obj)))
 	   :out-vars (if set-out-vars out-vars (out-vars code-obj))
 	   :returns (listify (if set-returns returns (returns code-obj)))
 	   :used-types (used-types code-obj)
@@ -111,7 +108,6 @@
                         current-line
                         (signatures nil set-sigs)
                         (to-block nil set-block)
-                        (to-top nil set-top)
                         (out-vars nil set-out-vars)
                         (returns nil set-returns)
                         multi-vals
@@ -130,7 +126,6 @@
 			 (mapcat #'signatures objs))
 	 :to-block (if set-block to-block
 		       (mapcat #'to-block objs))
-	 :to-top (if set-top to-top (mapcat #'to-top objs))
 	 :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
 	 :returns (listify (if set-returns returns (merge-returns objs)))
 	 :used-types (mapcar #'used-types objs)

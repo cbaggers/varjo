@@ -532,11 +532,10 @@
 						   (when allow-implicit-args
 						     implicit-args))
 			   (signatures body-obj))))
-	   (top (cons-end (gen-function-body-string
+           (func-glsl-def (gen-function-body-string
 			   glsl-name (unless mainp arg-pairs)
 			   out-arg-pairs type body-obj
-			   (when allow-implicit-args implicit-args))
-			  (to-top body-obj)))
+			   (when allow-implicit-args implicit-args)))
 	   (func (func-spec->user-function
 		  (v-make-f-spec name
 				 (gen-function-transform
@@ -553,13 +552,15 @@
 				 :in-arg-flow-ids in-arg-flow-ids)
 		  env))
 	   (final-env (add-function name func env)))
-      (unless allow-implicit-args
-	(push-non-implicit-function-for-dedup `(,args ,body) func env))
+      (if allow-implicit-args
+          (push-non-implicit-function-for-dedup
+           (gensym) func func-glsl-def env)
+          (push-non-implicit-function-for-dedup
+           `(,args ,body) func func-glsl-def env))
       (values (copy-code body-obj
 			 :type (type-spec->type 'v-none)
 			 :current-line nil
 			 :signatures sigs
-			 :to-top top
 			 :to-block nil
 			 :returns nil
 			 :out-vars (out-vars body-obj)
