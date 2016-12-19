@@ -289,15 +289,6 @@
        (v! 0 0 0 0)))))
 
 (5am:test build-27
-  (finishes-p
-   (compile-vert () :450
-     (let* ((y 10)
-            (fn (labels ((test ((x :int)) (* y x)))
-                  #'test)))
-       (funcall fn 10)
-       (v! 0 0 0 0)))))
-
-(5am:test build-28
   (glsl-doesnt-contain-p "FN;"
     (compile-vert () :450
       (let ((fn (labels ((test ((x :int)) x))
@@ -305,7 +296,7 @@
         fn
         (v! 0 0 0 0)))))
 
-(5am:test build-29
+(5am:test build-28
   (glsl-doesnt-contain-p "FN;"
     (compile-vert () :450
       (let ((fn (labels ((test ((x :int)) x))
@@ -313,4 +304,12 @@
         (labels ((foo ((ffn (function (:int) :int)))
                    (funcall ffn 10)))
           (foo fn))
+        (v! 0 0 0 0)))))
+
+(5am:test build-29
+  (signals varjo-conditions:closures-not-supported
+    (varjo.tests::compile-vert () :450
+      (let* ((y 10)
+             (fn (labels ((test ((x :int)) (* y x)))
+                   #'test)))
         (v! 0 0 0 0)))))

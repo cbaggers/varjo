@@ -134,6 +134,15 @@
            :loop-flow-analysis-failure
            :invalid-env-vars
            :values-safe-wasnt-safe
+           :empty-progn
+           :name-clash
+           :name-mismatch
+           :function-with-no-return-type
+           :external-function-invalid-in-arg-types
+           :invalid-special-function-arg-spec
+           :ctv-mixin-error
+           :closures-not-supported
+
 
            ;; restarts
            :setq-supply-alternate-type

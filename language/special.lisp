@@ -1088,6 +1088,8 @@
                  (list (find-function-by-literal func-name env))))
          (type (v-type-of func))
          (flow-id (flow-id!)))
+    (when (implicit-args func)
+      (error 'closures-not-supported :func func-name))
     (setf (ctv type) func) ;; make the func the compile-time-val in this type
     (values
      (code! :type type

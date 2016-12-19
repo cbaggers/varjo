@@ -70,6 +70,11 @@
               (v-t-type (type-of (first return-spec)))
               (otherwise return-spec)))))
 
+(defun v-closure-p (type)
+  (and (typep type 'v-function-type)
+       (ctv type)
+       (implicit-args (ctv type))))
+
 ;;------------------------------------------------------------
 
 (def-v-type-class v-stemcell (v-type) ())
