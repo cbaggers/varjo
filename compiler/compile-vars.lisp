@@ -2,14 +2,16 @@
 (in-readtable fn:fn-reader)
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope env)
-  (let ((code-obj (make-code-obj (v-type v-value)
-                                 (gen-variable-string var-name v-value)
-                                 :flow-ids (flow-ids v-value)
-                                 :place-tree `((,var-name ,v-value))
-                                 :node-tree (ast-node! :get var-name
-                                                       (v-type v-value)
-                                                       (flow-ids v-value)
-                                                       env env))))
+  (let* ((var-type (v-type v-value))
+         (code-obj (make-code-obj var-type
+                                  (unless (typep var-type 'v-compile-time-value)
+                                    (gen-variable-string var-name v-value))
+                                  :flow-ids (flow-ids v-value)
+                                  :place-tree `((,var-name ,v-value))
+                                  :node-tree (ast-node! :get var-name
+                                                        var-type
+                                                        (flow-ids v-value)
+                                                        env env))))
     (if from-higher-scope
         (add-higher-scope-val code-obj v-value)
         code-obj)))

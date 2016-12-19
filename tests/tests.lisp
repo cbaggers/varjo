@@ -34,6 +34,14 @@
 (defmacro finishes-p (form)
   `(is (typep ,form 'varjo-compile-result)))
 
+(defmacro glsl-contains-p (regex &body form)
+  (assert (= 1 (length form)))
+  `(is (cl-ppcre:all-matches ,regex (glsl-code ,(first form)))))
+
+(defmacro glsl-doesnt-contain-p (regex &body form)
+  (assert (= 1 (length form)))
+  `(is (null (cl-ppcre:all-matches ,regex (glsl-code ,(first form))))))
+
 ;;------------------------------------------------------------
 
 (5am:def-suite test-all)
@@ -262,3 +270,47 @@
                         f (min f (dot z z)))))
            (setf f (+ 1.0 (/ (log f) 16)))
            (v! f (* f f) (* f f f ) 1.0))))))
+
+;;------------------------------------------------------------
+
+(5am:test build-25
+  (finishes-p
+   (compile-vert () :450
+     (let ((fn (labels ((test ((x :int)) x))
+                 #'test)))
+       (v! 0 0 0 0)))))
+
+(5am:test build-26
+  (finishes-p
+   (compile-vert () :450
+     (let ((fn (labels ((test ((x :int)) x))
+                 #'test)))
+       (funcall fn 10)
+       (v! 0 0 0 0)))))
+
+(5am:test build-27
+  (finishes-p
+   (compile-vert () :450
+     (let* ((y 10)
+            (fn (labels ((test ((x :int)) (* y x)))
+                  #'test)))
+       (funcall fn 10)
+       (v! 0 0 0 0)))))
+
+(5am:test build-28
+  (glsl-doesnt-contain-p "FN;"
+    (compile-vert () :450
+      (let ((fn (labels ((test ((x :int)) x))
+                  #'test)))
+        fn
+        (v! 0 0 0 0)))))
+
+(5am:test build-29
+  (glsl-doesnt-contain-p "FN;"
+    (compile-vert () :450
+      (let ((fn (labels ((test ((x :int)) x))
+                  #'test)))
+        (labels ((foo ((ffn (function (:int) :int)))
+                   (funcall ffn 10)))
+          (foo fn))
+        (v! 0 0 0 0)))))
