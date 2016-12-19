@@ -313,3 +313,26 @@
              (fn (labels ((test ((x :int)) (* y x)))
                    #'test)))
         (v! 0 0 0 0)))))
+
+(5am:test build-30
+  (signals varjo-conditions:cross-scope-mutate
+    (varjo.tests::compile-vert () :450
+      (let* ((y 10)
+             (fn (labels ((test ((x :int))
+                            (setf y 2)
+                            x))
+                   #'test)))
+        (funcall fn 10)
+        (v! 0 0 0 0)))))
+
+(5am:test build-31
+  (signals varjo-conditions:cross-scope-mutate
+    (varjo.tests::compile-vert () :450
+      (let* ((y 10)
+             (fn (labels ((test ((x :int)) x))
+                   #'test)))
+        (labels ((foo ((ffn (function (:int) :int)))
+                   (setf y 2)
+                   (funcall ffn 10)))
+          (foo fn))
+        (v! 0 0 0 0)))))
