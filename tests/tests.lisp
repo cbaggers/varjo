@@ -336,3 +336,12 @@
                    (funcall ffn 10)))
           (foo fn))
         (v! 0 0 0 0)))))
+
+(5am:test build-32
+  (signals varjo-conditions:symbol-unidentified
+    (varjo.tests::compile-vert () :450
+      (labels ((foo ((ffn (function (:int) :int)))
+                 (funcall ffn y)))
+        (let ((y 10))
+          (foo (lambda ((a :int)) a))))
+      (v! 0 0 0 0))))
