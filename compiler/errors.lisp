@@ -384,3 +384,18 @@ passing these around as first class objects.
 
 Sorry for the odd limitation, this will be fixed in a future version."
   func)
+
+(deferror cannot-establish-exact-function (:error-type varjo-critical-error)
+    (funcall-form)
+    "Varjo: Could not establish the exact function when compiling:
+
+~s
+
+Because first class functions don't exist in GLSL, Varjo needs to be able to
+work out what function is going to be called at compile time. In this case that
+was not possible.
+
+Usually Varjo should throw a more descriptive error earlier in the compile
+process so if you have time please report this on github. That way we can try
+and detect these cases more accurately and hopefully provide better error
+messages." funcall-form)

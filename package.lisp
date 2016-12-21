@@ -142,7 +142,7 @@
            :invalid-special-function-arg-spec
            :ctv-mixin-error
            :closures-not-supported
-
+           :cannot-establish-exact-function
 
            ;; restarts
            :setq-supply-alternate-type

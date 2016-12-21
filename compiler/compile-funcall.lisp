@@ -27,7 +27,8 @@
     (assert (eq fc 'funcall))
     (vbind (func-code-obj f-env) (compile-form func-form env)
       (let ((func (ctv (code-type func-code-obj))))
-        (assert (typep func 'v-function))
+        (assert (typep func 'v-function) () 'cannot-establish-exact-function
+                :funcall-form code)
         (let ((args (compile-and-assert-args-for-funcall
                      func arg-forms f-env)))
           (vbind (o e) (compile-function-call (name func) func args f-env)
