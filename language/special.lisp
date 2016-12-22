@@ -1083,22 +1083,34 @@
 (v-defspecial function (func-name)
   :args-valid t
   :return
-  (let* ((func (etypecase func-name
+  (let ((func (etypecase func-name
                  (symbol (%function-1 func-name env))
-                 (list (find-function-by-literal func-name env))))
-         (type (v-type-of func))
+                 (list (find-function-by-literal func-name env)))))
+    (if (typep func 'external-function)
+        (%function-for-external-funcs func func-name env)
+        (%function-for-regular-funcs func-name func env))))
+
+;; {TODO} shouldnt this have a new environment?
+(defun %function-for-external-funcs (func func-name-form env)
+  (values (compile-with-external-func-in-scope
+           func `(function ,func-name-form) env)
+          env))
+
+(defun %function-for-regular-funcs (func-name-form func env)
+  (let* ((type (v-type-of func))
          (flow-id (flow-id!)))
     (when (implicit-args func)
-      (error 'closures-not-supported :func func-name))
+      (error 'closures-not-supported :func func-name-form))
     (setf (ctv type) func) ;; make the func the compile-time-val in this type
     (values
      (code! :type type
             :current-line nil
             :used-types (list type)
-            :node-tree (ast-node! 'function (list func-name)
+            :node-tree (ast-node! 'function (list func-name-form)
                                   type flow-id nil nil)
             :flow-ids flow-id)
      env)))
+
 
 (defun %function-1 (func-name env)
   (let ((funcs (get-function-by-name func-name env)))

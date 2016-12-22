@@ -106,15 +106,18 @@
               (,func-name ,@(remove-if #'ctv-p args))))
          env)))))
 
-(defun compile-external-function-call (func args env)
+(defun compile-with-external-func-in-scope (func body-form env)
   (copy-code (compile-list-form
               (expand-macros-for-external-func
                `(labels-no-implicit
                  ((,(name func) ,(in-args func) ,@(code func)))
-                 (,(name func) ,@args))
+                 ,body-form)
                env)
               env)
              :injected-uniforms (uniforms func)))
+
+(defun compile-external-function-call (func args env)
+  (compile-with-external-func-in-scope func `(,(name func) ,@args) env))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
