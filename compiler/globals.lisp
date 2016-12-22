@@ -24,7 +24,7 @@
 
 
 (defparameter *ast-node-kinds*
-  '(:get :get-stemcell :get-v-value :literal :error :none :code-section))
+  '(:get :get-stemcell :get-v-value :literal :error :none :code-section :funcall))
 
 (defparameter *stemcell-infer-hook*
   (lambda (name)

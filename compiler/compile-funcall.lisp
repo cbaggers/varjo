@@ -30,22 +30,27 @@
                              :funcall-form code))
       ;;
       (allow-call-function-signature ()
-        (make-dummy-function-from-type (code-type func-code-obj))))))
+        (values (make-dummy-function-from-type (code-type func-code-obj))
+                t)))))
 
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
     (assert (eq fc 'funcall))
     (vbind (func-code-obj f-env) (compile-form func-form env)
-      (let* ((func (get-actual-function func-code-obj code))
-             (args (compile-and-assert-args-for-funcall
-                     func arg-forms f-env)))
-        (vbind (o e) (compile-function-call (name func) func args f-env)
-          (values (merge-obs (list func-code-obj o)
-                             :type (code-type o)
-                             :flow-ids (flow-ids o)
-                             :node-tree (node-tree o)
-                             :current-line (current-line o))
-                  e))))))
+      (vbind (func dummy?) (get-actual-function func-code-obj code)
+        (let ((args (compile-and-assert-args-for-funcall func arg-forms f-env)))
+          (vbind (o e) (compile-function-call (name func) func args f-env)
+            (let ((ast (if dummy?
+                           (ast-node! :funcall (cons (node-tree func-code-obj)
+                                                     (mapcar #'node-tree args))
+                                      (code-type o) (flow-ids o) env env)
+                           (node-tree o))))
+              (values (merge-obs (list func-code-obj o)
+                                 :type (code-type o)
+                                 :flow-ids (flow-ids o)
+                                 :node-tree ast
+                                 :current-line (current-line o))
+                      e))))))))
 
 (defun compile-and-assert-args-for-funcall (func args-code env)
   ;; {TODO} handle and return env

@@ -206,6 +206,7 @@
            :v-array
            :v-none
            :v-function
+           :v-function-type
            :v-user-function
            :v-struct
            :v-user-struct

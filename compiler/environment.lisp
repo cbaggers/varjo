@@ -33,6 +33,7 @@
                       (:get-stemcell (first args))
                       (:literal (first args))
                       (:code-section (first args))
+                      (:funcall `(funcall ,@(mapcar walk args)))
                       (t (error "invalid node kind ~s found in result"
                                 kind))))
                    (v-function (name kind))
