@@ -102,6 +102,30 @@
                        :flow-ids flow-ids
                        :in-arg-flow-ids in-arg-flow-ids))))
 
+;; {TODO} make this use the arg & return types
+(defun gen-dummy-func-glsl-name (func-type)
+  (declare (ignore func-type))
+  "<dummy-func>")
+
+(defun make-dummy-function-from-type (func-type)
+  (let ((arg-spec (v-argument-spec func-type))
+        (return-spec (v-return-spec func-type))
+        (glsl-name (gen-dummy-func-glsl-name func-type)))
+    (make-instance
+     'v-function
+     :glsl-string (format nil "~a(~{~a~})" glsl-name
+                          (loop :for i :in arg-spec :collect "~a"))
+     :arg-spec arg-spec
+     :return-spec return-spec
+     :versions *supported-versions*
+     :v-place-index nil
+     :glsl-name glsl-name
+     :name 'dummy-func
+     :implicit-args nil
+     :flow-ids (flow-id!)
+     :in-arg-flow-ids (loop :for i :in arg-spec :collect (flow-id!))
+     :in-out-args nil)))
+
 (defun func-spec->function (spec env)
   (%func-spec->function spec env nil))
 

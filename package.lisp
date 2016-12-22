@@ -146,7 +146,7 @@
 
            ;; restarts
            :setq-supply-alternate-type
-           ))
+           :allow-call-function-signature))
 
 (uiop:define-package #:varjo
     (:use #:cl :varjo-lang :split-sequence #:alexandria #:cl-ppcre

@@ -22,22 +22,30 @@
                      (error 'cannot-compile :code code)))
         (t (error 'problem-with-the-compiler :target func))))))
 
+(defun get-actual-function (func-code-obj code)
+  (let* ((func (ctv (code-type func-code-obj))))
+    (restart-case (if (typep func 'v-function)
+                      func
+                      (error 'cannot-establish-exact-function
+                             :funcall-form code))
+      ;;
+      (allow-call-function-signature ()
+        (make-dummy-function-from-type (code-type func-code-obj))))))
+
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
     (assert (eq fc 'funcall))
     (vbind (func-code-obj f-env) (compile-form func-form env)
-      (let ((func (ctv (code-type func-code-obj))))
-        (assert (typep func 'v-function) () 'cannot-establish-exact-function
-                :funcall-form code)
-        (let ((args (compile-and-assert-args-for-funcall
+      (let* ((func (get-actual-function func-code-obj code))
+             (args (compile-and-assert-args-for-funcall
                      func arg-forms f-env)))
-          (vbind (o e) (compile-function-call (name func) func args f-env)
-            (values (merge-obs (list func-code-obj o)
-                               :type (code-type o)
-                               :flow-ids (flow-ids o)
-                               :node-tree (node-tree o)
-                               :current-line (current-line o))
-                    e)))))))
+        (vbind (o e) (compile-function-call (name func) func args f-env)
+          (values (merge-obs (list func-code-obj o)
+                             :type (code-type o)
+                             :flow-ids (flow-ids o)
+                             :node-tree (node-tree o)
+                             :current-line (current-line o))
+                  e))))))
 
 (defun compile-and-assert-args-for-funcall (func args-code env)
   ;; {TODO} handle and return env
