@@ -1092,6 +1092,7 @@
 
 ;; {TODO} shouldnt this have a new environment?
 (defun %function-for-external-funcs (func func-name-form env)
+  (record-func-usage func env)
   (values (compile-with-external-func-in-scope
            func `(function ,func-name-form) env)
           env))
