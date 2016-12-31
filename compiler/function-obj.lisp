@@ -20,15 +20,42 @@
                               :code-type :v-function)
              :initarg :flow-ids :reader flow-ids)))
 
+(defmethod functions ((fn v-function))
+  (list fn))
+
+;;------------------------------------------------------------
+
 (def-v-type-class v-user-function (v-function)
   ((code :initform nil :initarg :code :reader v-code)))
+
+(defmethod functions ((fn v-user-function))
+  (list fn))
+
+;;------------------------------------------------------------
+
+(defclass v-function-set ()
+  ((functions :initform nil :initarg :functions :reader functions)))
+
+(defmethod initialize-instance :after ((set v-function-set)
+                                       &key functions &allow-other-keys)
+  (assert (every λ(typep _ 'v-function) functions)
+          (functions)
+          "Failed to initialize v-function-set:~% functions: ~s" functions))
+
+;;------------------------------------------------------------
 
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
     (assert (listp return-spec))
     (make-instance 'v-function-type
+                   :ctv func ;; make the func the compile-time-val in this type
                    :arg-spec argument-spec
                    :return-spec return-spec)))
+
+(defmethod v-type-of ((func-set v-function-set))
+  (make-instance 'v-any-one-of
+                 :types (mapcar #'v-type-of (functions func-set))
+                 :ctv func-set))
 
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))
@@ -57,6 +84,7 @@
         code))
 
 (defun %func-spec->function (spec env userp)
+  (declare (ignore env))
   (destructuring-bind (transform arg-spec return-spec versions v-place-index
                                  glsl-name name implicit-args in-out-args
                                  flow-ids in-arg-flow-ids code)

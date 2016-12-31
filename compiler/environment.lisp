@@ -344,7 +344,7 @@
             (and c-macros (get-compiler-macro name *global-env*)))
     (error 'cannot-not-shadow-core))
   (when specials
-    (loop :for func :in (get-function-by-name name *global-env*)
+    (loop :for func :in (functions (get-func-set-by-name name *global-env*))
        :if (and specials (v-special-functionp func))
        :do (error 'cannot-not-shadow-core)))
   t)
@@ -541,7 +541,7 @@
       func))
 
 (defmethod add-equivalent-name (existing-name new-name)
-  (let ((f (get-function-by-name existing-name *global-env*))
+  (let ((f (get-func-set-by-name existing-name *global-env*))
         (c (get-compiler-macro existing-name *global-env*))
         (m (get-macro existing-name *global-env*)))
     (cond
@@ -572,24 +572,26 @@
     (setf (slot-value env 'functions)
           (a-add func-name func-spec (v-functions env)))))
 
-(defmethod get-function-by-name (func-name (env (eql :-genv-)))
-  (sort-function-list
-   (loop :for func-spec :in (gethash func-name *global-env-funcs*)
-      :collect (func-spec->function func-spec env))))
-
 (defmethod %get-functions-by-name (func-name (env (eql :-genv-)))
-  (get-function-by-name func-name env))
+  (functions (get-func-set-by-name func-name env)))
 
 (defmethod %get-functions-by-name (func-name (env environment))
   (append (a-get func-name (v-functions env))
           (%get-functions-by-name func-name (v-parent-env env))))
 
-(defmethod get-function-by-name (func-name (env environment))
-  (sort-function-list
-   (append
-    (loop :for func :in (%get-functions-by-name func-name env)
-       :if (and func (valid-for-contextp func env)) :collect func)
-    (get-external-function-by-name func-name env))))
+(defmethod get-func-set-by-name (func-name (env (eql :-genv-)))
+  (let ((funcs (sort-function-list
+                (loop :for func-spec :in (gethash func-name *global-env-funcs*)
+                   :collect (func-spec->function func-spec env)))))
+    (make-instance 'v-function-set :functions funcs)))
+
+(defmethod get-func-set-by-name (func-name (env environment))
+  (let ((funcs (sort-function-list
+                (append
+                 (loop :for func :in (%get-functions-by-name func-name env)
+                    :if (and func (valid-for-contextp func env)) :collect func)
+                 (get-external-function-by-name func-name env)))))
+    (make-instance 'v-function-set :functions funcs)))
 
 (defmethod special-raw-argp ((func v-function))
   (eq (v-argument-spec func) t))
@@ -614,7 +616,7 @@
       3))
 
 (defmethod v-fboundp (func-name (env environment))
-  (not (null (get-function-by-name func-name env))))
+  (not (null (functions (get-func-set-by-name func-name env)))))
 
 ;;-------------------------------------------------------------------------
 

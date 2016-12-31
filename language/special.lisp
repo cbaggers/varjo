@@ -495,11 +495,15 @@
            (func (func-spec->user-function
                   (v-make-f-spec name nil nil (mapcar #'second args) nil
                                  :code (list args body) )
-                  env)))
+                  env))
+           ;; {TODO} this ↓↓↓↓↓↓↓↓↓↓↓↓ is a horrible hack
+           (ast-body (if (= 1 (length body))
+                         (first body)
+                         `(progn ,@body))))
       (values (code! :type (type-spec->type 'v-none)
                      :place-tree nil
                      :node-tree (ast-node! :code-section
-                                           `(progn ,@body)
+                                           ast-body
                                            (type-spec->type 'v-none)
                                            nil env env)
                      :flow-ids nil)
@@ -577,9 +581,8 @@
                        (ctv type)
                        (implicit-args (ctv type)))
               (let ((closure (ctv type)))
-                (print
-                 (append (in-out-args closure)
-                         (implicit-args closure))))))
+                (append (in-out-args closure)
+                        (implicit-args closure)))))
            (sigs (if mainp
                      (signatures body-obj)
                      (cons (gen-function-signature glsl-name arg-pairs
@@ -1084,11 +1087,27 @@
   :args-valid t
   :return
   (let ((func (etypecase func-name
-                 (symbol (%function-1 func-name env))
-                 (list (find-function-by-literal func-name env)))))
-    (if (typep func 'external-function)
-        (%function-for-external-funcs func func-name env)
-        (%function-for-regular-funcs func-name func env))))
+                (symbol (get-func-set-by-name func-name env))
+                (list (find-function-by-literal func-name env)))))
+    (etypecase func
+      (external-function (%function-for-external-funcs func func-name env))
+      (v-function (%function-for-regular-funcs func-name func env))
+      (v-function-set (%function-for-func-sets func-name func env)))))
+
+(defun %function-for-func-sets (func-name-form func-set env)
+  (let ((functions (functions func-set)))
+    (let* ((type (v-type-of func-set))
+           (flow-id (flow-id!)))
+      (when (some #'implicit-args functions)
+        (error 'closures-not-supported :func func-name-form))
+      (values
+       (code! :type type
+              :current-line nil
+              :used-types (list type)
+              :node-tree (ast-node! 'function (list func-name-form)
+                                    type flow-id nil nil)
+              :flow-ids flow-id)
+       env))))
 
 ;; {TODO} shouldnt this have a new environment?
 (defun %function-for-external-funcs (func func-name-form env)
@@ -1102,7 +1121,6 @@
          (flow-id (flow-id!)))
     (when (implicit-args func)
       (error 'closures-not-supported :func func-name-form))
-    (setf (ctv type) func) ;; make the func the compile-time-val in this type
     (values
      (code! :type type
             :current-line nil
@@ -1111,10 +1129,3 @@
                                   type flow-id nil nil)
             :flow-ids flow-id)
      env)))
-
-
-(defun %function-1 (func-name env)
-  (let ((funcs (get-function-by-name func-name env)))
-    (if (= (length funcs) 1)
-        (first funcs)
-        (error "dfkjhdfoidfh garbl warrr"))))

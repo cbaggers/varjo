@@ -43,12 +43,9 @@
 
 (defun add-higher-scope-val (code-obj value)
   (let* ((type (v-type-of value))
-         (ctv (when (typep type 'v-function-type)
-                (ctv type)))
          (new-oos-args
-          (if ctv
-              (append (implicit-args ctv)
-                      (out-of-scope-args code-obj))
+          (if (typep type 'v-compile-time-value)
+              (out-of-scope-args code-obj)
               (cons value (out-of-scope-args code-obj)))))
     (copy-code code-obj :out-of-scope-args new-oos-args)))
 

@@ -163,15 +163,14 @@
 
 (defconstant +order-bias+ 0.0001)
 
-(defun find-functions-for-args (func-name args-code env)
-  (let* ((candidates (or (get-function-by-name func-name env)
-                         (error 'could-not-find-function :name func-name)))
+(defun find-functions-in-set-for-args (func-set args-code env &optional name)
+  (let* ((func-name (or name (%func-name-from-set func-set)))
+         (candidates (functions func-set))
          (compiled-args (when (some #'func-need-arguments-compiledp candidates)
                           (try-compile-args args-code env)))
          (match-fn (curry #'match-function-to-args args-code compiled-args env))
          (matches (remove nil (mapcar match-fn candidates)))
          (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
-
     (or (when instant-win (list instant-win))
         (mapcar (lambda (x y)
                   (when (numberp (score x))
@@ -183,8 +182,50 @@
                 (iota (length matches)))
         (func-find-failure func-name (mapcar #'code-type compiled-args)))))
 
+(defun find-function-in-set-for-args (func-set args-code env &optional name)
+  "Find the function that best matches the name and arg spec given
+   the current environment. This process simply involves finding the
+   functions and then sorting them by their appropriateness score,
+   the lower the better. We then take the first one and return that
+   as the function to use."
+  (let* ((func-name (or name (%func-name-from-set func-set)))
+         (functions (find-functions-in-set-for-args
+                     func-set
+                     args-code env))
+         (function
+          (if (and (> (length functions) 1)
+                   (some (lambda (x)
+                           (some (lambda (x) (stemcellp (code-type x)))
+                                 (arguments x)))
+                         functions))
+              (error 'multi-func-stemcells :func-name func-name)
+              (first (sort functions #'< :key #'score)))))
+    (list (func function) (arguments function))))
+
+(defun find-function-for-args (func-name args-code env)
+  "Find the function that best matches the name and arg spec given
+   the current environment. This process simply involves finding the
+   functions and then sorting them by their appropriateness score,
+   the lower the better. We then take the first one and return that
+   as the function to use."
+  (let* ((candidates (let ((c (get-func-set-by-name func-name env)))
+                       (if c
+                           (functions c)
+                           (error 'could-not-find-function :name func-name)))))
+    (find-function-in-set-for-args
+     (make-instance 'v-function-set :functions candidates)
+     args-code env)))
+
+(defun %func-name-from-set (func-set)
+  (let* ((names (mapcar #'name (functions func-set)))
+         (names (remove-duplicates names)))
+    (if (= 1 (length names))
+        (first names)
+        names)))
+
 ;; if there were no candidates then pass errors back
 (defun func-find-failure (func-name arg-types)
+  (assert func-name)
   (loop :for arg-type :in arg-types
      :if (typep arg-type 'v-error)
 
@@ -199,23 +240,6 @@
                                                         :name func-name
                                                         :types arg-types))
                     :arguments nil)))))
-
-(defun find-function-for-args (func-name args-code env)
-  "Find the function that best matches the name and arg spec given
-   the current environment. This process simply involves finding the
-   functions and then sorting them by their appropriateness score,
-   the lower the better. We then take the first one and return that
-   as the function to use."
-  (let* ((functions (find-functions-for-args func-name args-code env))
-         (function
-          (if (and (> (length functions) 1)
-                   (some (lambda (x)
-                           (some (lambda (x) (stemcellp (code-type x)))
-                                 (arguments x)))
-                         functions))
-              (error 'multi-func-stemcells :func-name func-name)
-              (first (sort functions #'< :key #'score)))))
-    (list (func function) (arguments function))))
 
 (defun resolve-func-type (func args env)
   "nil - superior type
@@ -264,7 +288,7 @@
 
 (defun find-function-for-types (func-name arg-types env)
   (find-if (curry #'exact-match-function-to-types arg-types env)
-           (or (get-function-by-name func-name env)
+           (or (functions (get-func-set-by-name func-name env))
                (error 'could-not-find-function :name func-name))))
 
 ;;------------------------------------------------------------
@@ -275,5 +299,5 @@
                              arg-types)))
       (or (if arg-types
               (find-function-for-types name arg-types env)
-              (get-function-by-name name env))
+              (get-func-set-by-name name env))
           (error "No function yada {TODO} ~a" name)))))

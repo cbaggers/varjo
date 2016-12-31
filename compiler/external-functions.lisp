@@ -37,7 +37,7 @@
                  (progn (type-spec->type (second _)) nil)
                (unknown-type-spec (e)
                  (slot-value e 'type-spec)))))
-    (let ((unknown (remove-if-not λ_ args :key #'key)))
+    (let ((unknown (remove nil args :key #'key)))
       (when unknown
         (error 'external-function-invalid-in-arg-types
                :name name

@@ -36,7 +36,7 @@
 (defgeneric add-equivalent-name (existing-name new-name))
 (defgeneric add-function (func-name func-spec env))
 (defgeneric %add-function (func-name func-spec env))
-(defgeneric get-function-by-name (func-name env))
+(defgeneric get-func-set-by-name (func-name env))
 (defgeneric %get-functions-by-name (func-name env))
 (defgeneric special-raw-argp (func))
 (defgeneric special-func-argp (func))
@@ -72,3 +72,4 @@
 (defgeneric delete-external-function (name in-args-types))
 (defgeneric record-func-usage (func env))
 (defgeneric v-name-map (env))
+(defgeneric functions (object))

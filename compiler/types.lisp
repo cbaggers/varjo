@@ -45,6 +45,11 @@
 
 ;;------------------------------------------------------------
 
+(def-v-type-class v-any-one-of (v-compile-time-value)
+  ((types :initform nil :initarg :types :reader v-types)))
+
+;;------------------------------------------------------------
+
 (def-v-type-class v-struct (v-type)
   ((versions :initform nil :initarg :versions :accessor v-versions)
    (signature :initform nil :initarg :signature :accessor v-signature)
@@ -230,6 +235,15 @@
              (every #'v-type-eq (v-return-spec from-type)
                     (v-return-spec to-type)))
     to-type))
+
+(defmethod v-casts-to ((from-type v-any-one-of) (to-type v-function-type) env)
+  (let* ((funcs (mapcar (lambda (fn)
+                          (when (v-casts-to (v-type-of fn) to-type env)
+                            fn))
+                        (functions (ctv from-type))))
+         (funcs (remove nil funcs))
+         (f-set (make-instance 'v-function-set :functions funcs)))
+    (when funcs (v-type-of f-set))))
 
 (defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
   (declare (ignore env from-type))

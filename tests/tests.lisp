@@ -345,3 +345,13 @@
         (let ((y 10))
           (foo (lambda ((a :int)) a))))
       (v! 0 0 0 0))))
+
+(5am:test build-33
+  (is (ast-stabalizes-p
+       (varjo.tests::compile-vert () :450
+         (let ((fn (labels ((test ((x :int)) x))
+                     #'test)))
+           (labels ((foo ((ffn (function (:int) :int)))
+                      (funcall ffn 10)))
+             (foo fn))
+           (v! 0 0 0 0))))))
