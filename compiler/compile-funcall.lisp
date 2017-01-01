@@ -122,9 +122,9 @@
              :finally (return (list a h)))
         (expand-and-compile-form
          `(let ,hard-coded
-            (labels ((,func-name ,trimmed-args
-                       ,@body-code))
-              (,func-name ,@(remove-if #'ctv-p args))))
+            (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
+                                ,(mapcar #'first hard-coded)
+                                (,func-name ,@(remove-if #'ctv-p args))))
          env)))))
 
 (defun compile-with-external-func-in-scope (func body-form env)
@@ -132,6 +132,7 @@
               (expand-macros-for-external-func
                `(labels-no-implicit
                  ((,(name func) ,(in-args func) ,@(code func)))
+                 ()
                  ,body-form)
                env)
               env)

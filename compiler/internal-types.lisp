@@ -95,7 +95,9 @@
    (multi-val-safe
     :initform nil :initarg :multi-val-safe :reader v-multi-val-safe)
    (function-scope
-    :initform 0 :initarg :function-scope :reader v-function-scope)))
+    :initform 0 :initarg :function-scope :reader v-function-scope)
+   (allowed-outer-vars
+    :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)))
 
 
 (defclass base-environment (environment)

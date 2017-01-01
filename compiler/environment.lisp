@@ -156,13 +156,15 @@
                  :compiler-macros nil
                  :context (remove :main (copy-list (v-context env)))
                  :function-scope (v-function-scope env)
-                 :parent-env (v-parent-env env)))
+                 :parent-env (v-parent-env env)
+                 :allowed-outer-vars (v-allowed-outer-vars env)))
 
 (defun fresh-environment (env &key context function-scope
                                 functions macros symbol-macros
                                 compiler-macros variables
                                 (multi-val-base nil set-mvb)
-                                multi-val-safe)
+                                multi-val-safe
+                                (allowed-outer-vars nil set-aov))
   (assert (typep env 'environment))
   (make-instance 'environment
                  :variables variables
@@ -176,7 +178,10 @@
                                      (v-multi-val-base env))
                  :multi-val-safe multi-val-safe
                  :function-scope (or function-scope (v-function-scope env))
-                 :parent-env env))
+                 :parent-env env
+                 :allowed-outer-vars (if set-aov
+                                         allowed-outer-vars
+                                         (v-allowed-outer-vars env))))
 
 (defmacro with-fresh-env-scope ((name starting-env) &body body)
   (let ((s (gensym "starting-env"))
@@ -202,7 +207,8 @@
                  :context (copy-list (v-context env))
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
-                 :parent-env new-parent))
+                 :parent-env new-parent
+                 :allowed-outer-vars (v-allowed-outer-vars env)))
 
 (defun env-depth (env)
   (labels ((dist (e &optional (accum 0))

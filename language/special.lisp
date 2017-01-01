@@ -386,11 +386,13 @@
        (setf result `(let (,binding) ,result)))
     result))
 
-(defun make-func-env (env mainp)
+(defun make-func-env (env mainp allowed-implicit-args)
   (if mainp
       (fresh-environment env :function-scope (1+ (v-function-scope env))
-                         :context (cons :main (v-context env)))
-      (fresh-environment env :function-scope (1+ (v-function-scope env)))))
+                         :context (cons :main (v-context env))
+                         :allowed-outer-vars allowed-implicit-args)
+      (fresh-environment env :function-scope (1+ (v-function-scope env))
+                         :allowed-outer-vars allowed-implicit-args)))
 
 (v-defspecial labels (definitions &rest body)
   :args-valid t
@@ -447,7 +449,7 @@
       (values (copy-code merged :node-tree ast)
               e))))
 
-(v-defspecial labels-no-implicit (definitions &rest body)
+(v-defspecial labels-no-implicit (definitions exceptions &rest body)
   :args-valid t
   :return
   (vbind ((func-def-objs body-obj) pruned-starting-env) ;;ending-env
@@ -456,7 +458,7 @@
           (mapcar-progn
            (lambda (env d)
              (dbind (name args &rest body) d
-               (%make-function name args body nil env)))
+               (%make-function name args body exceptions env)))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (cons-end body-obj (remove nil func-def-objs))
@@ -471,27 +473,27 @@
                                                 _)
                                            definitions
                                            func-def-objs))
+                       exceptions
                        (node-tree body-obj))
                  (code-type body-obj) (flow-ids merged) env env)))
       (values (copy-code merged :node-tree ast)
               pruned-starting-env))))
 
-(defun %make-function (name args body allow-implicit-args env)
+(defun %make-function (name args body allowed-implicit-args env)
   (unless (function-raw-args-validp args)
     (error 'bad-make-function-args
            :func-name name
            :arg-specs (remove-if #'function-raw-arg-validp args)))
   (let ((arg-types (mapcar λ(type-spec->type (second _)) args)))
     (if (some λ(typep _ 'v-compile-time-value) arg-types)
-        (make-new-function-with-ctvs name args body allow-implicit-args env)
-        (make-regular-function name args body allow-implicit-args env))))
+        (make-new-function-with-ctvs name args body allowed-implicit-args env)
+        (make-regular-function name args body allowed-implicit-args env))))
 
-(defun make-new-function-with-ctvs (name args body allow-implicit-args
+(defun make-new-function-with-ctvs (name args body allowed-implicit-args
                                     env)
-  (declare (ignore allow-implicit-args))
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))
-    (let* ((env (make-func-env env mainp))
+    (let* ((env (make-func-env env mainp allowed-implicit-args))
            (func (func-spec->user-function
                   (v-make-f-spec name nil nil (mapcar #'second args) nil
                                  :code (list args body) )
@@ -509,9 +511,9 @@
                      :flow-ids nil)
               (add-function name func env)))))
 
-(defun make-regular-function (name args body allow-implicit-args env)
+(defun make-regular-function (name args body allowed-implicit-args env)
   (let* ((mainp (eq name :main))
-         (env (make-func-env env mainp))
+         (env (make-func-env env mainp allowed-implicit-args))
          (in-arg-flow-ids (mapcar (lambda (_)
                                     (declare (ignore _))
                                     (flow-id!))
@@ -538,25 +540,23 @@
          (deduped-func (dedup-function dedup-key env))
          (normalized-out-of-scope-args (normalize-out-of-scope-args
                                         (out-of-scope-args body-obj)))
-         (implicit-args (when allow-implicit-args
-                          (extract-implicit-args
-                           name allow-implicit-args
-                           normalized-out-of-scope-args env))))
+         (implicit-args (extract-implicit-args
+                         name allowed-implicit-args
+                         normalized-out-of-scope-args env)))
     (if (and (not mainp) (not implicit-args) deduped-func)
         (values nil (add-function name deduped-func env))
         (%make-new-function mainp env in-arg-flow-ids arg-glsl-names body-obj
                             name args implicit-args))))
 
-(defun extract-implicit-args (name allow-implicit-args
+(defun extract-implicit-args (name allowed-implicit-args
                               normalized-out-of-scope-args env)
   (let ((result (remove-if λ(= (v-function-scope _)
                                (v-function-scope env))
                            normalized-out-of-scope-args)))
-    (unless allow-implicit-args
-      (unless (every λ(= (v-function-scope _) (v-function-scope env))
-                     normalized-out-of-scope-args)
-        (error 'illegal-implicit-args :func-name name)))
-    result))
+    (if (eq allowed-implicit-args t)
+        result
+        (when result
+          (error 'illegal-implicit-args :func-name name)))))
 
 (defun %make-new-function (mainp env in-arg-flow-ids arg-glsl-names body-obj
                            name args implicit-args)

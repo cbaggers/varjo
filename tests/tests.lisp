@@ -340,6 +340,9 @@
           (foo fn))
         (v! 0 0 0 0)))))
 
+;; issue is that #'compile-function-taking-ctvs has to use labels as otherwise
+;; it can't capture the implicit ctv vars.
+;; possible solution is to have a labels where you can declare capturable vars
 (5am:test build-32
   (signals varjo-conditions:symbol-unidentified
     (varjo.tests::compile-vert () :450

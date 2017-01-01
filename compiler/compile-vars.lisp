@@ -13,7 +13,10 @@
                                                         (flow-ids v-value)
                                                         env env))))
     (if from-higher-scope
-        (add-higher-scope-val code-obj v-value)
+        (if (or (eq t (v-allowed-outer-vars env))
+                (find var-name (v-allowed-outer-vars env)))
+            (add-higher-scope-val code-obj v-value)
+            (error 'symbol-unidentified :sym var-name))
         code-obj)))
 
 (defun %v-value->code (v-val env)
