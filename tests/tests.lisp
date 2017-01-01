@@ -32,7 +32,10 @@
           (ast-stabalizes-p recomp (incf depth))))))
 
 (defmacro finishes-p (form)
-  `(is (typep ,form 'varjo-compile-result)))
+  (alexandria:with-gensyms (res)
+    `(let ((,res ,form))
+       (is (and (typep ,res 'varjo-compile-result)
+                (ast-stabalizes-p ,res))))))
 
 (defmacro glsl-contains-p (regex &body form)
   (assert (= 1 (length form)))
