@@ -38,7 +38,8 @@
 
 (defmethod initialize-instance :after ((set v-function-set)
                                        &key functions &allow-other-keys)
-  (assert (every λ(typep _ 'v-function) functions)
+  (assert (every λ(or (typep _ 'v-function) (typep _ 'external-function))
+                 functions)
           (functions)
           "Failed to initialize v-function-set:~% functions: ~s" functions))
 
