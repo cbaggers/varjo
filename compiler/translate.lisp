@@ -510,7 +510,7 @@ The full list: ~s
     (setf (used-types post-proc-obj)
           (remove-duplicates
            (mapcar #'v-signature (used-types post-proc-obj))
-           :test #'v-type-eq)))
+           :test #'equal)))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
