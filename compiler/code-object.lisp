@@ -1,10 +1,9 @@
 (in-package :varjo)
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
-                to-top out-vars used-types returns multi-vals stemcells
-                out-of-scope-args injected-uniforms flow-ids mutations
+		out-vars used-types returns multi-vals stemcells
+		out-of-scope-args injected-uniforms flow-ids mutations
                 place-tree node-tree)
-  ;;(print out-of-scope-args)
   (assert-flow-id-singularity flow-ids)
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
@@ -22,21 +21,20 @@
              :code-type (type->type-spec type)))
     (make-instance 'code
                    :type type
-                   :current-line current-line
-                   :signatures signatures
-                   :to-block to-block
-                   :to-top to-top
-                   :out-vars out-vars
-                   :returns returns
-                   :used-types used-types
-                   :multi-vals multi-vals
-                   :stemcells stemcells
-                   :out-of-scope-args out-of-scope-args
-                   :injected-uniforms injected-uniforms
-                   :flow-ids flow-ids
-                   :place-tree place-tree
-                   :mutations mutations
-                   :node-tree node-tree)))
+		   :current-line current-line
+		   :signatures signatures
+		   :to-block to-block
+		   :out-vars out-vars
+		   :returns returns
+		   :used-types used-types
+		   :multi-vals multi-vals
+		   :stemcells stemcells
+		   :out-of-scope-args out-of-scope-args
+		   :injected-uniforms injected-uniforms
+		   :flow-ids flow-ids
+		   :place-tree place-tree
+		   :mutations mutations
+		   :node-tree node-tree)))
 
 (defmethod v-type-of ((obj code))
   (code-type obj))
@@ -78,7 +76,6 @@
                         (current-line nil set-current-line)
                         (signatures nil set-sigs)
                         (to-block nil set-block)
-                        (to-top nil set-top)
                         (out-vars nil set-out-vars)
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
@@ -94,33 +91,31 @@
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object :code-type type))
     (code! :type type
-           :current-line (if set-current-line current-line
-                             (current-line code-obj))
-           :signatures (if set-sigs signatures (signatures code-obj))
-           :to-block (if set-block to-block (remove nil (to-block code-obj)))
-           :to-top (if set-top to-top (remove nil (to-top code-obj)))
-           :out-vars (if set-out-vars out-vars (out-vars code-obj))
-           :returns (listify (if set-returns returns (returns code-obj)))
-           :used-types (used-types code-obj)
-           :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
-           :stemcells (if set-stemcells stemcells (stemcells code-obj))
-           :out-of-scope-args (if set-out-of-scope-args
-                                  out-of-scope-args
-                                  (remove nil (out-of-scope-args code-obj)))
-           :injected-uniforms (if set-injected-uniforms
-                                  injected-uniforms
-                                  (injected-uniforms code-obj))
-           :flow-ids flow-ids
-           :place-tree (if set-place-tree place-tree (place-tree code-obj))
-           :mutations (if set-mutations mutations (mutations code-obj))
-           :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
+	   :current-line (if set-current-line current-line
+			     (current-line code-obj))
+	   :signatures (if set-sigs signatures (signatures code-obj))
+	   :to-block (if set-block to-block (remove nil (to-block code-obj)))
+	   :out-vars (if set-out-vars out-vars (out-vars code-obj))
+	   :returns (listify (if set-returns returns (returns code-obj)))
+	   :used-types (used-types code-obj)
+	   :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
+	   :stemcells (if set-stemcells stemcells (stemcells code-obj))
+	   :out-of-scope-args (if set-out-of-scope-args
+				  out-of-scope-args
+				  (remove nil (out-of-scope-args code-obj)))
+	   :injected-uniforms (if set-injected-uniforms
+				  injected-uniforms
+				  (injected-uniforms code-obj))
+	   :flow-ids flow-ids
+	   :place-tree (if set-place-tree place-tree (place-tree code-obj))
+	   :mutations (if set-mutations mutations (mutations code-obj))
+	   :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
 
 (defmethod merge-obs ((objs list)
                       &key type
                         current-line
                         (signatures nil set-sigs)
                         (to-block nil set-block)
-                        (to-top nil set-top)
                         (out-vars nil set-out-vars)
                         (returns nil set-returns)
                         multi-vals
@@ -142,7 +137,6 @@
                          (mapcat #'signatures objs))
          :to-block (if set-block to-block
                        (mapcat #'to-block objs))
-         :to-top (if set-top to-top (mapcat #'to-top objs))
          :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
          :returns (listify (if set-returns returns (merge-returns objs)))
          :used-types (mapcat #'used-types objs)

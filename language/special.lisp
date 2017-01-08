@@ -590,18 +590,17 @@
                                                    implicit-args
                                                    in-out-args)
                            (signatures body-obj))))
-           (top (cons-end (gen-function-body-string
+           (func-glsl-def (gen-function-body-string
                            glsl-name (unless mainp arg-pairs)
                            out-arg-pairs type body-obj
-                           implicit-args in-out-args)
-                          (to-top body-obj)))
+                           implicit-args in-out-args))
            (func (func-spec->user-function
                   (v-make-f-spec name
                                  (gen-function-transform
                                   glsl-name args
                                   multi-return-vars
                                   implicit-args)
-                                 nil ;;should be context
+                                 nil ;;{TODO} should be context
                                  (mapcar #'second args)
                                  (cons type multi-return-vars)
                                  :glsl-name glsl-name
@@ -611,14 +610,18 @@
                                  :in-arg-flow-ids in-arg-flow-ids)
                   env))
            (final-env (add-function name func env)))
-      (unless implicit-args
-        (push-non-implicit-function-for-dedup
-         (func-dedup-key args body-obj) func env))
+      ;; Below we create the dedup with gensym key as, although it
+      ;; will never match anything, we will use the data later to
+      ;; extract the func-glsl-def
+      (if implicit-args
+          (push-non-implicit-function-for-dedup
+           (gensym) func func-glsl-def env)
+          (push-non-implicit-function-for-dedup
+           (func-dedup-key args body-obj) func func-glsl-def env))
       (values (copy-code body-obj
                          :type (type-spec->type 'v-none)
                          :current-line nil
                          :signatures sigs
-                         :to-top top
                          :to-block nil
                          :returns nil
                          :out-vars (out-vars body-obj)

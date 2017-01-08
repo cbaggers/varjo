@@ -51,16 +51,16 @@
 (defgeneric v-special-functionp (func))
 (defgeneric v-element-type (object))
 (defgeneric merge-obs (objs &key type current-line to-block
-                              to-top out-vars returns multi-vals
+                              out-vars returns multi-vals
                               stemcells out-of-scope-args flow-ids
-                              place-tree mutations node-tree))
-(defgeneric copy-code (code-obj &key type current-line to-block to-top
+			      place-tree mutations node-tree))
+(defgeneric copy-code (code-obj &key type current-line to-block
                                   out-vars returns multi-vals
                                   stemcells out-of-scope-args flow-ids
                                   place-tree mutations node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
-(defgeneric push-non-implicit-function-for-dedup (code func e))
+(defgeneric push-non-implicit-function-for-dedup (code func glsl e))
 (defgeneric func-need-arguments-compiledp (func))
 (defgeneric get-macro (macro-name env))
 (defgeneric get-symbol-macro (macro-name env))

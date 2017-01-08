@@ -10,13 +10,6 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
-(defmethod push-non-implicit-function-for-dedup (key func (e environment))
-  (push (cons key func) (slot-value (get-base-env e) 'function-dedup)))
-
-(defmethod dedup-function (key (e environment))
-  (cdr (find key (slot-value (get-base-env e) 'function-dedup)
-             :key #'car :test #'equal)))
-
 (defmethod func-dedup-key (args body-obj)
   (let* ((original-arg-names (mapcar #'first args))
          (arg-names (loop :for i :below (length args) :collect i))
@@ -39,6 +32,17 @@
                    (v-function (name kind))
                    (otherwise `(,kind ,@(mapcar walk args)))))))
       (list args (walk-ast #'visitor body-obj)))))
+
+(defmethod push-non-implicit-function-for-dedup (code func string (e environment))
+  (push (list code func string) (slot-value (get-base-env e) 'function-dedup)))
+
+(defmethod dedup-function (code (e environment))
+  (second (find code (slot-value (get-base-env e) 'function-dedup)
+                :key #'car :test #'equal)))
+
+(defmethod func-defs-glsl ((e environment))
+  (reverse (mapcar #'third (slot-value (get-base-env e) 'function-dedup))))
+
 
 (defmethod used-external-functions ((e environment))
   (slot-value (get-base-env e) 'used-external-functions))

@@ -84,14 +84,13 @@
 
 (defun %merge-multi-env-progn (code-objs)
   (merge-obs code-objs
-             :type (type-spec->type 'v-none)
-             :current-line nil
-             :to-block (append (mapcat #'to-block code-objs)
-                               (mapcar (lambda (_) (current-line (end-line _)))
-                                       code-objs))
-             :to-top (mapcat #'to-top code-objs)
-             :flow-ids nil
-             :node-tree :ignored))
+	     :type (type-spec->type 'v-none)
+	     :current-line nil
+	     :to-block (append (mapcat #'to-block code-objs)
+			       (mapcar (lambda (_) (current-line (end-line _)))
+				       code-objs))
+	     :flow-ids nil
+	     :node-tree :ignored))
 
 (defmacro merge-multi-env-progn (code-objs)
   (let ((co (gensym "code-objs"))
@@ -104,27 +103,24 @@
 
 (defun typify-code (code-obj &optional new-value)
   (let* ((prefixed-line (prefix-type-declaration code-obj))
-         (current-line
-          (if new-value
-              (%gen-assignment-string prefixed-line (current-line new-value))
-              prefixed-line))
-         (flow-ids
-          (if new-value
-              (flow-ids new-value)
-              (flow-ids code-obj)))
-         (to-block (when new-value
-                     (to-block new-value)))
-         (to-top (when new-value
-                   (to-top new-value))))
+	 (current-line
+	  (if new-value
+	      (%gen-assignment-string prefixed-line (current-line new-value))
+	      prefixed-line))
+	 (flow-ids
+	  (if new-value
+	      (flow-ids new-value)
+	      (flow-ids code-obj)))
+	 (to-block (when new-value
+		     (to-block new-value))))
     (copy-code code-obj
-               :type (code-type code-obj)
-               :current-line current-line
-               :flow-ids flow-ids
-               :to-block to-block
-               :to-top to-top
-               :node-tree :ignored
-               :multi-vals nil
-               :place-tree nil)))
+	       :type (code-type code-obj)
+	       :current-line current-line
+	       :flow-ids flow-ids
+	       :to-block to-block
+	       :node-tree :ignored
+	       :multi-vals nil
+	       :place-tree nil)))
 
 ;;----------------------------------------------------------------------
 

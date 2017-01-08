@@ -121,7 +121,8 @@
             (current-line condition-obj)
             (current-line update-obj)
             (remove-empty (mapcat #'indent prog-strs))
-            (remove-empty (indent (current-line body-obj))))))
+            (remove-empty (when (current-line body-obj)
+                            (indent (current-line body-obj)))))))
 
 (defun gen-switch-string (test-obj keys clause-body-objs
                           &optional (default-symb 'default))
@@ -188,16 +189,16 @@
 (defun gen-shader-string (post-proc-obj)
   (with-slots (code env) post-proc-obj
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
-            (loop :for part :in
-               (list (used-types post-proc-obj)
-                     (mapcar #'last1 (in-args post-proc-obj))
-                     (mapcar #'last1 (out-vars post-proc-obj))
-                     (concatenate 'list
-                                  (mapcar #'last1 (uniforms post-proc-obj))
-                                  (mapcar #'third (stemcells post-proc-obj)))
-                     (signatures code)
-                     (to-top code))
-               :if part :collect part))))
+	    (loop :for part :in
+	       (list (used-types post-proc-obj)
+		     (mapcar #'last1 (in-args post-proc-obj))
+		     (mapcar #'last1 (out-vars post-proc-obj))
+		     (concatenate 'list
+				  (mapcar #'last1 (uniforms post-proc-obj))
+				  (mapcar #'third (stemcells post-proc-obj)))
+		     (signatures code)
+		     (func-defs-glsl post-proc-obj))
+	       :if part :collect part))))
 
 ;;----------------------------------------------------------------------
 

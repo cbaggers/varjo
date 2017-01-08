@@ -22,7 +22,6 @@
    (current-line :initarg :current-line :initform "" :reader current-line)
    (signatures :initarg :signatures :initform nil :reader signatures)
    (to-block :initarg :to-block :initform nil :reader to-block)
-   (to-top :initarg :to-top :initform nil :reader to-top)
    (out-vars :initarg :out-vars :initform nil :reader out-vars)
    (used-types :initarg :used-types :initform nil :reader used-types)
    (returns :initarg :returns :initform nil :reader returns)
@@ -52,6 +51,7 @@
                             :accessor used-external-functions)
    (used-symbol-macros :initarg :used-symbol-macros
                        :accessor used-symbol-macros)
+   (func-defs-glsl :initarg :func-defs-glsl :accessor func-defs-glsl)
    (used-macros :initarg :used-macros :accessor used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
                          :accessor used-compiler-macros)
