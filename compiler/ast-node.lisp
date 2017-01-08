@@ -256,6 +256,7 @@ context is implicit"))
                        (:literal (first args))
                        (:code-section args)
                        (:funcall `(funcall ,@(mapcar walk args)))
+                       (:break `(%break ,@args))
                        (t (error "invalid node kind ~s found in result"
                                  kind)))
                      `(,kind ,@(mapcar walk args)))))

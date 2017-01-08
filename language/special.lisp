@@ -513,7 +513,7 @@
 
 (defun make-regular-function (name args body allowed-implicit-args env)
   (let* ((mainp (eq name :main))
-         (env (make-func-env env mainp allowed-implicit-args))
+         (func-env (make-func-env env mainp allowed-implicit-args))
          (in-arg-flow-ids (mapcar (lambda (_)
                                     (declare (ignore _))
                                     (flow-id!))
@@ -521,32 +521,32 @@
          (arg-glsl-names (loop :for (name) :in args :collect
                             (lisp-name->glsl-name name env)))
          (body-env (reduce
-                    (lambda (env tripple)
+                    (lambda (func-env tripple)
                       (dbind (arg glsl-name flow-ids) tripple
                         (dbind (name type-spec) arg
                           (add-var name
-                                   (v-make-value type-spec env
+                                   (v-make-value type-spec func-env
                                                  :glsl-name glsl-name
                                                  :flow-ids flow-ids)
-                                   env))))
+                                   func-env))))
                     (mapcar #'list args arg-glsl-names in-arg-flow-ids)
                     ;; how odd is this?..we use the func if not main
                     :initial-value (if mainp
-                                       env
+                                       func-env
                                        (process-environment-for-main-labels
-                                        env))))
+                                        func-env))))
          (body-obj (compile-form `(%return (progn ,@body)) body-env))
          (dedup-key (func-dedup-key args body-obj))
-         (deduped-func (dedup-function dedup-key env))
+         (deduped-func (dedup-function dedup-key func-env))
          (normalized-out-of-scope-args (normalize-out-of-scope-args
                                         (out-of-scope-args body-obj)))
          (implicit-args (extract-implicit-args
                          name allowed-implicit-args
-                         normalized-out-of-scope-args env)))
+                         normalized-out-of-scope-args func-env)))
     (if (and (not mainp) (not implicit-args) deduped-func)
         (values nil (add-function name deduped-func env))
-        (%make-new-function mainp env in-arg-flow-ids arg-glsl-names body-obj
-                            name args implicit-args))))
+        (%make-new-function mainp env func-env in-arg-flow-ids arg-glsl-names
+                            body-obj name args implicit-args))))
 
 (defun extract-implicit-args (name allowed-implicit-args
                               normalized-out-of-scope-args env)
@@ -558,8 +558,8 @@
         (when result
           (error 'illegal-implicit-args :func-name name)))))
 
-(defun %make-new-function (mainp env in-arg-flow-ids arg-glsl-names body-obj
-                           name args implicit-args)
+(defun %make-new-function (mainp surrounding-env env in-arg-flow-ids
+                           arg-glsl-names body-obj name args implicit-args)
   (let* ((glsl-name (if mainp "main" (lisp-name->glsl-name name env)))
          (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
@@ -609,7 +609,7 @@
                                  :flow-ids (flow-ids body-obj)
                                  :in-arg-flow-ids in-arg-flow-ids)
                   env))
-           (final-env (add-function name func env)))
+           (final-env (add-function name func surrounding-env)))
       ;; Below we create the dedup with gensym key as, although it
       ;; will never match anything, we will use the data later to
       ;; extract the func-glsl-def
@@ -1055,7 +1055,12 @@
   (progn
     (break (format nil "Varjo compiler breakpoint:~%~s" (or datum ""))
            (mapcar λ(compile-form _ env) args))
-    (values (make-none-ob) env)))
+    (let* ((none-type (type-spec->type :none))
+           (node (make-code-obj
+                  none-type nil
+                  :node-tree (ast-node! :break (cons datum args)
+                                        none-type nil nil nil))))
+      (values node env))))
 
 (v-defspecial %peek (form)
   :args-valid t
