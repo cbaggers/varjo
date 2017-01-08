@@ -85,6 +85,17 @@
               "_")
             (map 'list (lambda (_)
                          (if (find _ +ascii-alpha-num+) _
-                             (if (char= _ #\-) #\_
-                                 (format nil "~a" (char-code _)))))
+                             (if (char= _ #\-)
+                                 #\_
+                                 (char-name-or-code-str _))))
                  name))))
+
+(defun char-name-or-code-str (char)
+  (let ((name (char-name char)))
+    (or (when (and (> (length name) 21)
+                   (equal "GREEK_CAPITAL_LETTER_" (subseq name 0 21)))
+          (subseq name 21))
+        (when (and (> (length name) 19)
+                   (equal "GREEK_SMALL_LETTER_" (subseq name 0 19)))
+          (format nil "SMALL_~a" (subseq name 19)))
+        (format nil "~a" (char-code char)))))
