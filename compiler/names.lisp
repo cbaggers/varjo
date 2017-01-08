@@ -93,6 +93,8 @@
 (defun char-name-or-code-str (char)
   (cond
     ((char= char #\·) "_DOT_")
+    ((char= char #\²) "_SQUARED")
+    ((char= char #\³) "_CUBED")
     (t (let ((name (char-name char)))
          (or (when (and (> (length name) 21)
                         (equal "GREEK_CAPITAL_LETTER_" (subseq name 0 21)))
