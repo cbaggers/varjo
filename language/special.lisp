@@ -454,13 +454,14 @@
   :return
   (vbind ((func-def-objs body-obj) pruned-starting-env) ;;ending-env
       (with-fresh-env-scope (fresh-env env)
+        ;;
         (env-> (p-env fresh-env)
-          (mapcar-progn
-           (lambda (env d)
-             (dbind (name args &rest body) d
-               (%make-function name args body exceptions env)))
-           p-env definitions)
+          (mapcar-progn (lambda (env d)
+                          (dbind (name args &rest body) d
+                            (%make-function name args body exceptions env)))
+                        p-env definitions)
           (compile-form `(progn ,@body) p-env)))
+    ;;
     (let* ((merged (merge-progn (cons-end body-obj (remove nil func-def-objs))
                                 env
                                 pruned-starting-env))

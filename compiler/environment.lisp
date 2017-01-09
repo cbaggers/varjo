@@ -10,6 +10,22 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
+(defun id-gensyms-in-code (tree)
+  (let ((id -1)
+        (sym-table (make-hash-table)))
+    (labels ((swap-gensym (gsym)
+               (or (gethash gsym sym-table)
+                   (setf (gethash gsym sym-table)
+                         `(:gensym ,(incf id)))))
+             (walk (code)
+               (etypecase code
+                 (symbol (if (null (symbol-package code))
+                             (swap-gensym code)
+                             code))
+                 (atom code)
+                 (list (mapcar #'walk code)))))
+      (walk tree))))
+
 (defmethod func-dedup-key (args body-obj)
   (let* ((original-arg-names (mapcar #'first args))
          (arg-names (loop :for i :below (length args) :collect i))
@@ -30,16 +46,16 @@
                       (:break `(%break ,@args))
                       (t (error "invalid node kind ~s found in result"
                                 kind))))
-                   (v-function (name kind))
+                   (v-function `(,(name kind) ,@(mapcar walk args)))
                    (otherwise `(,kind ,@(mapcar walk args)))))))
-      (list args (walk-ast #'visitor body-obj)))))
+      (id-gensyms-in-code (list args (walk-ast #'visitor body-obj))))))
 
 (defmethod push-non-implicit-function-for-dedup (code func string (e environment))
   (push (list code func string) (slot-value (get-base-env e) 'function-dedup)))
 
 (defmethod dedup-function (code (e environment))
   (second (find code (slot-value (get-base-env e) 'function-dedup)
-                :key #'car :test #'equal)))
+                  :key #'car :test #'equal)))
 
 (defmethod func-defs-glsl ((e environment))
   (reverse (mapcar #'third (slot-value (get-base-env e) 'function-dedup))))

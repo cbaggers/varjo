@@ -45,6 +45,40 @@
   (assert (= 1 (length form)))
   `(is (null (cl-ppcre:all-matches ,regex (glsl-code ,(first form))))))
 
+(defmacro glsl-contains-n-p (n regex &body form)
+  (assert (= 1 (length form)))
+  (alexandria:with-gensyms (count matches)
+    `(let ((,count ,n)
+           (,matches (cl-ppcre:all-matches-as-strings
+                     ,regex
+                     (glsl-code ,(first form)))))
+       (is (= ,count (length ,matches))))))
+
+;;------------------------------------------------------------
+
+(defvar *initd* nil)
+
+(defun init (&optional force)
+  (when (or (not *initd*) force)
+    (varjo:add-external-function
+     'test-ext '((ham :float)) nil
+     `((progn (v! ham ham ham ham))))
+    (varjo:add-external-function
+     'test-ext2 '((ham :float)) nil
+     `((progn (values (v! ham ham ham ham)
+                      2
+                      3))))
+    (varjo:add-external-function
+     'test-ext3 '((ham :float)) nil
+     `((let ((jam (test-ext ham)))
+         jam)))
+    (setf *initd* t)))
+
+(init)
+
+#+nil
+(init t)
+
 ;;------------------------------------------------------------
 
 (5am:def-suite test-all)
@@ -340,9 +374,6 @@
           (foo fn))
         (v! 0 0 0 0)))))
 
-;; issue is that #'compile-function-taking-ctvs has to use labels as otherwise
-;; it can't capture the implicit ctv vars.
-;; possible solution is to have a labels where you can declare capturable vars
 (5am:test build-32
   (signals varjo-conditions:symbol-unidentified
     (varjo.tests::compile-vert () :450
@@ -361,3 +392,26 @@
                       (funcall ffn 10)))
              (foo fn))
            (v! 0 0 0 0))))))
+
+(5am:test build-34
+  (glsl-contains-n-p 1 "vec4 TEST_EXT.*\\(float HAM\\);"
+    (varjo.tests::compile-vert () :450
+      (varjo.tests::test-ext 10s0)
+      (varjo.tests::test-ext 10s0)
+      (v! 0 0 0 0))))
+
+(5am:test build-35
+  (glsl-contains-n-p 1
+      "vec4 TEST_EXT2.*\\(float HAM, out int return1, out int return2\\);"
+    (varjo.tests::compile-vert () :450
+      (varjo.tests::test-ext2 10s0)
+      (varjo.tests::test-ext2 10s0)
+      (v! 0 0 0 0))))
+
+(5am:test build-36
+  (glsl-contains-n-p 1
+      "vec4 TEST_EXT3.*\\(float HAM, out int return1, out int return2\\);"
+    (varjo.tests::compile-vert () :450
+      (varjo.tests::test-ext3 10s0)
+      (varjo.tests::test-ext3 10s0)
+      (v! 0 0 0 0))))
