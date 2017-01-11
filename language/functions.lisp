@@ -328,3 +328,8 @@
 (v-defun atomic-counter (c &context (:330 :440))
   "atomicCounter(~a)"
   (v-atomic_uint) v-uint)
+
+(v-defun expt (x y) "pow(~a, ~a)" (v-vec4 v-vec4) v-vec4)
+(v-defun expt (x y) "pow(~a, ~a)" (v-vec3 v-vec3) v-vec3)
+(v-defun expt (x y) "pow(~a, ~a)" (v-vec2 v-vec2) v-vec2)
+(v-defun expt (x y) "pow(~a, ~a)" (v-float v-float) v-float)
