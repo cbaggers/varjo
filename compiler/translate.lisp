@@ -234,7 +234,7 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)
-  (%make-function :main () (list code) nil env))
+  (make-and-add-function :main () (list code) nil env))
 
 ;;----------------------------------------------------------------------
 

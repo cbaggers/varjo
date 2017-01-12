@@ -395,7 +395,7 @@
           (mapcar-progn
            (lambda (env d)
              (dbind (name args &rest body) d
-               (%make-function name args body t env)))
+               (make-and-add-function name args body t env)))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (assert body-obj)
@@ -424,7 +424,7 @@
           (%mapcar-multi-env-progn
            (lambda (env d)
              (dbind (name args &rest body) d
-               (%make-function name args body t env)))
+               (make-and-add-function name args body t env)))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
@@ -450,7 +450,8 @@
         (env-> (p-env fresh-env)
           (mapcar-progn (lambda (env d)
                           (dbind (name args &rest body) d
-                            (%make-function name args body exceptions env)))
+                            (make-and-add-function
+                             name args body exceptions env)))
                         p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     ;;

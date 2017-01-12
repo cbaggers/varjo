@@ -128,15 +128,28 @@
          env)))))
 
 (defun compile-with-external-func-in-scope (func body-form env)
-  (copy-code (compile-list-form
-              (expand-macros-for-external-func
-               `(labels-no-implicit
-                 ((,(name func) ,(in-args func) ,@(code func)))
-                 ()
-                 ,body-form)
-               env)
-              env)
-             :injected-uniforms (uniforms func)))
+  ;; Here we are going to make use of the fact that a external function
+  ;; is not allowed to mutate the environment it was called from.
+  ;; We are going to grab the base environment and compile the labels form
+  ;; there. We can then extract the signatures we need from this and add them
+  ;; to the final source. The deduplication will be achieved by the fact that
+  ;; we will use the external-function object as a key to a hashtable in the
+  ;; base-env which will cache the results of these compiled external functions.
+  ;; We will however, expand the macros in the current environment so that
+  ;; macrolet (and it's kin) will work when we get around to adding them.
+  ;;
+  (let* ((base-env (get-base-env env)))
+    (vbind (build-func-code-obj v-func)
+        (or nil ;;(compiled-functions base-env func)
+            (build-external-function func base-env))
+      (declare (ignore build-func-code-obj));;ignored until we finish this
+      (vbind (code-obj new-env)
+          (compile-function-call (name func) v-func (rest body-form) env)
+        ;; (break "fooo yeah! ~a ~a ~a ~a"
+        ;;        build-func-code-obj v-func
+        ;;        code-obj new-env)
+        (warn "compile-with-external-func-in-scope is not complete")
+        (values code-obj new-env)))))
 
 (defun compile-external-function-call (func args env)
   (compile-with-external-func-in-scope func `(,(name func) ,@args) env))

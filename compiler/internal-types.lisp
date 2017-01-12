@@ -116,7 +116,8 @@
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
                          :third-party-metadata)
-   (name-map :initform (make-hash-table :test #'equal))))
+   (name-map :initform (make-hash-table :test #'equal))
+   (compiled-functions :initform (make-hash-table :test #'eq))))
 
 ;;----------------------------------------------------------------------
 

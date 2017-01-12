@@ -73,6 +73,9 @@
 (defmethod used-compiler-macros ((e environment))
   (slot-value (get-base-env e) 'used-compiler-macros))
 
+(defmethod compiled-functions ((e environment) (key external-function))
+  (gethash key (slot-value (get-base-env e) 'compiled-functions)))
+
 (defun get-base-env (env)
   (let ((parent (v-parent-env env)))
     (if (not (eq parent *global-env*))
@@ -80,6 +83,11 @@
         env)))
 
 ;; ugh
+(defmethod (setf compiled-functions)
+    (value (e environment) (key external-function))
+  (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
+        value))
+
 (defmethod (setf used-external-functions) (val (e environment))
   (setf (slot-value (get-base-env e) 'used-external-functions)
         val))
@@ -167,8 +175,7 @@
 
 ;;-------------------------------------------------------------------------
 
-;; {TODO} this needs a better name, see comment in %make-new-function
-(defun process-environment-for-main-labels (env)
+(defun remove-main-method-flag-from-env (env)
   (assert (typep env 'environment))
   (make-instance 'environment
                  :variables (v-variables env)

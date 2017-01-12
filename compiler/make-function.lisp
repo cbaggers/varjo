@@ -4,7 +4,26 @@
 ;;============================================================
 ;; The mess of creation
 
-(defun %make-function (name args body allowed-implicit-args env)
+(defun make-and-add-function (name args body allowed-implicit-args env)
+  (vbind (code-obj func)
+      (build-function name args body allowed-implicit-args env)
+    (values code-obj (add-function name func env))))
+
+;; :reader name
+;; :reader in-args
+;; :reader uniforms
+;; :reader code
+;; :reader glsl-versions
+
+(defun build-external-function (external-function env)
+  (with-slots (name in-args uniforms code glsl-versions) external-function
+    (build-function name
+                    (append in-args (when uniforms `(&uniform ,@uniforms)))
+                    code
+                    nil
+                    env)))
+
+(defun build-function (name args body allowed-implicit-args env)
   ;;
   ;; Check that the args are correctly formatted, we could just let
   ;; type-spec->type take care of this, however this way we get to
@@ -20,19 +39,9 @@
     ;; If any of the arguments are compile-time values then we will emit
     ;; a labels-no-implicit form with the ctv arg removed and bound as a
     ;; lexical var (which will be captured).
-    (vbind (code-obj func)
-        (if (some λ(typep _ 'v-compile-time-value) arg-types)
-            (make-new-function-with-ctvs name args body allowed-implicit-args env)
-            (make-regular-function name args body allowed-implicit-args env))
-      (values code-obj (add-function name func env)))))
-
-(defun make-func-env (env mainp allowed-implicit-args)
-  (if mainp
-      (fresh-environment env :function-scope (1+ (v-function-scope env))
-                         :context (cons :main (v-context env))
-                         :allowed-outer-vars allowed-implicit-args)
-      (fresh-environment env :function-scope (1+ (v-function-scope env))
-                         :allowed-outer-vars allowed-implicit-args)))
+    (if (some λ(typep _ 'v-compile-time-value) arg-types)
+        (make-new-function-with-ctvs name args body allowed-implicit-args env)
+        (make-regular-function name args body allowed-implicit-args env))))
 
 (defun make-regular-function (name args body allowed-implicit-args env)
   (let* ((mainp (eq name :main))
@@ -70,29 +79,8 @@
         (%make-new-function mainp func-env in-arg-flow-ids arg-glsl-names
                             body-obj name args implicit-args))))
 
-(defun extract-implicit-args (name allowed-implicit-args
-                              normalized-out-of-scope-args env)
-  (let ((result (remove-if λ(= (v-function-scope _)
-                               (v-function-scope env))
-                           normalized-out-of-scope-args)))
-    (if (eq allowed-implicit-args t)
-        result
-        (when result
-          (error 'illegal-implicit-args :func-name name)))))
 
-(defun function-raw-args-validp (raw-args)
-  (every #'function-raw-arg-validp raw-args))
-
-(defun function-raw-arg-validp (raw-arg)
-  "Basic checks to validate the argument forms for the function"
-  (and (listp raw-arg)
-       (>= (length raw-arg) 2)
-       (not (null (first raw-arg)))
-       (symbolp (first raw-arg))
-       (not (keywordp (first raw-arg)))
-       (type-specp (second raw-arg))))
-
- (defun %make-new-function (mainp env in-arg-flow-ids
+(defun %make-new-function (mainp env in-arg-flow-ids
                            arg-glsl-names body-obj name args implicit-args)
   (let* ((glsl-name (if mainp "main" (lisp-name->glsl-name name env)))
          (primary-return (first (returns body-obj)))
@@ -185,3 +173,34 @@
                                            nil env env)
                      :flow-ids nil)
               func))))
+
+
+(defun function-raw-args-validp (raw-args)
+  (every #'function-raw-arg-validp raw-args))
+
+(defun function-raw-arg-validp (raw-arg)
+  "Basic checks to validate the argument forms for the function"
+  (and (listp raw-arg)
+       (>= (length raw-arg) 2)
+       (not (null (first raw-arg)))
+       (symbolp (first raw-arg))
+       (not (keywordp (first raw-arg)))
+       (type-specp (second raw-arg))))
+
+(defun extract-implicit-args (name allowed-implicit-args
+                              normalized-out-of-scope-args env)
+  (let ((result (remove-if λ(= (v-function-scope _)
+                               (v-function-scope env))
+                           normalized-out-of-scope-args)))
+    (if (eq allowed-implicit-args t)
+        result
+        (when result
+          (error 'illegal-implicit-args :func-name name)))))
+
+(defun make-func-env (env mainp allowed-implicit-args)
+  (if mainp
+      (fresh-environment env :function-scope (1+ (v-function-scope env))
+                         :context (cons :main (v-context env))
+                         :allowed-outer-vars allowed-implicit-args)
+      (fresh-environment env :function-scope (1+ (v-function-scope env))
+                         :allowed-outer-vars allowed-implicit-args)))
