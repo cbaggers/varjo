@@ -41,6 +41,7 @@
                (:file "compiler/compile-special")
                (:file "compiler/compile-funcall")
                (:file "compiler/compile-form")
+               (:file "compiler/make-function")
                (:file "language/parse-from-spec")
                (:file "language/variables-from-spec")
                (:file "language/functions-from-spec")
