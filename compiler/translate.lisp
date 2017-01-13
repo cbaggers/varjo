@@ -247,7 +247,7 @@
    :used-symbol-macros (remove-duplicates (used-symbol-macros env))
    :used-macros (remove-duplicates (used-macros env))
    :used-compiler-macros (remove-duplicates (used-compiler-macros env))
-   :func-defs-glsl (func-defs-glsl env)))
+   :func-defs-glsl (cons-end (glsl-code main-func) (func-defs-glsl env))))
 
 ;;----------------------------------------------------------------------
 

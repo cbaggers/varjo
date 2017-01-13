@@ -62,7 +62,7 @@
 (defclass compiled-function-result ()
   ((function-obj :initarg :function-obj :reader function-obj)
    (glsl-code :initarg :glsl-code :reader glsl-code)
-   (signature :initarg :signature :reader signature)
+   (signatures :initarg :signatures :reader signatures)
    (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)
    (injected-uniforms :initarg :injected-uniforms :reader injected-uniforms)

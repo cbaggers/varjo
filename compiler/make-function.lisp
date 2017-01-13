@@ -6,7 +6,7 @@
 
 (defun make-and-add-function (name args body allowed-implicit-args env)
   (vbind (code-obj func)
-      (build-function name args body allowed-implicit-args env)
+      (%build-function name args body allowed-implicit-args env)
     (values code-obj (add-function name func env))))
 
 (defun build-external-function (external-function env)
@@ -20,7 +20,7 @@
 (defun build-standalone-function (name args code env)
   (let ((base-env (get-base-env env)))
     (vbind (code-obj func-obj glsl-code)
-        (build-function name ;; {TODO} let's split up in-args, uniforms, etc
+        (%build-function name ;; {TODO} let's split up in-args, uniforms, etc
                         ;;             for the other build functions.
                         args
                         code
@@ -28,9 +28,6 @@
                         base-env)
       ;; This is protection against my own short-sightedness, we will
       ;; at least get a crash if my assumptions are wrong
-      (if (eq name :main)
-          (assert (= 0 (length (signatures code-obj))))
-          (assert (= 1 (length (signatures code-obj)))))
       (assert (null (current-line code-obj)))
       (assert (null (flow-ids code-obj)))
       (assert (null (multi-vals code-obj)))
@@ -42,7 +39,7 @@
       (assert (typep (code-type code-obj) 'v-none))
       (make-instance 'compiled-function-result
                      :function-obj func-obj
-                     :signature (first (signatures code-obj))
+                     :signatures (signatures code-obj)
                      :ast (node-tree code-obj)
                      :used-types (used-types code-obj)
                      :glsl-code glsl-code
@@ -50,7 +47,7 @@
                      :stemcells (stemcells code-obj)
                      :out-vars (out-vars code-obj)))))
 
-(defun build-function (name args body allowed-implicit-args env)
+(defun %build-function (name args body allowed-implicit-args env)
   (warn "build-external-function is incomplete. ALL functions need to be added to the compiled cache")
   ;;
   ;; Check that the args are correctly formatted, we could just let
@@ -63,10 +60,6 @@
   ;;
   ;; Parse the types
   (let ((arg-types (mapcar λ(type-spec->type (second _)) args)))
-    ;;
-    ;; If any of the arguments are compile-time values then we will emit
-    ;; a labels-no-implicit form with the ctv arg removed and bound as a
-    ;; lexical var (which will be captured).
     (if (some λ(typep _ 'v-compile-time-value) arg-types)
         (make-new-function-with-ctvs name args body allowed-implicit-args env)
         (make-regular-function name args body allowed-implicit-args env))))

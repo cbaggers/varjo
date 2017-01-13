@@ -39,9 +39,9 @@
     (maphash
      (lambda (k v)
        (declare (ignore k))
-       (push (signature v) signatures))
+       (push (signatures v) signatures))
      (slot-value (get-base-env e) 'compiled-functions))
-    signatures))
+    (reduce #'append signatures)))
 
 (defun get-base-env (env)
   (let ((parent (v-parent-env env)))
