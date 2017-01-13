@@ -9,19 +9,38 @@
       (build-function name args body allowed-implicit-args env)
     (values code-obj (add-function name func env))))
 
-;; :reader name
-;; :reader in-args
-;; :reader uniforms
-;; :reader code
-;; :reader glsl-versions
-
 (defun build-external-function (external-function env)
-  (with-slots (name in-args uniforms code glsl-versions) external-function
-    (build-function name
-                    (append in-args (when uniforms `(&uniform ,@uniforms)))
-                    code
-                    nil
-                    env)))
+  (let ((base-env (get-base-env env)))
+    (with-slots (name in-args uniforms code glsl-versions) external-function
+      (vbind (code-obj func-obj)
+          (build-function name ;; {TODO} let's split up in-args, uniforms, etc
+                          ;;             for the other build functions.
+                          (append in-args (when uniforms
+                                            `(&uniform ,@uniforms)))
+                          code
+                          nil
+                          base-env)
+        ;; This is protection against my own short-sightedness, we will
+        ;; at least get a crash if my assumptions are wrong
+        (assert (= 1 (length (signatures code-obj))))
+        (assert (null (current-line code-obj)))
+        (assert (null (flow-ids code-obj)))
+        (assert (null (injected-uniforms code-obj)))
+        (assert (null (multi-vals code-obj)))
+        (assert (null (mutations code-obj)))
+        (assert (null (out-of-scope-args code-obj)))
+        (assert (null (out-vars code-obj)))
+        (assert (null (place-tree code-obj)))
+        (assert (null (returns code-obj)))
+        (assert (null (stemcells code-obj)))
+        (assert (null (to-block code-obj)))
+        (assert (typep (code-type code-obj) 'v-none))
+        ;;
+        (make-instance 'compiled-function-result
+                       :function-obj func-obj
+                       :signature (first (signatures code-obj))
+                       :ast (node-tree code-obj)
+                       :used-types (used-types code-obj))))))
 
 (defun build-function (name args body allowed-implicit-args env)
   ;;

@@ -59,6 +59,14 @@
 
 ;;----------------------------------------------------------------------
 
+(defclass compiled-function-result ()
+  ((function-obj :initarg :function-obj :reader function-obj)
+   (signature :initarg :signature :reader signature)
+   (ast :initarg :ast :reader ast)
+   (used-types :initarg :used-types :reader used-types)))
+
+;;----------------------------------------------------------------------
+
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)

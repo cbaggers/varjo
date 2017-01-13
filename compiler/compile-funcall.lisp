@@ -138,18 +138,17 @@
   ;; We will however, expand the macros in the current environment so that
   ;; macrolet (and it's kin) will work when we get around to adding them.
   ;;
-  (let* ((base-env (get-base-env env)))
-    (vbind (build-func-code-obj v-func)
-        (or nil ;;(compiled-functions base-env func)
-            (build-external-function func base-env))
-      (declare (ignore build-func-code-obj));;ignored until we finish this
-      (vbind (code-obj new-env)
-          (compile-function-call (name func) v-func (rest body-form) env)
-        ;; (break "fooo yeah! ~a ~a ~a ~a"
-        ;;        build-func-code-obj v-func
-        ;;        code-obj new-env)
-        (warn "compile-with-external-func-in-scope is not complete")
-        (values code-obj new-env)))))
+  (let* ((base-env (get-base-env env))
+         (compiled-func (or (compiled-functions base-env func)
+                            (build-external-function func base-env))))
+    (setf (compiled-functions base-env func) compiled-func)
+    (vbind (code-obj new-env)
+        (compile-function-call (name func)
+                               (function-obj compiled-func)
+                               (rest body-form)
+                               env)
+      (warn "compile-with-external-func-in-scope is not complete")
+      (values code-obj new-env))))
 
 (defun compile-external-function-call (func args env)
   (compile-with-external-func-in-scope func `(,(name func) ,@args) env))
