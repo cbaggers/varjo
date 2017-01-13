@@ -147,7 +147,6 @@
                                (function-obj compiled-func)
                                (rest body-form)
                                env)
-      (warn "compile-with-external-func-in-scope is not complete")
       (values code-obj new-env))))
 
 (defun compile-external-function-call (func args env)

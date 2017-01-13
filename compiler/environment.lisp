@@ -51,7 +51,7 @@
 
 ;; ugh
 (defmethod (setf compiled-functions)
-    (value (e environment) (key external-function))
+    (value (e environment) key)
   (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
         value))
 
@@ -558,14 +558,25 @@
       (t (error 'could-not-find-any :name existing-name))))
   new-name)
 
-(defmethod add-function (func-name (func-spec list) (env (eql :-genv-)))
+(defmethod add-function-from-spec (func-name (func-spec list)
+                                   (env (eql :-genv-)))
   (setf (gethash func-name *global-env-funcs*)
         (cons func-spec (gethash func-name *global-env-funcs*)))
   *global-env*)
 
-(defmethod add-function (func-name (func-spec v-function) (env environment))
-  (when (shadow-global-check func-name)
-    (fresh-environment env :functions (a-add func-name func-spec (v-functions env)))))
+(defmethod add-function ((compiled-func compiled-function-result)
+                         (env environment))
+  (let* ((func (function-obj compiled-func))
+         (func-name (name func)))
+    (when (shadow-global-check func-name)
+      (assert (typep func 'v-function))
+      (setf (compiled-functions env func) compiled-func)
+      (add-function func env))))
+
+(defmethod add-function ((func-spec v-function) (env environment))
+  (let ((func-name (name func-spec)))
+    (when (shadow-global-check func-name)
+      (fresh-environment env :functions (a-add func-name func-spec (v-functions env))))))
 
 (defmethod %add-function (func-name (func-spec v-function)
                           (env base-environment))

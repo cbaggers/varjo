@@ -4,51 +4,30 @@
 ;;============================================================
 ;; The mess of creation
 
-(defun make-and-add-function (name args body allowed-implicit-args env)
-  (vbind (code-obj func)
-      (%build-function name args body allowed-implicit-args env)
-    (values code-obj (add-function name func env))))
-
-(defun build-external-function (external-function env)
-  (with-slots (name in-args uniforms code glsl-versions) external-function
-    (build-standalone-function name
-                               (append in-args (when uniforms
-                                                 `(&uniform ,@uniforms)))
-                               code
-                               env)))
-
-(defun build-standalone-function (name args code env)
-  (let ((base-env (get-base-env env)))
-    (vbind (code-obj func-obj glsl-code)
-        (%build-function name ;; {TODO} let's split up in-args, uniforms, etc
-                        ;;             for the other build functions.
-                        args
+(defmethod build-external-function ((func external-function) env)
+  (with-slots (name in-args uniforms code glsl-versions) func
+    (vbind (compiled-func maybe-def-code)
+        (build-function name
+                        (append in-args (when uniforms `(&uniform ,@uniforms)))
                         code
                         nil
-                        base-env)
-      ;; This is protection against my own short-sightedness, we will
-      ;; at least get a crash if my assumptions are wrong
-      (assert (null (current-line code-obj)))
-      (assert (null (flow-ids code-obj)))
-      (assert (null (multi-vals code-obj)))
-      (assert (null (mutations code-obj)))
-      (assert (null (out-of-scope-args code-obj)))
-      (assert (null (place-tree code-obj)))
-      (assert (null (returns code-obj)))
-      (assert (null (to-block code-obj)))
-      (assert (typep (code-type code-obj) 'v-none))
-      (make-instance 'compiled-function-result
-                     :function-obj func-obj
-                     :signatures (signatures code-obj)
-                     :ast (node-tree code-obj)
-                     :used-types (used-types code-obj)
-                     :glsl-code glsl-code
-                     :injected-uniforms (injected-uniforms code-obj)
-                     :stemcells (stemcells code-obj)
-                     :out-vars (out-vars code-obj)))))
+                        env)
+      ;; Here we check that we haven't got any behaviour that, while legal for
+      ;; main or local funcs, would be undesired in external functions
+      (when maybe-def-code
+        (assert (null (out-vars maybe-def-code)))
+        (assert (null (current-line maybe-def-code)))
+        (assert (null (flow-ids maybe-def-code)))
+        (assert (null (multi-vals maybe-def-code)))
+        (assert (null (mutations maybe-def-code)))
+        (assert (null (out-of-scope-args maybe-def-code)))
+        (assert (null (place-tree maybe-def-code)))
+        (assert (null (returns maybe-def-code)))
+        (assert (null (to-block maybe-def-code)))
+        (assert (typep (code-type maybe-def-code) 'v-none)))
+      (values compiled-func maybe-def-code))))
 
-(defun %build-function (name args body allowed-implicit-args env)
-  (warn "build-external-function is incomplete. ALL functions need to be added to the compiled cache")
+(defun build-function (name args body allowed-implicit-args env)
   ;;
   ;; Check that the args are correctly formatted, we could just let
   ;; type-spec->type take care of this, however this way we get to
@@ -141,20 +120,27 @@
                                  :in-out-args in-out-args
                                  :flow-ids (flow-ids body-obj)
                                  :in-arg-flow-ids in-arg-flow-ids)
-                  func-env)))
-      (values (copy-code body-obj
-                         :type (type-spec->type 'v-none)
-                         :current-line nil
-                         :signatures sigs
-                         :to-block nil
-                         :returns nil
-                         :out-vars (out-vars body-obj)
-                         :multi-vals nil
-                         :place-tree nil
-                         :out-of-scope-args implicit-args
-                         :flow-ids nil)
-              func
-              func-glsl-def))))
+                  func-env))
+           (code-obj (copy-code body-obj
+                                :type (type-spec->type 'v-none)
+                                :current-line nil
+                                :signatures sigs
+                                :to-block nil
+                                :returns nil
+                                :out-vars (out-vars body-obj)
+                                :multi-vals nil
+                                :place-tree nil
+                                :out-of-scope-args implicit-args
+                                :flow-ids nil)))
+      (values (make-instance 'compiled-function-result
+                             :function-obj func
+                             :signatures (signatures code-obj)
+                             :ast (node-tree body-obj)
+                             :used-types (used-types code-obj)
+                             :glsl-code func-glsl-def
+                             :stemcells (stemcells code-obj)
+                             :out-vars (out-vars code-obj))
+              code-obj))))
 
 (defun make-new-function-with-ctvs (name args body allowed-implicit-args
                                     env)
@@ -169,14 +155,21 @@
            (ast-body (if (= 1 (length body))
                          (first body)
                          `(progn ,@body))))
-      (values (code! :type (type-spec->type 'v-none)
+      (values (make-instance 'compiled-function-result
+                             :function-obj func
+                             :signatures nil
+                             :ast nil
+                             :used-types nil
+                             :glsl-code nil
+                             :stemcells nil
+                             :out-vars nil)
+              (code! :type (type-spec->type 'v-none)
                      :place-tree nil
                      :node-tree (ast-node! :code-section
                                            ast-body
                                            (type-spec->type 'v-none)
                                            nil env env)
-                     :flow-ids nil)
-              func))))
+                     :flow-ids nil)))))
 
 
 (defun function-raw-args-validp (raw-args)

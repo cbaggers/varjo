@@ -33,7 +33,7 @@
 (defgeneric %add-var (var-name val env))
 (defgeneric v-boundp (var-name env))
 (defgeneric add-equivalent-name (existing-name new-name))
-(defgeneric add-function (func-name func-spec env))
+(defgeneric add-function (func-spec env))
 (defgeneric %add-function (func-name func-spec env))
 (defgeneric get-func-set-by-name (func-name env))
 (defgeneric %get-functions-by-name (func-name env))
