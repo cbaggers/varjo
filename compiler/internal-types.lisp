@@ -61,6 +61,7 @@
 
 (defclass compiled-function-result ()
   ((function-obj :initarg :function-obj :reader function-obj)
+   (glsl-code :initarg :glsl-code :reader glsl-code)
    (signature :initarg :signature :reader signature)
    (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)))
@@ -120,7 +121,6 @@
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
-   (function-dedup :initform nil :initarg :function-dedup)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
                          :third-party-metadata)

@@ -12,7 +12,7 @@
 (defun build-external-function (external-function env)
   (let ((base-env (get-base-env env)))
     (with-slots (name in-args uniforms code glsl-versions) external-function
-      (vbind (code-obj func-obj)
+      (vbind (code-obj func-obj glsl-code)
           (build-function name ;; {TODO} let's split up in-args, uniforms, etc
                           ;;             for the other build functions.
                           (append in-args (when uniforms
@@ -36,11 +36,14 @@
         (assert (null (to-block code-obj)))
         (assert (typep (code-type code-obj) 'v-none))
         ;;
+        (warn "build-external-function is incomplete")
+        ;; {TODO} translate wants ast, stemcells, used-types, out-vars, injected-uniforms, signatures
         (make-instance 'compiled-function-result
                        :function-obj func-obj
                        :signature (first (signatures code-obj))
                        :ast (node-tree code-obj)
-                       :used-types (used-types code-obj))))))
+                       :used-types (used-types code-obj)
+                       :glsl-code glsl-code)))))
 
 (defun build-function (name args body allowed-implicit-args env)
   ;;
@@ -61,6 +64,7 @@
     (if (some λ(typep _ 'v-compile-time-value) arg-types)
         (make-new-function-with-ctvs name args body allowed-implicit-args env)
         (make-regular-function name args body allowed-implicit-args env))))
+
 
 (defun make-regular-function (name args body allowed-implicit-args env)
   (let* ((mainp (eq name :main))
@@ -86,22 +90,11 @@
                                        (remove-main-method-flag-from-env
                                         func-env))))
          (body-obj (compile-form `(%return (progn ,@body)) body-env))
-         (dedup-key (func-dedup-key args body-obj))
-         (deduped-func (dedup-function dedup-key func-env))
-         (normalized-out-of-scope-args (normalize-out-of-scope-args
-                                        (out-of-scope-args body-obj)))
-         (implicit-args (extract-implicit-args
-                         name allowed-implicit-args
-                         normalized-out-of-scope-args func-env)))
-    (if (and (not mainp) (not implicit-args) deduped-func)
-        (values nil deduped-func)
-        (%make-new-function mainp func-env in-arg-flow-ids arg-glsl-names
-                            body-obj name args implicit-args))))
-
-
-(defun %make-new-function (mainp env in-arg-flow-ids
-                           arg-glsl-names body-obj name args implicit-args)
-  (let* ((glsl-name (if mainp "main" (lisp-name->glsl-name name env)))
+         (implicit-args (extract-implicit-args name allowed-implicit-args
+                                               (normalize-out-of-scope-args
+                                                (out-of-scope-args body-obj))
+                                               func-env))
+         (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
          (primary-return (first (returns body-obj)))
          (multi-return-vars (rest (returns body-obj)))
          (type (if mainp (type-spec->type 'v-void) primary-return)))
@@ -149,15 +142,7 @@
                                  :in-out-args in-out-args
                                  :flow-ids (flow-ids body-obj)
                                  :in-arg-flow-ids in-arg-flow-ids)
-                  env)))
-      ;; Below we create the dedup with gensym key as, although it
-      ;; will never match anything, we will use the data later to
-      ;; extract the func-glsl-def
-      (if implicit-args
-          (push-non-implicit-function-for-dedup
-           (gensym) func func-glsl-def env)
-          (push-non-implicit-function-for-dedup
-           (func-dedup-key args body-obj) func func-glsl-def env))
+                  func-env)))
       (values (copy-code body-obj
                          :type (type-spec->type 'v-none)
                          :current-line nil
@@ -169,7 +154,8 @@
                          :place-tree nil
                          :out-of-scope-args implicit-args
                          :flow-ids nil)
-              func))))
+              func
+              func-glsl-def))))
 
 (defun make-new-function-with-ctvs (name args body allowed-implicit-args
                                     env)

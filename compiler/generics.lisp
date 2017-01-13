@@ -13,7 +13,6 @@
 (defgeneric v-code-type-eq (a b &optional env))
 (defgeneric v-make-value (type env &key glsl-name flow-ids function-scope read-only))
 (defgeneric get-flow-id-for-stem-cell (stem-cell-symbol e))
-(defgeneric dedup-function (code e))
 (defgeneric used-symbol-macros (e))
 (defgeneric (setf used-symbol-macros) (value e))
 (defgeneric used-macros (e))
@@ -60,7 +59,6 @@
                                   place-tree mutations node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
-(defgeneric push-non-implicit-function-for-dedup (code func glsl e))
 (defgeneric func-need-arguments-compiledp (func))
 (defgeneric get-macro (macro-name env))
 (defgeneric get-symbol-macro (macro-name env))

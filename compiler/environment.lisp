@@ -10,57 +10,6 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
-(defun id-gensyms-in-code (tree)
-  (let ((id -1)
-        (sym-table (make-hash-table)))
-    (labels ((swap-gensym (gsym)
-               (or (gethash gsym sym-table)
-                   (setf (gethash gsym sym-table)
-                         `(:gensym ,(incf id)))))
-             (walk (code)
-               (etypecase code
-                 (symbol (if (null (symbol-package code))
-                             (swap-gensym code)
-                             code))
-                 (atom code)
-                 (list (mapcar #'walk code)))))
-      (walk tree))))
-
-(defmethod func-dedup-key (args body-obj)
-  (let* ((original-arg-names (mapcar #'first args))
-         (arg-names (loop :for i :below (length args) :collect i))
-         (args (mapcar λ(cons _ (rest _1)) arg-names args))
-         (name-map (mapcar #'cons original-arg-names arg-names)))
-    (labels ((map-name (x)
-               (or (assocr x name-map) x))
-             (visitor (node walk)
-               (with-slots (kind args) node
-                 (typecase kind
-                   (keyword
-                    (case kind
-                      (:get (list :get (map-name (first args))))
-                      (:get-stemcell (first args))
-                      (:literal (first args))
-                      (:code-section (first args))
-                      (:funcall `(funcall ,@(mapcar walk args)))
-                      (:break `(%break ,@args))
-                      (t (error "invalid node kind ~s found in result"
-                                kind))))
-                   (v-function `(,(name kind) ,@(mapcar walk args)))
-                   (otherwise `(,kind ,@(mapcar walk args)))))))
-      (id-gensyms-in-code (list args (walk-ast #'visitor body-obj))))))
-
-(defmethod push-non-implicit-function-for-dedup (code func string (e environment))
-  (push (list code func string) (slot-value (get-base-env e) 'function-dedup)))
-
-(defmethod dedup-function (code (e environment))
-  (second (find code (slot-value (get-base-env e) 'function-dedup)
-                  :key #'car :test #'equal)))
-
-(defmethod func-defs-glsl ((e environment))
-  (reverse (mapcar #'third (slot-value (get-base-env e) 'function-dedup))))
-
-
 (defmethod used-external-functions ((e environment))
   (slot-value (get-base-env e) 'used-external-functions))
 
@@ -75,6 +24,15 @@
 
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
+
+(defmethod func-defs-glsl ((e environment))
+  (let (code)
+    (maphash
+     (lambda (k v)
+       (declare (ignore k))
+       (push (glsl-code v) code))
+     (slot-value (get-base-env e) 'compiled-functions))
+    code))
 
 (defun get-base-env (env)
   (let ((parent (v-parent-env env)))

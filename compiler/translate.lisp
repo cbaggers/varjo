@@ -241,12 +241,11 @@
 (defun make-post-process-obj (code env)
   (make-instance
    'post-compile-process :code code :env env
-   :used-external-functions (remove-duplicates
-                             (used-external-functions env))
+   :used-external-functions (remove-duplicates (used-external-functions env))
    :used-symbol-macros (remove-duplicates (used-symbol-macros env))
    :used-macros (remove-duplicates (used-macros env))
-   :func-defs-glsl (func-defs-glsl env)
-   :used-compiler-macros (remove-duplicates (used-compiler-macros env))))
+   :used-compiler-macros (remove-duplicates (used-compiler-macros env))
+   :func-defs-glsl (func-defs-glsl env)))
 
 ;;----------------------------------------------------------------------
 
