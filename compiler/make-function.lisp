@@ -10,42 +10,48 @@
     (values code-obj (add-function name func env))))
 
 (defun build-external-function (external-function env)
+  (with-slots (name in-args uniforms code glsl-versions) external-function
+    (build-standalone-function name
+                               (append in-args (when uniforms
+                                                 `(&uniform ,@uniforms)))
+                               code
+                               env)))
+
+(defun build-standalone-function (name args code env)
   (let ((base-env (get-base-env env)))
-    (with-slots (name in-args uniforms code glsl-versions) external-function
-      (vbind (code-obj func-obj glsl-code)
-          (build-function name ;; {TODO} let's split up in-args, uniforms, etc
-                          ;;             for the other build functions.
-                          (append in-args (when uniforms
-                                            `(&uniform ,@uniforms)))
-                          code
-                          nil
-                          base-env)
-        ;; This is protection against my own short-sightedness, we will
-        ;; at least get a crash if my assumptions are wrong
-        (assert (= 1 (length (signatures code-obj))))
-        (assert (null (current-line code-obj)))
-        (assert (null (flow-ids code-obj)))
-        (assert (null (injected-uniforms code-obj)))
-        (assert (null (multi-vals code-obj)))
-        (assert (null (mutations code-obj)))
-        (assert (null (out-of-scope-args code-obj)))
-        (assert (null (out-vars code-obj)))
-        (assert (null (place-tree code-obj)))
-        (assert (null (returns code-obj)))
-        (assert (null (stemcells code-obj)))
-        (assert (null (to-block code-obj)))
-        (assert (typep (code-type code-obj) 'v-none))
-        ;;
-        (warn "build-external-function is incomplete")
-        ;; {TODO} translate wants ast, stemcells, used-types, out-vars, injected-uniforms, signatures
-        (make-instance 'compiled-function-result
-                       :function-obj func-obj
-                       :signature (first (signatures code-obj))
-                       :ast (node-tree code-obj)
-                       :used-types (used-types code-obj)
-                       :glsl-code glsl-code)))))
+    (vbind (code-obj func-obj glsl-code)
+        (build-function name ;; {TODO} let's split up in-args, uniforms, etc
+                        ;;             for the other build functions.
+                        args
+                        code
+                        nil
+                        base-env)
+      ;; This is protection against my own short-sightedness, we will
+      ;; at least get a crash if my assumptions are wrong
+      (if (eq name :main)
+          (assert (= 0 (length (signatures code-obj))))
+          (assert (= 1 (length (signatures code-obj)))))
+      (assert (null (current-line code-obj)))
+      (assert (null (flow-ids code-obj)))
+      (assert (null (multi-vals code-obj)))
+      (assert (null (mutations code-obj)))
+      (assert (null (out-of-scope-args code-obj)))
+      (assert (null (place-tree code-obj)))
+      (assert (null (returns code-obj)))
+      (assert (null (to-block code-obj)))
+      (assert (typep (code-type code-obj) 'v-none))
+      (make-instance 'compiled-function-result
+                     :function-obj func-obj
+                     :signature (first (signatures code-obj))
+                     :ast (node-tree code-obj)
+                     :used-types (used-types code-obj)
+                     :glsl-code glsl-code
+                     :injected-uniforms (injected-uniforms code-obj)
+                     :stemcells (stemcells code-obj)
+                     :out-vars (out-vars code-obj)))))
 
 (defun build-function (name args body allowed-implicit-args env)
+  (warn "build-external-function is incomplete. ALL functions need to be added to the compiled cache")
   ;;
   ;; Check that the args are correctly formatted, we could just let
   ;; type-spec->type take care of this, however this way we get to

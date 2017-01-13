@@ -40,7 +40,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass post-compile-process ()
-  ((code :initarg :code :accessor code)
+  ((main-func :initarg :main-func :accessor main-func)
    (env :initarg :env :accessor env)
    (in-args :initarg :in-args :accessor in-args)
    (out-vars :initarg :out-vars :accessor out-vars)
@@ -64,7 +64,10 @@
    (glsl-code :initarg :glsl-code :reader glsl-code)
    (signature :initarg :signature :reader signature)
    (ast :initarg :ast :reader ast)
-   (used-types :initarg :used-types :reader used-types)))
+   (used-types :initarg :used-types :reader used-types)
+   (injected-uniforms :initarg :injected-uniforms :reader injected-uniforms)
+   (stemcells :initarg :stemcells :reader stemcells)
+   (out-vars :initarg :out-vars :reader out-vars)))
 
 ;;----------------------------------------------------------------------
 

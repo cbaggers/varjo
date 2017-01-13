@@ -189,19 +189,6 @@
 (defun normalize-used-types (types)
   (remove-duplicates (flatten types) :from-end t :test #'v-type-eq))
 
-(defun find-used-user-structs (code-obj env)
-  (declare (ignore env))
-  (let* ((used-types (normalize-used-types (used-types code-obj)))
-         (struct-types
-          (remove nil
-                  (loop :for type :in used-types
-                     :if (or (typep type 'v-struct)
-                             (and (typep type 'v-array)
-                                  (typep (v-element-type type) 'v-struct)))
-                     :collect type)))
-         (result (order-structs-by-dependency struct-types)))
-    result))
-
 (defun order-structs-by-dependency (struct-types)
   (let* ((type-graphs (mapcar (lambda (x) (cons x (walk-struct-dependencies x)))
                               struct-types))

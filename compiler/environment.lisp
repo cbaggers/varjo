@@ -34,6 +34,15 @@
      (slot-value (get-base-env e) 'compiled-functions))
     code))
 
+(defmethod signatures ((e environment))
+  (let (signatures)
+    (maphash
+     (lambda (k v)
+       (declare (ignore k))
+       (push (signature v) signatures))
+     (slot-value (get-base-env e) 'compiled-functions))
+    signatures))
+
 (defun get-base-env (env)
   (let ((parent (v-parent-env env)))
     (if (not (eq parent *global-env*))

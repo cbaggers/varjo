@@ -24,9 +24,9 @@
         #'gen-in-arg-strings
         #'gen-out-var-strings
         #'final-uniform-strings
-        #'dedup-strings
+        #'dedup-used-types
         #'final-string-compose
-        #'code-obj->result-object))))
+        #'package-as-final-result-object))))
 
 ;;----------------------------------------------------------------------
 
@@ -234,13 +234,15 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (code env)
-  (make-and-add-function :main () (list code) nil env))
+  (values (build-standalone-function  :main () (list code) env)
+          env))
 
 ;;----------------------------------------------------------------------
 
-(defun make-post-process-obj (code env)
+(defun make-post-process-obj (main-func env)
   (make-instance
-   'post-compile-process :code code :env env
+   'post-compile-process
+   :main-func main-func :env env
    :used-external-functions (remove-duplicates (used-external-functions env))
    :used-symbol-macros (remove-duplicates (used-symbol-macros env))
    :used-macros (remove-duplicates (used-macros env))
@@ -252,8 +254,8 @@
 (defun check-stemcells (post-proc-obj)
   "find any stemcells in the result that that the same name and
    a different type. Then remove duplicates"
-  (with-slots (code) post-proc-obj
-    (let ((stemcells (stemcells code)))
+  (with-slots (main-func) post-proc-obj
+    (let ((stemcells (stemcells main-func)))
       (mapcar
        (lambda (x)
          (with-slots (name (string string-name) type flow-id) x
@@ -345,21 +347,34 @@
 
                  (t (post-process-node node walk parent)))))
 
-      (symbol-macrolet ((code (code post-proc-obj)))
-        (let ((ast (walk-ast #'walk-node code :include-parent t)))
-          (setf code (copy-code code :node-tree ast)
+      (with-slots (main-func) post-proc-obj
+        (let ((ast (walk-ast #'walk-node (ast main-func) :include-parent t)))
+          (setf (slot-value main-func 'ast) ast
                 (slot-value post-proc-obj 'ast) ast)))
 
       post-proc-obj)))
 
 ;;----------------------------------------------------------------------
 
+(defun find-used-user-structs (main-func env)
+  (declare (ignore env))
+  (let* ((used-types (normalize-used-types (used-types main-func)))
+         (struct-types
+          (remove nil
+                  (loop :for type :in used-types
+                     :if (or (typep type 'v-struct)
+                             (and (typep type 'v-array)
+                                  (typep (v-element-type type) 'v-struct)))
+                     :collect type)))
+         (result (order-structs-by-dependency struct-types)))
+    result))
+
 (defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
-  (with-slots (code env) post-proc-obj
+  (with-slots (main-func env) post-proc-obj
     (setf (used-types post-proc-obj)
-          (find-used-user-structs code env)))
+          (find-used-user-structs main-func env)))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -408,8 +423,8 @@
     (reverse deduped)))
 
 (defun gen-out-var-strings (post-proc-obj)
-  (with-slots (code env) post-proc-obj
-    (let* ((out-vars (dedup-out-vars (out-vars code)))
+  (with-slots (main-func env) post-proc-obj
+    (let* ((out-vars (dedup-out-vars (out-vars main-func)))
            (out-types (mapcar (lambda (_)
                                 (v-type (third _)))
                               out-vars))
@@ -429,12 +444,12 @@
 
 ;;----------------------------------------------------------------------
 
-(defun merge-in-injected-uniforms (code env)
+(defun merge-in-injected-uniforms (main-func env)
   ;; - format injected-uniforms correctly
   ;; - remove-duplicates
   ;; - find duplicate names
   ;; - boom!
-  (let* ((formatted (mapcar λ`(,@_ nil nil) (injected-uniforms code)))
+  (let* ((formatted (mapcar λ`(,@_ nil nil) (injected-uniforms main-func)))
          (joined (append formatted  (v-uniforms env)))
          (dedup (remove-duplicates joined :test #'equal))
          (names (mapcar #'first dedup))
@@ -452,10 +467,10 @@ The full list: ~s
 
 
 (defun final-uniform-strings (post-proc-obj)
-  (with-slots (code env) post-proc-obj
+  (with-slots (main-func env) post-proc-obj
     (let ((final-strings nil)
           (structs (used-types post-proc-obj))
-          (uniforms (merge-in-injected-uniforms (code post-proc-obj) env))
+          (uniforms (merge-in-injected-uniforms main-func env))
           (implicit-uniforms nil))
       (loop :for (name type qualifiers glsl-name) :in uniforms
          :for type-obj = (type-spec->type type) :do
@@ -500,12 +515,9 @@ The full list: ~s
 
 ;;----------------------------------------------------------------------
 
-(defun dedup-strings (post-proc-obj)
-  (with-slots (code) post-proc-obj
-    (setf code
-	  (copy-code
-	   code
-	   :signatures (remove-duplicates (signatures code) :test #'equal)))
+(defun dedup-used-types (post-proc-obj)
+  (warn "dedup-used-types is not complete, what about used-types from other functions?")
+  (with-slots (main-func env) post-proc-obj
     (setf (used-types post-proc-obj)
           (remove-duplicates
            (mapcar #'v-signature (used-types post-proc-obj))
@@ -520,7 +532,7 @@ The full list: ~s
 
 ;;----------------------------------------------------------------------
 
-(defun code-obj->result-object (final-glsl-code post-proc-obj)
+(defun package-as-final-result-object (final-glsl-code post-proc-obj)
   (with-slots (env) post-proc-obj
     (let* ((context (process-context-for-result (v-context env)))
            (base-env (get-base-env env)))
