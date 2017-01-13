@@ -345,7 +345,7 @@
 
 (5am:test build-29
   (signals varjo-conditions:closures-not-supported
-    (varjo.tests::compile-vert () :450
+    (compile-vert () :450
       (let* ((y 10)
              (fn (labels ((test ((x :int)) (* y x)))
                    #'test)))
@@ -353,7 +353,7 @@
 
 (5am:test build-30
   (signals varjo-conditions:cross-scope-mutate
-    (varjo.tests::compile-vert () :450
+    (compile-vert () :450
       (let* ((y 10)
              (fn (labels ((test ((x :int))
                             (setf y 2)
@@ -364,7 +364,7 @@
 
 (5am:test build-31
   (signals varjo-conditions:cross-scope-mutate
-    (varjo.tests::compile-vert () :450
+    (compile-vert () :450
       (let* ((y 10)
              (fn (labels ((test ((x :int)) x))
                    #'test)))
@@ -376,7 +376,7 @@
 
 (5am:test build-32
   (signals varjo-conditions:symbol-unidentified
-    (varjo.tests::compile-vert () :450
+    (compile-vert () :450
       (labels ((foo ((ffn (function (:int) :int)))
                  (funcall ffn y)))
         (let ((y 10))
@@ -385,7 +385,7 @@
 
 (5am:test build-33
   (is (ast-stabalizes-p
-       (varjo.tests::compile-vert () :450
+       (compile-vert () :450
          (let ((fn (labels ((test ((x :int)) x))
                      #'test)))
            (labels ((foo ((ffn (function (:int) :int)))
@@ -395,23 +395,30 @@
 
 (5am:test build-34
   (glsl-contains-n-p 1 "vec4 TEST_EXT.*\\(float HAM\\);"
-    (varjo.tests::compile-vert () :450
-      (varjo.tests::test-ext 10s0)
-      (varjo.tests::test-ext 10s0)
+    (compile-vert () :450
+      (test-ext 10s0)
+      (test-ext 10s0)
       (v! 0 0 0 0))))
 
 (5am:test build-35
   (glsl-contains-n-p 1
       "vec4 TEST_EXT2.*\\(float HAM, out int return1, out int return2\\);"
-    (varjo.tests::compile-vert () :450
-      (varjo.tests::test-ext2 10s0)
-      (varjo.tests::test-ext2 10s0)
+    (compile-vert () :450
+      (test-ext2 10s0)
+      (test-ext2 10s0)
       (v! 0 0 0 0))))
 
 (5am:test build-36
   (glsl-contains-n-p 1
-      "vec4 TEST_EXT3.*\\(float HAM, out int return1, out int return2\\);"
-    (varjo.tests::compile-vert () :450
-      (varjo.tests::test-ext3 10s0)
-      (varjo.tests::test-ext3 10s0)
+      "vec4 TEST_EXT3.*\\(float HAM.*\\);"
+    (compile-vert () :450
+      (test-ext3 10s0)
+      (test-ext3 10s0)
       (v! 0 0 0 0))))
+
+(5am:test build-37
+  (glsl-contains-n-p 1
+      "float FOO(int X);"
+    (varjo.tests::compile-vert () :450
+          (labels ((foo () 10))
+            (v! 0 (foo) 0 0)))))
