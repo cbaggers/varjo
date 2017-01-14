@@ -84,7 +84,7 @@
 
 (defun %merge-multi-env-progn (code-objs)
   (merge-obs code-objs
-	     :type (type-spec->type 'v-none)
+	     :type (gen-none-type)
 	     :current-line nil
 	     :to-block (append (mapcat #'to-block code-objs)
 			       (mapcar (lambda (_) (current-line (end-line _)))
@@ -153,7 +153,7 @@
                         (to-block let-obj))))
         (values
          (copy-code let-obj
-                    :type (type-spec->type 'v-none)
+                    :type (gen-none-type)
                     :current-line nil
                     :to-block to-block
                     :multi-vals nil

@@ -153,7 +153,7 @@
         (if wrap-errors-p
             (make-code-obj
              (make-instance 'v-error :payload e) ""
-             :node-tree (ast-node! :error nil (type-spec->type :none)
+             :node-tree (ast-node! :error nil (gen-none-type)
                                    nil env env))
             (error e))))))
 

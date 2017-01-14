@@ -84,7 +84,7 @@
          (type (if mainp (type-spec->type 'v-void) primary-return)))
     ;;
     (unless (or mainp primary-return) (error 'no-function-returns :name name))
-    (when (v-typep type (type-spec->type :none))
+    (when (v-typep type (gen-none-type))
       (error 'function-with-no-return-type :func-name name))
     (let* ((arg-pairs (loop :for (nil type) :in args
                          :for name :in arg-glsl-names :collect
@@ -128,7 +128,7 @@
                                  :in-arg-flow-ids in-arg-flow-ids)
                   func-env))
            (code-obj (copy-code body-obj
-                                :type (type-spec->type 'v-none)
+                                :type (gen-none-type)
                                 :current-line nil
                                 :signatures sigs
                                 :to-block nil
@@ -163,7 +163,7 @@
                          `(progn ,@body)))
            (ast (ast-node! :code-section
                            ast-body
-                           (type-spec->type 'v-none)
+                           (gen-none-type)
                            nil env env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
@@ -173,11 +173,11 @@
                              :glsl-code nil
                              :stemcells nil
                              :out-vars nil)
-              (code! :type (type-spec->type 'v-none)
+              (code! :type (gen-none-type)
                      :place-tree nil
                      :node-tree (ast-node! :code-section
                                            ast-body
-                                           (type-spec->type 'v-none)
+                                           (gen-none-type)
                                            nil env env)
                      :flow-ids nil)))))
 

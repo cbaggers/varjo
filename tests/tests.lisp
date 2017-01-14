@@ -55,6 +55,8 @@
        (is (= ,count (length ,matches))))))
 
 ;;------------------------------------------------------------
+;; {TODO} turn this into a test (for testing definition of things)
+;;        use compile.
 
 (defvar *initd* nil)
 

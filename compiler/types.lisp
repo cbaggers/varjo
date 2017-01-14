@@ -23,12 +23,14 @@
 ;;------------------------------------------------------------
 
 (def-v-type-class v-container (v-type)
-  ((element-type :initform nil)
+  ((element-type :initform t)
    (dimensions :initform nil :accessor v-dimensions)))
 
 (def-v-type-class v-array (v-container)
   ((element-type :initform nil :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
+
+(def-v-type-class v-sampler (v-type) ())
 
 (defmethod v-glsl-string ((object v-array))
   (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object))
@@ -38,10 +40,15 @@
 
 ;; (v-glsl-string (type-spec->type '(:vec3 *)))
 
+;;------------------------------------------------------------
+
+;; {TODO} dedicated error
 (defmethod v-element-type ((object v-t-type))
-  (when (slot-exists-p object 'element-type)
-    (when (slot-value object 'element-type)
-      (type-spec->type (slot-value object 'element-type)))))
+  (let ((result (slot-value object 'element-type)))
+    (assert (typep result 'v-t-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
 
 ;;------------------------------------------------------------
 
@@ -162,6 +169,9 @@
    (or (try-type-spec->type spec)
        (try-type-spec->type (un-shadow spec))
        (error 'unknown-type-spec :type-spec spec))))
+
+(defun gen-none-type ()
+  (type-spec->type :none))
 
 (defmethod v-true-type ((object v-t-type))
   object)
@@ -300,8 +310,17 @@
 (defun v-errorp (obj) (typep obj 'v-error))
 
 (defmethod post-initialise ((object v-t-type)))
+
 (defmethod post-initialise ((object v-container))
-  (setf (v-dimensions object) (listify (v-dimensions object))))
+  (with-slots (dimensions element-type) object
+    (setf dimensions (listify dimensions))
+    (unless (or (typep element-type 'v-t-type) (eq element-type t))
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod post-initialise ((object v-sampler))
+  (with-slots (element-type) object
+    (unless (typep element-type 'v-t-type)
+      (setf element-type (type-spec->type element-type)))))
 
 (defmethod initialize-instance :after ((type-obj v-t-type) &rest initargs)
   (declare (ignore initargs))

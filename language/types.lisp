@@ -294,7 +294,6 @@
    (dimensions :initform '(4) :reader v-dimensions)
    (casts-to :initform '(v-uvec4 v-vec4 v-dvec4))))
 
-(def-v-type-class v-sampler (v-type) ())
 (def-v-type-class v-isampler-1d (v-sampler)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "isampler1D" :reader v-glsl-string)

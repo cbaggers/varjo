@@ -495,7 +495,7 @@
         (values
          (end-line
           (copy-code
-           form-obj :type (type-spec->type 'v-none)
+           form-obj :type (gen-none-type)
            :current-line (gen-out-var-assignment-string glsl-name form-obj)
            :to-block (to-block form-obj)
            :out-vars (cons `(,out-var-name
@@ -599,7 +599,7 @@
   ;; be true, so in this case we just use the 'then' form
   (vbind (then-obj then-env) (compile-form then-form env)
     (values (copy-code (end-line then-obj)
-                       :type (type-spec->type :none)
+                       :type (gen-none-type)
                        :flow-ids nil
                        :node-tree
                        (ast-node!
@@ -607,7 +607,7 @@
                         (mapcar #'node-tree
                                 (list (node-tree (compile-form t starting-env))
                                       (node-tree then-obj)))
-                        (type-spec->type :none)
+                        (gen-none-type)
                         nil starting-env then-env)
                        :multi-vals nil
                        :place-tree nil)
@@ -632,13 +632,13 @@
               (if else-obj
                   (ast-node! '%if (mapcar #'node-tree
                                           (list test-obj then-obj else-obj))
-                             (type-spec->type :none) nil
+                             (gen-none-type) nil
                              starting-env final-env)
                   (ast-node! '%if (mapcar #'node-tree (list test-obj then-obj))
-                             (type-spec->type :none) nil
+                             (gen-none-type) nil
                              starting-env final-env))))
         (values (merge-obs arg-objs
-                           :type (type-spec->type :none) :current-line nil
+                           :type (gen-none-type) :current-line nil
                            :to-block (list (gen-if-string
                                             test-obj then-obj else-obj))
                            :flow-ids nil
@@ -664,7 +664,7 @@
                    (v-typep (code-type test-obj) 'v-int))
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
-          (values (merge-obs clause-objs :type (type-spec->type 'v-none)
+          (values (merge-obs clause-objs :type (gen-none-type)
                              :current-line nil
                              :to-block (list (gen-switch-string test-obj keys
                                                                 clause-objs))
@@ -677,7 +677,7 @@
                                                            ,(node-tree _1))
                                                        clauses
                                                        clause-objs))
-                                         (type-spec->type :none)
+                                         (gen-none-type)
                                          nil env final-env))
                   final-env)
           (error 'switch-type-error :test-obj test-obj :keys keys)))))
@@ -710,7 +710,7 @@
                                  var-string condition-obj update-obj
                                  (end-line body-obj))))
                   (values (copy-code
-                           body-obj :type (type-spec->type 'v-none)
+                           body-obj :type (gen-none-type)
                            :current-line nil
                            :to-block (list loop-str)
                            :flow-ids flow-id
@@ -720,7 +720,7 @@
                                                           (list condition-obj
                                                                 update-obj
                                                                 body-obj)))
-                                       (type-spec->type :none)
+                                       (gen-none-type)
                                        flow-id env final-env)
                            :multi-vals nil
                            :place-tree nil)
@@ -736,7 +736,7 @@
                                                              test-env)
       (if (v-typep (code-type test-obj) 'v-bool)
           (values (merge-obs (list body-obj test-obj)
-                             :type (type-spec->type 'v-none)
+                             :type (gen-none-type)
                              :current-line nil
                              :to-block (list (gen-while-string
                                               test-obj (end-line body-obj)))
@@ -745,7 +745,7 @@
                                          'while (mapcar #'node-tree
                                                         (list test-obj
                                                               body-obj))
-                                         (type-spec->type :none)
+                                         (gen-none-type)
                                          nil env final-env))
                   final-env)
           (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
@@ -891,7 +891,7 @@
   (progn
     (break (format nil "Varjo compiler breakpoint:~%~s" (or datum ""))
            (mapcar λ(compile-form _ env) args))
-    (let* ((none-type (type-spec->type :none))
+    (let* ((none-type (gen-none-type))
            (node (make-code-obj
                   none-type nil
                   :node-tree (ast-node! :break (cons datum args)

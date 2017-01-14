@@ -13,7 +13,7 @@
     (error "invalid ast node-tree ~s" node-tree))
   (assert (typep type 'v-t-type))
   (let* ((used-types (if (and (not (find type used-types :test #'v-type-eq))
-                              (not (v-type-eq type (type-spec->type 'v-none))))
+                              (not (v-type-eq type (gen-none-type))))
                          (cons type used-types)
                          used-types)))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
@@ -62,7 +62,7 @@
          :node-tree node-tree))
 
 (defun make-none-ob ()
-  (let ((none-type (type-spec->type :none)))
+  (let ((none-type (gen-none-type)))
     (make-code-obj
      none-type nil
      :node-tree (ast-node! :none nil none-type nil nil nil))))
