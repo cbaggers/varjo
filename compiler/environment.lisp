@@ -25,14 +25,8 @@
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
 
-(defmethod func-defs-glsl ((e environment))
-  (let (code)
-    (maphash
-     (lambda (k v)
-       (declare (ignore k))
-       (push (glsl-code v) code))
-     (slot-value (get-base-env e) 'compiled-functions))
-    code))
+(defmethod all-cached-compiled-functions ((e environment))
+  (hash-table-values (slot-value (get-base-env e) 'compiled-functions)))
 
 (defmethod signatures ((e environment))
   (let (signatures)
@@ -72,10 +66,6 @@
         val))
 
 ;; WARNING:: This is mutated in translate.lisp
-(defmethod v-iuniforms ((e environment))
-  (v-iuniforms (get-base-env e)))
-
-;; WARNING:: This is mutated in translate.lisp
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (get-base-env env)))
 
@@ -106,9 +96,10 @@
                  (v-variables env))
     (error 'invalid-env-vars :vars (v-variables env))))
 
-(defun %make-base-environment (&optional (third-party-metadata
-                                          (make-hash-table)))
+(defun %make-base-environment (&key (third-party-metadata (make-hash-table))
+                                 stemcells-allowed)
   (make-instance 'base-environment
+                 :stemcells-allowed stemcells-allowed
                  :third-party-metadata third-party-metadata))
 
 ;;-------------------------------------------------------------------------
@@ -330,15 +321,10 @@
 ;;-------------------------------------------------------------------------
 
 (defun context-ok-given-restriction (context restriction)
-  (labels ((clean (x)
-             (let ((ignored '(:iuniforms)))
-               (remove-if λ(member _ ignored) x))))
-    (let ((context (clean context))
-          (restriction (clean restriction)))
-      (loop :for item :in restriction :always
-         (if (listp item)
-             (find-if (lambda (_) (member _ context)) item)
-             (find item context))))))
+  (loop :for item :in restriction :always
+     (if (listp item)
+         (find-if (lambda (_) (member _ context)) item)
+         (find item context))))
 
 (defun shadow-global-check (name &key (specials t) (macros t) (c-macros t))
   (when (or (and macros (get-macro name *global-env*))
@@ -376,10 +362,6 @@
 ;;     (if pos
 ;;         (1+ pos)
 ;;         (error "Varjo: Not a valid primitive type"))))
-
-
-(defun allows-stemcellsp (env)
-  (v-iuniforms env))
 
 ;;-------------------------------------------------------------------------
 

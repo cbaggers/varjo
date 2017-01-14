@@ -19,8 +19,7 @@
 (defparameter *default-context* '(:330 :vertex))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
-                                           ,@(copy-list *supported-draw-modes*)
-                                           :iuniforms :no-iuniforms))
+                                           ,@(copy-list *supported-draw-modes*)))
 
 
 (defparameter *ast-node-kinds*

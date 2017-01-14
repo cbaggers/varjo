@@ -27,8 +27,6 @@
    (returns :initarg :returns :initform nil :reader returns)
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
-   (injected-uniforms :initarg :injected-uniforms :initform nil
-                      :reader injected-uniforms)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
    (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
@@ -51,11 +49,9 @@
                             :accessor used-external-functions)
    (used-symbol-macros :initarg :used-symbol-macros
                        :accessor used-symbol-macros)
-   (func-defs-glsl :initarg :func-defs-glsl :accessor func-defs-glsl)
    (used-macros :initarg :used-macros :accessor used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
-                         :accessor used-compiler-macros)
-   (ast :initarg :ast :reader ast)))
+                         :accessor used-compiler-macros)))
 
 ;;----------------------------------------------------------------------
 
@@ -65,7 +61,6 @@
    (signatures :initarg :signatures :reader signatures)
    (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)
-   (injected-uniforms :initarg :injected-uniforms :reader injected-uniforms)
    (stemcells :initarg :stemcells :reader stemcells)
    (out-vars :initarg :out-vars :reader out-vars)))
 
@@ -84,7 +79,7 @@
    (used-macros :initarg :used-macros :reader used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
                          :reader used-compiler-macros)
-   (ast :initarg :ast :reader ast)
+   (function-asts :initarg :function-asts :reader function-asts)
    (used-symbol-macros :initarg :used-symbol-macros
                        :reader used-symbol-macros)
    (third-party-metadata :initarg :third-party-metadata
@@ -116,7 +111,6 @@
   ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
    (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
    (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
-   (iuniforms :initform nil :initarg :iuniforms :accessor v-iuniforms)
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
@@ -128,7 +122,9 @@
    (third-party-metadata :initform (make-hash-table) :initarg
                          :third-party-metadata)
    (name-map :initform (make-hash-table :test #'equal))
-   (compiled-functions :initform (make-hash-table :test #'eq))))
+   (compiled-functions :initform (make-hash-table :test #'eq))
+   (stemcells-allowed :initform t :initarg :stemcells-allowed
+                      :reader allows-stemcellsp)))
 
 ;;----------------------------------------------------------------------
 

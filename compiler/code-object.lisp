@@ -2,7 +2,7 @@
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
 		out-vars used-types returns multi-vals stemcells
-		out-of-scope-args injected-uniforms flow-ids mutations
+		out-of-scope-args flow-ids mutations
                 place-tree node-tree)
   (assert-flow-id-singularity flow-ids)
   (unless set-type
@@ -30,7 +30,6 @@
 		   :multi-vals multi-vals
 		   :stemcells stemcells
 		   :out-of-scope-args out-of-scope-args
-		   :injected-uniforms injected-uniforms
 		   :flow-ids flow-ids
 		   :place-tree place-tree
 		   :mutations mutations
@@ -81,7 +80,6 @@
                         (multi-vals nil set-multi-vals)
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
-                        (injected-uniforms nil set-injected-uniforms)
                         (flow-ids nil set-flow-ids)
                         (place-tree nil set-place-tree)
                         (mutations nil set-mutations)
@@ -103,9 +101,6 @@
 	   :out-of-scope-args (if set-out-of-scope-args
 				  out-of-scope-args
 				  (remove nil (out-of-scope-args code-obj)))
-	   :injected-uniforms (if set-injected-uniforms
-				  injected-uniforms
-				  (injected-uniforms code-obj))
 	   :flow-ids flow-ids
 	   :place-tree (if set-place-tree place-tree (place-tree code-obj))
 	   :mutations (if set-mutations mutations (mutations code-obj))
@@ -121,7 +116,6 @@
                         multi-vals
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
-                        (injected-uniforms nil set-injected-uniforms)
                         (flow-ids nil set-flow-ids)
                         place-tree
                         (mutations nil set-mutations)
@@ -147,9 +141,6 @@
          (normalize-out-of-scope-args
           (if set-out-of-scope-args out-of-scope-args
               (mapcat #'out-of-scope-args objs)))
-         :injected-uniforms (if set-injected-uniforms
-                                injected-uniforms
-                                (mapcat #'injected-uniforms objs))
          :flow-ids (if set-flow-ids
                        flow-ids
                        (error 'flow-id-must-be-specified-co))

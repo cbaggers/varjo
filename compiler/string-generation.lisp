@@ -197,7 +197,8 @@
                                   (mapcar #'last1 (uniforms post-proc-obj))
                                   (mapcar #'third (stemcells post-proc-obj)))
                      (signatures env)
-                     (func-defs-glsl post-proc-obj))
+                     (reverse
+                      (mapcar #'glsl-code (all-functions post-proc-obj))))
                :if part :collect part))))
 
 ;;----------------------------------------------------------------------

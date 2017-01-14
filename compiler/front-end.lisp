@@ -65,17 +65,6 @@ Example:
 
 ;;----------------------------------------------------------------------
 
-(defmacro with-stage ((&optional (in-args (symb :in-args))
-                                 (uniforms (symb :uniforms))
-                                 (context (symb :context))
-                                 (code (symb :code))
-                                 (tp-meta (symb :tp-meta)))
-                         stage &body body)
-  `(destructuring-bind (,in-args ,uniforms ,context ,code &optional ,tp-meta)
-       ,stage
-     (declare (ignorable ,in-args ,uniforms ,context ,code ,tp-meta))
-     ,@body))
-
 (defun rolling-translate (stages &optional (compile-func #'translate))
   (let ((result (reduce λ(compile-stage _ _1 compile-func)
                         stages :initial-value (make-instance 'rolling-result))))
@@ -86,7 +75,6 @@ Example:
   (if previous-stage
       (let ((out-vars (transform-previous-stage-out-vars previous-stage stage)))
         (with-stage () stage
-
           (list (if (and (in-args-compatiblep in-args out-vars)
                          (uniforms-compatiblep
                           uniforms (uniforms previous-stage))
@@ -100,13 +88,15 @@ Example:
                 uniforms
                 context
                 code
-                tp-meta)))
+                tp-meta
+                stemcells-allowed)))
       (with-stage () stage
         (list in-args
               uniforms
               context
               code
-              (or tp-meta (make-hash-table))))))
+              (or tp-meta (make-hash-table))
+              stemcells-allowed))))
 
 
 (defun %merge-in-arg (previous current)
@@ -172,8 +162,8 @@ Example:
           (splice-in-precompiled-stage
            last-stage stage remaining-stages accum )
           (let ((new-compile-result
-                 (apply compile-func (merge-in-previous-stage-args last-stage
-                                                                   stage))))
+                 (funcall compile-func
+                          (merge-in-previous-stage-args last-stage stage))))
             (make-instance 'rolling-result
                            :compiled-stages (cons new-compile-result
                                                   compiled-stages)
