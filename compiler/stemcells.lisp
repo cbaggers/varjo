@@ -8,10 +8,7 @@
 
 (defun suitable-symbol-for-stemcellp (symb env)
   (and (allows-stemcellsp env)
-       (let ((str-name (symbol-name symb)))
-         (and (char= (elt str-name 0) #\*)
-              (char= (elt str-name (1- (length str-name)))
-                     #\*)))))
+       (boundp symb)))
 
 (defun add-type-to-stemcell-code (code-obj type-name)
   (assert (stemcellp (code-type code-obj)))
