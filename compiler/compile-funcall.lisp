@@ -23,8 +23,7 @@
       (typecase func
         (v-function (compile-function-call
                      func-name func args env))
-        (external-function (compile-external-function-call
-                            (record-func-usage func env) args env))
+        (external-function (compile-external-function-call func args env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
                      (error 'cannot-compile
@@ -79,10 +78,6 @@
                              :node-tree ast
                              :current-line (current-line o))
                   e))))))
-
-(defmethod record-func-usage ((func external-function) env)
-  (push func (used-external-functions env))
-  func)
 
 (defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)

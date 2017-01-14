@@ -375,6 +375,7 @@
            :used-compiler-macros
            :used-symbol-macros
            :ast
+           :function-asts
            :third-party-metadata
 
            ;;utils

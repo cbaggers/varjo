@@ -10,9 +10,6 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
-(defmethod used-external-functions ((e environment))
-  (slot-value (get-base-env e) 'used-external-functions))
-
 (defmethod used-symbol-macros ((e environment))
   (slot-value (get-base-env e) 'used-symbol-macros))
 
@@ -37,21 +34,29 @@
      (slot-value (get-base-env e) 'compiled-functions))
     (reduce #'append signatures)))
 
+(defmethod used-external-functions ((e environment))
+  (let (functions)
+    (maphash
+     (lambda (k v)
+       (when (typep k 'external-function)
+         (push (function-obj v) functions)))
+     (slot-value (get-base-env e) 'compiled-functions))
+    functions))
+
 (defun get-base-env (env)
   (let ((parent (v-parent-env env)))
     (if (not (eq parent *global-env*))
         (get-base-env parent)
         env)))
 
+(defmethod allows-stemcellsp ((e environment))
+  (allows-stemcellsp (get-base-env e)))
+
 ;; ugh
 (defmethod (setf compiled-functions)
     (value (e environment) key)
   (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
         value))
-
-(defmethod (setf used-external-functions) (val (e environment))
-  (setf (slot-value (get-base-env e) 'used-external-functions)
-        val))
 
 (defmethod (setf used-symbol-macros) (val (e environment))
   (setf (slot-value (get-base-env e) 'used-symbol-macros)

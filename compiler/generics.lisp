@@ -17,7 +17,6 @@
 (defgeneric (setf used-symbol-macros) (value e))
 (defgeneric used-macros (e))
 (defgeneric used-external-functions (e))
-(defgeneric (setf used-external-functions) (value e))
 (defgeneric (setf used-macros) (value e))
 (defgeneric used-compiler-macros (e))
 (defgeneric (setf used-compiler-macros) (value e))
