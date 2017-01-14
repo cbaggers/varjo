@@ -7,6 +7,12 @@
 
 ;;------------------------------------------------------------
 
+(defmethod make-load-form ((type v-type) &optional environment)
+  (declare (ignore environment))
+  `(type-spec->type ',(type->type-spec type)))
+
+;;------------------------------------------------------------
+
 (def-v-type-class v-none (v-type) ())
 
 (def-v-type-class v-void (v-type)
