@@ -37,7 +37,7 @@
    (dimensions :initform nil :accessor v-dimensions)))
 
 (def-v-type-class v-array (v-container)
-  ((element-type :initform nil :initarg :element-type)
+  ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 
 (def-v-type-class v-sampler (v-type) ())

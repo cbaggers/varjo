@@ -569,10 +569,10 @@
       (t (error 'could-not-find-any :name existing-name))))
   new-name)
 
-(defmethod add-function-from-spec (func-name (func-spec list)
-                                   (env (eql :-genv-)))
-  (setf (gethash func-name *global-env-funcs*)
-        (cons func-spec (gethash func-name *global-env-funcs*)))
+(defmethod add-function-from-spec ((func-obj v-function) (env (eql :-genv-)))
+  (let ((func-name (name func-obj)))
+    (setf (gethash func-name *global-env-funcs*)
+          (cons func-obj (gethash func-name *global-env-funcs*))))
   *global-env*)
 
 (defmethod add-function ((compiled-func compiled-function-result)
@@ -603,9 +603,7 @@
           (%get-functions-by-name func-name (v-parent-env env))))
 
 (defmethod get-func-set-by-name (func-name (env (eql :-genv-)))
-  (let ((funcs (sort-function-list
-                (loop :for func-spec :in (gethash func-name *global-env-funcs*)
-                   :collect (func-spec->function func-spec env)))))
+  (let ((funcs (sort-function-list (gethash func-name *global-env-funcs*))))
     (make-instance 'v-function-set :functions funcs)))
 
 (defmethod get-func-set-by-name (func-name (env environment))

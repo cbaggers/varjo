@@ -20,8 +20,7 @@
       (destructuring-bind (transform arg-types return-spec
                                      &key v-place-index glsl-name) body
         `(progn (add-function-from-spec
-                 ',name
-                 (v-make-f-spec
+                 (make-function-obj
                   ',name ,transform ',context ',arg-types '(,return-spec)
                   :v-place-index ',v-place-index :glsl-name ',glsl-name
                   :flow-ids (%gl-flow-id!)
@@ -49,29 +48,20 @@
               (defun ,func-name ,(cons 'env args)
                 (declare (ignorable env ,@arg-names))
                 ,return)
-              (add-function-from-spec ',name
-                                      (v-make-f-spec
-                                       ',name
-                                       :special
-                                       ',context
-                                       t
-                                       (list #',func-name)
-                                       :v-place-index ',v-place-index)
-                                      *global-env*)
+              (add-function-from-spec
+               (make-function-obj ',name :special ',context t (list #',func-name)
+                                  :v-place-index ',v-place-index)
+               *global-env*)
               ',name))
           (t `(progn
                 (defun ,func-name ,(cons 'env (mapcar #'first args))
                   (declare (ignorable env ,@arg-names))
                   ,return)
-                (add-function-from-spec ',name
-                                        (v-make-f-spec
-                                         ',name
-                                         :special
-                                         ',context
-                                         ',(mapcar #'second args)
-                                         (list #',func-name)
-                                         :v-place-index ',v-place-index)
-                                        *global-env*)
+                (add-function-from-spec
+                 (make-function-obj ',name :special ',context
+                                    ',(mapcar #'second args) (list #',func-name)
+                                    :v-place-index ',v-place-index)
+                 *global-env*)
                 ',name)))))))
 
 ;;------------------------------------------------------------

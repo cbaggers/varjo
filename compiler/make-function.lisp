@@ -112,21 +112,19 @@
                            glsl-name (unless mainp arg-pairs)
                            out-arg-pairs type body-obj
                            implicit-args in-out-args))
-           (func (func-spec->user-function
-                  (v-make-f-spec name
-                                 (gen-function-transform
-                                  glsl-name args
-                                  multi-return-vars
-                                  implicit-args)
-                                 nil ;;{TODO} should be context
-                                 (mapcar #'second args)
-                                 (cons type multi-return-vars)
-                                 :glsl-name glsl-name
-                                 :implicit-args implicit-args
-                                 :in-out-args in-out-args
-                                 :flow-ids (flow-ids body-obj)
-                                 :in-arg-flow-ids in-arg-flow-ids)
-                  func-env))
+           (func (make-user-function-obj name
+                                         (gen-function-transform
+                                          glsl-name args
+                                          multi-return-vars
+                                          implicit-args)
+                                         nil ;;{TODO} should be context
+                                         (mapcar #'second args)
+                                         (cons type multi-return-vars)
+                                         :glsl-name glsl-name
+                                         :implicit-args implicit-args
+                                         :in-out-args in-out-args
+                                         :flow-ids (flow-ids body-obj)
+                                         :in-arg-flow-ids in-arg-flow-ids))
            (code-obj (copy-code body-obj
                                 :type (gen-none-type)
                                 :current-line nil
@@ -153,10 +151,8 @@
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))
     (let* ((env (make-func-env env mainp allowed-implicit-args))
-           (func (func-spec->user-function
-                  (v-make-f-spec name nil nil (mapcar #'second args) nil
-                                 :code (list args body))
-                  env))
+           (func (make-user-function-obj name nil nil (mapcar #'second args) nil
+                                         :code (list args body)))
            ;; {TODO} this ↓↓↓↓↓↓↓↓↓↓↓↓ is a horrible hack
            (ast-body (if (= 1 (length body))
                          (first body)

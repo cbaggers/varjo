@@ -90,12 +90,12 @@
                                    (symb (type->type-spec type) '- slot-name)))
              :do (%add-function
                   accessor
-                  (func-spec->function
-                   (v-make-f-spec accessor
-                                  fake-slot-name
-                                  nil ;; {TODO} Must be context
-                                  (list fake-type)
-                                  (list slot-type) :v-place-index nil) env) env)
+                  (make-function-obj accessor
+                                     fake-slot-name
+                                     nil ;; {TODO} Must be context
+                                     (list fake-type)
+                                     (list slot-type) :v-place-index nil)
+                  env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (%add-var in-var-name
@@ -115,12 +115,12 @@
                                  (symb (type->type-spec type) '- slot-name))
              :do (%add-function
                   accessor
-                  (func-spec->function
-                   (v-make-f-spec accessor
-                                  fake-slot-name
-                                  nil ;; {TODO} Must be context
-                                  (list fake-type)
-                                  (list slot-type) :v-place-index nil) env) env)
+                  (make-function-obj accessor
+                                     fake-slot-name
+                                     nil ;; {TODO} Must be context
+                                     (list fake-type)
+                                     (list slot-type) :v-place-index nil)
+                  env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (%add-var uniform-name

@@ -18,8 +18,7 @@
                    (versions (mapcar #'kwd versions)))
               (unless (some #'third args)
                 `((add-function-from-spec
-                   ',lisp-name
-                   (v-make-f-spec
+                   (make-function-obj
                     ',lisp-name ,transform ',versions ',lisp-arg-types
                     ',lisp-return :v-place-index nil :glsl-name nil
                     :flow-ids (%gl-flow-id!)

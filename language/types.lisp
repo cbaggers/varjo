@@ -624,6 +624,15 @@
    (glsl-string :initform "uimage2DMSArray" :reader v-glsl-string)))
 
 ;;----------------------------------------------------------------------
+;; Type Stubs
+;;
+;; {TODO} look into these
+
+(def-v-type-class v-buffer-image (v-type) ())
+(def-v-type-class v-ibuffer-image (v-type) ())
+(def-v-type-class v-ubuffer-image (v-type) ())
+
+;;----------------------------------------------------------------------
 
 (defun vec-of (type len)
   (assert (and (>= len 2) (<= len 4)))
