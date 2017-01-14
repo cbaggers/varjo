@@ -28,6 +28,8 @@
 (def-v-type-class v-user-function (v-function)
   ((code :initform nil :initarg :code :reader v-code)))
 
+;;------------------------------------------------------------
+
 (defmethod functions ((fn v-user-function))
   (list fn))
 
@@ -79,17 +81,6 @@
               (otherwise return-spec)))))
 
 ;;------------------------------------------------------------
-
-
-
-(defun v-make-f-spec (name transform versions arg-types return-spec
-                      &key v-place-index glsl-name implicit-args
-                        in-out-args flow-ids in-arg-flow-ids
-                        code)
-  (assert (listp return-spec))
-  (list transform arg-types return-spec versions v-place-index
-        glsl-name name implicit-args in-out-args flow-ids in-arg-flow-ids
-        code))
 
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
