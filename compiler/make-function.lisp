@@ -149,16 +149,20 @@
     (let* ((env (make-func-env env mainp allowed-implicit-args))
            (func (func-spec->user-function
                   (v-make-f-spec name nil nil (mapcar #'second args) nil
-                                 :code (list args body) )
+                                 :code (list args body))
                   env))
            ;; {TODO} this ↓↓↓↓↓↓↓↓↓↓↓↓ is a horrible hack
            (ast-body (if (= 1 (length body))
                          (first body)
-                         `(progn ,@body))))
+                         `(progn ,@body)))
+           (ast (ast-node! :code-section
+                           ast-body
+                           (type-spec->type 'v-none)
+                           nil env env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
                              :signatures nil
-                             :ast nil
+                             :ast ast
                              :used-types nil
                              :glsl-code nil
                              :stemcells nil
@@ -189,7 +193,10 @@
   (let ((result (remove-if λ(= (v-function-scope _)
                                (v-function-scope env))
                            normalized-out-of-scope-args)))
-    (if (eq allowed-implicit-args t)
+    (if (or (eq allowed-implicit-args t)
+            (and (listp allowed-implicit-args)
+                 (every λ(member _ allowed-implicit-args)
+                        allowed-implicit-args)))
         result
         (when result
           (error 'illegal-implicit-args :func-name name)))))

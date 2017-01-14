@@ -379,6 +379,7 @@
            :third-party-metadata
 
            ;;utils
+           :map-environments
            :lambda-list-split
            :pipe->))
 

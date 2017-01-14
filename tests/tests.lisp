@@ -418,7 +418,7 @@
 
 (5am:test build-37
   (glsl-contains-n-p 1
-      "float FOO(int X);"
+      "float FOO\\(int X\\);"
     (varjo.tests::compile-vert () :450
-          (labels ((foo () 10))
-            (v! 0 (foo) 0 0)))))
+      (labels ((foo ((x :int)) (float 10)))
+        (v! 0 (foo 0) 0 0)))))

@@ -187,7 +187,7 @@
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
 (defun gen-shader-string (post-proc-obj)
-  (with-slots (main-func env) post-proc-obj
+  (with-slots (env) post-proc-obj
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
             (loop :for part :in
                (list (used-types post-proc-obj)
@@ -197,8 +197,9 @@
                                   (mapcar #'last1 (uniforms post-proc-obj))
                                   (mapcar #'third (stemcells post-proc-obj)))
                      (signatures env)
-                     (reverse
-                      (mapcar #'glsl-code (all-functions post-proc-obj))))
+                     (let* ((funcs (all-functions post-proc-obj))
+                            (code (remove nil (mapcar #'glsl-code funcs))))
+                       (reverse code)))
                :if part :collect part))))
 
 ;;----------------------------------------------------------------------

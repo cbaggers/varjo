@@ -426,11 +426,11 @@
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code) (build-function name args body t env)
-                 (values code (add-function fn env))
-                 code)))
+                 (values code (add-function fn env)))))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
-    (let* ((merged (merge-progn (cons-end body-obj func-def-objs) env e))
+    (let* ((merged (merge-progn (remove nil (cons-end body-obj func-def-objs))
+                                env e))
            (ast (ast-node!
                  'flet
                  (list (remove nil (mapcar λ(when _1
@@ -454,15 +454,15 @@
           (mapcar-progn (lambda (env d)
                           (dbind (name args &rest body) d
                             (vbind (fn code)
-                                (build-function name args body nil env)
-                              (values code (add-function fn env))
-                              code)))
+                                (build-function name args body exceptions env)
+                              (values code (add-function fn env)))))
                         p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     ;;
-    (let* ((merged (merge-progn (cons-end body-obj (remove nil func-def-objs))
-                                env
-                                pruned-starting-env))
+    (let* ((merged (merge-progn
+                    (remove nil (cons-end body-obj func-def-objs))
+                    env
+                    pruned-starting-env))
            (ast (ast-node!
                  'labels-no-implicit
                  (list (remove nil (mapcar λ(if _1

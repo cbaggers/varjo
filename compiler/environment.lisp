@@ -52,6 +52,12 @@
 (defmethod allows-stemcellsp ((e environment))
   (allows-stemcellsp (get-base-env e)))
 
+(defmethod map-environments (func (e environment))
+  (cons (funcall func e)
+        (let ((parent (v-parent-env e)))
+          (when (not (eq parent *global-env*))
+            (map-environments func parent)))))
+
 ;; ugh
 (defmethod (setf compiled-functions)
     (value (e environment) key)
@@ -174,12 +180,29 @@
                                          allowed-outer-vars
                                          (v-allowed-outer-vars env))))
 
-(defmacro with-fresh-env-scope ((name starting-env) &body body)
+(defmacro with-fresh-env-scope ((name starting-env
+                                      &key context function-scope
+                                      functions macros symbol-macros
+                                      compiler-macros variables
+                                      (multi-val-base nil set-mvb)
+                                      multi-val-safe
+                                      (allowed-outer-vars nil set-aov))
+                                &body body)
   (let ((s (gensym "starting-env"))
         (r (gensym "result"))
         (e (gensym "final-env")))
     `(let* ((,s ,starting-env)
-            (,name (fresh-environment ,s)))
+            (,name (fresh-environment
+                    ,s :context ,context
+                    :function-scope ,function-scope
+                    :functions ,functions
+                    :macros ,macros
+                    :symbol-macros ,symbol-macros
+                    :compiler-macros ,compiler-macros
+                    :variables ,variables
+                    ,@(when set-aov `(:allowed-outer-vars ,allowed-outer-vars))
+                    ,@(when set-mvb `(:multi-val-base ,multi-val-base))
+                    :multi-val-safe ,multi-val-safe)))
        (vbind (,r ,e) (progn ,@body)
          (values ,r (env-prune (env-depth ,s) ,e))))))
 
