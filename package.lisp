@@ -353,6 +353,8 @@
            :with-v-arg
 
            ;;front-end
+           :make-stage
+           :with-stage
            :translate
            :rolling-translate
            :split-arguments

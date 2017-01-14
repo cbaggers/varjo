@@ -17,6 +17,11 @@
                          ,stemcells-allowed))
      ,@body))
 
+(defun make-stage (in-args uniforms context code tp-meta stemcells-allowed)
+  (list in-args uniforms context code tp-meta stemcells-allowed))
+
+;;----------------------------------------------------------------------
+
 (defun translate (stage)
   (with-stage (in-args uniforms context body third-party-metadata
                        stemcells-allowed)
