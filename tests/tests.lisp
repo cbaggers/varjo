@@ -85,25 +85,25 @@
 
 (5am:in-suite test-all)
 
-(5am:test build-0
+(5am:def-test build-0 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (v! 0 0 0 0))))
 
-(5am:test build-1
+(5am:def-test build-1 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (v! 0 0 0 0)
      (v! 0 0 0 0))))
 
-(5am:test build-2
+(5am:def-test build-2 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 1))
        (v! 0 x 1 2))
      (v! 0 0 0 0))))
 
-(5am:test build-3
+(5am:def-test build-3 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 1)
@@ -111,21 +111,21 @@
        (v! x y 1 2))
      (v! 0 0 0 0))))
 
-(5am:test build-4
+(5am:def-test build-4 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test () 1))
        (test))
      (v! 0 0 0 0))))
 
-(5am:test build-5
+(5am:def-test build-5 (:suite test-all)
   (signals varjo-conditions:could-not-find-function
     (compile-vert () :450
       (labels ((test () 1))
         (test))
       (v! 0 (test) 0 0))))
 
-(5am:test build-6
+(5am:def-test build-6 (:suite test-all)
   (signals varjo-conditions:symbol-unidentified
     (compile-vert () :450
       (let ((x 1)
@@ -133,72 +133,72 @@
         (v! 0 x 1 2))
       (v! 0 0 y 0))))
 
-(5am:test build-7
+(5am:def-test build-7 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test () 1))
        (v! 0 (test) 0 0)))))
 
-(5am:test build-8
+(5am:def-test build-8 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 2))
        (labels ((test () x))
          (v! 0 (test) 0 0))))))
 
-(5am:test build-9
+(5am:def-test build-9 (:suite test-all)
   (signals varjo-conditions:setq-type-match
     (compile-vert () :450
       ())))
 
-(5am:test build-10
+(5am:def-test build-10 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test ((x :int)) (values x 2)))
        (v! 0 (test 1))
        (v! 0 0 0 0)))))
 
-(5am:test build-11
+(5am:def-test build-11 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (values (v! 1 2 3 4)
              (v! 1 2)))))
 
-(5am:test build-12
+(5am:def-test build-12 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test ((x :int)) (values (v! 0 0 0 0) 2)))
        (test 1)))))
 
-(5am:test build-13
+(5am:def-test build-13 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test ((x :int)) (values x 2)))
        (v! 0 (int (test 1)) 0 0)))))
 
 
-(5am:test build-14
+(5am:def-test build-14 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (values (v! 1 2 3 4)
              (v! 1 2))
      (v! 10 20 30 40))))
 
-(5am:test build-15
+(5am:def-test build-15 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test ((x :int)) (values (v! 0 0 0 0) 2)))
        (test 1)
        (v! 10 20 30 40)))))
 
-(5am:test build-16
+(5am:def-test build-16 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (labels ((test ((x :int)) (values x 2)))
        (v! 0 (int (test 1)) 0 0)
        (v! 10 20 30 40)))))
 
-(5am:test build-17
+(5am:def-test build-17 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 1))
@@ -210,7 +210,7 @@
               (setq x z))
          (v! x 2 3 4))))))
 
-(5am:test build-18
+(5am:def-test build-18 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 0)
@@ -222,7 +222,7 @@
          (2 z))
        (v! x z 3 4)))))
 
-(5am:test build-19
+(5am:def-test build-19 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 0)
@@ -233,7 +233,7 @@
          (setq z (+ 1 1)))
        (v! x z 3 4)))))
 
-(5am:test build-20
+(5am:def-test build-20 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((x 1)
@@ -241,13 +241,13 @@
            (z 3))
        (v! x y 0 0)))))
 
-(5am:test build-21
+(5am:def-test build-21 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (multiple-value-bind (x y) (values 1 2)
        (v! 0 0 0 0)))))
 
-(5am:test build-22
+(5am:def-test build-22 (:suite test-all)
   ;; trying to use gl-frag-coord in vertex shader
   (signals varjo-conditions:symbol-unidentified
     (compile-vert (&uniform (iresolution :vec2) (iglobaltime :float)) :450
@@ -267,7 +267,7 @@
         (setf f (+ 1.0 (/ (log f) 16)))
         (v! f (* f f) (* f f f ) 1.0)))))
 
-(5am:test build-23
+(5am:def-test build-23 (:suite test-all)
   ;; same as build-22 but in fragment shader
   (finishes-p
    (compile-frag (&uniform (iresolution :vec2) (iglobaltime :float)) :450
@@ -288,7 +288,7 @@
        (v! f (* f f) (* f f f ) 1.0)))))
 
 
-(5am:test build-24
+(5am:def-test build-24 (:suite test-all)
   ;; same as build-22 but in fragment shader
   (is (ast-stabalizes-p
        (compile-frag (&uniform (iresolution :vec2) (iglobaltime :float)) :450
@@ -310,14 +310,14 @@
 
 ;;------------------------------------------------------------
 
-(5am:test build-25
+(5am:def-test build-25 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((fn (labels ((test ((x :int)) x))
                  #'test)))
        (v! 0 0 0 0)))))
 
-(5am:test build-26
+(5am:def-test build-26 (:suite test-all)
   (finishes-p
    (compile-vert () :450
      (let ((fn (labels ((test ((x :int)) x))
@@ -325,7 +325,7 @@
        (funcall fn 10)
        (v! 0 0 0 0)))))
 
-(5am:test build-27
+(5am:def-test build-27 (:suite test-all)
   (glsl-doesnt-contain-p "FN;"
     (compile-vert () :450
       (let ((fn (labels ((test ((x :int)) x))
@@ -333,7 +333,7 @@
         fn
         (v! 0 0 0 0)))))
 
-(5am:test build-28
+(5am:def-test build-28 (:suite test-all)
   (glsl-doesnt-contain-p "FN;"
     (compile-vert () :450
       (let ((fn (labels ((test ((x :int)) x))
@@ -343,7 +343,7 @@
           (foo fn))
         (v! 0 0 0 0)))))
 
-(5am:test build-29
+(5am:def-test build-29 (:suite test-all)
   (signals varjo-conditions:closures-not-supported
     (compile-vert () :450
       (let* ((y 10)
@@ -351,7 +351,7 @@
                    #'test)))
         (v! 0 0 0 0)))))
 
-(5am:test build-30
+(5am:def-test build-30 (:suite test-all)
   (signals varjo-conditions:cross-scope-mutate
     (compile-vert () :450
       (let* ((y 10)
@@ -362,7 +362,7 @@
         (funcall fn 10)
         (v! 0 0 0 0)))))
 
-(5am:test build-31
+(5am:def-test build-31 (:suite test-all)
   (signals varjo-conditions:cross-scope-mutate
     (compile-vert () :450
       (let* ((y 10)
@@ -374,7 +374,7 @@
           (foo fn))
         (v! 0 0 0 0)))))
 
-(5am:test build-32
+(5am:def-test build-32 (:suite test-all)
   (signals varjo-conditions:symbol-unidentified
     (compile-vert () :450
       (labels ((foo ((ffn (function (:int) :int)))
@@ -383,7 +383,7 @@
           (foo (lambda ((a :int)) a))))
       (v! 0 0 0 0))))
 
-(5am:test build-33
+(5am:def-test build-33 (:suite test-all)
   (is (ast-stabalizes-p
        (compile-vert () :450
          (let ((fn (labels ((test ((x :int)) x))
@@ -393,14 +393,14 @@
              (foo fn))
            (v! 0 0 0 0))))))
 
-(5am:test build-34
+(5am:def-test build-34 (:suite test-all)
   (glsl-contains-n-p 1 "vec4 TEST_EXT.*\\(float HAM\\);"
     (compile-vert () :450
       (test-ext 10s0)
       (test-ext 10s0)
       (v! 0 0 0 0))))
 
-(5am:test build-35
+(5am:def-test build-35 (:suite test-all)
   (glsl-contains-n-p 1
       "vec4 TEST_EXT2.*\\(float HAM, out int return1, out int return2\\);"
     (compile-vert () :450
@@ -408,7 +408,7 @@
       (test-ext2 10s0)
       (v! 0 0 0 0))))
 
-(5am:test build-36
+(5am:def-test build-36 (:suite test-all)
   (glsl-contains-n-p 1
       "vec4 TEST_EXT3.*\\(float HAM.*\\);"
     (compile-vert () :450
@@ -416,9 +416,16 @@
       (test-ext3 10s0)
       (v! 0 0 0 0))))
 
-(5am:test build-37
+(5am:def-test build-37 (:suite test-all)
   (glsl-contains-n-p 1
       "float FOO\\(int X\\);"
     (varjo.tests::compile-vert () :450
       (labels ((foo ((x :int)) (float 10)))
         (v! 0 (foo 0) 0 0)))))
+
+(5am:def-test build-38 (:suite test-all)
+  (finishes-p
+   (compile-vert () :450
+     (test-ext2 10s0)
+     (multiple-value-bind (a b c) (test-ext2 10s0)
+       (v! (s~ a :xy) b c)))))
