@@ -99,8 +99,16 @@
 (defun split-input-into-env (in-args uniforms context body env)
   (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
              (check-for-dups in-args uniforms))
-    (setf (v-raw-in-args env) in-args)
-    (setf (v-raw-uniforms env) uniforms)
+    (setf (v-raw-in-args env)
+          (mapcar (lambda (ia)
+                    (dbind (name type . rest) ia
+                      `(,name ,(as-v-type type) ,@rest)))
+                  in-args))
+    (setf (v-raw-uniforms env)
+          (mapcar (lambda (u)
+                    (dbind (name type . rest) u
+                      `(,name ,(as-v-type type) ,@rest)))
+                  uniforms))
     (setf (v-raw-context env) context)
     (when (not context)
       (setf (v-raw-context env) *default-context*))
@@ -135,18 +143,16 @@
   (let ((in-args (v-raw-in-args env)))
     (loop :for in-arg :in in-args :do
        (with-v-arg (name type qualifiers declared-glsl-name) in-arg
-         (let* ((type-obj (type-spec->type type))
-                (glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
-           (if (typep type-obj 'v-struct)
-               (add-in-arg-fake-struct name glsl-name type-obj qualifiers env)
+         (let* ((glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
+           (if (typep type 'v-struct)
+               (add-in-arg-fake-struct name glsl-name type qualifiers env)
                (progn
-                 (%add-var name (v-make-value type-obj env :glsl-name glsl-name)
+                 (%add-var name (v-make-value type env :glsl-name glsl-name)
                            env)
                  (add-lisp-name name env glsl-name)
                  (setf (v-in-args env)
                        (append (v-in-args env)
-                               `((,name ,(type->type-spec type-obj) ,qualifiers
-                                        ,glsl-name)))))))))
+                               `((,name ,type ,qualifiers ,glsl-name)))))))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -166,7 +172,7 @@
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type (type-spec->type type)))
+  (let* ((true-type (v-true-type type))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-var name
               (v-make-value true-type env :glsl-name glsl-name :read-only t)
@@ -177,7 +183,7 @@
 
 ;; mutates env
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type (type-spec->type type)))
+  (let* ((true-type (v-true-type type))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-var name (v-make-value true-type env :glsl-name glsl-name
                                  :flow-ids (flow-id!) :function-scope 0
@@ -188,8 +194,7 @@
 
 ;; mutates env
 (defun process-fake-uniform (name glsl-name type qualifiers env)
-  (let ((type-obj (type-spec->type type)))
-    (add-uniform-fake-struct name glsl-name type-obj qualifiers env))
+  (add-uniform-fake-struct name glsl-name type qualifiers env)
   env)
 
 ;;----------------------------------------------------------------------
@@ -419,8 +424,7 @@
 
 (defun gen-in-arg-strings (post-proc-obj)
   (with-slots (env) post-proc-obj
-    (let* ((types (mapcar #'second (v-in-args env)))
-           (type-objs (mapcar #'type-spec->type types))
+    (let* ((type-objs (mapcar #'second (v-in-args env)))
            (locations (if (member :vertex (v-context env))
                           (calc-locations type-objs)
                           (loop for i below (length type-objs) collect nil))))
@@ -478,9 +482,8 @@
            (structs (used-types post-proc-obj))
            (uniforms (v-uniforms env))
            (implicit-uniforms nil))
-      (loop :for (name type qualifiers glsl-name) :in uniforms
-         :for type-obj = (type-spec->type type) :do
-         (push `(,name ,type
+      (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
+         (push `(,name ,(type->type-spec type-obj)
                        ,@qualifiers
                        ,(if (member :ubo qualifiers)
                             (write-interface-block
@@ -545,7 +548,7 @@
        'varjo-compile-result
        :glsl-code final-glsl-code
        :stage-type (find-if λ(find _ *supported-stages*) context)
-       :in-args (mapcar #'butlast (in-args post-proc-obj))
+       :in-args (v-raw-in-args env)
        :out-vars (mapcar #'butlast (out-vars post-proc-obj))
        :uniforms (mapcar #'butlast (uniforms post-proc-obj))
        :implicit-uniforms (stemcells post-proc-obj)

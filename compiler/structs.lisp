@@ -48,6 +48,14 @@
          ,@(make-struct-accessors name true-type-name context slots)
          ',name))))
 
+(defmethod post-initialise ((object v-struct))
+  (with-slots (slots) object
+    (setf slots (mapcar (lambda (slot)
+                          `(,(first slot)
+                             ,(type-spec->type (second slot))
+                             ,@(cddr slot)))
+                        slots))))
+
 (defun make-struct-accessors (name true-type-name context slots)
   (loop :for (slot-name slot-type . acc) :in slots :collect
      (let ((accessor (if (eq :accessor (first acc)) (second acc)
@@ -77,9 +85,9 @@
          (new-in-args
           (loop :for (slot-name slot-type . acc) :in slots
              :for fake-slot-name = (fake-slot-name glsl-name slot-name)
-             :for accessor = (if (eq :accessor (first acc))
-                                 (second acc)
-                                 (symb (type->type-spec type) '- slot-name))
+             :for accessor = (dbind (&key accessor) acc
+                               (or accessor
+                                   (symb (type->type-spec type) '- slot-name)))
              :do (%add-function
                   accessor
                   (func-spec->function

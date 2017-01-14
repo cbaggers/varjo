@@ -194,9 +194,8 @@
    (mapcar (lambda (x)
              (destructuring-bind (_ slot-type &rest _1) x
                (declare (ignore _ _1))
-               (let ((stype (type-spec->type slot-type)))
-                 (when (typep stype 'v-struct)
-                   (cons slot-type (walk-struct-dependencies stype))))))
+               (when (typep slot-type 'v-struct)
+                 (cons slot-type (walk-struct-dependencies slot-type)))))
            (v-slots type))))
 
 ;;----------------------------------------------------------------------

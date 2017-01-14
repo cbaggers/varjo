@@ -170,6 +170,11 @@
        (try-type-spec->type (un-shadow spec))
        (error 'unknown-type-spec :type-spec spec))))
 
+(defun as-v-type (thing)
+  (etypecase thing
+    (v-t-type thing)
+    (symbol (type-spec->type thing))))
+
 (defun gen-none-type ()
   (type-spec->type :none))
 

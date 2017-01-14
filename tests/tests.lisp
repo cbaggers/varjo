@@ -15,6 +15,11 @@
       (v-compile ',uniforms ,version
                  :fragment '(,in-args ,@body)))))
 
+(defmacro compile-vert-frag (uniforms version &body body)
+  `(v-compile ',uniforms ,version
+              :vertex ',(first body)
+              :fragment ',(second body)))
+
 (defun ast-stabalizes-p (compile-result &optional (depth 0) (max-depth 20))
   "Returns t if compile the ast->code of compile-result gives the same ast
    It is allowed to recompile up to 'max-depth' times in order to find
@@ -33,9 +38,11 @@
 
 (defmacro finishes-p (form)
   (alexandria:with-gensyms (res)
-    `(let ((,res ,form))
-       (is (and (typep ,res 'varjo-compile-result)
-                (ast-stabalizes-p ,res))))))
+    `(let ((,res (varjo::listify ,form)))
+       (is (every (lambda (x)
+                    (and (typep x 'varjo-compile-result)
+                         (ast-stabalizes-p x)))
+                  ,res)))))
 
 (defmacro glsl-contains-p (regex &body form)
   (assert (= 1 (length form)))
@@ -80,6 +87,17 @@
 
 #+nil
 (init t)
+
+;;------------------------------------------------------------
+;; Helper structs
+
+(v-defstruct pos-rot ()
+  (pos :vec3)
+  (rot :vec4))
+
+(v-defstruct pos-col ()
+  (position :vec3 :accessor pos)
+  (color :vec4 :accessor col))
 
 ;;------------------------------------------------------------
 
@@ -431,3 +449,46 @@
      (test-ext2 10s0)
      (multiple-value-bind (a b c) (test-ext2 10s0)
        (v! (s~ a :xy) b c)))))
+
+(5am:def-test build-39 (:suite test-all)
+  (finishes-p
+   (compile-vert-frag () :450
+     (()
+      (v! 0 0 0 0))
+     (()
+      (v! 0 0 0 0)))))
+
+(5am:def-test build-40 (:suite test-all)
+  (finishes-p
+   (compile-vert-frag () :450
+     (()
+      (values (v! 0 0 0 0)
+              (v! 1 1)))
+     (((tc :vec2))
+      (v! tc 0 0)))))
+
+(5am:def-test build-41 (:suite test-all)
+  (finishes-p
+   (compile-vert-frag () :450
+     (((vert pos-rot))
+      (values (v! 0 0 0 0)
+              (v! 1 1)
+              (pos-rot-pos vert)))
+     (((tc :vec2) (veec :vec3))
+      (v! tc 0 0)))))
+
+(5am:def-test build-42 (:suite test-all)
+  (finishes-p
+   (compile-vert-frag ((thing pos-rot)) :450
+     (()
+      (values (v! 0 0 0 0)
+              (v! 1 1)
+              (pos-rot-pos thing)))
+     (((tc :vec2) (veec :vec3))
+      (pos-rot-pos thing)
+      (v! tc 0 0)))))
+
+(5am:def-test build-43 (:suite test-all)
+  (compile-vert ((vert pos-col)) :450
+    (values (v! (pos vert) 1.0)
+            (col vert))))

@@ -17,7 +17,7 @@
 
 (defmethod add-external-function (name in-args uniforms code
                                   &optional valid-glsl-versions)
-  (quick-check-the-types name (append in-args uniforms))
+  (quick-check-of-arg-type-validity name (append in-args uniforms))
   (labels ((get-types (x) (mapcar #'second (in-args x))))
     (let* ((func (make-instance 'external-function
                                 :name name
@@ -31,7 +31,7 @@
                                :from-end t))
       func)))
 
-(defun quick-check-the-types (name args)
+(defun quick-check-of-arg-type-validity (name args)
   (labels ((key (_)
              (handler-case
                  (progn (type-spec->type (second _)) nil)

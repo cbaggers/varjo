@@ -15,8 +15,6 @@
       ((typep actual-kind 'v-function) (eq kind (name actual-kind)))
       (t (eq kind actual-kind)))))
 
-
-
 (defmethod ast-typep (node type)
   (let ((type (if (typep type 'v-t-type)
                   type
