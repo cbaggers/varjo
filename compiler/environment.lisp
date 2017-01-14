@@ -38,8 +38,9 @@
   (let (functions)
     (maphash
      (lambda (k v)
+       (declare (ignore v))
        (when (typep k 'external-function)
-         (push (function-obj v) functions)))
+         (push k functions)))
      (slot-value (get-base-env e) 'compiled-functions))
     functions))
 
