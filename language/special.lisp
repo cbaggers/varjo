@@ -913,7 +913,7 @@
    env))
 
 (defun compile-glsl-expression-string (current-line type)
-  (let* ((type-obj (if (typep type 'v-t-type) type (type-spec->type type)))
+  (let* ((type-obj (if (typep type 'v-type) type (type-spec->type type)))
          (flow-id (flow-id!)))
     (code! :type type-obj
            :current-line current-line
@@ -922,7 +922,7 @@
            :flow-ids flow-id)))
 
 (defun glsl-let (name-symbol name-string type value-form env)
-  (let ((type-spec (if (typep type 'v-t-type) (type->type-spec type) type)))
+  (let ((type-spec (if (typep type 'v-type) (type->type-spec type) type)))
     (compile-let name-symbol type-spec value-form env name-string)))
 
 

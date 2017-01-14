@@ -4,7 +4,7 @@
 ;; GLSL Variables
 ;;----------------
 
-(defmethod v-make-value ((type v-t-type) env
+(defmethod v-make-value ((type v-type) env
                          &key (glsl-name (gensym))
                            (flow-ids (flow-id!)) function-scope
                            read-only)

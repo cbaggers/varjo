@@ -2,10 +2,6 @@
 
 ;;----------------------------------------------------------------------
 
-(def-v-type-class v-void (v-t-type)
-  ((core :initform t :reader core-typep)
-   (glsl-string :initform "void" :reader v-glsl-string)))
-
 (def-v-type-class v-bool (v-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bool" :reader v-glsl-string)))

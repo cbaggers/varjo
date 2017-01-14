@@ -196,9 +196,7 @@
             (setf *registered-types* (remove-duplicates ,new-names))
             ',name)))
 
-(def-v-type-class v-t-type () ())
-
-(def-v-type-class v-type (v-t-type)
+(def-v-type-class v-type ()
   ((core :initform nil :reader core-typep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)

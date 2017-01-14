@@ -75,7 +75,7 @@
                 (mapcar #'type-of argument-spec))
             (typecase (first return-spec)
               (function t)
-              (v-t-type (type-of (first return-spec)))
+              (v-type (type-of (first return-spec)))
               (otherwise return-spec)))))
 
 ;;------------------------------------------------------------

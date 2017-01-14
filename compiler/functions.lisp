@@ -252,14 +252,14 @@
          (arg-types (mapcar #'code-type args))
          (result
           (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
-                ((typep spec 'v-t-type) spec)
+                ((typep spec 'v-type) spec)
                 ((numberp spec) (nth spec arg-types))
                 ((functionp spec) (apply spec args))
                 ((and (listp spec) (eq (first spec) :element))
                  (v-element-type (nth (second spec) arg-types)))
                 ((or (symbolp spec) (listp spec)) (type-spec->type spec))
                 (t (error 'invalid-function-return-spec :func func :spec spec)))))
-    (assert (typep result 'v-t-type))
+    (assert (typep result 'v-type))
     result))
 
 ;;------------------------------------------------------------

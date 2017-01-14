@@ -200,7 +200,6 @@
            ;;types
            :add-type-shadow
            :un-shadow
-           :v-t-type
            :v-type
            :v-stemcell
            :v-array

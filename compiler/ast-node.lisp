@@ -16,7 +16,7 @@
       (t (eq kind actual-kind)))))
 
 (defmethod ast-typep (node type)
-  (let ((type (if (typep type 'v-t-type)
+  (let ((type (if (typep type 'v-type)
                   type
                   (type-spec->type type))))
     (v-typep (ast-return-type node) type)))
@@ -144,7 +144,7 @@ context is implicit"))
               (member kind *ast-node-kinds*)
               t))
   (assert (or (null return-type)
-              (typep return-type 'v-t-type)))
+              (typep return-type 'v-type)))
   (make-instance 'ast-node
                  :kind kind
                  :args (listify args)
@@ -166,7 +166,7 @@ context is implicit"))
                         (parent nil set-parent))
   (let ((return-type (if set-return-type return-type (ast-return-type node))))
     (assert (or (null return-type)
-                (typep return-type 'v-t-type)))
+                (typep return-type 'v-type)))
     (make-instance
      'ast-node
      :kind (if set-kind kind (ast-kind node))

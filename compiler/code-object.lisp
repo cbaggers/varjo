@@ -11,7 +11,7 @@
               (and (typep node-tree 'ast-node)
                    (listp (slot-value node-tree 'args))))
     (error "invalid ast node-tree ~s" node-tree))
-  (assert (typep type 'v-t-type))
+  (assert (typep type 'v-type))
   (let* ((used-types (if (and (not (find type used-types :test #'v-type-eq))
                               (not (v-type-eq type (gen-none-type))))
                          (cons type used-types)
@@ -121,7 +121,7 @@
                         (mutations nil set-mutations)
                         node-tree)
   (assert type () "type is mandatory")
-  (assert (typep type 'v-t-type))
+  (assert (typep type 'v-type))
   (unless (or flow-ids (type-doesnt-need-flow-id type))
     (error 'flow-ids-mandatory :for :code-object
            :code-type type))
