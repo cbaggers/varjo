@@ -100,12 +100,6 @@
     (assert new-env)
     (values code-obj new-env)))
 
-(defun expand-macros-for-external-func (form env)
-  (pipe-> (form env)
-    (equalp #'symbol-macroexpand-pass
-            #'macroexpand-pass
-            #'compiler-macroexpand-pass)))
-
 (defun compile-function-taking-ctvs (func-name func args env)
   (assert (v-code func))
   (labels ((ctv-p (x) (typep (v-type-of x) 'v-compile-time-value)))
