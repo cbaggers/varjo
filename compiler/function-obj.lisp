@@ -43,6 +43,11 @@
           (functions)
           "Failed to initialize v-function-set:~% functions: ~s" functions))
 
+(defmethod print-object ((fs v-function-set) stream)
+  (if (null (functions fs))
+      (format stream "#<EMPTY-FUNCTION-SET>")
+      (call-next-method)))
+
 ;;------------------------------------------------------------
 
 (defmethod v-type-of ((func v-function))
