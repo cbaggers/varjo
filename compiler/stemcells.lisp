@@ -38,12 +38,11 @@
          (original-name symbol)
          (flow-id (get-flow-id-for-stem-cell original-name env)))
     (code!
-     :type (type-spec->type 'v-stemcell)
+     :type (type-spec->type 'v-stemcell flow-id)
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
                               flow-id))
-     :node-tree (ast-node! :get-stemcell symbol nil flow-id env env)
-     :flow-ids flow-id)))
+     :node-tree (ast-node! :get-stemcell symbol nil flow-id env env))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

@@ -113,9 +113,13 @@ context is implicit"))
                                     fcall-node)
 			       (ids (nth return-pos
 					 (m-value-ids flow-result)))))
-		     (mapcar λ(or (get-seen (slot-value _ 'val))
-                                  fcall-node)
-                             (ids flow-result)))))
+                     (progn
+                       (assert flow-result (func)
+                               "trying to process flow-ids of ~a but found nil"
+                               func)
+                       (mapcar λ(or (get-seen (slot-value _ 'val))
+                                    fcall-node)
+                               (ids flow-result))))))
 
 	     (per-id (val-id node)
 	       (let ((raw (slot-value val-id 'val)))

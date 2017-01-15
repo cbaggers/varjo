@@ -121,27 +121,29 @@
                     (mapcar #'type->type-spec return-spec))))
       `(function ,in ,out))))
 
-(defun try-type-spec->type (spec)
+(defun try-type-spec->type (spec flow-id)
   (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec))
                     ((and (listp spec) (keywordp (first spec)))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
           ((and (symbolp spec) (vtype-existsp spec))
-           (let ((type (make-instance spec)))
+           (let ((type (make-instance spec :flow-ids flow-id)))
              (when (typep type 'v-type)
                type)))
           ((and (listp spec) (eq (first spec) 'function))
            (make-instance
             'v-function-type :arg-spec (mapcar #'type-spec->type (second spec))
             :return-spec (mapcar #'type-spec->type
-                                 (uiop:ensure-list (third spec)))))
+                                 (uiop:ensure-list (third spec)))
+            :flow-ids flow-id))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp type)
                                                        (symb 'v- type)
                                                        type)
-                            :dimensions dimensions)))
+                            :dimensions dimensions
+                            :flow-ids flow-id)))
           (t nil))))
 
 (defun type-specp (spec)
@@ -174,10 +176,10 @@
             shadowed-type-spec))))
 
 ;; shouldnt the un-shadow be in try-type-spec->type?
-(defun type-spec->type (spec)
+(defun type-spec->type (spec &optional flow-id)
   (v-true-type
-   (or (try-type-spec->type spec)
-       (try-type-spec->type (un-shadow spec))
+   (or (try-type-spec->type spec flow-id)
+       (try-type-spec->type (un-shadow spec) flow-id)
        (error 'unknown-type-spec :type-spec spec))))
 
 (defun as-v-type (thing)
@@ -280,7 +282,7 @@
 ;;[TODO] vtypep here?
 (defmethod v-casts-to ((from-type v-type) (to-type v-type) env)
   (if (v-typep from-type to-type)
-      from-type
+      (strip-flow-id from-type)
       (when (slot-exists-p from-type 'casts-to)
         (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)

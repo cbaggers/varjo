@@ -137,3 +137,41 @@
 (defun assert-flow-id-singularity (flow-id)
   (assert (or (null flow-id)
               (not (listp flow-id)))))
+
+
+;;----------------------------------------------------------------------
+
+(defmethod replace-flow-id ((type v-type) (flow-id flow-identifier))
+  (assert (flow-ids type) (type)
+          "Varjo: Tried to replace the flow id for ~a but it didnt have any"
+          type)
+  (when (typep type 'v-compile-time-value)
+    (assert (null (ctv type)) (type)
+            "Varjo: Tried to set the flow id for ~a but it had ctvs..not sure what to do here yet"
+            type))
+  (type-spec->type (type->type-spec type) flow-id))
+
+(defmethod set-flow-id ((type v-type) (flow-id flow-identifier))
+  (assert (null (flow-ids type)) (type)
+          "Varjo: Tried to set the flow id for ~a but it already had one"
+          type)
+  (when (typep type 'v-compile-time-value)
+    (assert (null (ctv type)) (type)
+            "Varjo: Tried to set the flow id for ~a but it had ctvs..not sure what to do here yet"
+            type))
+  (type-spec->type (type->type-spec type) flow-id))
+
+;;----------------------------------------------------------------------
+;; Helpers
+
+(defmethod flow-ids ((obj code))
+  (flow-ids (code-type obj)))
+
+(defmethod flow-ids ((obj v-value))
+  (flow-ids (v-type obj)))
+
+(defmethod strip-flow-id ((obj v-type))
+  (type-spec->type (type->type-spec obj)))
+
+;; (defmethod flow-ids ((obj ast-node))
+;;   (flow-ids (ast-return-type obj)))

@@ -2,26 +2,27 @@
 (in-readtable fn:fn-reader)
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope env)
-  (let* ((var-type (v-type v-value))
-         (code-obj (make-code-obj var-type
-                                  (unless (typep var-type 'v-compile-time-value)
-                                    (gen-variable-string var-name v-value))
-                                  :flow-ids (flow-ids v-value)
-                                  :place-tree `((,var-name ,v-value))
-                                  :node-tree (ast-node! :get var-name
-                                                        var-type
-                                                        (flow-ids v-value)
-                                                        env env))))
-    (if from-higher-scope
-        (if (or (eq t (v-allowed-outer-vars env))
-                (find var-name (v-allowed-outer-vars env)))
-            (add-higher-scope-val code-obj v-value)
-            (error 'symbol-unidentified :sym var-name))
-        code-obj)))
+  (let ((var-type (v-type v-value)))
+    (assert (flow-ids var-type) (var-type)
+            "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
+    (let ((code-obj
+           (make-code-obj var-type
+                          (unless (typep var-type 'v-compile-time-value)
+                            (gen-variable-string var-name v-value))
+                          :place-tree `((,var-name ,v-value))
+                          :node-tree (ast-node! :get var-name
+                                                var-type
+                                                (flow-ids v-value)
+                                                env env))))
+      (if from-higher-scope
+          (if (or (eq t (v-allowed-outer-vars env))
+                  (find var-name (v-allowed-outer-vars env)))
+              (add-higher-scope-val code-obj v-value)
+              (error 'symbol-unidentified :sym var-name))
+          code-obj))))
 
 (defun %v-value->code (v-val env)
   (make-code-obj (v-type v-val) (v-glsl-name v-val)
-                 :flow-ids (flow-ids v-val)
                  :node-tree (ast-node! :get-v-value (list (v-glsl-name v-val))
                                        (v-type v-val) (flow-ids v-val)
                                        env env)))

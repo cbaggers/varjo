@@ -45,7 +45,6 @@
                :current-line (current-line last-obj)
                :to-block (merge-lines-into-block-list code-objs)
                :multi-vals (multi-vals (last1 code-objs))
-               :flow-ids (flow-ids last-obj)
                :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
                                      (code-type last-obj) (flow-ids last-obj)
                                      starting-env final-env))))
@@ -89,7 +88,6 @@
 	     :to-block (append (mapcat #'to-block code-objs)
 			       (mapcar (lambda (_) (current-line (end-line _)))
 				       code-objs))
-	     :flow-ids nil
 	     :node-tree :ignored))
 
 (defmacro merge-multi-env-progn (code-objs)
@@ -116,7 +114,6 @@
     (copy-code code-obj
 	       :type (code-type code-obj)
 	       :current-line current-line
-	       :flow-ids flow-ids
 	       :to-block to-block
 	       :node-tree :ignored
 	       :multi-vals nil
@@ -124,52 +121,54 @@
 
 ;;----------------------------------------------------------------------
 
-(defun compile-let (name type-spec value-form env &optional glsl-name flow-ids)
-  (labels ((compile-make-var (name-string type flow-ids)
-             (make-code-obj type name-string
-                            :flow-ids flow-ids :node-tree :ignored)))
-    ;;
-    (let* ((value-obj (when value-form (compile-form value-form env)))
-           (glsl-name (or glsl-name (lisp-name->glsl-name name env)))
-           (type-obj (when type-spec (type-spec->type type-spec))))
-      (%validate-var-types name type-obj value-obj)
-      (let* ((flow-ids
-              (or flow-ids (when value-obj (flow-ids value-obj)) (flow-id!)))
-             (let-obj
-              (cond
-                ((and value-obj (typep (v-type-of value-obj)
-                                       'v-compile-time-value))
-                 value-obj)
-                (value-obj
-                 (typify-code (compile-make-var glsl-name
-                                                (or type-obj
-                                                    (code-type value-obj))
-                                                flow-ids)
-                              value-obj))
-                (t (typify-code (compile-make-var glsl-name type-obj
-                                                  (flow-id!))))))
-             (to-block
-              (cons-end (current-line (end-line let-obj))
-                        (to-block let-obj))))
-        (values
-         (copy-code let-obj
-                    :type (gen-none-type)
-                    :current-line nil
-                    :to-block to-block
-                    :multi-vals nil
-                    :place-tree nil
-                    :flow-ids flow-ids
-                    :node-tree (if value-form
-                                   (node-tree value-obj)
-                                   :ignored)
-                    :stemcells (append (and let-obj (stemcells let-obj))
-                                       (and value-obj (stemcells value-obj))))
-         (add-var name
-                  (v-make-value (or type-obj (code-type value-obj))
-                                env
-                                :glsl-name glsl-name
-                                :flow-ids flow-ids)
-                  env))))))
+(defun compile-let (name type-spec value-form env &optional glsl-name)
+  ;;
+  (let* ((value-obj (when value-form (compile-form value-form env)))
+         (glsl-name (or glsl-name (lisp-name->glsl-name name env)))
+         (type-obj (when type-spec
+                     (type-spec->type type-spec
+                                      (if value-form
+                                          (flow-ids value-obj)
+                                          (flow-id!))))))
+    (%validate-var-types name type-obj value-obj)
+    (let* ((let-obj
+            (cond
+              ;; handle ctvs
+              ((and value-obj (typep (v-type-of value-obj)
+                                     'v-compile-time-value))
+               value-obj)
+              ;;
+              (value-obj
+               (typify-code
+                (make-code-obj (or type-obj (code-type value-obj))
+                               glsl-name
+                               :node-tree :ignored)
+                value-obj))
+              ;;
+              (t (typify-code
+                  (make-code-obj type-obj
+                                 glsl-name
+                                 :node-tree :ignored)))))
+           (to-block
+            (cons-end (current-line (end-line let-obj))
+                      (to-block let-obj))))
+      (values
+       (copy-code let-obj
+                  :type (gen-none-type)
+                  :current-line nil
+                  :to-block to-block
+                  :multi-vals nil
+                  :place-tree nil
+                  :node-tree (if value-form
+                                 (node-tree value-obj)
+                                 :ignored)
+                  :stemcells (append (and let-obj (stemcells let-obj))
+                                     (and value-obj (stemcells value-obj))))
+       (add-var name
+                (v-make-value (or type-obj (code-type value-obj))
+                              env
+                              :glsl-name glsl-name)
+                env)))))
 
 ;;----------------------------------------------------------------------
 

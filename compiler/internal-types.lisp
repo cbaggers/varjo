@@ -29,8 +29,6 @@
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
-   (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
-             :reader flow-ids)
    (mutations :initarg :mutations :initform nil :reader mutations)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
@@ -164,8 +162,7 @@
 (defclass stemcell ()
   ((name :initarg :name)
    (string-name :initarg :string-name)
-   (type :initarg :type)
-   (flow-id :initarg :flow-id)))
+   (type :initarg :type)))
 
 ;;----------------------------------------------------------------------
 
@@ -174,9 +171,7 @@
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)
-   (read-only :initarg :read-only :initform nil :reader v-read-only)
-   (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-vv)
-             :reader flow-ids)))
+   (read-only :initarg :read-only :initform nil :reader v-read-only)))
 
 ;;----------------------------------------------------------------------
 
@@ -200,6 +195,7 @@
   ((core :initform nil :reader core-typep)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1)
-   (casts-to :initform nil)))
+   (casts-to :initform nil)
+   (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)))
 
 ;;----------------------------------------------------------------------

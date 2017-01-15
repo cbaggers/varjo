@@ -151,8 +151,7 @@
                                        (string-downcase (string qualifiers))
                                        (current-line obj))
              :multi-vals nil
-             :place-tree nil
-             :flow-ids (flow-ids obj)))
+             :place-tree nil))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)

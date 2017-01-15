@@ -267,11 +267,11 @@
              `(,n ,va)
              `(,n
                ,(v-make-value
-                 (v-type va)
+                 (replace-flow-id (v-type va)
+                                  (flow-id! (flow-ids va) (flow-ids vb)))
                  env-a ;; this is ignored as function-scope is provided
                  :read-only (v-read-only va)
                  :function-scope (v-function-scope va)
-                 :flow-ids (flow-id! (flow-ids va) (flow-ids vb))
                  :glsl-name (v-glsl-name va))))))
      v-names)))
 

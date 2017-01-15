@@ -78,13 +78,13 @@
                 :name (name func)
                 :spec arg-spec)))))
 
-(defmethod cast-code (obj cast-to-type)
-  (if (v-type-eq (code-type obj) cast-to-type)
-      (copy-code obj :type cast-to-type)
-      (copy-code
-       obj
-       :current-line (cast-string cast-to-type obj)
-       :type cast-to-type)))
+(defmethod cast-code (src-obj cast-to-type)
+  (let* ((src-type (code-type src-obj))
+         (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
+    (if (v-type-eq src-type cast-to-type)
+        (copy-code src-obj :type dest-type)
+        (copy-code src-obj :current-line (cast-string cast-to-type src-obj)
+                   :type dest-type))))
 
 (defmethod cast-code (obj (cast-to-type v-function-type))
   (let ((new-type (make-instance

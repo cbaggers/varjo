@@ -74,7 +74,6 @@
                               (code-type o) (flow-ids o) env env)))
           (values (merge-obs (list func-code-obj o)
                              :type (code-type o)
-                             :flow-ids (flow-ids o)
                              :node-tree ast
                              :current-line (current-line o))
                   e))))))
@@ -148,8 +147,13 @@
 
 (defun compile-regular-function-call (func-name func args env)
   (let* ((c-line (gen-function-string func args))
+         (flow-ids (calc-function-return-ids-given-args func func-name args))
+         ;; This is one of the few cases where we want to set a flow id
+         ;; regardless of the current state
          (type (resolve-func-type func args env))
-         (flow-ids (calc-function-return-ids-given-args func func-name args)))
+         (type (if (flow-ids type)
+                   (replace-flow-id type flow-ids)
+                   (set-flow-id type flow-ids))))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
     (values (merge-obs args
@@ -157,7 +161,6 @@
 		       :current-line c-line
 		       :signatures (mapcat #'signatures args)
 		       :stemcells (mapcat #'stemcells args)
-		       :flow-ids flow-ids
 		       :multi-vals (when (v-multi-val-safe env)
 				     (handle-regular-function-mvals args))
 		       :place-tree (calc-place-tree func args)
@@ -190,6 +193,7 @@
         (flow-id+meta! :return-pos multi-return-position))))
 
 (defun calc-function-return-ids-given-args (func func-name arg-code-objs)
+  ;;(warn "calc-function-return-ids-given-args should be merged with resolve-func-type")
   (when (typep (flow-ids func) 'multi-return-flow-id)
     (error 'multiple-flow-ids-regular-func func-name func))
   (unless (type-doesnt-need-flow-id (first (v-return-spec func)))
@@ -215,7 +219,9 @@
                   (iota (length flow-ids)))))))
 
 (defun compile-multi-return-function-call (func-name func args env)
-  (let* ((type (resolve-func-type func args env)))
+  (let* ((flow-ids (calc-mfunction-return-ids-given-args func func-name args))
+         (type (replace-flow-id (resolve-func-type func args env)
+                                (first flow-ids))))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
     (let* ((has-base (not (null (v-multi-val-base env))))
@@ -230,8 +236,7 @@
                           `((,(gensym "NC")
                               ,(type->type-spec
                                 (v-type (multi-val-value mval)))))))
-             (flow-ids (calc-mfunction-return-ids-given-args
-                        func func-name args))
+
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
@@ -240,13 +245,14 @@
                  :multi-vals (mapcar (lambda (_ _1 fid)
                                        (make-mval
                                         (v-make-value
-                                         (v-type (multi-val-value _))
-                                         env :glsl-name _1 :flow-ids fid
+                                         (replace-flow-id
+                                          (v-type (multi-val-value _))
+                                          fid)
+                                         env :glsl-name _1
                                          :function-scope 0)))
                                      mvals
                                      m-r-names
                                      (rest flow-ids))
-                 :flow-ids (first flow-ids)
                  :place-tree (calc-place-tree func args)
                  :node-tree :ignored))
              (final
@@ -282,5 +288,4 @@
             obj
             (copy-code obj :current-line (format nil "~a;" (current-line obj))
                        :multi-vals nil
-                       :place-tree nil
-                       :flow-ids (flow-ids obj))))))
+                       :place-tree nil)))))

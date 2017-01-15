@@ -11,7 +11,7 @@
 (defgeneric v-casts-to-p (from-type to-type env))
 (defgeneric post-initialise (object))
 (defgeneric v-code-type-eq (a b &optional env))
-(defgeneric v-make-value (type env &key glsl-name flow-ids function-scope read-only))
+(defgeneric v-make-value (type env &key glsl-name function-scope read-only))
 (defgeneric get-flow-id-for-stem-cell (stem-cell-symbol e))
 (defgeneric used-symbol-macros (e))
 (defgeneric (setf used-symbol-macros) (value e))
@@ -50,11 +50,11 @@
 (defgeneric v-element-type (object))
 (defgeneric merge-obs (objs &key type current-line to-block
                               out-vars returns multi-vals
-                              stemcells out-of-scope-args flow-ids
+                              stemcells out-of-scope-args
 			      place-tree mutations node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block
                                   out-vars returns multi-vals
-                                  stemcells out-of-scope-args flow-ids
+                                  stemcells out-of-scope-args
                                   place-tree mutations node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 

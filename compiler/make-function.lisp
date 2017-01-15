@@ -64,9 +64,10 @@
                       (dbind (arg glsl-name flow-ids) tripple
                         (dbind (name type-spec) arg
                           (add-var name
-                                   (v-make-value type-spec func-env
-                                                 :glsl-name glsl-name
-                                                 :flow-ids flow-ids)
+                                   (v-make-value
+                                    (type-spec->type type-spec flow-ids)
+                                    func-env
+                                    :glsl-name glsl-name)
                                    func-env))))
                     (mapcar #'list args arg-glsl-names in-arg-flow-ids)
                     :initial-value (if mainp
@@ -134,8 +135,7 @@
                                 :out-vars (out-vars body-obj)
                                 :multi-vals nil
                                 :place-tree nil
-                                :out-of-scope-args implicit-args
-                                :flow-ids nil)))
+                                :out-of-scope-args implicit-args)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
                              :signatures (signatures code-obj)
@@ -174,8 +174,7 @@
                      :node-tree (ast-node! :code-section
                                            ast-body
                                            (gen-none-type)
-                                           nil env env)
-                     :flow-ids nil)))))
+                                           nil env env))))))
 
 
 (defun function-raw-args-validp (raw-args)
