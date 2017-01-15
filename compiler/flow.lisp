@@ -145,10 +145,6 @@
   (assert (flow-ids type) (type)
           "Varjo: Tried to replace the flow id for ~a but it didnt have any"
           type)
-  (when (typep type 'v-compile-time-value)
-    (assert (null (ctv type)) (type)
-            "Varjo: Tried to set the flow id for ~a but it had ctvs..not sure what to do here yet"
-            type))
   (let ((new-type (copy-type type)))
     (setf (slot-value new-type 'flow-ids) flow-id)
     new-type))
@@ -157,10 +153,6 @@
   (assert (null (flow-ids type)) (type)
           "Varjo: Tried to set the flow id for ~a but it already had one"
           type)
-  (when (typep type 'v-compile-time-value)
-    (assert (null (ctv type)) (type)
-            "Varjo: Tried to set the flow id for ~a but it had ctvs..not sure what to do here yet"
-            type))
   (let ((new-type (copy-type type)))
     (setf (slot-value new-type 'flow-ids) flow-id)
     new-type))

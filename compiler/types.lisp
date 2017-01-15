@@ -90,6 +90,12 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 (def-v-type-class v-compile-time-value (v-type)
   ((ctv :initform nil :initarg :ctv :accessor ctv)))
 
+(defmethod copy-type ((type v-compile-time-value))
+  (let* ((type-name (class-name (class-of type)))
+         (new-inst (make-instance type-name :flow-ids (flow-ids type))))
+    (setf (ctv new-inst) (ctv type))
+    new-inst))
+
 ;;------------------------------------------------------------
 ;; Container
 ;;
