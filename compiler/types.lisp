@@ -255,8 +255,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 ;; shouldnt the un-shadow be in try-type-spec->type?
 (defun type-spec->type (spec &optional flow-id)
   (v-true-type
-   (or (try-type-spec->type spec flow-id)
-       (try-type-spec->type (un-shadow spec) flow-id)
+   (or (try-type-spec->type (un-shadow spec) flow-id)
        (error 'unknown-type-spec :type-spec spec))))
 
 ;; A probably too forgiving version of type-spec->type, it is a no-op

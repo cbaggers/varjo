@@ -161,7 +161,8 @@
 (defclass stemcell ()
   ((name :initarg :name)
    (string-name :initarg :string-name)
-   (type :initarg :type)))
+   (type :initarg :type)
+   (flow-id :initarg :flow-id)))
 
 ;;----------------------------------------------------------------------
 

@@ -12,7 +12,7 @@
 
 (defun add-type-to-stemcell-code (code-obj type-name)
   (assert (stemcellp (code-type code-obj)))
-  (let ((type (type-spec->type type-name))
+  (let ((type (type-spec->type type-name (flow-ids code-obj)))
         (stemcells (stemcells code-obj)))
     (assert (= 1 (length stemcells)))
     (copy-code code-obj
@@ -36,14 +36,14 @@
 (defun make-stem-cell (symbol env)
   (let* ((string-name (string (safe-glsl-name-string symbol)))
          (original-name symbol)
-         (flow-id (get-flow-id-for-stem-cell original-name env)))
-    (warn "make-stem-cell incomplete: before ast-node! took a flow-id, however now we dont, and the type is nil. Is that a problem?")
+         (flow-id (get-flow-id-for-stem-cell original-name env))
+         (type (type-spec->type 'v-stemcell flow-id)))
     (code!
-     :type (type-spec->type 'v-stemcell flow-id)
+     :type type
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
                               flow-id))
-     :node-tree (ast-node! :get-stemcell symbol nil env env))))
+     :node-tree (ast-node! :get-stemcell symbol type env env))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))
