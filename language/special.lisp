@@ -500,7 +500,7 @@
                            (out-vars form-obj))
            :node-tree (ast-node! '%out (list name-and-qualifiers
                                              (node-tree form-obj))
-                                 nil (flow-ids form-obj) env env)
+                                 (gen-none-type) nil env env)
            :multi-vals nil
            :place-tree nil) t)
          env))))

@@ -149,6 +149,12 @@ context is implicit"))
               t))
   (assert (or (null return-type)
               (typep return-type 'v-type)))
+
+  (etypecase flow-id
+    (null (assert (null (flow-ids return-type))))
+    (flow-identifier (assert (id= (flow-ids return-type) flow-id)))
+    (multi-return-flow-id (assert (eq (flow-ids return-type) flow-id))))
+
   (make-instance 'ast-node
                  :kind kind
                  :args (listify args)
