@@ -105,14 +105,16 @@
 	  (if new-value
 	      (%gen-assignment-string prefixed-line (current-line new-value))
 	      prefixed-line))
-	 (flow-ids
-	  (if new-value
-	      (flow-ids new-value)
-	      (flow-ids code-obj)))
 	 (to-block (when new-value
-		     (to-block new-value))))
+		     (to-block new-value)))
+         (type (if new-value
+                   (progn
+                     (assert (flow-ids new-value))
+                     (replace-flow-id (code-type code-obj)
+                                      (flow-ids new-value)))
+                   (code-type code-obj))))
     (copy-code code-obj
-	       :type (code-type code-obj)
+	       :type type
 	       :current-line current-line
 	       :to-block to-block
 	       :node-tree :ignored
