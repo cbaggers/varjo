@@ -551,6 +551,7 @@
        :uniforms (mapcar #'butlast (uniforms post-proc-obj))
        :implicit-uniforms (stemcells post-proc-obj)
        :context context
+       :allowed-stemcells (allows-stemcellsp env)
        :used-external-functions (used-external-functions post-proc-obj)
        :used-symbol-macros (used-symbol-macros post-proc-obj)
        :used-macros (used-macros post-proc-obj)

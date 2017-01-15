@@ -370,6 +370,7 @@
            :uniforms
            :implicit-uniforms
            :context
+           :allowed-stemcells
            :used-external-functions
            :used-macros
            :used-compiler-macros

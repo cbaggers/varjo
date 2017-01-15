@@ -6,7 +6,7 @@
 
 (defun v-compile (uniforms version
                   &key vertex tesselation-control tesselation-evaluation
-                    geometry fragment)
+                    geometry fragment allow-stemcells)
   "
 This function takes lisp code as lists and returns the results of compiling that
 code to glsl.
@@ -30,30 +30,40 @@ Example:
                              (v! 1.0 1.0 hmm (fun a)))))
 "
   (let ((stages (list (when vertex
-                        (list (first vertex)
-                              uniforms
-                              (list  :vertex version)
-                              `(progn ,@(rest vertex))))
+                        (make-stage (first vertex)
+                                    uniforms
+                                    (list  :vertex version)
+                                    `(progn ,@(rest vertex))
+                                    nil
+                                    allow-stemcells))
                       (when tesselation-control
-                        (list (first tesselation-control)
-                              uniforms
-                              (list :tesselation-control version)
-                              `(progn ,@(rest tesselation-control))))
+                        (make-stage (first tesselation-control)
+                                    uniforms
+                                    (list :tesselation-control version)
+                                    `(progn ,@(rest tesselation-control))
+                                    nil
+                                    allow-stemcells))
                       (when tesselation-evaluation
-                        (list (first tesselation-evaluation)
-                              uniforms
-                              (list :tesselation-evaluation version)
-                              `(progn ,@(rest tesselation-evaluation))))
+                        (make-stage (first tesselation-evaluation)
+                                    uniforms
+                                    (list :tesselation-evaluation version)
+                                    `(progn ,@(rest tesselation-evaluation))
+                                    nil
+                                    allow-stemcells))
                       (when geometry
-                        (list (first geometry)
-                              uniforms
-                              (list :geometry version)
-                              `(progn ,@(rest geometry))))
+                        (make-stage (first geometry)
+                                    uniforms
+                                    (list :geometry version)
+                                    `(progn ,@(rest geometry))
+                                    nil
+                                    allow-stemcells))
                       (when fragment
-                        (list (first fragment)
-                              uniforms
-                              (list :fragment version)
-                              `(progn ,@(rest fragment)))))))
+                        (make-stage (first fragment)
+                                    uniforms
+                                    (list :fragment version)
+                                    `(progn ,@(rest fragment))
+                                    nil
+                                    allow-stemcells)))))
     (rolling-translate (remove nil stages))))
 
 (defun v-macroexpand (form &optional (env (%make-base-environment)))

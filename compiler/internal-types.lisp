@@ -71,6 +71,7 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (context :initarg :context :accessor context)
+   (allowed-stemcells :initarg :allowed-stemcells :accessor allowed-stemcells)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
    (used-macros :initarg :used-macros :reader used-macros)

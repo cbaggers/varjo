@@ -11,6 +11,7 @@
                                (uniforms nil uniforms-set)
                                (implicit-uniforms nil implicit-uniforms-set)
                                (context nil context-set)
+                               (allowed-stemcells nil a-s-set)
                                (used-external-functions nil used-external-functions-set)
                                (used-macros nil used-macros-set)
                                (used-compiler-macros nil used-compiler-macros-set)
@@ -26,6 +27,7 @@
    :uniforms (if uniforms-set uniforms (uniforms original))
    :implicit-uniforms (if implicit-uniforms-set implicit-uniforms (implicit-uniforms original))
    :context (if context-set context (context original))
+   :allowed-stemcells (if a-s-set allowed-stemcells (allowed-stemcells original))
    :used-external-functions (if used-external-functions-set
                                 used-external-functions
                                 (used-external-functions original))
