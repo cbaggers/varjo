@@ -160,7 +160,7 @@
            (ast (ast-node! :code-section
                            ast-body
                            (gen-none-type)
-                           nil env env)))
+                           env env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
                              :signatures nil
@@ -174,7 +174,7 @@
                      :node-tree (ast-node! :code-section
                                            ast-body
                                            (gen-none-type)
-                                           nil env env))))))
+                                           env env))))))
 
 
 (defun function-raw-args-validp (raw-args)

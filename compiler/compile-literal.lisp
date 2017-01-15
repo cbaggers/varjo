@@ -6,10 +6,10 @@
          (bool-type (type-spec->type 'v-bool flow-id)))
     (if code
         (make-code-obj bool-type "true" :node-tree (ast-node! :literal code
-                                                              bool-type flow-id
+                                                              bool-type
                                                               env env))
         (make-code-obj bool-type "false" :node-tree (ast-node! :literal code
-                                                               bool-type flow-id
+                                                               bool-type
                                                                env env)))))
 
 (defun get-number-type (x)
@@ -24,5 +24,5 @@
   (let* ((flow-id (flow-id!))
          (num-type (set-flow-id (get-number-type code) flow-id)))
     (make-code-obj num-type (gen-number-string code num-type)
-                   :node-tree (ast-node! :literal code num-type flow-id
+                   :node-tree (ast-node! :literal code num-type
                                          env env))))

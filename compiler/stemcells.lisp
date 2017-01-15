@@ -37,12 +37,13 @@
   (let* ((string-name (string (safe-glsl-name-string symbol)))
          (original-name symbol)
          (flow-id (get-flow-id-for-stem-cell original-name env)))
+    (warn "make-stem-cell incomplete: before ast-node! took a flow-id, however now we dont, and the type is nil. Is that a problem?")
     (code!
      :type (type-spec->type 'v-stemcell flow-id)
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
                               flow-id))
-     :node-tree (ast-node! :get-stemcell symbol nil flow-id env env))))
+     :node-tree (ast-node! :get-stemcell symbol nil env env))))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

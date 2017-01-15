@@ -3,7 +3,7 @@
 
 (defmethod initialize-instance :after ((ast ast-node) &rest initargs)
   (declare (ignore initargs))
-  (assert-flow-id-singularity (ast-flow-id ast)))
+  (assert-flow-id-singularity (flow-ids ast)))
 
 (defmethod get-var (var-name (node ast-node))
   (get-var var-name (ast-starting-env node)))
@@ -91,7 +91,7 @@ context is implicit"))
                (mapcar #'per-id (ids flow-id)))
 
              (get-origins ()
-               (mapcar #'per-flow-id (listify (ast-flow-id node)))))
+               (mapcar #'per-flow-id (listify (flow-ids node)))))
       (flatten
        (typecase r
          (hash-table (get-origins))
@@ -133,33 +133,24 @@ context is implicit"))
 	       (mapcar λ(per-id _ node) (ids flow-id)))
 
 	     (get-origins (node)
-	       (mapcar λ(per-flow-id _ node) (listify (ast-flow-id node)))))
+	       (mapcar λ(per-flow-id _ node) (listify (flow-ids node)))))
       (flatten
        (typecase origins-dict
          (hash-table (get-origins node))
          (null (ast-val-origin node)))))))
 
 
-(defmethod flow-ids ((node ast-node))
-  (ast-flow-id node))
-
-(defun ast-node! (kind args return-type flow-id starting-env ending-env)
+(defun ast-node! (kind args return-type starting-env ending-env)
   (assert (if (keywordp kind)
               (member kind *ast-node-kinds*)
               t))
   (assert (or (null return-type)
               (typep return-type 'v-type)))
 
-  (etypecase flow-id
-    (null (assert (null (flow-ids return-type))))
-    (flow-identifier (assert (id= (flow-ids return-type) flow-id)))
-    (multi-return-flow-id (assert (eq (flow-ids return-type) flow-id))))
-
   (make-instance 'ast-node
                  :kind kind
                  :args (listify args)
                  :return-type return-type
-                 :flow-id flow-id
                  :starting-env starting-env
                  :ending-env ending-env))
 
@@ -168,7 +159,6 @@ context is implicit"))
                         (kind nil set-kind)
                         (args nil set-args)
                         (return-type nil set-return-type)
-                        (flow-id nil set-flow-id)
                         (flow-id-origin nil set-fio)
                         (val-origin nil set-vo)
                         (starting-env nil set-starting-env)
@@ -185,7 +175,6 @@ context is implicit"))
      :starting-env (if set-starting-env starting-env (ast-starting-env node))
      :ending-env (if set-ending-env ending-env (ast-ending-env node))
      :parent (if set-parent parent (ast-parent node))
-     :flow-id (if set-flow-id flow-id (ast-flow-id node))
      :flow-id-origin (if set-fio flow-id-origin (ast-flow-id-origin node))
      :val-origin (if set-vo val-origin (ast-val-origin node)))))
 
@@ -228,7 +217,7 @@ context is implicit"))
                                (name kind)
                                kind)))
                  `(,@(when show-flow-ids
-                           (ast-flow-id node))
+                           (flow-ids node))
                      ,name ,@(mapcar walk args))))))
     (walk-ast #'f x)))
 

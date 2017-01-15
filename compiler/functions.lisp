@@ -144,7 +144,7 @@
             (make-code-obj
              (make-instance 'v-error :payload e) ""
              :node-tree (ast-node! :error nil (gen-none-type)
-                                   nil env env))
+                                   env env))
             (error e))))))
 
 (defun try-compile-args (args-code env)

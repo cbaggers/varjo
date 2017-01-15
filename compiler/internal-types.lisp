@@ -10,7 +10,6 @@
    (parent :initarg :parent :initform :incomplete :reader ast-parent)
    (args :initarg :args :initform nil :reader ast-args)
    (val-origins :initarg :val-origins :initform :incomplete)
-   (flow-id :initarg :flow-id :reader ast-flow-id)
    (flow-id-origin :initarg :flow-id-origin :initform :incomplete
                    :reader ast-flow-id-origin)
    (flow-id-origins :initarg :flow-id-origins :initform :incomplete)))

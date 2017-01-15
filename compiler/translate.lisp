@@ -320,7 +320,6 @@
              ;; we want a new copy as we will be mutating it
              (let ((new (copy-ast-node
                          node
-                         :flow-id (ast-flow-id node)
                          :parent (gethash parent node-copy-map))))
                ;; store the lookup tables with every node
                (setf (slot-value new 'flow-id-origins) flow-origin-map

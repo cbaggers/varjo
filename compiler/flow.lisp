@@ -169,8 +169,5 @@
 (defmethod flow-ids ((obj ast-node))
   (flow-ids (ast-return-type obj)))
 
-;; (defmethod ast-flow-id ((obj ast-node))
-;;   (flow-ids obj))
-
 (defmethod strip-flow-id ((obj v-type))
   (type-spec->type (type->type-spec obj)))

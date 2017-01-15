@@ -71,7 +71,7 @@
       (vbind (o e) (compile-function-call (name func) func args f-env)
         (let ((ast (ast-node! :funcall (cons (node-tree func-code-obj)
                                              (mapcar #'node-tree args))
-                              (code-type o) (flow-ids o) env env)))
+                              (code-type o) env env)))
           (values (merge-obs (list func-code-obj o)
                              :type (code-type o)
                              :node-tree ast
@@ -165,7 +165,7 @@
 				     (handle-regular-function-mvals args))
 		       :place-tree (calc-place-tree func args)
 		       :node-tree (ast-node! func (mapcar #'node-tree args)
-					     type flow-ids env env))
+					     type env env))
 	    env)))
 
 (defun handle-regular-function-mvals (args)
@@ -274,7 +274,6 @@
         (values (copy-code final :node-tree (ast-node! func
                                                        (mapcar #'node-tree args)
                                                        type
-                                                       (flow-ids final)
                                                        env env))
                 env)))))
 

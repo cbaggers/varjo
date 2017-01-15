@@ -12,7 +12,6 @@
                           :place-tree `((,var-name ,v-value))
                           :node-tree (ast-node! :get var-name
                                                 var-type
-                                                (flow-ids v-value)
                                                 env env))))
       (if from-higher-scope
           (if (or (eq t (v-allowed-outer-vars env))
@@ -24,7 +23,7 @@
 (defun %v-value->code (v-val env)
   (make-code-obj (v-type v-val) (v-glsl-name v-val)
                  :node-tree (ast-node! :get-v-value (list (v-glsl-name v-val))
-                                       (v-type v-val) (flow-ids v-val)
+                                       (v-type v-val)
                                        env env)))
 
 ;; [TODO] move error

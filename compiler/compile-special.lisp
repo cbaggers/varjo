@@ -46,7 +46,7 @@
                :to-block (merge-lines-into-block-list code-objs)
                :multi-vals (multi-vals (last1 code-objs))
                :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
-                                     (code-type last-obj) (flow-ids last-obj)
+                                     (code-type last-obj)
                                      starting-env final-env))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)

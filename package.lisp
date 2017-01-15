@@ -328,7 +328,6 @@
            :ast-kindp
            :ast-typep
            :ast-return-type
-           :ast-flow-id
            :ast-flow-id-origin
            :ast-val-origin
            :ast-args
