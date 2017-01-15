@@ -149,7 +149,9 @@
     (assert (null (ctv type)) (type)
             "Varjo: Tried to set the flow id for ~a but it had ctvs..not sure what to do here yet"
             type))
-  (type-spec->type (type->type-spec type) flow-id))
+  (let ((new-type (copy-type type)))
+    (setf (slot-value new-type 'flow-ids) flow-id)
+    new-type))
 
 (defmethod set-flow-id ((type v-type) (flow-id flow-identifier))
   (assert (null (flow-ids type)) (type)
@@ -159,7 +161,9 @@
     (assert (null (ctv type)) (type)
             "Varjo: Tried to set the flow id for ~a but it had ctvs..not sure what to do here yet"
             type))
-  (type-spec->type (type->type-spec type) flow-id))
+  (let ((new-type (copy-type type)))
+    (setf (slot-value new-type 'flow-ids) flow-id)
+    new-type))
 
 ;;----------------------------------------------------------------------
 ;; Helpers
