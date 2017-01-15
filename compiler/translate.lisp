@@ -146,7 +146,7 @@
          (let* ((glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
            (if (typep type 'v-struct)
                (add-in-arg-fake-struct name glsl-name type qualifiers env)
-               (progn
+               (let ((type (set-flow-id type (flow-id!))))
                  (%add-var name (v-make-value type env :glsl-name glsl-name)
                            env)
                  (add-lisp-name name env glsl-name)
@@ -172,7 +172,7 @@
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (v-true-type type))
+  (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-var name
               (v-make-value true-type env :glsl-name glsl-name :read-only t)

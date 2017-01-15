@@ -8,7 +8,7 @@
                          &key (glsl-name (gensym)) function-scope read-only)
   (let ((flow-ids (flow-ids type)))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
-      (error 'flow-ids-mandatory :for :code-object
+      (error 'flow-ids-mandatory :for :v-values
              :code-type (type->type-spec type))))
   (make-instance 'v-value :type type :glsl-name glsl-name
                  :function-scope (or function-scope (v-function-scope env))
