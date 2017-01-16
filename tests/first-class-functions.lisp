@@ -90,3 +90,13 @@
       (let ((x 1)
             (fn (lambda () (lambda ((x :float)) (* x 2)))))
         (v! 0 0 0 (funcall (funcall fn) x))))))
+
+(5am:def-test f-c-func-10 (:suite first-class-func-tests)
+  (glsl-doesnt-contain-p "<invalid>"
+    (compile-vert ((a :int)) :450 nil
+      (let ((x 1))
+        (labels ((fn ((thr (function (:float) :float)) (x :int))
+                   (+ 1 x 3)
+                   thr))
+          (v! 0 0 0 (funcall (fn (lambda ((x :float)) (* x 2)) 10)
+                             x)))))))
