@@ -166,3 +166,9 @@
               (v! 1 1)))
      (((tc :vec2))
       (v! tc 0 0)))))
+
+(5am:def-test build-17 (:suite build-tests)
+  (finishes-p
+   (compile-vert ((a :int)) :450 nil
+     (let ()
+       (v! 0 0 0 0)))))

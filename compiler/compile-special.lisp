@@ -71,15 +71,16 @@
 ;; Finally the resulting environement is merged
 
 (defun %mapcar-multi-env-progn (func env list &rest more-lists)
-  (let* ((e (apply #'mapcar
-                   (lambda (&rest args)
-                     (vlist (apply func (cons env args))))
-                   (cons list more-lists)))
-         (code-objs (mapcar #'first e))
-         (env-objs (mapcar #'second e))
-         (merged-env (reduce (lambda (_ _1) (merge-env _ _1))
-                             env-objs)))
-    (values code-objs merged-env)))
+  (when list
+    (let* ((e (apply #'mapcar
+                     (lambda (&rest args)
+                       (vlist (apply func (cons env args))))
+                     (cons list more-lists)))
+           (code-objs (mapcar #'first e))
+           (env-objs (mapcar #'second e))
+           (merged-env (reduce (lambda (_ _1) (merge-env _ _1))
+                               env-objs)))
+      (values code-objs merged-env))))
 
 (defun %merge-multi-env-progn (code-objs)
   (merge-obs code-objs
@@ -189,6 +190,9 @@
                   `(vbind (,obj ,new-env) ,_1
                      (let ((,env-var (or ,new-env ,env-var)))
                        (declare (ignorable ,env-var))
+                       (unless ,obj ;; {TODO} proper error
+                         (assert (null ,new-env) ()
+                                 "env-> error: if the code-object returned by a step is null then the env must also be null"))
                        (push ,obj ,objs)
                        ,_)))
                 (cons `(values (reverse ,objs) ,env-var)
