@@ -166,6 +166,48 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
     result))
 
 ;;------------------------------------------------------------
+;; Or
+
+(def-v-type-class v-or (v-type)
+  ((types :initform nil :initarg :types :reader v-types)))
+
+(defmethod copy-type ((type v-or))
+  (make-instance 'v-or :types (v-types type) :flow-ids (flow-ids type)))
+
+(defmethod type->type-spec ((type v-or))
+  `(or ,@(mapcar #'type->type-spec (v-types type))))
+
+(defmethod gen-or-type (flow-id &rest types)
+  (let ((types (mapcar (lambda (type)
+                         (etypecase type
+                           (v-type type)
+                           ((or list symbol) (type-spec->type
+                                              type (when flow-id (flow-id!))))))
+                       types)))
+    (make-instance 'v-or :types (reduce-types-for-or-type types)
+                   :flow-ids flow-id)))
+
+(defmethod reduce-types-for-or-type (types)
+  (labels ((inner (type)
+             (if (typep type 'v-or)
+                 (mapcat #'inner (v-types type))
+                 (list type))))
+    (remove-duplicates (mapcat #'inner types) :test #'v-type-eq)))
+
+(defmethod print-object ((obj v-or) stream)
+  (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
+
+;; {TODO}
+;; - or of 1 type is that type
+;; - or of n v-type-eq types is that type
+;; - or of 'or's is a flatten
+
+;;------------------------------------------------------------
+;; Any one of
+;;
+;; This type is used to represent one of a set of compile-time-values
+;; it's focus on compile-time-values is what separated it from
+;; the 'or' type
 
 (def-v-type-class v-any-one-of (v-compile-time-value)
   ((types :initform nil :initarg :types :reader v-types)))
@@ -307,45 +349,20 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 
 (defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
   (declare (ignore env))
-  (equal (type->type-spec a) (type->type-spec b)))
+  (and (equal (type->type-spec a) (type->type-spec b))
+       (if (typep a 'v-compile-time-value)
+           (eq (ctv a) (ctv b))
+           t)))
 
 ;; Type <-> Spec
 
 (defmethod v-type-eq ((a v-type) (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (equal (type->type-spec a) (type->type-spec (type-spec->type b))))
+  (v-type-eq a (type-spec->type b)))
 
 (defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
   (declare (ignore env))
-  (equal (type->type-spec a) (type->type-spec (type-spec->type b))))
-
-;; Void type {TODO} redundant now void is v-type?
-;;
-(defmethod v-type-eq ((a v-void) (b v-void) &optional (env *global-env*))
-  (declare (ignore env))
-  t)
-
-(defmethod v-type-eq (a (b v-void) &optional (env *global-env*))
-  (declare (ignore env))
-  nil)
-
-(defmethod v-type-eq ((a v-void) b &optional (env *global-env*))
-  (declare (ignore env))
-  nil)
-
-;; None type {TODO} redundant now none is v-type?
-;;
-(defmethod v-type-eq ((a v-none) (b v-none) &optional (env *global-env*))
-  (declare (ignore env))
-  t)
-
-(defmethod v-type-eq (a (b v-none) &optional (env *global-env*))
-  (declare (ignore env))
-  nil)
-
-(defmethod v-type-eq ((a v-none) b &optional (env *global-env*))
-  (declare (ignore env))
-  nil)
+  (v-type-eq a (type-spec->type b)))
 
 ;;------------------------------------------------------------
 ;; Type predicate

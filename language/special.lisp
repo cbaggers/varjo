@@ -488,13 +488,14 @@
                            name-and-qualifiers))
          (qualifiers (when (consp name-and-qualifiers)
                        (rest name-and-qualifiers)))
-         (glsl-name (safe-glsl-name-string out-var-name)))
+         (glsl-name (safe-glsl-name-string out-var-name))
+         (type (type-spec->type :void (flow-id!))))
     (if (assoc out-var-name *glsl-variables*)
         (error 'out-var-name-taken :out-var-name out-var-name)
         (values
          (end-line
           (copy-code
-           form-obj :type (gen-none-type)
+           form-obj :type type
            :current-line (gen-out-var-assignment-string glsl-name form-obj)
            :to-block (to-block form-obj)
            :out-vars (cons `(,out-var-name
@@ -504,7 +505,7 @@
                            (out-vars form-obj))
            :node-tree (ast-node! '%out (list name-and-qualifiers
                                              (node-tree form-obj))
-                                 (gen-none-type) env env)
+                                 type env env)
            :multi-vals nil
            :place-tree nil) t)
          env))))
@@ -594,20 +595,21 @@
 (defun compile-constant-%if (then-form env starting-env)
   ;; the test form was not boolean, so the if would always
   ;; be true, so in this case we just use the 'then' form
-  (vbind (then-obj then-env) (compile-form then-form env)
-    (values (copy-code (end-line then-obj)
-                       :type (gen-none-type)
-                       :node-tree
-                       (ast-node!
-                        '%if
-                        (mapcar #'node-tree
-                                (list (node-tree (compile-form t starting-env))
-                                      (node-tree then-obj)))
-                        (gen-none-type)
-                        starting-env then-env)
-                       :multi-vals nil
-                       :place-tree nil)
-            then-env)))
+  (let ((type (type-spec->type :none (flow-id!))))
+    (vbind (then-obj then-env) (compile-form then-form env)
+      (values (copy-code (end-line then-obj)
+                         :type type
+                         :node-tree
+                         (ast-node!
+                          '%if
+                          (mapcar #'node-tree
+                                  (list (node-tree (compile-form t starting-env))
+                                        (node-tree then-obj)))
+                          type
+                          starting-env then-env)
+                         :multi-vals nil
+                         :place-tree nil)
+              then-env))))
 
 (defun compile-regular-%if (test-obj test-env then-form else-form
                             starting-env)
@@ -659,21 +661,22 @@
                    (v-typep (code-type test-obj) 'v-int))
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
-          (values (merge-obs clause-objs :type (gen-none-type)
-                             :current-line nil
-                             :to-block (list (gen-switch-string test-obj keys
-                                                                clause-objs))
-                             :node-tree (ast-node!
-                                         'switch
-                                         (cons (node-tree test-obj)
+          (let ((type (type-spec->type :void (flow-id!))))
+            (values (merge-obs clause-objs
+                               :type type
+                               :current-line nil
+                               :to-block (list (gen-switch-string test-obj keys
+                                                                  clause-objs))
+                               :node-tree (ast-node!
+                                           'switch
+                                           (cons (node-tree test-obj)
 
-                                               (mapcar λ`(,(first _)
-                                                           ,(node-tree _1))
-                                                       clauses
-                                                       clause-objs))
-                                         (gen-none-type)
-                                         env final-env))
-                  final-env)
+                                                 (mapcar λ`(,(first _)
+                                                             ,(node-tree _1))
+                                                         clauses
+                                                         clause-objs))
+                                           type env final-env))
+                    final-env))
           (error 'switch-type-error :test-obj test-obj :keys keys)))))
 
 
@@ -727,18 +730,18 @@
     (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body)
                                                              test-env)
       (if (v-typep (code-type test-obj) 'v-bool)
-          (values (merge-obs (list body-obj test-obj)
-                             :type (gen-none-type)
-                             :current-line nil
-                             :to-block (list (gen-while-string
-                                              test-obj (end-line body-obj)))
-                             :node-tree (ast-node!
-                                         'while (mapcar #'node-tree
-                                                        (list test-obj
-                                                              body-obj))
-                                         (gen-none-type)
-                                         env final-env))
-                  final-env)
+          (let ((type (type-spec->type :void (flow-id!))))
+            (values (merge-obs (list body-obj test-obj)
+                               :type type
+                               :current-line nil
+                               :to-block (list (gen-while-string
+                                                test-obj (end-line body-obj)))
+                               :node-tree (ast-node!
+                                           'while (mapcar #'node-tree
+                                                          (list test-obj
+                                                                body-obj))
+                                           type env final-env))
+                    final-env))
           (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
 (defun search-for-flow-id-fixpoint (code starting-env)
