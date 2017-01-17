@@ -177,15 +177,17 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 (defmethod type->type-spec ((type v-or))
   `(or ,@(mapcar #'type->type-spec (v-types type))))
 
-(defmethod gen-or-type (flow-id &rest types)
-  (let ((types (mapcar (lambda (type)
-                         (etypecase type
-                           (v-type type)
-                           ((or list symbol) (type-spec->type
-                                              type (when flow-id (flow-id!))))))
-                       types)))
-    (make-instance 'v-or :types (reduce-types-for-or-type types)
-                   :flow-ids flow-id)))
+(defmethod gen-or-type (flow-id types)
+  (let* ((types (mapcar (lambda (type)
+                          (etypecase type
+                            (v-type type)
+                            ((or list symbol)
+                             (type-spec->type type (flow-id!)))))
+                        types))
+         (reduced (reduce-types-for-or-type types)))
+    (if (= (length reduced) 1)
+        (first reduced)
+        (make-instance 'v-or :types reduced :flow-ids flow-id))))
 
 (defmethod reduce-types-for-or-type (types)
   (labels ((inner (type)
@@ -196,11 +198,6 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 
 (defmethod print-object ((obj v-or) stream)
   (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
-
-;; {TODO}
-;; - or of 1 type is that type
-;; - or of n v-type-eq types is that type
-;; - or of 'or's is a flatten
 
 ;;------------------------------------------------------------
 ;; Any one of
@@ -285,6 +282,8 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
             :return-spec (mapcar #'type-spec->type
                                  (uiop:ensure-list (third spec)))
             :flow-ids flow-id))
+          ((and (listp spec) (eq (first spec) 'or))
+           (gen-or-type flow-id (rest spec)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp type)
