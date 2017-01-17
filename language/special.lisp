@@ -182,9 +182,11 @@
 (v-defspecial values (&rest values)
   :args-valid t
   :return
-  (if (v-multi-val-base env)
-      (%values values env)
-      (expand-and-compile-form `(prog1 ,@values) env)))
+  (if values
+      (if (v-multi-val-base env)
+          (%values values env)
+          (expand-and-compile-form `(prog1 ,@values) env))
+      (%values-void env)))
 
 (defun %values (values env)
   (let* ((new-env (fresh-environment env :multi-val-base nil))
@@ -213,6 +215,13 @@
     (values (copy-code result :multi-vals (mapcar #'make-mval (rest vals)
                                                   (rest qualifier-lists))
                        :node-tree ast)
+            env)))
+
+(defun %values-void (env)
+  (let ((void (type-spec->type :void (flow-id!))))
+    (values (code! :type void
+                   :current-line nil
+                   :node-tree (ast-node! 'values nil void env env))
             env)))
 
 ;; %assign is only used to set the current-line of the code object
@@ -275,12 +284,14 @@
                                        (multi-vals code-obj))))
              (flow-ids code-obj))))
     ;; {TODO} why not 'end-line' here? who is doing that?
-    (copy-code
-     code-obj :type (type-spec->type 'v-void flow-result)
-     :current-line (format nil "return ~a" (current-line code-obj))
-     :returns (cons (code-type code-obj) (multi-vals code-obj))
-     :multi-vals nil
-     :place-tree nil)))
+    (let ((is-void (v-typep (code-type code-obj) 'v-void)))
+      (copy-code
+       code-obj :type (type-spec->type 'v-void flow-result)
+       :current-line (unless is-void
+                       (format nil "return ~a" (current-line code-obj)))
+       :returns (cons (code-type code-obj) (multi-vals code-obj))
+       :multi-vals nil
+       :place-tree nil))))
 
 
 ;; Used when this is the main stage function
@@ -690,9 +701,10 @@
             (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
                 (let ((loop-str (gen-for-loop-string
                                  var-string condition-obj update-obj
-                                 (end-line body-obj))))
+                                 (end-line body-obj)))
+                      (void (type-spec->type :void (flow-id!))))
                   (values (copy-code
-                           body-obj :type (gen-none-type)
+                           body-obj :type void
                            :current-line nil
                            :to-block (list loop-str)
                            :node-tree (ast-node!
@@ -701,8 +713,7 @@
                                                           (list condition-obj
                                                                 update-obj
                                                                 body-obj)))
-                                       (gen-none-type)
-                                       env final-env)
+                                       void env final-env)
                            :multi-vals nil
                            :place-tree nil)
                           final-env))

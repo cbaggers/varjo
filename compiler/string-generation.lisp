@@ -60,7 +60,8 @@
             (string name)
             (gen-arg-string args out-args)
             (mapcat #'indent (remove "" (to-block body-obj) :test #'equal))
-            (indent (current-line (end-line body-obj))))))
+            (when (current-line body-obj)
+              (indent (current-line (end-line body-obj)))))))
 
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))
@@ -237,7 +238,7 @@
 
 (defmethod indent ((input string) &optional (count 4))
   (let ((spaces (make-array count :element-type 'character
-                            :initial-element #\space)))
+                             :initial-element #\space)))
     (mapcar #'(lambda (x) (format nil "~a~a" spaces x))
             (split-sequence:split-sequence #\newline input))))
 

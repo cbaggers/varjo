@@ -47,11 +47,16 @@
        (is (every (lambda (x)
                     (and (typep x 'varjo-compile-result)
                          (ast-stabalizes-p x)
-                         (null (glsl-contains-invalid x))))
+                         (not (glsl-contains-invalid x))
+                         (not (glsl-contains-nil x))))
                   ,res)))))
 
 (defun glsl-contains-invalid (compile-result)
   (not (null (cl-ppcre:all-matches-as-strings "<invalid>"
+                                              (glsl-code compile-result)))))
+(defun glsl-contains-nil (compile-result)
+  ;; NIL usually means a bug
+  (not (null (cl-ppcre:all-matches-as-strings "NIL"
                                               (glsl-code compile-result)))))
 
 (defmacro glsl-contains-p (regex &body form)
@@ -60,7 +65,7 @@
 
 (defmacro glsl-doesnt-contain-p (regex &body form)
   (assert (= 1 (length form)))
-  `(is (null (cl-ppcre:all-matches ,regex (glsl-code ,(first form))))))
+  `(is (null (cl-ppcre:all-matches-as-strings ,regex (glsl-code ,(first form))))))
 
 (defmacro glsl-contains-n-p (n regex &body form)
   (assert (= 1 (length form)))
@@ -75,6 +80,7 @@
 
 (5am:def-suite test-all)
 
+(5am:def-suite void-tests :in test-all)
 (5am:def-suite build-tests :in test-all)
 (5am:def-suite struct-tests :in test-all)
 (5am:def-suite stemcell-tests :in test-all)
