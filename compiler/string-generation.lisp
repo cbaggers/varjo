@@ -82,21 +82,6 @@
 (defun gen-bool-and-string (objs)
   (format nil "~{~a~^ && ~}" (mapcar #'current-line objs)))
 
-(defun gen-if-string (test-obj then-obj else-obj)
-  (if else-obj
-      (format nil "~a~&if (~a) {~{~%~a~}~%} else {~{~%~a~}~%}"
-              (or (to-block test-obj) "")
-              (current-line test-obj)
-              (append (remove-empty (mapcat #'indent (to-block then-obj)))
-                      (indent (current-line then-obj)))
-              (append (remove-empty (mapcat #'indent (to-block else-obj)))
-                      (indent (current-line else-obj))))
-      (format nil "~a~&if (~a) {~%~{~a~%~}}"
-              (or (to-block test-obj) "")
-              (current-line test-obj)
-              (append (remove-empty (mapcat #'indent (to-block then-obj)))
-                      (indent (current-line then-obj))))))
-
 (defun gen-while-string (test-obj body-obj)
   (format nil "~{~a~%~}while (~a) {~{~%~a~}~%}"
           (to-block test-obj)
@@ -241,6 +226,10 @@
                              :initial-element #\space)))
     (mapcar #'(lambda (x) (format nil "~a~a" spaces x))
             (split-sequence:split-sequence #\newline input))))
+
+(defun indent-for-block (line/s)
+  (format nil "~@[~%~{~a~^~%~}~]"
+          (remove-empty (mapcat #'indent (listify line/s)))))
 
 ;;----------------------------------------------------------------------
 

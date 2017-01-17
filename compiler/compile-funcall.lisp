@@ -285,6 +285,9 @@
         obj
         (if (null (current-line obj))
             obj
-            (copy-code obj :current-line (format nil "~a;" (current-line obj))
+            (copy-code obj :current-line (end-line-str (current-line obj))
                        :multi-vals nil
                        :place-tree nil)))))
+
+(defun end-line-str (str)
+  (format nil "~a;" str))

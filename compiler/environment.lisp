@@ -232,9 +232,20 @@
     (dist env)))
 
 (defun env-prune* (to-depth &rest envs)
+  "Remove the first 'to-depth' accestors counting from the base-environment.
+For example calling env-prune on this environment..
+
+    base-env -> env0 -> env1 -> env2 -> env3 -> env4 -> env5
+
+.. with a to-depth of 3 will return:
+
+    env2 -> env3 -> env4 -> env5
+"
   (assert (every (lambda (x) (typep x 'environment)) envs))
   (labels ((%up (e count)
-             (if (> count 0) (%up (v-parent-env e) (1- count)) e))
+             (if (> count 0)
+                 (%up (v-parent-env e) (1- count))
+                 e))
            (up (e)
              (let ((c (- (env-depth e) to-depth)))
                (assert (>= c 0))

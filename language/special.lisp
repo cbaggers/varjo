@@ -1,6 +1,9 @@
 (in-package :varjo)
 (in-readtable fn:fn-reader)
 
+;;------------------------------------------------------------
+;; Assignment
+
 ;;{TODO} make it handle multiple assignements like cl version
 (v-defmacro setf (&rest args)
   (labels ((make-set-form (p v)
@@ -103,6 +106,20 @@
         env
         (w env))))
 
+;; %assign is only used to set the current-line of the code object
+;; it has no side effects on the compilation itself
+(v-defspecial %assign ((place v-type) (val v-type))
+  :return
+  (values
+   (merge-obs (list place val) :type (code-type place)
+              :current-line (gen-assignment-string place val)
+              :node-tree (ast-node! '%assign (list place val)
+                                    (code-type place) env env))
+   env))
+
+;;------------------------------------------------------------
+;; Progn
+
 (v-defmacro prog1 (&body body)
   (let ((tmp (gensym "PROG1-TMP")))
     `(let ((,tmp ,(first body)))
@@ -119,6 +136,9 @@
   (if body
       (merge-progn (compile-progn body env) env)
       (error 'empty-progn)))
+
+;;------------------------------------------------------------
+;; Multiple Values
 
 (v-defspecial multiple-value-bind (vars value-form &rest body)
   :args-valid t
@@ -224,17 +244,6 @@
                    :node-tree (ast-node! 'values nil void env env))
             env)))
 
-;; %assign is only used to set the current-line of the code object
-;; it has no side effects on the compilation itself
-(v-defspecial %assign ((place v-type) (val v-type))
-  :return
-  (values
-   (merge-obs (list place val) :type (code-type place)
-              :current-line (gen-assignment-string place val)
-              :node-tree (ast-node! '%assign (list place val)
-                                    (code-type place) env env))
-   env))
-
 (defun extract-value-qualifiers (value-form)
   (when (and (listp value-form) (keywordp (first value-form)))
     (butlast value-form)))
@@ -244,7 +253,8 @@
       (last1 value-form)
       value-form))
 
-;;--------------------------------------------------
+;;------------------------------------------------------------
+;; Return
 
 (v-defspecial %return (form)
   :args-valid t
@@ -343,6 +353,40 @@
            (code-type code-obj) type))
   t)
 
+;; {TODO} what if type of form is not value
+(v-defspecial %out (name-and-qualifiers form)
+  :args-valid t
+  :return
+  (let* ((form-obj (compile-form form env))
+         (out-var-name (if (consp name-and-qualifiers)
+                           (first name-and-qualifiers)
+                           name-and-qualifiers))
+         (qualifiers (when (consp name-and-qualifiers)
+                       (rest name-and-qualifiers)))
+         (glsl-name (safe-glsl-name-string out-var-name))
+         (type (type-spec->type :void (flow-id!))))
+    (if (assoc out-var-name *glsl-variables*)
+        (error 'out-var-name-taken :out-var-name out-var-name)
+        (values
+         (end-line
+          (copy-code
+           form-obj :type type
+           :current-line (gen-out-var-assignment-string glsl-name form-obj)
+           :to-block (to-block form-obj)
+           :out-vars (cons `(,out-var-name
+                             ,qualifiers
+                             ,(v-make-value (code-type form-obj) env
+                                            :glsl-name glsl-name))
+                           (out-vars form-obj))
+           :node-tree (ast-node! '%out (list name-and-qualifiers
+                                             (node-tree form-obj))
+                                 type env env)
+           :multi-vals nil
+           :place-tree nil) t)
+         env))))
+
+;;------------------------------------------------------------
+;; Let
 
 (v-defspecial let (bindings &rest body)
   :args-valid t
@@ -384,6 +428,9 @@
     (loop :for binding :in (rest bindings) :do
        (setf result `(let (,binding) ,result)))
     result))
+
+;;------------------------------------------------------------
+;; Labels, flet & labels-no-implicit
 
 (v-defspecial labels (definitions &rest body)
   :args-valid t
@@ -477,44 +524,13 @@
       (values (copy-code merged :node-tree ast)
               pruned-starting-env))))
 
-
-;; {TODO} what if type of form is not value
-(v-defspecial %out (name-and-qualifiers form)
-  :args-valid t
-  :return
-  (let* ((form-obj (compile-form form env))
-         (out-var-name (if (consp name-and-qualifiers)
-                           (first name-and-qualifiers)
-                           name-and-qualifiers))
-         (qualifiers (when (consp name-and-qualifiers)
-                       (rest name-and-qualifiers)))
-         (glsl-name (safe-glsl-name-string out-var-name))
-         (type (type-spec->type :void (flow-id!))))
-    (if (assoc out-var-name *glsl-variables*)
-        (error 'out-var-name-taken :out-var-name out-var-name)
-        (values
-         (end-line
-          (copy-code
-           form-obj :type type
-           :current-line (gen-out-var-assignment-string glsl-name form-obj)
-           :to-block (to-block form-obj)
-           :out-vars (cons `(,out-var-name
-                             ,qualifiers
-                             ,(v-make-value (code-type form-obj) env
-                                            :glsl-name glsl-name))
-                           (out-vars form-obj))
-           :node-tree (ast-node! '%out (list name-and-qualifiers
-                                             (node-tree form-obj))
-                                 type env env)
-           :multi-vals nil
-           :place-tree nil) t)
-         env))))
+;;------------------------------------------------------------
+;;
 
 ;; pretty sure env is wrong in 'or and 'and, what if there are side effects in
 ;; forms?
 ;; In fact function calls in general should at least propagate the flow ids
 ;; down the arg compiles..could even the env be passed? may just work
-
 (v-defspecial or (&rest forms)
   :args-valid t
   :return
@@ -550,97 +566,81 @@
         ;;              forms?
         (values (last1 objs) env))))
 
+;;------------------------------------------------------------
+;; If
+
 ;; note that just like in lisp this only fails if false. 0 does not fail.
-;; the then and else statements must have the same type
-;; the return type is the type of the then/else form
 (v-defspecial if (test-form then-form &optional else-form)
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
-    (let ((always-true (or (eq test-form t)
-                           (not (v-typep (code-type test-obj) 'v-bool)))))
+    (let ((always-true (or (not (v-typep (code-type test-obj) 'v-bool))
+                           (eq test-form t)))
+          (always-false (eq test-form nil))
+          (has-else (not (or (null else-form) (equal else-form '(values)))))
+          (else-form (or else-form '(values))))
+      (cond
+        ;; constant true
+        (always-true (compile-form `(progn ,test-obj ,then-form) test-env))
+        ;;
+        (always-false (compile-form `(progn ,test-obj ,else-form) test-env))
+        ;;
+        (t (compile-the-regular-form-of-if test-obj test-env then-form else-form
+                                           has-else env))))))
 
-      (vbind (then-obj then-env) (compile-form then-form test-env)
-        (if always-true
-            (values (end-line then-obj) then-env)
-            (vbind (else-obj) (if else-form
-                                  (compile-form else-form test-env)
-                                  (error 'if-branch-type-mismatch
-                                         :then-obj then-obj))
-              (assert (v-code-type-eq then-obj else-obj))
-              (let ((result (gensym "IF-TMP"))
-                    (result-type (type->type-spec (code-type then-obj))))
-                (expand-and-compile-form
-                 `(let (((,result ,result-type)))
-                    (%if ,test-form
-                         (setq ,result ,then-form)
-                         (setq ,result ,else-form))
-                    ,result)
-                 env))))))))
-
-;; note that just like in lisp this only fails if false. 0 does not fail.
-;; this is the if statement from gl. It has a return type type of :none
-;; and allows then and else statements that return different types
-(v-defspecial %if (test-form then-form &optional else-form)
-  :args-valid t
-  :return
-  (vbind (test-obj test-env) (compile-form test-form env)
-    (let ((test-mutated-outer-scopes (not (env-same-vars env test-env))))
-      (if (v-typep (code-type test-obj) 'v-bool)
-          (compile-regular-%if test-obj test-env then-form else-form env)
-          (if test-mutated-outer-scopes
-              (expand-and-compile-form `(progn ,test-form ,then-form) env)
-              (compile-constant-%if then-form test-env env))))))
-
-(defun compile-constant-%if (then-form env starting-env)
-  ;; the test form was not boolean, so the if would always
-  ;; be true, so in this case we just use the 'then' form
-  (let ((type (type-spec->type :none (flow-id!))))
-    (vbind (then-obj then-env) (compile-form then-form env)
-      (values (copy-code (end-line then-obj)
-                         :type type
-                         :node-tree
-                         (ast-node!
-                          '%if
-                          (mapcar #'node-tree
-                                  (list (node-tree (compile-form t starting-env))
-                                        (node-tree then-obj)))
-                          type
-                          starting-env then-env)
-                         :multi-vals nil
-                         :place-tree nil)
-              then-env))))
-
-(defun compile-regular-%if (test-obj test-env then-form else-form
-                            starting-env)
-  (multiple-value-bind (then-obj then-env)
-      (compile-form then-form test-env)
-    (multiple-value-bind (else-obj else-env)
-        (when else-form (compile-form else-form test-env))
-      ;; - - - -
+(defun compile-the-regular-form-of-if (test-obj test-env then-form else-form
+                                       has-else starting-env)
+  (multiple-value-bind (then-obj then-env) (compile-form then-form test-env)
+    (multiple-value-bind (else-obj else-env) (compile-form else-form test-env)
+      ;;
       (let* ((arg-objs (remove-if #'null (list test-obj then-obj else-obj)))
-             (then-obj (end-line then-obj))
-             (else-obj (end-line else-obj)) ;; returns nil if given nil
              (final-env
-              (if else-obj
-                  (apply #'env-merge-history
-                         (env-prune* (env-depth test-env) then-env else-env))
-                  then-env))
-             (node-tree
-              (if else-obj
-                  (ast-node! '%if (mapcar #'node-tree
-                                          (list test-obj then-obj else-obj))
-                             (gen-none-type)
-                             starting-env final-env)
-                  (ast-node! '%if (mapcar #'node-tree (list test-obj then-obj))
-                             (gen-none-type)
-                             starting-env final-env))))
-        (values (merge-obs arg-objs
-                           :type (gen-none-type) :current-line nil
-                           :to-block (list (gen-if-string
-                                            test-obj then-obj else-obj))
-                           :node-tree node-tree)
-                final-env)))))
+              (apply #'env-merge-history
+                     (env-prune* (env-depth test-env) then-env else-env)))
+             (result-type (gen-or-type (list (code-type then-obj)
+                                             (code-type else-obj))))
+             (node-tree (ast-node! 'if
+                                   (mapcar #'node-tree
+                                           (list test-obj then-obj else-obj))
+                                   result-type
+                                   starting-env final-env)))
+        (vbind (block-string current-line-string)
+            (gen-string-for-if-form test-obj then-obj else-obj result-type
+                                    has-else)
+          (values (merge-obs arg-objs
+                             :type result-type
+                             :current-line current-line-string
+                             :to-block (list block-string)
+                             :node-tree node-tree)
+                  final-env))))))
+
+(defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
+  (let* ((will-assign (and (not (typep result-type 'v-void))
+                           (not (typep result-type 'v-or))))
+         (tmp-var (when will-assign (safe-glsl-name-string 'tmp))))
+    (values
+     (format nil "~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
+             (when tmp-var
+               (prefix-type-to-string result-type (end-line-str tmp-var)))
+             (current-line test-obj)
+             (gen-string-for-if-block then-obj tmp-var)
+             (when has-else
+               (gen-string-for-if-block else-obj tmp-var)))
+     (when will-assign
+       tmp-var))))
+
+(defun gen-string-for-if-block (code-obj glsl-tmp-var-name)
+  (format nil "{~a~a~%}"
+          (indent-for-block (to-block code-obj))
+          (when (current-line code-obj)
+            (let ((current (end-line-str (current-line code-obj))))
+              (indent-for-block
+               (if glsl-tmp-var-name
+                   (%gen-assignment-string glsl-tmp-var-name current)
+                   current))))))
+
+;;------------------------------------------------------------
+;; Switch
 
 ;; {TODO} check keys
 (v-defspecial switch (test-form &rest clauses)
@@ -679,6 +679,8 @@
                     final-env))
           (error 'switch-type-error :test-obj test-obj :keys keys)))))
 
+;;------------------------------------------------------------
+;; Iteration
 
 ;;   (for (a 0) (< a 10) (++ a)
 ;;     (* a 2))
@@ -825,7 +827,8 @@
        (not (some λ(id~= _ starting-super-id)
                   (mapcar #'cdr new-flow-ids)))))))
 
-
+;;------------------------------------------------------------
+;; Swizzle
 
 (v-defmacro s~ (&rest args) `(swizzle ,@args))
 (v-defspecial swizzle (vec-form components)
@@ -861,6 +864,9 @@
         (error "swizzle form invalid"))))
 
 
+;;------------------------------------------------------------
+;; Types
+
 (v-defspecial the (type-name form)
   :args-valid t
   :return
@@ -878,6 +884,10 @@
       :node-tree (ast-node! 'the (list type-name (node-tree compiled))
                             (code-type compiled) env env))
      env)))
+
+
+;;------------------------------------------------------------
+;; Debugging Compilation
 
 (v-defspecial %break (&optional datum &rest args)
   :args-valid t
@@ -898,6 +908,10 @@
   (vbind (o e) (compile-form form env)
     (break "Varjo Peek:~%:code-obj ~s~%:env ~s" o e)
     (values o e)))
+
+
+;;------------------------------------------------------------
+;; Inline GLSL
 
 (v-defspecial glsl-expr (glsl-string type-spec)
   :args-valid t
@@ -921,6 +935,9 @@
   (let ((type-spec (if (typep type 'v-type) (type->type-spec type) type)))
     (compile-let name-symbol type-spec value-form env name-string)))
 
+
+;;------------------------------------------------------------
+;; First class functions
 
 ;; {TODO} qualify the arg types to disambiguate from overloads.
 (v-defspecial function (func-name)

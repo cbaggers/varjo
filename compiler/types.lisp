@@ -177,7 +177,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 (defmethod type->type-spec ((type v-or))
   `(or ,@(mapcar #'type->type-spec (v-types type))))
 
-(defmethod gen-or-type (flow-id types)
+(defmethod gen-or-type (types)
   (let* ((types (mapcar (lambda (type)
                           (etypecase type
                             (v-type type)
@@ -187,7 +187,8 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
          (reduced (reduce-types-for-or-type types)))
     (if (= (length reduced) 1)
         (first reduced)
-        (make-instance 'v-or :types reduced :flow-ids flow-id))))
+        (make-instance 'v-or :types reduced
+                       :flow-ids (apply #'flow-id! reduced)))))
 
 (defmethod reduce-types-for-or-type (types)
   (labels ((inner (type)
@@ -283,7 +284,9 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
                                  (uiop:ensure-list (third spec)))
             :flow-ids flow-id))
           ((and (listp spec) (eq (first spec) 'or))
-           (gen-or-type flow-id (rest spec)))
+           ;; flow-id is discarded as the flow-id will be the union of the
+           ;; ids of the types in the spec
+           (gen-or-type nil (rest spec)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp type)
@@ -365,6 +368,15 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 
 ;;------------------------------------------------------------
 ;; Type predicate
+
+(defmethod v-typep (a (b symbol) &optional (env *global-env*))
+  (declare (ignore env))
+  (print "at")
+  (typep a (type-of (type-spec->type b))))
+
+(defmethod v-typep (a (b list) &optional (env *global-env*))
+  (declare (ignore env))
+  (typep a (type-of (type-spec->type b))))
 
 (defmethod v-typep ((a t) (b v-none) &optional (env *global-env*))
   (declare (ignore env))

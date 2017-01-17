@@ -87,8 +87,14 @@
                  :m-value-ids flow-ids))
 
 (defun flow-id! (&rest ids)
-  (let ((ids (remove nil ids)))
-    (labels ((key (_) (slot-value _ 'val)))
+  (labels ((key (_) (slot-value _ 'val))
+           (extract-id (thing)
+             (etypecase thing
+               (null nil)
+               (flow-identifier thing)
+               (code (flow-ids thing))
+               (v-type (flow-ids thing)))))
+    (let ((ids (remove nil (mapcar #'extract-id ids))))
       (if (null ids)
           (make-instance 'flow-identifier :ids (list (funcall flow-gen-func)))
           (make-instance 'flow-identifier
