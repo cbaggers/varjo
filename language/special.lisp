@@ -569,6 +569,16 @@
 ;;------------------------------------------------------------
 ;; If
 
+(v-defmacro when (test &body body)
+  `(if ,test
+       (progn ,@body)
+       (values)))
+
+(v-defmacro unless (test &body body)
+  `(if (not ,test)
+       (progn ,@body)
+       (values)))
+
 ;; note that just like in lisp this only fails if false. 0 does not fail.
 (v-defspecial if (test-form then-form &optional else-form)
   :args-valid t
