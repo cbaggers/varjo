@@ -8,9 +8,9 @@
        (let ((y 2)
              (z 3))
          (v! x y z)
-         (%if (> x 2)
-              (setq x y)
-              (setq x z))
+         (if (> x 2)
+             (setq x y)
+             (setq x z))
          (v! x 2 3 4))))))
 
 (5am:def-test flow-control-1 (:suite flow-control-tests)
