@@ -38,12 +38,11 @@
        (v! x z 3 4)))))
 
 (5am:def-test flow-control-3 (:suite flow-control-tests)
-  (finishes-p
-   (glsl-doesnt-contain-p "B = false"
-     (varjo.tests::compile-vert () :450 nil
-       (let ((a (< 1 2))
-             (b (not (< 1 2))))
-         (unless (< 1 2)
-           1
-           4s0))
-       (v! 0 0 0 0)))))
+  (glsl-doesnt-contain-p "B = false"
+    (varjo.tests::compile-vert () :450 nil
+      (let ((a (< 1 2))
+            (b (not (< 1 2))))
+        (unless (< 1 2)
+          1
+          4s0))
+      (v! 0 0 0 0))))
