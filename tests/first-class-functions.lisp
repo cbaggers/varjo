@@ -75,7 +75,7 @@
       (v! 0 0 0 0))))
 
 (5am:def-test f-c-func-8 (:suite first-class-func-tests)
-  (is (ast-stabalizes-p
+  (is (finishes-p
        (compile-vert () :450 nil
          (let ((fn (labels ((test ((x :int)) x))
                      #'test)))
@@ -85,14 +85,14 @@
            (v! 0 0 0 0))))))
 
 (5am:def-test f-c-func-9 (:suite first-class-func-tests)
-  (glsl-doesnt-contain-p "<invalid>"
+  (finishes-p
     (compile-vert ((a :int)) :450 nil
       (let ((x 1)
             (fn (lambda () (lambda ((x :float)) (* x 2)))))
         (v! 0 0 0 (funcall (funcall fn) x))))))
 
 (5am:def-test f-c-func-10 (:suite first-class-func-tests)
-  (glsl-doesnt-contain-p "<invalid>"
+  (finishes-p
     (compile-vert ((a :int)) :450 nil
       (let ((x 1))
         (labels ((fn ((thr (function (:float) :float)) (x :int))

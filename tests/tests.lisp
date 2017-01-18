@@ -61,20 +61,30 @@
 
 (defmacro glsl-contains-p (regex &body form)
   (assert (= 1 (length form)))
-  `(is (cl-ppcre:all-matches ,regex (glsl-code ,(first form)))))
+  `(let ((compile-result ,(first form)))
+     (is (and (cl-ppcre:all-matches ,regex (glsl-code compile-result))
+              (not (glsl-contains-invalid compile-result))
+              (not (glsl-contains-nil compile-result))))))
 
 (defmacro glsl-doesnt-contain-p (regex &body form)
   (assert (= 1 (length form)))
-  `(is (null (cl-ppcre:all-matches-as-strings ,regex (glsl-code ,(first form))))))
+  `(let ((compile-result ,(first form)))
+     (is (and (null (cl-ppcre:all-matches-as-strings
+                     ,regex (glsl-code compile-result)))
+              (not (glsl-contains-invalid compile-result))
+              (not (glsl-contains-nil compile-result))))))
 
 (defmacro glsl-contains-n-p (n regex &body form)
   (assert (= 1 (length form)))
-  (alexandria:with-gensyms (count matches)
-    `(let ((,count ,n)
-           (,matches (cl-ppcre:all-matches-as-strings
-                     ,regex
-                     (glsl-code ,(first form)))))
-       (is (= ,count (length ,matches))))))
+  (alexandria:with-gensyms (count matches compiled)
+    `(let* ((,count ,n)
+            (,compiled ,(first form))
+            (,matches (cl-ppcre:all-matches-as-strings
+                       ,regex
+                       (glsl-code ,compiled))))
+       (is (and (= ,count (length ,matches))
+                (not (glsl-contains-invalid ,compiled))
+                (not (glsl-contains-nil ,compiled)))))))
 
 ;;------------------------------------------------------------
 

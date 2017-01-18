@@ -118,7 +118,7 @@
 
 (5am:def-test build-13 (:suite build-tests)
   ;; same as build-22 but in fragment shader
-  (is (ast-stabalizes-p
+  (is (finishes-p
        (compile-frag (&uniform (iresolution :vec2) (iglobaltime :float)) :450 nil
          (let* (((z :vec2) (/ (* 1.15 (- (* (s~ gl-frag-coord :xy) 2.0)
                                          (s~ iResolution :xy)))
