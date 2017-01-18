@@ -14,9 +14,10 @@
     (let ((f-set (get-func-set-by-name func-name env)))
       (unless (functions f-set)
         (error 'could-not-find-function :name func-name))
-      (compile-func-set-call f-set args-code env func-name code))))
+      (compile-call-with-set-of-functions f-set args-code env func-name code))))
 
-(defun compile-func-set-call (func-set args-code env &optional name code)
+(defun compile-call-with-set-of-functions (func-set args-code env
+                                           &optional name code)
   (let ((func-name (or name (%func-name-from-set func-set))))
     (dbind (func args) (find-function-in-set-for-args
                         func-set args-code env func-name)
@@ -47,36 +48,19 @@
   (dbind (fc func-form . arg-forms) code
     (assert (eq fc 'funcall))
     (vbind (func-code-obj f-env) (compile-form func-form env)
+      (declare (ignore f-env)) ;;{TODO} is this ok?
       (let ((func (get-actual-function func-code-obj code)))
-        (let ((functions (functions func)))
-          (if (= 1 (length functions))
-              (compile-funcall-1-func-form
-               (first (functions func)) arg-forms f-env func-code-obj env)
-              (compile-func-set-call func arg-forms env nil code)))))))
-
-(defun compile-funcall-1-func-form (func arg-forms f-env func-code-obj env)
-  (labels ((compile-and-assert-args-for-funcall (func args-code env)
-             ;; {TODO} handle and return env
-             (assert (= (length args-code) (length (v-argument-spec func))))
-             (let ((args (try-compile-args args-code env))
-                   (func-arg-types (v-argument-spec func)))
-               (assert (and
-                        (= (length func-arg-types) (length args))
-                        (every (lambda (s a) (v-casts-to-p a s env))
-                               func-arg-types
-                               (mapcar #'code-type args))))
-               (mapcar #'cast-code args func-arg-types))))
-    ;;
-    (let ((args (compile-and-assert-args-for-funcall func arg-forms f-env)))
-      (vbind (o e) (compile-function-call (name func) func args f-env)
-        (let ((ast (ast-node! :funcall (cons (node-tree func-code-obj)
-                                             (mapcar #'node-tree args))
-                              (code-type o) env env)))
-          (values (merge-obs (list func-code-obj o)
-                             :type (code-type o)
-                             :node-tree ast
-                             :current-line (current-line o))
-                  e))))))
+        (vbind (obj final-env)
+            (compile-call-with-set-of-functions func arg-forms env nil code)
+          (let* ((ast (node-tree obj))
+                 (funcall-ast (ast-node! :funcall
+                                         (cons (node-tree func-code-obj)
+                                               (ast-args ast))
+                                         (ast-return-type ast)
+                                         env
+                                         (ast-ending-env ast))))
+            (assert (eq final-env (ast-ending-env ast)))
+            (copy-code obj :node-tree funcall-ast)))))))
 
 (defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)

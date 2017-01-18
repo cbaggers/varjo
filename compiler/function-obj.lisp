@@ -61,9 +61,7 @@
                    :return-spec return-spec)))
 
 (defmethod v-type-of ((func-set v-function-set))
-  (make-instance 'v-any-one-of
-                 :types (mapcar #'v-type-of (functions func-set))
-                 :ctv func-set))
+  (gen-any-one-of-type (mapcar #'v-type-of (functions func-set))))
 
 (defmethod v-place-function-p ((f v-function))
   (not (null (v-place-index f))))

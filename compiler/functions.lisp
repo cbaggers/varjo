@@ -93,7 +93,8 @@
                    'v-function-type
                    :arg-spec (v-argument-spec cast-to-type)
                    :return-spec (v-return-spec cast-to-type)
-                   :ctv (ctv (v-type-of obj)))))
+                   :ctv (ctv (v-type-of obj))
+                   :flow-ids (flow-ids obj))))
     (if (v-type-eq (code-type obj) new-type)
         (copy-code obj :type new-type)
         (copy-code

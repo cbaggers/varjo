@@ -963,8 +963,7 @@
 
 (defun %function-for-func-sets (func-name-form func-set env)
   (let ((functions (functions func-set)))
-    (let* ((flow-id (flow-id!))
-           (type (set-flow-id (v-type-of func-set) flow-id)))
+    (let* ((type (v-type-of func-set)))
       (when (some #'implicit-args functions)
         (error 'closures-not-supported :func func-name-form))
       (values

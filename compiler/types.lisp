@@ -220,12 +220,40 @@ doesnt"))
 ;;------------------------------------------------------------
 ;; Any one of
 ;;
-;; This type is used to represent one of a set of compile-time-values
-;; it's focus on compile-time-values is what separated it from
-;; the 'or' type
+;; This value differs from v-or' becaume v-or means it is one
+;; of the contained types, whereas this means it's represents
+;; all of the values and the compiler is free to pick any which
+;; satisfies it's needs
 
 (def-v-type-class v-any-one-of (v-unrepresentable-value)
   ((types :initform nil :initarg :types :reader v-types)))
+
+(defmethod copy-type ((type v-any-one-of))
+  (assert (null (ctv type)))
+  (make-instance 'v-any-one-of :types (v-types type) :flow-ids (flow-ids type)))
+
+(defmethod type->type-spec ((type v-any-one-of))
+  `(any-of-of ,@(mapcar #'type->type-spec (v-types type))))
+
+(defmethod gen-any-one-of-type (types)
+  (let* ((types (mapcar (lambda (type)
+                          (etypecase type
+                            (v-type
+                             (if (flow-ids type)
+                                 type
+                                 (set-flow-id type (flow-id!))))
+                            ((or list symbol)
+                             (type-spec->type type (flow-id!)))))
+                        types))
+         (reduced (reduce-types-for-or-type types)))
+    (if (= (length reduced) 1)
+        (first reduced)
+        (make-instance 'v-any-one-of :types reduced
+                       :flow-ids (apply #'flow-id! reduced)))))
+
+(defmethod print-object ((obj v-any-one-of) stream)
+  (format stream "#<ANY-ONE-OF ~{~s~^ ~}>"
+          (mapcar #'type->type-spec (v-types obj))))
 
 ;;------------------------------------------------------------
 ;; Struct
@@ -436,7 +464,7 @@ doesnt"))
   (let* ((funcs (mapcar (lambda (fn)
                           (when (v-casts-to (v-type-of fn) to-type env)
                             fn))
-                        (functions (ctv from-type))))
+                        (mapcar #'ctv (v-types from-type))))
          (funcs (remove nil funcs))
          (f-set (make-instance 'v-function-set :functions funcs)))
     (when funcs (v-type-of f-set))))
