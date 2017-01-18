@@ -294,10 +294,12 @@
                                        (multi-vals code-obj))))
              (flow-ids code-obj))))
     ;; {TODO} why not 'end-line' here? who is doing that?
-    (let ((is-void (v-typep (code-type code-obj) 'v-void)))
+    (let ((suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
+                             (v-typep (code-type code-obj)
+                                      'v-unrepresentable-value))))
       (copy-code
        code-obj :type (type-spec->type 'v-void flow-result)
-       :current-line (unless is-void
+       :current-line (unless suppress-glsl
                        (format nil "return ~a" (current-line code-obj)))
        :returns (cons (code-type code-obj) (multi-vals code-obj))
        :multi-vals nil

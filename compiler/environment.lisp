@@ -32,7 +32,10 @@
        (declare (ignore k))
        (push (signatures v) signatures))
      (slot-value (get-base-env e) 'compiled-functions))
-    (reduce #'append signatures)))
+    ;; {TODO} we shouldnt have to remove-duplicates here
+    ;;        find out why this is happening
+    (remove-duplicates (reduce #'append signatures)
+                       :test #'equal)))
 
 (defmethod used-external-functions ((e environment))
   (let (functions)

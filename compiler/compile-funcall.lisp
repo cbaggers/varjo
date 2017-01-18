@@ -58,9 +58,17 @@
                                                (ast-args ast))
                                          (ast-return-type ast)
                                          env
-                                         (ast-ending-env ast))))
+                                         (ast-ending-env ast)))
+                 (to-block (append
+                            (to-block func-code-obj)
+                            (list (current-line (end-line func-code-obj)))
+                            (to-block obj))))
             (assert (eq final-env (ast-ending-env ast)))
-            (copy-code obj :node-tree funcall-ast)))))))
+            (merge-obs (list func-code-obj obj)
+                       :type (code-type obj)
+                       :current-line (current-line obj)
+                       :to-block (remove nil to-block)
+                       :node-tree funcall-ast)))))))
 
 (defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)

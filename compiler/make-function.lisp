@@ -102,16 +102,20 @@
               (let ((closure (ctv type)))
                 (append (in-out-args closure)
                         (implicit-args closure)))))
+           (return-for-glsl (if (typep type 'v-unrepresentable-value)
+                                (type-spec->type :void)
+                                type))
            (sigs (if mainp
                      (signatures body-obj)
                      (cons (gen-function-signature glsl-name arg-pairs
-                                                   out-arg-pairs type
+                                                   out-arg-pairs
+                                                   return-for-glsl
                                                    implicit-args
                                                    in-out-args)
                            (signatures body-obj))))
            (func-glsl-def (gen-function-body-string
                            glsl-name (unless mainp arg-pairs)
-                           out-arg-pairs type body-obj
+                           out-arg-pairs return-for-glsl body-obj
                            implicit-args in-out-args))
            (func (make-user-function-obj name
                                          (gen-function-transform
