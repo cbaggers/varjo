@@ -286,7 +286,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
           ((and (listp spec) (eq (first spec) 'or))
            ;; flow-id is discarded as the flow-id will be the union of the
            ;; ids of the types in the spec
-           (gen-or-type nil (rest spec)))
+           (gen-or-type (rest spec)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp type)
