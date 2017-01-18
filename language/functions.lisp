@@ -32,7 +32,7 @@
 (v-defun double (x) "double(~a)" (v-bool)  v-double)
 (v-defun double (x) "double(~a)" (v-float) v-double)
 
-(v-defun not (a) "(~a == true)" (v-bool) v-bool)
+(v-defun not (a) "!~a" (v-bool) v-bool)
 (v-defun not (a) "false" (v-type) v-bool)
 
 (v-defun %< (a b) "(~a < ~a)" (v-number v-number) v-bool)
