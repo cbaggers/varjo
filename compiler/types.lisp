@@ -3,25 +3,43 @@
 ;;------------------------------------------------------------
 ;; Macro for defining varjo types
 
+;; {TODO} proper errors
 (defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
+  (assert (and (listp direct-superclass) (symbolp (first direct-superclass))) ()
+          "Varjo: Types in varjo are allowed, at most, one superclass")
+  (unless (eq name 'v-type)
+    (assert direct-superclass ()
+            "Varjo: All types must specify a superclass, this will usually be v-type"))
   (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
                        `(append (list ,(kwd (subseq (symbol-name name) 2))
                                       ',name)
                                 *registered-types*)
                        `(cons ',name *registered-types*))))
-    `(progn (defclass ,name ,direct-superclass ,direct-slots ,@options)
-            (setf *registered-types* (remove-duplicates ,new-names))
-            ',name)))
+    `(progn
+       (defclass ,name ,direct-superclass
+         ,(if (eq name 'v-type)
+              direct-slots
+              (cons `(superclass :initform ',(first direct-superclass))
+                    direct-slots))
+         ,@options)
+       (setf *registered-types* (remove-duplicates ,new-names))
+       ',name)))
 
 ;;------------------------------------------------------------
 ;; Varjo's root type
 
 (def-v-type-class v-type ()
   ((core :initform nil :reader core-typep)
+   (superclass :initform nil :reader v-superclass)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)))
+
+(defmethod v-superclass ((type v-type))
+  (with-slots (superclass) type
+    (when superclass
+      (type-spec->type superclass))))
 
 ;;------------------------------------------------------------
 ;; Core type methods
