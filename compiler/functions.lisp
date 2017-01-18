@@ -1,4 +1,5 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
 ;;------------------------------------------------------------
 ;; GLSL Functions
@@ -73,7 +74,8 @@
       ((listp arg-spec)
        (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env)))
       ((eq arg-spec t)
-       (make-instance 'func-match :score t :func func :arguments arg-code))
+       (make-instance 'func-match :func func :arguments arg-code
+                      :score t :secondary-score 0))
       (t (error 'invalid-special-function-arg-spec
                 :name (name func)
                 :spec arg-spec)))))
@@ -102,18 +104,41 @@
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
   (let ((spec-types (v-argument-spec func)))
-    (when (eql (length arg-objs) (length spec-types))
-      (if (loop :for a :in arg-types :for s :in spec-types :always (v-typep a s env))
-          (make-instance 'func-match :score 0 :func func
-                         :arguments (mapcar #'copy-code arg-objs))
-          (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
-                               :collect (v-casts-to a s env))))
-            (when (not (some #'null cast-types))
-              (make-instance
-               'func-match :score 1 :func func
-               :arguments (loop :for obj :in arg-objs
-                             :for type :in cast-types
-                             :collect (cast-code obj type)))))))))
+    (labels ((calc-secondary-score (types)
+               ;; the lambda below sums all numbers or returns nil
+               ;; if nil found
+               (reduce (lambda (a x)
+                         (when (and a x)
+                           (+ a x)))
+                       (mapcar λ(get-type-distance _ _1 nil)
+                               spec-types
+                               types)
+                       :initial-value 0)))
+      ;;
+      (when (eql (length arg-objs) (length spec-types))
+        (let* ((perfect-matches (mapcar λ(v-typep _ _1 env) arg-types spec-types))
+               (score (- (length arg-objs)
+                         (length (remove nil perfect-matches)))))
+          (if (= score 0)
+              (let ((secondary-score (calc-secondary-score arg-types)))
+                (when secondary-score
+                  (make-instance
+                   'func-match
+                   :func func
+                   :arguments (mapcar #'copy-code arg-objs)
+                   :score score
+                   :secondary-score secondary-score)))
+              (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
+                                   :collect (v-casts-to a s env))))
+                (when (not (some #'null cast-types))
+                  (let ((secondary-score (calc-secondary-score cast-types)))
+                    (when secondary-score
+                      (make-instance
+                       'func-match
+                       :func func
+                       :arguments (mapcar #'cast-code arg-objs cast-types)
+                       :score score
+                       :secondary-score secondary-score)))))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
   (let* ((arg-types (mapcar #'code-type compiled-args))
@@ -151,8 +176,6 @@
   ;; {TODO} Why don't we care about the env here?
   (mapcar (rcurry #'try-compile-arg env) args-code))
 
-(defconstant +order-bias+ 0.0001)
-
 (defun find-functions-in-set-for-args (func-set args-code env &optional name)
   (let* ((func-name (or name (%func-name-from-set func-set)))
          (candidates (functions func-set))
@@ -161,15 +184,11 @@
          (match-fn (curry #'match-function-to-args args-code compiled-args env))
          (matches (remove nil (mapcar match-fn candidates)))
          (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
+    ;;
     (or (when instant-win (list instant-win))
-        (mapcar (lambda (x y)
-                  (when (numberp (score x))
-                    (make-instance
-                     'func-match
-                     :score (+ (score x) (* y +order-bias+))
-                     :func (func x) :arguments (arguments x))))
-                matches
-                (iota (length matches)))
+        (progn
+          (assert (every λ(numberp (score _)) matches))
+          matches)
         (func-find-failure func-name (mapcar #'code-type compiled-args)))))
 
 (defun find-function-in-set-for-args (func-set args-code env &optional name)
@@ -178,19 +197,30 @@
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
-  (let* ((func-name (or name (%func-name-from-set func-set)))
-         (functions (find-functions-in-set-for-args
+  (labels ((check-for-stemcell-issue (matches func-name)
+             (when (and (> (length matches) 1)
+                        (some (lambda (x)
+                                (some (lambda (x) (stemcellp (code-type x)))
+                                      (arguments x)))
+                              matches))
+               (error 'multi-func-stemcells :func-name func-name)))
+           (dual-sort (matches)
+             (let* ((primary-sorted (sort matches #'< :key #'score))
+                    (best-primary (score (first primary-sorted)))
+                    (primary-set (remove best-primary primary-sorted
+                                         :key #'score
+                                         :test-not #'=)))
+               (sort primary-set #'< :key #'secondary-score))))
+    (let* ((func-name (or name (%func-name-from-set func-set)))
+           (matches (find-functions-in-set-for-args
                      func-set
                      args-code env))
-         (function
-          (if (and (> (length functions) 1)
-                   (some (lambda (x)
-                           (some (lambda (x) (stemcellp (code-type x)))
-                                 (arguments x)))
-                         functions))
-              (error 'multi-func-stemcells :func-name func-name)
-              (first (sort functions #'< :key #'score)))))
-    (list (func function) (arguments function))))
+           (function (if (= (length matches) 1)
+                         (first matches)
+                         (progn
+                           (check-for-stemcell-issue matches func-name)
+                           (first (dual-sort matches))))))
+      (list (func function) (arguments function)))))
 
 (defun find-function-for-args (func-name args-code env)
   "Find the function that best matches the name and arg spec given

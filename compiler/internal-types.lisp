@@ -151,9 +151,18 @@
    (compiled-stages :initform nil :initarg :compiled-stages)))
 
 ;;----------------------------------------------------------------------
+;;
+;; A match has 2 components to it's score:
+;;
+;; The primary score measures how many arguments needed casting to match
+;; the target signature's type.
+;;
+;; The secondary-score measures how many superclasses you have to cross
+;; to travel from the matched type to the target signature's type
 
 (defclass func-match ()
   ((score :initarg :score :reader score)
+   (secondary-score :initarg :secondary-score :reader secondary-score)
    (func :initarg :func :reader func)
    (arguments :initarg :arguments :reader arguments)))
 

@@ -496,6 +496,22 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
   (first (sort types #'v-superior)))
 
 ;;------------------------------------------------------------
+;; Distance
+
+;; {TODO} proper errors
+(defmethod get-type-distance ((ancestor v-type) (type v-type)
+                              &optional (value-in-place-of-error nil vset))
+  (labels ((inner (base child accum)
+             (cond
+               ((null child) (if vset
+                                 value-in-place-of-error
+                                 (error "Varjo: ~a is not a descendant of type ~a"
+                                        type ancestor)))
+               ((v-type-eq base child) accum)
+               (t (inner base (v-superclass child) (1+ accum))))))
+    (inner ancestor type 0)))
+
+;;------------------------------------------------------------
 ;; Finding similarly named types
 ;;
 ;; used in errors.lisp
