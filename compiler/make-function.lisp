@@ -45,8 +45,8 @@
   ;;
   ;; Parse the types
   (let ((arg-types (mapcar λ(type-spec->type (second _)) args)))
-    (if (some λ(typep _ 'v-compile-time-value) arg-types)
-        (make-new-function-with-ctvs name args body allowed-implicit-args env)
+    (if (some λ(typep _ 'v-unrepresentable-value) arg-types)
+        (make-new-function-with-unreps name args body allowed-implicit-args env)
         (make-regular-function name args body allowed-implicit-args env))))
 
 
@@ -146,7 +146,7 @@
                              :out-vars (out-vars code-obj))
               code-obj))))
 
-(defun make-new-function-with-ctvs (name args body allowed-implicit-args
+(defun make-new-function-with-unreps (name args body allowed-implicit-args
                                     env)
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))

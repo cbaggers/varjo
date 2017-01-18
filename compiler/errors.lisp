@@ -368,15 +368,6 @@ Here are some types we think may have been meant:
 
 Please report this bug on github" name spec)
 
-(deferror ctv-mixin-error (:error-type varjo-critical-error)
-    (obj)
-    "Varjo: The type v-compile-time-value is a mixin type and must be used on an
-instance of v-type.
-
-Attempted to instance ~s as a
-v-compile-time-value type"
-  obj)
-
 (deferror closures-not-supported (:error-type varjo-critical-error)
     (func)
     "Varjo: The function ~s is a closure and currently Varjo doesnt support

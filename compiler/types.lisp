@@ -34,7 +34,8 @@
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
-   (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)))
+   (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
+   (ctv :initform nil :initarg :ctv :accessor ctv)))
 
 (defmethod v-superclass ((type v-type))
   (with-slots (superclass) type
@@ -50,11 +51,14 @@
 same values in it's slots.
 
 It is different from (type-spec->type (type->type-spec type)) in that it handles
-compile time values and flow-ids correctly, which the type-spec trick doesnt"))
+compile/unrepresentable values and flow-ids correctly, which the type-spec trick
+doesnt"))
 
 (defmethod copy-type ((type v-type))
-  (let* ((type-name (class-name (class-of type))))
-    (make-instance type-name :flow-ids (flow-ids type))))
+  (let* ((type-name (class-name (class-of type)))
+         (new-inst (make-instance type-name :flow-ids (flow-ids type))))
+    (setf (ctv new-inst) (ctv type))
+    new-inst))
 
 (defmethod type->type-spec ((type v-type))
   (class-name (class-of type)))
@@ -101,18 +105,12 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
   (typep obj 'v-error))
 
 ;;------------------------------------------------------------
-;; Compile Time Value
+;; Unrepresentable Value
 ;;
-;; The supertype for all types with CTVs
+;; The supertype for all types which are not representable in any
+;; way in glsl. First class functions is the classic example of this.
 
-(def-v-type-class v-compile-time-value (v-type)
-  ((ctv :initform nil :initarg :ctv :accessor ctv)))
-
-(defmethod copy-type ((type v-compile-time-value))
-  (let* ((type-name (class-name (class-of type)))
-         (new-inst (make-instance type-name :flow-ids (flow-ids type))))
-    (setf (ctv new-inst) (ctv type))
-    new-inst))
+(def-v-type-class v-unrepresentable-value (v-type) ())
 
 ;;------------------------------------------------------------
 ;; Container
@@ -190,6 +188,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
   ((types :initform nil :initarg :types :reader v-types)))
 
 (defmethod copy-type ((type v-or))
+  (assert (null (ctv type)))
   (make-instance 'v-or :types (v-types type) :flow-ids (flow-ids type)))
 
 (defmethod type->type-spec ((type v-or))
@@ -225,7 +224,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 ;; it's focus on compile-time-values is what separated it from
 ;; the 'or' type
 
-(def-v-type-class v-any-one-of (v-compile-time-value)
+(def-v-type-class v-any-one-of (v-unrepresentable-value)
   ((types :initform nil :initarg :types :reader v-types)))
 
 ;;------------------------------------------------------------
@@ -247,7 +246,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 ;;
 ;; The type of all function objects
 
-(def-v-type-class v-function-type (v-compile-time-value)
+(def-v-type-class v-function-type (v-unrepresentable-value)
   ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
 
@@ -298,8 +297,9 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
           ((and (listp spec) (eq (first spec) 'function))
            (make-instance
             'v-function-type :arg-spec (mapcar #'type-spec->type (second spec))
-            :return-spec (mapcar #'type-spec->type
-                                 (uiop:ensure-list (third spec)))
+            :return-spec (or (mapcar #'type-spec->type
+                                     (uiop:ensure-list (third spec)))
+                             (list (type-spec->type :void)))
             :flow-ids flow-id))
           ((and (listp spec) (eq (first spec) 'or))
            ;; flow-id is discarded as the flow-id will be the union of the
@@ -370,9 +370,7 @@ compile time values and flow-ids correctly, which the type-spec trick doesnt"))
 (defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
   (declare (ignore env))
   (and (equal (type->type-spec a) (type->type-spec b))
-       (if (typep a 'v-compile-time-value)
-           (eq (ctv a) (ctv b))
-           t)))
+       (eq (ctv a) (ctv b))))
 
 ;; Type <-> Spec
 

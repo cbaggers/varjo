@@ -140,7 +140,6 @@
            :function-with-no-return-type
            :external-function-invalid-in-arg-types
            :invalid-special-function-arg-spec
-           :ctv-mixin-error
            :closures-not-supported
            :cannot-establish-exact-function
 

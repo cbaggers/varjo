@@ -7,7 +7,7 @@
             "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
     (let ((code-obj
            (make-code-obj var-type
-                          (unless (typep var-type 'v-compile-time-value)
+                          (unless (typep var-type 'v-unrepresentable-value)
                             (gen-variable-string var-name v-value))
                           :place-tree `((,var-name ,v-value))
                           :node-tree (ast-node! :get var-name

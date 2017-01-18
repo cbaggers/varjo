@@ -88,31 +88,31 @@
         ((> (length (v-return-spec func)) 1)
          (compile-multi-return-function-call func-name func args env))
 
-        ;; funcs taking compile time values as arguments
+        ;; funcs taking unrepresentable values as arguments
         ((and (typep func 'v-user-function)
-              (some λ(typep _ 'v-compile-time-value)
+              (some λ(typep _ 'v-unrepresentable-value)
                     (v-argument-spec func)))
-         (compile-function-taking-ctvs func-name func args env))
+         (compile-function-taking-unreps func-name func args env))
 
         ;; all the other funcs :)
         (t (compile-regular-function-call func-name func args env)))
     (assert new-env)
     (values code-obj new-env)))
 
-(defun compile-function-taking-ctvs (func-name func args env)
+(defun compile-function-taking-unreps (func-name func args env)
   (assert (v-code func))
-  (labels ((ctv-p (x) (typep (v-type-of x) 'v-compile-time-value)))
+  (labels ((unrep-p (x) (typep (v-type-of x) 'v-unrepresentable-value)))
     (dbind (args-code body-code) (v-code func)
       (dbind (trimmed-args hard-coded)
           (loop :for arg-code :in args-code :for arg :in args
-             :if (ctv-p arg) :collect (list (first arg-code) arg) :into h
+             :if (unrep-p arg) :collect (list (first arg-code) arg) :into h
              :else :collect arg-code :into a
              :finally (return (list a h)))
         (expand-and-compile-form
          `(let ,hard-coded
             (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
                                 ,(mapcar #'first hard-coded)
-                                (,func-name ,@(remove-if #'ctv-p args))))
+                                (,func-name ,@(remove-if #'unrep-p args))))
          env)))))
 
 (defun compile-with-external-func-in-scope (func body-form env)

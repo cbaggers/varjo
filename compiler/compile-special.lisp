@@ -136,9 +136,9 @@
     (%validate-var-types name type-obj value-obj)
     (let* ((let-obj
             (cond
-              ;; handle ctvs
+              ;; handle unrepresentable values
               ((and value-obj (typep (v-type-of value-obj)
-                                     'v-compile-time-value))
+                                     'v-unrepresentable-value))
                value-obj)
               ;;
               (value-obj
