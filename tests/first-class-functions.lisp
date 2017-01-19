@@ -1,6 +1,16 @@
 (in-package :varjo.tests)
 (5am:in-suite first-class-func-tests)
 
+;;------------------------------------------------------------
+;; Helper data
+
+(varjo:add-external-function
+ 'ext-int-fncaller '((fn (function (:int) :int)) (ham :int)) nil
+ `((funcall fn ham)))
+
+;;------------------------------------------------------------
+;; Tests
+
 (5am:def-test f-c-func-0 (:suite first-class-func-tests)
   (finishes-p
    (compile-vert () :450 nil
@@ -100,3 +110,10 @@
                   thr))
          (v! 0 0 0 (funcall (fn (lambda ((x :float)) (* x 2)) 10)
                             x)))))))
+
+(5am:def-test f-c-func-11 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert ((a :int)) :450 nil
+     (labels ((fn ((x :int)) (* 2 x)))
+       (ext-int-fncaller #'fn 10)
+       (v! 0 0 0 0)))))
