@@ -62,7 +62,29 @@
           (when (not (eq parent *global-env*))
             (map-environments func parent)))))
 
+(defmethod metadata-for-flow-id ((flow-id flow-identifier) (env environment))
+  (assert (= 1 (length (ids flow-id))) (flow-id)
+          "Cannot declare metadata for multiple values at once: ~a" flow-id)
+  (let ((key (slot-value (first (ids flow-id)) 'val))
+        (env (get-base-env env)))
+    (gethash key (slot-value env 'value-metadata))))
+
 ;; ugh
+;;
+(defmethod (setf metadata-for-flow-id)
+    ((data standard-value-metadata) (flow-id flow-identifier) (env environment))
+  (assert (= 1 (length (ids flow-id))) (flow-id)
+          "Cannot declare metadata for multiple values at once: ~a" flow-id)
+  (let* ((key (slot-value (first (ids flow-id)) 'val))
+         (env (get-base-env env))
+         (metadata-kind (type-of data))
+         (current-metadata (gethash key (slot-value env 'value-metadata))))
+    (assert (null (assoc metadata-kind current-metadata)) (current-metadata)
+            "Varjo: ~a metadata already found for flow-id ~a.~%Metadata cannot be redefined"
+            metadata-kind flow-id)
+    (setf (gethash key (slot-value env 'value-metadata))
+          (cons (cons (type-of data) data) current-metadata))))
+
 (defmethod (setf compiled-functions)
     (value (e environment) key)
   (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))

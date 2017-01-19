@@ -120,6 +120,7 @@
                          :third-party-metadata)
    (name-map :initform (make-hash-table :test #'equal))
    (compiled-functions :initform (make-hash-table :test #'eq))
+   (value-metadata :initform (make-hash-table :test #'eql))
    (stemcells-allowed :initform t :initarg :stemcells-allowed
                       :reader allows-stemcellsp)))
 
