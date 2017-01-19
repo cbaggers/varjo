@@ -15,25 +15,26 @@
   (let ((type (type-spec->type type-name (flow-ids code-obj)))
         (stemcells (stemcells code-obj)))
     (assert (= 1 (length stemcells)))
-    (copy-code code-obj
-               :type type
-               :stemcells (with-slots (name string-name flow-id)
-                              (first stemcells)
-                            (list (stemcell! name
-                                             string-name
-                                             type-name
-                                             flow-id))))))
+    (copy-code
+     code-obj
+     :type type
+     :stemcells (with-slots (name string-name flow-id cpu-side-transform)
+                    (first stemcells)
+                  (list (stemcell! name string-name type-name flow-id
+                                   cpu-side-transform))))))
 
 (defmethod v-dimensions ((object v-stemcell)) 0)
 
-(defun stemcell! (original-name string-name type flow-id)
+(defun stemcell! (original-name string-name type flow-id
+                  &optional cpu-side-transform)
   (make-instance 'stemcell
                  :name original-name
                  :string-name string-name
                  :type type
-                 :flow-id flow-id))
+                 :flow-id flow-id
+                 :cpu-side-transform (or cpu-side-transform original-name)))
 
-(defun make-stem-cell (symbol env)
+(defun make-stem-cell (symbol env &optional cpu-side-transform)
   (let* ((string-name (string (safe-glsl-name-string symbol)))
          (original-name symbol)
          (flow-id (get-flow-id-for-stem-cell original-name env))
@@ -42,8 +43,13 @@
      :type type
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
-                              flow-id))
+                              flow-id cpu-side-transform))
      :node-tree (ast-node! :get-stemcell symbol type env env))))
+
+(defun inject-implicit-uniform (symbol type env &optional cpu-side-transform)
+  (add-type-to-stemcell-code
+   (make-stem-cell symbol env cpu-side-transform)
+   type))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))
