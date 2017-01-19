@@ -173,7 +173,8 @@
   ((name :initarg :name)
    (string-name :initarg :string-name)
    (type :initarg :type)
-   (flow-id :initarg :flow-id)))
+   (flow-id :initarg :flow-id)
+   (cpu-side-transform :initarg :cpu-side-transform)))
 
 ;;----------------------------------------------------------------------
 
@@ -191,3 +192,7 @@
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
 
 ;;----------------------------------------------------------------------
+
+(defclass standard-value-metadata () ())
+
+;;-------------------------------------------------------------------------

@@ -28,6 +28,7 @@
                (:file "compiler/variables")
                (:file "compiler/external-functions")
                (:file "compiler/environment")
+               (:file "compiler/value-metadata")
                (:file "compiler/structs")
                (:file "compiler/functions")
                (:file "compiler/macros")
