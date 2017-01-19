@@ -178,7 +178,8 @@
               (v-make-value true-type env :glsl-name glsl-name :read-only t)
               env)
     (add-lisp-name name env glsl-name)
-    (push (list name type qualifiers glsl-name) (v-uniforms env)))
+    (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
+      (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
   env)
 
 ;; mutates env
@@ -188,7 +189,8 @@
     (%add-var name (v-make-value true-type env :glsl-name glsl-name
                                  :function-scope 0 :read-only t)
               env)
-    (push (list name type qualifiers glsl-name) (v-uniforms env)))
+    (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
+      (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
   env)
 
 ;; mutates env

@@ -423,7 +423,6 @@ doesnt"))
 
 (defmethod v-typep (a (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (print "at")
   (typep a (type-of (type-spec->type b))))
 
 (defmethod v-typep (a (b list) &optional (env *global-env*))
