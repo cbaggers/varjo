@@ -105,23 +105,31 @@
            (return-for-glsl (if (typep type 'v-unrepresentable-value)
                                 (type-spec->type :void)
                                 type))
+           (strip-glsl
+            (and (not mainp)
+                 (or (v-typep type 'v-void)
+                     (v-typep type 'v-unrepresentable-value))
+                 (null multi-return-vars)))
            (sigs (if mainp
                      (signatures body-obj)
-                     (cons (gen-function-signature glsl-name arg-pairs
-                                                   out-arg-pairs
-                                                   return-for-glsl
-                                                   implicit-args
-                                                   in-out-args)
-                           (signatures body-obj))))
-           (func-glsl-def (gen-function-body-string
-                           glsl-name (unless mainp arg-pairs)
-                           out-arg-pairs return-for-glsl body-obj
-                           implicit-args in-out-args))
+                     (unless strip-glsl
+                       (cons (gen-function-signature glsl-name arg-pairs
+                                                     out-arg-pairs
+                                                     return-for-glsl
+                                                     implicit-args
+                                                     in-out-args)
+                             (signatures body-obj)))))
+           (func-glsl-def (unless strip-glsl
+                            (gen-function-body-string
+                             glsl-name (unless mainp arg-pairs)
+                             out-arg-pairs return-for-glsl body-obj
+                             implicit-args in-out-args)))
            (func (make-user-function-obj name
-                                         (gen-function-transform
-                                          glsl-name args
-                                          multi-return-vars
-                                          implicit-args)
+                                         (unless strip-glsl
+                                           (gen-function-transform
+                                            glsl-name args
+                                            multi-return-vars
+                                            implicit-args))
                                          nil ;;{TODO} should be context
                                          (mapcar #'second args)
                                          (cons type multi-return-vars)
@@ -174,6 +182,7 @@
                              :stemcells nil
                              :out-vars nil)
               (code! :type (gen-none-type)
+                     :current-line nil
                      :place-tree nil
                      :node-tree (ast-node! :code-section
                                            ast-body

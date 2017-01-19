@@ -13,10 +13,11 @@
                        (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs &optional out-strings)
-  (apply #'format nil (v-glsl-string func)
-         (append (mapcar #'current-line arg-objs)
-                 out-strings
-                 (mapcar #'v-glsl-name (implicit-args func)))))
+  (when (v-glsl-string func)
+    (apply #'format nil (v-glsl-string func)
+           (append (mapcar #'current-line arg-objs)
+                   out-strings
+                   (mapcar #'v-glsl-name (implicit-args func))))))
 
 (defun gen-function-transform (name args &optional out-args implicit-args)
   (format nil "~a(~{~a~^,~})" name
