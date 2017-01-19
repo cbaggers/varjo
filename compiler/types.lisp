@@ -77,14 +77,6 @@ doesnt"))
   object)
 
 ;;------------------------------------------------------------
-;; Pass by Ref
-;;
-;; The supertype of everything that is passed by reference by
-;; default
-
-(def-v-type-class v-pass-by-ref-type (v-type) ())
-
-;;------------------------------------------------------------
 ;; None
 
 (def-v-type-class v-none (v-type) ())
@@ -113,12 +105,20 @@ doesnt"))
   (typep obj 'v-error))
 
 ;;------------------------------------------------------------
+;; Ephemeral Values
+;;
+;; The supertype for all types which that have no representation
+;; in glsl.
+
+(def-v-type-class v-ephemeral-type (v-type) ())
+
+;;------------------------------------------------------------
 ;; Unrepresentable Value
 ;;
 ;; The supertype for all types which are not representable in any
 ;; way in glsl. First class functions is the classic example of this.
 
-(def-v-type-class v-unrepresentable-value (v-pass-by-ref-type) ())
+(def-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
 
 ;;------------------------------------------------------------
 ;; Container

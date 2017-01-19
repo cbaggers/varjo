@@ -137,22 +137,24 @@
 
 ;;----------------------------------------------------------------------
 
-;; {TODO} get rid of all this ugly imperitive crap, what was I thinking?
+;; {TODO} Proper erro
 (defun process-in-args (code env)
   "Populate in-args and create fake-structs where they are needed"
   (let ((in-args (v-raw-in-args env)))
     (loop :for in-arg :in in-args :do
        (with-v-arg (name type qualifiers declared-glsl-name) in-arg
          (let* ((glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
-           (if (typep type 'v-struct)
-               (add-in-arg-fake-struct name glsl-name type qualifiers env)
-               (let ((type (set-flow-id type (flow-id!))))
-                 (%add-var name (v-make-value type env :glsl-name glsl-name)
-                           env)
-                 (add-lisp-name name env glsl-name)
-                 (setf (v-in-args env)
-                       (append (v-in-args env)
-                               `((,name ,type ,qualifiers ,glsl-name)))))))))
+           (typecase type
+             (v-struct (add-in-arg-fake-struct name glsl-name type qualifiers env))
+             (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
+                                      name type))
+             (t (let ((type (set-flow-id type (flow-id!))))
+                  (%add-var name (v-make-value type env :glsl-name glsl-name)
+                            env)
+                  (add-lisp-name name env glsl-name)
+                  (setf (v-in-args env)
+                        (append (v-in-args env)
+                                `((,name ,type ,qualifiers ,glsl-name))))))))))
     (values code env)))
 
 ;;----------------------------------------------------------------------
@@ -485,20 +487,21 @@
       (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
          (push `(,name ,(type->type-spec type-obj)
                        ,@qualifiers
-                       ,(if (member :ubo qualifiers)
-                            (write-interface-block
-                             :uniform (or glsl-name (safe-glsl-name-string name))
-                             (v-slots type-obj))
-                            (gen-uniform-decl-string
+                       ,(cond
+                         ((member :ubo qualifiers)
+                          (write-interface-block
+                           :uniform (or glsl-name (safe-glsl-name-string name))
+                           (v-slots type-obj)))
+                         ((v-typep type-obj 'v-ephemeral-type) nil)
+                         (t (gen-uniform-decl-string
                              (or glsl-name (safe-glsl-name-string name))
                              type-obj
-                             qualifiers)))
+                             qualifiers))))
                final-strings)
          (when (and (v-typep type-obj 'v-user-struct)
                     (not (find type-obj structs :key #'type->type-spec
                                :test #'v-type-eq)))
            (push type-obj structs)))
-
       (loop :for s :in (stemcells post-proc-obj) :do
          (with-slots (name string-name type) s
            (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))

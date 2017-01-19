@@ -296,7 +296,7 @@
     ;; {TODO} why not 'end-line' here? who is doing that?
     (let ((suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
                              (v-typep (code-type code-obj)
-                                      'v-unrepresentable-value))))
+                                      'v-ephemeral-type))))
       (copy-code
        code-obj :type (type-spec->type 'v-void flow-result)
        :current-line (unless suppress-glsl

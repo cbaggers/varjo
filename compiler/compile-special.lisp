@@ -137,8 +137,7 @@
     (let* ((let-obj
             (cond
               ;; handle unrepresentable values
-              ((and value-obj (typep (v-type-of value-obj)
-                                     'v-unrepresentable-value))
+              ((and value-obj (typep (v-type-of value-obj) 'v-ephemeral-type))
                value-obj)
               ;;
               (value-obj

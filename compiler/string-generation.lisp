@@ -179,9 +179,10 @@
                (list (used-types post-proc-obj)
                      (mapcar #'last1 (in-args post-proc-obj))
                      (mapcar #'last1 (out-vars post-proc-obj))
-                     (concatenate 'list
-                                  (mapcar #'last1 (uniforms post-proc-obj))
-                                  (mapcar #'third (stemcells post-proc-obj)))
+                     (remove-empty
+                      (append
+                       (mapcar #'last1 (uniforms post-proc-obj))
+                       (mapcar #'third (stemcells post-proc-obj))))
                      (signatures env)
                      (let* ((funcs (all-functions post-proc-obj))
                             (code (remove nil (mapcar #'glsl-code funcs))))
