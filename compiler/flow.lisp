@@ -132,8 +132,14 @@
                              :key λ(slot-value _ 'val))))))
 
 (defun id= (id-a id-b)
-  (assert (or (typep id-a 'flow-identifier) (null id-a)))
-  (assert (or (typep id-b 'flow-identifier) (null id-b)))
+  (assert (or (typep id-a 'flow-identifier) (null id-a))
+          (id-a)
+          "Varjo: #'id= expected a flow-id or null for the first argument.~%Got: ~a"
+          id-a)
+  (assert (or (typep id-b 'flow-identifier) (null id-b))
+          (id-b)
+          "Varjo: #'id= expected a flow-id or null for the second argument.~%Got: ~a"
+          id-b)
   (unless (or (null id-a) (null id-b))
     (equal (sort (copy-list (raw-ids id-a)) #'<)
            (sort (copy-list (raw-ids id-b)) #'<))))
