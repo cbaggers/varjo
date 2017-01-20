@@ -62,6 +62,7 @@
    (out-vars :initarg :out-vars :reader out-vars)))
 
 ;;----------------------------------------------------------------------
+;; Compiler output
 
 (defclass varjo-compile-result ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
@@ -83,6 +84,13 @@
    (third-party-metadata :initarg :third-party-metadata
                          :initform (make-hash-table)
                          :reader third-party-metadata)))
+
+(defclass implicit-uniform ()
+  ((name :initarg :name :reader name)
+   (glsl-name :initarg :glsl-name :reader glsl-name)
+   (type :initarg :type :reader v-type)
+   (cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)
+   (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
 ;;----------------------------------------------------------------------
 

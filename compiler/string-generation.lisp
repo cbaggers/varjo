@@ -182,7 +182,7 @@
                      (remove-empty
                       (append
                        (mapcar #'last1 (uniforms post-proc-obj))
-                       (mapcar #'third (stemcells post-proc-obj))))
+                       (mapcar #'%glsl-decl (stemcells post-proc-obj))))
                      (signatures env)
                      (let* ((funcs (all-functions post-proc-obj))
                             (code (remove nil (mapcar #'glsl-code funcs))))

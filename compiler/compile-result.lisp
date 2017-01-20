@@ -51,3 +51,6 @@ https://github.com/cbaggers/varjo.git
 
 Sorry for the inconvenience")
     res))
+
+(defmethod print-object ((obj implicit-uniform) stream)
+  (format stream "#<IMPLICIT-UNIFORM ~a>" (name obj)))

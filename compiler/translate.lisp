@@ -503,15 +503,19 @@
                                :test #'v-type-eq)))
            (push type-obj structs)))
       (loop :for s :in (stemcells post-proc-obj) :do
-         (with-slots (name string-name type) s
+         (with-slots (name string-name type cpu-side-transform) s
            (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
            (let ((type-obj (type-spec->type type)))
-             (push `(,name ,type
-                           ,(gen-uniform-decl-string
-                             (or string-name (error "stem cell without glsl-name"))
-                             type-obj
-                             nil)
-                           ,string-name)
+             (push (make-instance
+                    'implicit-uniform
+                    :name name
+                    :glsl-name string-name
+                    :type type
+                    :cpu-side-transform cpu-side-transform
+                    :glsl-decl (gen-uniform-decl-string
+                                (or string-name (error "stem cell without glsl-name"))
+                                type-obj
+                                nil))
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
@@ -519,7 +523,7 @@
                                    :key #'type->type-spec
                                    :test #'v-type-eq)))
                (push type-obj structs)))))
-
+      ;;
       (setf (used-types post-proc-obj) structs)
       (setf (uniforms post-proc-obj) final-strings)
       (setf (stemcells post-proc-obj) implicit-uniforms)
