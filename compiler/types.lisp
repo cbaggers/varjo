@@ -297,6 +297,12 @@ doesnt"))
               (v-type (type-of (first return-spec)))
               (otherwise return-spec)))))
 
+(defmethod copy-type ((type v-function-type))
+  (let* ((new-inst (call-next-method)))
+    (setf (v-argument-spec new-inst) (v-argument-spec type))
+    (setf (v-return-spec new-inst) (v-return-spec type))
+    new-inst))
+
 (defun v-closure-p (type)
   (and (typep type 'v-function-type)
        (ctv type)
