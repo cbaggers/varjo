@@ -80,7 +80,11 @@
                 :name (name func)
                 :spec arg-spec)))))
 
-(defmethod cast-code (src-obj cast-to-type)
+(defun cast-code (src-obj cast-to-type)
+  (cast-code-inner (code-type src-obj) src-obj cast-to-type))
+
+(defmethod cast-code-inner (varjo-type src-obj cast-to-type)
+  (declare (ignore varjo-type))
   (let* ((src-type (code-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
@@ -88,19 +92,25 @@
         (copy-code src-obj :current-line (cast-string cast-to-type src-obj)
                    :type dest-type))))
 
-(defmethod cast-code (obj (cast-to-type v-function-type))
+(defmethod cast-code-inner (varjo-type src-obj (cast-to-type v-function-type))
+  (declare (ignore varjo-type))
   (let ((new-type (make-instance
                    'v-function-type
                    :arg-spec (v-argument-spec cast-to-type)
                    :return-spec (v-return-spec cast-to-type)
-                   :ctv (ctv (v-type-of obj))
-                   :flow-ids (flow-ids obj))))
-    (if (v-type-eq (code-type obj) new-type)
-        (copy-code obj :type new-type)
+                   :ctv (ctv (v-type-of src-obj))
+                   :flow-ids (flow-ids src-obj))))
+    (if (v-type-eq (code-type src-obj) new-type)
+        (copy-code src-obj :type new-type)
         (copy-code
-         obj
-         :current-line (cast-string new-type obj)
+         src-obj
+         :current-line (cast-string new-type src-obj)
          :type new-type))))
+
+(defmethod cast-code-inner ((varjo-type v-any-one-of) src-obj (cast-to-type v-function-type))
+  (warn "(cast-code v-any-one-of v-function-type) is incomplee")
+  ;;(assert (every λ(v-typep _ cast-to-type) (v-types varjo-type)))
+  src-obj)
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
@@ -108,38 +118,40 @@
     (labels ((calc-secondary-score (types)
                ;; the lambda below sums all numbers or returns nil
                ;; if nil found
-               (reduce (lambda (a x)
-                         (when (and a x)
-                           (+ a x)))
-                       (mapcar λ(get-type-distance _ _1 nil)
-                               spec-types
-                               types)
-                       :initial-value 0)))
+               (or (reduce (lambda (a x)
+                             (when (and a x)
+                               (+ a x)))
+                           (mapcar λ(get-type-distance _ _1 nil)
+                                   spec-types
+                                   types)
+                           :initial-value 0)
+                   most-positive-fixnum)))
       ;;
       (when (eql (length arg-objs) (length spec-types))
         (let* ((perfect-matches (mapcar λ(v-typep _ _1 env) arg-types spec-types))
                (score (- (length arg-objs)
                          (length (remove nil perfect-matches)))))
+
           (if (= score 0)
+              ;; if all the types match
               (let ((secondary-score (calc-secondary-score arg-types)))
-                (when secondary-score
-                  (make-instance
-                   'func-match
-                   :func func
-                   :arguments (mapcar #'copy-code arg-objs)
-                   :score score
-                   :secondary-score secondary-score)))
+                (make-instance
+                 'func-match
+                 :func func
+                 :arguments (mapcar #'copy-code arg-objs)
+                 :score score
+                 :secondary-score secondary-score))
               (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
                                    :collect (v-casts-to a s env))))
                 (when (not (some #'null cast-types))
+                  ;; when all the types can be cast
                   (let ((secondary-score (calc-secondary-score cast-types)))
-                    (when secondary-score
-                      (make-instance
-                       'func-match
-                       :func func
-                       :arguments (mapcar #'cast-code arg-objs cast-types)
-                       :score score
-                       :secondary-score secondary-score)))))))))))
+                    (make-instance
+                     'func-match
+                     :func func
+                     :arguments (mapcar #'cast-code arg-objs cast-types)
+                     :score score
+                     :secondary-score secondary-score))))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
   (let* ((arg-types (mapcar #'code-type compiled-args))

@@ -77,5 +77,4 @@
 (defgeneric all-cached-compiled-functions (e))
 (defgeneric map-environments (func e))
 (defgeneric add-function-from-spec (func-obj env))
-(defgeneric cast-code (obj cast-to-type))
 (defgeneric build-external-function (func env))
