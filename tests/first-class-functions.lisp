@@ -117,3 +117,20 @@
      (labels ((fn ((x :int)) (* 2 x)))
        (ext-int-fncaller #'fn 10)
        (v! 0 0 0 0)))))
+
+(5am:def-test f-c-func-12 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (let ((x 10)
+           (fn #'sin))
+       (funcall fn 10)
+       (v! 1 2 3 4)))))
+
+(5am:def-test f-c-func-13 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (flet ((some-func ((fn (function (:float) :float)))
+              (funcall fn 10s0)))
+       (let ((fn #'sin))
+         (some-func fn)
+         (v! 1 2 3 4))))))
