@@ -33,16 +33,20 @@
         (t (error 'problem-with-the-compiler :target func))))))
 
 (defun get-actual-function (func-code-obj code)
-  (let* ((func (ctv (code-type func-code-obj))))
-    (restart-case (typecase func
-                    (v-function func)
-                    (v-function-set func)
-                    (t (error 'cannot-establish-exact-function
-                              :funcall-form code)))
-      ;;
-      (allow-call-function-signature ()
-        (values (make-dummy-function-from-type (code-type func-code-obj))
-                t)))))
+  (let ((code-type (code-type func-code-obj)))
+    (if (typep code-type 'v-any-one-of)
+        (make-instance 'v-function-set
+                       :functions (mapcar #'ctv (v-types code-type)))
+        (let* ((func (ctv code-type)))
+          (restart-case (typecase func
+                          (v-function func)
+                          (v-function-set func)
+                          (t (error 'cannot-establish-exact-function
+                                    :funcall-form code)))
+            ;;
+            (allow-call-function-signature ()
+              (values (make-dummy-function-from-type (code-type func-code-obj))
+                      t)))))))
 
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
