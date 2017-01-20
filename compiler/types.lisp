@@ -466,7 +466,9 @@ doesnt"))
 ;;------------------------------------------------------------
 ;; Casting
 
-(defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type) env)
+
+(defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type)
+                       env)
   (when (and (every #'v-type-eq (v-argument-spec from-type)
                     (v-argument-spec to-type))
              (every #'v-type-eq (v-return-spec from-type)
@@ -474,13 +476,10 @@ doesnt"))
     to-type))
 
 (defmethod v-casts-to ((from-type v-any-one-of) (to-type v-function-type) env)
-  (let* ((funcs (mapcar (lambda (fn)
-                          (when (v-casts-to (v-type-of fn) to-type env)
-                            fn))
-                        (mapcar #'ctv (v-types from-type))))
-         (funcs (remove nil funcs))
-         (f-set (make-instance 'v-function-set :functions funcs)))
-    (when funcs (v-type-of f-set))))
+  (let* ((funcs (remove-if-not (lambda (fn) (v-casts-to fn to-type env))
+                               (v-types from-type))))
+    (when funcs
+      (gen-any-one-of-type funcs))))
 
 (defmethod v-casts-to ((from-type v-stemcell) (to-type v-type) env)
   (declare (ignore env from-type))

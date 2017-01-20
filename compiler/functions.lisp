@@ -80,10 +80,10 @@
                 :name (name func)
                 :spec arg-spec)))))
 
-(defun cast-code (src-obj cast-to-type)
-  (cast-code-inner (code-type src-obj) src-obj cast-to-type))
+(defun cast-code (src-obj cast-to-type env)
+  (cast-code-inner (code-type src-obj) src-obj cast-to-type env))
 
-(defmethod cast-code-inner (varjo-type src-obj cast-to-type)
+(defmethod cast-code-inner (varjo-type src-obj cast-to-type env)
   (declare (ignore varjo-type))
   (let* ((src-type (code-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
@@ -92,7 +92,8 @@
         (copy-code src-obj :current-line (cast-string cast-to-type src-obj)
                    :type dest-type))))
 
-(defmethod cast-code-inner (varjo-type src-obj (cast-to-type v-function-type))
+(defmethod cast-code-inner
+    (varjo-type src-obj (cast-to-type v-function-type) env)
   (declare (ignore varjo-type))
   (let ((new-type (make-instance
                    'v-function-type
@@ -111,6 +112,17 @@
   (warn "(cast-code v-any-one-of v-function-type) is incomplee")
   ;;(assert (every λ(v-typep _ cast-to-type) (v-types varjo-type)))
   src-obj)
+
+;; {TODO} proper error
+(defmethod cast-code-inner
+    ((varjo-type v-any-one-of) src-obj (cast-to-type v-function-type) env)
+  (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type env))
+                              (v-types varjo-type))))
+    (if funcs
+        (copy-code src-obj :type (gen-any-one-of-type funcs))
+        (error "Varjo: compiler bug: Had already decided it was possible to cast ~a to ~a
+however failed to do so when asked."
+               src-obj cast-to-type))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env)
@@ -149,7 +161,8 @@
                     (make-instance
                      'func-match
                      :func func
-                     :arguments (mapcar #'cast-code arg-objs cast-types)
+                     :arguments (mapcar (lambda (a c) (cast-code a c env))
+                                        arg-objs cast-types)
                      :score score
                      :secondary-score secondary-score))))))))))
 
