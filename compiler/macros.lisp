@@ -18,24 +18,3 @@
                       :test #'symbol-name-equal)))
     `(progn (add-compiler-macro ',name (lambda ,args ,@body) ,context *global-env*)
             ',name)))
-
-;;-------------------------------------------------------------------------
-
-(defmacro v-define-var-macro (varjo-type (arg-name environment-var-name)
-                              &body body)
-  (alexandria:with-gensyms (type)
-    `(defmethod expand-typed-var-macro
-         ((,type ,varjo-type) ,arg-name ,environment-var-name)
-       (declare (ignore ,type) (ignorable ,arg-name ,environment-var-name))
-       ,@body)))
-
-(defgeneric expand-typed-var-macro (type var-name env))
-
-(defmethod expand-typed-var-macro (type var-name env)
-  (declare (ignore type env))
-  var-name)
-
-;; (v-define-var-macro v-space (var-name env)
-;;   ..)
-
-;;-------------------------------------------------------------------------
