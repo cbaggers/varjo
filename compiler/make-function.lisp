@@ -165,7 +165,6 @@
     (let* ((env (make-func-env env mainp allowed-implicit-args))
            (func (make-user-function-obj name nil nil (mapcar #'second args) nil
                                          :code (list args body)))
-           ;; {TODO} this ↓↓↓↓↓↓↓↓↓↓↓↓ is a horrible hack
            (ast-body (if (= 1 (length body))
                          (first body)
                          `(progn ,@body)))

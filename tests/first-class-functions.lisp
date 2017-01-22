@@ -85,14 +85,14 @@
       (v! 0 0 0 0))))
 
 (5am:def-test f-c-func-8 (:suite first-class-func-tests)
-  (is (finishes-p
-       (compile-vert () :450 nil
-         (let ((fn (labels ((test ((x :int)) x))
-                     #'test)))
-           (labels ((foo ((ffn (function (:int) :int)))
-                      (funcall ffn 10)))
-             (foo fn))
-           (v! 0 0 0 0))))))
+  (finishes-p
+   (compile-vert () :450 nil
+     (let ((fn (labels ((test ((x :int)) x))
+                 #'test)))
+       (labels ((foo ((ffn (function (:int) :int)))
+                  (funcall ffn 10)))
+         (foo fn))
+       (v! 0 0 0 0)))))
 
 (5am:def-test f-c-func-9 (:suite first-class-func-tests)
   (finishes-p

@@ -51,7 +51,7 @@ and
 
 (v-defspecial sv! ((x :float) (y :float) (z :float) (w :float))
   :return
-  (let ((space (get-symbol-binding '*current-space* env)))
+  (let ((space (get-symbol-binding '*current-space* nil env)))
     (if space
         (let* ((space-type (v-type space))
                (flow-id (flow-id!))
@@ -106,7 +106,7 @@ and
 (v-defspecial space-boundary-convert ((form-obj v-type))
   :return
   (if (v-typep (code-type form-obj) 'v-svec)
-      (let* ((outer-space (get-symbol-binding '*current-space* env)))
+      (let* ((outer-space (get-symbol-binding '*current-space* nil env)))
         (if outer-space
             (let* ((inner-space (get-space-from-svec form-obj env))
                    (outer-name (get-uniform-name-from-space outer-space env))

@@ -1,10 +1,15 @@
 (in-package :varjo)
 (in-readtable fn:fn-reader)
 
-(defun v-variable->code-obj (var-name v-value from-higher-scope env)
+(defun v-variable->code-obj (var-name v-value env)
   (warn "v-variable->code-obj is incomplete: this needs to allow outer-variables
          but not outer symbol macros")
-  (let ((var-type (v-type v-value)))
+  (let* ((var-type (v-type v-value))
+         (from-higher-scope (binding-in-higher-scope-p v-value env)))
+    (when from-higher-scope
+      (assert (or (eq t (v-allowed-outer-vars env))
+                  (find var-name (v-allowed-outer-vars env)))
+              () 'symbol-unidentified :sym var-name))
     (assert (flow-ids var-type) (var-type)
             "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
     (let ((code-obj
@@ -16,10 +21,7 @@
                                                 var-type
                                                 env env))))
       (if from-higher-scope
-          (if (or (eq t (v-allowed-outer-vars env))
-                  (find var-name (v-allowed-outer-vars env)))
-              (add-higher-scope-val code-obj v-value)
-              (error 'symbol-unidentified :sym var-name))
+          (add-higher-scope-val code-obj v-value)
           code-obj))))
 
 (defun %v-value->code (v-val env)
@@ -28,27 +30,29 @@
                                        (v-type v-val)
                                        env env)))
 
-;; [TODO] move error
-(defun compile-symbol (code env)
+(defun maybe-add-constant-or-stemcell (var-name env)
+  (let ((constant-to-inject (when (constantp var-name)
+                              (funcall *constant-inject-hook* var-name))))
+    (cond
+      (constant-to-inject (compile-form constant-to-inject env))
+      ((suitable-symbol-for-stemcellp var-name env)
+       (let ((scell (make-stem-cell var-name env))
+             (assumed-type (funcall *stemcell-infer-hook* var-name)))
+         (if assumed-type
+             (add-type-to-stemcell-code scell assumed-type)
+             scell)))
+      (t (error 'symbol-unidentified :sym var-name)))))
+
+(defun expand-symbol-macro (symbol binding env)
+  (error "IMPLEMENT ME!"))
+
+(defun compile-symbol (symbol env)
   (warn "compile-symbol is incomplete: what about symbol-macros")
-  (let* ((var-name code)
-         (v-value (get-symbol-binding var-name env)))
-    (if v-value
-        (let* ((val-scope (v-function-scope v-value))
-               (from-higher-scope (and (> val-scope 0)
-                                       (< val-scope (v-function-scope env)))))
-          (v-variable->code-obj var-name v-value from-higher-scope env))
-        (let ((constant-to-inject (when (constantp var-name)
-                                    (funcall *constant-inject-hook* var-name))))
-          (cond
-            (constant-to-inject (compile-form constant-to-inject env))
-            ((suitable-symbol-for-stemcellp var-name env)
-             (let ((scell (make-stem-cell code env))
-                   (assumed-type (funcall *stemcell-infer-hook* var-name)))
-               (if assumed-type
-                   (add-type-to-stemcell-code scell assumed-type)
-                   scell)))
-            (t (error 'symbol-unidentified :sym code)))))))
+  (let ((binding (get-symbol-binding symbol t env)))
+    (etypecase binding
+      (v-symbol-macro (expand-symbol-macro symbol binding env))
+      (v-value (v-variable->code-obj symbol binding env))
+      (null (maybe-add-constant-or-stemcell symbol env)))))
 
 
 (defmacro with-constant-inject-hook (func &body body)

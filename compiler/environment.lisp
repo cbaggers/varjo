@@ -108,7 +108,8 @@
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
   (unless (every λ(and (symbolp (first _))
-                       (every λ(typep _ 'v-value) (rest _)))
+                       (every λ(typep _ '(or v-value v-symbol-macro))
+                              (rest _)))
                  (v-symbol-bindings env))
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
@@ -274,8 +275,8 @@ For example calling env-prune on this environment..
          (v-names (mapcar #'first a)))
     (mapcar
      (lambda (n)
-       (let ((va (get-symbol-binding n env-a))
-             (vb (get-symbol-binding n env-b)))
+       (let ((va (get-symbol-binding n nil env-a))
+             (vb (get-symbol-binding n nil env-b)))
          (if (eq va vb)
              `(,n ,va)
              `(,n
@@ -314,8 +315,8 @@ For example calling env-prune on this environment..
         (n-b (env-binding-names env-a :stop-at-base stop-at-base)))
     (assert (equal n-a n-b))
     (labels ((v-eq (n)
-               (funcall test (get-symbol-binding n env-a)
-                        (get-symbol-binding n env-b))))
+               (funcall test (get-symbol-binding n nil env-a)
+                        (get-symbol-binding n nil env-b))))
       (loop for n in n-a if (v-eq n) collect n))))
 
 (defun merge-env (env new-env)
@@ -467,8 +468,12 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-symbol-binding (var-name (val v-value) (env (eql :-genv-)))
-  (setf (gethash var-name *global-env-symbol-bindings*) val)
+(defmethod add-symbol-binding (name (val v-value) (env (eql :-genv-)))
+  (setf (gethash name *global-env-symbol-bindings*) val)
+  *global-env*)
+
+(defmethod add-symbol-binding (name (macro v-symbol-macro) (env (eql :-genv-)))
+  (setf (gethash name *global-env-symbol-bindings*) macro)
   *global-env*)
 
 (defmethod %add-symbol-binding (var-name (val v-value) (env base-environment))
@@ -478,21 +483,59 @@ For example calling env-prune on this environment..
   (setf (slot-value env 'symbol-bindings)
         (a-add var-name val (v-symbol-bindings env))))
 
-(defmethod add-symbol-binding (var-name (val v-value) (env environment))
-  (fresh-environment env :symbol-bindings (a-add var-name val
+(defmethod %add-symbol-binding (name (macro v-symbol-macro)
+                                (env base-environment))
+  "Warning - Destructive: Used when we don't want to create a fresh environment.
+   This is used when setting up the environment prior to starting the actual
+   compilation"
+  (setf (slot-value env 'symbol-bindings)
+        (a-add name macro (v-symbol-bindings env))))
+
+(defmethod add-symbol-binding (name (val v-value) (env environment))
+  (fresh-environment env :symbol-bindings (a-add name val
                                                  (v-symbol-bindings env))))
 
-(defmethod get-symbol-binding (var-name (env (eql :-genv-)))
+(defmethod add-symbol-binding (name (macro v-symbol-macro) (env environment))
+  (fresh-environment env :symbol-bindings (a-add name macro
+                                                 (v-symbol-bindings env))))
+
+(defun apply-scope-rules (binding-name binding env)
+  (let ((from-higher-scope (binding-in-higher-scope-p binding env)))
+    (when (or (not from-higher-scope)
+              (or (eq t (v-allowed-outer-vars env))
+                  (find binding-name (v-allowed-outer-vars env))))
+      binding)))
+
+(defmethod binding-in-higher-scope-p ((binding v-value) env)
+  (let ((val-scope (v-function-scope binding)))
+    (and (> val-scope 0)
+         (< val-scope (v-function-scope env)))))
+
+(defmethod binding-in-higher-scope-p ((binding v-symbol-macro) env)
+  (let ((val-scope (v-function-scope binding)))
+    (and (> val-scope 0)
+         (< val-scope (v-function-scope env)))))
+
+(defmethod binding-in-higher-scope-p ((name symbol) env)
+  (let* ((binding (get-symbol-binding name nil env)))
+    (assert binding (name) 'symbol-unidentified :sym name)
+    (binding-in-higher-scope-p binding env )))
+
+(defmethod get-symbol-binding (var-name respect-scope-rules (env (eql :-genv-)))
+  (declare (ignore respect-scope-rules))
   (warn "env get-symbol-binding is incomplete: what about symbol-macros")
   (let ((s (gethash var-name *global-env-symbol-bindings*)))
     (cond (s (values s *global-env*))
           (t nil))))
 
-(defmethod get-symbol-binding (var-name (env environment))
+;; {TODO} does get-symbol-binding need to return the env?
+(defmethod get-symbol-binding (var-name respect-scope-rules (env environment))
   (warn "env get-symbol-binding is incomplete: what about symbol-macros")
   (let ((s (first (a-get var-name (v-symbol-bindings env)))))
-    (cond (s (values s env))
-          (t (get-symbol-binding var-name (v-parent-env env))))))
+    (cond (s (if respect-scope-rules
+                 (values (apply-scope-rules var-name s env) env)
+                 (values s env)))
+          (t (get-symbol-binding var-name respect-scope-rules (v-parent-env env))))))
 
 (defmethod v-boundp (var-name (env environment))
   (warn "v-boundp is incomplete: what about symbol-macros")

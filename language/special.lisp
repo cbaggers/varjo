@@ -2,6 +2,25 @@
 (in-readtable fn:fn-reader)
 
 ;;------------------------------------------------------------
+;; Symbol Macros
+
+(v-defmacro symbol-macrolet (macrobindings &rest body)
+  (unless body (error 'body-block-empty :form-name 'symbol-macrolet))
+  (reduce (lambda (accum binding)
+            (dbind (name expansion) binding
+              `(symbol-macrolet-1 ,name ,expansion ,accum)))
+          macrobindings
+          :initial-value `(progn ,@body)))
+
+(v-defspecial symbol-macrolet-1 (name expansion &rest body)
+  :args-valid t
+  :return
+  (let* ((scope (v-function-scope env))
+         (macro (make-symbol-macro expansion scope env))
+         (new-env (add-symbol-binding name macro env)))
+    (compile-form `(progn ,@body) new-env)))
+
+;;------------------------------------------------------------
 ;; Assignment
 
 ;;{TODO} make it handle multiple assignements like cl version
@@ -29,7 +48,7 @@
                      (= (v-function-scope value) 0))
            (error 'cross-scope-mutate :var-name name
                   :code (format nil "(setf (... ~s) ...)" name)))
-         (multiple-value-bind (old-val old-env) (get-symbol-binding name env)
+         (multiple-value-bind (old-val old-env) (get-symbol-binding name nil env)
            (assert (eq old-val value))
            (let ((final-env (replace-flow-ids name old-val (flow-ids val)
                                               old-env env)))
@@ -50,7 +69,7 @@
   (let ((new-val (compile-form new-val-code env)))
     (assert (symbolp var-name))
     (multiple-value-bind (old-val old-env)
-        (get-symbol-binding var-name env)
+        (get-symbol-binding var-name nil env)
       (warn "setq is incomplete: what about symbol-macros")
       (assert (and old-val old-env))
       (cond
@@ -763,7 +782,7 @@
        :until (vbind (o new-env) (compile-form code current-env)
                 (let* ((new-flow-ids (get-new-flow-ids new-env current-env))
                        (f-ids (or flow-ids
-                                  (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ starting-env)))
+                                  (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ nil starting-env)))
                                           (mapcar #'car new-flow-ids)))))
                   (setf last-code-obj o
                         envs (cons new-env envs)
@@ -780,7 +799,7 @@
   (warn "create-post-loop-env is incomplete: what about symbol-macros")
   (labels ((splice-in-flow-id (accum-env id-pair)
              (dbind (vname . new-flow-id) id-pair
-               (vbind (old-val old-env) (get-symbol-binding vname accum-env)
+               (vbind (old-val old-env) (get-symbol-binding vname nil accum-env)
                  (replace-flow-ids vname old-val new-flow-id
                                    old-env accum-env)))))
     (reduce #'splice-in-flow-id new-flow-id-pairs :initial-value starting-env)))
@@ -806,15 +825,15 @@
          ;; same flow-id. This can happen if a variable is set to
          ;; itself from within a loop
          (trimmed-changes
-          (mapcar λ(let ((last-var (get-symbol-binding _ last-env))
-                         (new-var (get-symbol-binding _ latest-env)))
+          (mapcar λ(let ((last-var (get-symbol-binding _ nil last-env))
+                         (new-var (get-symbol-binding _ nil latest-env)))
                      (unless (or (not last-var)
                                  (not new-var)
                                  (id= (flow-ids last-var)
                                       (flow-ids new-var)))
                        _))
                   variables-changed)))
-    (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ latest-env)))
+    (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ nil latest-env)))
             (remove nil trimmed-changes))))
 
 (defun fixpoint-reached (new-flow-ids starting-env pass)
@@ -829,7 +848,7 @@
      ;; values from the outer scope we stop (as information
      ;; has stopped flowing into the loop, there is nothing
      ;; else to glean)
-     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-symbol-binding _ starting-env))
+     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-symbol-binding _ nil starting-env))
                                        variables-changed))
             (starting-super-id (reduce #'flow-id! starting-flow-ids)))
        (not (some λ(id~= _ starting-super-id)

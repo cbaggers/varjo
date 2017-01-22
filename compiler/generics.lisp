@@ -55,7 +55,7 @@
 (defgeneric get-macro (macro-name env))
 (defgeneric get-symbol-macro (macro-name env))
 (defgeneric get-compiler-macro (macro-name env))
-(defgeneric get-symbol-binding (var-name env))
+(defgeneric get-symbol-binding (var-name respect-scope-rules env))
 (defgeneric raw-ids (flow-id))
 (defgeneric add-external-function (name in-args uniforms code
                                    &optional valid-glsl-versions))

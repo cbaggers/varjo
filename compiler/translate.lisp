@@ -294,7 +294,7 @@
                          'val)))
     (let ((env (get-base-env env)))
       (loop :for (name) :in (v-uniforms env) :do
-         (let ((key (uniform-raw (get-symbol-binding name env)))
+         (let ((key (uniform-raw (get-symbol-binding name nil env)))
                (val (make-uniform-origin :name name)))
            (setf (gethash key flow-origin-map) val)
            (setf (gethash key val-origin-map) val)))))
