@@ -33,7 +33,6 @@
   :return
   (let* ((scope (v-function-scope env))
          (macro (make-symbol-macro expansion scope env)))
-    (warn "symbol-macrolet-1 is incomplete: it doesnt emit an ast entry")
     (with-fresh-env-scope (fresh-env env)
       (let ((new-env (add-symbol-binding name macro fresh-env)))
         (compile-form `(progn ,@body) new-env)))))
