@@ -13,6 +13,15 @@
                                        :triangle-strip :triangle-fan :triangles
                                        :triangle-strip-adjacency
                                        :triangles-adjacency :patches))
+(defparameter *unshadowable-names* '(;; special
+                                     and flet for function glsl-expr if labels
+                                     labels-no-implicit let multiple-value-bind
+                                     or progn setf-1 setq switch swizzle
+                                     symbol-macrolet-1 the values
+                                     varjo-lang:values-safe while
+                                     ;; macros
+                                     let* prog1 setf symbol-macrolet s~ unless
+                                     when))
 (defparameter *default-version* :330)
 (defparameter *default-context* '(:330 :vertex))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)

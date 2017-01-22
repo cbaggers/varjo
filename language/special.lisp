@@ -2,6 +2,21 @@
 (in-readtable fn:fn-reader)
 
 ;;------------------------------------------------------------
+;; Regular Macros
+
+(v-defmacro macrolet (definitons &rest body)
+  (unless body (error 'body-block-empty :form-name 'symbol-macrolet))
+  (reduce (lambda (accum definition)
+            `(macrolet-1 ,definition ,accum))
+          definitons
+          :initial-value `(progn ,@body)))
+
+(v-defspecial macrolet-1 (definition &rest body)
+  :args-valid t
+  :return
+  (error "IMPLEMENT ME!"))
+
+;;------------------------------------------------------------
 ;; Symbol Macros
 
 (v-defmacro symbol-macrolet (macrobindings &rest body)
@@ -12,11 +27,13 @@
           macrobindings
           :initial-value `(progn ,@body)))
 
+
 (v-defspecial symbol-macrolet-1 (name expansion &rest body)
   :args-valid t
   :return
   (let* ((scope (v-function-scope env))
          (macro (make-symbol-macro expansion scope env)))
+    (warn "symbol-macrolet-1 is incomplete: it doesnt emit an ast entry")
     (with-fresh-env-scope (fresh-env env)
       (let ((new-env (add-symbol-binding name macro fresh-env)))
         (compile-form `(progn ,@body) new-env)))))
@@ -42,7 +59,6 @@
     ((not (v-type-eq (code-type place) (code-type val)))
      (error 'setf-type-match :code-obj-a place :code-obj-b val))
     (t (destructuring-bind (name value) (last1 (place-tree place))
-         (warn "setf-1 is incomplete: what about symbol-macros")
          (when (v-read-only value)
            (error 'setf-readonly :var-name name))
          (unless (or (= (v-function-scope env) (v-function-scope value))
@@ -67,40 +83,42 @@
 (v-defspecial setq (var-name new-val-code)
   :args-valid t
   :return
-  (let ((new-val (compile-form new-val-code env)))
-    (assert (symbolp var-name))
-    (multiple-value-bind (old-val old-env)
-        (get-symbol-binding var-name nil env)
-      (warn "setq is incomplete: what about symbol-macros")
-      (assert (and old-val old-env))
-      (cond
-        ((v-read-only old-val)
-         (error 'setq-readonly :code `(setq ,var-name ,new-val-code)
-                :var-name var-name))
-        ((and (not (= (v-function-scope old-val) (v-function-scope env)))
-              (> (v-function-scope old-val) 0)) ;; ok if var is global
-         (error 'cross-scope-mutate :var-name var-name
-                :code `(setq ,var-name ,new-val-code))))
+  (multiple-value-bind (old-val old-env) (get-symbol-binding var-name nil env)
+    (assert (and old-val old-env))
+    (if (typep old-val 'v-symbol-macro)
+        (compile-form `(setf ,var-name ,new-val-code) env)
+        (compile-regular-setq-form var-name old-val old-env new-val-code env))))
 
-      (let ((final-env (replace-flow-ids var-name old-val
-                                         (flow-ids new-val)
-                                         old-env env))
-            (actual-type (calc-setq-type new-val old-val var-name)))
-        (values (copy-code new-val :type actual-type
-                           :current-line (gen-setq-assignment-string
-                                          old-val new-val)
-                           :multi-vals nil
-                           :place-tree nil
-                           :node-tree (ast-node!
-                                       'setq
-                                       (list (ast-node! :get var-name
-                                                        actual-type
-                                                        env env)
-                                             (node-tree new-val))
-                                       actual-type
-                                       env
-                                       final-env))
-                final-env)))))
+(defun compile-regular-setq-form (var-name old-val old-env new-val-code env)
+  (let ((new-val (compile-form new-val-code env)))
+    (cond
+      ((v-read-only old-val)
+       (error 'setq-readonly :code `(setq ,var-name ,new-val-code)
+              :var-name var-name))
+      ((and (not (= (v-function-scope old-val) (v-function-scope env)))
+            (> (v-function-scope old-val) 0)) ;; ok if var is global
+       (error 'cross-scope-mutate :var-name var-name
+              :code `(setq ,var-name ,new-val-code))))
+
+    (let ((final-env (replace-flow-ids var-name old-val
+                                       (flow-ids new-val)
+                                       old-env env))
+          (actual-type (calc-setq-type new-val old-val var-name)))
+      (values (copy-code new-val :type actual-type
+                         :current-line (gen-setq-assignment-string
+                                        old-val new-val)
+                         :multi-vals nil
+                         :place-tree nil
+                         :node-tree (ast-node!
+                                     'setq
+                                     (list (ast-node! :get var-name
+                                                      actual-type
+                                                      env env)
+                                           (node-tree new-val))
+                                     actual-type
+                                     env
+                                     final-env))
+              final-env))))
 
 (defun calc-setq-type (new-val old-val var-name)
   (restart-case (if (v-type-eq (v-type old-val) (code-type new-val))
@@ -968,13 +986,13 @@
 ;; First class functions
 
 ;; {TODO} qualify the arg types to disambiguate from overloads.
+;; {TODO} proper error
 (v-defspecial function (func-name)
   :args-valid t
   :return
-  (let ((func (etypecase func-name
-                (symbol (get-func-set-by-name func-name env))
-                (list (find-function-by-literal func-name env)))))
+  (let ((func (find-form-binding-by-literal func-name env)))
     (etypecase func
+      (v-regular-macro (error "Varjo: Although legal in CL, Varjo does not allow taking a reference to a macro function"))
       (external-function (%function-for-external-funcs func func-name env))
       (v-function (%function-for-regular-funcs func-name func env))
       (v-function-set (%function-for-func-sets func-name func env)))))
@@ -995,9 +1013,7 @@
 ;; {TODO} shouldnt this have a new environment?
 (defun %function-for-external-funcs (func func-name-form env)
   (record-func-usage func env)
-  (values (compile-with-external-func-in-scope
-           func `(function ,func-name-form) env)
-          env))
+  (compile-with-external-func-in-scope func `(function ,func-name-form) env))
 
 (defun %function-for-regular-funcs (func-name-form func env)
   (let* ((flow-id (flow-id!))
@@ -1011,3 +1027,5 @@
             :node-tree (ast-node! 'function (list func-name-form)
                                   type nil nil))
      env)))
+
+;;------------------------------------------------------------

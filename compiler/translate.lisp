@@ -267,7 +267,6 @@
 
 (defun post-process-func-ast
     (func env flow-origin-map val-origin-map node-copy-map)
-  (warn "post-process-func-ast is incomplete: what about symbol-macros")
   ;; prime maps with args (env)
   ;; {TODO} need to prime in-args & structs/array elements
   (labels ((uniform-raw (val)
@@ -275,10 +274,14 @@
                          'val)))
     (let ((env (get-base-env env)))
       (loop :for (name) :in (v-uniforms env) :do
-         (let ((key (uniform-raw (get-symbol-binding name nil env)))
-               (val (make-uniform-origin :name name)))
-           (setf (gethash key flow-origin-map) val)
-           (setf (gethash key val-origin-map) val)))))
+         (let ((binding (get-symbol-binding name nil env)))
+           ;; {TODO} proper errror
+           (assert (not (typep binding 'v-symbol-macro)) ()
+                   "Varjo: Compiler Bug: Unexpanded symbol-macro found in ast")
+           (let ((key (uniform-raw binding))
+                 (val (make-uniform-origin :name name)))
+             (setf (gethash key flow-origin-map) val)
+             (setf (gethash key val-origin-map) val))))))
 
   (labels ((post-process-node (node walk parent &key replace-args)
              ;; we want a new copy as we will be mutating it

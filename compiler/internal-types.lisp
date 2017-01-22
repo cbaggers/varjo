@@ -197,6 +197,8 @@
   ((name :initform nil :initarg :name :reader name)
    (macro-function :initarg :macro-function :initform nil
                    :reader v-macro-function)
+   (function-scope :initarg :function-scope :initform 0
+                   :accessor v-function-scope)
    (context :initform nil :initarg :context :accessor v-context)))
 
 ;;----------------------------------------------------------------------

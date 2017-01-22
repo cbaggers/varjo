@@ -203,6 +203,10 @@ however failed to do so when asked."
   ;; {TODO} Why don't we care about the env here?
   (mapcar (rcurry #'try-compile-arg env) args-code))
 
+(defmethod func-need-arguments-compiledp ((func v-function))
+  (not (and (v-special-functionp func)
+            (eq (v-argument-spec func) t))))
+
 (defun find-functions-in-set-for-args (func-set args-code env &optional name)
   (let* ((func-name (or name (%func-name-from-set func-set)))
          (candidates (functions func-set))
@@ -255,13 +259,10 @@ however failed to do so when asked."
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
-  (let* ((candidates (let ((c (get-func-set-by-name func-name env)))
-                       (if c
-                           (functions c)
-                           (error 'could-not-find-function :name func-name)))))
-    (find-function-in-set-for-args
-     (make-instance 'v-function-set :functions candidates)
-     args-code env)))
+  (let ((candidates (get-form-binding func-name env)))
+    (typecase candidates
+      (v-function-set (find-function-in-set-for-args candidates args-code env))
+      (t (error 'could-not-find-function :name func-name)))))
 
 (defun %func-name-from-set (func-set)
   (let* ((names (mapcar #'name (functions func-set)))
@@ -333,18 +334,29 @@ however failed to do so when asked."
       (special-exact-type-matchp candidate arg-types env)
       (basic-exact-type-matchp candidate arg-types env)))
 
-(defun find-function-for-types (func-name arg-types env)
-  (find-if (curry #'exact-match-function-to-types arg-types env)
-           (or (functions (get-func-set-by-name func-name env))
-               (error 'could-not-find-function :name func-name))))
-
 ;;------------------------------------------------------------
 
-(defun find-function-by-literal (func-name env)
+;; {TODO} proper error
+(defmethod find-form-binding-by-literal ((name symbol) env)
+  (get-form-binding name env))
+
+(defmethod find-form-binding-by-literal ((func-name list) env)
+  ;;
   (destructuring-bind (name &rest arg-types) func-name
     (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
-                             arg-types)))
-      (or (if arg-types
-              (find-function-for-types name arg-types env)
-              (get-func-set-by-name name env))
-          (error "No function yada {TODO} ~a" name)))))
+                             arg-types))
+          (binding (get-form-binding name env)))
+      ;;
+      (etypecase binding
+        ;; When we have types we should try to match exactly
+        (v-function-set
+         (if arg-types
+             (or (find-if λ(exact-match-function-to-types arg-types env _)
+                          (functions binding))
+                 (error 'could-not-find-function :name func-name))
+             binding))
+        ;; otherwise return the binding
+        ((or v-regular-macro v-function external-function)
+         binding)
+        ;;
+        (null (error 'could-not-find-function :name func-name))))))

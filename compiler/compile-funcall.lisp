@@ -4,49 +4,24 @@
 (defun compile-list-form (code env)
   (if (eq (first code) 'funcall)
       (compile-funcall-form code env)
-      (compile-func-form code env)))
+      (compile-call-form code env)))
 
-(defun compile-func-form (code env)
-  (let* ((func-name (first code))
-         (args-code (rest code)))
-    (when (keywordp func-name)
+(defun compile-call-form (code env)
+  (dbind (name . args-code) code
+    (when (keywordp name)
       (error 'keyword-in-function-position :form code))
-    (let ((f-set (get-func-set-by-name func-name env)))
-      (unless (functions f-set)
-        (error 'could-not-find-function :name func-name))
-      (compile-call-with-set-of-functions f-set args-code env func-name code))))
+    (let ((binding (get-form-binding name env)))
+      (etypecase binding
+        (v-regular-macro (expand-macro binding args-code env))
+        (v-function-set (compile-call-with-set-of-functions
+                         binding args-code env name code))
+        (null (error 'could-not-find-function :name name))))))
 
-(defun compile-call-with-set-of-functions (func-set args-code env
-                                           &optional name code)
-  (let ((func-name (or name (%func-name-from-set func-set))))
-    (dbind (func args) (find-function-in-set-for-args
-                        func-set args-code env func-name)
-      (typecase func
-        (v-function (compile-function-call
-                     func-name func args env))
-        (external-function (compile-external-function-call func args env))
-        (v-error (if (v-payload func)
-                     (error (v-payload func))
-                     (error 'cannot-compile
-                            :code (or code
-                                      `(funcall ,func-set ,@args-code)))))
-        (t (error 'problem-with-the-compiler :target func))))))
-
-(defun get-actual-function (func-code-obj code)
-  (let ((code-type (code-type func-code-obj)))
-    (if (typep code-type 'v-any-one-of)
-        (make-instance 'v-function-set
-                       :functions (mapcar #'ctv (v-types code-type)))
-        (let* ((func (ctv code-type)))
-          (restart-case (typecase func
-                          (v-function func)
-                          (v-function-set func)
-                          (t (error 'cannot-establish-exact-function
-                                    :funcall-form code)))
-            ;;
-            (allow-call-function-signature ()
-              (values (make-dummy-function-from-type (code-type func-code-obj))
-                      t)))))))
+(defun expand-macro (macro args-code env)
+  (compile-form (funcall (v-macro-function macro)
+                         args-code
+                         env)
+                env))
 
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
@@ -73,6 +48,36 @@
                        :current-line (current-line obj)
                        :to-block (remove nil to-block)
                        :node-tree funcall-ast)))))))
+
+(defun compile-call-with-set-of-functions (func-set args-code env
+                                           &optional name code)
+  (let ((func-name (or name (%func-name-from-set func-set))))
+    (dbind (func args) (find-function-in-set-for-args
+                        func-set args-code env func-name)
+      (typecase func
+        (v-function (compile-function-call func-name func args env))
+        (external-function (compile-external-function-call func args env))
+        (v-error (if (v-payload func)
+                     (error (v-payload func))
+                     (error 'cannot-compile
+                            :code (or code
+                                      `(funcall ,func-set ,@args-code)))))
+        (t (error 'problem-with-the-compiler :target func))))))
+
+(defun get-actual-function (func-code-obj code)
+  (let ((code-type (code-type func-code-obj)))
+    (if (typep code-type 'v-any-one-of)
+        (make-function-set (mapcar #'ctv (v-types code-type)))
+        (let* ((func (ctv code-type)))
+          (restart-case (typecase func
+                          (v-function func)
+                          (v-function-set func)
+                          (t (error 'cannot-establish-exact-function
+                                    :funcall-form code)))
+            ;;
+            (allow-call-function-signature ()
+              (values (make-dummy-function-from-type (code-type func-code-obj))
+                      t)))))))
 
 (defun compile-function-call (func-name func args env)
   (vbind (code-obj new-env)

@@ -24,7 +24,8 @@
 (defmethod make-regular-macro (name macro-function context)
   (make-instance 'v-regular-macro
                  :name name
-                 :macro-function macro-function))
+                 :macro-function macro-function
+                 :context context))
 
 ;;------------------------------------------------------------
 ;; Symbol Macros

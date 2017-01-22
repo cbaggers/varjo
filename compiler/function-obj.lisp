@@ -38,12 +38,14 @@
 (defclass v-function-set ()
   ((functions :initform nil :initarg :functions :reader functions)))
 
-(defmethod initialize-instance :after ((set v-function-set)
-                                       &key functions &allow-other-keys)
-  (assert (every λ(or (typep _ 'v-function) (typep _ 'external-function))
-                 functions)
-          (functions)
-          "Failed to initialize v-function-set:~% functions: ~s" functions))
+;; {TODO} Proper error
+(defun make-function-set (functions)
+  (when functions
+    (assert (every λ(or (typep _ 'v-function) (typep _ 'external-function))
+                   functions)
+            (functions)
+            "Failed to initialize v-function-set:~% functions: ~s" functions)
+    (make-instance 'v-function-set :functions functions)))
 
 (defmethod print-object ((fs v-function-set) stream)
   (if (null (functions fs))
