@@ -5,7 +5,7 @@
 ;; Regular Macros
 
 (v-defmacro macrolet (definitons &rest body)
-  (unless body (error 'body-block-empty :form-name 'symbol-macrolet))
+  (unless body (error 'body-block-empty :form-name 'macrolet))
   (reduce (lambda (accum definition)
             `(macrolet-1 ,definition ,accum))
           definitons
@@ -14,7 +14,19 @@
 (v-defspecial macrolet-1 (definition &rest body)
   :args-valid t
   :return
-  (error "IMPLEMENT ME!"))
+  (let ((macro
+         (dbind (name lambda-list &body body) definition
+           (declare (ignore lambda-list body))
+           (make-regular-macro
+            name
+            (lambda (form env)
+              (declare (ignore form env))
+              (error "IMPLEMENT ME!"))
+            nil
+            env))))
+    (with-fresh-env-scope (fresh-env env)
+      (let ((new-env (add-form-binding macro fresh-env)))
+        (compile-form `(progn ,@body) new-env)))))
 
 ;;------------------------------------------------------------
 ;; Symbol Macros

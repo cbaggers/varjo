@@ -17,15 +17,19 @@
                                     (declare (ignorable ,env-var))
                                     (destructuring-bind ,lambda-list ,form-var
                                       ,@body))
-                                  ,context)
+                                  ,context
+                                  *global-env*)
               *global-env*)
              ',name))))))
 
-(defmethod make-regular-macro (name macro-function context)
+(defmethod make-regular-macro (name macro-function context env)
   (make-instance 'v-regular-macro
                  :name name
                  :macro-function macro-function
-                 :context context))
+                 :context context
+                 :function-scope (if (eq env *global-env*)
+                                     0
+                                     (v-function-scope env))))
 
 ;;------------------------------------------------------------
 ;; Symbol Macros

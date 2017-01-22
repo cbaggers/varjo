@@ -552,13 +552,17 @@ For example calling env-prune on this environment..
       (setf (compiled-functions env func) compiled-func)
       (add-form-binding func env))))
 
-(defmethod add-form-binding ((func-spec v-function) (env environment))
-  (let ((func-name (name func-spec)))
-    (when (shadow-global-check func-name)
-      (fresh-environment env :form-bindings (a-add func-name func-spec (v-form-bindings env))))))
+(defmethod add-form-binding ((func v-function) (env environment))
+  (let ((name (name func)))
+    (when (shadow-global-check name)
+      (fresh-environment
+       env :form-bindings (a-add name func (v-form-bindings env))))))
 
-(defmethod add-form-binding ((func-spec v-regular-macro) (env environment))
-  (error "IMPLEMENT ME!"))
+(defmethod add-form-binding ((macro v-regular-macro) (env environment))
+  (let ((name (name macro)))
+    (when (shadow-global-check name)
+      (fresh-environment
+       env :form-bindings (a-add name macro (v-form-bindings env))))))
 
 ;; Base Environment
 (defmethod %add-function (func-name (func-spec v-function)
@@ -640,6 +644,9 @@ For example calling env-prune on this environment..
     (%valid-for-contextp func versions context)))
 
 (defmethod valid-for-contextp ((func external-function) env)
+  t)
+
+(defmethod valid-for-contextp ((func v-regular-macro) env)
   t)
 
 (defun %valid-for-contextp (func versions context)
