@@ -2,8 +2,6 @@
 (in-readtable fn:fn-reader)
 
 (defun v-variable->code-obj (var-name v-value env)
-  (warn "v-variable->code-obj is incomplete: this needs to allow outer-variables
-         but not outer symbol macros")
   (let* ((var-type (v-type v-value))
          (from-higher-scope (binding-in-higher-scope-p v-value env)))
     (when from-higher-scope
@@ -47,13 +45,11 @@
   (compile-form (expansion binding) env))
 
 (defun compile-symbol (symbol env)
-  (warn "compile-symbol is incomplete: what about symbol-macros")
   (let ((binding (get-symbol-binding symbol t env)))
     (etypecase binding
       (v-symbol-macro (expand-symbol-macro binding env))
       (v-value (v-variable->code-obj symbol binding env))
       (null (maybe-add-constant-or-stemcell symbol env)))))
-
 
 (defmacro with-constant-inject-hook (func &body body)
   (let ((func-name (gensym "hook")))
