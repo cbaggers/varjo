@@ -346,17 +346,6 @@
           (t `(%out (,(gensym "OUTPUT-VAR"))
                     ,form)))))
 
-(defun %validate-var-types (var-name type code-obj)
-  (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
-    (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
-           (string-downcase var-name) (current-line code-obj)))
-  (when (and (null type) (null code-obj))
-    (error "Could not establish the type of the variable: ~s" var-name))
-  (when (and code-obj type (not (v-type-eq (code-type code-obj) type)))
-    (error "Type specified does not match the type of the form~%~s~%~s"
-           (code-type code-obj) type))
-  t)
-
 ;; {TODO} what if type of form is not value
 (v-defspecial %out (name-and-qualifiers form)
   :args-valid t

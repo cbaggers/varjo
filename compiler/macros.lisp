@@ -18,3 +18,11 @@
                       :test #'symbol-name-equal)))
     `(progn (add-compiler-macro ',name (lambda ,args ,@body) ,context *global-env*)
             ',name)))
+
+;;------------------------------------------------------------
+;; Symbol Macros
+
+(defmethod make-symbol-macro (expansion-form function-scope env)
+  (make-instance 'v-symbol-macro
+                 :expansion expansion-form
+                 :function-scope (or function-scope (v-function-scope env))))

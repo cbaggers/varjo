@@ -195,6 +195,13 @@
 
 ;;----------------------------------------------------------------------
 
+(defclass v-symbol-macro ()
+  ((expansion :initarg :expansion :initform nil :reader expansion)
+   (function-scope :initarg :function-scope :initform 0
+                   :accessor v-function-scope)))
+
+;;----------------------------------------------------------------------
+
 (defclass mval ()
   ((value :initarg :value :reader multi-val-value)
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))

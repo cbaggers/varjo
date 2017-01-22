@@ -461,49 +461,6 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-
-
-(defmethod add-symbol-macro (macro-name macro (context list)
-                             (env (eql :-genv-)))
-  (unless (or (listp macro) (symbolp macro) (numberp macro))
-    (error 'invalid-symbol-macro-form :name macro-name :form macro))
-  (setf (gethash macro-name *global-env-symbol-macros*) `(,macro ,context))
-  *global-env*)
-
-(defmethod add-symbol-macro (macro-name macro (context list)
-                             (env environment))
-  (unless (or (listp macro) (symbolp macro) (numberp macro))
-    (error 'invalid-symbol-macro-form :name macro-name :form macro))
-  (when (shadow-global-check macro-name)
-    (let ((funcs (a-remove-all macro-name (v-functions env)))
-          (sym-macros (a-set macro-name
-                             `(,macro ,context)
-                             (v-symbol-macros env))))
-      (fresh-environment env :functions funcs :symbol-macros sym-macros))))
-
-(defmethod get-symbol-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-symbol-macros*))
-
-(defmethod %get-symbol-macro-spec (macro-name (env (eql :-genv-)))
-  (get-symbol-macro macro-name env))
-
-(defmethod %get-symbol-macro-spec (macro-name (env environment))
-  (or (a-get1 macro-name (v-symbol-macros env))
-      (%get-symbol-macro-spec macro-name (v-parent-env env))))
-
-(defmethod get-symbol-macro (macro-name (env environment))
-  (let ((spec (%get-symbol-macro-spec macro-name env)))
-    (when (and spec (valid-for-contextp spec env))
-      spec)))
-
-(defmethod v-mboundp (macro-name (env environment))
-  (or (not (null (get-symbol-macro macro-name env)))
-      (not (null (get-compiler-macro macro-name env)))
-      (not (null (get-macro macro-name env)))))
-
-
-;;-------------------------------------------------------------------------
-
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
                                (env (eql :-genv-)))
   (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
@@ -569,6 +526,41 @@ For example calling env-prune on this environment..
 (defmethod v-boundp (var-name (env environment))
   (warn "v-boundp is incomplete: what about symbol-macros")
   (not (null (get-var var-name env))))
+
+;;-------------------------------------------------------------------------
+
+(defmethod add-symbol-macro (macro-name macro (context list)
+                             (env (eql :-genv-)))
+  (unless (or (listp macro) (symbolp macro) (numberp macro))
+    (error 'invalid-symbol-macro-form :name macro-name :form macro))
+  (setf (gethash macro-name *global-env-symbol-macros*) `(,macro ,context))
+  *global-env*)
+
+(defmethod add-symbol-macro (macro-name macro (context list)
+                             (env environment))
+  (unless (or (listp macro) (symbolp macro) (numberp macro))
+    (error 'invalid-symbol-macro-form :name macro-name :form macro))
+  (when (shadow-global-check macro-name)
+    (let ((funcs (a-remove-all macro-name (v-functions env)))
+          (sym-macros (a-set macro-name
+                             `(,macro ,context)
+                             (v-symbol-macros env))))
+      (fresh-environment env :functions funcs :symbol-macros sym-macros))))
+
+(defmethod get-symbol-macro (macro-name (env (eql :-genv-)))
+  (gethash macro-name *global-env-symbol-macros*))
+
+(defmethod %get-symbol-macro-spec (macro-name (env (eql :-genv-)))
+  (get-symbol-macro macro-name env))
+
+(defmethod %get-symbol-macro-spec (macro-name (env environment))
+  (or (a-get1 macro-name (v-symbol-macros env))
+      (%get-symbol-macro-spec macro-name (v-parent-env env))))
+
+(defmethod get-symbol-macro (macro-name (env environment))
+  (let ((spec (%get-symbol-macro-spec macro-name env)))
+    (when (and spec (valid-for-contextp spec env))
+      spec)))
 
 ;;-------------------------------------------------------------------------
 
