@@ -158,19 +158,25 @@
               code-obj))))
 
 (defun make-new-function-with-unreps (name args body allowed-implicit-args
-                                    env)
+                                      env)
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))
-    (let* ((env (make-func-env env mainp allowed-implicit-args))
+    (let* ((func-env (make-func-env env mainp allowed-implicit-args))
+           (all-vars (env-binding-names env :stop-at-base t
+                                        :variables-only t))
+           (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
+                                        all-vars))
+           (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
            (func (make-user-function-obj name nil nil (mapcar #'second args) nil
-                                         :code (list args body)))
+                                         :code (list args body)
+                                         :captured-vars visible-var-pairs))
            (ast-body (if (= 1 (length body))
                          (first body)
                          `(progn ,@body)))
            (ast (ast-node! :code-section
                            ast-body
                            (gen-none-type)
-                           env env)))
+                           func-env func-env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
                              :signatures nil
@@ -185,8 +191,15 @@
                      :node-tree (ast-node! :code-section
                                            ast-body
                                            (gen-none-type)
-                                           env env))))))
+                                           func-env func-env))))))
 
+(defun capture-var (name env)
+  (let ((val (get-symbol-binding name t env)))
+    (assert (typep val 'v-value))
+    (make-instance 'captured-var
+                   :name name
+                   :value val
+                   :origin-env env)))
 
 (defun function-raw-args-validp (raw-args)
   (every #'function-raw-arg-validp raw-args))

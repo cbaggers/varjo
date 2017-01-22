@@ -1007,7 +1007,8 @@
 (defun %function-for-func-sets (func-name-form func-set env)
   (let ((functions (functions func-set)))
     (let* ((type (v-type-of func-set)))
-      (when (some #'implicit-args functions)
+      (when (or (some #'implicit-args functions)
+                (and (some #'captured-vars functions)))
         (error 'closures-not-supported :func func-name-form))
       (values
        (code! :type type

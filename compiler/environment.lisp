@@ -289,23 +289,27 @@ For example calling env-prune on this environment..
                  :glsl-name (v-glsl-name va))))))
      v-names)))
 
-(defun env-binding-names (env &key stop-at-base)
+(defun env-binding-names (env &key stop-at-base variables-only)
   "Walk up the environment tree and collect the names of all symbol-bindings
    If stop-at-base is true then this list will not include the global env.
    The order of the result may not reflect the depth of the scope. Do not
    rely on the order for any kind of information"
-  (labels ((w (e accum)
-             (if (or (eq e *global-env*)
-                     (and stop-at-base
-                          (typep e 'base-environment)))
+  (labels ((collect (e accum)
+             (walk (v-parent-env e)
+                   (remove-duplicates
+                    (let ((bindings (mapcar #'first (v-symbol-bindings e))))
+                      (append (if variables-only
+                                  (remove-if λ(typep _ 'v-symbol-macro) bindings)
+                                  bindings)
+                              accum))
+                    :test #'eq
+                    :from-end t)))
+           (walk (e accum)
+             (if (or (and stop-at-base (typep e 'base-environment))
+                     (eq e *global-env*))
                  accum
-                 (w (v-parent-env e)
-                    (remove-duplicates
-                     (append (mapcar #'first (v-symbol-bindings e))
-                             accum)
-                     :test #'eq
-                     :from-end t)))))
-    (w env nil)))
+                 (collect e accum))))
+    (walk env nil)))
 
 (defun find-env-bindings (env-a env-b
                           &key (test #'eq) stop-at-base (variables-only t))
@@ -653,3 +657,9 @@ For example calling env-prune on this environment..
   new-name)
 
 ;;-------------------------------------------------------------------------
+
+(defun descendant-env-p (env ancestor)
+  (cond
+    ((eq env ancestor) t)
+    ((eq env *global-env*) nil)
+    (t (is-descendant (v-parent-env env) ancestor))))

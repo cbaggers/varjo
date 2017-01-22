@@ -26,7 +26,8 @@
 ;;------------------------------------------------------------
 
 (def-v-type-class v-user-function (v-function)
-  ((code :initform nil :initarg :code :reader v-code)))
+  ((captured-vars :initform nil :initarg :captured-vars :reader captured-vars)
+   (code :initform nil :initarg :code :reader v-code)))
 
 ;;------------------------------------------------------------
 
@@ -108,7 +109,7 @@
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
-                                 code)
+                                 code captured-vars)
   (make-instance 'v-user-function
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
@@ -128,7 +129,8 @@
                  :flow-ids flow-ids
                  :in-arg-flow-ids in-arg-flow-ids
                  :in-out-args in-out-args
-                 :code code))
+                 :code code
+                 :captured-vars captured-vars))
 
 ;; {TODO} make this use the arg & return types
 (defun gen-dummy-func-glsl-name (func-type)
@@ -155,3 +157,6 @@
      :in-out-args nil)))
 
 ;;------------------------------------------------------------
+
+(defmethod captured-vars ((fn v-function))
+  nil)

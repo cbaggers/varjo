@@ -109,12 +109,19 @@
              :if (unrep-p arg) :collect (list (first arg-code) arg) :into h
              :else :collect arg-code :into a
              :finally (return (list a h)))
-        (expand-and-compile-form
-         `(let ,hard-coded
-            (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
-                                ,(mapcar #'first hard-coded)
-                                (,func-name ,@(remove-if #'unrep-p args))))
-         env)))))
+        ;; this is a hack but it'll do for now. It just lets our func use
+        ;; the vars that were captured, if we are still in scope
+        (let* ((captured (captured-vars func))
+               (captured (remove-if-not λ(descendant-env-p env (origin-env _))
+                                        captured))
+               (allowed (append (mapcar #'first hard-coded)
+                                (mapcar #'name captured))))
+          (expand-and-compile-form
+           `(let ,hard-coded
+              (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
+                                  ,allowed
+                                  (,func-name ,@(remove-if #'unrep-p args))))
+           env))))))
 
 (defun compile-with-external-func-in-scope (func body-form env)
   ;; Here we are going to make use of the fact that a external function

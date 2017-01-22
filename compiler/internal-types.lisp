@@ -186,6 +186,13 @@
 
 ;;----------------------------------------------------------------------
 
+(defclass captured-var ()
+  ((name :initarg :name :reader name)
+   (value :initarg :value :reader v-value)
+   (origin-env :initarg :origin-env :reader origin-env)))
+
+;;----------------------------------------------------------------------
+
 (defclass v-symbol-macro ()
   ((expansion :initarg :expansion :initform nil :reader expansion)
    (function-scope :initarg :function-scope :initform 0
