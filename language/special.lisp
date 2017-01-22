@@ -129,6 +129,7 @@
       (type-spec->type replacement-type-spec (flow-ids new-val)))))
 
 (defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
+  (assert (typep old-val 'v-value))
   (labels ((w (n)
              (if (eq n old-env)
                  (env-replace-parent
@@ -791,31 +792,37 @@
 
 (defun search-for-flow-id-fixpoint (code starting-env)
   ;; Lets document this a bit and work out how to debug it from a crash
-  (warn "search-for-flow-id-fixpoint is incomplete: what about symbol-macros")
-  (let ((envs (list starting-env))
-        (last-code-obj nil)
-        (flow-ids nil)
-        (checkpoint (checkpoint-flow-ids)))
-    (loop :for pass :from 0
-       :for current-env = (first envs)
-       :until (vbind (o new-env) (compile-form code current-env)
-                (let* ((new-flow-ids (get-new-flow-ids new-env current-env))
-                       (f-ids (or flow-ids
-                                  (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ nil starting-env)))
-                                          (mapcar #'car new-flow-ids)))))
-                  (setf last-code-obj o
-                        envs (cons new-env envs)
-                        flow-ids (accumulate-flow-ids f-ids new-flow-ids))
-                  (let ((done (fixpoint-reached
-                               new-flow-ids starting-env pass)))
-                    (unless done (reset-flow-ids-to-checkpoint checkpoint))
-                    done))))
-    (values last-code-obj
-            (create-post-loop-env flow-ids starting-env))))
+  (labels ((names-to-new-flow-bindings (x)
+             (let ((binding (get-symbol-binding x nil starting-env)))
+               ;; This should never be an issue as we are working from
+               ;; #'get-new-flow-ids which itself works on variables.
+               ;;                       ↓↓↓↓
+               (assert (not (typep binding 'v-symbol-macro)))
+               `(,x . ,(flow-ids binding)))))
+    ;;
+    (let ((envs (list starting-env))
+          (last-code-obj nil)
+          (flow-ids nil)
+          (checkpoint (checkpoint-flow-ids)))
+      (loop :for pass :from 0
+         :for current-env = (first envs)
+         :until (vbind (o new-env) (compile-form code current-env)
+                  (let* ((new-flow-ids (get-new-flow-ids new-env current-env))
+                         (f-ids (or flow-ids
+                                    (mapcar #'names-to-new-flow-bindings
+                                            (mapcar #'car new-flow-ids)))))
+                    (setf last-code-obj o
+                          envs (cons new-env envs)
+                          flow-ids (accumulate-flow-ids f-ids new-flow-ids))
+                    (let ((done (fixpoint-reached
+                                 new-flow-ids starting-env pass)))
+                      (unless done (reset-flow-ids-to-checkpoint checkpoint))
+                      done))))
+      (values last-code-obj
+              (create-post-loop-env flow-ids starting-env)))))
 
 ;; defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
 (defun create-post-loop-env (new-flow-id-pairs starting-env)
-  (warn "create-post-loop-env is incomplete: what about symbol-macros")
   (labels ((splice-in-flow-id (accum-env id-pair)
              (dbind (vname . new-flow-id) id-pair
                (vbind (old-val old-env) (get-symbol-binding vname nil accum-env)
@@ -836,14 +843,17 @@
 (defvar *max-resolve-loop-flow-id-pass-count* 100)
 
 (defun get-new-flow-ids (latest-env last-env)
-  (warn "get-new-flow-ids is incomplete: what about symbol-macros")
   (let* ((variables-changed (find-env-bindings latest-env last-env
                                                :test (complement #'eq)
-                                               :stop-at-base t))
+                                               :stop-at-base t
+                                               :variables-only t))
          ;; now we need to take these a remove any which have the
          ;; same flow-id. This can happen if a variable is set to
          ;; itself from within a loop
          (trimmed-changes
+          ;; We don't worry about recieving a macro here as we called
+          ;; find-env-bindings with :variables-only t
+          ;;                           ↓↓↓↓↓↓↓↓
           (mapcar λ(let ((last-var (get-symbol-binding _ nil last-env))
                          (new-var (get-symbol-binding _ nil latest-env)))
                      (unless (or (not last-var)
@@ -856,7 +866,6 @@
             (remove nil trimmed-changes))))
 
 (defun fixpoint-reached (new-flow-ids starting-env pass)
-  (warn "fixpoint-reached is incomplete: what about symbol-macros")
   (unless (< pass *max-resolve-loop-flow-id-pass-count*)
     (error 'loop-flow-analysis-failure))
   (let* ((variables-changed (mapcar #'car new-flow-ids)))

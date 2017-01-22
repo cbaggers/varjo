@@ -270,8 +270,8 @@ For example calling env-prune on this environment..
 (defun merge-variable-histories (env-a env-b)
   ;; we can be sure that both have the var names as assignment
   ;; can only affect flow id, not type
-  (warn "merge-variable-histories is incomplete: handle symbol-macros")
-  (let* ((a (v-symbol-bindings env-a))
+  (let* ((a (remove-if λ(typep _ 'v-symbol-macro)
+                       (v-symbol-bindings env-a)))
          (v-names (mapcar #'first a)))
     (mapcar
      (lambda (n)
@@ -307,17 +307,26 @@ For example calling env-prune on this environment..
                      :from-end t)))))
     (w env nil)))
 
-(defun find-env-bindings (env-a env-b &key (test #'eq) stop-at-base)
+(defun find-env-bindings (env-a env-b
+                          &key (test #'eq) stop-at-base (variables-only t))
   "Look at every variable binding in both the supplied environments
-   and return the bindings that match"
-  (warn "find-env-bindings is incomplete: what about symbol-macros")
-  (let ((n-a (env-binding-names env-a :stop-at-base stop-at-base))
-        (n-b (env-binding-names env-a :stop-at-base stop-at-base)))
-    (assert (equal n-a n-b))
-    (labels ((v-eq (n)
-               (funcall test (get-symbol-binding n nil env-a)
-                        (get-symbol-binding n nil env-b))))
-      (loop for n in n-a if (v-eq n) collect n))))
+   and return the names of the bindings that match"
+  ;;
+  (let ((names-a (env-binding-names env-a :stop-at-base stop-at-base))
+        (names-b (env-binding-names env-a :stop-at-base stop-at-base)))
+    (assert (equal names-a names-b))
+    (labels ((macrop (x) (typep x 'v-symbol-macro))
+             (v-eq (name)
+               (let ((binding-a (get-symbol-binding name nil env-a))
+                     (binding-b (get-symbol-binding name nil env-b)))
+                 (if (and (or (macrop binding-a) (macrop binding-b))
+                          variables-only)
+                     (progn ;; {TODO} proper error
+                       (assert (and (macrop binding-a) (macrop binding-b)) ()
+                               "Varjo: Compiler Bug: Found a case in #'find-env-bindings where ~a was a symbol-macro in one env and not the other"
+                               name))
+                     (funcall test binding-a binding-b)))))
+      (remove-if-not #'v-eq names-a))))
 
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))

@@ -108,12 +108,6 @@
          :current-line (cast-string new-type src-obj)
          :type new-type))))
 
-(defmethod cast-code-inner ((varjo-type v-any-one-of) src-obj
-                            (cast-to-type v-function-type) env)
-  (warn "(cast-code v-any-one-of v-function-type) is incomplee")
-  ;;(assert (every λ(v-typep _ cast-to-type) (v-types varjo-type)))
-  src-obj)
-
 ;; {TODO} proper error
 (defmethod cast-code-inner
     ((varjo-type v-any-one-of) src-obj (cast-to-type v-function-type) env)
