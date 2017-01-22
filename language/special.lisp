@@ -42,8 +42,7 @@
 
 ;;{TODO} make it handle multiple assignements like cl version
 (v-defmacro setf (&rest args)
-  (labels ((make-set-form (p v)
-             (if (symbolp p) `(setq ,p ,v) `(setf-1 ,p ,v))))
+  (labels ((make-set-form (p v) `(setf-1 ,p ,v)))
     (let ((pairs (group args 2)))
       (if (= (length pairs) 1)
           (make-set-form (first (first pairs)) (second (first pairs)))
