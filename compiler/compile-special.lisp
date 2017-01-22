@@ -166,11 +166,12 @@
                                  :ignored)
                   :stemcells (append (and let-obj (stemcells let-obj))
                                      (and value-obj (stemcells value-obj))))
-       (add-var name
-                (v-make-value (or type-obj (code-type value-obj))
-                              env
-                              :glsl-name glsl-name)
-                env)))))
+       (add-symbol-binding
+        name
+        (v-make-value (or type-obj (code-type value-obj))
+                      env
+                      :glsl-name glsl-name)
+        env)))))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (typep (code-type code-obj) 'v-stemcell))

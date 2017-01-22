@@ -10,15 +10,6 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
-(defmethod used-symbol-macros ((e environment))
-  (slot-value (get-base-env e) 'used-symbol-macros))
-
-(defmethod used-macros ((e environment))
-  (slot-value (get-base-env e) 'used-macros))
-
-(defmethod used-compiler-macros ((e environment))
-  (slot-value (get-base-env e) 'used-compiler-macros))
-
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
 
@@ -90,18 +81,6 @@
   (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
         value))
 
-(defmethod (setf used-symbol-macros) (val (e environment))
-  (setf (slot-value (get-base-env e) 'used-symbol-macros)
-        val))
-
-(defmethod (setf used-macros) (val (e environment))
-  (setf (slot-value (get-base-env e) 'used-macros)
-        val))
-
-(defmethod (setf used-compiler-macros) (val (e environment))
-  (setf (slot-value (get-base-env e) 'used-compiler-macros)
-        val))
-
 ;; WARNING:: This is mutated in translate.lisp
 (defmethod v-raw-in-args ((env environment))
   (v-raw-in-args (get-base-env env)))
@@ -130,8 +109,8 @@
   (declare (ignore initargs))
   (unless (every λ(and (symbolp (first _))
                        (every λ(typep _ 'v-value) (rest _)))
-                 (v-variables env))
-    (error 'invalid-env-vars :vars (v-variables env))))
+                 (v-symbol-bindings env))
+    (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
 (defun %make-base-environment (&key (third-party-metadata (make-hash-table))
                                  stemcells-allowed)
@@ -173,7 +152,7 @@
 (defun remove-main-method-flag-from-env (env)
   (assert (typep env 'environment))
   (make-instance 'environment
-                 :variables (v-variables env)
+                 :symbol-bindings (v-symbol-bindings env)
                  :functions (v-functions env)
                  :macros nil
                  :compiler-macros nil
@@ -183,17 +162,16 @@
                  :allowed-outer-vars (v-allowed-outer-vars env)))
 
 (defun fresh-environment (env &key context function-scope
-                                functions macros symbol-macros
-                                compiler-macros variables
+                                functions macros
+                                compiler-macros symbol-bindings
                                 (multi-val-base nil set-mvb)
                                 multi-val-safe
                                 (allowed-outer-vars nil set-aov))
   (assert (typep env 'environment))
   (make-instance 'environment
-                 :variables variables
+                 :symbol-bindings symbol-bindings
                  :functions functions
                  :macros macros
-                 :symbol-macros symbol-macros
                  :compiler-macros compiler-macros
                  :context (or context (copy-list (v-context env)))
                  :multi-val-base (if set-mvb
@@ -208,8 +186,8 @@
 
 (defmacro with-fresh-env-scope ((name starting-env
                                       &key context function-scope
-                                      functions macros symbol-macros
-                                      compiler-macros variables
+                                      functions macros
+                                      compiler-macros symbol-bindings
                                       (multi-val-base nil set-mvb)
                                       multi-val-safe
                                       (allowed-outer-vars nil set-aov))
@@ -223,9 +201,8 @@
                     :function-scope ,function-scope
                     :functions ,functions
                     :macros ,macros
-                    :symbol-macros ,symbol-macros
                     :compiler-macros ,compiler-macros
-                    :variables ,variables
+                    :symbol-bindings ,symbol-bindings
                     ,@(when set-aov `(:allowed-outer-vars ,allowed-outer-vars))
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
                     :multi-val-safe ,multi-val-safe)))
@@ -233,16 +210,15 @@
          (values ,r (env-prune (env-depth ,s) ,e))))))
 
 (defun env-replace-parent (env new-parent
-                           &key (variables nil variables-set))
+                           &key (symbol-bindings nil symbol-bindings-set))
   (assert (typep env 'environment))
   (assert (typep new-parent 'environment))
   (make-instance 'environment
-                 :variables (if variables-set
-                                variables
-                                (v-variables env))
+                 :symbol-bindings (if symbol-bindings-set
+                                symbol-bindings
+                                (v-symbol-bindings env))
                  :functions (v-functions env)
                  :macros (v-macros env)
-                 :symbol-macros (v-symbol-macros env)
                  :compiler-macros (v-compiler-macros env)
                  :context (copy-list (v-context env))
                  :multi-val-base (v-multi-val-base env)
@@ -287,19 +263,19 @@ For example calling env-prune on this environment..
                  a
                  (env-replace-parent
                   a (w (v-parent-env a) (v-parent-env b))
-                  :variables (merge-variable-histories a b)))))
+                  :symbol-bindings (merge-variable-histories a b)))))
     (w env-a env-b)))
 
 (defun merge-variable-histories (env-a env-b)
   ;; we can be sure that both have the var names as assignment
   ;; can only affect flow id, not type
   (warn "merge-variable-histories is incomplete: handle symbol-macros")
-  (let* ((a (v-variables env-a))
+  (let* ((a (v-symbol-bindings env-a))
          (v-names (mapcar #'first a)))
     (mapcar
      (lambda (n)
-       (let ((va (get-var n env-a))
-             (vb (get-var n env-b)))
+       (let ((va (get-symbol-binding n env-a))
+             (vb (get-symbol-binding n env-b)))
          (if (eq va vb)
              `(,n ,va)
              `(,n
@@ -312,8 +288,8 @@ For example calling env-prune on this environment..
                  :glsl-name (v-glsl-name va))))))
      v-names)))
 
-(defun env-var-names (env &key stop-at-base)
-  "Walk up the environment tree and collect the names of all variables
+(defun env-binding-names (env &key stop-at-base)
+  "Walk up the environment tree and collect the names of all symbol-bindings
    If stop-at-base is true then this list will not include the global env.
    The order of the result may not reflect the depth of the scope. Do not
    rely on the order for any kind of information"
@@ -324,43 +300,34 @@ For example calling env-prune on this environment..
                  accum
                  (w (v-parent-env e)
                     (remove-duplicates
-                     (append (mapcar #'first (v-variables e))
+                     (append (mapcar #'first (v-symbol-bindings e))
                              accum)
                      :test #'eq
                      :from-end t)))))
     (w env nil)))
 
-(defun find-env-vars (env-a env-b &key (test #'eq) stop-at-base)
+(defun find-env-bindings (env-a env-b &key (test #'eq) stop-at-base)
   "Look at every variable binding in both the supplied environments
    and return the bindings that match"
-  (warn "find-env-vars is incomplete: what about symbol-macros")
-  (let ((n-a (env-var-names env-a :stop-at-base stop-at-base))
-        (n-b (env-var-names env-a :stop-at-base stop-at-base)))
+  (warn "find-env-bindings is incomplete: what about symbol-macros")
+  (let ((n-a (env-binding-names env-a :stop-at-base stop-at-base))
+        (n-b (env-binding-names env-a :stop-at-base stop-at-base)))
     (assert (equal n-a n-b))
-    (labels ((v-eq (n) (funcall test (get-var n env-a) (get-var n env-b))))
+    (labels ((v-eq (n)
+               (funcall test (get-symbol-binding n env-a)
+                        (get-symbol-binding n env-b))))
       (loop for n in n-a if (v-eq n) collect n))))
-
-(defun env-same-vars (env-a env-b)
-  "Look at every variable binding in both the supplied environments
-   and checks that they all match"
-  (warn "env-same-vars is incomplete: what about symbol-macros")
-  (let ((n-a (env-var-names env-a))
-        (n-b (env-var-names env-a)))
-    (assert (equal n-a n-b))
-    (labels ((v-eq (n) (eq (get-var n env-a)
-                           (get-var n env-b))))
-      (every #'v-eq n-a))))
 
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))
     (error 'merge-env-func-scope-mismatch :env-a env :env-b new-env))
-  (with-slots ((a-vars variables) (a-funcs functions) (a-macros macros)
+  (with-slots ((a-vars symbol-bindings) (a-funcs functions) (a-macros macros)
                (a-cmacros compiler-macros)) env
-    (with-slots ((b-vars variables) (b-funcs functions) (b-macros macros)
+    (with-slots ((b-vars symbol-bindings) (b-funcs functions) (b-macros macros)
                  (b-cmacros compiler-macros)) new-env
       (fresh-environment
        env
-       :variables (%merge-env-lists a-vars b-vars)
+       :symbol-bindings (%merge-env-lists a-vars b-vars)
        :functions (%merge-env-lists a-funcs b-funcs)
        :macros (%merge-env-lists a-macros b-macros)
        :compiler-macros (%merge-env-lists a-cmacros b-cmacros)))))
@@ -500,67 +467,36 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-var (var-name (val v-value) (env (eql :-genv-)))
-  (setf (gethash var-name *global-env-vars*) val)
+(defmethod add-symbol-binding (var-name (val v-value) (env (eql :-genv-)))
+  (setf (gethash var-name *global-env-symbol-bindings*) val)
   *global-env*)
 
-(defmethod %add-var (var-name (val v-value) (env base-environment))
-  (setf (slot-value env 'variables)
-        (a-add var-name val (v-variables env))))
+(defmethod %add-symbol-binding (var-name (val v-value) (env base-environment))
+  "Warning - Destructive: Used when we don't want to create a fresh environment.
+   This is used when setting up the environment prior to starting the actual
+   compilation"
+  (setf (slot-value env 'symbol-bindings)
+        (a-add var-name val (v-symbol-bindings env))))
 
-(defmethod add-var (var-name (val v-value) (env environment))
-  (fresh-environment env :variables (a-add var-name val (v-variables env))))
+(defmethod add-symbol-binding (var-name (val v-value) (env environment))
+  (fresh-environment env :symbol-bindings (a-add var-name val
+                                                 (v-symbol-bindings env))))
 
-(defmethod get-var (var-name (env (eql :-genv-)))
-  (warn "env get-var is incomplete: what about symbol-macros")
-  (let ((s (gethash var-name *global-env-vars*)))
+(defmethod get-symbol-binding (var-name (env (eql :-genv-)))
+  (warn "env get-symbol-binding is incomplete: what about symbol-macros")
+  (let ((s (gethash var-name *global-env-symbol-bindings*)))
     (cond (s (values s *global-env*))
           (t nil))))
 
-(defmethod get-var (var-name (env environment))
-  (warn "env get-var is incomplete: what about symbol-macros")
-  (let ((s (first (a-get var-name (v-variables env)))))
+(defmethod get-symbol-binding (var-name (env environment))
+  (warn "env get-symbol-binding is incomplete: what about symbol-macros")
+  (let ((s (first (a-get var-name (v-symbol-bindings env)))))
     (cond (s (values s env))
-          (t (get-var var-name (v-parent-env env))))))
+          (t (get-symbol-binding var-name (v-parent-env env))))))
 
 (defmethod v-boundp (var-name (env environment))
   (warn "v-boundp is incomplete: what about symbol-macros")
-  (not (null (get-var var-name env))))
-
-;;-------------------------------------------------------------------------
-
-(defmethod add-symbol-macro (macro-name macro (context list)
-                             (env (eql :-genv-)))
-  (unless (or (listp macro) (symbolp macro) (numberp macro))
-    (error 'invalid-symbol-macro-form :name macro-name :form macro))
-  (setf (gethash macro-name *global-env-symbol-macros*) `(,macro ,context))
-  *global-env*)
-
-(defmethod add-symbol-macro (macro-name macro (context list)
-                             (env environment))
-  (unless (or (listp macro) (symbolp macro) (numberp macro))
-    (error 'invalid-symbol-macro-form :name macro-name :form macro))
-  (when (shadow-global-check macro-name)
-    (let ((funcs (a-remove-all macro-name (v-functions env)))
-          (sym-macros (a-set macro-name
-                             `(,macro ,context)
-                             (v-symbol-macros env))))
-      (fresh-environment env :functions funcs :symbol-macros sym-macros))))
-
-(defmethod get-symbol-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-symbol-macros*))
-
-(defmethod %get-symbol-macro-spec (macro-name (env (eql :-genv-)))
-  (get-symbol-macro macro-name env))
-
-(defmethod %get-symbol-macro-spec (macro-name (env environment))
-  (or (a-get1 macro-name (v-symbol-macros env))
-      (%get-symbol-macro-spec macro-name (v-parent-env env))))
-
-(defmethod get-symbol-macro (macro-name (env environment))
-  (let ((spec (%get-symbol-macro-spec macro-name env)))
-    (when (and spec (valid-for-contextp spec env))
-      spec)))
+  (not (null (get-symbol-binding var-name env))))
 
 ;;-------------------------------------------------------------------------
 
@@ -677,5 +613,5 @@ For example calling env-prune on this environment..
 (defun wipe-global-environment ()
   (loop :for f :being :the :hash-key :of *global-env-funcs* :do
      (remhash f *global-env-funcs*))
-  (loop :for f :being :the :hash-key :of *global-env-vars* :do
-     (remhash f *global-env-vars*)))
+  (loop :for f :being :the :hash-key :of *global-env-symbol-bindings* :do
+     (remhash f *global-env-symbol-bindings*)))

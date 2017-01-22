@@ -69,8 +69,7 @@ Example:
 (defun v-macroexpand (form &optional (env (%make-base-environment)))
   (identity
    (pipe-> (form env)
-     (equalp #'symbol-macroexpand-pass
-             #'macroexpand-pass
+     (equalp #'macroexpand-pass
              #'compiler-macroexpand-pass))))
 
 ;;----------------------------------------------------------------------

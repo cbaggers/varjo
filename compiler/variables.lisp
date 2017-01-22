@@ -26,10 +26,10 @@
              (context-ok-given-restriction (v-context env) (listify restrict)))
      :do (loop :for (lisp-name glsl-name type-spec setable) :in vars :do
             (let ((type (type-spec->type type-spec (%gl-flow-id!))))
-              (%add-var lisp-name (v-make-value
-                                   type env :glsl-name glsl-name
-                                   :read-only (not setable))
-                        env)
+              (%add-symbol-binding lisp-name (v-make-value
+                                              type env :glsl-name glsl-name
+                                              :read-only (not setable))
+                                   env)
               (add-reserved-lisp-name lisp-name env glsl-name))))
   env)
 

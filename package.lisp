@@ -309,7 +309,7 @@
            :flow-ids
 
            ;;environment
-           :get-var
+           :get-symbol-binding
            :get-base-env
            :get-primitive-type-from-context
 
@@ -371,9 +371,6 @@
            :context
            :allowed-stemcells
            :used-external-functions
-           :used-macros
-           :used-compiler-macros
-           :used-symbol-macros
            :ast
            :function-asts
            :third-party-metadata
@@ -382,5 +379,3 @@
            :map-environments
            :lambda-list-split
            :pipe->))
-
-(uiop:define-package #:varjo.free-vars (:use #:cl))

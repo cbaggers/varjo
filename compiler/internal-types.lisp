@@ -43,12 +43,7 @@
    (stemcells :initarg :stemcells :accessor stemcells)
    (used-types :initarg :used-types :accessor used-types)
    (used-external-functions :initarg :used-external-functions
-                            :accessor used-external-functions)
-   (used-symbol-macros :initarg :used-symbol-macros
-                       :accessor used-symbol-macros)
-   (used-macros :initarg :used-macros :accessor used-macros)
-   (used-compiler-macros :initarg :used-compiler-macros
-                         :accessor used-compiler-macros)))
+                            :accessor used-external-functions)))
 
 ;;----------------------------------------------------------------------
 
@@ -75,12 +70,7 @@
    (allowed-stemcells :initarg :allowed-stemcells :accessor allowed-stemcells)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
-   (used-macros :initarg :used-macros :reader used-macros)
-   (used-compiler-macros :initarg :used-compiler-macros
-                         :reader used-compiler-macros)
    (function-asts :initarg :function-asts :reader function-asts)
-   (used-symbol-macros :initarg :used-symbol-macros
-                       :reader used-symbol-macros)
    (third-party-metadata :initarg :third-party-metadata
                          :initform (make-hash-table)
                          :reader third-party-metadata)))
@@ -95,12 +85,18 @@
 ;;----------------------------------------------------------------------
 
 (defclass environment ()
-  ((parent-env :initform *global-env* :initarg :parent-env :reader v-parent-env)
-   (context :initform nil :initarg :context :reader v-context)
-   (variables :initform nil :initarg :variables :reader v-variables)
-   (functions :initform nil :initarg :functions :reader v-functions)
-   (macros :initform nil :initarg :macros :reader v-macros)
-   (symbol-macros :initform nil :initarg :symbol-macros :reader v-symbol-macros)
+  ((parent-env
+    :initform *global-env* :initarg :parent-env :reader v-parent-env)
+   (context
+    :initform nil :initarg :context :reader v-context)
+   (symbol-bindings
+    :initform nil :initarg :symbol-bindings :reader v-symbol-bindings)
+   (functions
+    :initform nil :initarg :functions :reader v-functions)
+   (macros
+    :initform nil :initarg :macros :reader v-macros)
+   (symbol-macros
+    :initform nil :initarg :symbol-macros :reader v-symbol-macros)
    (compiler-macros
     :initform nil :initarg :compiler-macros :reader v-compiler-macros)
    (multi-val-base
@@ -120,9 +116,6 @@
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
-   (used-symbol-macros :initform nil :initarg :used-symbol-macros)
-   (used-macros :initform nil :initarg :used-macros)
-   (used-compiler-macros :initform nil :initarg :used-compiler-macros)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
                          :third-party-metadata)

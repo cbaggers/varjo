@@ -7,8 +7,7 @@
 (defmethod build-external-function ((func external-function) env)
   (labels ((expand-macros-for-external-func (form)
              (pipe-> (form env)
-               (equalp #'symbol-macroexpand-pass
-                       #'macroexpand-pass
+               (equalp #'macroexpand-pass
                        #'compiler-macroexpand-pass))))
     (with-slots (name in-args uniforms code glsl-versions) func
       (vbind (compiled-func maybe-def-code)
@@ -63,12 +62,13 @@
                     (lambda (func-env tripple)
                       (dbind (arg glsl-name flow-ids) tripple
                         (dbind (name type-spec) arg
-                          (add-var name
-                                   (v-make-value
-                                    (type-spec->type type-spec flow-ids)
-                                    func-env
-                                    :glsl-name glsl-name)
-                                   func-env))))
+                          (add-symbol-binding
+                           name
+                           (v-make-value
+                            (type-spec->type type-spec flow-ids)
+                            func-env
+                            :glsl-name glsl-name)
+                           func-env))))
                     (mapcar #'list args arg-glsl-names in-arg-flow-ids)
                     :initial-value (if mainp
                                        func-env

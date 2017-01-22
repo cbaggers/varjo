@@ -37,8 +37,7 @@
             #'add-context-glsl-vars
             #'process-in-args
             #'process-uniforms
-            (equalp #'symbol-macroexpand-pass
-                    #'macroexpand-pass
+            (equalp #'macroexpand-pass
                     #'compiler-macroexpand-pass)
             #'compile-pass
             #'make-post-process-obj
@@ -149,8 +148,8 @@
              (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
                                       name type))
              (t (let ((type (set-flow-id type (flow-id!))))
-                  (%add-var name (v-make-value type env :glsl-name glsl-name)
-                            env)
+                  (%add-symbol-binding
+                   name (v-make-value type env :glsl-name glsl-name) env)
                   (add-lisp-name name env glsl-name)
                   (setf (v-in-args env)
                         (append (v-in-args env)
@@ -176,9 +175,10 @@
 (defun process-regular-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
-    (%add-var name
-              (v-make-value true-type env :glsl-name glsl-name :read-only t)
-              env)
+    (%add-symbol-binding
+     name
+     (v-make-value true-type env :glsl-name glsl-name :read-only t)
+     env)
     (add-lisp-name name env glsl-name)
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
@@ -188,9 +188,10 @@
 (defun process-ubo-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
-    (%add-var name (v-make-value true-type env :glsl-name glsl-name
+    (%add-symbol-binding
+     name (v-make-value true-type env :glsl-name glsl-name
                                  :function-scope 0 :read-only t)
-              env)
+     env)
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
   env)
@@ -202,27 +203,8 @@
 
 ;;----------------------------------------------------------------------
 
-(defun v-symbol-macroexpand-all (form &optional (env :-GENV-))
-  (cond ((null form) nil)
-        ((atom form)
-         (let ((sm (get-symbol-macro form env)))
-           (if sm
-               (values (first sm) `(,form))
-               form)))
-        ((consp form)
-         (vbind (expanded-a found-a) (v-symbol-macroexpand-all (car form))
-           (vbind (expanded-b found-b) (v-symbol-macroexpand-all (cdr form))
-             (values (cons expanded-a expanded-b)
-                     (append found-a found-b)))))))
-
-(defun symbol-macroexpand-pass (form env)
-  (vbind (form used) (v-symbol-macroexpand-all form env)
-    (push used (used-symbol-macros env))
-    (values form env)))
-
-;;----------------------------------------------------------------------
-
 (defun v-macroexpand-all (code &optional (env :-GENV-))
+  ;; {TODO} remove collection of used macro names
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (m (get-macro head env)))
@@ -234,13 +216,13 @@
                    (values (mapcar #'first i) (mapcar #'second i))))))))
 
 (defun macroexpand-pass (code env)
-  (vbind (form used) (v-macroexpand-all code env)
-    (push used (used-macros env))
+  (let ((form (v-macroexpand-all code env)))
     (values form env)))
 
 ;;----------------------------------------------------------------------
 
 (defun v-compiler-macroexpand-all (code &optional (env :-GENV-))
+  ;; {TODO} remove collection of used macro names
   (cond ((atom code) code)
         (t (let* ((head (first code))
                   (m (get-compiler-macro head env)))
@@ -253,8 +235,7 @@
                    (values (mapcar #'first i) (mapcar #'second i))))))))
 
 (defun compiler-macroexpand-pass (code env)
-  (vbind (form used) (v-compiler-macroexpand-all code env)
-    (push used (used-compiler-macros env))
+  (let ((form (v-compiler-macroexpand-all code env)))
     (values form env)))
 
 ;;----------------------------------------------------------------------
@@ -269,10 +250,7 @@
   (make-instance
    'post-compile-process
    :main-func main-func :env env
-   :used-external-functions (remove-duplicates (used-external-functions env))
-   :used-symbol-macros (remove-duplicates (used-symbol-macros env))
-   :used-macros (remove-duplicates (used-macros env))
-   :used-compiler-macros (remove-duplicates (used-compiler-macros env))))
+   :used-external-functions (remove-duplicates (used-external-functions env))))
 
 (defmethod all-functions ((ppo post-compile-process))
   (let ((x (cons (main-func ppo) (all-cached-compiled-functions (env ppo)))))
@@ -316,7 +294,7 @@
                          'val)))
     (let ((env (get-base-env env)))
       (loop :for (name) :in (v-uniforms env) :do
-         (let ((key (uniform-raw (get-var name env)))
+         (let ((key (uniform-raw (get-symbol-binding name env)))
                (val (make-uniform-origin :name name)))
            (setf (gethash key flow-origin-map) val)
            (setf (gethash key val-origin-map) val)))))
@@ -563,9 +541,6 @@
        :context context
        :allowed-stemcells (allows-stemcellsp env)
        :used-external-functions (used-external-functions post-proc-obj)
-       :used-symbol-macros (used-symbol-macros post-proc-obj)
-       :used-macros (used-macros post-proc-obj)
-       :used-compiler-macros (used-compiler-macros post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
        :third-party-metadata (slot-value base-env 'third-party-metadata)))))
 

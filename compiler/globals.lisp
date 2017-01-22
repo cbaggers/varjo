@@ -3,7 +3,7 @@
 
 (defparameter *global-env* :-genv-)
 (defparameter *global-env-funcs* (make-hash-table))
-(defparameter *global-env-vars* (make-hash-table))
+(defparameter *global-env-symbol-bindings* (make-hash-table))
 (defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-symbol-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))

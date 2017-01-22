@@ -29,7 +29,7 @@
                      (= (v-function-scope value) 0))
            (error 'cross-scope-mutate :var-name name
                   :code (format nil "(setf (... ~s) ...)" name)))
-         (multiple-value-bind (old-val old-env) (get-var name env)
+         (multiple-value-bind (old-val old-env) (get-symbol-binding name env)
            (assert (eq old-val value))
            (let ((final-env (replace-flow-ids name old-val (flow-ids val)
                                               old-env env)))
@@ -50,7 +50,7 @@
   (let ((new-val (compile-form new-val-code env)))
     (assert (symbolp var-name))
     (multiple-value-bind (old-val old-env)
-        (get-var var-name env)
+        (get-symbol-binding var-name env)
       (warn "setq is incomplete: what about symbol-macros")
       (assert (and old-val old-env))
       (cond
@@ -94,7 +94,9 @@
   (labels ((w (n)
              (if (eq n old-env)
                  (env-replace-parent
-                  n (v-parent-env n) :variables
+                  n
+                  (v-parent-env n)
+                  :symbol-bindings
                   (a-add old-var-name
                          (v-make-value
                           (replace-flow-id (v-type old-val) flow-ids)
@@ -102,7 +104,7 @@
                           :read-only (v-read-only old-val)
                           :function-scope (v-function-scope old-val)
                           :glsl-name (v-glsl-name old-val))
-                         (copy-list (v-variables n))))
+                         (copy-list (v-symbol-bindings n))))
                  (env-replace-parent n (w (v-parent-env n))))))
     (if (or (eq old-env *global-env*) (typep old-env 'base-environment))
         env
@@ -761,7 +763,7 @@
        :until (vbind (o new-env) (compile-form code current-env)
                 (let* ((new-flow-ids (get-new-flow-ids new-env current-env))
                        (f-ids (or flow-ids
-                                  (mapcar λ`(,_ . ,(flow-ids (get-var _ starting-env)))
+                                  (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ starting-env)))
                                           (mapcar #'car new-flow-ids)))))
                   (setf last-code-obj o
                         envs (cons new-env envs)
@@ -778,7 +780,7 @@
   (warn "create-post-loop-env is incomplete: what about symbol-macros")
   (labels ((splice-in-flow-id (accum-env id-pair)
              (dbind (vname . new-flow-id) id-pair
-               (vbind (old-val old-env) (get-var vname accum-env)
+               (vbind (old-val old-env) (get-symbol-binding vname accum-env)
                  (replace-flow-ids vname old-val new-flow-id
                                    old-env accum-env)))))
     (reduce #'splice-in-flow-id new-flow-id-pairs :initial-value starting-env)))
@@ -797,22 +799,22 @@
 
 (defun get-new-flow-ids (latest-env last-env)
   (warn "get-new-flow-ids is incomplete: what about symbol-macros")
-  (let* ((variables-changed (find-env-vars latest-env last-env
-                                           :test (complement #'eq)
-                                           :stop-at-base t))
+  (let* ((variables-changed (find-env-bindings latest-env last-env
+                                               :test (complement #'eq)
+                                               :stop-at-base t))
          ;; now we need to take these a remove any which have the
          ;; same flow-id. This can happen if a variable is set to
          ;; itself from within a loop
          (trimmed-changes
-          (mapcar λ(let ((last-var (get-var _ last-env))
-                         (new-var (get-var _ latest-env)))
+          (mapcar λ(let ((last-var (get-symbol-binding _ last-env))
+                         (new-var (get-symbol-binding _ latest-env)))
                      (unless (or (not last-var)
                                  (not new-var)
                                  (id= (flow-ids last-var)
                                       (flow-ids new-var)))
                        _))
                   variables-changed)))
-    (mapcar λ`(,_ . ,(flow-ids (get-var _ latest-env)))
+    (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ latest-env)))
             (remove nil trimmed-changes))))
 
 (defun fixpoint-reached (new-flow-ids starting-env pass)
@@ -827,7 +829,7 @@
      ;; values from the outer scope we stop (as information
      ;; has stopped flowing into the loop, there is nothing
      ;; else to glean)
-     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-var _ starting-env))
+     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-symbol-binding _ starting-env))
                                        variables-changed))
             (starting-super-id (reduce #'flow-id! starting-flow-ids)))
        (not (some λ(id~= _ starting-super-id)

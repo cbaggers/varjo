@@ -2,6 +2,8 @@
 (in-readtable fn:fn-reader)
 
 (defun v-variable->code-obj (var-name v-value from-higher-scope env)
+  (warn "v-variable->code-obj is incomplete: this needs to allow outer-variables
+         but not outer symbol macros")
   (let ((var-type (v-type v-value)))
     (assert (flow-ids var-type) (var-type)
             "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
@@ -30,7 +32,7 @@
 (defun compile-symbol (code env)
   (warn "compile-symbol is incomplete: what about symbol-macros")
   (let* ((var-name code)
-         (v-value (get-var var-name env)))
+         (v-value (get-symbol-binding var-name env)))
     (if v-value
         (let* ((val-scope (v-function-scope v-value))
                (from-higher-scope (and (> val-scope 0)
