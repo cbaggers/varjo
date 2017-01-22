@@ -16,17 +16,32 @@
   :return
   (let ((macro
          (dbind (name lambda-list &body body) definition
-           (declare (ignore lambda-list body))
-           (make-regular-macro
-            name
-            (lambda (form env)
-              (declare (ignore form env))
-              (error "IMPLEMENT ME!"))
-            nil
-            env))))
+           (vbind (maclam context)
+               (hack-gen-macro-lambda lambda-list body)
+             (make-regular-macro
+              name
+              maclam
+              context
+              env)))))
     (with-fresh-env-scope (fresh-env env)
       (let ((new-env (add-form-binding macro fresh-env)))
         (compile-form `(progn ,@body) new-env)))))
+
+(defun hack-gen-macro-lambda (lambda-list body)
+  (alexandria:with-gensyms (form-var environment)
+    (vbind (context lambda-list)
+        (extract-arg-pair lambda-list :&context)
+      (vbind (maybe-env lambda-list)
+          (extract-arg-pair lambda-list :&environment)
+        (let* ((env-var (or maybe-env environment)))
+          (values
+           (compile nil
+                    `(lambda (,form-var ,env-var)
+                       (declare (ignorable ,env-var))
+                       (destructuring-bind ,lambda-list ,form-var
+                         ,@body)))
+           context))))))
+
 
 ;;------------------------------------------------------------
 ;; Symbol Macros
