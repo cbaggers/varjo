@@ -20,7 +20,7 @@
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
                                      &key v-place-index glsl-name) body
-        `(progn (add-function-from-spec
+        `(progn (add-form-binding
                  (make-function-obj
                   ',name ,transform ',context ',arg-types '(,return-spec)
                   :v-place-index ',v-place-index :glsl-name ',glsl-name
@@ -49,7 +49,7 @@
               (defun ,func-name ,(cons 'env args)
                 (declare (ignorable env ,@arg-names))
                 ,return)
-              (add-function-from-spec
+              (add-form-binding
                (make-function-obj ',name :special ',context t (list #',func-name)
                                   :v-place-index ',v-place-index)
                *global-env*)
@@ -58,7 +58,7 @@
                 (defun ,func-name ,(cons 'env (mapcar #'first args))
                   (declare (ignorable env ,@arg-names))
                   ,return)
-                (add-function-from-spec
+                (add-form-binding
                  (make-function-obj ',name :special ',context
                                     ',(mapcar #'second args) (list #',func-name)
                                     :v-place-index ',v-place-index)

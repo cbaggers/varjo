@@ -457,7 +457,7 @@
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code) (build-function name args body t env)
-                 (values code (add-function fn env)))))
+                 (values code (add-form-binding fn env)))))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (assert body-obj)
@@ -487,7 +487,7 @@
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code) (build-function name args body t env)
-                 (values code (add-function fn env)))))
+                 (values code (add-form-binding fn env)))))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (let* ((merged (merge-progn (remove nil (cons-end body-obj func-def-objs))
@@ -516,7 +516,7 @@
                           (dbind (name args &rest body) d
                             (vbind (fn code)
                                 (build-function name args body exceptions env)
-                              (values code (add-function fn env)))))
+                              (values code (add-form-binding fn env)))))
                         p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     ;;

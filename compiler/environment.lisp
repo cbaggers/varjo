@@ -124,7 +124,7 @@
 
 (defmethod v-form-bindings ((env (eql :-genv-)))
   (declare (ignore env))
-  *global-env-funcs*)
+  *global-env-form-bindings*)
 
 ;;-------------------------------------------------------------------------
 
@@ -400,35 +400,6 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-macro (macro-name (macro function) (context list)
-                      (env (eql :-genv-)))
-  (setf (gethash macro-name *global-env-macros*) `(,macro ,context))
-  *global-env*)
-
-(defmethod add-macro (macro-name (macro function) (context list)
-                      (env environment))
-  (when (shadow-global-check macro-name)
-    (let* ((funcs (a-remove-all macro-name (v-form-bindings env)))
-           (macros (a-set macro-name `(,macro ,context) (v-macros env))))
-      (fresh-environment env :form-bindings funcs :macros macros))))
-
-(defmethod get-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-macros*))
-
-(defmethod %get-macro-spec (macro-name (env (eql :-genv-)))
-  (get-macro macro-name env))
-
-(defmethod %get-macro-spec (macro-name (env environment))
-  (or (a-get1 macro-name (v-macros env))
-      (%get-macro-spec macro-name (v-parent-env env))))
-
-(defmethod get-macro (macro-name (env environment))
-  (let ((spec (%get-macro-spec macro-name env)))
-    (when (and spec (valid-for-contextp spec env))
-      (first spec))))
-
-;;-------------------------------------------------------------------------
-
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
                                (env (eql :-genv-)))
   (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
@@ -543,60 +514,52 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod valid-for-contextp ((func v-function) (env environment))
-  (let ((versions (v-versions func))
-        (context (v-context env)))
-    (%valid-for-contextp func versions context)))
-
-(defmethod valid-for-contextp ((func v-function) (env (eql *global-env*)))
-  (let ((versions (v-versions func))
-        (context (v-context env)))
-    (%valid-for-contextp func versions context)))
-
-(defmethod valid-for-contextp ((func list) (env environment))
-  (let ((versions (second func))
-        (context (v-context env)))
-    (%valid-for-contextp func versions context)))
-
-(defun %valid-for-contextp (func versions context)
-  (if versions
-      (when (some λ(member _ context) versions)
-        func)
-      func))
-
-(defmethod add-equivalent-name (existing-name new-name)
-  (let ((f (get-func-set-by-name existing-name *global-env*))
-        (c (get-compiler-macro existing-name *global-env*))
-        (m (get-macro existing-name *global-env*)))
-    (cond
-      ((or f c)
-       (when f
-         (setf (gethash new-name *global-env-funcs*)
-               (gethash existing-name *global-env-funcs*)))
-       (when c
-         (setf (gethash new-name *global-env-compiler-macros*)
-               (gethash existing-name *global-env-compiler-macros*))))
-      (m (setf (gethash new-name *global-env-macros*)
-               (gethash existing-name *global-env-macros*)))
-      (t (error 'could-not-find-any :name existing-name))))
-  new-name)
-
-(defmethod add-function-from-spec ((func-obj v-function) (env (eql :-genv-)))
-  (let ((func-name (name func-obj)))
-    (setf (gethash func-name *global-env-funcs*)
-          (cons func-obj (gethash func-name *global-env-funcs*))))
+(defmethod add-macro (macro-name (macro function) (context list)
+                      (env (eql :-genv-)))
+  (setf (gethash macro-name *global-env-macros*) `(,macro ,context))
   *global-env*)
 
-(defmethod add-function ((compiled-func compiled-function-result)
+(defmethod add-macro (macro-name (macro function) (context list)
+                      (env environment))
+  (when (shadow-global-check macro-name)
+    (let* ((funcs (a-remove-all macro-name (v-form-bindings env)))
+           (macros (a-set macro-name `(,macro ,context) (v-macros env))))
+      (fresh-environment env :form-bindings funcs :macros macros))))
+
+(defmethod get-macro (macro-name (env (eql :-genv-)))
+  (gethash macro-name *global-env-macros*))
+
+(defmethod %get-macro-spec (macro-name (env (eql :-genv-)))
+  (get-macro macro-name env))
+
+(defmethod %get-macro-spec (macro-name (env environment))
+  (or (a-get1 macro-name (v-macros env))
+      (%get-macro-spec macro-name (v-parent-env env))))
+
+(defmethod get-macro (macro-name (env environment))
+  (let ((spec (%get-macro-spec macro-name env)))
+    (when (and spec (valid-for-contextp spec env))
+      (first spec))))
+
+;;-------------------------------------------------------------------------
+
+
+(defmethod add-form-binding ((func-obj v-function) (env (eql :-genv-)))
+  (let ((func-name (name func-obj)))
+    (setf (gethash func-name *global-env-form-bindings*)
+          (cons func-obj (gethash func-name *global-env-form-bindings*))))
+  *global-env*)
+
+(defmethod add-form-binding ((compiled-func compiled-function-result)
                          (env environment))
   (let* ((func (function-obj compiled-func))
          (func-name (name func)))
     (when (shadow-global-check func-name)
       (assert (typep func 'v-function))
       (setf (compiled-functions env func) compiled-func)
-      (add-function func env))))
+      (add-form-binding func env))))
 
-(defmethod add-function ((func-spec v-function) (env environment))
+(defmethod add-form-binding ((func-spec v-function) (env environment))
   (let ((func-name (name func-spec)))
     (when (shadow-global-check func-name)
       (fresh-environment env :form-bindings (a-add func-name func-spec (v-form-bindings env))))))
@@ -615,7 +578,7 @@ For example calling env-prune on this environment..
           (%get-functions-by-name func-name (v-parent-env env))))
 
 (defmethod get-func-set-by-name (func-name (env (eql :-genv-)))
-  (let ((funcs (sort-function-list (gethash func-name *global-env-funcs*))))
+  (let ((funcs (sort-function-list (gethash func-name *global-env-form-bindings*))))
     (make-instance 'v-function-set :functions funcs)))
 
 (defmethod get-func-set-by-name (func-name (env environment))
@@ -653,8 +616,48 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
+(defmethod valid-for-contextp ((func v-function) (env environment))
+  (let ((versions (v-versions func))
+        (context (v-context env)))
+    (%valid-for-contextp func versions context)))
+
+(defmethod valid-for-contextp ((func v-function) (env (eql *global-env*)))
+  (let ((versions (v-versions func))
+        (context (v-context env)))
+    (%valid-for-contextp func versions context)))
+
+(defmethod valid-for-contextp ((func list) (env environment))
+  (let ((versions (second func))
+        (context (v-context env)))
+    (%valid-for-contextp func versions context)))
+
+(defun %valid-for-contextp (func versions context)
+  (if versions
+      (when (some λ(member _ context) versions)
+        func)
+      func))
+
+(defmethod add-equivalent-name (existing-name new-name)
+  (let ((f (get-func-set-by-name existing-name *global-env*))
+        (c (get-compiler-macro existing-name *global-env*))
+        (m (get-macro existing-name *global-env*)))
+    (cond
+      ((or f c)
+       (when f
+         (setf (gethash new-name *global-env-form-bindings*)
+               (gethash existing-name *global-env-form-bindings*)))
+       (when c
+         (setf (gethash new-name *global-env-compiler-macros*)
+               (gethash existing-name *global-env-compiler-macros*))))
+      (m (setf (gethash new-name *global-env-macros*)
+               (gethash existing-name *global-env-macros*)))
+      (t (error 'could-not-find-any :name existing-name))))
+  new-name)
+
+;;-------------------------------------------------------------------------
+
 (defun wipe-global-environment ()
-  (loop :for f :being :the :hash-key :of *global-env-funcs* :do
-     (remhash f *global-env-funcs*))
+  (loop :for f :being :the :hash-key :of *global-env-form-bindings* :do
+     (remhash f *global-env-form-bindings*))
   (loop :for f :being :the :hash-key :of *global-env-symbol-bindings* :do
      (remhash f *global-env-symbol-bindings*)))
