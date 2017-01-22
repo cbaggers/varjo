@@ -4,7 +4,6 @@
 (defparameter *global-env* :-genv-)
 (defparameter *global-env-form-bindings* (make-hash-table))
 (defparameter *global-env-symbol-bindings* (make-hash-table))
-(defparameter *global-env-macros* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
 (defparameter *stage-types* '(:vertex :geometry :tess-eval :tess-control :fragment))

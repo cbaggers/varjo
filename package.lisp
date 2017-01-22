@@ -355,7 +355,6 @@
            :translate
            :rolling-translate
            :split-arguments
-           :v-macroexpand-all
            :v-compiler-macroexpand-all
            :*stage-types*
            :v-compile

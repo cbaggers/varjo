@@ -361,9 +361,8 @@ For example calling env-prune on this environment..
          (find-if (lambda (_) (member _ context)) item)
          (find item context))))
 
-(defun shadow-global-check (name &key (specials t) (macros t) (c-macros t))
-  (when (or (and macros (get-macro name *global-env*))
-            (and c-macros (get-compiler-macro name *global-env*)))
+(defun shadow-global-check (name &key (specials t) (c-macros t))
+  (when (and c-macros (get-compiler-macro name *global-env*))
     (error 'cannot-not-shadow-core))
   (when specials
     (loop :for func :in (functions (get-func-set-by-name name *global-env*))
@@ -407,7 +406,7 @@ For example calling env-prune on this environment..
 
 (defmethod add-compiler-macro (macro-name (macro function) (context list)
                                (env environment))
-  (when (shadow-global-check macro-name :specials nil :macros nil :c-macros t)
+  (when (shadow-global-check macro-name :specials nil :c-macros t)
     (let ((c-macros
            (a-set macro-name `(,macro ,context) (v-compiler-macros env))))
       (fresh-environment env :compiler-macros c-macros))))
@@ -514,32 +513,18 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-macro (macro-name (macro function) (context list)
-                      (env (eql :-genv-)))
-  (setf (gethash macro-name *global-env-macros*) `(,macro ,context))
+(defmethod add-form-binding ((macro-obj v-regular-macro) (env (eql :-genv-)))
+  (let ((macro-name (name macro-obj)))
+    (setf (gethash macro-name *global-env-form-bindings*)
+          (list macro-obj)))
   *global-env*)
 
-(defmethod add-macro (macro-name (macro function) (context list)
-                      (env environment))
-  (when (shadow-global-check macro-name)
-    (let* ((funcs (a-remove-all macro-name (v-form-bindings env)))
-           (macros (a-set macro-name `(,macro ,context) (v-macros env))))
-      (fresh-environment env :form-bindings funcs :macros macros))))
-
-(defmethod get-macro (macro-name (env (eql :-genv-)))
-  (gethash macro-name *global-env-macros*))
-
-(defmethod %get-macro-spec (macro-name (env (eql :-genv-)))
-  (get-macro macro-name env))
-
-(defmethod %get-macro-spec (macro-name (env environment))
-  (or (a-get1 macro-name (v-macros env))
-      (%get-macro-spec macro-name (v-parent-env env))))
-
-(defmethod get-macro (macro-name (env environment))
-  (let ((spec (%get-macro-spec macro-name env)))
-    (when (and spec (valid-for-contextp spec env))
-      (first spec))))
+(defmethod add-form-binding ((macro-obj v-regular-macro) (env environment))
+  (error "IMPLEMENT ME!")
+  (let ((macro-name (name macro-obj)))
+    (when (shadow-global-check macro-name)
+      (fresh-environment
+       env :form-bindings (a-add macro-name macro-obj (v-form-bindings env))))))
 
 ;;-------------------------------------------------------------------------
 
@@ -638,9 +623,11 @@ For example calling env-prune on this environment..
       func))
 
 (defmethod add-equivalent-name (existing-name new-name)
+  (warn "add-equivalent-name in incomplete: It ignores macros")
   (let ((f (get-func-set-by-name existing-name *global-env*))
         (c (get-compiler-macro existing-name *global-env*))
-        (m (get-macro existing-name *global-env*)))
+        (m nil;;(get-macro existing-name *global-env*)
+          ))
     (cond
       ((or f c)
        (when f

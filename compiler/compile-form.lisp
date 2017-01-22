@@ -18,6 +18,5 @@
   "Special case generally used by special functions that need to expand
    any macros in the form before compiling"
   (pipe-> (code env)
-    (equal #'macroexpand-pass
-           #'compiler-macroexpand-pass)
+    (equal #'compiler-macroexpand-pass)
     #'compile-form))

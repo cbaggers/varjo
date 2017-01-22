@@ -7,8 +7,7 @@
 (defmethod build-external-function ((func external-function) env)
   (labels ((expand-macros-for-external-func (form)
              (pipe-> (form env)
-               (equalp #'macroexpand-pass
-                       #'compiler-macroexpand-pass))))
+               (equalp #'compiler-macroexpand-pass))))
     (with-slots (name in-args uniforms code glsl-versions) func
       (vbind (compiled-func maybe-def-code)
           (build-function name

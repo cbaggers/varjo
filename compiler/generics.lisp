@@ -15,8 +15,6 @@
 (defgeneric get-flow-id-for-stem-cell (stem-cell-symbol e))
 (defgeneric used-external-functions (e))
 (defgeneric valid-for-contextp (func env))
-(defgeneric add-macro (macro-name macro context env))
-(defgeneric %get-macro-spec (macro-name env))
 (defgeneric add-symbol-macro (macro-name macro context env))
 (defgeneric %get-symbol-macro-spec (macro-name env))
 (defgeneric add-compiler-macro (macro-name macro context env))

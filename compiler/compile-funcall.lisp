@@ -119,19 +119,15 @@
   ;; to the final source. The deduplication will be achieved by the fact that
   ;; we will use the external-function object as a key to a hashtable in the
   ;; base-env which will cache the results of these compiled external functions.
-  ;; We will however, expand the macros in the current environment so that
-  ;; macrolet (and it's kin) will work when we get around to adding them.
   ;;
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
                             (build-external-function func base-env))))
     (setf (compiled-functions base-env func) compiled-func)
-    (vbind (code-obj new-env)
-        (compile-function-call (name func)
-                               (function-obj compiled-func)
-                               (rest body-form)
-                               env)
-      (values code-obj new-env))))
+    (compile-function-call (name func)
+                           (function-obj compiled-func)
+                           (rest body-form)
+                           env)))
 
 (defun compile-external-function-call (func args env)
   (compile-with-external-func-in-scope func `(,(name func) ,@args) env))
