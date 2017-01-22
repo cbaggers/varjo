@@ -95,8 +95,6 @@
     :initform nil :initarg :functions :reader v-functions)
    (macros
     :initform nil :initarg :macros :reader v-macros)
-   (symbol-macros
-    :initform nil :initarg :symbol-macros :reader v-symbol-macros)
    (compiler-macros
     :initform nil :initarg :compiler-macros :reader v-compiler-macros)
    (multi-val-base

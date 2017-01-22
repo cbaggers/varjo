@@ -43,14 +43,14 @@
              scell)))
       (t (error 'symbol-unidentified :sym var-name)))))
 
-(defun expand-symbol-macro (symbol binding env)
-  (error "IMPLEMENT ME!"))
+(defun expand-symbol-macro (binding env)
+  (compile-form (expansion binding) env))
 
 (defun compile-symbol (symbol env)
   (warn "compile-symbol is incomplete: what about symbol-macros")
   (let ((binding (get-symbol-binding symbol t env)))
     (etypecase binding
-      (v-symbol-macro (expand-symbol-macro symbol binding env))
+      (v-symbol-macro (expand-symbol-macro binding env))
       (v-value (v-variable->code-obj symbol binding env))
       (null (maybe-add-constant-or-stemcell symbol env)))))
 

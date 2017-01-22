@@ -16,9 +16,10 @@
   :args-valid t
   :return
   (let* ((scope (v-function-scope env))
-         (macro (make-symbol-macro expansion scope env))
-         (new-env (add-symbol-binding name macro env)))
-    (compile-form `(progn ,@body) new-env)))
+         (macro (make-symbol-macro expansion scope env)))
+    (with-fresh-env-scope (fresh-env env)
+      (let ((new-env (add-symbol-binding name macro fresh-env)))
+        (compile-form `(progn ,@body) new-env)))))
 
 ;;------------------------------------------------------------
 ;; Assignment
