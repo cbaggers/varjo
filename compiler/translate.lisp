@@ -308,6 +308,7 @@
 
 (defun post-process-func-ast
     (func env flow-origin-map val-origin-map node-copy-map)
+  (warn "post-process-func-ast is incomplete: what about symbol-macros")
   ;; prime maps with args (env)
   ;; {TODO} need to prime in-args & structs/array elements
   (labels ((uniform-raw (val)

@@ -28,6 +28,7 @@
 
 ;; [TODO] move error
 (defun compile-symbol (code env)
+  (warn "compile-symbol is incomplete: what about symbol-macros")
   (let* ((var-name code)
          (v-value (get-var var-name env)))
     (if v-value

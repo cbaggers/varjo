@@ -22,6 +22,7 @@
     ((not (v-type-eq (code-type place) (code-type val)))
      (error 'setf-type-match :code-obj-a place :code-obj-b val))
     (t (destructuring-bind (name value) (last1 (place-tree place))
+         (warn "setf-1 is incomplete: what about symbol-macros")
          (when (v-read-only value)
            (error 'setf-readonly :var-name name))
          (unless (or (= (v-function-scope env) (v-function-scope value))
@@ -50,6 +51,7 @@
     (assert (symbolp var-name))
     (multiple-value-bind (old-val old-env)
         (get-var var-name env)
+      (warn "setq is incomplete: what about symbol-macros")
       (assert (and old-val old-env))
       (cond
         ((v-read-only old-val)
@@ -760,7 +762,7 @@
 
 (defun search-for-flow-id-fixpoint (code starting-env)
   ;; Lets document this a bit and work out how to debug it from a crash
-
+  (warn "search-for-flow-id-fixpoint is incomplete: what about symbol-macros")
   (let ((envs (list starting-env))
         (last-code-obj nil)
         (flow-ids nil)
@@ -784,6 +786,7 @@
 
 ;; defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
 (defun create-post-loop-env (new-flow-id-pairs starting-env)
+  (warn "create-post-loop-env is incomplete: what about symbol-macros")
   (labels ((splice-in-flow-id (accum-env id-pair)
              (dbind (vname . new-flow-id) id-pair
                (vbind (old-val old-env) (get-var vname accum-env)
@@ -804,6 +807,7 @@
 (defvar *max-resolve-loop-flow-id-pass-count* 100)
 
 (defun get-new-flow-ids (latest-env last-env)
+  (warn "get-new-flow-ids is incomplete: what about symbol-macros")
   (let* ((variables-changed (find-env-vars latest-env last-env
                                            :test (complement #'eq)
                                            :stop-at-base t))
@@ -823,6 +827,7 @@
             (remove nil trimmed-changes))))
 
 (defun fixpoint-reached (new-flow-ids starting-env pass)
+  (warn "fixpoint-reached is incomplete: what about symbol-macros")
   (unless (< pass *max-resolve-loop-flow-id-pass-count*)
     (error 'loop-flow-analysis-failure))
   (let* ((variables-changed (mapcar #'car new-flow-ids)))

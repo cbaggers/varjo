@@ -293,6 +293,7 @@ For example calling env-prune on this environment..
 (defun merge-variable-histories (env-a env-b)
   ;; we can be sure that both have the var names as assignment
   ;; can only affect flow id, not type
+  (warn "merge-variable-histories is incomplete: handle symbol-macros")
   (let* ((a (v-variables env-a))
          (v-names (mapcar #'first a)))
     (mapcar
@@ -312,6 +313,10 @@ For example calling env-prune on this environment..
      v-names)))
 
 (defun env-var-names (env &key stop-at-base)
+  "Walk up the environment tree and collect the names of all variables
+   If stop-at-base is true then this list will not include the global env.
+   The order of the result may not reflect the depth of the scope. Do not
+   rely on the order for any kind of information"
   (labels ((w (e accum)
              (if (or (eq e *global-env*)
                      (and stop-at-base
@@ -326,6 +331,9 @@ For example calling env-prune on this environment..
     (w env nil)))
 
 (defun find-env-vars (env-a env-b &key (test #'eq) stop-at-base)
+  "Look at every variable binding in both the supplied environments
+   and return the bindings that match"
+  (warn "find-env-vars is incomplete: what about symbol-macros")
   (let ((n-a (env-var-names env-a :stop-at-base stop-at-base))
         (n-b (env-var-names env-a :stop-at-base stop-at-base)))
     (assert (equal n-a n-b))
@@ -333,21 +341,15 @@ For example calling env-prune on this environment..
       (loop for n in n-a if (v-eq n) collect n))))
 
 (defun env-same-vars (env-a env-b)
+  "Look at every variable binding in both the supplied environments
+   and checks that they all match"
+  (warn "env-same-vars is incomplete: what about symbol-macros")
   (let ((n-a (env-var-names env-a))
         (n-b (env-var-names env-a)))
     (assert (equal n-a n-b))
     (labels ((v-eq (n) (eq (get-var n env-a)
                            (get-var n env-b))))
       (every #'v-eq n-a))))
-
-(defun %same-vars (env-a env-b)
-  (let* ((a (v-variables env-a))
-         (b (v-variables env-b))
-         (a-names (mapcar #'first a))
-         (b-names (mapcar #'first b)))
-    (and (equal a-names b-names)
-         (every (lambda (n) (eq (get-var n env-a) (get-var n env-b)))
-                a-names))))
 
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))
@@ -553,16 +555,19 @@ For example calling env-prune on this environment..
   (fresh-environment env :variables (a-add var-name val (v-variables env))))
 
 (defmethod get-var (var-name (env (eql :-genv-)))
+  (warn "env get-var is incomplete: what about symbol-macros")
   (let ((s (gethash var-name *global-env-vars*)))
     (cond (s (values s *global-env*))
           (t nil))))
 
 (defmethod get-var (var-name (env environment))
+  (warn "env get-var is incomplete: what about symbol-macros")
   (let ((s (first (a-get var-name (v-variables env)))))
     (cond (s (values s env))
           (t (get-var var-name (v-parent-env env))))))
 
 (defmethod v-boundp (var-name (env environment))
+  (warn "v-boundp is incomplete: what about symbol-macros")
   (not (null (get-var var-name env))))
 
 ;;-------------------------------------------------------------------------
