@@ -122,7 +122,7 @@
 ;;-------------------------------------------------------------------------
 ;; global env
 
-(defmethod v-functions ((env (eql :-genv-)))
+(defmethod v-form-bindings ((env (eql :-genv-)))
   (declare (ignore env))
   *global-env-funcs*)
 
@@ -154,7 +154,7 @@
   (assert (typep env 'environment))
   (make-instance 'environment
                  :symbol-bindings (v-symbol-bindings env)
-                 :functions (v-functions env)
+                 :form-bindings (v-form-bindings env)
                  :macros nil
                  :compiler-macros nil
                  :context (remove :main (copy-list (v-context env)))
@@ -163,7 +163,7 @@
                  :allowed-outer-vars (v-allowed-outer-vars env)))
 
 (defun fresh-environment (env &key context function-scope
-                                functions macros
+                                form-bindings macros
                                 compiler-macros symbol-bindings
                                 (multi-val-base nil set-mvb)
                                 multi-val-safe
@@ -171,7 +171,7 @@
   (assert (typep env 'environment))
   (make-instance 'environment
                  :symbol-bindings symbol-bindings
-                 :functions functions
+                 :form-bindings form-bindings
                  :macros macros
                  :compiler-macros compiler-macros
                  :context (or context (copy-list (v-context env)))
@@ -187,7 +187,7 @@
 
 (defmacro with-fresh-env-scope ((name starting-env
                                       &key context function-scope
-                                      functions macros
+                                      form-bindings macros
                                       compiler-macros symbol-bindings
                                       (multi-val-base nil set-mvb)
                                       multi-val-safe
@@ -200,7 +200,7 @@
             (,name (fresh-environment
                     ,s :context ,context
                     :function-scope ,function-scope
-                    :functions ,functions
+                    :form-bindings ,form-bindings
                     :macros ,macros
                     :compiler-macros ,compiler-macros
                     :symbol-bindings ,symbol-bindings
@@ -218,7 +218,7 @@
                  :symbol-bindings (if symbol-bindings-set
                                 symbol-bindings
                                 (v-symbol-bindings env))
-                 :functions (v-functions env)
+                 :form-bindings (v-form-bindings env)
                  :macros (v-macros env)
                  :compiler-macros (v-compiler-macros env)
                  :context (copy-list (v-context env))
@@ -322,14 +322,14 @@ For example calling env-prune on this environment..
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))
     (error 'merge-env-func-scope-mismatch :env-a env :env-b new-env))
-  (with-slots ((a-vars symbol-bindings) (a-funcs functions) (a-macros macros)
+  (with-slots ((a-vars symbol-bindings) (a-funcs form-bindings) (a-macros macros)
                (a-cmacros compiler-macros)) env
-    (with-slots ((b-vars symbol-bindings) (b-funcs functions) (b-macros macros)
+    (with-slots ((b-vars symbol-bindings) (b-funcs form-bindings) (b-macros macros)
                  (b-cmacros compiler-macros)) new-env
       (fresh-environment
        env
        :symbol-bindings (%merge-env-lists a-vars b-vars)
-       :functions (%merge-env-lists a-funcs b-funcs)
+       :form-bindings (%merge-env-lists a-funcs b-funcs)
        :macros (%merge-env-lists a-macros b-macros)
        :compiler-macros (%merge-env-lists a-cmacros b-cmacros)))))
 
@@ -408,9 +408,9 @@ For example calling env-prune on this environment..
 (defmethod add-macro (macro-name (macro function) (context list)
                       (env environment))
   (when (shadow-global-check macro-name)
-    (let* ((funcs (a-remove-all macro-name (v-functions env)))
+    (let* ((funcs (a-remove-all macro-name (v-form-bindings env)))
            (macros (a-set macro-name `(,macro ,context) (v-macros env))))
-      (fresh-environment env :functions funcs :macros macros))))
+      (fresh-environment env :form-bindings funcs :macros macros))))
 
 (defmethod get-macro (macro-name (env (eql :-genv-)))
   (gethash macro-name *global-env-macros*))
@@ -599,19 +599,19 @@ For example calling env-prune on this environment..
 (defmethod add-function ((func-spec v-function) (env environment))
   (let ((func-name (name func-spec)))
     (when (shadow-global-check func-name)
-      (fresh-environment env :functions (a-add func-name func-spec (v-functions env))))))
+      (fresh-environment env :form-bindings (a-add func-name func-spec (v-form-bindings env))))))
 
 (defmethod %add-function (func-name (func-spec v-function)
                           (env base-environment))
   (when (shadow-global-check func-name)
-    (setf (slot-value env 'functions)
-          (a-add func-name func-spec (v-functions env)))))
+    (setf (slot-value env 'form-bindings)
+          (a-add func-name func-spec (v-form-bindings env)))))
 
 (defmethod %get-functions-by-name (func-name (env (eql :-genv-)))
   (functions (get-func-set-by-name func-name env)))
 
 (defmethod %get-functions-by-name (func-name (env environment))
-  (append (a-get func-name (v-functions env))
+  (append (a-get func-name (v-form-bindings env))
           (%get-functions-by-name func-name (v-parent-env env))))
 
 (defmethod get-func-set-by-name (func-name (env (eql :-genv-)))

@@ -91,8 +91,8 @@
     :initform nil :initarg :context :reader v-context)
    (symbol-bindings
     :initform nil :initarg :symbol-bindings :reader v-symbol-bindings)
-   (functions
-    :initform nil :initarg :functions :reader v-functions)
+   (form-bindings
+    :initform nil :initarg :form-bindings :reader v-form-bindings)
    (macros
     :initform nil :initarg :macros :reader v-macros)
    (compiler-macros
