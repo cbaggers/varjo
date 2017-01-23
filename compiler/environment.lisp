@@ -156,7 +156,6 @@
                  :symbol-bindings (v-symbol-bindings env)
                  :form-bindings (v-form-bindings env)
                  :macros nil
-                 :compiler-macros nil
                  :context (remove :main (copy-list (v-context env)))
                  :function-scope (v-function-scope env)
                  :parent-env (v-parent-env env)
@@ -164,7 +163,7 @@
 
 (defun fresh-environment (env &key context function-scope
                                 form-bindings macros
-                                compiler-macros symbol-bindings
+                                symbol-bindings
                                 (multi-val-base nil set-mvb)
                                 multi-val-safe
                                 (allowed-outer-vars nil set-aov))
@@ -173,7 +172,6 @@
                  :symbol-bindings symbol-bindings
                  :form-bindings form-bindings
                  :macros macros
-                 :compiler-macros compiler-macros
                  :context (or context (copy-list (v-context env)))
                  :multi-val-base (if set-mvb
                                      multi-val-base
@@ -188,7 +186,7 @@
 (defmacro with-fresh-env-scope ((name starting-env
                                       &key context function-scope
                                       form-bindings macros
-                                      compiler-macros symbol-bindings
+                                      symbol-bindings
                                       (multi-val-base nil set-mvb)
                                       multi-val-safe
                                       (allowed-outer-vars nil set-aov))
@@ -202,7 +200,6 @@
                     :function-scope ,function-scope
                     :form-bindings ,form-bindings
                     :macros ,macros
-                    :compiler-macros ,compiler-macros
                     :symbol-bindings ,symbol-bindings
                     ,@(when set-aov `(:allowed-outer-vars ,allowed-outer-vars))
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
@@ -220,7 +217,6 @@
                                 (v-symbol-bindings env))
                  :form-bindings (v-form-bindings env)
                  :macros (v-macros env)
-                 :compiler-macros (v-compiler-macros env)
                  :context (copy-list (v-context env))
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
@@ -335,16 +331,15 @@ For example calling env-prune on this environment..
 (defun merge-env (env new-env)
   (unless (= (v-function-scope env) (v-function-scope new-env))
     (error 'merge-env-func-scope-mismatch :env-a env :env-b new-env))
-  (with-slots ((a-vars symbol-bindings) (a-funcs form-bindings) (a-macros macros)
-               (a-cmacros compiler-macros)) env
-    (with-slots ((b-vars symbol-bindings) (b-funcs form-bindings) (b-macros macros)
-                 (b-cmacros compiler-macros)) new-env
+  (with-slots ((a-vars symbol-bindings) (a-funcs form-bindings)
+               (a-macros macros)) env
+    (with-slots ((b-vars symbol-bindings) (b-funcs form-bindings)
+                 (b-macros macros)) new-env
       (fresh-environment
        env
        :symbol-bindings (%merge-env-lists a-vars b-vars)
        :form-bindings (%merge-env-lists a-funcs b-funcs)
-       :macros (%merge-env-lists a-macros b-macros)
-       :compiler-macros (%merge-env-lists a-cmacros b-cmacros)))))
+       :macros (%merge-env-lists a-macros b-macros)))))
 
 (defun %merge-env-lists (a b)
   (reduce #'%merge-env-lists-item b :initial-value a))
@@ -408,32 +403,22 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-compiler-macro (macro-name (macro function) (context list)
-                               (env (eql :-genv-)))
-  (setf (gethash macro-name *global-env-compiler-macros*) `(,macro ,context))
+(defmethod add-compiler-macro ((macro v-compiler-macro) (env (eql :-genv-)))
+  (setf (gethash (name macro) *global-env-compiler-macros*)
+        (cons macro (gethash (name macro) *global-env-compiler-macros*)))
   *global-env*)
 
-(defmethod add-compiler-macro (macro-name (macro function) (context list)
-                               (env environment))
-  (when (shadow-global-check macro-name)
-    (let ((c-macros
-           (a-set macro-name `(,macro ,context) (v-compiler-macros env))))
-      (fresh-environment env :compiler-macros c-macros))))
+;; {TODO} proper error
+(defmethod add-compiler-macro (macro (env environment))
+  (declare (ignore macro env))
+  (error "Varjo: Compiler Bug: Compiler macros can only be added to the global environment: ~a"
+         macro-name))
 
 (defmethod get-compiler-macro (macro-name (env (eql :-genv-)))
   (gethash macro-name *global-env-compiler-macros*))
 
-(defmethod %get-compiler-macro-spec (macro-name (env (eql :-genv-)))
-  (get-compiler-macro macro-name env))
-
-(defmethod %get-compiler-macro-spec (macro-name (env environment))
-  (or (a-get1 macro-name (v-compiler-macros env))
-      (%get-compiler-macro-spec macro-name (v-parent-env env))))
-
 (defmethod get-compiler-macro (macro-name (env environment))
-  (let ((spec (%get-compiler-macro-spec macro-name env)))
-    (when (and spec (valid-for-contextp spec env))
-      (first spec))))
+  (get-compiler-macro macro-name *global-env*))
 
 ;;-------------------------------------------------------------------------
 

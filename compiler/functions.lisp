@@ -120,7 +120,8 @@ however failed to do so when asked."
                src-obj cast-to-type))))
 
 ;; [TODO] should this always copy the arg-objs?
-(defun basic-arg-matchp (func arg-types arg-objs env)
+(defun basic-arg-matchp (func arg-types arg-objs env
+                         &key (allow-casting t))
   (let ((spec-types (v-argument-spec func)))
     (labels ((calc-secondary-score (types)
                ;; the lambda below sums all numbers or returns nil
@@ -148,18 +149,20 @@ however failed to do so when asked."
                  :arguments (mapcar #'copy-code arg-objs)
                  :score score
                  :secondary-score secondary-score))
-              (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
-                                   :collect (v-casts-to a s env))))
-                (when (not (some #'null cast-types))
-                  ;; when all the types can be cast
-                  (let ((secondary-score (calc-secondary-score cast-types)))
-                    (make-instance
-                     'func-match
-                     :func func
-                     :arguments (mapcar (lambda (a c) (cast-code a c env))
-                                        arg-objs cast-types)
-                     :score score
-                     :secondary-score secondary-score))))))))))
+              (when allow-casting
+                (let ((cast-types
+                       (loop :for a :in arg-types :for s :in spec-types :collect
+                          (v-casts-to a s env))))
+                  (when (not (some #'null cast-types))
+                    ;; when all the types can be cast
+                    (let ((secondary-score (calc-secondary-score cast-types)))
+                      (make-instance
+                       'func-match
+                       :func func
+                       :arguments (mapcar (lambda (a c) (cast-code a c env))
+                                          arg-objs cast-types)
+                       :score score
+                       :secondary-score secondary-score)))))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
   (let* ((arg-types (mapcar #'code-type compiled-args))

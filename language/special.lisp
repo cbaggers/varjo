@@ -252,7 +252,7 @@
   (if values
       (if (v-multi-val-base env)
           (%values values env)
-          (expand-and-compile-form `(prog1 ,@values) env))
+          (compile-form `(prog1 ,@values) env))
       (%values-void env)))
 
 (defun %values (values env)
@@ -267,7 +267,7 @@
          (vals (loop :for o :in objs :for n :in glsl-names :collect
                   (v-make-value (code-type o) env :glsl-name n)))
          (first-name (gensym))
-         (result (expand-and-compile-form
+         (result (compile-form
                   `(let ((,first-name ,(first objs)))
                      ,@(loop :for o :in (rest objs)
                           :for v :in (rest vals) :collect

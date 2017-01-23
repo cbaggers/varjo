@@ -95,8 +95,6 @@
     :initform nil :initarg :form-bindings :reader v-form-bindings)
    (macros
     :initform nil :initarg :macros :reader v-macros)
-   (compiler-macros
-    :initform nil :initarg :compiler-macros :reader v-compiler-macros)
    (multi-val-base
     :initform nil :initarg :multi-val-base :reader v-multi-val-base)
    (multi-val-safe
@@ -212,11 +210,11 @@
 
 (defclass v-compiler-macro ()
   ((name :initform nil :initarg :name :reader name)
-   (macro-function :initarg :macro-function :initform nil
-                   :reader v-macro-function)
    (context :initform nil :initarg :context :accessor v-context)
-   (function-scope :initarg :function-scope :initform 0
-                   :accessor v-function-scope :allocation :class)))
+   (function-scope :initform 0 :accessor v-function-scope :allocation :class)
+   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
+   (macro-function :initarg :macro-function :initform nil
+                   :reader v-macro-function)))
 
 ;;----------------------------------------------------------------------
 

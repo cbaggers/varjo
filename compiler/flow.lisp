@@ -65,7 +65,9 @@
 
 (defmacro flow-id-scope (&body body)
   `(let ((flow-gen-func
-          (%make-flow-id-source-func -1)))
+          (if (eq flow-gen-func root-flow-gen-func)
+              (%make-flow-id-source-func -1)
+              flow-gen-func)))
      ,@body))
 
 (defun checkpoint-flow-ids ()

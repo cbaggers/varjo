@@ -390,3 +390,20 @@ Usually Varjo should throw a more descriptive error earlier in the compile
 process so if you have time please report this on github. That way we can try
 and detect these cases more accurately and hopefully provide better error
 messages." funcall-form)
+
+
+(deferror uniform-in-cmacro () (name)
+    "Varjo: We do not currently support &uniforms args in compiler macros, only in shader stages: ~a"
+  name)
+
+(deferror optional-in-cmacro () (name)
+    "Varjo: We do not currently support &optional args in compiler macros: ~a"
+  name)
+
+(deferror rest-in-cmacro () (name)
+    "Varjo: We do not currently support &rest args in compiler macros: ~a"
+  name)
+
+(deferror key-in-cmacro () (name)
+    "Varjo: We do not currently support &key args in compiler macros: ~a"
+  name)

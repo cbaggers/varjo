@@ -5,31 +5,28 @@
 ;; The mess of creation
 
 (defmethod build-external-function ((func external-function) env)
-  (labels ((expand-macros-for-external-func (form)
-             (pipe-> (form env)
-               (equalp #'compiler-macroexpand-pass))))
-    (with-slots (name in-args uniforms code glsl-versions) func
-      (vbind (compiled-func maybe-def-code)
-          (build-function name
-                          (append in-args
-                                  (when uniforms `(&uniform ,@uniforms)))
-                          (expand-macros-for-external-func code)
-                          nil
-                          env)
-        ;; Here we check that we haven't got any behaviour that, while legal for
-        ;; main or local funcs, would be undesired in external functions
-        (when maybe-def-code
-          (assert (null (out-vars maybe-def-code)))
-          (assert (null (current-line maybe-def-code)))
-          (assert (null (flow-ids maybe-def-code)))
-          (assert (null (multi-vals maybe-def-code)))
-          (assert (null (mutations maybe-def-code)))
-          (assert (null (out-of-scope-args maybe-def-code)))
-          (assert (null (place-tree maybe-def-code)))
-          (assert (null (returns maybe-def-code)))
-          (assert (null (to-block maybe-def-code)))
-          (assert (typep (code-type maybe-def-code) 'v-none)))
-        (values compiled-func maybe-def-code)))))
+  (with-slots (name in-args uniforms code glsl-versions) func
+    (vbind (compiled-func maybe-def-code)
+        (build-function name
+                        (append in-args
+                                (when uniforms `(&uniform ,@uniforms)))
+                        code
+                        nil
+                        env)
+      ;; Here we check that we haven't got any behaviour that, while legal for
+      ;; main or local funcs, would be undesired in external functions
+      (when maybe-def-code
+        (assert (null (out-vars maybe-def-code)))
+        (assert (null (current-line maybe-def-code)))
+        (assert (null (flow-ids maybe-def-code)))
+        (assert (null (multi-vals maybe-def-code)))
+        (assert (null (mutations maybe-def-code)))
+        (assert (null (out-of-scope-args maybe-def-code)))
+        (assert (null (place-tree maybe-def-code)))
+        (assert (null (returns maybe-def-code)))
+        (assert (null (to-block maybe-def-code)))
+        (assert (typep (code-type maybe-def-code) 'v-none)))
+      (values compiled-func maybe-def-code))))
 
 (defun build-function (name args body allowed-implicit-args env)
   ;;

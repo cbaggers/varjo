@@ -1,4 +1,5 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
 ;;------------------------------------------------------------
 ;; Regular Macros
@@ -7,7 +8,7 @@
   (vbind (func-code context) (gen-macro-function-code lambda-list body)
     `(progn
        (add-form-binding
-        (make-regular-macro ',name ,func-code ,context *global-env*)
+        (make-regular-macro ',name ,func-code ',context *global-env*)
         *global-env*)
        ',name)))
 
@@ -31,14 +32,56 @@
 ;;------------------------------------------------------------
 ;; Compile Macros
 
-(defmacro v-define-compiler-macro (name args &body body)
-  (let* ((context-pos (position '&context args :test #'symbol-name-equal))
-         (context (when context-pos (subseq args (1+ context-pos))))
-         (args (subst '&rest '&body
-                      (if context-pos (subseq args 0 context-pos) args)
-                      :test #'symbol-name-equal)))
-    `(progn (add-compiler-macro ',name (lambda ,args ,@body) ,context *global-env*)
-            ',name)))
+(defmacro v-define-compiler-macro (name lambda-list &body body)
+  (labels ((namedp (name x)
+             (when (symbolp x)
+               (string= name x))))
+    (when (find-if λ(namedp :&uniforms _) lambda-list)
+      (error 'uniform-in-cmacro :name name))
+    (when (find-if λ(namedp :&optional _) lambda-list)
+      (error 'optional-in-cmacro :name name))
+    (when (find-if λ(namedp :&rest _) lambda-list)
+      (error 'rest-in-cmacro :func-name name))
+    (when (find-if λ(namedp :&key _) lambda-list)
+      (error 'key-in-cmacro :func-name name))
+    ;;
+    (let* ((whole-pos (position-if λ(namedp _ :&whole) lambda-list))
+           (llist (mapcar λ(if (listp _) (first _) _) lambda-list))
+           (cleaned (if whole-pos
+                        (append (subseq lambda-list 0 whole-pos)
+                                (subseq lambda-list (+ 2 whole-pos)))
+                        lambda-list))
+           (arg-types (mapcar λ(type-spec->type (second _)) cleaned)))
+      (vbind (func-code context) (gen-macro-function-code llist body)
+        `(progn
+           (add-compiler-macro
+            (make-compiler-macro ',name ,func-code ',arg-types ',context)
+            *global-env*)
+           ',name)))))
+
+(defun make-compiler-macro (name macro-function arg-spec context)
+  (make-instance 'v-compiler-macro
+                 :name name
+                 :context context
+                 :arg-spec arg-spec
+                 :macro-function macro-function))
+
+(defun find-compiler-macro-for-func (func env)
+  (unless (v-special-functionp func)
+    (let* ((name (name func))
+           (func-spec (v-argument-spec func))
+           (candidates (get-compiler-macro name env))
+           (dummy-code-objs (loop :for i :in func-spec :collect
+                               (make-none-ob))))
+      (when candidates
+        (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec dummy-code-objs
+                                                  env :allow-casting nil)
+                               candidates))
+               (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
+               (sorted (sort trimmed #'< :key #'secondary-score))
+               (winner (first sorted))
+               (macro (func winner)))
+          macro)))))
 
 ;;------------------------------------------------------------
 ;; Helpers
@@ -54,13 +97,17 @@
     (values value cleaned)))
 
 (defun gen-macro-function-code (lambda-list body)
-  (alexandria:with-gensyms (form-var g-env)
+  (alexandria:with-gensyms (form-var g-env result)
     (vbind (context lambda-list) (extract-arg-pair lambda-list :&context)
       (vbind (env-var lambda-list) (extract-arg-pair lambda-list :&environment)
-        (let* ((env-var (or env-var g-env)))
-          (values
-           `(lambda (,form-var ,env-var)
-              (declare (ignorable ,env-var))
-              (destructuring-bind ,lambda-list ,form-var
-                ,@body))
-           context))))))
+        (let* ((whole-var (extract-arg-pair lambda-list :&whole))
+               (whole-check (if whole-var `(not (equal ,whole-var ,result)) t)))
+          (let* ((env-var (or env-var g-env)))
+            (values
+             `(lambda (,form-var ,env-var)
+                (declare (ignorable ,env-var))
+                (destructuring-bind ,lambda-list ,form-var
+                  (let* ((,result (progn ,@body))
+                         (same-form ,whole-check))
+                    (values ,result same-form))))
+             context)))))))

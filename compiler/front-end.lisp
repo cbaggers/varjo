@@ -67,9 +67,7 @@ Example:
     (rolling-translate (remove nil stages))))
 
 (defun v-macroexpand (form &optional (env (%make-base-environment)))
-  (identity
-   (pipe-> (form env)
-     (equalp #'compiler-macroexpand-pass))))
+  (flow-id-scope (ast->code (compile-form form env))))
 
 ;;----------------------------------------------------------------------
 

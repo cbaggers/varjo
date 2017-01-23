@@ -37,7 +37,6 @@
             #'add-context-glsl-vars
             #'process-in-args
             #'process-uniforms
-            (equalp #'compiler-macroexpand-pass)
             #'compile-pass
             #'make-post-process-obj
             #'check-stemcells
@@ -199,25 +198,6 @@
 (defun process-fake-uniform (name glsl-name type qualifiers env)
   (add-uniform-fake-struct name glsl-name type qualifiers env)
   env)
-
-;;----------------------------------------------------------------------
-
-(defun v-compiler-macroexpand-all (code &optional (env :-GENV-))
-  ;; {TODO} remove collection of used macro names
-  (cond ((atom code) code)
-        (t (let* ((head (first code))
-                  (m (get-compiler-macro head env)))
-             (if m
-                 (vbind (f u)
-                     (v-compiler-macroexpand-all (apply m (rest code)) env)
-                   (values f (cons head u)))
-                 (let ((i (mapcar λ(vlist (v-compiler-macroexpand-all _ env))
-                                  code)))
-                   (values (mapcar #'first i) (mapcar #'second i))))))))
-
-(defun compiler-macroexpand-pass (code env)
-  (let ((form (v-compiler-macroexpand-all code env)))
-    (values form env)))
 
 ;;----------------------------------------------------------------------
 

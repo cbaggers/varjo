@@ -13,10 +13,3 @@
             ((typep code 'v-value) (%v-value->code code env))
             (t (error 'cannot-compile :code code)))
     (values code-obj (or new-env env))))
-
-(defun expand-and-compile-form (code env)
-  "Special case generally used by special functions that need to expand
-   any macros in the form before compiling"
-  (pipe-> (code env)
-    (equal #'compiler-macroexpand-pass)
-    #'compile-form))

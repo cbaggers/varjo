@@ -79,26 +79,38 @@
               (values (make-dummy-function-from-type (code-type func-code-obj))
                       t)))))))
 
+(defun find-and-expand-compiler-macro (func args env)
+  (unless (v-special-functionp func)
+    (let ((macro (find-compiler-macro-for-func func env)))
+      (when macro
+        (funcall (v-macro-function macro)
+                 (mapcar #'ast->code args)
+                 env)))))
+
 (defun compile-function-call (func-name func args env)
-  (vbind (code-obj new-env)
-      (cond
-        ;; special funcs
-        ((v-special-functionp func) (compile-special-function func args env))
+  (vbind (expansion use-expansion)
+      (find-and-expand-compiler-macro func args env)
+    (if use-expansion
+        (compile-form expansion env)
+        (vbind (code-obj new-env)
+            (cond
+              ;; special funcs
+              ((v-special-functionp func) (compile-special-function func args
+                                                                    env))
+              ;; funcs with multiple return values
+              ((> (length (v-return-spec func)) 1)
+               (compile-multi-return-function-call func-name func args env))
 
-        ;; funcs with multiple return values
-        ((> (length (v-return-spec func)) 1)
-         (compile-multi-return-function-call func-name func args env))
+              ;; funcs taking unrepresentable values as arguments
+              ((and (typep func 'v-user-function)
+                    (some λ(typep _ 'v-unrepresentable-value)
+                          (v-argument-spec func)))
+               (compile-function-taking-unreps func-name func args env))
 
-        ;; funcs taking unrepresentable values as arguments
-        ((and (typep func 'v-user-function)
-              (some λ(typep _ 'v-unrepresentable-value)
-                    (v-argument-spec func)))
-         (compile-function-taking-unreps func-name func args env))
-
-        ;; all the other funcs :)
-        (t (compile-regular-function-call func-name func args env)))
-    (assert new-env)
-    (values code-obj new-env)))
+              ;; all the other funcs :)
+              (t (compile-regular-function-call func-name func args env)))
+          (assert new-env)
+          (values code-obj new-env)))))
 
 (defun compile-function-taking-unreps (func-name func args env)
   (assert (v-code func))
@@ -116,7 +128,7 @@
                                         captured))
                (allowed (append (mapcar #'first hard-coded)
                                 (mapcar #'name captured))))
-          (expand-and-compile-form
+          (compile-form
            `(let ,hard-coded
               (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
                                   ,allowed
