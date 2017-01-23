@@ -114,10 +114,11 @@
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
 (defun %make-base-environment (&key (third-party-metadata (make-hash-table))
-                                 stemcells-allowed)
+                                 stemcells-allowed version)
   (make-instance 'base-environment
                  :stemcells-allowed stemcells-allowed
-                 :third-party-metadata third-party-metadata))
+                 :third-party-metadata third-party-metadata
+                 :context (when version (list version))))
 
 ;;-------------------------------------------------------------------------
 ;; global env

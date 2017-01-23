@@ -135,9 +135,9 @@ however failed to do so when asked."
                            :initial-value 0)
                    most-positive-fixnum)))
       ;;
-      (when (eql (length arg-objs) (length spec-types))
+      (when (eql (length arg-types) (length spec-types))
         (let* ((perfect-matches (mapcar λ(v-typep _ _1 env) arg-types spec-types))
-               (score (- (length arg-objs)
+               (score (- (length arg-types)
                          (length (remove nil perfect-matches)))))
 
           (if (= score 0)
@@ -309,12 +309,13 @@ however failed to do so when asked."
 
 ;;------------------------------------------------------------
 
+(defun function-arg-specs-match-p (func-a func-b env)
+  (exact-match-function-to-types
+   (v-argument-spec func-a) env func-b))
 
 (defun basic-exact-type-matchp (func arg-types env)
-  (let ((spec-types (v-argument-spec func)))
-    (when (eql (length arg-types) (length spec-types))
-      (loop :for a :in arg-types :for s :in spec-types
-         :always (v-type-eq a s env)))))
+  (let ((match (basic-arg-matchp func arg-types nil env :allow-casting nil)))
+    (and match (= 0 (score match) (secondary-score match)))))
 
 (defun special-exact-type-matchp (func arg-types env)
   (let ((arg-spec (v-argument-spec func))
