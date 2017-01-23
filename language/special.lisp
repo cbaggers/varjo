@@ -16,7 +16,8 @@
   :return
   (let ((macro
          (dbind (name lambda-list &body body) definition
-           (vbind (func-code context) (gen-macro-function-code lambda-list body)
+           (vbind (func-code context)
+               (gen-macro-function-code name lambda-list body)
              (make-regular-macro name (compile nil func-code) context env)))))
     (with-fresh-env-scope (fresh-env env)
       (let ((new-env (add-form-binding macro fresh-env)))

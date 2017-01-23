@@ -17,4 +17,5 @@
                (:file "tests/stemcell-tests")
                (:file "tests/struct-tests")
                (:file "tests/void-tests")
-               (:file "tests/symbol-macros")))
+               (:file "tests/symbol-macros")
+               (:file "tests/compiler-macros")))
