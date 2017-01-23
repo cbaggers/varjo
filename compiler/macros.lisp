@@ -4,23 +4,12 @@
 ;; Regular Macros
 
 (defmacro v-defmacro (name lambda-list &body body)
-  (alexandria:with-gensyms (form-var environment)
-    (vbind (context lambda-list)
-        (extract-arg-pair lambda-list :&context)
-      (vbind (maybe-env lambda-list)
-          (extract-arg-pair lambda-list :&environment)
-        (let* ((env-var (or maybe-env environment)))
-          `(progn
-             (add-form-binding
-              (make-regular-macro ',name
-                                  (lambda (,form-var ,env-var)
-                                    (declare (ignorable ,env-var))
-                                    (destructuring-bind ,lambda-list ,form-var
-                                      ,@body))
-                                  ,context
-                                  *global-env*)
-              *global-env*)
-             ',name))))))
+  (vbind (func-code context) (gen-macro-function-code lambda-list body)
+    `(progn
+       (add-form-binding
+        (make-regular-macro ',name ,func-code ,context *global-env*)
+        *global-env*)
+       ',name)))
 
 (defmethod make-regular-macro (name macro-function context env)
   (make-instance 'v-regular-macro
@@ -63,3 +52,15 @@
                               (subseq lambda-list (+ 2 key-pos)))
                       lambda-list)))
     (values value cleaned)))
+
+(defun gen-macro-function-code (lambda-list body)
+  (alexandria:with-gensyms (form-var g-env)
+    (vbind (context lambda-list) (extract-arg-pair lambda-list :&context)
+      (vbind (env-var lambda-list) (extract-arg-pair lambda-list :&environment)
+        (let* ((env-var (or env-var g-env)))
+          (values
+           `(lambda (,form-var ,env-var)
+              (declare (ignorable ,env-var))
+              (destructuring-bind ,lambda-list ,form-var
+                ,@body))
+           context))))))
