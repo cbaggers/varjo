@@ -92,7 +92,8 @@ space was returned between:
 and
 ~a" u-a u-b))))
 
-(v-defmacro in (space &body body)
+(v-defmacro in (&environment env space &body body)
+  (break "oh yeah ~a" (variables-in-scope env))
   `(space-boundary-convert
     (let ((*current-space* ,space))
       ,@body)))

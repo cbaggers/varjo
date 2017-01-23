@@ -464,6 +464,14 @@ For example calling env-prune on this environment..
   (fresh-environment env :symbol-bindings (a-add name macro
                                                  (v-symbol-bindings env))))
 
+(defun binding-accesible-p (env binding &optional binding-name)
+  (let ((from-higher-scope (binding-in-higher-scope-p binding env)))
+    (when (or (not from-higher-scope)
+              (or (eq t (v-allowed-outer-vars env))
+                  (when binding-name
+                    (find binding-name (v-allowed-outer-vars env)))))
+      t)))
+
 (defun apply-scope-rules (binding-name binding env)
   (let ((from-higher-scope (binding-in-higher-scope-p binding env)))
     (when (or (not from-higher-scope)
@@ -504,6 +512,9 @@ For example calling env-prune on this environment..
                  (values (apply-scope-rules symbol s env) env)
                  (values s env)))
           (t (get-symbol-binding symbol respect-scope-rules (v-parent-env env))))))
+
+(defmethod v-symbol-bindings ((env (eql :-genv-)))
+  nil)
 
 ;;-------------------------------------------------------------------------
 ;; Adding bindings for functions & macros
