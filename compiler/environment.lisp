@@ -669,4 +669,4 @@ For example calling env-prune on this environment..
   (cond
     ((eq env ancestor) t)
     ((eq env *global-env*) nil)
-    (t (is-descendant (v-parent-env env) ancestor))))
+    (t (descendant-env-p (v-parent-env env) ancestor))))

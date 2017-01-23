@@ -210,6 +210,16 @@
 
 ;;----------------------------------------------------------------------
 
+(defclass v-compiler-macro ()
+  ((name :initform nil :initarg :name :reader name)
+   (macro-function :initarg :macro-function :initform nil
+                   :reader v-macro-function)
+   (context :initform nil :initarg :context :accessor v-context)
+   (function-scope :initarg :function-scope :initform 0
+                   :accessor v-function-scope :allocation :class)))
+
+;;----------------------------------------------------------------------
+
 (defclass mval ()
   ((value :initarg :value :reader multi-val-value)
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
