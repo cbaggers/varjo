@@ -53,12 +53,14 @@
           (when (not (eq parent *global-env*))
             (map-environments func parent)))))
 
-(defmethod metadata-for-flow-id ((flow-id flow-identifier) (env environment))
+(defmethod metadata-for-flow-id ((metadata-kind symbol)
+                                 (flow-id flow-identifier)
+                                 (env environment))
   (assert (= 1 (length (ids flow-id))) (flow-id)
           "Cannot declare metadata for multiple values at once: ~a" flow-id)
   (let ((key (slot-value (first (ids flow-id)) 'val))
         (env (get-base-env env)))
-    (gethash key (slot-value env 'value-metadata))))
+    (cdr (assoc metadata-kind (gethash key (slot-value env 'value-metadata))))))
 
 ;; ugh
 ;;
