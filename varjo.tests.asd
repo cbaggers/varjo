@@ -18,4 +18,7 @@
                (:file "tests/struct-tests")
                (:file "tests/void-tests")
                (:file "tests/symbol-macros")
-               (:file "tests/compiler-macros")))
+               (:file "tests/compiler-macros")
+               (:file "tests/regular-macros")
+               (:file "tests/name-shadowing")
+               (:file "tests/qualifier-tests")))

@@ -167,10 +167,10 @@
 ;;----------------------------------------------------------------------
 
 (defclass stemcell ()
-  ((name :initarg :name)
+  ((name :initarg :name :reader name)
    (string-name :initarg :string-name)
-   (type :initarg :type)
-   (flow-id :initarg :flow-id)
+   (type :initarg :type :reader v-type)
+   (flow-id :initarg :flow-id :reader flow-ids)
    (cpu-side-transform :initarg :cpu-side-transform)))
 
 ;;----------------------------------------------------------------------

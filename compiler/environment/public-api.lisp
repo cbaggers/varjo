@@ -49,9 +49,13 @@
     (v-type binding)))
 
 (defmethod variable-is-uniform-p ((name symbol) (env environment))
-  (let* ((binding (get-symbol-binding name t env))
-         (id (flow-ids binding)))
-    (not (null (find id (v-uniforms env) :test #'id=
+  (let* ((binding (get-symbol-binding name t env)))
+    (assert (typep binding 'v-value) ()
+            "The symbol ~a was not bound to a value. ~a"
+            name (etypecase binding
+                   (v-symbol-macro "A symbol-macro was found instead")
+                   (null "Nothing was bound to that name")))
+    (not (null (find (flow-ids binding) (v-uniforms env) :test #'id=
                      :key λ(flow-ids (second _)))))))
 
 (defmethod variable-uniform-name ((name symbol) (env environment))

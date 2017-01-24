@@ -5,11 +5,13 @@
 
 ;; {TODO} proper errors
 (defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
-  (assert (and (listp direct-superclass) (symbolp (first direct-superclass))) ()
-          "Varjo: Types in varjo are allowed, at most, one superclass")
   (unless (eq name 'v-type)
-    (assert direct-superclass ()
-            "Varjo: All types must specify a superclass, this will usually be v-type"))
+    (assert (and (listp direct-superclass)
+                 (symbolp (first direct-superclass))
+                 (= (length direct-superclass) 1))
+            ()
+            "Varjo: All types must specify one superclass, this will usually be v-type"))
+  ;;
   (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
                        `(append (list ,(kwd (subseq (symbol-name name) 2))
                                       ',name)

@@ -51,4 +51,5 @@
                (:file "language/bitwise-operators")
                (:file "compiler/translate")
                (:file "compiler/front-end")
+               (:file "compiler/environment/public-api")
                (:file "language/rtg-math-equivalents")))
