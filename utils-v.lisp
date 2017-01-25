@@ -78,6 +78,16 @@
 (defmacro dbind (lambda-list expression &body body)
   `(destructuring-bind ,lambda-list ,expression ,@body))
 
+(defmacro vbind2 (lambda-list expression &body body)
+  (let ((keys '(&allow-other-keys &environment &rest &aux &key &whole &body
+                &optional)))
+    (if (and (proper-list-p lambda-list)
+             (every #'symbolp lambda-list)
+             (not (some #'null lambda-list))
+             (not (some (lambda (x) (find x keys)) lambda-list)))
+        `(multiple-value-list ,lambda-list ,expression ,@body)
+        `(destructuring-bind ,lambda-list (multiple-value-list ,expression) ,@body))))
+
 (defmacro vbind (vars value-form &body body)
   ;; {TODO} handle declare forms properly. It is complicated
   ;;        as the declare has to be the first thing in the scope
@@ -320,3 +330,14 @@ are supported in this context are: ~s"
              (cases (append cases-but1 (list last-case))))
         `(let ((,g ,form))
            (cond ,@cases))))))
+
+(defun find-similarly-named-symbol (source-symb candidates-list)
+  (when (symbolp source-symb)
+    (let ((sn (symbol-name source-symb)))
+      (remove-duplicates
+       (remove-if-not
+        (lambda (x)
+          (let ((x (symbol-name x)))
+            (or (string= sn x)
+                (> (vas-string-metrics:jaro-winkler-distance sn x) 0.9))))
+        candidates-list)))))

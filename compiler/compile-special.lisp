@@ -70,12 +70,15 @@
 
 ;;----------------------------------------------------------------------
 
-;; %multi-env-progn functions runs each form one after the other
-;; (just like progn) however, unlike progn, each form is evaluated with the
-;; same environment this means that bindings in one wont be visable in another.
-;; Finally the resulting environement is merged
-
 (defun %mapcar-multi-env-progn (func env list &rest more-lists)
+  "%multi-env-progn functions runs each form one after the other (just
+   like progn) however, unlike progn, each form is evaluated with the
+   original environment this means that bindings in one won't be visable
+   in another.
+   Finally the resulting environement is merged.
+
+   This gives us the behaviour from the binding expressions portion of
+   let forms"
   (when list
     (let* ((e (apply #'mapcar
                      (lambda (&rest args)

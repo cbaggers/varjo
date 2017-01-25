@@ -557,12 +557,4 @@ doesnt"))
 ;; used in errors.lisp
 
 (defun find-alternative-types-for-spec (type-spec)
-  (when (symbolp type-spec)
-    (let ((sn (symbol-name type-spec)))
-      (append
-       (remove-if-not
-        (lambda (x)
-          (let ((x (symbol-name x)))
-            (or (string= sn x)
-                (> (vas-string-metrics:jaro-winkler-distance sn x) 0.9))))
-        *registered-types*)))))
+  (find-similarly-named-symbol type-spec *registered-types*))
