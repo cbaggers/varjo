@@ -455,3 +455,30 @@ currently unbound."
 (deferror not-proved-a-uniform () (name)
     "Varjo: We are unable to prove that ~a has come from a uniform"
   name)
+
+(deferror duplicate-varjo-doc-string () (form dup)
+    "Varjo: We have found an illegal duplicate docs string.
+
+Doc string: ~s
+
+Found in form:
+~s"
+    dup form)
+
+(deferror calling-declare-as-func () (decl)
+    "Varjo: Found a declare expression in an invalid position.
+
+Declaration: ~s
+
+There is no function named DECLARE. References to DECLARE in some contexts (like
+the starts of blocks) are unevaluated expressions, but here it is illegal."
+  decl)
+
+(deferror treating-declare-as-func () (decl)
+    "Varjo: Found an attempt to take a reference to declare as a function.
+
+Form: ~s
+
+There is no function named DECLARE. References to DECLARE in some contexts (like
+the starts of blocks) are unevaluated expressions, but here it is illegal."
+  decl)

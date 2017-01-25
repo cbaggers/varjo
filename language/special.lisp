@@ -1044,3 +1044,63 @@
      env)))
 
 ;;------------------------------------------------------------
+;; Declarations
+
+;; The declarations in locally are lexically scoped. I'm not sure
+;; I want to implement that yet
+;;
+;; (v-defspecial locally (&rest body)
+;;   )
+
+(defun extract-declares-and-doc-string (body full-form)
+  (labels ((declp (x) (and (listp x) (eq (first x) 'declare))))
+    (if (= (length body) 1)
+        (values body nil nil)
+        (let (doc-string declarations)
+          (loop :for form :in body :for i :from 0
+             :while
+             (cond
+               ;;
+               ((declp form) (push form declarations))
+               ;;
+               ((stringp form) (if doc-string
+                                   (error 'duplicate-varjo-doc-string
+                                          :dup form :form full-form)
+                                   (setf doc-string form))))
+             :finally (return (values (subseq body i)
+                                      declarations
+                                      doc-string)))))))
+
+(defun extract-declares (body)
+  (labels ((declp (x) (and (listp x) (eq (first x) 'declare))))
+    (if (= (length body) 1)
+        (values body nil nil)
+        (let (doc-string declarations)
+          (loop :for form :in body :for i :from 0
+             :while (declp form) :do (push form declarations)
+             :finally (return (values (subseq body i)
+                                      declarations
+                                      doc-string)))))))
+
+
+;; Valid in these forms
+;;
+;; defgeneric                 do-external-symbols   prog
+;; define-compiler-macro      do-symbols            prog*
+;; define-method-combination  dolist                restart-case
+;; define-setf-expander       dotimes               symbol-macrolet
+;; defmacro                   flet                  with-accessors
+;; defmethod                  handler-case          with-hash-table-iterator
+;; defsetf                    labels                with-input-from-string
+;; deftype                    let                   with-open-file
+;; defun                      let*                  with-open-stream
+;; destructuring-bind         locally               with-output-to-string
+;; do                         macrolet              with-package-iterator
+;; do*                        multiple-value-bind   with-slots
+;; do-all-symbols             pprint-logical-block
+
+;; CL Standard Declaration Identifiers
+;;
+;; dynamic-extent  ignore     optimize
+;; ftype           inline     special
+;; ignorable       notinline  type

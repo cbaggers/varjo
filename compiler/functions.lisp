@@ -337,11 +337,15 @@ however failed to do so when asked."
 
 ;; {TODO} proper error
 (defmethod find-form-binding-by-literal ((name symbol) env)
+  (assert (not (eq name 'declare)) ()
+          'treating-declare-as-func :decl '(function declare))
   (get-form-binding name env))
 
 (defmethod find-form-binding-by-literal ((func-name list) env)
   ;;
   (destructuring-bind (name &rest arg-types) func-name
+    (assert (not (eq name 'declare)) ()
+            'treating-declare-as-func :decl func-name)
     (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
                              arg-types))
           (binding (get-form-binding name env)))

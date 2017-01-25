@@ -8,8 +8,10 @@
 
 (defun compile-call-form (code env)
   (dbind (name . args-code) code
-    (when (keywordp name)
-      (error 'keyword-in-function-position :form code))
+    (assert (not (keywordp name)) ()
+            'keyword-in-function-position :form code)
+    (assert (not (eq name 'declare)) ()
+            'calling-declare-as-func :decl code)
     (let ((binding (get-form-binding name env)))
       (etypecase binding
         (v-regular-macro (expand-macro binding args-code env))
