@@ -482,3 +482,43 @@ Form: ~s
 There is no function named DECLARE. References to DECLARE in some contexts (like
 the starts of blocks) are unevaluated expressions, but here it is illegal."
   decl)
+
+(deferror v-unrecognized-declaration () (decl)
+    "Varjo: Found an unregonised declaration named ~a
+~@[~%Might you have meant one of these?:~{~%~s~}~%~]
+Full Declaration: ~s"
+  (first decl) (find-alternative-declaration-kinds (first decl)) decl)
+
+(deferror v-unsupported-cl-declaration () (decl)
+    "Varjo: Found an unregonised declaration named ~a
+
+Whilst this is valid in standard common-lisp, it is not currently valid in
+Varjo.
+
+Full Declaration: ~s"
+  (first decl) decl)
+
+(deferror v-only-supporting-declares-on-vars () (targets)
+    "Varjo: We found the following invalid names in the declarations:
+~@[~{~%~s~}~%~]
+We currently only support declarations against variables. Sorry for the
+inconvenience."
+  targets)
+
+(deferror v-declare-on-symbol-macro () (target)
+    "Varjo: We found a declaration against ~s. However at this point in the
+compilation, ~s is bound to a symbol-value and Varjo does not support
+declarations against symbol-macros."
+  target target)
+
+(deferror v-metadata-missing-args () (name required provided missing)
+    "Varjo: The metadata type ~a requires the following args to be specified
+on creation: ~{~a~^, ~}
+
+However, the following was provided instead: ~s
+
+Please provide values for: ~{~a~^, ~}
+
+It is perfectly legal to set the values to nil, but we require them to be
+declared to something."
+  name required provided missing)
