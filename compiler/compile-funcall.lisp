@@ -18,10 +18,13 @@
         (null (error 'could-not-find-function :name name))))))
 
 (defun expand-macro (macro args-code env)
-  (compile-form (funcall (v-macro-function macro)
-                         args-code
-                         env)
-                env))
+  (let ((public-env (make-instance 'macro-expansion-environment
+                                   :macro-obj macro
+                                   :env env)))
+    (compile-form (funcall (v-macro-function macro)
+                           args-code
+                           public-env)
+                  env)))
 
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
@@ -83,9 +86,13 @@
   (unless (v-special-functionp func)
     (let ((macro (find-compiler-macro-for-func func env)))
       (when macro
-        (funcall (v-macro-function macro)
-                 (mapcar #'ast->code args)
-                 env)))))
+        (let ((public-env (make-instance 'compiler-macro-expansion-environment
+                                         :macro-obj macro
+                                         :args args
+                                         :env env)))
+          (funcall (v-macro-function macro)
+                   (mapcar #'ast->code args)
+                   public-env))))))
 
 (defun compile-function-call (func-name func args env)
   (vbind (expansion use-expansion)

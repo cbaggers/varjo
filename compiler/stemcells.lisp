@@ -46,10 +46,12 @@
                               flow-id cpu-side-transform))
      :node-tree (ast-node! :get-stemcell symbol type env env))))
 
-(defun inject-implicit-uniform (symbol type env &optional cpu-side-transform)
+(defun inject-implicit-uniform (symbol type-spec env
+                                &optional cpu-side-transform)
+  (assert (type-specp type-spec) (type-spec))
   (add-type-to-stemcell-code
    (make-stem-cell symbol env cpu-side-transform)
-   type))
+   type-spec))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

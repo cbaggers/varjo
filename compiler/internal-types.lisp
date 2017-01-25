@@ -200,6 +200,7 @@
 
 (defclass v-regular-macro ()
   ((name :initform nil :initarg :name :reader name)
+   (args :initform nil :initarg :args :accessor arguments)
    (macro-function :initarg :macro-function :initform nil
                    :reader v-macro-function)
    (function-scope :initarg :function-scope :initform 0
@@ -210,11 +211,23 @@
 
 (defclass v-compiler-macro ()
   ((name :initform nil :initarg :name :reader name)
+   (args :initform nil :initarg :args :accessor arguments)
    (context :initform nil :initarg :context :accessor v-context)
    (function-scope :initform 0 :accessor v-function-scope :allocation :class)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (macro-function :initarg :macro-function :initform nil
                    :reader v-macro-function)))
+
+;;----------------------------------------------------------------------
+
+(defclass macro-env ()
+  ((macro-obj :initarg :macro-obj)
+   (env :initarg :env)))
+
+(defclass macro-expansion-environment (macro-env) ())
+
+(defclass compiler-macro-expansion-environment (macro-env)
+  ((args :initarg :args)))
 
 ;;----------------------------------------------------------------------
 

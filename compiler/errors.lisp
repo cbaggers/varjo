@@ -407,3 +407,51 @@ messages." funcall-form)
 (deferror key-in-cmacro () (name)
     "Varjo: We do not currently support &key args in compiler macros: ~a"
   name)
+
+(deferror no-types-for-regular-macro-args () (macro-name arg)
+    "Varjo: The type of the argument ~a is unknown at this stage.
+
+The macro named ~a is a regular macro (defined with v-defmacro). This means
+that, the arguments passed to it are uncompiled code and as such, we cannot get
+their types.
+
+It is however possible to retrieve the argument types for compiler-macros."
+  arg macro-name)
+
+(deferror no-metadata-for-regular-macro-args () (macro-name arg)
+    "Varjo: The metadata for the argument ~a is unknown at this stage.
+
+The macro named ~a is a regular macro (defined with v-defmacro). This means
+that, the arguments passed to it are uncompiled code and as such, we cannot get
+any metadata about them.
+
+It is however possible to retrieve the metadata of arguments in compiler-macros."
+  arg macro-name)
+
+(deferror no-tracking-for-regular-macro-args () (macro-name arg)
+    "Varjo: The flow information for the argument ~a is unknown at this stage.
+
+The macro named ~a is a regular macro (defined with v-defmacro). This means
+that, the arguments passed to it are uncompiled code and as such, we cannot
+trace where they have come from.
+
+It is however possible to retrieve this data for arguments in compiler-macros."
+  arg macro-name)
+
+(deferror unknown-macro-argument () (macro-name arg)
+    "Varjo: Could not find an argument named ~a in the macro ~a"
+  arg macro-name)
+
+(deferror symbol-macro-not-var () (callee name)
+    "Varjo: ~a was asked to find the value bound to the symbol ~a, however ~a is
+currently bound to a symbol-macro."
+  callee name name)
+
+(deferror unbound-not-var () (callee name)
+    "Varjo: ~a was asked to find the value bound to the symbol ~a, however ~a is
+currently unbound."
+  callee name name)
+
+(deferror not-proved-a-uniform () (name)
+    "Varjo: We are unable to prove that ~a has come from a uniform"
+  name)

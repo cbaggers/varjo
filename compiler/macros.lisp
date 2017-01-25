@@ -45,23 +45,23 @@
     (when (find-if λ(namedp :&key _) lambda-list)
       (error 'key-in-cmacro :func-name name))
     ;;
-    (let* ((whole-pos (position-if λ(namedp _ :&whole) lambda-list))
-           (llist (mapcar λ(if (listp _) (first _) _) lambda-list))
-           (cleaned (if whole-pos
-                        (append (subseq lambda-list 0 whole-pos)
-                                (subseq lambda-list (+ 2 whole-pos)))
-                        lambda-list))
-           (arg-types (mapcar λ(type-spec->type (second _)) cleaned)))
+    (let ((llist (mapcar λ(if (listp _) (first _) _) lambda-list)))
       (vbind (func-code context) (gen-macro-function-code name llist body)
-        `(progn
-           (add-compiler-macro
-            (make-compiler-macro ',name ,func-code ',arg-types ',context)
-            *global-env*)
-           ',name)))))
+        (let* ((args (nth-value 1 (extract-arg-pair lambda-list :&whole)))
+               (args (nth-value 1 (extract-arg-pair args :&environment)))
+               (arg-names (mapcar #'first args))
+               (arg-types (mapcar λ(type-spec->type (second _)) args)))
+          `(progn
+             (add-compiler-macro
+              (make-compiler-macro ',name ,func-code ',arg-names ',arg-types
+                                   ',context)
+              *global-env*)
+             ',name))))))
 
-(defun make-compiler-macro (name macro-function arg-spec context)
+(defun make-compiler-macro (name macro-function arg-names arg-spec context)
   (make-instance 'v-compiler-macro
                  :name name
+                 :args arg-names
                  :context context
                  :arg-spec arg-spec
                  :macro-function macro-function))
@@ -85,14 +85,17 @@
 ;; Helpers
 
 (defun extract-arg-pair (lambda-list key)
-  (let* ((key-pos (position key lambda-list :test #'symbol-name-equal))
-         (value (when key-pos
-                  (first (subseq lambda-list (1+ key-pos)))))
-         (cleaned (if key-pos
-                      (append (subseq lambda-list 0 key-pos)
-                              (subseq lambda-list (+ 2 key-pos)))
-                      lambda-list)))
-    (values value cleaned)))
+  (labels ((forgiving-name-equal (x y)
+             (when (and (symbolp x) (symbolp y))
+               (symbol-name-equal x y))))
+    (let* ((key-pos (position key lambda-list :test #'forgiving-name-equal))
+           (value (when key-pos
+                    (first (subseq lambda-list (1+ key-pos)))))
+           (cleaned (if key-pos
+                        (append (subseq lambda-list 0 key-pos)
+                                (subseq lambda-list (+ 2 key-pos)))
+                        lambda-list)))
+      (values value cleaned))))
 
 (defun gen-macro-function-code (name lambda-list body)
   (alexandria:with-gensyms (form-var g-env result)
