@@ -507,8 +507,13 @@ inconvenience."
 
 (deferror v-declare-on-symbol-macro () (target)
     "Varjo: We found a declaration against ~s. However at this point in the
-compilation, ~s is bound to a symbol-value and Varjo does not support
+compilation, ~s is bound to a symbol-macro and Varjo does not support
 declarations against symbol-macros."
+  target target)
+
+(deferror v-declare-on-nil-binding () (target)
+    "Varjo: We found a declaration against ~s. However at this point in the
+compilation, ~s is not bound to anything."
   target target)
 
 (deferror v-metadata-missing-args () (name required provided missing)

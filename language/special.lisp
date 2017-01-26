@@ -1048,27 +1048,9 @@
 
 ;;------------------------------------------------------------
 ;; Declarations
-
-;; Valid in these forms
 ;;
-;; defgeneric                 do-external-symbols   prog
-;; define-compiler-macro      do-symbols            prog*
-;; define-method-combination  dolist                restart-case
-;; define-setf-expander       dotimes               symbol-macrolet
-;; defmacro                   flet                  with-accessors
-;; defmethod                  handler-case          with-hash-table-iterator
-;; defsetf                    labels                with-input-from-string
-;; deftype                    let                   with-open-file
-;; defun                      let*                  with-open-stream
-;; destructuring-bind         locally               with-output-to-string
-;; do                         macrolet              with-package-iterator
-;; do*                        multiple-value-bind   with-slots
-;; do-all-symbols             pprint-logical-block
+;; The main logic for this is in value-metadata.lisp
 
-(defvar +cl-standard-declaration-ids+
-  '(dynamic-extent  ignore     optimize
-    ftype           inline     special
-    ignorable       notinline  type))
 
 ;; {TODO} The declarations in 'locally' are meant to be lexically scoped.
 ;;        however so far our metadata always flows with the values.
@@ -1078,64 +1060,5 @@
   :args-valid t
   :return
   (vbind (body declarations) (extract-declares body)
-    (vbind (compiled-decls env) (compile-declares declarations env)
-      (compile-form `(progn ,compiled-decls ,@body) env))))
-
-(defun compile-declares (declaration-specifiers env)
-  (let ((decl-forms (loop :for decl :in declaration-specifiers :append
-                       (progn
-                         (assert (eq (first decl) 'declare))
-                         (rest decl)))))
-    (loop :for decl-form :in decl-forms :do
-       (dbind (decl-name . decl-rest) decl-form
-         (let* ((has-args (listp (first decl-rest)))
-                (decl-args (when has-args (first decl-rest)))
-                (decl-targets (if has-args
-                                  (rest decl-rest)
-                                  decl-rest)))
-           (when decl-targets
-             (assert (not (find decl-name +cl-standard-declaration-ids+))
-                     () 'v-unsupported-cl-declaration :decl decl-form)
-             (assert (known-metadata-kind-p decl-name) (decl-name)
-                     'v-unrecognized-declaration :decl decl-form)
-             (assert (every #'symbolp decl-targets) (decl-targets)
-                     'v-only-supporting-declares-on-vars
-                     :targets (remove-if #'symbolp decl-targets))
-             (loop :for target :in decl-targets :do
-                (let ((binding (get-symbol-binding target t env)))
-                  (assert (typep binding 'v-value) ()
-                          'v-declare-on-symbol-macro :target target)
-                  (let ((id (flow-ids (v-type binding))))
-                    (setf (metadata-for-flow-id id env)
-                          (apply #'make-instance decl-name decl-args))))))))))
-  ;; we return nil so env-> will be satisfied. We are mutating the environment
-  ;; so there is not environment to return
-  nil)
-
-(defun extract-declares-and-doc-string (body full-form)
-  (labels ((declp (x) (and (listp x) (eq (first x) 'declare))))
-    (if (= (length body) 1)
-        (values body nil nil)
-        (let (doc-string declarations)
-          (loop :for form :in body :for i :from 0
-             :while
-             (cond
-               ;;
-               ((declp form) (push form declarations))
-               ;;
-               ((stringp form) (if doc-string
-                                   (error 'duplicate-varjo-doc-string
-                                          :dup form :form full-form)
-                                   (setf doc-string form))))
-             :finally (return (values (subseq body i)
-                                      declarations
-                                      doc-string)))))))
-
-(defun extract-declares (body)
-  (labels ((declp (x) (and (listp x) (eq (first x) 'declare))))
-    (if (= (length body) 1)
-        (values body nil)
-        (let (declarations)
-          (loop :for form :in body :for i :from 0
-             :while (declp form) :do (push form declarations)
-             :finally (return (values (subseq body i) declarations)))))))
+    (compile-declares declarations env)
+    (compile-form `(progn ,@body) env)))
