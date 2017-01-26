@@ -197,8 +197,8 @@
            :v-true-type
 
            ;;types
-           :add-type-shadow
-           :un-shadow
+           :add-alternate-type-name
+           :resolve-name-from-alternative
            :v-type
            :v-stemcell
            :v-array

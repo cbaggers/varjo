@@ -370,10 +370,10 @@ doesnt"))
                             :flow-ids flow-id)))
           (t nil))))
 
-;; shouldnt the un-shadow be in try-type-spec->type?
+;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
 (defun type-spec->type (spec &optional flow-id)
   (v-true-type
-   (or (try-type-spec->type (un-shadow spec) flow-id)
+   (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
        (error 'unknown-type-spec :type-spec spec))))
 
 ;; A probably too forgiving version of type-spec->type, it is a no-op
@@ -402,21 +402,14 @@ doesnt"))
           (maphash #'(lambda (k v) (setf (gethash v ht) k))
                    shadow-ht)
           ht)))
-  (defun add-type-shadow (type shadowing-this-type)
+  (defun add-alternate-type-name (type shadowing-this-type)
     (assert (and (symbolp type) (symbolp shadowing-this-type)))
     (setf (gethash type shadow-ht) shadowing-this-type)
     (setf (gethash shadowing-this-type shadow-ht-backward) type))
-  (defun un-shadow (spec)
+  (defun resolve-name-from-alternative (spec)
     (if (listp spec)
         `(,(or (gethash (first spec) shadow-ht) (first spec)) ,@(rest spec))
-        (or (gethash spec shadow-ht) spec)))
-  (defun reverse-shadow-lookup (shadowed-type-spec)
-    (if (listp shadowed-type-spec)
-        `(,(or (gethash (first shadowed-type-spec) shadow-ht-backward)
-               (first shadowed-type-spec))
-           ,@(rest shadowed-type-spec))
-        (or (gethash shadowed-type-spec shadow-ht-backward)
-            shadowed-type-spec))))
+        (or (gethash spec shadow-ht) spec))))
 
 ;;------------------------------------------------------------
 ;; Type Equality
@@ -463,9 +456,9 @@ doesnt"))
 (defmethod v-typep ((a v-type) b &optional (env *global-env*))
   (declare (ignore env))
   (cond ((symbolp b)
-         (typep a (un-shadow b)))
+         (typep a (resolve-name-from-alternative b)))
         ((and (listp b) (numberp (second b)))
-         (typep a (un-shadow (first b))))))
+         (typep a (resolve-name-from-alternative (first b))))))
 
 (defmethod v-typep ((a null) b &optional (env *global-env*))
   (declare (ignore env a b))

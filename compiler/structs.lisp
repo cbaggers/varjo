@@ -21,7 +21,7 @@
           (true-type-name (true-type-name name))
           (fake-type-name (fake-type-name name)))
       `(progn
-         ,(when shadowing `(add-type-shadow ',name ',class-name))
+         ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (def-v-type-class ,class-name (v-user-struct)
            ((glsl-string :initform ,name-string :initarg :glsl-string
                          :reader v-glsl-string)
