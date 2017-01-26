@@ -1062,3 +1062,16 @@
   (vbind (body declarations) (extract-declares body)
     (compile-declares declarations env)
     (compile-form `(progn ,@body) env)))
+
+;;------------------------------------------------------------
+;; ephemeral. This is here temporarily
+
+(v-defspecial init-ephemeral (name)
+  :args-valid t
+  :return
+  (let* ((type (type-spec->type name (flow-id!)))
+         (ast (ast-node! 'init-ephemeral (list name) type env env)))
+    (assert (typep type 'v-ephemeral-type) ()
+            "~a is not an ephemeral type" name)
+    (values (code! :type type :current-line nil :node-tree ast)
+            env)))

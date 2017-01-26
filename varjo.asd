@@ -21,6 +21,7 @@
                (:file "compiler/internal-types")
                (:file "compiler/types")
                (:file "compiler/function-obj")
+               (:file "compiler/deftype")
                (:file "compiler/code-object")
                (:file "compiler/stemcells")
                (:file "language/types")

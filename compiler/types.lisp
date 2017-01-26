@@ -12,7 +12,9 @@
             ()
             "Varjo: All types must specify one superclass, this will usually be v-type"))
   ;;
-  (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
+  (let ((new-names (if (and (equal (package-name (symbol-package name)) "VARJO")
+                            (equal (subseq (symbol-name name) 2) "V-")
+                            (not (member name '(v-type))))
                        `(append (list ,(kwd (subseq (symbol-name name) 2))
                                       ',name)
                                 *registered-types*)
@@ -105,6 +107,15 @@ doesnt"))
 
 (defun v-errorp (obj)
   (typep obj 'v-error))
+
+;;------------------------------------------------------------
+;; Shadow Type
+;;
+;; The supertype for all types which that are shadowing a core
+;; glsl type.
+
+(def-v-type-class v-shadow-type (v-type)
+  ((shadowed-type :initform nil :reader shadowed-type)))
 
 ;;------------------------------------------------------------
 ;; Ephemeral Values
@@ -334,6 +345,7 @@ doesnt"))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
+          ((eq spec t) (type-spec->type 'v-type))
           ((and (symbolp spec) (vtype-existsp spec))
            (let ((type (make-instance spec :flow-ids flow-id)))
              (when (typep type 'v-type)

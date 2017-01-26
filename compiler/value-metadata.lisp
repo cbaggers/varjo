@@ -36,13 +36,13 @@
   (let ((init-args (loop :for name :in slot-names :collect
                       `(,name nil ,(gensym (symbol-name name))))))
     `(defmethod initialize-instance :after
-       ((md ,name) &rest all &key ,@init-args)
+       ((md ,name) &rest all-args &key ,@init-args)
        (declare (ignore ,@slot-names))
        (assert (and ,@(mapcar #'third init-args)) ()
                'v-metadata-missing-args
                :name ',name
                :required ',slot-names
-               :provided all
+               :provided all-args
                :missing (remove nil (list ,@(loop :for (n nil c) :in init-args
                                                :collect `(unless ,c ',n))))))))
 

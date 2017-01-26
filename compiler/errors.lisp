@@ -10,8 +10,9 @@
 
                                         ;------------HELPER-----------;
 
-(defmacro deferror (name (&key (error-type 'varjo-error) prefix)
-                            (&rest args) error-string &body body)
+(defmacro defcondition (name (&key error-type prefix)
+                                (&rest args) error-string &body body)
+  (assert error-type () "DEFCONDITION: error-type is a mandatory argument")
   (unless (every #'symbolp args) (error "can only take simple args"))
   (loop :for arg :in args :do
      (setf body (subst `(,arg condition) arg body :test #'eq)))
@@ -23,8 +24,19 @@
                 (format stream ,(format nil "~@[~a:~] ~a" prefix error-string)
                         ,@body)))))
 
+(defmacro deferror (name (&key (error-type 'varjo-error) prefix)
+                            (&rest args) error-string &body body)
+  `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
+       ,error-string ,@body))
+
+(defmacro defwarning (name (&key (error-type 'varjo-warning) prefix)
+                            (&rest args) error-string &body body)
+  `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
+       ,error-string ,@body))
+
 (define-condition varjo-error (error) ())
 (define-condition varjo-critical-error (error) ())
+(define-condition varjo-warning (warning) ())
 
                                         ;-----------------------------;
 
@@ -527,3 +539,60 @@ Please provide values for: ~{~a~^, ~}
 It is perfectly legal to set the values to nil, but we require them to be
 declared to something."
   name required provided missing)
+
+(defwarning cant-shadow-user-defined-func () (funcs)
+  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+The following functions have been skipped:~{~%~s~}"
+  funcs)
+
+(defwarning cant-shadow-no-type-match () (shadowed funcs)
+  "Varjo: Was asked to shadow the following functions, however none of the
+arguments have the type ~a
+
+The following functions have been skipped:~{~%~s~}"
+  shadowed funcs)
+
+(deferror shadowing-user-defined-func () (func)
+  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+The function in question was: ~s"
+  func)
+
+(deferror shadowing-no-type-match () (shadowed func)
+  "Varjo: Was asked to shadow the following function, however none of the
+arguments have the type ~a
+
+The function in question was: ~s"
+  shadowed func)
+
+(deferror shadowing-no-return-matched () (shadowed func)
+  "Varjo: Was asked to shadow the following function, however none of the
+returned values have the type ~a
+
+The function in question was: ~s"
+  shadowed func)
+
+(deferror shadowing-multiple-constructors () (shadow-type func-id funcs)
+  "Varjo: Was asked to shadow the function with the idenifier ~a  as a
+constructor for the shadow-type ~a.
+
+However this function-identifier names multiple functions, which is not
+allowed in this form.
+
+The functions in question were:~{~%~a~}"
+  func-id shadow-type funcs)
+
+(deferror shadowing-constructor-no-match () (shadow-type func-id)
+  "Varjo: Was asked to shadow the function with the idenifier ~a as
+a constructor for the shadow-type ~a.
+
+However no functions were found that matched this identifier."
+  func-id shadow-type)
+
+(deferror def-shadow-non-func-identifier () (name func-ids)
+  "Varjo: ~a was ask to shadow some functions, however the following
+identifiers are have problems:
+~{~%~s~}
+
+The identifiers passed to this macro should be in the format:
+#'func-name  - or - #'(func-name arg-type arg-type)}"
+  name func-ids)

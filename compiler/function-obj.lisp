@@ -55,6 +55,19 @@
 
 ;;------------------------------------------------------------
 
+(defmethod function-identifier ((func v-function))
+  (cons (name func) (mapcar #'type->type-spec (v-argument-spec func))))
+
+(defmethod function-identifier-with-return ((func v-function))
+  (let* ((returns (mapcar #'type->type-spec (v-return-spec func)))
+         (returns (if (= (length returns) 1)
+                      (first returns)
+                      returns)))
+    `#'(,(name func) ,(mapcar #'type->type-spec (v-argument-spec func))
+         :-> ,returns)))
+
+;;------------------------------------------------------------
+
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
     (assert (listp return-spec))
@@ -155,6 +168,112 @@
      :flow-ids (flow-id!)
      :in-arg-flow-ids (loop :for i :in arg-spec :collect (flow-id!))
      :in-out-args nil)))
+
+;;------------------------------------------------------------
+
+(defmethod shadow-function ((func v-function) shadowed-type new-type
+                            &key (convert-args t) convert-returns
+                              new-name)
+  (with-slots (versions argument-spec glsl-string glsl-name return-spec
+                        v-place-index name implicit-args in-out-args
+                        in-arg-flow-ids flow-ids)
+      func
+    (when convert-args
+      (assert (find shadowed-type argument-spec :test #'v-type-eq) ()
+              'shadowing-no-type-match :shadowed shadowed-type :func func))
+    (when convert-returns
+      (assert (find shadowed-type return-spec :test #'v-type-eq) ()
+              'shadowing-no-return-matched :shadowed shadowed-type :func func))
+    (let* ((new-arg-spec (if convert-args
+                             (substitute new-type shadowed-type argument-spec
+                                         :test #'v-type-eq)
+                             argument-spec))
+           (new-return-spec (if convert-returns
+                                (substitute new-type shadowed-type return-spec
+                                            :test #'v-type-eq)
+                                return-spec))
+           (new-func (make-instance 'v-function
+                                    :versions versions
+                                    :arg-spec new-arg-spec
+                                    :glsl-string glsl-string
+                                    :glsl-name glsl-name
+                                    :return-spec new-return-spec
+                                    :v-place-index v-place-index
+                                    :name (or new-name name)
+                                    :implicit-args implicit-args
+                                    :in-out-args in-out-args
+                                    :in-arg-flow-ids in-arg-flow-ids
+                                    :flow-ids flow-ids)))
+      (add-form-binding new-func *global-env*)
+      new-func)))
+
+;; {TODO} proper error
+(defmethod shadow-function ((func v-user-function) shadowed-type new-type
+                            &key (convert-args t) convert-returns)
+  (declare (ignore convert-args convert-returns shadowed-type new-type))
+  (error 'shadowing-user-defined-func :func func))
+
+(defun shadow-functions (shadow-type-spec function-identifiers)
+  (let* ((type (type-spec->type shadow-type-spec))
+         (shadowed (shadowed-type type))
+         (func-sets (mapcar λ(find-form-binding-by-literal _ *global-env*)
+                            function-identifiers))
+         (functions (reduce #'append (mapcar #'functions func-sets)))
+         (has-type (remove-if-not
+                    λ(find shadowed (v-argument-spec _) :test #'v-type-eq)
+                    functions))
+         (no-type (set-difference functions has-type))
+         (valid (remove-if λ(typep _ 'v-user-function) has-type))
+         (user-funcs (set-difference valid has-type)))
+    (when user-funcs
+      (warn 'cant-shadow-user-defined-func :funcs user-funcs))
+    (when no-type
+      (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
+    (loop :for func :in valid :collect
+       (function-identifier (shadow-function func shadowed type)))))
+
+(defun shadow-functions (shadow-type-spec function-identifiers)
+  (let* ((type (type-spec->type shadow-type-spec))
+         (shadowed (shadowed-type type))
+         (func-sets (mapcar λ(find-form-binding-by-literal _ *global-env*)
+                            function-identifiers))
+         (functions (reduce #'append (mapcar #'functions func-sets)))
+         (has-type (remove-if-not
+                    λ(find shadowed (v-argument-spec _) :test #'v-type-eq)
+                    functions))
+         (no-type (set-difference functions has-type))
+         (valid (remove-if λ(typep _ 'v-user-function) has-type))
+         (user-funcs (set-difference valid has-type)))
+    (when user-funcs
+      (warn 'cant-shadow-user-defined-func :funcs user-funcs))
+    (when no-type
+      (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
+    (loop :for func :in valid :collect
+       (function-identifier-with-return (shadow-function func shadowed type)))))
+
+(defun shadow-constructor-function (shadow-type-spec function-identifier)
+  (let* ((type (type-spec->type shadow-type-spec))
+         (shadowed (shadowed-type type))
+         (func-set (find-form-binding-by-literal function-identifier
+                                                  *global-env*))
+         (functions (functions func-set)))
+    (assert (not (null functions)) () 'shadowing-constructor-no-match
+            :shadow-type type :func-id function-identifier)
+    (assert (= (length functions) 1) () 'shadowing-multiple-constructors
+            :shadow-type type :func-id function-identifier :funcs functions)
+    (let* ((function (first functions))
+           (has-type (find shadowed (v-return-spec function)
+                           :test #'v-type-eq))
+           (user-func (typep function 'v-user-function)))
+      (when user-func
+        (error 'shadowing-user-defined-func :func function))
+      (unless has-type
+        (error 'shadowing-no-return-matched :shadowed shadowed :func function))
+      (function-identifier-with-return
+       (shadow-function function shadowed type
+                        :new-name shadow-type-spec
+                        :convert-args nil
+                        :convert-returns t)))))
 
 ;;------------------------------------------------------------
 
