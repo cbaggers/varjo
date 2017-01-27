@@ -36,6 +36,9 @@
 (let ((gl-flow-id 0))
   (defun %gen-flow-gl-id () (bare-id! (decf gl-flow-id))))
 
+(defun singular-flow-id-p (flow-id)
+  (= 1 (length (ids flow-id))))
+
 ;;----------------------------------------------------------------------
 
 (defvar root-flow-gen-func

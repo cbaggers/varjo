@@ -1,19 +1,28 @@
 (in-package :varjo)
 (in-readtable :fn.reader)
 
-(defmacro v-deftype (name args type-form)
-  (let ((ephemeral (null type-form)))
+(defmacro v-deftype (name args type-form
+                     &key valid-metadata-kinds)
+  (let ((ephemeral (null type-form))
+        (valid-metadata-kinds (listify valid-metadata-kinds)))
     (assert (not args) () "args not supported yet")
     (assert (symbolp type-form) () "compound & array types not yet supported")
     (if ephemeral
         `(progn
            (def-v-type-class ,name (v-ephemeral-type) ())
            (v-defun ,name () nil () ,name)
+           (defmethod meta-kinds-to-infer ((varjo-type ,name))
+             (declare (ignore varjo-type))
+             ',valid-metadata-kinds)
            ',name)
         (let ((shadowed-type (type-spec->type type-form)))
-          `(def-v-type-class ,name (v-shadow-type)
-             ((shadowed-type :initform ,shadowed-type)
-              (glsl-string :initform ,(v-glsl-string shadowed-type))))))))
+          `(progn
+             (def-v-type-class ,name (v-shadow-type)
+              ((shadowed-type :initform ,shadowed-type)
+               (glsl-string :initform ,(v-glsl-string shadowed-type))))
+             (defmethod meta-kinds-to-infer ((varjo-type ,name))
+               (declare (ignore varjo-type))
+               ',valid-metadata-kinds))))))
 
 (defmacro def-shadow-type-functions (shadow-type &body function-identifiers)
   (flet ((func-form-p (x)
@@ -38,6 +47,8 @@
             :func-ids (list function-identifier))
     (let ((function-identifier (second function-identifier)))
       `(shadow-constructor-function ',shadow-type ',function-identifier))))
+
+
 
 #+nil
 (v-deftype zoob () ())

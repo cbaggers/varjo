@@ -172,3 +172,40 @@ never be null"))
   ;; we return nil so env-> will be satisfied. We are mutating the environment
   ;; so there is not environment to return
   nil)
+
+;;-------------------------------------------------------------------------
+
+(defmethod meta-kinds-to-infer (varjo-type)
+  (declare (ignore varjo-type))
+  nil)
+
+(defmethod infer-meta-by-type (varjo-type metadata-kind env)
+  (declare (ignore varjo-type metadata-kind env))
+  nil)
+
+(defun infer-meta (code-obj env)
+  (assert (typep code-obj 'code))
+  (assert (typep env 'environment))
+  (let* ((type (code-type code-obj))
+         (flow-id (flow-ids type))
+         (ext-env (make-instance 'extended-environment :env env)))
+    (when (singular-flow-id-p flow-id)
+      (loop :for kind :in (meta-kinds-to-infer type) :do
+         (unless (metadata-for-flow-id kind flow-id env)
+           (let ((meta-args (multiple-value-list
+                             (infer-meta-by-type type kind ext-env))))
+             (unless (or (null meta-args)
+                         (equal meta-args '(nil)))
+               (let ((meta (apply #'make-instance kind meta-args)))
+                 (setf (metadata-for-flow-id flow-id env) meta))))))))
+  code-obj)
+
+(defmacro def-metadata-infer (varjo-type metadata-kind env-var &body body)
+  (assert (symbolp varjo-type))
+  (assert (symbolp metadata-kind))
+  (let ((varjo-type (type->type-spec (type-spec->type varjo-type))))
+    (with-gensyms (type kind)
+      `(defmethod infer-meta-by-type ((,type ,varjo-type)
+                                      (,kind (eql ',metadata-kind))
+                                      ,env-var)
+         ,@body))))

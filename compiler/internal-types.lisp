@@ -220,13 +220,15 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass macro-env ()
-  ((macro-obj :initarg :macro-obj)
-   (env :initarg :env)))
+(defclass extended-environment ()
+  ((env :initarg :env)))
 
-(defclass macro-expansion-environment (macro-env) ())
+(defclass expansion-env (extended-environment)
+  ((macro-obj :initarg :macro-obj)))
 
-(defclass compiler-macro-expansion-environment (macro-env)
+(defclass macro-expansion-environment (expansion-env) ())
+
+(defclass compiler-macro-expansion-environment (expansion-env)
   ((args :initarg :args)))
 
 ;;----------------------------------------------------------------------

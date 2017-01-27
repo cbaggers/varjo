@@ -12,4 +12,6 @@
             ((typep code 'code) code)
             ((typep code 'v-value) (%v-value->code code env))
             (t (error 'cannot-compile :code code)))
-    (values code-obj (or new-env env))))
+    (let* ((new-env (or new-env env))
+           (code-with-meta (infer-meta code-obj new-env)))
+      (values code-with-meta new-env))))
