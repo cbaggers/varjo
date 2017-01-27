@@ -218,38 +218,24 @@
          (shadowed (shadowed-type type))
          (func-sets (mapcar λ(find-form-binding-by-literal _ *global-env*)
                             function-identifiers))
-         (functions (reduce #'append (mapcar #'functions func-sets)))
-         (has-type (remove-if-not
-                    λ(find shadowed (v-argument-spec _) :test #'v-type-eq)
-                    functions))
-         (no-type (set-difference functions has-type))
-         (valid (remove-if λ(typep _ 'v-user-function) has-type))
-         (user-funcs (set-difference valid has-type)))
-    (when user-funcs
-      (warn 'cant-shadow-user-defined-func :funcs user-funcs))
-    (when no-type
-      (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
-    (loop :for func :in valid :collect
-       (function-identifier (shadow-function func shadowed type)))))
-
-(defun shadow-functions (shadow-type-spec function-identifiers)
-  (let* ((type (type-spec->type shadow-type-spec))
-         (shadowed (shadowed-type type))
-         (func-sets (mapcar λ(find-form-binding-by-literal _ *global-env*)
-                            function-identifiers))
-         (functions (reduce #'append (mapcar #'functions func-sets)))
-         (has-type (remove-if-not
-                    λ(find shadowed (v-argument-spec _) :test #'v-type-eq)
-                    functions))
-         (no-type (set-difference functions has-type))
-         (valid (remove-if λ(typep _ 'v-user-function) has-type))
-         (user-funcs (set-difference valid has-type)))
-    (when user-funcs
-      (warn 'cant-shadow-user-defined-func :funcs user-funcs))
-    (when no-type
-      (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
-    (loop :for func :in valid :collect
-       (function-identifier-with-return (shadow-function func shadowed type)))))
+         (pairs (mapcar λ(list _ (functions _1)) function-identifiers
+                        func-sets))
+         (multi-sets (remove-if-not λ(> (length (second _)) 1) pairs)))
+    (assert (null multi-sets) () 'shadowing-multiple-funcs
+            :shadow-type type :pairs (reduce #'append multi-sets))
+    (let* ((functions (reduce #'append (mapcar #'functions func-sets)))
+           (has-type (remove-if-not
+                      λ(find shadowed (v-argument-spec _) :test #'v-type-eq)
+                      functions))
+           (no-type (set-difference functions has-type))
+           (valid (remove-if λ(typep _ 'v-user-function) has-type))
+           (user-funcs (set-difference valid has-type)))
+      (when user-funcs
+        (warn 'cant-shadow-user-defined-func :funcs user-funcs))
+      (when no-type
+        (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
+      (loop :for func :in valid :collect
+         (function-identifier-with-return (shadow-function func shadowed type))))))
 
 (defun shadow-constructor-function (shadow-type-spec function-identifier)
   (let* ((type (type-spec->type shadow-type-spec))

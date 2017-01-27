@@ -581,6 +581,16 @@ allowed in this form.
 The functions in question were:~{~%~a~}"
   func-id shadow-type funcs)
 
+(deferror shadowing-multiple-funcs () (shadow-type pairs)
+  "Varjo: Was asked to shadow the functions for the shadow-type ~a.
+
+However these function-identifiers name multiple functions, which is not
+allowed in this form.
+
+The functions in question were:
+~{~%Identifier: ~a~%Named functions: ~a~%~}"
+  shadow-type pairs)
+
 (deferror shadowing-constructor-no-match () (shadow-type func-id)
   "Varjo: Was asked to shadow the function with the idenifier ~a as
 a constructor for the shadow-type ~a.
@@ -596,3 +606,8 @@ identifiers are have problems:
 The identifiers passed to this macro should be in the format:
 #'func-name  - or - #'(func-name arg-type arg-type)}"
   name func-ids)
+
+(deferror shadowing-funcs-for-non-shadow-type () (name shadow-type)
+  "Varjo: ~a was ask to shadow some functions for the type ~a,
+however the type ~a is not a shadow type."
+  name shadow-type shadow-type)

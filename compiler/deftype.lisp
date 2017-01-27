@@ -15,6 +15,10 @@
 (defmacro def-shadow-type-functions (shadow-type &body function-identifiers)
   (flet ((func-form-p (x)
            (and (listp x) (eq (first x) 'function) (= (length x) 2))))
+    (assert (v-typep (type-spec->type shadow-type) 'v-shadow-type) (shadow-type)
+            'shadowing-funcs-for-non-shadow-type
+            :name 'def-shadow-type-functions
+            :shadow-type shadow-type)
     (assert (every #'func-form-p function-identifiers) ()
             'def-shadow-non-func-identifier
             :name 'def-shadow-non-func-identifier
