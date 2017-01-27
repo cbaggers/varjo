@@ -16,7 +16,7 @@
     (declare (ignore in-args))
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (let* ((template (first body)))
-      (unless (stringp template)
+      (unless (or (stringp template) (null template))
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
                                      &key v-place-index glsl-name) body

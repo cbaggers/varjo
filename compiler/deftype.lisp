@@ -6,7 +6,10 @@
     (assert (not args) () "args not supported yet")
     (assert (symbolp type-form) () "compound & array types not yet supported")
     (if ephemeral
-        `(def-v-type-class ,name (v-ephemeral-type) ())
+        `(progn
+           (def-v-type-class ,name (v-ephemeral-type) ())
+           (v-defun ,name () nil () ,name)
+           ',name)
         (let ((shadowed-type (type-spec->type type-form)))
           `(def-v-type-class ,name (v-shadow-type)
              ((shadowed-type :initform ,shadowed-type)
@@ -36,9 +39,8 @@
     (let ((function-identifier (second function-identifier)))
       `(shadow-constructor-function ',shadow-type ',function-identifier))))
 
-
 #+nil
-(v-deftype foo () ())
+(v-deftype zoob () ())
 
 #+nil
 (v-deftype foob () :vec4)
