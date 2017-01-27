@@ -235,7 +235,8 @@
       (when no-type
         (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
       (loop :for func :in valid :collect
-         (function-identifier-with-return (shadow-function func shadowed type))))))
+         (function-identifier-with-return
+          (shadow-function func shadowed type :convert-returns t))))))
 
 (defun shadow-constructor-function (shadow-type-spec function-identifier)
   (let* ((type (type-spec->type shadow-type-spec))

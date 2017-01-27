@@ -39,8 +39,10 @@
 
 #+nil
 (v-deftype foo () ())
+
 #+nil
 (v-deftype foob () :vec4)
+
 #+nil
 (v-deftype flart () :float)
 
