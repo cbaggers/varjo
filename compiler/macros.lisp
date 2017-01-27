@@ -77,9 +77,9 @@
                                candidates))
                (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
                (sorted (sort trimmed #'< :key #'secondary-score))
-               (winner (first sorted))
-               (macro (func winner)))
-          macro)))))
+               (winner (first sorted)))
+          (when winner
+            (func winner)))))))
 
 ;;------------------------------------------------------------
 ;; Helpers
