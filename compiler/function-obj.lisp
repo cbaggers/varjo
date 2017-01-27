@@ -262,6 +262,22 @@
                         :convert-args nil
                         :convert-returns t)))))
 
+(defun add-alt-ephemeral-constructor-function (src-type-name alt-type-name)
+  (let ((src-type (type-spec->type src-type-name))
+        (alt-type (type-spec->type alt-type-name)))
+    (when (typep (type-spec->type src-type-name) 'v-ephemeral-type)
+      (let* ((func-set (find-form-binding-by-literal (list src-type-name)
+                                                     *global-env*))
+             (functions (functions func-set))
+             (constr (first (remove-if λ(> (length (v-argument-spec _)) 0)
+                                       functions))))
+        (when (v-type-eq (first (v-return-spec constr)) src-type)
+          (function-identifier-with-return
+           (shadow-function constr src-type alt-type
+                            :new-name alt-type-name
+                            :convert-args nil
+                            :convert-returns t)))))))
+
 ;;------------------------------------------------------------
 
 (defmethod captured-vars ((fn v-function))
