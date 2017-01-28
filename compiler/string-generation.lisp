@@ -181,7 +181,7 @@
                      (mapcar #'last1 (out-vars post-proc-obj))
                      (remove-empty
                       (append
-                       (mapcar #'last1 (uniforms post-proc-obj))
+                       (mapcar #'%glsl-decl (uniforms post-proc-obj))
                        (mapcar #'%glsl-decl (stemcells post-proc-obj))))
                      (signatures env)
                      (let* ((funcs (all-functions post-proc-obj))

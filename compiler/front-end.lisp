@@ -83,7 +83,8 @@ Example:
         (with-stage () stage
           (list (if (and (in-args-compatiblep in-args out-vars)
                          (uniforms-compatiblep
-                          uniforms (uniforms previous-stage))
+                          uniforms (mapcar #'to-arg-form
+                                           (uniforms previous-stage)))
                          (context-compatiblep stage previous-stage))
                     (mapcar #'%merge-in-arg
                             out-vars
@@ -104,6 +105,10 @@ Example:
               (or tp-meta (make-hash-table))
               stemcells-allowed))))
 
+(defmethod to-arg-form ((uniform uniform))
+  `(,(name uniform)
+     ,(type->type-spec (v-type-of uniform))
+     ,@(qualifiers uniform)))
 
 (defun %merge-in-arg (previous current)
   (with-v-arg (c-name c-type c-qual c-glsl-name) current

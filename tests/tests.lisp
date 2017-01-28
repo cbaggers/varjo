@@ -31,11 +31,13 @@
          (version (varjo::get-version-from-context-list
                    (context compile-result)))
          (stemcells (allowed-stemcells compile-result))
-         (recomp (first (v-compile (uniforms compile-result) version
-                                   (stage-type compile-result)
-                                   (list (in-args compile-result)
-                                         code)
-                                   :allow-stemcells stemcells)))
+         (recomp (first (v-compile
+                         (mapcar #'varjo::to-arg-form (uniforms compile-result))
+                         version
+                         (stage-type compile-result)
+                         (list (in-args compile-result)
+                               code)
+                         :allow-stemcells stemcells)))
          (recomp-code (ast->code recomp)))
     (or (values (equal code recomp-code) depth)
         (when (< depth max-depth)

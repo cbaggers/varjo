@@ -75,12 +75,16 @@
                          :initform (make-hash-table)
                          :reader third-party-metadata)))
 
-(defclass implicit-uniform ()
+(defclass uniform ()
   ((name :initarg :name :reader name)
+   (qualifiers :initarg :qualifiers :reader qualifiers)
    (glsl-name :initarg :glsl-name :reader glsl-name)
    (type :initarg :type :reader v-type-of)
    (cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)
    (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
+
+(defclass implicit-uniform (uniform)
+  ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
 
 ;;----------------------------------------------------------------------
 

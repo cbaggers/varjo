@@ -106,12 +106,14 @@
                (whole-rebind (when whole-var
                                `((,whole-var (cons ',name ,whole-var))))))
           (let* ((env-var (or env-var g-env)))
-            (values
-             `(lambda (,form-var ,env-var)
-                (declare (ignorable ,env-var))
-                (let* (,@whole-rebind
-                       (,result (destructuring-bind ,lambda-list ,form-var
-                                  ,@body))
-                       (same-form ,whole-check))
-                  (values ,result same-form)))
-             context)))))))
+            (vbind (body declarations) (extract-declares body)
+              (values
+               `(lambda (,form-var ,env-var)
+                  (declare (ignorable ,env-var))
+                  (destructuring-bind ,lambda-list ,form-var
+                    ,@declarations
+                    (let* (,@whole-rebind
+                           (,result (progn ,@body))
+                           (same-form ,whole-check))
+                      (values ,result same-form))))
+               context))))))))

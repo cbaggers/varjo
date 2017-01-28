@@ -428,19 +428,21 @@
            (uniforms (v-uniforms env))
            (implicit-uniforms nil))
       (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
-         (push `(,name ,(type->type-spec type-obj)
-                       ,@qualifiers
-                       ,(cond
-                         ((member :ubo qualifiers)
-                          (write-interface-block
-                           :uniform (or glsl-name (safe-glsl-name-string name))
-                           (v-slots type-obj)))
-                         ((v-typep type-obj 'v-ephemeral-type) nil)
-                         (t (gen-uniform-decl-string
-                             (or glsl-name (safe-glsl-name-string name))
-                             type-obj
-                             qualifiers))))
-               final-strings)
+         (let ((string-name (or glsl-name (safe-glsl-name-string name))))
+           (push (make-instance
+                  'uniform
+                  :name name
+                  :qualifiers qualifiers
+                  :glsl-name string-name
+                  :type type-obj
+                  :glsl-decl (cond
+                               ((member :ubo qualifiers)
+                                (write-interface-block :uniform string-name
+                                                       (v-slots type-obj)))
+                               ((v-typep type-obj 'v-ephemeral-type) nil)
+                               (t (gen-uniform-decl-string string-name type-obj
+                                                           qualifiers))))
+                 final-strings))
          (when (and (v-typep type-obj 'v-user-struct)
                     (not (find type-obj structs :key #'type->type-spec
                                :test #'v-type-eq)))
@@ -501,7 +503,7 @@
        :stage-type (find-if λ(find _ *supported-stages*) context)
        :in-args (v-raw-in-args env)
        :out-vars (mapcar #'butlast (out-vars post-proc-obj))
-       :uniforms (mapcar #'butlast (uniforms post-proc-obj))
+       :uniforms (uniforms post-proc-obj)
        :implicit-uniforms (stemcells post-proc-obj)
        :context context
        :allowed-stemcells (allows-stemcellsp env)
