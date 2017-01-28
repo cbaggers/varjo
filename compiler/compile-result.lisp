@@ -13,6 +13,7 @@
                                (stemcells-allowed nil a-s-set)
                                (used-external-functions nil used-external-functions-set)
                                (function-asts nil function-asts-set))
+  (warn "clone-compile-result is incomplete")
   (make-instance
    'varjo-compile-result
    :glsl-code (if glsl-code-set glsl-code (glsl-code original))
@@ -44,5 +45,5 @@ https://github.com/cbaggers/varjo.git
 Sorry for the inconvenience")
     res))
 
-(defmethod print-object ((obj implicit-uniform) stream)
+(defmethod print-object ((obj implicit-uniform-variable) stream)
   (format stream "#<IMPLICIT-UNIFORM ~a>" (name obj)))

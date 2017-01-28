@@ -103,7 +103,12 @@
                                      (list fake-type)
                                      (list slot-type) :v-place-index nil)
                   env)
-             :collect `(,fake-slot-name ,slot-type ,qualifiers))))
+             :collect (make-instance
+                       'input-variable
+                       :name fake-slot-name
+                       :glsl-name fake-slot-name
+                       :type slot-type
+                       :qualifiers qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (%add-symbol-binding
      in-var-name
@@ -136,7 +141,12 @@
                                      (list fake-type)
                                      (list slot-type) :v-place-index nil)
                   env)
-             :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
+             :collect (make-instance
+                       'uniform-variable
+                       :name fake-slot-name
+                       :glsl-name fake-slot-name
+                       :type slot-type
+                       :qualifiers qualifiers))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (%add-symbol-binding
      uniform-name

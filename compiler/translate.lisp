@@ -350,6 +350,7 @@
            (locations (if (member :vertex (v-context env))
                           (calc-locations type-objs)
                           (loop for i below (length type-objs) collect nil))))
+      ;;
       (setf (in-args post-proc-obj)
             (loop :for var :in (v-in-args env)
                :for location :in locations

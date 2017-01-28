@@ -72,6 +72,7 @@ Example:
     (reverse (slot-value result 'compiled-stages))))
 
 (defun compile-stage (accum stage compile-func)
+  ;;(break "foo ~a" stage)
   (with-slots (remaining-stages compiled-stages) accum
     (let* ((last-stage (first compiled-stages))
            (remaining-stages (check-order (extract-stage-type stage)
@@ -100,28 +101,31 @@ Example:
         (let ((out-vars (transform-previous-stage-out-vars previous-stage
                                                            stage))
               (in-vars (input-variables stage)))
-          (list (if (and (in-args-compatiblep in-vars out-vars)
-                         (uniforms-compatiblep
-                          (uniform-variables stage)
-                          (uniform-variables previous-stage))
-                         (context-compatiblep stage previous-stage))
-                    (mapcar #'merge-in-arg out-vars in-vars)
-                    (error 'args-incompatible
-                           :current-args (mapcar #'to-arg-form in-vars)
-                           :previous-args (mapcar #'to-arg-form
-                                                  (out-vars previous-stage))))
-                (uniform-variables stage)
-                (context stage)
-                (lisp-code stage)
-                (stemcells-allowed stage)))
+          (make-instance
+           'stage
+           :input-variables
+           (if (and (in-args-compatiblep in-vars out-vars)
+                    (uniforms-compatiblep
+                     (uniform-variables stage)
+                     (uniform-variables previous-stage))
+                    (context-compatiblep stage previous-stage))
+               (mapcar #'merge-in-arg out-vars in-vars)
+               (error 'args-incompatible
+                      :current-args (mapcar #'to-arg-form in-vars)
+                      :previous-args (mapcar #'to-arg-form
+                                             (out-vars previous-stage))))
+           :uniform-variables (uniform-variables stage)
+           :context (context stage)
+           :lisp-code (lisp-code stage)
+           :stemcells-allowed (stemcells-allowed stage)))
         stage)))
 
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
                                     accum)
   (labels ((gen-aliases ()
-             (let ((in-args (mapcar #'to-arg-form (input-variables last-stage)))
-                   (out-vars (mapcar #'to-arg-form (out-vars last-stage))))
+             (let ((in-args (input-variables last-stage))
+                   (out-vars (out-vars last-stage)))
                (loop :for (nil . out-rest) :in out-vars
                   :for (in-name type . in-rest) :in in-args :append
                   (let ((out-glsl-name (last1 out-rest))
@@ -133,8 +137,8 @@ Example:
                                    (compile-glsl-expression-string out-glsl-name type)
                                    (%make-base-environment)))))))))
            (swap-out-args (glsl-string)
-             (let ((in-args (mapcar #'to-arg-form (input-variables last-stage)))
-                   (out-vars (mapcar #'to-arg-form (out-vars last-stage))))
+             (let ((in-args (input-variables last-stage))
+                   (out-vars (out-vars last-stage)))
                (loop :for out :in out-vars
                   :for in :in in-args
                   :for out-glsl-name := (last1 out)
@@ -144,7 +148,7 @@ Example:
                                              glsl-string out-glsl-name))))
              glsl-string))
 
-    (let ((in-args (mapcar #'to-arg-form (input-variables last-stage)))
+    (let ((in-args (input-variables last-stage))
           (out-vars (transform-previous-stage-out-vars last-stage stage)))
       (when (and (in-args-compatiblep in-args out-vars)
                  (uniforms-compatiblep (uniform-variables stage)
@@ -223,7 +227,7 @@ Example:
   ;;
   (:method ((uniforms list) (last-uniforms list))
     (loop :for u :in last-uniforms :always
-       (let ((match (find (first u) uniforms :key #'name)))
+       (let ((match (find (name u) uniforms :key #'name)))
          (if match
              (v-type-eq (v-type-of u) (v-type-of match))
              t)))))
@@ -244,7 +248,9 @@ Example:
 
 (defgeneric transform-arg-types (last next stage)
   ;;
-  (:method ((last (eql :vertex)) (next (eql :geometry)) (stage stage))
+  (:method ((last (eql :vertex))
+            (next (eql :geometry))
+            (stage stage))
     (declare (optimize debug))
     (mapcar λ(make-instance
               'output-variable

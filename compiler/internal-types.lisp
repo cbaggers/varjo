@@ -89,7 +89,7 @@
 
 (defclass uniform-variable (shader-variable) ())
 
-(defclass implicit-uniform-variable (uniform)
+(defclass implicit-uniform-variable (uniform-variable)
   ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
 
 (defclass output-variable (shader-variable)

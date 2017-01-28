@@ -37,7 +37,7 @@
                          version
                          (stage-type compile-result)
                          (list (mapcar #'varjo::to-arg-form
-                                       (in-args compile-result))
+                                       (varjo::input-variables compile-result))
                                code)
                          :allow-stemcells stemcells)))
          (recomp-code (ast->code recomp)))
