@@ -62,13 +62,15 @@
 
 (defmethod combine-metadata ((meta-a standard-value-metadata)
                              (meta-b standard-value-metadata))
-  (values nil nil))
+  nil)
 
-;; {TODO} proper error
 (defmethod combine-metadata ((meta-a standard-value-metadata)
                              (meta-b null))
-  (error "Varjo: Compiler Bug: The second argument to #'combine-metadata should
-never be null"))
+  meta-a)
+
+(defmethod combine-metadata ((meta-a null)
+                             (meta-b standard-value-metadata))
+  meta-b)
 
 ;; {TODO} proper error
 (defmethod combine-metadata ((meta-a null)

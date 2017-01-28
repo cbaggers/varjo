@@ -616,3 +616,17 @@ however the type ~a is not a shadow type."
   "Varjo: ~a fell through V-ETYPECASE expression.
 Wanted one of the following types: ~s}"
   vtype wanted)
+
+(deferror metadata-conflict () (metadata-kind flow-id new-meta old-meta)
+    "Varjo: ~a metadata already found for flow-id ~a.~%Metadata cannot be redefined
+
+Tried to apply: ~a
+
+Metadata already present: ~a"
+  metadata-kind flow-id new-meta old-meta)
+
+(deferror metadata-combine-invalid-type () (expected found)
+    "Varjo: Asked for a combined version of the two pieces of metadata of kind
+~a, however the metadata returned was of type ~a. When combining metadata it is
+only valid to return nil or a piece of metadata of the correct type."
+  expected found)

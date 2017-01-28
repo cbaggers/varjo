@@ -62,6 +62,9 @@
         (env (get-base-env env)))
     (cdr (assoc metadata-kind (gethash key (slot-value env 'value-metadata))))))
 
+(defmethod metadata-for-flow-id (metadata-kind flow-id (env expansion-env))
+  (metadata-for-flow-id metadata-kind flow-id (slot-value env 'env)))
+
 ;; ugh
 ;;
 (defmethod (setf metadata-for-flow-id)
@@ -71,12 +74,14 @@
   (let* ((key (slot-value (first (ids flow-id)) 'val))
          (env (get-base-env env))
          (metadata-kind (type-of data))
-         (current-metadata (gethash key (slot-value env 'value-metadata))))
-    (assert (null (assoc metadata-kind current-metadata)) (current-metadata)
-            "Varjo: ~a metadata already found for flow-id ~a.~%Metadata cannot be redefined"
-            metadata-kind flow-id)
+         (current-metadata (gethash key (slot-value env 'value-metadata)))
+         (current-for-kind (assocr metadata-kind current-metadata))
+         (new-meta (combine-metadata current-for-kind data)))
+    (assert (or (null new-meta) (typep new-meta metadata-kind)) ()
+            'metadata-combine-invalid-type :expected metadata-kind
+            :found (type-of new-meta))
     (setf (gethash key (slot-value env 'value-metadata))
-          (cons (cons (type-of data) data) current-metadata))))
+          (cons (cons metadata-kind new-meta) current-metadata))))
 
 (defmethod (setf compiled-functions)
     (value (e environment) key)
