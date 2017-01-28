@@ -611,3 +611,8 @@ The identifiers passed to this macro should be in the format:
   "Varjo: ~a was ask to shadow some functions for the type ~a,
 however the type ~a is not a shadow type."
   name shadow-type shadow-type)
+
+(deferror fell-through-v-typecase () (vtype wanted)
+  "Varjo: ~a fell through V-ETYPECASE expression.
+Wanted one of the following types: ~s}"
+  vtype wanted)

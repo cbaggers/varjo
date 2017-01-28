@@ -133,6 +133,9 @@ doesnt"))
 ;;
 ;; The supertype for all types which are not representable in any
 ;; way in glsl. First class functions is the classic example of this.
+;;
+;; {TODO} I think this should be a field on ephemeral-types. We then
+;;        have func spicing ephemerals and regular.
 
 (def-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
 
@@ -478,6 +481,24 @@ doesnt"))
 (defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
   (declare (ignore env a b))
   t)
+
+(defmacro v-typecase (varjo-form &body cases)
+  (alexandria:with-gensyms (type)
+    (when cases
+      `(let ((,type (v-type-of ,varjo-form)))
+         (cond
+           ,@(loop :for (type-name . body) :in cases :collect
+                `((v-type-eq ,type ',type-name) ,@body)))))))
+
+(defmacro v-etypecase (varjo-form &body cases)
+  (alexandria:with-gensyms (type)
+    (when cases
+      `(let ((,type (v-type-of ,varjo-form)))
+         (cond
+           ,@(loop :for (type-name . body) :in cases :collect
+                `((v-type-eq ,type ',type-name) ,@body))
+           (t (error 'fell-through-v-typecase
+                     :vtype ,type :wanted ',(mapcar #'first cases))))))))
 
 ;;------------------------------------------------------------
 ;; Casting
