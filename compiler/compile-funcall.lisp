@@ -189,7 +189,7 @@
 		       :multi-vals (when (v-multi-val-safe env)
 				     (handle-regular-function-mvals args))
 		       :place-tree (calc-place-tree func args)
-		       :node-tree (ast-node! func (mapcar #'node-tree args)
+		       :node-tree (ast-node! func-name (mapcar #'node-tree args)
 					     type env env))
 	    env)))
 
@@ -296,7 +296,7 @@
                          p-env bindings m-r-names))
                        (compile-form o p-env)))
                    env env))))
-        (values (copy-code final :node-tree (ast-node! func
+        (values (copy-code final :node-tree (ast-node! func-name
                                                        (mapcar #'node-tree args)
                                                        type
                                                        env env))
