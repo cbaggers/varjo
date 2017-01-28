@@ -10,6 +10,10 @@
           (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
           flow-id))))
 
+(defmethod get-stemcell-name-for-flow-id (id (e environment))
+  (with-slots (stemcell->flow-id) (get-base-env e)
+    (car (rassoc id stemcell->flow-id))))
+
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
 

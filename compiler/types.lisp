@@ -128,6 +128,9 @@ doesnt"))
 
 (def-v-type-class v-ephemeral-type (v-type) ())
 
+(defmethod ephemeral-p (x)
+  (typep (v-type-of x) 'v-ephemeral-type))
+
 ;;------------------------------------------------------------
 ;; Unrepresentable Value
 ;;

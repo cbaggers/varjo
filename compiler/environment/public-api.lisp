@@ -118,16 +118,15 @@
               :macro-name (name macro-obj) :arg name)
       (elt args arg-pos))))
 
-(defmethod %uniform-name ((id flow-identifier) env)
-  (first (find id (v-uniforms (slot-value env 'env)) :test #'id=
-               :key λ(flow-ids (second _)))))
+(defmethod %uniform-name ((id flow-identifier) (env extended-environment))
+  (let ((env (slot-value env 'env)))
+    (or (first (find id (v-uniforms env) :test #'id=
+                     :key λ(flow-ids (second _))))
+        (get-stemcell-name-for-flow-id id env))))
 
 (defmethod %uniform-name ((code code) (env extended-environment))
   (let ((id (flow-ids code)))
-    (or (%uniform-name id env)
-        (let ((stemcell (find id (stemcells code) :test #'id= :key #'flow-ids)))
-          (when stemcell
-            (name stemcell))))))
+    (%uniform-name id env)))
 
 (defmethod %uniform-name ((val v-value) (env extended-environment))
   (%uniform-name (flow-ids val) env))

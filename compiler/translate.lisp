@@ -453,12 +453,13 @@
                     'implicit-uniform
                     :name name
                     :glsl-name string-name
-                    :type type
+                    :type type-obj
                     :cpu-side-transform cpu-side-transform
-                    :glsl-decl (gen-uniform-decl-string
-                                (or string-name (error "stem cell without glsl-name"))
-                                type-obj
-                                nil))
+                    :glsl-decl (unless (v-typep type-obj 'v-ephemeral-type)
+                                 (gen-uniform-decl-string
+                                  (or string-name (error "stem cell without glsl-name"))
+                                  type-obj
+                                  nil)))
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
