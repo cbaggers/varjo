@@ -32,7 +32,7 @@
 
 (defmethod variable-type ((name symbol) (env extended-environment))
   (let* ((binding (%get-val-binding name 'variable-type env)))
-    (v-type binding)))
+    (v-type-of binding)))
 
 (defmethod argument-type ((name symbol) (env macro-expansion-environment))
   (with-slots (macro-obj) env

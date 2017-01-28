@@ -228,7 +228,7 @@
 
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
   (let ((all-return-types (cons (first (v-return-spec func))
-                                (mapcar #'v-type
+                                (mapcar #'v-type-of
                                         (mapcar #'multi-val-value
                                                 (rest (v-return-spec func))))))
         (m-flow-id (flow-ids func)))
@@ -260,7 +260,7 @@
       (let* ((bindings (loop :for mval :in mvals :collect
                           `((,(gensym "NC")
                               ,(type->type-spec
-                                (v-type (multi-val-value mval)))))))
+                                (v-type-of (multi-val-value mval)))))))
 
              (o (merge-obs
                  args :type type
@@ -271,7 +271,7 @@
                                        (make-mval
                                         (v-make-value
                                          (replace-flow-id
-                                          (v-type (multi-val-value _))
+                                          (v-type-of (multi-val-value _))
                                           fid)
                                          env :glsl-name _1
                                          :function-scope 0)))

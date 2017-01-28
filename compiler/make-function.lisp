@@ -88,7 +88,8 @@
                          `(,(v-glsl-string (type-spec->type type)) ,name)))
            (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
                              :for name = (v-glsl-name (multi-val-value mval)) :collect
-                             `(,(v-glsl-string (v-type (multi-val-value mval)))
+                             `(,(v-glsl-string (v-type-of
+                                                (multi-val-value mval)))
                                 ,name)))
            (in-out-args
             ;; {TODO} handle multiple returns

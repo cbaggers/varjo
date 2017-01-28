@@ -389,7 +389,7 @@
   (let ((seen (make-hash-table))
         (deduped nil))
     (loop :for (name qualifiers value) :in out-vars
-       :do (let ((tspec (type->type-spec (v-type value))))
+       :do (let ((tspec (type->type-spec (v-type-of value))))
              (if (gethash name seen)
                  (unless (equal tspec (gethash name seen))
                    (error 'out-var-type-mismatch :var-name name
@@ -403,7 +403,7 @@
   (with-slots (main-func env) post-proc-obj
     (let* ((out-vars (dedup-out-vars (out-vars main-func)))
            (out-types (mapcar (lambda (_)
-                                (v-type (third _)))
+                                (v-type-of (third _)))
                               out-vars))
            (locations (if (member :fragment (v-context env))
                           (calc-locations out-types)
@@ -413,7 +413,7 @@
                :for type :in out-types
                :for location :in locations
                :collect (let ((glsl-name (v-glsl-name value)))
-                          `(,name ,(type->type-spec (v-type value))
+                          `(,name ,(type->type-spec (v-type-of value))
                                   ,@qualifiers ,glsl-name
                                   ,(gen-out-var-string glsl-name type qualifiers
                                                        location)))))

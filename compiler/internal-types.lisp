@@ -78,7 +78,7 @@
 (defclass implicit-uniform ()
   ((name :initarg :name :reader name)
    (glsl-name :initarg :glsl-name :reader glsl-name)
-   (type :initarg :type :reader v-type)
+   (type :initarg :type :reader v-type-of)
    (cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)
    (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
@@ -169,14 +169,14 @@
 (defclass stemcell ()
   ((name :initarg :name :reader name)
    (string-name :initarg :string-name)
-   (type :initarg :type :reader v-type)
+   (type :initarg :type :reader v-type-of)
    (flow-id :initarg :flow-id :reader flow-ids)
    (cpu-side-transform :initarg :cpu-side-transform)))
 
 ;;----------------------------------------------------------------------
 
 (defclass v-value ()
-  ((type :initarg :type :initform nil :accessor v-type)
+  ((type :initarg :type :initform nil :accessor v-type-of)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)

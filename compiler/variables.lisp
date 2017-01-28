@@ -17,9 +17,6 @@
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))
 
-(defmethod v-type-of ((val v-value))
-  (v-type val))
-
 (defun add-glsl-vars (env source)
   (loop :for (restrict . vars) :in source
      :if (or (equal restrict t)

@@ -126,7 +126,7 @@
               final-env))))
 
 (defun calc-setq-type (new-val old-val var-name)
-  (restart-case (if (v-type-eq (v-type old-val) (code-type new-val))
+  (restart-case (if (v-type-eq (v-type-of old-val) (code-type new-val))
                     (code-type new-val)
                     (error 'setq-type-match :var-name var-name
                            :old-value old-val :new-value new-val))
@@ -143,7 +143,7 @@
                   :symbol-bindings
                   (a-add old-var-name
                          (v-make-value
-                          (replace-flow-id (v-type old-val) flow-ids)
+                          (replace-flow-id (v-type-of old-val) flow-ids)
                           n
                           :read-only (v-read-only old-val)
                           :function-scope (v-function-scope old-val)
@@ -198,7 +198,7 @@
         (error 'multi-val-bind-mismatch :val-form value-form :bindings vars))
       (let* ((mvals (multi-vals value-obj))
              (v-vals (mapcar #'multi-val-value mvals))
-             (types (cons (code-type value-obj) (mapcar #'v-type v-vals))))
+             (types (cons (code-type value-obj) (mapcar #'v-type-of v-vals))))
         (vbind ((m-objs s-obj b-objs) final-env)
             (with-fresh-env-scope (fresh-env env)
               (env-> (p-env fresh-env)
@@ -360,7 +360,7 @@
   (if (multi-vals code-obj)
       (let* ((mvals (multi-vals code-obj))
              (v-vals (mapcar #'multi-val-value mvals))
-             (types (mapcar #'v-type v-vals))
+             (types (mapcar #'v-type-of v-vals))
              (glsl-lines (mapcar #'v-glsl-name v-vals)))
 
         (merge-progn

@@ -179,7 +179,7 @@
   (flow-ids (code-type obj)))
 
 (defmethod flow-ids ((obj v-value))
-  (flow-ids (v-type obj)))
+  (flow-ids (v-type-of obj)))
 
 (defmethod flow-ids ((obj ast-node))
   (flow-ids (ast-return-type obj)))

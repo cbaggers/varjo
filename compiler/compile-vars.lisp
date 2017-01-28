@@ -2,7 +2,7 @@
 (in-readtable fn:fn-reader)
 
 (defun v-variable->code-obj (var-name v-value env)
-  (let* ((var-type (v-type v-value))
+  (let* ((var-type (v-type-of v-value))
          (from-higher-scope (binding-in-higher-scope-p v-value env)))
     (when from-higher-scope
       (assert (or (eq t (v-allowed-outer-vars env))
@@ -23,9 +23,9 @@
           code-obj))))
 
 (defun %v-value->code (v-val env)
-  (make-code-obj (v-type v-val) (v-glsl-name v-val)
+  (make-code-obj (v-type-of v-val) (v-glsl-name v-val)
                  :node-tree (ast-node! :get-v-value (list (v-glsl-name v-val))
-                                       (v-type v-val)
+                                       (v-type-of v-val)
                                        env env)))
 
 (defun maybe-add-constant-or-stemcell (var-name env)

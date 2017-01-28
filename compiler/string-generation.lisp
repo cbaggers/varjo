@@ -27,11 +27,11 @@
 
 (defun gen-implicit-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `(nil ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+     `(nil ,(v-glsl-string (v-type-of a)) ,(v-glsl-name a))))
 
 (defun gen-in-out-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `("inout" ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+     `("inout" ,(v-glsl-string (v-type-of a)) ,(v-glsl-name a))))
 
 (defun gen-arg-string (arg-tripples &optional out-pairs)
   (let ((arg-string (format nil "~{~{~@[~a ~]~a ~a~}~^,~^ ~}" arg-tripples)))

@@ -124,7 +124,7 @@ due to the static nature of glsl.
 var name: ~a
 type-of ~a: ~a
 type-of new-value: ~a"
-  var-name var-name (v-type old-value) (code-type new-value))
+  var-name var-name (v-type-of old-value) (code-type new-value))
 
 (deferror cannot-not-shadow-core () ()
     "You cannot shadow or replace core macros or special functions.")

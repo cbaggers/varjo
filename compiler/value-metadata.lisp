@@ -168,7 +168,7 @@
                     (null (error 'v-declare-on-nil-binding :target target))
                     (v-symbol-macro (error 'v-declare-on-symbol-macro
                                            :target target)))
-                  (let ((id (flow-ids (v-type binding))))
+                  (let ((id (flow-ids (v-type-of binding))))
                     (setf (metadata-for-flow-id id env)
                           (apply #'make-instance decl-name decl-args))))))))))
   ;; we return nil so env-> will be satisfied. We are mutating the environment

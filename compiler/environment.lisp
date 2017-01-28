@@ -285,7 +285,7 @@ For example calling env-prune on this environment..
              `(,n ,va)
              `(,n
                ,(v-make-value
-                 (replace-flow-id (v-type va)
+                 (replace-flow-id (v-type-of va)
                                   (flow-id! (flow-ids va) (flow-ids vb)))
                  env-a ;; this is ignored as function-scope is provided
                  :read-only (v-read-only va)
