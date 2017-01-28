@@ -66,7 +66,7 @@
 
 (defmethod argument-uniform-name ((name symbol)
                                   (env compiler-macro-expansion-environment))
-  (or (not (null (%uniform-name (%get-macro-arg name env) env)))
+  (or (%uniform-name (%get-macro-arg name env) env)
       (error 'not-proved-a-uniform :name name)))
 
 (defmethod argument-uniform-name ((name symbol)
@@ -125,7 +125,9 @@
 (defmethod %uniform-name ((code code) (env extended-environment))
   (let ((id (flow-ids code)))
     (or (%uniform-name id env)
-        (find id (stemcells code) :test #'id= :key #'flow-ids))))
+        (let ((stemcell (find id (stemcells code) :test #'id= :key #'flow-ids)))
+          (when stemcell
+            (name stemcell))))))
 
 (defmethod %uniform-name ((val v-value) (env extended-environment))
   (%uniform-name (flow-ids val) env))
@@ -150,7 +152,7 @@
            (loop :for binding :in (v-symbol-bindings current-env) :do
               (push binding result)))))
     (let* ((dedup (remove-duplicates result :key #'first))
-           (accessible (remove-if-not λ(apply #'binding-accesible-p env _)
+           (accessible (remove-if-not λ(apply #'binding-accesible-p env (subseq _ 0 2)) ;; <<this subseq is a hack
                                       dedup))
            (names (mapcar #'first accessible)))
       names)))

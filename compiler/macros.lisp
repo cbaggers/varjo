@@ -109,9 +109,9 @@
             (values
              `(lambda (,form-var ,env-var)
                 (declare (ignorable ,env-var))
-                (destructuring-bind ,lambda-list ,form-var
-                  (let* (,@whole-rebind
-                         (,result (progn ,@body))
-                         (same-form ,whole-check))
-                    (values ,result same-form))))
+                (let* (,@whole-rebind
+                       (,result (destructuring-bind ,lambda-list ,form-var
+                                  ,@body))
+                       (same-form ,whole-check))
+                  (values ,result same-form)))
              context)))))))

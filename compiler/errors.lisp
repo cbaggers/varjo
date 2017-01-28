@@ -464,7 +464,7 @@ currently bound to a symbol-macro."
 currently unbound."
   callee name name)
 
-(deferror not-proved-a-uniform () (name)
+(deferror not-proved-a-uniform (:error-type varjo-critical-error) (name)
     "Varjo: We are unable to prove that ~a has come from a uniform"
   name)
 
