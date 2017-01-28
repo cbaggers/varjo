@@ -188,16 +188,20 @@ never be null"))
   (assert (typep env 'environment))
   (let* ((type (code-type code-obj))
          (flow-id (flow-ids type))
+         (flow-ids (etypecase flow-id
+                     (multi-return-flow-id (m-value-ids flow-id))
+                     (flow-identifier (list flow-id))))
          (ext-env (make-instance 'extended-environment :env env)))
-    (when (singular-flow-id-p flow-id)
-      (loop :for kind :in (meta-kinds-to-infer type) :do
-         (unless (metadata-for-flow-id kind flow-id env)
-           (let ((meta-args (multiple-value-list
-                             (infer-meta-by-type type kind ext-env))))
-             (unless (or (null meta-args)
-                         (equal meta-args '(nil)))
-               (let ((meta (apply #'make-instance kind meta-args)))
-                 (setf (metadata-for-flow-id flow-id env) meta))))))))
+    (loop :for flow-id :in flow-ids :do
+       (when (singular-flow-id-p flow-id)
+         (loop :for kind :in (meta-kinds-to-infer type) :do
+            (unless (metadata-for-flow-id kind flow-id env)
+              (let ((meta-args (multiple-value-list
+                                (infer-meta-by-type type kind ext-env))))
+                (unless (or (null meta-args)
+                            (equal meta-args '(nil)))
+                  (let ((meta (apply #'make-instance kind meta-args)))
+                    (setf (metadata-for-flow-id flow-id env) meta)))))))))
   code-obj)
 
 (defmacro def-metadata-infer (varjo-type metadata-kind env-var &body body)
