@@ -21,7 +21,6 @@
           (true-type-name (true-type-name name))
           (fake-type-name (fake-type-name name)))
       `(progn
-         ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (def-v-type-class ,class-name (v-user-struct)
            ((glsl-string :initform ,name-string :initarg :glsl-string
                          :reader v-glsl-string)
@@ -30,6 +29,7 @@
                                           (mapcar #'gen-slot-string slots))
                        :initarg :signature :accessor v-signature)
             (slots :initform ',slots :reader v-slots)))
+         ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod v-true-type ((object ,class-name))
            (make-instance ',true-type-name :flow-ids (flow-ids object)))
          (defmethod v-fake-type ((object ,class-name))
