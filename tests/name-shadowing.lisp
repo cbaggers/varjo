@@ -4,7 +4,7 @@
 ;;------------------------------------------------------------
 ;; Helper data
 
-(varjo::def-v-type-class foo-g (varjo::v-ephemeral-type) ())
+(varjo::v-deftype foo-g () ())
 
 (varjo:add-alternate-type-name 'foo 'foo-g)
 

@@ -122,6 +122,9 @@ doesnt"))
 ;;
 ;; The supertype for all types which that have no representation
 ;; in glsl.
+;;
+;; Make sure you define these using deftype
+;;
 
 (def-v-type-class v-ephemeral-type (v-type) ())
 
