@@ -3,70 +3,49 @@
 
 ;;----------------------------------------------------------------------
 
-(defmacro with-stage ((&optional (in-args (symb :in-args))
-                                 (uniforms (symb :uniforms))
-                                 (context (symb :context))
-                                 (code (symb :code))
-                                 (tp-meta (symb :tp-meta))
-                                 (stemcells-allowed (symb :stemcells-allowed)))
-                         stage &body body)
-  `(destructuring-bind (,in-args ,uniforms ,context ,code
-                                 &optional ,tp-meta ,stemcells-allowed)
-       ,stage
-     (declare (ignorable ,in-args ,uniforms ,context ,code ,tp-meta
-                         ,stemcells-allowed))
-     ,@body))
+(defun extract-glsl-name (qual-and-maybe-name)
+  (let ((glsl-name (last1 qual-and-maybe-name)))
+    (if (stringp glsl-name)
+        (values (butlast qual-and-maybe-name)
+                glsl-name)
+        qual-and-maybe-name)))
 
-(defun make-stage (in-args uniforms context code tp-meta stemcells-allowed)
-  (list in-args uniforms context code tp-meta stemcells-allowed))
+(defun make-stage (in-args uniforms context code stemcells-allowed)
+  (when (and (every #'check-arg-form in-args)
+             (every #'check-arg-form uniforms)
+             (check-for-dups in-args uniforms))
+    (labels ((make-var (kind raw)
+               (dbind (name type-spec . rest) raw
+                 (vbind (qualifiers glsl-name) (extract-glsl-name rest)
+                   (make-instance
+                    kind
+                    :name name
+                    :glsl-name glsl-name
+                    :type (type-spec->type type-spec)
+                    :qualifiers qualifiers)))))
+      (let ((r (make-instance
+                'stage
+                :input-variables (mapcar λ(make-var 'input-variable _)
+                                         in-args)
+                :uniform-variables (mapcar λ(make-var 'uniform-variable _)
+                                           uniforms)
+                :context (process-context context)
+                :lisp-code code
+                :stemcells-allowed stemcells-allowed)))
+        (check-for-stage-specific-limitations r)
+        r))))
 
-;;----------------------------------------------------------------------
+(defun process-context (raw-context)
+  ;; ensure there is a version
+  (labels ((valid (x) (find x *valid-contents-symbols*)))
+    (assert (every #'valid raw-context) () 'invalid-context-symbols
+            :symbols (remove #'valid raw-context )))
+  ;;
+  (if (intersection raw-context *supported-versions*)
+      raw-context
+      (cons *default-version* raw-context)))
 
-(defun translate (stage)
-  (with-stage (in-args uniforms context body third-party-metadata
-                       stemcells-allowed)
-      stage
-    (let ((third-party-metadata (or third-party-metadata (make-hash-table))))
-      (flow-id-scope
-        (let ((env (%make-base-environment
-                    :third-party-metadata third-party-metadata
-                    :stemcells-allowed stemcells-allowed)))
-          (pipe-> (in-args uniforms context body env)
-            #'split-input-into-env
-            #'process-context
-            #'add-context-glsl-vars
-            #'process-in-args
-            #'process-uniforms
-            #'compile-pass
-            #'make-post-process-obj
-            #'check-stemcells
-            #'post-process-ast
-            #'filter-used-items
-            #'gen-in-arg-strings
-            #'gen-out-var-strings
-            #'final-uniform-strings
-            #'dedup-used-types
-            #'final-string-compose
-            #'package-as-final-result-object))))))
-
-;;----------------------------------------------------------------------
-
-(defmacro with-v-arg ((&optional (name (gensym "name")) (type (gensym "type"))
-                                 (qualifiers (gensym "qualifiers"))
-                                 (glsl-name (gensym "glsl-name")))
-                         arg-form &body body)
-  (let ((qn (gensym "qn")))
-    `(destructuring-bind (,name ,type . ,qn) ,arg-form
-       (declare (ignorable ,name ,type))
-       (let* ((,glsl-name (when (stringp (last1 ,qn)) (last1 ,qn)))
-              (,qualifiers (if ,glsl-name (butlast ,qn) ,qn)))
-         (declare (ignorable ,qualifiers ,glsl-name))
-         ,@body))))
-
-;;----------------------------------------------------------------------
-
-
-(defun check-arg-forms (in-args) (every #'check-arg-form in-args))
+;;{TODO} proper error
 (defun check-arg-form (arg)
   (unless
       (and
@@ -76,98 +55,100 @@
        ;; string at the end. The string is a declaration of what the name of the
        ;; var will be in glsl. This feature is intended for use only by the compiler
        ;; but I see not reason to lock this away.
-       (every #'keywordp (in-arg-qualifiers arg)))
+       (let* ((qualifiers (subseq arg 2))
+              (qualifiers (if (stringp (last1 qualifiers))
+                              (butlast qualifiers)
+                              qualifiers)))
+         (every #'keywordp qualifiers)))
     (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" arg))
   t)
 
-;;[TODO] Move these errors vvv^^^^^
+;;{TODO} proper error
 (defun check-for-dups (in-args uniforms)
   (if (intersection (mapcar #'first in-args) (mapcar #'first uniforms))
       (error "Varjo: Duplicates names found between in-args and uniforms")
       t))
 
-;;{TODO} fix error message
-(defun check-for-stage-specific-limitations (env)
-  (cond ((or (and (member :vertex (v-context env))
-                  (some #'third (v-raw-in-args env))))
-         (error "In args to vertex shaders can not have qualifiers")))
-  t)
-
-(defun split-input-into-env (in-args uniforms context body env)
-  (when (and (check-arg-forms uniforms) (check-arg-forms in-args)
-             (check-for-dups in-args uniforms))
-    (setf (v-raw-in-args env)
-          (mapcar (lambda (ia)
-                    (dbind (name type . rest) ia
-                      `(,name ,(as-v-type type) ,@rest)))
-                  in-args))
-    (setf (v-raw-uniforms env)
-          (mapcar (lambda (u)
-                    (dbind (name type . rest) u
-                      `(,name ,(as-v-type type) ,@rest)))
-                  uniforms))
-    (setf (v-raw-context env) context)
-    (when (not context)
-      (setf (v-raw-context env) *default-context*))
-    (when (not (intersection *supported-versions* (v-raw-context env)))
-      (push :vertex (v-raw-context env)))
-    (when (check-for-stage-specific-limitations env)
-      (values body env))))
+;;{TODO} proper error
+(defun check-for-stage-specific-limitations (stage)
+  (assert (not (and (member :vertex (context stage))
+                    (some #'qualifiers (input-variables stage))))
+          () "In args to vertex shaders can not have qualifiers"))
 
 ;;----------------------------------------------------------------------
 
-(defun process-context (code env)
-  ;; ensure there is a version
-  (unless (loop :for item :in (v-raw-context env)
-             :if (find item *supported-versions*) :return item)
-    (push *default-version* (v-raw-context env)))
-  (setf (v-context env)
-        (loop :for item :in (v-raw-context env)
-           :if (find item *valid-contents-symbols*) :collect item
-           :else :do (error 'invalid-context-symbol :context-symb item)))
-  (values code env))
+(defun translate (stage)
+  (with-slots (stemcells-allowed) stage
+    (flow-id-scope
+      (let ((env (%make-base-environment :stemcells-allowed stemcells-allowed)))
+        (pipe-> (stage env)
+          #'set-env-context
+          #'add-context-glsl-vars
+          #'process-in-args
+          #'process-uniforms
+          #'compile-pass
+          #'make-post-process-obj
+          #'check-stemcells
+          #'post-process-ast
+          #'filter-used-items
+          #'gen-in-arg-strings
+          #'gen-out-var-strings
+          #'final-uniform-strings
+          #'dedup-used-types
+          #'final-string-compose
+          #'package-as-final-result-object)))))
 
 ;;----------------------------------------------------------------------
 
-(defun add-context-glsl-vars (code env)
-  (values code (add-glsl-vars env *glsl-variables*)))
+(defun set-env-context (stage env)
+  (setf (v-context env) (context stage))
+  (values stage env))
 
 ;;----------------------------------------------------------------------
 
-;; {TODO} Proper erro
-(defun process-in-args (code env)
+(defun add-context-glsl-vars (stage env)
+  (values stage (add-glsl-vars env *glsl-variables*)))
+
+;;----------------------------------------------------------------------
+
+;; {TODO} Proper error
+(defun process-in-args (stage env)
   "Populate in-args and create fake-structs where they are needed"
-  (let ((in-args (v-raw-in-args env)))
-    (loop :for in-arg :in in-args :do
-       (with-v-arg (name type qualifiers declared-glsl-name) in-arg
-         (let* ((glsl-name (or declared-glsl-name (safe-glsl-name-string name))))
-           (typecase type
-             (v-struct (add-in-arg-fake-struct name glsl-name type qualifiers env))
-             (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
-                                      name type))
-             (t (let ((type (set-flow-id type (flow-id!))))
-                  (%add-symbol-binding
-                   name (v-make-value type env :glsl-name glsl-name) env)
-                  (add-lisp-name name env glsl-name)
-                  (setf (v-in-args env)
-                        (append (v-in-args env)
-                                `((,name ,type ,qualifiers ,glsl-name))))))))))
-    (values code env)))
+  (loop :for var :in (input-variables stage) :do
+     ;; with-v-arg (name type qualifiers declared-glsl-name) var
+     (let* ((glsl-name (or (glsl-name var) (safe-glsl-name-string (name var))))
+            (type (v-type-of var))
+            (name (name var)))
+       (typecase type
+         (v-struct (add-fake-struct var env))
+         (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
+                                  name type))
+         (t (let ((type (set-flow-id type (flow-id!))))
+              (%add-symbol-binding
+               name (v-make-value type env :glsl-name glsl-name) env)
+              (add-lisp-name name env glsl-name)
+              (setf (v-in-args env)
+                    (cons-end (make-instance 'input-variable
+                                             :name name
+                                             :glsl-name glsl-name
+                                             :type type
+                                             :qualifiers (qualifiers var))
+                              (v-in-args env))))))))
+  (values stage env))
 
 ;;----------------------------------------------------------------------
 
-(defun process-uniforms (code env)
-  (let ((uniforms (v-raw-uniforms env)))
-    (mapcar
-     (lambda (_)
-       (with-v-arg (name type qualifiers glsl-name) _
-         (case-member qualifiers
-           (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
-           (:fake (process-fake-uniform name glsl-name type qualifiers env))
-           (otherwise (process-regular-uniform name glsl-name type
-                                               qualifiers env)))))
-     uniforms)
-    (values code env)))
+(defun process-uniforms (stage env)
+  (let ((uniforms (uniform-variables stage)))
+    (map nil
+         λ(with-slots (name type qualifiers glsl-name) _
+            (case-member qualifiers
+              (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
+              (:fake (add-fake-struct stage env))
+              (otherwise (process-regular-uniform name glsl-name type
+                                                  qualifiers env))))
+         uniforms)
+    (values stage env)))
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
@@ -194,29 +175,25 @@
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
   env)
 
-;; mutates env
-(defun process-fake-uniform (name glsl-name type qualifiers env)
-  (add-uniform-fake-struct name glsl-name type qualifiers env)
-  env)
-
 ;;----------------------------------------------------------------------
 
-(defun compile-pass (code env)
-  (values (build-function :main () (list code) nil env)
+(defun compile-pass (stage env)
+  (values (build-function :main () (lisp-code stage) nil env)
+          stage
           env))
 
 ;;----------------------------------------------------------------------
 
-(defun make-post-process-obj (main-func env)
+(defun make-post-process-obj (main-func stage env)
   (make-instance
    'post-compile-process
-   :main-func main-func :env env
+   :main-func main-func
+   :stage stage
+   :env env
    :used-external-functions (remove-duplicates (used-external-functions env))))
 
 (defmethod all-functions ((ppo post-compile-process))
-  (let ((x (cons (main-func ppo) (all-cached-compiled-functions (env ppo)))))
-    ;;(mapcar (fn:fn+ #'print #'name #'function-obj) x)
-    x))
+  (cons (main-func ppo) (all-cached-compiled-functions (env ppo))))
 
 ;;----------------------------------------------------------------------
 
@@ -368,19 +345,33 @@
 
 
 (defun gen-in-arg-strings (post-proc-obj)
-  (with-slots (env) post-proc-obj
-    (let* ((type-objs (mapcar #'second (v-in-args env)))
+  (with-slots (env stage) post-proc-obj
+    (let* ((type-objs (mapcar #'v-type-of (v-in-args env)))
            (locations (if (member :vertex (v-context env))
                           (calc-locations type-objs)
                           (loop for i below (length type-objs) collect nil))))
       (setf (in-args post-proc-obj)
-            (loop :for (name type-spec qualifiers glsl-name) :in (v-in-args env)
-               :for location :in locations :for type :in type-objs
-               :do (identity type-spec)
+            (loop :for var :in (v-in-args env)
+               :for location :in locations
+               :for type :in type-objs
                :collect
-               `(,name ,type ,@qualifiers ,@(list glsl-name)
-                       ,(gen-in-var-string (or glsl-name name) type
-                                           qualifiers location))))))
+               (make-instance
+                'input-variable
+                :name (name var)
+                :glsl-name (glsl-name var)
+                :type type
+                :qualifiers (qualifiers var)
+                :glsl-decl (gen-in-var-string (or (glsl-name var)
+                                                  (name var))
+                                              type
+                                              (qualifiers var)
+                                              location))))
+      ;;
+      (setf (input-variables post-proc-obj)
+            (loop :for var :in (input-variables stage)
+               :collect
+               (or (find (name var) (in-args post-proc-obj) :key #'name)
+                   var)))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -412,11 +403,17 @@
             (loop :for (name qualifiers value) :in out-vars
                :for type :in out-types
                :for location :in locations
-               :collect (let ((glsl-name (v-glsl-name value)))
-                          `(,name ,(type->type-spec (v-type-of value))
-                                  ,@qualifiers ,glsl-name
-                                  ,(gen-out-var-string glsl-name type qualifiers
-                                                       location)))))
+               :collect
+               (let ((glsl-name (v-glsl-name value)))
+                 (make-instance
+                  'output-variable
+                  :name name
+                  :glsl-name glsl-name
+                  :type (v-type-of value)
+                  :qualifiers qualifiers
+                  :location location
+                  :glsl-decl (gen-out-var-string
+                              glsl-name type qualifiers location)))))
       post-proc-obj)))
 
 ;;----------------------------------------------------------------------
@@ -430,7 +427,7 @@
       (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name))))
            (push (make-instance
-                  'uniform
+                  'uniform-variable
                   :name name
                   :qualifiers qualifiers
                   :glsl-name string-name
@@ -452,7 +449,7 @@
            (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
            (let ((type-obj (type-spec->type type)))
              (push (make-instance
-                    'implicit-uniform
+                    'implicit-uniform-variable
                     :name name
                     :glsl-name string-name
                     :type type-obj
@@ -494,22 +491,22 @@
 ;;----------------------------------------------------------------------
 
 (defun package-as-final-result-object (final-glsl-code post-proc-obj)
-  (with-slots (env) post-proc-obj
-    (let* ((context (process-context-for-result (v-context env)))
-           (base-env (get-base-env env)))
+  (with-slots (env stage) post-proc-obj
+    (let* ((context (process-context-for-result (v-context env))))
       (make-instance
        'varjo-compile-result
        :glsl-code final-glsl-code
        :stage-type (find-if λ(find _ *supported-stages*) context)
-       :in-args (v-raw-in-args env)
-       :out-vars (mapcar #'butlast (out-vars post-proc-obj))
-       :uniforms (uniforms post-proc-obj)
+       :in-args (in-args post-proc-obj)
+       :input-variables (input-variables post-proc-obj)
+       :out-vars (out-vars post-proc-obj)
+       :uniform-variables (uniforms post-proc-obj)
        :implicit-uniforms (stemcells post-proc-obj)
        :context context
-       :allowed-stemcells (allows-stemcellsp env)
+       :stemcells-allowed (allows-stemcellsp env)
        :used-external-functions (used-external-functions post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
-       :third-party-metadata (slot-value base-env 'third-party-metadata)))))
+       :lisp-code (lisp-code stage)))))
 
 (defun process-context-for-result (context)
   ;; {TODO} having to remove this is probably a bug

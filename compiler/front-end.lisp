@@ -33,36 +33,31 @@ Example:
                         (make-stage (first vertex)
                                     uniforms
                                     (list  :vertex version)
-                                    `(progn ,@(rest vertex))
-                                    nil
+                                    (rest vertex)
                                     allow-stemcells))
                       (when tesselation-control
                         (make-stage (first tesselation-control)
                                     uniforms
                                     (list :tesselation-control version)
-                                    `(progn ,@(rest tesselation-control))
-                                    nil
+                                    (rest tesselation-control)
                                     allow-stemcells))
                       (when tesselation-evaluation
                         (make-stage (first tesselation-evaluation)
                                     uniforms
                                     (list :tesselation-evaluation version)
-                                    `(progn ,@(rest tesselation-evaluation))
-                                    nil
+                                    (rest tesselation-evaluation)
                                     allow-stemcells))
                       (when geometry
                         (make-stage (first geometry)
                                     uniforms
                                     (list :geometry version)
-                                    `(progn ,@(rest geometry))
-                                    nil
+                                    (rest geometry)
                                     allow-stemcells))
                       (when fragment
                         (make-stage (first fragment)
                                     uniforms
                                     (list :fragment version)
-                                    `(progn ,@(rest fragment))
-                                    nil
+                                    (rest fragment)
                                     allow-stemcells)))))
     (rolling-translate (remove nil stages))))
 
@@ -72,79 +67,88 @@ Example:
 ;;----------------------------------------------------------------------
 
 (defun rolling-translate (stages &optional (compile-func #'translate))
-  (let ((result (reduce λ(compile-stage _ _1 compile-func)
-                        stages :initial-value (make-instance 'rolling-result))))
+  (let ((result (reduce λ(compile-stage _ _1 compile-func) stages
+                        :initial-value (make-instance 'rolling-result))))
     (reverse (slot-value result 'compiled-stages))))
+
+(defun compile-stage (accum stage compile-func)
+  (with-slots (remaining-stages compiled-stages) accum
+    (let* ((last-stage (first compiled-stages))
+           (remaining-stages (check-order (extract-stage-type stage)
+                                          remaining-stages)))
+      (if (typep stage 'varjo-compile-result)
+          (splice-in-precompiled-stage
+           last-stage stage remaining-stages accum )
+          (let* ((merged-stage (merge-in-previous-stage-args last-stage stage))
+                 (new-compile-result (funcall compile-func merged-stage)))
+            (make-instance 'rolling-result
+                           :compiled-stages (cons new-compile-result
+                                                  compiled-stages)
+                           :remaining-stages remaining-stages))))))
 
 (defun merge-in-previous-stage-args (previous-stage stage)
   (declare (optimize debug))
-  (if previous-stage
-      (let ((out-vars (transform-previous-stage-out-vars previous-stage stage)))
-        (with-stage () stage
-          (list (if (and (in-args-compatiblep in-args out-vars)
+  (labels ((merge-in-arg (previous current)
+             (make-instance
+              'input-variable
+              :name (name current)
+              :glsl-name (or (glsl-name previous) (glsl-name current))
+              :type (or (v-type-of current) (v-type-of previous))
+              :qualifiers (union (qualifiers current)
+                                 (qualifiers previous)))))
+    (if previous-stage
+        (let ((out-vars (transform-previous-stage-out-vars previous-stage
+                                                           stage))
+              (in-vars (input-variables stage)))
+          (list (if (and (in-args-compatiblep in-vars out-vars)
                          (uniforms-compatiblep
-                          uniforms (mapcar #'to-arg-form
-                                           (uniforms previous-stage)))
+                          (uniform-variables stage)
+                          (uniform-variables previous-stage))
                          (context-compatiblep stage previous-stage))
-                    (mapcar #'%merge-in-arg
-                            out-vars
-                            in-args)
+                    (mapcar #'merge-in-arg out-vars in-vars)
                     (error 'args-incompatible
-                           :current-args in-args
-                           :previous-args  (out-vars previous-stage)))
-                uniforms
-                context
-                code
-                tp-meta
-                stemcells-allowed)))
-      (with-stage () stage
-        (list in-args
-              uniforms
-              context
-              code
-              (or tp-meta (make-hash-table))
-              stemcells-allowed))))
+                           :current-args (mapcar #'to-arg-form in-vars)
+                           :previous-args (mapcar #'to-arg-form
+                                                  (out-vars previous-stage))))
+                (uniform-variables stage)
+                (context stage)
+                (lisp-code stage)
+                (stemcells-allowed stage)))
+        stage)))
 
-(defmethod to-arg-form ((uniform uniform))
-  `(,(name uniform)
-     ,(type->type-spec (v-type-of uniform))
-     ,@(qualifiers uniform)))
-
-(defun %merge-in-arg (previous current)
-  (with-v-arg (c-name c-type c-qual c-glsl-name) current
-    (with-v-arg (p-name p-type p-qual p-glsl-name) previous
-      `(,c-name
-        ,(or c-type p-type)
-        ,@(union c-qual p-qual)
-        ,(or p-glsl-name c-glsl-name)))))
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
                                     accum)
   (labels ((gen-aliases ()
-             (loop :for (nil . out-rest) :in (out-vars last-stage)
-                :for (in-name type . in-rest) :in (in-args stage) :append
-                (let ((out-glsl-name (last1 out-rest))
-                      (in-glsl-name (subseq (last1 in-rest) 1)))
-                  (when (not (equal out-glsl-name in-glsl-name))
-                    (flow-id-scope
-                      (to-block
-                       (glsl-let in-name in-glsl-name type
-                                 (compile-glsl-expression-string out-glsl-name type)
-                                 (%make-base-environment))))))))
+             (let ((in-args (mapcar #'to-arg-form (input-variables last-stage)))
+                   (out-vars (mapcar #'to-arg-form (out-vars last-stage))))
+               (loop :for (nil . out-rest) :in out-vars
+                  :for (in-name type . in-rest) :in in-args :append
+                  (let ((out-glsl-name (last1 out-rest))
+                        (in-glsl-name (subseq (last1 in-rest) 1)))
+                    (when (not (equal out-glsl-name in-glsl-name))
+                      (flow-id-scope
+                        (to-block
+                         (glsl-let in-name in-glsl-name type
+                                   (compile-glsl-expression-string out-glsl-name type)
+                                   (%make-base-environment)))))))))
            (swap-out-args (glsl-string)
-             (loop :for out :in (out-vars last-stage)
-                :for in :in (in-args stage)
-                :for out-glsl-name := (last1 out)
-                :for in-glsl-name := (subseq (last1 in) 1) :do
-                (setf glsl-string
-                      (ppcre:regex-replace (format nil "@~a" in-glsl-name)
-                                           glsl-string out-glsl-name)))
+             (let ((in-args (mapcar #'to-arg-form (input-variables last-stage)))
+                   (out-vars (mapcar #'to-arg-form (out-vars last-stage))))
+               (loop :for out :in out-vars
+                  :for in :in in-args
+                  :for out-glsl-name := (last1 out)
+                  :for in-glsl-name := (subseq (last1 in) 1) :do
+                  (setf glsl-string
+                        (ppcre:regex-replace (format nil "@~a" in-glsl-name)
+                                             glsl-string out-glsl-name))))
              glsl-string))
 
-    (let ((out-vars (transform-previous-stage-out-vars last-stage stage)))
-      (when (and (in-args-compatiblep (in-args stage) out-vars)
-                 (uniforms-compatiblep (uniforms stage)
-                                       (uniforms last-stage))
+    (let ((in-args (mapcar #'to-arg-form (input-variables last-stage)))
+          (out-vars (transform-previous-stage-out-vars last-stage stage)))
+      (when (and (in-args-compatiblep in-args out-vars)
+                 (uniforms-compatiblep (uniform-variables stage)
+                                       (uniform-variables last-stage))
                  (context-compatiblep stage last-stage))
         ;; we need to modify the result of the compiled stage if the in-args names
         ;; dont match the names of the out args
@@ -164,40 +168,16 @@ Example:
                                                   compiled-stages)
                            :remaining-stages remaining-stage-types)))))))
 
-(defun compile-stage (accum stage compile-func)
-  (with-slots (remaining-stages compiled-stages) accum
-    (let* ((last-stage (first compiled-stages))
-           (remaining-stages (check-order (extract-stage-type stage)
-                                          remaining-stages)))
-      (if (typep stage 'varjo-compile-result)
-          (splice-in-precompiled-stage
-           last-stage stage remaining-stages accum )
-          (let ((new-compile-result
-                 (funcall compile-func
-                          (merge-in-previous-stage-args last-stage stage))))
-            (make-instance 'rolling-result
-                           :compiled-stages (cons new-compile-result
-                                                  compiled-stages)
-                           :remaining-stages remaining-stages))))))
-
-(defgeneric extract-stage-type (stage))
-
-(defmethod extract-stage-type ((stage list))
-  (let ((context (with-stage () stage context)))
-    (find-if λ(when (member _ context) _)
-             *stage-types*)))
-
-(defmethod extract-stage-type ((stage varjo-compile-result))
-  (let ((context (context stage)))
-    (find-if λ(when (member _ context) _)
-             *stage-types*)))
+(defgeneric extract-stage-type (stage)
+  (:method ((stage stage))
+    (let ((context (context stage)))
+      (find-if λ(when (member _ context) _)
+               *stage-types*))))
 
 (defgeneric args-compatiblep (stage previous-stage))
-(defgeneric in-args-compatiblep (in-args last-out-vars))
+
 (defgeneric in-args-compatible-for-stage-p
     (in-args stage last-out-vars last-stage))
-(defgeneric uniforms-compatiblep (uniforms last-uniforms))
-(defgeneric context-compatiblep (stage previous-stage))
 
 (defmethod in-args-compatible-for-stage-p
     ((in-args list) (stage (eql :fragment))
@@ -225,75 +205,58 @@ Example:
   (declare (ignore stage last-stage))
   (in-args-compatiblep in-args last-out-vars))
 
-(defmethod in-args-compatiblep ((in-args list) (last-out-vars list))
-  (loop :for p :in last-out-vars
-     :for c :in in-args :always
-     (and (v-type-eq (type-spec->type (second p))
-                     (type-spec->type (second c)))
-          (%suitable-qualifiersp p c))))
 
-(defmethod uniforms-compatiblep ((uniforms list) (last-uniforms list))
-  (loop :for u :in last-uniforms :always
-     (let ((match (find (first u) uniforms :key #'first)))
-       (if match
-           (v-type-eq (type-spec->type (second u))
-                      (type-spec->type (second match)))
-           t))))
+(defgeneric in-args-compatiblep (in-args last-out-vars)
+  ;;
+  (:method ((in-args list) (last-out-vars list))
+    (every (lambda (out in)
+             (and (v-type-eq (v-type-of out) (v-type-of in))
+                  (%suitable-qualifiersp out in)))
+           last-out-vars in-args)))
 
-(defmethod context-compatiblep ((stage list)
-                                (previous-stage varjo-compile-result))
-  (with-stage () stage
+(defun %suitable-qualifiersp (out-arg in-arg)
+  (let ((out-qual (qualifiers out-arg)))
+    (every λ(member _ out-qual) (qualifiers in-arg))))
+
+
+(defgeneric uniforms-compatiblep (uniforms last-uniforms)
+  ;;
+  (:method ((uniforms list) (last-uniforms list))
+    (loop :for u :in last-uniforms :always
+       (let ((match (find (first u) uniforms :key #'name)))
+         (if match
+             (v-type-eq (v-type-of u) (v-type-of match))
+             t)))))
+
+(defgeneric context-compatiblep (stage previous-stage)
+  (:method ((stage stage) (previous-stage stage))
     (context-ok-given-restriction
      (remove (extract-stage-type previous-stage) (context previous-stage))
-     (remove (extract-stage-type stage) context))))
-
-(defmethod context-compatiblep ((stage varjo-compile-result)
-                                (previous-stage varjo-compile-result))
-  (context-ok-given-restriction
-   (remove (extract-stage-type previous-stage) (context previous-stage))
-   (remove (extract-stage-type stage) (context stage))))
-
-
-(defun in-arg-qualifiers (in-arg)
-  (with-v-arg (_ _1 q) in-arg
-    q))
-
-(defun %suitable-qualifiersp (prev-stage-in-arg in-arg)
-  (let ((pq (in-arg-qualifiers prev-stage-in-arg))
-        (cq (in-arg-qualifiers in-arg)))
-    (every (lambda (_)
-             (member _ pq))
-           cq)))
+     (remove (extract-stage-type stage) (context stage)))))
 
 ;;----------------------------------------------------------------------
 
-(defgeneric transform-arg-types (last next stage))
-(defgeneric transform-previous-stage-out-vars (stage next-stage))
+(defgeneric transform-previous-stage-out-vars (stage next-stage)
+  (:method (stage next-stage)
+    (transform-arg-types (extract-stage-type stage)
+                         (extract-stage-type next-stage)
+                         stage)))
 
-(defmethod transform-arg-types ((last (eql :vertex)) (next (eql :geometry))
-                                stage)
-  (declare (optimize debug))
-  (mapcar λ(with-v-arg (name type qualifiers glsl-name) _
-             `(,name (,type *) ,@qualifiers
-                     ,@(when glsl-name (list glsl-name))))
-          (out-vars stage)))
-
-(defmethod transform-arg-types (last next (stage list))
-  (declare (optimize debug)
-           (ignore last next))
-  (with-stage () stage
+(defgeneric transform-arg-types (last next stage)
+  ;;
+  (:method ((last (eql :vertex)) (next (eql :geometry)) (stage stage))
+    (declare (optimize debug))
+    (mapcar λ(make-instance
+              'output-variable
+              :name (name _)
+              :glsl-name (glsl-name _)
+              :type (type-spec->type (list (type->type-spec (v-type-of _))
+                                           '*))
+              :qualifiers (qualifiers _))
+            (out-vars stage)))
+  ;;
+  (:method (last next (stage stage))
     (out-vars stage)))
-
-(defmethod transform-arg-types (last next (stage varjo-compile-result))
-  (declare (optimize debug)
-           (ignore last next))
-  (out-vars stage))
-
-(defmethod transform-previous-stage-out-vars (stage next-stage)
-  (declare (optimize debug))
-  (transform-arg-types (extract-stage-type stage)
-                       (extract-stage-type next-stage)
-                       stage))
 
 ;;----------------------------------------------------------------------
 
@@ -302,3 +265,36 @@ Example:
     (if check
         (rest check)
         (error 'stage-order-error :stage-type stage-type))))
+
+;;----------------------------------------------------------------------
+
+(defmethod to-arg-form ((uniform uniform-variable))
+  `(,(name uniform)
+     ,(type->type-spec (v-type-of uniform))
+     ,@(qualifiers uniform)))
+
+(defmethod to-arg-form ((in-var input-variable))
+  `(,(name in-var)
+    ,(type->type-spec (v-type-of in-var))
+     ,@(qualifiers in-var)
+     ,@(when (glsl-name in-var) (list (glsl-name in-var)))))
+
+(defmethod to-arg-form ((out-var output-variable))
+  `(,(name out-var)
+     ,(type->type-spec (v-type-of out-var))
+     ,@(qualifiers out-var)
+     ,@(when (glsl-name out-var) (list (glsl-name out-var)))))
+
+;;----------------------------------------------------------------------
+
+(defmacro with-v-arg ((&optional (name (gensym "name")) (type (gensym "type"))
+                                 (qualifiers (gensym "qualifiers"))
+                                 (glsl-name (gensym "glsl-name")))
+                         arg-form &body body)
+  (let ((qn (gensym "qn")))
+    `(destructuring-bind (,name ,type . ,qn) ,arg-form
+       (declare (ignorable ,name ,type))
+       (let* ((,glsl-name (when (stringp (last1 ,qn)) (last1 ,qn)))
+              (,qualifiers (if ,glsl-name (butlast ,qn) ,qn)))
+         (declare (ignorable ,qualifiers ,glsl-name))
+         ,@body))))

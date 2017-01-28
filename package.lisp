@@ -351,7 +351,6 @@
 
            ;;front-end
            :make-stage
-           :with-stage
            :translate
            :rolling-translate
            :split-arguments
@@ -367,11 +366,10 @@
            :uniforms
            :implicit-uniforms
            :context
-           :allowed-stemcells
+           :stemcells-allowed
            :used-external-functions
            :ast
            :function-asts
-           :third-party-metadata
 
            ;;utils
            :map-environments

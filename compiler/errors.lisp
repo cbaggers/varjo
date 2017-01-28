@@ -175,6 +175,11 @@ type-of new-value: ~a"
 (deferror invalid-context-symbol () (context-symb)
     "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
 
+(deferror invalid-context-symbols () (symbols)
+    "Sorry but the following symbol are not valid as a context specifier:
+~{~s~^ ~}"
+  symbols)
+
 (deferror args-incompatible () (previous-args current-args)
     "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a"
   previous-args current-args)

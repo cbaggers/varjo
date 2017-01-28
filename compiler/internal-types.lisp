@@ -37,10 +37,12 @@
 (defclass post-compile-process ()
   ((main-func :initarg :main-func :accessor main-func)
    (env :initarg :env :accessor env)
+   (stage :initarg :stage :accessor stage)
    (in-args :initarg :in-args :accessor in-args)
    (out-vars :initarg :out-vars :accessor out-vars)
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
+   (input-variables :initarg :input-variables :accessor input-variables)
    (used-types :initarg :used-types :accessor used-types)
    (used-external-functions :initarg :used-external-functions
                             :accessor used-external-functions)))
@@ -59,32 +61,39 @@
 ;;----------------------------------------------------------------------
 ;; Compiler output
 
-(defclass varjo-compile-result ()
+(defclass stage ()
+  ((input-variables :initarg :input-variables :accessor input-variables)
+   (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
+   (context :initarg :context :accessor context)
+   (lisp-code :initarg :lisp-code :accessor lisp-code)
+   (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)))
+
+(defclass varjo-compile-result (stage)
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
    (stage-type :initarg :stage-type :accessor stage-type)
    (in-args :initarg :in-args :accessor in-args)
-   (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
-   (context :initarg :context :accessor context)
-   (allowed-stemcells :initarg :allowed-stemcells :accessor allowed-stemcells)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
-   (function-asts :initarg :function-asts :reader function-asts)
-   (third-party-metadata :initarg :third-party-metadata
-                         :initform (make-hash-table)
-                         :reader third-party-metadata)))
+   (function-asts :initarg :function-asts :reader function-asts)))
 
-(defclass uniform ()
+(defclass shader-variable ()
   ((name :initarg :name :reader name)
    (qualifiers :initarg :qualifiers :reader qualifiers)
    (glsl-name :initarg :glsl-name :reader glsl-name)
    (type :initarg :type :reader v-type-of)
-   (cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)
    (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
-(defclass implicit-uniform (uniform)
+(defclass input-variable (shader-variable) ())
+
+(defclass uniform-variable (shader-variable) ())
+
+(defclass implicit-uniform-variable (uniform)
   ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
+
+(defclass output-variable (shader-variable)
+  ((location :initarg :location :reader location)))
 
 ;;----------------------------------------------------------------------
 
@@ -110,15 +119,10 @@
 
 
 (defclass base-environment (environment)
-  ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
-   (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
-   (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
-   (in-args :initform nil :initarg :in-args :accessor v-in-args)
+  ((in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
-   (third-party-metadata :initform (make-hash-table) :initarg
-                         :third-party-metadata)
    (name-map :initform (make-hash-table :test #'equal))
    (compiled-functions :initform (make-hash-table :test #'eq))
    (value-metadata :initform (make-hash-table :test #'eql))

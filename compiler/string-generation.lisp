@@ -177,8 +177,8 @@
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
             (loop :for part :in
                (list (used-types post-proc-obj)
-                     (mapcar #'last1 (in-args post-proc-obj))
-                     (mapcar #'last1 (out-vars post-proc-obj))
+                     (mapcar #'%glsl-decl (in-args post-proc-obj))
+                     (mapcar #'%glsl-decl (out-vars post-proc-obj))
                      (remove-empty
                       (append
                        (mapcar #'%glsl-decl (uniforms post-proc-obj))

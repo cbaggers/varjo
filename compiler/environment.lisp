@@ -92,18 +92,6 @@
   (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
         value))
 
-;; WARNING:: This is mutated in translate.lisp
-(defmethod v-raw-in-args ((env environment))
-  (v-raw-in-args (get-base-env env)))
-
-;; WARNING:: This is mutated in translate.lisp
-(defmethod v-raw-uniforms ((env environment))
-  (v-raw-uniforms (get-base-env env)))
-
-;; WARNING:: This is mutated in translate.lisp
-(defmethod v-raw-context ((env environment))
-  (v-raw-context (get-base-env env)))
-
 ;; WARNING:: This is mutated in translate.lisp & structs.lisp
 (defmethod v-in-args ((env environment))
   (v-in-args (get-base-env env)))
@@ -124,11 +112,9 @@
                  (v-symbol-bindings env))
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
-(defun %make-base-environment (&key (third-party-metadata (make-hash-table))
-                                 stemcells-allowed version)
+(defun %make-base-environment (&key stemcells-allowed version)
   (make-instance 'base-environment
                  :stemcells-allowed stemcells-allowed
-                 :third-party-metadata third-party-metadata
                  :context (when version (list version))))
 
 ;;-------------------------------------------------------------------------

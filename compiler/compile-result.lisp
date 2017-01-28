@@ -1,35 +1,33 @@
 (in-package :varjo)
 
-;; {NOTE} third-party-metadata only applies to rolling-translate
-
 (defun clone-compile-result (original
                              &key
                                (glsl-code nil glsl-code-set)
                                (out-vars nil out-vars-set)
                                (stage-type nil stage-type-set)
                                (in-args nil in-args-set)
+                               (input-variables nil inp-vars-set)
                                (uniforms nil uniforms-set)
                                (implicit-uniforms nil implicit-uniforms-set)
                                (context nil context-set)
-                               (allowed-stemcells nil a-s-set)
+                               (stemcells-allowed nil a-s-set)
                                (used-external-functions nil used-external-functions-set)
-                               (function-asts nil function-asts-set)
-                               (third-party-metadata nil third-party-metadata-set))
+                               (function-asts nil function-asts-set))
   (make-instance
    'varjo-compile-result
    :glsl-code (if glsl-code-set glsl-code (glsl-code original))
    :out-vars (if out-vars-set out-vars (out-vars original))
    :stage-type (if stage-type-set stage-type (stage-type original))
    :in-args (if in-args-set in-args (in-args original))
+   :input-variables (if inp-vars-set input-variables (input-variables original))
    :uniforms (if uniforms-set uniforms (uniforms original))
    :implicit-uniforms (if implicit-uniforms-set implicit-uniforms (implicit-uniforms original))
    :context (if context-set context (context original))
-   :allowed-stemcells (if a-s-set allowed-stemcells (allowed-stemcells original))
+   :stemcells-allowed (if a-s-set stemcells-allowed (stemcells-allowed original))
    :used-external-functions (if used-external-functions-set
                                 used-external-functions
                                 (used-external-functions original))
-   :function-asts (if function-asts-set function-asts (function-asts original))
-   :third-party-metadata (if third-party-metadata-set third-party-metadata (third-party-metadata original))))
+   :function-asts (if function-asts-set function-asts (function-asts original))))
 
 (defmethod ast ((obj varjo-compile-result))
   (let* ((res (first (function-asts obj)))

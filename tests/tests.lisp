@@ -30,12 +30,14 @@
   (let* ((code (ast->code compile-result))
          (version (varjo::get-version-from-context-list
                    (context compile-result)))
-         (stemcells (allowed-stemcells compile-result))
+         (stemcells (stemcells-allowed compile-result))
          (recomp (first (v-compile
-                         (mapcar #'varjo::to-arg-form (uniforms compile-result))
+                         (mapcar #'varjo::to-arg-form
+                                 (varjo::uniform-variables compile-result))
                          version
                          (stage-type compile-result)
-                         (list (in-args compile-result)
+                         (list (mapcar #'varjo::to-arg-form
+                                       (in-args compile-result))
                                code)
                          :allow-stemcells stemcells)))
          (recomp-code (ast->code recomp)))

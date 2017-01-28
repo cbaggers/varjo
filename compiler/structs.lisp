@@ -78,8 +78,15 @@
                   (v-glsl-string type-obj)
                   (safe-glsl-name-string name))))))
 
-(defun add-in-arg-fake-struct (in-var-name glsl-name type qualifiers env)
-  (let* ((struct (set-flow-id (v-fake-type type) (flow-id!)))
+;; mutates env
+(defmethod add-fake-struct ((var input-variable) env)
+  (let* (;;
+         (in-var-name (name var))
+         (type (v-type-of var))
+         (qualifiers (qualifiers var))
+         (glsl-name (glsl-name var))
+         ;;
+         (struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (new-in-args
@@ -104,8 +111,15 @@
      env)
     env))
 
-(defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
-  (let* ((struct (set-flow-id (v-fake-type type) (flow-id!)))
+;; mutates env
+(defmethod add-fake-struct ((var uniform-variable) env)
+  (let* (;;
+         (uniform-name (name var))
+         (type (v-type-of var))
+         (qualifiers (qualifiers var))
+         (glsl-name (glsl-name var))
+         ;;
+         (struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (new-uniform-args
