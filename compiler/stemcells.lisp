@@ -49,9 +49,14 @@
 (defun inject-implicit-uniform (symbol type-spec env
                                 &optional cpu-side-transform)
   (assert (type-specp type-spec) (type-spec))
-  (add-type-to-stemcell-code
-   (make-stem-cell symbol env cpu-side-transform)
-   type-spec))
+  (let ((code (add-type-to-stemcell-code
+               (make-stem-cell symbol env cpu-side-transform)
+               type-spec))
+        (ast (ast-node! 'lisp-code-as-uniform
+                        (list symbol type-spec cpu-side-transform)
+                        (type-spec->type type-spec)
+                        env env)))
+    (copy-code code :node-tree ast)))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

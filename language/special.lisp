@@ -1062,3 +1062,14 @@
   (vbind (body declarations) (extract-declares body)
     (compile-declares declarations env)
     (compile-form `(progn ,@body) env)))
+
+
+;;------------------------------------------------------------
+;; Migrate code to cpu side
+
+(v-defspecial lisp-code-as-uniform (uniform-name type-spec lisp-form)
+  :args-valid t
+  :return
+  (values
+   (inject-implicit-uniform uniform-name type-spec env lisp-form)
+   env))
