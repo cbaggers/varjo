@@ -669,7 +669,7 @@
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
   (let* ((will-assign (and (not (typep result-type 'v-void))
                            (not (typep result-type 'v-or))))
-         (tmp-var (when will-assign (safe-glsl-name-string 'tmp))))
+         (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp")))))
     (values
      (format nil "~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
              (when tmp-var
