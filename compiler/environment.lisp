@@ -408,9 +408,8 @@ For example calling env-prune on this environment..
 
 ;; {TODO} proper error
 (defmethod add-compiler-macro (macro (env environment))
-  (declare (ignore macro env))
   (error "Varjo: Compiler Bug: Compiler macros can only be added to the global environment: ~a"
-         macro-name))
+         (name macro)))
 
 (defmethod get-compiler-macro (macro-name (env (eql :-genv-)))
   (gethash macro-name *global-env-compiler-macros*))
