@@ -984,11 +984,11 @@
    env))
 
 (defun compile-glsl-expression-string (current-line type)
-  (let* ((flow-id (flow-id!))
-         (type-obj (set-flow-id (if (typep type 'v-type)
-                                    type
-                                    (type-spec->type type))
-                                flow-id)))
+  (let* ((type-obj (if (typep type 'v-type)
+                       type
+                       (type-spec->type type (flow-id!))))
+         (flow-id (flow-ids type-obj)))
+    (assert flow-id)
     (code! :type type-obj
            :current-line current-line
            :used-types (list type-obj)
