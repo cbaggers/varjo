@@ -359,7 +359,6 @@ however failed to do so when asked."
                  (error 'could-not-find-function :name func-name))
              binding))
         ;; otherwise return the binding
-        ((or v-regular-macro v-function external-function)
-         binding)
+        (v-regular-macro binding)
         ;;
         (null (error 'could-not-find-function :name func-name))))))

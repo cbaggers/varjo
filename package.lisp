@@ -403,6 +403,9 @@
            :function-asts
            :to-arg-form
            :uniform-variables
+           :stage
+           :input-variables
+           :lisp-code
 
            ;;utils
            :map-environments

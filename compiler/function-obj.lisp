@@ -70,11 +70,18 @@
 
 ;;------------------------------------------------------------
 
+;; (defclass external-function ()
+;;   ((name :initarg :name :reader name)
+;;    (in-args :initarg :in-args :reader in-args)
+;;    (uniforms :initarg :uniforms :reader uniforms)
+;;    (code :initarg :code :reader code)
+;;    (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
+
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
     (assert (listp return-spec))
     (make-instance 'v-function-type
-                   :ctv func ;; make the func the compile-time-val in this type
+                   :ctv func
                    :arg-spec argument-spec
                    :return-spec return-spec)))
 
@@ -244,7 +251,7 @@
   (let* ((type (type-spec->type shadow-type-spec))
          (shadowed (shadowed-type type))
          (func-set (find-form-binding-by-literal function-identifier
-                                                  *global-env*))
+                                                 *global-env*))
          (functions (functions func-set)))
     (assert (not (null functions)) () 'shadowing-constructor-no-match
             :shadow-type type :func-id function-identifier)

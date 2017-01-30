@@ -144,7 +144,34 @@
                                   (,func-name ,@(remove-if #'unrep-p args))))
            env))))))
 
-(defun compile-with-external-func-in-scope (func body-form env)
+(defun compile-external-func-returning-ref (func func-name-form env)
+  ;; Here we are going to make use of the fact that a external function
+  ;; is not allowed to mutate the environment it was called from.
+  ;; We are going to grab the base environment and compile the labels form
+  ;; there. We can then extract the signatures we need from this and add them
+  ;; to the final source. The deduplication will be achieved by the fact that
+  ;; we will use the external-function object as a key to a hashtable in the
+  ;; base-env which will cache the results of these compiled external functions.
+  ;;
+  (let* ((base-env (get-base-env env))
+         (compiled-func (or (compiled-functions base-env func)
+                            (build-external-function func base-env))))
+    (setf (compiled-functions base-env func) compiled-func)
+    ;;
+    (let* ((func (function-obj compiled-func))
+           (flow-id (flow-id!))
+           (type (set-flow-id (v-type-of func) flow-id)))
+      (when (implicit-args func)
+        (error 'closures-not-supported :func func-name-form))
+      (values
+       (code! :type type
+              :current-line nil
+              :used-types (list type)
+              :node-tree (ast-node! 'function (list func-name-form)
+                                    type nil nil))
+       env))))
+
+(defun compile-external-function-call (func args env)
   ;; Here we are going to make use of the fact that a external function
   ;; is not allowed to mutate the environment it was called from.
   ;; We are going to grab the base environment and compile the labels form
@@ -159,11 +186,8 @@
     (setf (compiled-functions base-env func) compiled-func)
     (compile-function-call (name func)
                            (function-obj compiled-func)
-                           (rest body-form)
+                           args
                            env)))
-
-(defun compile-external-function-call (func args env)
-  (compile-with-external-func-in-scope func `(,(name func) ,@args) env))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)

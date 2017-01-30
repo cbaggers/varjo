@@ -8,6 +8,10 @@
  'ext-int-fncaller '((fn (function (:int) :int)) (ham :int)) nil
  `((funcall fn ham)))
 
+(varjo:add-external-function
+ 'ext-return-int '() nil
+ `(10))
+
 ;;------------------------------------------------------------
 ;; Tests
 
@@ -134,3 +138,9 @@
        (let ((fn #'sin))
          (some-func fn)
          (v! 1 2 3 4))))))
+
+(5am:def-test f-c-func-14 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (let ((fn #'ext-return-int))
+       (v! 0 0 0 0)))))

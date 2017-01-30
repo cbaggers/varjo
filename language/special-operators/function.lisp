@@ -17,23 +17,28 @@
       (v-function-set (%function-for-func-sets func-name func env)))))
 
 (defun %function-for-func-sets (func-name-form func-set env)
-  (let ((functions (functions func-set)))
-    (let* ((type (v-type-of func-set)))
-      (when (or (some #'implicit-args functions)
-                (and (some #'captured-vars functions)))
-        (error 'closures-not-supported :func func-name-form))
-      (values
-       (code! :type type
-              :current-line nil
-              :used-types (list type)
-              :node-tree (ast-node! 'function (list func-name-form)
-                                    type nil nil))
-       env))))
+  (let* ((functions (functions func-set))
+         (len (length functions))
+         (has-external (some λ(typep _ 'external-function) functions)))
+    (cond
+      ((and has-external (= len 1))
+       (%function-for-external-funcs (first functions) func-name-form env))
+      (has-external (error 'multiple-external-func-match :matches functions))
+      (t (let* ((type (v-type-of func-set)))
+           (when (or (some #'implicit-args functions)
+                     (and (some #'captured-vars functions)))
+             (error 'closures-not-supported :func func-name-form))
+           (values
+            (code! :type type
+                   :current-line nil
+                   :used-types (list type)
+                   :node-tree (ast-node! 'function (list func-name-form)
+                                         type nil nil))
+            env))))))
 
 ;; {TODO} shouldnt this have a new environment?
 (defun %function-for-external-funcs (func func-name-form env)
-  (record-func-usage func env)
-  (compile-with-external-func-in-scope func `(function ,func-name-form) env))
+  (compile-external-func-returning-ref func func-name-form env))
 
 (defun %function-for-regular-funcs (func-name-form func env)
   (let* ((flow-id (flow-id!))

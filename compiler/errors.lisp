@@ -635,3 +635,8 @@ Metadata already present: ~a"
 ~a, however the metadata returned was of type ~a. When combining metadata it is
 only valid to return nil or a piece of metadata of the correct type."
   expected found)
+
+(deferror multiple-external-func-match () (matches)
+    "Varjo: Multiple externally defined functions found matching the identifier:
+~{~s~^~%~}"
+  matches)
