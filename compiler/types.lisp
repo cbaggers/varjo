@@ -128,8 +128,9 @@ doesnt"))
 
 (def-v-type-class v-ephemeral-type (v-type) ())
 
-(defmethod ephemeral-p (x)
-  (typep (v-type-of x) 'v-ephemeral-type))
+(defgeneric ephemeral-p (x)
+  (:method (x)
+    (typep (v-type-of x) 'v-ephemeral-type)))
 
 ;;------------------------------------------------------------
 ;; Unrepresentable Value
@@ -224,25 +225,27 @@ doesnt"))
 (defmethod type->type-spec ((type v-or))
   `(or ,@(mapcar #'type->type-spec (v-types type))))
 
-(defmethod gen-or-type (types)
-  (let* ((types (mapcar (lambda (type)
-                          (etypecase type
-                            (v-type type)
-                            ((or list symbol)
-                             (type-spec->type type (flow-id!)))))
-                        types))
-         (reduced (reduce-types-for-or-type types)))
-    (if (= (length reduced) 1)
-        (first reduced)
-        (make-instance 'v-or :types reduced
-                       :flow-ids (apply #'flow-id! reduced)))))
+(defgeneric gen-or-type (types)
+  (:method (types)
+    (let* ((types (mapcar (lambda (type)
+                            (etypecase type
+                              (v-type type)
+                              ((or list symbol)
+                               (type-spec->type type (flow-id!)))))
+                          types))
+           (reduced (reduce-types-for-or-type types)))
+      (if (= (length reduced) 1)
+          (first reduced)
+          (make-instance 'v-or :types reduced
+                         :flow-ids (apply #'flow-id! reduced))))))
 
-(defmethod reduce-types-for-or-type (types)
-  (labels ((inner (type)
-             (if (typep type 'v-or)
-                 (mapcat #'inner (v-types type))
-                 (list type))))
-    (remove-duplicates (mapcat #'inner types) :test #'v-type-eq)))
+(defgeneric reduce-types-for-or-type (types)
+  (:method (types)
+    (labels ((inner (type)
+               (if (typep type 'v-or)
+                   (mapcat #'inner (v-types type))
+                   (list type))))
+      (remove-duplicates (mapcat #'inner types) :test #'v-type-eq))))
 
 (defmethod print-object ((obj v-or) stream)
   (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
@@ -265,21 +268,22 @@ doesnt"))
 (defmethod type->type-spec ((type v-any-one-of))
   `(any-of-of ,@(mapcar #'type->type-spec (v-types type))))
 
-(defmethod gen-any-one-of-type (types)
-  (let* ((types (mapcar (lambda (type)
-                          (etypecase type
-                            (v-type
-                             (if (flow-ids type)
-                                 type
-                                 (set-flow-id type (flow-id!))))
-                            ((or list symbol)
-                             (type-spec->type type (flow-id!)))))
-                        types))
-         (reduced (reduce-types-for-or-type types)))
-    (if (= (length reduced) 1)
-        (first reduced)
-        (make-instance 'v-any-one-of :types reduced
-                       :flow-ids (apply #'flow-id! reduced)))))
+(defgeneric gen-any-one-of-type (types)
+  (:method (types)
+    (let* ((types (mapcar (lambda (type)
+                            (etypecase type
+                              (v-type
+                               (if (flow-ids type)
+                                   type
+                                   (set-flow-id type (flow-id!))))
+                              ((or list symbol)
+                               (type-spec->type type (flow-id!)))))
+                          types))
+           (reduced (reduce-types-for-or-type types)))
+      (if (= (length reduced) 1)
+          (first reduced)
+          (make-instance 'v-any-one-of :types reduced
+                         :flow-ids (apply #'flow-id! reduced))))))
 
 (defmethod print-object ((obj v-any-one-of) stream)
   (format stream "#<ANY-ONE-OF ~{~s~^ ~}>"
@@ -577,17 +581,18 @@ doesnt"))
 ;; Distance
 
 ;; {TODO} proper errors
-(defmethod get-type-distance ((ancestor v-type) (type v-type)
-                              &optional (value-in-place-of-error nil vset))
-  (labels ((inner (base child accum)
-             (cond
-               ((null child) (if vset
-                                 value-in-place-of-error
-                                 (error "Varjo: ~a is not a descendant of type ~a"
-                                        type ancestor)))
-               ((v-type-eq base child) accum)
-               (t (inner base (v-superclass child) (1+ accum))))))
-    (inner ancestor type 0)))
+(defgeneric get-type-distance (ancestor type &optional value-in-place-of-error)
+  (:method ((ancestor v-type) (type v-type)
+            &optional (value-in-place-of-error nil vset))
+    (labels ((inner (base child accum)
+               (cond
+                 ((null child) (if vset
+                                   value-in-place-of-error
+                                   (error "Varjo: ~a is not a descendant of type ~a"
+                                          type ancestor)))
+                 ((v-type-eq base child) accum)
+                 (t (inner base (v-superclass child) (1+ accum))))))
+      (inner ancestor type 0))))
 
 ;;------------------------------------------------------------
 ;; Finding similarly named types

@@ -12,22 +12,24 @@
         *global-env*)
        ',name)))
 
-(defmethod make-regular-macro (name macro-function context env)
-  (make-instance 'v-regular-macro
-                 :name name
-                 :macro-function macro-function
-                 :context context
-                 :function-scope (if (eq env *global-env*)
-                                     0
-                                     (v-function-scope env))))
+(defgeneric make-regular-macro (name macro-function context env)
+  (:method (name macro-function context env)
+    (make-instance 'v-regular-macro
+                   :name name
+                   :macro-function macro-function
+                   :context context
+                   :function-scope (if (eq env *global-env*)
+                                       0
+                                       (v-function-scope env)))))
 
 ;;------------------------------------------------------------
 ;; Symbol Macros
 
-(defmethod make-symbol-macro (expansion-form function-scope env)
-  (make-instance 'v-symbol-macro
-                 :expansion expansion-form
-                 :function-scope (or function-scope (v-function-scope env))))
+(defgeneric make-symbol-macro (expansion-form function-scope env)
+  (:method (expansion-form function-scope env)
+    (make-instance 'v-symbol-macro
+                   :expansion expansion-form
+                   :function-scope (or function-scope (v-function-scope env)))))
 
 ;;------------------------------------------------------------
 ;; Compile Macros

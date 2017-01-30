@@ -60,22 +60,20 @@
 ;; If you throw an error from this method it will be caught, extra details will
 ;; be added and then it will be rethrown.
 
-(defmethod combine-metadata ((meta-a standard-value-metadata)
-                             (meta-b standard-value-metadata))
-  nil)
-
-(defmethod combine-metadata ((meta-a standard-value-metadata)
-                             (meta-b null))
-  meta-a)
-
-(defmethod combine-metadata ((meta-a null)
-                             (meta-b standard-value-metadata))
-  meta-b)
-
-;; {TODO} proper error
-(defmethod combine-metadata ((meta-a null)
-                             (meta-b null))
-  (error "Varjo: Compiler Bug: Tried to combine metadata with two null objects"))
+(defgeneric combine-metadata (meta-a meta-b)
+  ;;
+  (:method ((meta-a standard-value-metadata) (meta-b standard-value-metadata))
+    nil)
+  ;;
+  (:method ((meta-a standard-value-metadata) (meta-b null))
+    meta-a)
+  ;;
+  (:method ((meta-a null) (meta-b standard-value-metadata))
+    meta-b)
+  ;;
+  ;; {TODO} proper error
+  (:method ((meta-a null) (meta-b null))
+    (error "Varjo: Compiler Bug: Tried to combine metadata with two null objects")))
 
 ;;-------------------------------------------------------------------------
 ;; Find similar declaration names
@@ -177,13 +175,15 @@
 
 ;;-------------------------------------------------------------------------
 
-(defmethod meta-kinds-to-infer (varjo-type)
-  (declare (ignore varjo-type))
-  nil)
+(defgeneric meta-kinds-to-infer (varjo-type)
+  (:method (varjo-type)
+    (declare (ignore varjo-type))
+    nil))
 
-(defmethod infer-meta-by-type (varjo-type metadata-kind env)
-  (declare (ignore varjo-type metadata-kind env))
-  nil)
+(defgeneric infer-meta-by-type (varjo-type metadata-kind env)
+  (:method (varjo-type metadata-kind env)
+    (declare (ignore varjo-type metadata-kind env))
+    nil))
 
 (defun infer-meta (code-obj env)
   (assert (typep code-obj 'code))

@@ -55,16 +55,18 @@
 
 ;;------------------------------------------------------------
 
-(defmethod function-identifier ((func v-function))
-  (cons (name func) (mapcar #'type->type-spec (v-argument-spec func))))
+(defgeneric function-identifier (func)
+  (:method ((func v-function))
+    (cons (name func) (mapcar #'type->type-spec (v-argument-spec func)))))
 
-(defmethod function-identifier-with-return ((func v-function))
-  (let* ((returns (mapcar #'type->type-spec (v-return-spec func)))
-         (returns (if (= (length returns) 1)
-                      (first returns)
-                      returns)))
-    `#'(,(name func) ,(mapcar #'type->type-spec (v-argument-spec func))
-         :-> ,returns)))
+(defgeneric function-identifier-with-return (func)
+  (:method ((func v-function))
+    (let* ((returns (mapcar #'type->type-spec (v-return-spec func)))
+           (returns (if (= (length returns) 1)
+                        (first returns)
+                        returns)))
+      `#'(,(name func) ,(mapcar #'type->type-spec (v-argument-spec func))
+           :-> ,returns))))
 
 ;;------------------------------------------------------------
 
