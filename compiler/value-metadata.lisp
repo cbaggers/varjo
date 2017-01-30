@@ -14,6 +14,8 @@
      (defclass ,name (standard-value-metadata)
        ,(mapcar λ`(,_ :initform nil :initarg ,(kwd _))
                 slot-names))
+     ,@(mapcar λ`(defgeneric ,(if conc-name (symb conc-name _) _) (metadata))
+               slot-names)
      ,@(mapcar λ`(defmethod ,(if conc-name (symb conc-name _) _)
                      ((metadata-collection list))
                    (let ((data (cdr (assoc ',name metadata-collection))))
