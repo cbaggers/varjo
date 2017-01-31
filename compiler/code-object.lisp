@@ -41,7 +41,7 @@
 (defun add-higher-scope-val (code-obj value)
   (let* ((type (v-type-of value))
          (new-oos-args
-          (if (typep type 'v-unrepresentable-value)
+          (if (typep type 'v-ephemeral-type)
               (out-of-scope-args code-obj)
               (cons value (out-of-scope-args code-obj)))))
     (copy-code code-obj :out-of-scope-args new-oos-args)))
@@ -60,12 +60,6 @@
   (code! :type type :current-line current-line
          :place-tree (listify place-tree)
          :node-tree node-tree))
-
-(defun make-none-ob ()
-  (let ((none-type (gen-none-type)))
-    (make-code-obj
-     none-type nil
-     :node-tree (ast-node! :none nil none-type nil nil))))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

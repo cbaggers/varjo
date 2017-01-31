@@ -5,8 +5,8 @@
   (declare (ignore initargs))
   (assert-flow-id-singularity (flow-ids ast)))
 
-(defmethod get-var (var-name (node ast-node))
-  (get-var var-name (ast-starting-env node)))
+(defmethod get-symbol-binding (var-name respect-scope-rules (node ast-node))
+  (get-symbol-binding var-name respect-scope-rules (ast-starting-env node)))
 
 (defmethod ast-kindp (node kind)
   (let* ((actual-kind (ast-kind node)))

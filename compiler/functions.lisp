@@ -16,11 +16,11 @@
     (declare (ignore in-args))
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (let* ((template (first body)))
-      (unless (stringp (first body))
+      (unless (or (stringp template) (null template))
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
                                      &key v-place-index glsl-name) body
-        `(progn (add-function-from-spec
+        `(progn (add-form-binding
                  (make-function-obj
                   ',name ,transform ',context ',arg-types '(,return-spec)
                   :v-place-index ',v-place-index :glsl-name ',glsl-name
@@ -41,24 +41,25 @@
                       (concatenate 'list in-args
                                    (when rest (cons '&rest rest))
                                    (when rest (cons '&optional optional)))))
-          (func-name (symb :vs- name)))
+          (func-name (symb :vs- name))
+          (env (symb :env)))
       (destructuring-bind (&key context v-place-index args-valid return) body
         (cond
           ((eq args-valid t)
            `(progn
-              (defun ,func-name ,(cons 'env args)
-                (declare (ignorable env ,@arg-names))
+              (defun ,func-name ,(cons env args)
+                (declare (ignorable ,env ,@arg-names))
                 ,return)
-              (add-function-from-spec
+              (add-form-binding
                (make-function-obj ',name :special ',context t (list #',func-name)
                                   :v-place-index ',v-place-index)
                *global-env*)
               ',name))
           (t `(progn
-                (defun ,func-name ,(cons 'env (mapcar #'first args))
-                  (declare (ignorable env ,@arg-names))
+                (defun ,func-name ,(cons env (mapcar #'first args))
+                  (declare (ignorable ,env ,@arg-names))
                   ,return)
-                (add-function-from-spec
+                (add-form-binding
                  (make-function-obj ',name :special ',context
                                     ',(mapcar #'second args) (list #',func-name)
                                     :v-place-index ',v-place-index)
@@ -80,7 +81,11 @@
                 :name (name func)
                 :spec arg-spec)))))
 
-(defmethod cast-code (src-obj cast-to-type)
+(defun cast-code (src-obj cast-to-type env)
+  (cast-code-inner (code-type src-obj) src-obj cast-to-type env))
+
+(defmethod cast-code-inner (varjo-type src-obj cast-to-type env)
+  (declare (ignore varjo-type))
   (let* ((src-type (code-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
@@ -88,56 +93,75 @@
         (copy-code src-obj :current-line (cast-string cast-to-type src-obj)
                    :type dest-type))))
 
-(defmethod cast-code (obj (cast-to-type v-function-type))
+(defmethod cast-code-inner
+    (varjo-type src-obj (cast-to-type v-function-type) env)
+  (declare (ignore varjo-type))
   (let ((new-type (make-instance
                    'v-function-type
                    :arg-spec (v-argument-spec cast-to-type)
                    :return-spec (v-return-spec cast-to-type)
-                   :ctv (ctv (v-type-of obj))
-                   :flow-ids (flow-ids obj))))
-    (if (v-type-eq (code-type obj) new-type)
-        (copy-code obj :type new-type)
+                   :ctv (ctv (v-type-of src-obj))
+                   :flow-ids (flow-ids src-obj))))
+    (if (v-type-eq (code-type src-obj) new-type)
+        (copy-code src-obj :type new-type)
         (copy-code
-         obj
-         :current-line (cast-string new-type obj)
+         src-obj
+         :current-line (cast-string new-type src-obj)
          :type new-type))))
 
+;; {TODO} proper error
+(defmethod cast-code-inner
+    ((varjo-type v-any-one-of) src-obj (cast-to-type v-function-type) env)
+  (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type env))
+                              (v-types varjo-type))))
+    (if funcs
+        (copy-code src-obj :type (gen-any-one-of-type funcs))
+        (error "Varjo: compiler bug: Had already decided it was possible to cast ~a to ~a
+however failed to do so when asked."
+               src-obj cast-to-type))))
+
 ;; [TODO] should this always copy the arg-objs?
-(defun basic-arg-matchp (func arg-types arg-objs env)
+(defun basic-arg-matchp (func arg-types arg-objs env
+                         &key (allow-casting t))
   (let ((spec-types (v-argument-spec func)))
     (labels ((calc-secondary-score (types)
                ;; the lambda below sums all numbers or returns nil
                ;; if nil found
-               (reduce (lambda (a x)
-                         (when (and a x)
-                           (+ a x)))
-                       (mapcar λ(get-type-distance _ _1 nil)
-                               spec-types
-                               types)
-                       :initial-value 0)))
+               (or (reduce (lambda (a x)
+                             (when (and a x)
+                               (+ a x)))
+                           (mapcar λ(get-type-distance _ _1 nil)
+                                   spec-types
+                                   types)
+                           :initial-value 0)
+                   most-positive-fixnum)))
       ;;
-      (when (eql (length arg-objs) (length spec-types))
+      (when (eql (length arg-types) (length spec-types))
         (let* ((perfect-matches (mapcar λ(v-typep _ _1 env) arg-types spec-types))
-               (score (- (length arg-objs)
+               (score (- (length arg-types)
                          (length (remove nil perfect-matches)))))
+
           (if (= score 0)
+              ;; if all the types match
               (let ((secondary-score (calc-secondary-score arg-types)))
-                (when secondary-score
-                  (make-instance
-                   'func-match
-                   :func func
-                   :arguments (mapcar #'copy-code arg-objs)
-                   :score score
-                   :secondary-score secondary-score)))
-              (let ((cast-types (loop :for a :in arg-types :for s :in spec-types
-                                   :collect (v-casts-to a s env))))
-                (when (not (some #'null cast-types))
-                  (let ((secondary-score (calc-secondary-score cast-types)))
-                    (when secondary-score
+                (make-instance
+                 'func-match
+                 :func func
+                 :arguments (mapcar #'copy-code arg-objs)
+                 :score score
+                 :secondary-score secondary-score))
+              (when allow-casting
+                (let ((cast-types
+                       (loop :for a :in arg-types :for s :in spec-types :collect
+                          (v-casts-to a s env))))
+                  (when (not (some #'null cast-types))
+                    ;; when all the types can be cast
+                    (let ((secondary-score (calc-secondary-score cast-types)))
                       (make-instance
                        'func-match
                        :func func
-                       :arguments (mapcar #'cast-code arg-objs cast-types)
+                       :arguments (mapcar (lambda (a c) (cast-code a c env))
+                                          arg-objs cast-types)
                        :score score
                        :secondary-score secondary-score)))))))))))
 
@@ -176,6 +200,10 @@
 (defun try-compile-args (args-code env)
   ;; {TODO} Why don't we care about the env here?
   (mapcar (rcurry #'try-compile-arg env) args-code))
+
+(defmethod func-need-arguments-compiledp ((func v-function))
+  (not (and (v-special-functionp func)
+            (eq (v-argument-spec func) t))))
 
 (defun find-functions-in-set-for-args (func-set args-code env &optional name)
   (let* ((func-name (or name (%func-name-from-set func-set)))
@@ -229,13 +257,10 @@
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
-  (let* ((candidates (let ((c (get-func-set-by-name func-name env)))
-                       (if c
-                           (functions c)
-                           (error 'could-not-find-function :name func-name)))))
-    (find-function-in-set-for-args
-     (make-instance 'v-function-set :functions candidates)
-     args-code env)))
+  (let ((candidates (get-form-binding func-name env)))
+    (typecase candidates
+      (v-function-set (find-function-in-set-for-args candidates args-code env))
+      (t (error 'could-not-find-function :name func-name)))))
 
 (defun %func-name-from-set (func-set)
   (let* ((names (mapcar #'name (functions func-set)))
@@ -285,12 +310,13 @@
 
 ;;------------------------------------------------------------
 
+(defun function-arg-specs-match-p (func-a func-b env)
+  (exact-match-function-to-types
+   (v-argument-spec func-a) env func-b))
 
 (defun basic-exact-type-matchp (func arg-types env)
-  (let ((spec-types (v-argument-spec func)))
-    (when (eql (length arg-types) (length spec-types))
-      (loop :for a :in arg-types :for s :in spec-types
-         :always (v-type-eq a s env)))))
+  (let ((match (basic-arg-matchp func arg-types nil env :allow-casting nil)))
+    (and match (= 0 (score match) (secondary-score match)))))
 
 (defun special-exact-type-matchp (func arg-types env)
   (let ((arg-spec (v-argument-spec func))
@@ -307,18 +333,32 @@
       (special-exact-type-matchp candidate arg-types env)
       (basic-exact-type-matchp candidate arg-types env)))
 
-(defun find-function-for-types (func-name arg-types env)
-  (find-if (curry #'exact-match-function-to-types arg-types env)
-           (or (functions (get-func-set-by-name func-name env))
-               (error 'could-not-find-function :name func-name))))
-
 ;;------------------------------------------------------------
 
-(defun find-function-by-literal (func-name env)
+;; {TODO} proper error
+(defmethod find-form-binding-by-literal ((name symbol) env)
+  (assert (not (eq name 'declare)) ()
+          'treating-declare-as-func :decl '(function declare))
+  (get-form-binding name env))
+
+(defmethod find-form-binding-by-literal ((func-name list) env)
+  ;;
   (destructuring-bind (name &rest arg-types) func-name
+    (assert (not (eq name 'declare)) ()
+            'treating-declare-as-func :decl func-name)
     (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
-                             arg-types)))
-      (or (if arg-types
-              (find-function-for-types name arg-types env)
-              (get-func-set-by-name name env))
-          (error "No function yada {TODO} ~a" name)))))
+                             arg-types))
+          (binding (get-form-binding name env)))
+      ;;
+      (etypecase binding
+        ;; When we have types we should try to match exactly
+        (v-function-set
+         (if arg-types
+             (or (find-if λ(exact-match-function-to-types arg-types env _)
+                          (functions binding))
+                 (error 'could-not-find-function :name func-name))
+             binding))
+        ;; otherwise return the binding
+        (v-regular-macro binding)
+        ;;
+        (null (error 'could-not-find-function :name func-name))))))

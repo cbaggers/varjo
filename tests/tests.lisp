@@ -30,12 +30,16 @@
   (let* ((code (ast->code compile-result))
          (version (varjo::get-version-from-context-list
                    (context compile-result)))
-         (stemcells (allowed-stemcells compile-result))
-         (recomp (first (v-compile (uniforms compile-result) version
-                                   (stage-type compile-result)
-                                   (list (in-args compile-result)
-                                         code)
-                                   :allow-stemcells stemcells)))
+         (stemcells (stemcells-allowed compile-result))
+         (recomp (first (v-compile
+                         (mapcar #'varjo::to-arg-form
+                                 (varjo::uniform-variables compile-result))
+                         version
+                         (stage-type compile-result)
+                         (list (mapcar #'varjo::to-arg-form
+                                       (varjo::input-variables compile-result))
+                               code)
+                         :allow-stemcells stemcells)))
          (recomp-code (ast->code recomp)))
     (or (values (equal code recomp-code) depth)
         (when (< depth max-depth)
@@ -94,7 +98,12 @@
 (5am:def-suite build-tests :in test-all)
 (5am:def-suite struct-tests :in test-all)
 (5am:def-suite stemcell-tests :in test-all)
+(5am:def-suite qualifier-tests :in test-all)
 (5am:def-suite flow-control-tests :in test-all)
+(5am:def-suite symbol-macro-tests :in test-all)
+(5am:def-suite regular-macro-tests :in test-all)
+(5am:def-suite name-shadowing-tests :in test-all)
+(5am:def-suite compiler-macro-tests :in test-all)
 (5am:def-suite first-class-func-tests :in test-all)
 (5am:def-suite external-functions-tests :in test-all)
 (5am:def-suite multiple-value-return-tests :in test-all)

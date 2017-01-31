@@ -1,41 +1,35 @@
 (in-package :varjo)
 
-;; {NOTE} third-party-metadata only applies to rolling-translate
-
 (defun clone-compile-result (original
                              &key
                                (glsl-code nil glsl-code-set)
+                               (lisp-code nil lisp-code-set)
                                (out-vars nil out-vars-set)
                                (stage-type nil stage-type-set)
                                (in-args nil in-args-set)
-                               (uniforms nil uniforms-set)
+                               (input-variables nil inp-vars-set)
+                               (uniform-variables nil uniforms-set)
                                (implicit-uniforms nil implicit-uniforms-set)
                                (context nil context-set)
-                               (allowed-stemcells nil a-s-set)
+                               (stemcells-allowed nil a-s-set)
                                (used-external-functions nil used-external-functions-set)
-                               (used-macros nil used-macros-set)
-                               (used-compiler-macros nil used-compiler-macros-set)
-                               (function-asts nil function-asts-set)
-                               (used-symbol-macros nil used-symbol-macros-set)
-                               (third-party-metadata nil third-party-metadata-set))
+                               (function-asts nil function-asts-set))
   (make-instance
    'varjo-compile-result
    :glsl-code (if glsl-code-set glsl-code (glsl-code original))
+   :lisp-code (if lisp-code-set lisp-code (lisp-code original))
    :out-vars (if out-vars-set out-vars (out-vars original))
    :stage-type (if stage-type-set stage-type (stage-type original))
    :in-args (if in-args-set in-args (in-args original))
-   :uniforms (if uniforms-set uniforms (uniforms original))
+   :input-variables (if inp-vars-set input-variables (input-variables original))
+   :uniform-variables (if uniforms-set uniform-variables (uniform-variables original))
    :implicit-uniforms (if implicit-uniforms-set implicit-uniforms (implicit-uniforms original))
    :context (if context-set context (context original))
-   :allowed-stemcells (if a-s-set allowed-stemcells (allowed-stemcells original))
+   :stemcells-allowed (if a-s-set stemcells-allowed (stemcells-allowed original))
    :used-external-functions (if used-external-functions-set
                                 used-external-functions
                                 (used-external-functions original))
-   :used-macros (if used-macros-set used-macros (used-macros original))
-   :used-compiler-macros (if used-compiler-macros-set used-compiler-macros (used-compiler-macros original))
-   :function-asts (if function-asts-set function-asts (function-asts original))
-   :used-symbol-macros (if used-symbol-macros-set used-symbol-macros (used-symbol-macros original))
-   :third-party-metadata (if third-party-metadata-set third-party-metadata (third-party-metadata original))))
+   :function-asts (if function-asts-set function-asts (function-asts original))))
 
 (defmethod ast ((obj varjo-compile-result))
   (let* ((res (first (function-asts obj)))
@@ -51,3 +45,6 @@ https://github.com/cbaggers/varjo.git
 
 Sorry for the inconvenience")
     res))
+
+(defmethod print-object ((obj implicit-uniform-variable) stream)
+  (format stream "#<IMPLICIT-UNIFORM ~a>" (name obj)))

@@ -10,8 +10,9 @@
 
                                         ;------------HELPER-----------;
 
-(defmacro deferror (name (&key (error-type 'varjo-error) prefix)
-                            (&rest args) error-string &body body)
+(defmacro defcondition (name (&key error-type prefix)
+                                (&rest args) error-string &body body)
+  (assert error-type () "DEFCONDITION: error-type is a mandatory argument")
   (unless (every #'symbolp args) (error "can only take simple args"))
   (loop :for arg :in args :do
      (setf body (subst `(,arg condition) arg body :test #'eq)))
@@ -23,8 +24,19 @@
                 (format stream ,(format nil "~@[~a:~] ~a" prefix error-string)
                         ,@body)))))
 
+(defmacro deferror (name (&key (error-type 'varjo-error) prefix)
+                            (&rest args) error-string &body body)
+  `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
+       ,error-string ,@body))
+
+(defmacro defwarning (name (&key (error-type 'varjo-warning) prefix)
+                            (&rest args) error-string &body body)
+  `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
+       ,error-string ,@body))
+
 (define-condition varjo-error (error) ())
 (define-condition varjo-critical-error (error) ())
+(define-condition varjo-warning (warning) ())
 
                                         ;-----------------------------;
 
@@ -112,7 +124,7 @@ due to the static nature of glsl.
 var name: ~a
 type-of ~a: ~a
 type-of new-value: ~a"
-  var-name var-name (v-type old-value) (code-type new-value))
+  var-name var-name (v-type-of old-value) (code-type new-value))
 
 (deferror cannot-not-shadow-core () ()
     "You cannot shadow or replace core macros or special functions.")
@@ -162,6 +174,11 @@ type-of new-value: ~a"
 
 (deferror invalid-context-symbol () (context-symb)
     "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
+
+(deferror invalid-context-symbols () (symbols)
+    "Sorry but the following symbol are not valid as a context specifier:
+~{~s~^ ~}"
+  symbols)
 
 (deferror args-incompatible () (previous-args current-args)
     "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a"
@@ -390,3 +407,236 @@ Usually Varjo should throw a more descriptive error earlier in the compile
 process so if you have time please report this on github. That way we can try
 and detect these cases more accurately and hopefully provide better error
 messages." funcall-form)
+
+
+(deferror uniform-in-cmacro () (name)
+    "Varjo: We do not currently support &uniforms args in compiler macros, only in shader stages: ~a"
+  name)
+
+(deferror optional-in-cmacro () (name)
+    "Varjo: We do not currently support &optional args in compiler macros: ~a"
+  name)
+
+(deferror rest-in-cmacro () (name)
+    "Varjo: We do not currently support &rest args in compiler macros: ~a"
+  name)
+
+(deferror key-in-cmacro () (name)
+    "Varjo: We do not currently support &key args in compiler macros: ~a"
+  name)
+
+(deferror no-types-for-regular-macro-args () (macro-name arg)
+    "Varjo: The type of the argument ~a is unknown at this stage.
+
+The macro named ~a is a regular macro (defined with v-defmacro). This means
+that, the arguments passed to it are uncompiled code and as such, we cannot get
+their types.
+
+It is however possible to retrieve the argument types for compiler-macros."
+  arg macro-name)
+
+(deferror no-metadata-for-regular-macro-args () (macro-name arg)
+    "Varjo: The metadata for the argument ~a is unknown at this stage.
+
+The macro named ~a is a regular macro (defined with v-defmacro). This means
+that, the arguments passed to it are uncompiled code and as such, we cannot get
+any metadata about them.
+
+It is however possible to retrieve the metadata of arguments in compiler-macros."
+  arg macro-name)
+
+(deferror no-tracking-for-regular-macro-args () (macro-name arg)
+    "Varjo: The flow information for the argument ~a is unknown at this stage.
+
+The macro named ~a is a regular macro (defined with v-defmacro). This means
+that, the arguments passed to it are uncompiled code and as such, we cannot
+trace where they have come from.
+
+It is however possible to retrieve this data for arguments in compiler-macros."
+  arg macro-name)
+
+(deferror unknown-macro-argument () (macro-name arg)
+    "Varjo: Could not find an argument named ~a in the macro ~a"
+  arg macro-name)
+
+(deferror symbol-macro-not-var () (callee name)
+    "Varjo: ~a was asked to find the value bound to the symbol ~a, however ~a is
+currently bound to a symbol-macro."
+  callee name name)
+
+(deferror unbound-not-var () (callee name)
+    "Varjo: ~a was asked to find the value bound to the symbol ~a, however ~a is
+currently unbound."
+  callee name name)
+
+(deferror not-proved-a-uniform (:error-type varjo-critical-error) (name)
+    "Varjo: We are unable to prove that ~a has come from a uniform"
+  name)
+
+(deferror duplicate-varjo-doc-string () (form dup)
+    "Varjo: We have found an illegal duplicate docs string.
+
+Doc string: ~s
+
+Found in form:
+~s"
+    dup form)
+
+(deferror calling-declare-as-func () (decl)
+    "Varjo: Found a declare expression in an invalid position.
+
+Declaration: ~s
+
+There is no function named DECLARE. References to DECLARE in some contexts (like
+the starts of blocks) are unevaluated expressions, but here it is illegal."
+  decl)
+
+(deferror treating-declare-as-func () (decl)
+    "Varjo: Found an attempt to take a reference to declare as a function.
+
+Form: ~s
+
+There is no function named DECLARE. References to DECLARE in some contexts (like
+the starts of blocks) are unevaluated expressions, but here it is illegal."
+  decl)
+
+(deferror v-unrecognized-declaration () (decl)
+    "Varjo: Found an unregonised declaration named ~a
+~@[~%Might you have meant one of these?:~{~%~s~}~%~]
+Full Declaration: ~s"
+  (first decl) (find-alternative-declaration-kinds (first decl)) decl)
+
+(deferror v-unsupported-cl-declaration () (decl)
+    "Varjo: Found an unregonised declaration named ~a
+
+Whilst this is valid in standard common-lisp, it is not currently valid in
+Varjo.
+
+Full Declaration: ~s"
+  (first decl) decl)
+
+(deferror v-only-supporting-declares-on-vars () (targets)
+    "Varjo: We found the following invalid names in the declarations:
+~@[~{~%~s~}~%~]
+We currently only support declarations against variables. Sorry for the
+inconvenience."
+  targets)
+
+(deferror v-declare-on-symbol-macro () (target)
+    "Varjo: We found a declaration against ~s. However at this point in the
+compilation, ~s is bound to a symbol-macro and Varjo does not support
+declarations against symbol-macros."
+  target target)
+
+(deferror v-declare-on-nil-binding () (target)
+    "Varjo: We found a declaration against ~s. However at this point in the
+compilation, ~s is not bound to anything."
+  target target)
+
+(deferror v-metadata-missing-args () (name required provided missing)
+    "Varjo: The metadata type ~a requires the following args to be specified
+on creation: ~{~a~^, ~}
+
+However, the following was provided instead: ~s
+
+Please provide values for: ~{~a~^, ~}
+
+It is perfectly legal to set the values to nil, but we require them to be
+declared to something."
+  name required provided missing)
+
+(defwarning cant-shadow-user-defined-func () (funcs)
+  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+The following functions have been skipped:~{~%~s~}"
+  funcs)
+
+(defwarning cant-shadow-no-type-match () (shadowed funcs)
+  "Varjo: Was asked to shadow the following functions, however none of the
+arguments have the type ~a
+
+The following functions have been skipped:~{~%~s~}"
+  shadowed funcs)
+
+(deferror shadowing-user-defined-func () (func)
+  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+The function in question was: ~s"
+  func)
+
+(deferror shadowing-no-type-match () (shadowed func)
+  "Varjo: Was asked to shadow the following function, however none of the
+arguments have the type ~a
+
+The function in question was: ~s"
+  shadowed func)
+
+(deferror shadowing-no-return-matched () (shadowed func)
+  "Varjo: Was asked to shadow the following function, however none of the
+returned values have the type ~a
+
+The function in question was: ~s"
+  shadowed func)
+
+(deferror shadowing-multiple-constructors () (shadow-type func-id funcs)
+  "Varjo: Was asked to shadow the function with the idenifier ~a  as a
+constructor for the shadow-type ~a.
+
+However this function-identifier names multiple functions, which is not
+allowed in this form.
+
+The functions in question were:~{~%~a~}"
+  func-id shadow-type funcs)
+
+(deferror shadowing-multiple-funcs () (shadow-type pairs)
+  "Varjo: Was asked to shadow the functions for the shadow-type ~a.
+
+However these function-identifiers name multiple functions, which is not
+allowed in this form.
+
+The functions in question were:
+~{~%Identifier: ~a~%Named functions: ~a~%~}"
+  shadow-type pairs)
+
+(deferror shadowing-constructor-no-match () (shadow-type func-id)
+  "Varjo: Was asked to shadow the function with the idenifier ~a as
+a constructor for the shadow-type ~a.
+
+However no functions were found that matched this identifier."
+  func-id shadow-type)
+
+(deferror def-shadow-non-func-identifier () (name func-ids)
+  "Varjo: ~a was ask to shadow some functions, however the following
+identifiers are have problems:
+~{~%~s~}
+
+The identifiers passed to this macro should be in the format:
+#'func-name  - or - #'(func-name arg-type arg-type)}"
+  name func-ids)
+
+(deferror shadowing-funcs-for-non-shadow-type () (name shadow-type)
+  "Varjo: ~a was ask to shadow some functions for the type ~a,
+however the type ~a is not a shadow type."
+  name shadow-type shadow-type)
+
+(deferror fell-through-v-typecase () (vtype wanted)
+  "Varjo: ~a fell through V-ETYPECASE expression.
+Wanted one of the following types: ~s}"
+  vtype wanted)
+
+(deferror metadata-conflict () (metadata-kind flow-id new-meta old-meta)
+    "Varjo: ~a metadata already found for flow-id ~a.~%Metadata cannot be redefined
+
+Tried to apply: ~a
+
+Metadata already present: ~a"
+  metadata-kind flow-id new-meta old-meta)
+
+(deferror metadata-combine-invalid-type () (expected found)
+    "Varjo: Asked for a combined version of the two pieces of metadata of kind
+~a, however the metadata returned was of type ~a. When combining metadata it is
+only valid to return nil or a piece of metadata of the correct type."
+  expected found)
+
+(deferror multiple-external-func-match () (matches)
+    "Varjo: Multiple externally defined functions found matching the identifier:
+~{~s~^~%~}"
+  matches)

@@ -36,6 +36,9 @@
 (let ((gl-flow-id 0))
   (defun %gen-flow-gl-id () (bare-id! (decf gl-flow-id))))
 
+(defun singular-flow-id-p (flow-id)
+  (= 1 (length (ids flow-id))))
+
 ;;----------------------------------------------------------------------
 
 (defvar root-flow-gen-func
@@ -65,7 +68,9 @@
 
 (defmacro flow-id-scope (&body body)
   `(let ((flow-gen-func
-          (%make-flow-id-source-func -1)))
+          (if (eq flow-gen-func root-flow-gen-func)
+              (%make-flow-id-source-func -1)
+              flow-gen-func)))
      ,@body))
 
 (defun checkpoint-flow-ids ()
@@ -132,8 +137,14 @@
                              :key λ(slot-value _ 'val))))))
 
 (defun id= (id-a id-b)
-  (assert (or (typep id-a 'flow-identifier) (null id-a)))
-  (assert (or (typep id-b 'flow-identifier) (null id-b)))
+  (assert (or (typep id-a 'flow-identifier) (null id-a))
+          (id-a)
+          "Varjo: #'id= expected a flow-id or null for the first argument.~%Got: ~a"
+          id-a)
+  (assert (or (typep id-b 'flow-identifier) (null id-b))
+          (id-b)
+          "Varjo: #'id= expected a flow-id or null for the second argument.~%Got: ~a"
+          id-b)
   (unless (or (null id-a) (null id-b))
     (equal (sort (copy-list (raw-ids id-a)) #'<)
            (sort (copy-list (raw-ids id-b)) #'<))))
@@ -145,21 +156,23 @@
 
 ;;----------------------------------------------------------------------
 
-(defmethod replace-flow-id ((type v-type) (flow-id flow-identifier))
-  (assert (flow-ids type) (type)
-          "Varjo: Tried to replace the flow id for ~a but it didnt have any"
-          type)
-  (let ((new-type (copy-type type)))
-    (setf (slot-value new-type 'flow-ids) flow-id)
-    new-type))
+(defgeneric replace-flow-id (type flow-id)
+  (:method ((type v-type) (flow-id flow-identifier))
+    (assert (flow-ids type) (type)
+            "Varjo: Tried to replace the flow id for ~a but it didnt have any"
+            type)
+    (let ((new-type (copy-type type)))
+      (setf (slot-value new-type 'flow-ids) flow-id)
+      new-type)))
 
-(defmethod set-flow-id ((type v-type) (flow-id flow-identifier))
-  (assert (null (flow-ids type)) (type)
-          "Varjo: Tried to set the flow id for ~a but it already had one"
-          type)
-  (let ((new-type (copy-type type)))
-    (setf (slot-value new-type 'flow-ids) flow-id)
-    new-type))
+(defgeneric set-flow-id (type flow-id)
+  (:method ((type v-type) (flow-id flow-identifier))
+    (assert (null (flow-ids type)) (type)
+            "Varjo: Tried to set the flow id for ~a but it already had one"
+            type)
+    (let ((new-type (copy-type type)))
+      (setf (slot-value new-type 'flow-ids) flow-id)
+      new-type)))
 
 ;;----------------------------------------------------------------------
 ;; Helpers
@@ -168,10 +181,11 @@
   (flow-ids (code-type obj)))
 
 (defmethod flow-ids ((obj v-value))
-  (flow-ids (v-type obj)))
+  (flow-ids (v-type-of obj)))
 
 (defmethod flow-ids ((obj ast-node))
   (flow-ids (ast-return-type obj)))
 
-(defmethod strip-flow-id ((obj v-type))
-  (type-spec->type (type->type-spec obj)))
+(defgeneric strip-flow-id (obj)
+  (:method ((obj v-type))
+    (type-spec->type (type->type-spec obj))))

@@ -27,11 +27,11 @@
 
 (defun gen-implicit-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `(nil ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+     `(nil ,(v-glsl-string (v-type-of a)) ,(v-glsl-name a))))
 
 (defun gen-in-out-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `("inout" ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+     `("inout" ,(v-glsl-string (v-type-of a)) ,(v-glsl-name a))))
 
 (defun gen-arg-string (arg-tripples &optional out-pairs)
   (let ((arg-string (format nil "~{~{~@[~a ~]~a ~a~}~^,~^ ~}" arg-tripples)))
@@ -177,11 +177,12 @@
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
             (loop :for part :in
                (list (used-types post-proc-obj)
-                     (mapcar #'last1 (in-args post-proc-obj))
-                     (mapcar #'last1 (out-vars post-proc-obj))
-                     (concatenate 'list
-                                  (mapcar #'last1 (uniforms post-proc-obj))
-                                  (mapcar #'third (stemcells post-proc-obj)))
+                     (mapcar #'%glsl-decl (in-args post-proc-obj))
+                     (mapcar #'%glsl-decl (out-vars post-proc-obj))
+                     (remove-empty
+                      (append
+                       (mapcar #'%glsl-decl (uniforms post-proc-obj))
+                       (mapcar #'%glsl-decl (stemcells post-proc-obj))))
                      (signatures env)
                      (let* ((funcs (all-functions post-proc-obj))
                             (code (remove nil (mapcar #'glsl-code funcs))))
@@ -207,7 +208,7 @@
 (defun gen-interface-block-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
     (let ((name (or accessor slot-name))
-          (type-obj (type-spec->type slot-type)))
+          (type-obj slot-type))
       (format nil "    ~{~a ~}~a"
               ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
               nil

@@ -17,25 +17,20 @@
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))
 
-(defmethod v-type-of ((val v-value))
-  (v-type val))
-
 (defun add-glsl-vars (env source)
   (loop :for (restrict . vars) :in source
      :if (or (equal restrict t)
              (context-ok-given-restriction (v-context env) (listify restrict)))
      :do (loop :for (lisp-name glsl-name type-spec setable) :in vars :do
             (let ((type (type-spec->type type-spec (%gl-flow-id!))))
-              (%add-var lisp-name (v-make-value
-                                   type env :glsl-name glsl-name
-                                   :read-only (not setable))
-                        env)
+              (%add-symbol-binding lisp-name (v-make-value
+                                              type env :glsl-name glsl-name
+                                              :read-only (not setable))
+                                   env)
               (add-reserved-lisp-name lisp-name env glsl-name))))
   env)
 
 ;;--------------------------------------------------
-
-
 
 (defun make-mval (v-value &optional qualifiers)
   (make-instance 'mval :value v-value :qualifiers qualifiers))

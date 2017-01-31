@@ -37,18 +37,15 @@
 (defclass post-compile-process ()
   ((main-func :initarg :main-func :accessor main-func)
    (env :initarg :env :accessor env)
+   (stage :initarg :stage :accessor stage)
    (in-args :initarg :in-args :accessor in-args)
    (out-vars :initarg :out-vars :accessor out-vars)
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
+   (input-variables :initarg :input-variables :accessor input-variables)
    (used-types :initarg :used-types :accessor used-types)
    (used-external-functions :initarg :used-external-functions
-                            :accessor used-external-functions)
-   (used-symbol-macros :initarg :used-symbol-macros
-                       :accessor used-symbol-macros)
-   (used-macros :initarg :used-macros :accessor used-macros)
-   (used-compiler-macros :initarg :used-compiler-macros
-                         :accessor used-compiler-macros)))
+                            :accessor used-external-functions)))
 
 ;;----------------------------------------------------------------------
 
@@ -62,39 +59,55 @@
    (out-vars :initarg :out-vars :reader out-vars)))
 
 ;;----------------------------------------------------------------------
+;; Compiler output
 
-(defclass varjo-compile-result ()
+(defclass stage ()
+  ((input-variables :initarg :input-variables :accessor input-variables)
+   (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
+   (context :initarg :context :accessor context)
+   (lisp-code :initarg :lisp-code :accessor lisp-code)
+   (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)))
+
+(defclass varjo-compile-result (stage)
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
    (stage-type :initarg :stage-type :accessor stage-type)
    (in-args :initarg :in-args :accessor in-args)
-   (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
-   (context :initarg :context :accessor context)
-   (allowed-stemcells :initarg :allowed-stemcells :accessor allowed-stemcells)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
-   (used-macros :initarg :used-macros :reader used-macros)
-   (used-compiler-macros :initarg :used-compiler-macros
-                         :reader used-compiler-macros)
-   (function-asts :initarg :function-asts :reader function-asts)
-   (used-symbol-macros :initarg :used-symbol-macros
-                       :reader used-symbol-macros)
-   (third-party-metadata :initarg :third-party-metadata
-                         :initform (make-hash-table)
-                         :reader third-party-metadata)))
+   (function-asts :initarg :function-asts :reader function-asts)))
+
+(defclass shader-variable ()
+  ((name :initarg :name :reader name)
+   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
+   (glsl-name :initarg :glsl-name :reader glsl-name)
+   (type :initarg :type :reader v-type-of)
+   (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
+
+(defclass input-variable (shader-variable) ())
+
+(defclass uniform-variable (shader-variable) ())
+
+(defclass implicit-uniform-variable (uniform-variable)
+  ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
+
+(defclass output-variable (shader-variable)
+  ((location :initarg :location :reader location)))
 
 ;;----------------------------------------------------------------------
 
 (defclass environment ()
-  ((parent-env :initform *global-env* :initarg :parent-env :reader v-parent-env)
-   (context :initform nil :initarg :context :reader v-context)
-   (variables :initform nil :initarg :variables :reader v-variables)
-   (functions :initform nil :initarg :functions :reader v-functions)
-   (macros :initform nil :initarg :macros :reader v-macros)
-   (symbol-macros :initform nil :initarg :symbol-macros :reader v-symbol-macros)
-   (compiler-macros
-    :initform nil :initarg :compiler-macros :reader v-compiler-macros)
+  ((parent-env
+    :initform *global-env* :initarg :parent-env :reader v-parent-env)
+   (context
+    :initform nil :initarg :context :reader v-context)
+   (symbol-bindings
+    :initform nil :initarg :symbol-bindings :reader v-symbol-bindings)
+   (form-bindings
+    :initform nil :initarg :form-bindings :reader v-form-bindings)
+   (macros
+    :initform nil :initarg :macros :reader v-macros)
    (multi-val-base
     :initform nil :initarg :multi-val-base :reader v-multi-val-base)
    (multi-val-safe
@@ -106,20 +119,13 @@
 
 
 (defclass base-environment (environment)
-  ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
-   (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
-   (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
-   (in-args :initform nil :initarg :in-args :accessor v-in-args)
+  ((in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
-   (used-symbol-macros :initform nil :initarg :used-symbol-macros)
-   (used-macros :initform nil :initarg :used-macros)
-   (used-compiler-macros :initform nil :initarg :used-compiler-macros)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
-   (third-party-metadata :initform (make-hash-table) :initarg
-                         :third-party-metadata)
    (name-map :initform (make-hash-table :test #'equal))
    (compiled-functions :initform (make-hash-table :test #'eq))
+   (value-metadata :initform (make-hash-table :test #'eql))
    (stemcells-allowed :initform t :initarg :stemcells-allowed
                       :reader allows-stemcellsp)))
 
@@ -169,19 +175,69 @@
 ;;----------------------------------------------------------------------
 
 (defclass stemcell ()
-  ((name :initarg :name)
+  ((name :initarg :name :reader name)
    (string-name :initarg :string-name)
-   (type :initarg :type)
-   (flow-id :initarg :flow-id)))
+   (type :initarg :type :reader v-type-of)
+   (flow-id :initarg :flow-id :reader flow-ids)
+   (cpu-side-transform :initarg :cpu-side-transform)))
 
 ;;----------------------------------------------------------------------
 
 (defclass v-value ()
-  ((type :initarg :type :initform nil :accessor v-type)
+  ((type :initarg :type :initform nil :accessor v-type-of)
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)
    (read-only :initarg :read-only :initform nil :reader v-read-only)))
+
+;;----------------------------------------------------------------------
+
+(defclass captured-var ()
+  ((name :initarg :name :reader name)
+   (value :initarg :value :reader v-value)
+   (origin-env :initarg :origin-env :reader origin-env)))
+
+;;----------------------------------------------------------------------
+
+(defclass v-symbol-macro ()
+  ((expansion :initarg :expansion :initform nil :reader expansion)
+   (function-scope :initarg :function-scope :initform 0
+                   :accessor v-function-scope)))
+
+;;----------------------------------------------------------------------
+
+(defclass v-regular-macro ()
+  ((name :initform nil :initarg :name :reader name)
+   (args :initform nil :initarg :args :accessor arguments)
+   (macro-function :initarg :macro-function :initform nil
+                   :reader v-macro-function)
+   (function-scope :initarg :function-scope :initform 0
+                   :accessor v-function-scope)
+   (context :initform nil :initarg :context :accessor v-context)))
+
+;;----------------------------------------------------------------------
+
+(defclass v-compiler-macro ()
+  ((name :initform nil :initarg :name :reader name)
+   (args :initform nil :initarg :args :accessor arguments)
+   (context :initform nil :initarg :context :accessor v-context)
+   (function-scope :initform 0 :accessor v-function-scope :allocation :class)
+   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
+   (macro-function :initarg :macro-function :initform nil
+                   :reader v-macro-function)))
+
+;;----------------------------------------------------------------------
+
+(defclass extended-environment ()
+  ((env :initarg :env)))
+
+(defclass expansion-env (extended-environment)
+  ((macro-obj :initarg :macro-obj)))
+
+(defclass macro-expansion-environment (expansion-env) ())
+
+(defclass compiler-macro-expansion-environment (expansion-env)
+  ((args :initarg :args)))
 
 ;;----------------------------------------------------------------------
 
@@ -190,3 +246,7 @@
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
 
 ;;----------------------------------------------------------------------
+
+(defclass standard-value-metadata () ())
+
+;;-------------------------------------------------------------------------

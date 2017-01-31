@@ -167,6 +167,7 @@
            :v-casts-to-p
            :v-casts-to
            :find-mutual-cast-type
+           :name
 
            ;;type functions
            :type-specp
@@ -180,6 +181,9 @@
            :find-mutual-cast-type
            :v-special-functionp
            :v-errorp
+           :add-alternate-type-name
+           :resolve-name-from-alternative
+           :ephemeral-p
 
            ;;type accessors
            :core-typep
@@ -196,9 +200,7 @@
            :v-slots
            :v-true-type
 
-           ;;types
-           :add-type-shadow
-           :un-shadow
+           ;; types
            :v-type
            :v-stemcell
            :v-array
@@ -299,6 +301,10 @@
            :v-defun
            :v-defmacro
            :v-define-compiler-macro
+           :def-metadata-infer
+           :def-metadata-kind
+           :def-shadow-type-constructor
+           :v-deftype
            :add-external-function
            :add-equivalent-name
 
@@ -307,11 +313,20 @@
            :id=
            :id~=
            :flow-ids
+           :flow-id-scope
 
            ;;environment
-           :get-var
+           :get-symbol-binding
            :get-base-env
            :get-primitive-type-from-context
+           :argument-type
+           :argument-uniform-name
+           :variable-in-scope-p
+           :variable-type
+           :variable-uniform-name
+           :variables-in-scope
+           :metadata-for-argument
+           :metadata-for-variable
 
            ;; ast
            :ast-node
@@ -342,7 +357,22 @@
            :uniform-origin-name
            :origin-name
 
+           ;; implicit uniforms
+           :add-lisp-form-as-uniform
+           :cpu-side-transform
+
+           ;; metadata
+           :combine-metadata
+
+           ;; external functions
+           :external-function
+           :add-external-function
+           :delete-external-function
+
            ;;compiler
+           :*supported-stages*
+           :*supported-versions*
+           :make-stage
            :compile-form
            :with-stemcell-infer-hook
            :with-constant-inject-hook
@@ -351,17 +381,15 @@
 
            ;;front-end
            :make-stage
-           :with-stage
            :translate
            :rolling-translate
            :split-arguments
-           :v-macroexpand-all
-           :v-compiler-macroexpand-all
            :*stage-types*
            :v-compile
 
            ;;compile-result
            :varjo-compile-result
+           :compiled-function-result
            :glsl-code
            :stage-type
            :out-vars
@@ -369,18 +397,17 @@
            :uniforms
            :implicit-uniforms
            :context
-           :allowed-stemcells
+           :stemcells-allowed
            :used-external-functions
-           :used-macros
-           :used-compiler-macros
-           :used-symbol-macros
            :ast
            :function-asts
-           :third-party-metadata
+           :to-arg-form
+           :uniform-variables
+           :stage
+           :input-variables
+           :lisp-code
 
            ;;utils
            :map-environments
            :lambda-list-split
            :pipe->))
-
-(uiop:define-package #:varjo.free-vars (:use #:cl))

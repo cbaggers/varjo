@@ -2,10 +2,8 @@
 (in-readtable fn:fn-reader)
 
 (defparameter *global-env* :-genv-)
-(defparameter *global-env-funcs* (make-hash-table))
-(defparameter *global-env-vars* (make-hash-table))
-(defparameter *global-env-macros* (make-hash-table))
-(defparameter *global-env-symbol-macros* (make-hash-table))
+(defparameter *global-env-form-bindings* (make-hash-table))
+(defparameter *global-env-symbol-bindings* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
 (defparameter *stage-types* '(:vertex :geometry :tess-eval :tess-control :fragment))
@@ -15,6 +13,15 @@
                                        :triangle-strip :triangle-fan :triangles
                                        :triangle-strip-adjacency
                                        :triangles-adjacency :patches))
+(defparameter *unshadowable-names* '(;; special
+                                     and flet for function glsl-expr if labels
+                                     labels-no-implicit let multiple-value-bind
+                                     or progn setf-1 setq switch swizzle
+                                     symbol-macrolet-1 the values
+                                     varjo-lang:values-safe while
+                                     ;; macros
+                                     let* prog1 setf symbol-macrolet s~ unless
+                                     when))
 (defparameter *default-version* :330)
 (defparameter *default-context* '(:330 :vertex))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)

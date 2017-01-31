@@ -11,20 +11,23 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-progn (body env)
-  (let* ((mvb (v-multi-val-base env))
-         (env (fresh-environment env :multi-val-base nil))
-         (body-objs
-          (append
-           (loop :for code :in (butlast body)
-              :collect (vbind (code-obj new-env) (compile-form code env)
-                         (when new-env (setf env new-env))
-                         code-obj))
-           (vbind (code-obj new-env)
-               (compile-form (last1 body)
-                             (fresh-environment env :multi-val-base mvb))
-             (when new-env (setf env new-env))
-             (list code-obj)))))
-    (values body-objs env)))
+  (if (= 1 (length body))
+      (vbind (obj new-env) (compile-form (first body) env)
+        (values (list obj) new-env))
+      (let* ((mvb (v-multi-val-base env))
+             (env (fresh-environment env :multi-val-base nil))
+             (body-objs
+              (append
+               (loop :for code :in (butlast body)
+                  :collect (vbind (code-obj new-env) (compile-form code env)
+                             (when new-env (setf env new-env))
+                             code-obj))
+               (vbind (code-obj new-env)
+                   (compile-form (last1 body)
+                                 (fresh-environment env :multi-val-base mvb))
+                 (when new-env (setf env new-env))
+                 (list code-obj)))))
+        (values body-objs env))))
 
 (defun mapcar-progn (func env list &rest more-lists)
   "Mapcar over the lists but pass the env as the first arg to the function
@@ -39,15 +42,17 @@
           env))
 
 (defun %merge-progn (code-objs starting-env final-env)
-  (let* ((last-obj (last1 (remove nil code-objs))))
-    (merge-obs code-objs
-               :type (code-type last-obj)
-               :current-line (current-line last-obj)
-               :to-block (merge-lines-into-block-list code-objs)
-               :multi-vals (multi-vals (last1 code-objs))
-               :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
-                                     (code-type last-obj)
-                                     starting-env final-env))))
+  (if (= 1 (length code-objs))
+      (first code-objs)
+      (let* ((last-obj (last1 (remove nil code-objs))))
+        (merge-obs code-objs
+                   :type (code-type last-obj)
+                   :current-line (current-line last-obj)
+                   :to-block (merge-lines-into-block-list code-objs)
+                   :multi-vals (multi-vals (last1 code-objs))
+                   :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
+                                         (code-type last-obj)
+                                         starting-env final-env)))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)
   (let ((co (gensym "code-objs"))
@@ -65,12 +70,15 @@
 
 ;;----------------------------------------------------------------------
 
-;; %multi-env-progn functions runs each form one after the other
-;; (just like progn) however, unlike progn, each form is evaluated with the
-;; same environment this means that bindings in one wont be visable in another.
-;; Finally the resulting environement is merged
-
 (defun %mapcar-multi-env-progn (func env list &rest more-lists)
+  "%multi-env-progn functions runs each form one after the other (just
+   like progn) however, unlike progn, each form is evaluated with the
+   original environment this means that bindings in one won't be visable
+   in another.
+   Finally the resulting environement is merged.
+
+   This gives us the behaviour from the binding expressions portion of
+   let forms"
   (when list
     (let* ((e (apply #'mapcar
                      (lambda (&rest args)
@@ -124,6 +132,8 @@
 
 ;;----------------------------------------------------------------------
 
+;; {TODO} use boundp to error on shadowing specials. Explain that varjo
+;;        cannot provide dynamic scope so this should be avoided
 (defun compile-let (name type-spec value-form env &optional glsl-name)
   ;;
   (let* ((value-obj (when value-form (compile-form value-form env)))
@@ -137,8 +147,7 @@
     (let* ((let-obj
             (cond
               ;; handle unrepresentable values
-              ((and value-obj (typep (v-type-of value-obj)
-                                     'v-unrepresentable-value))
+              ((and value-obj (typep (v-type-of value-obj) 'v-ephemeral-type))
                value-obj)
               ;;
               (value-obj
@@ -167,11 +176,23 @@
                                  :ignored)
                   :stemcells (append (and let-obj (stemcells let-obj))
                                      (and value-obj (stemcells value-obj))))
-       (add-var name
-                (v-make-value (or type-obj (code-type value-obj))
-                              env
-                              :glsl-name glsl-name)
-                env)))))
+       (add-symbol-binding
+        name
+        (v-make-value (or type-obj (code-type value-obj))
+                      env
+                      :glsl-name glsl-name)
+        env)))))
+
+(defun %validate-var-types (var-name type code-obj)
+  (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
+    (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
+           (string-downcase var-name) (current-line code-obj)))
+  (when (and (null type) (null code-obj))
+    (error "Could not establish the type of the variable: ~s" var-name))
+  (when (and code-obj type (not (v-type-eq (code-type code-obj) type)))
+    (error "Type specified does not match the type of the form~%~s~%~s"
+           (code-type code-obj) type))
+  t)
 
 ;;----------------------------------------------------------------------
 

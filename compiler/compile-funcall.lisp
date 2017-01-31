@@ -4,45 +4,29 @@
 (defun compile-list-form (code env)
   (if (eq (first code) 'funcall)
       (compile-funcall-form code env)
-      (compile-func-form code env)))
+      (compile-call-form code env)))
 
-(defun compile-func-form (code env)
-  (let* ((func-name (first code))
-         (args-code (rest code)))
-    (when (keywordp func-name)
-      (error 'keyword-in-function-position :form code))
-    (let ((f-set (get-func-set-by-name func-name env)))
-      (unless (functions f-set)
-        (error 'could-not-find-function :name func-name))
-      (compile-call-with-set-of-functions f-set args-code env func-name code))))
+(defun compile-call-form (code env)
+  (dbind (name . args-code) code
+    (assert (not (keywordp name)) ()
+            'keyword-in-function-position :form code)
+    (assert (not (eq name 'declare)) ()
+            'calling-declare-as-func :decl code)
+    (let ((binding (get-form-binding name env)))
+      (etypecase binding
+        (v-regular-macro (expand-macro binding args-code env))
+        (v-function-set (compile-call-with-set-of-functions
+                         binding args-code env name code))
+        (null (error 'could-not-find-function :name name))))))
 
-(defun compile-call-with-set-of-functions (func-set args-code env
-                                           &optional name code)
-  (let ((func-name (or name (%func-name-from-set func-set))))
-    (dbind (func args) (find-function-in-set-for-args
-                        func-set args-code env func-name)
-      (typecase func
-        (v-function (compile-function-call
-                     func-name func args env))
-        (external-function (compile-external-function-call func args env))
-        (v-error (if (v-payload func)
-                     (error (v-payload func))
-                     (error 'cannot-compile
-                            :code (or code
-                                      `(funcall ,func-set ,@args-code)))))
-        (t (error 'problem-with-the-compiler :target func))))))
-
-(defun get-actual-function (func-code-obj code)
-  (let* ((func (ctv (code-type func-code-obj))))
-    (restart-case (typecase func
-                    (v-function func)
-                    (v-function-set func)
-                    (t (error 'cannot-establish-exact-function
-                              :funcall-form code)))
-      ;;
-      (allow-call-function-signature ()
-        (values (make-dummy-function-from-type (code-type func-code-obj))
-                t)))))
+(defun expand-macro (macro args-code env)
+  (let ((public-env (make-instance 'macro-expansion-environment
+                                   :macro-obj macro
+                                   :env env)))
+    (compile-form (funcall (v-macro-function macro)
+                           args-code
+                           public-env)
+                  env)))
 
 (defun compile-funcall-form (code env)
   (dbind (fc func-form . arg-forms) code
@@ -70,26 +54,72 @@
                        :to-block (remove nil to-block)
                        :node-tree funcall-ast)))))))
 
+(defun compile-call-with-set-of-functions (func-set args-code env
+                                           &optional name code)
+  (let ((func-name (or name (%func-name-from-set func-set))))
+    (dbind (func args) (find-function-in-set-for-args
+                        func-set args-code env func-name)
+      (typecase func
+        (v-function (compile-function-call func-name func args env))
+        (external-function (compile-external-function-call func args env))
+        (v-error (if (v-payload func)
+                     (error (v-payload func))
+                     (error 'cannot-compile
+                            :code (or code
+                                      `(funcall ,func-set ,@args-code)))))
+        (t (error 'problem-with-the-compiler :target func))))))
+
+(defun get-actual-function (func-code-obj code)
+  (let ((code-type (code-type func-code-obj)))
+    (if (typep code-type 'v-any-one-of)
+        (make-function-set (mapcar #'ctv (v-types code-type)))
+        (let* ((func (ctv code-type)))
+          (restart-case (typecase func
+                          (v-function func)
+                          (v-function-set func)
+                          (t (error 'cannot-establish-exact-function
+                                    :funcall-form code)))
+            ;;
+            (allow-call-function-signature ()
+              (values (make-dummy-function-from-type (code-type func-code-obj))
+                      t)))))))
+
+(defun find-and-expand-compiler-macro (func args env)
+  (unless (v-special-functionp func)
+    (let ((macro (find-compiler-macro-for-func func env)))
+      (when macro
+        (let ((public-env (make-instance 'compiler-macro-expansion-environment
+                                         :macro-obj macro
+                                         :args args
+                                         :env env)))
+          (funcall (v-macro-function macro)
+                   (mapcar #'ast->code args)
+                   public-env))))))
+
 (defun compile-function-call (func-name func args env)
-  (vbind (code-obj new-env)
-      (cond
-        ;; special funcs
-        ((v-special-functionp func) (compile-special-function func args env))
+  (vbind (expansion use-expansion)
+      (find-and-expand-compiler-macro func args env)
+    (if use-expansion
+        (compile-form expansion env)
+        (vbind (code-obj new-env)
+            (cond
+              ;; special funcs
+              ((v-special-functionp func) (compile-special-function func args
+                                                                    env))
+              ;; funcs with multiple return values
+              ((> (length (v-return-spec func)) 1)
+               (compile-multi-return-function-call func-name func args env))
 
-        ;; funcs with multiple return values
-        ((> (length (v-return-spec func)) 1)
-         (compile-multi-return-function-call func-name func args env))
+              ;; funcs taking unrepresentable values as arguments
+              ((and (typep func 'v-user-function)
+                    (some λ(typep _ 'v-unrepresentable-value)
+                          (v-argument-spec func)))
+               (compile-function-taking-unreps func-name func args env))
 
-        ;; funcs taking unrepresentable values as arguments
-        ((and (typep func 'v-user-function)
-              (some λ(typep _ 'v-unrepresentable-value)
-                    (v-argument-spec func)))
-         (compile-function-taking-unreps func-name func args env))
-
-        ;; all the other funcs :)
-        (t (compile-regular-function-call func-name func args env)))
-    (assert new-env)
-    (values code-obj new-env)))
+              ;; all the other funcs :)
+              (t (compile-regular-function-call func-name func args env)))
+          (assert new-env)
+          (values code-obj new-env)))))
 
 (defun compile-function-taking-unreps (func-name func args env)
   (assert (v-code func))
@@ -100,14 +130,21 @@
              :if (unrep-p arg) :collect (list (first arg-code) arg) :into h
              :else :collect arg-code :into a
              :finally (return (list a h)))
-        (expand-and-compile-form
-         `(let ,hard-coded
-            (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
-                                ,(mapcar #'first hard-coded)
-                                (,func-name ,@(remove-if #'unrep-p args))))
-         env)))))
+        ;; this is a hack but it'll do for now. It just lets our func use
+        ;; the vars that were captured, if we are still in scope
+        (let* ((captured (captured-vars func))
+               (captured (remove-if-not λ(descendant-env-p env (origin-env _))
+                                        captured))
+               (allowed (append (mapcar #'first hard-coded)
+                                (mapcar #'name captured))))
+          (compile-form
+           `(let ,hard-coded
+              (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
+                                  ,allowed
+                                  (,func-name ,@(remove-if #'unrep-p args))))
+           env))))))
 
-(defun compile-with-external-func-in-scope (func body-form env)
+(defun compile-external-func-returning-ref (func func-name-form env)
   ;; Here we are going to make use of the fact that a external function
   ;; is not allowed to mutate the environment it was called from.
   ;; We are going to grab the base environment and compile the labels form
@@ -115,22 +152,42 @@
   ;; to the final source. The deduplication will be achieved by the fact that
   ;; we will use the external-function object as a key to a hashtable in the
   ;; base-env which will cache the results of these compiled external functions.
-  ;; We will however, expand the macros in the current environment so that
-  ;; macrolet (and it's kin) will work when we get around to adding them.
   ;;
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
                             (build-external-function func base-env))))
     (setf (compiled-functions base-env func) compiled-func)
-    (vbind (code-obj new-env)
-        (compile-function-call (name func)
-                               (function-obj compiled-func)
-                               (rest body-form)
-                               env)
-      (values code-obj new-env))))
+    ;;
+    (let* ((func (function-obj compiled-func))
+           (flow-id (flow-id!))
+           (type (set-flow-id (v-type-of func) flow-id)))
+      (when (implicit-args func)
+        (error 'closures-not-supported :func func-name-form))
+      (values
+       (code! :type type
+              :current-line nil
+              :used-types (list type)
+              :node-tree (ast-node! 'function (list func-name-form)
+                                    type nil nil))
+       env))))
 
 (defun compile-external-function-call (func args env)
-  (compile-with-external-func-in-scope func `(,(name func) ,@args) env))
+  ;; Here we are going to make use of the fact that a external function
+  ;; is not allowed to mutate the environment it was called from.
+  ;; We are going to grab the base environment and compile the labels form
+  ;; there. We can then extract the signatures we need from this and add them
+  ;; to the final source. The deduplication will be achieved by the fact that
+  ;; we will use the external-function object as a key to a hashtable in the
+  ;; base-env which will cache the results of these compiled external functions.
+  ;;
+  (let* ((base-env (get-base-env env))
+         (compiled-func (or (compiled-functions base-env func)
+                            (build-external-function func base-env))))
+    (setf (compiled-functions base-env func) compiled-func)
+    (compile-function-call (name func)
+                           (function-obj compiled-func)
+                           args
+                           env)))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
@@ -156,7 +213,7 @@
 		       :multi-vals (when (v-multi-val-safe env)
 				     (handle-regular-function-mvals args))
 		       :place-tree (calc-place-tree func args)
-		       :node-tree (ast-node! func (mapcar #'node-tree args)
+		       :node-tree (ast-node! func-name (mapcar #'node-tree args)
 					     type env env))
 	    env)))
 
@@ -195,7 +252,7 @@
 
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
   (let ((all-return-types (cons (first (v-return-spec func))
-                                (mapcar #'v-type
+                                (mapcar #'v-type-of
                                         (mapcar #'multi-val-value
                                                 (rest (v-return-spec func))))))
         (m-flow-id (flow-ids func)))
@@ -227,7 +284,7 @@
       (let* ((bindings (loop :for mval :in mvals :collect
                           `((,(gensym "NC")
                               ,(type->type-spec
-                                (v-type (multi-val-value mval)))))))
+                                (v-type-of (multi-val-value mval)))))))
 
              (o (merge-obs
                  args :type type
@@ -238,7 +295,7 @@
                                        (make-mval
                                         (v-make-value
                                          (replace-flow-id
-                                          (v-type (multi-val-value _))
+                                          (v-type-of (multi-val-value _))
                                           fid)
                                          env :glsl-name _1
                                          :function-scope 0)))
@@ -263,7 +320,7 @@
                          p-env bindings m-r-names))
                        (compile-form o p-env)))
                    env env))))
-        (values (copy-code final :node-tree (ast-node! func
+        (values (copy-code final :node-tree (ast-node! func-name
                                                        (mapcar #'node-tree args)
                                                        type
                                                        env env))

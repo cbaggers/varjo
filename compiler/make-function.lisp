@@ -5,33 +5,28 @@
 ;; The mess of creation
 
 (defmethod build-external-function ((func external-function) env)
-  (labels ((expand-macros-for-external-func (form)
-             (pipe-> (form env)
-               (equalp #'symbol-macroexpand-pass
-                       #'macroexpand-pass
-                       #'compiler-macroexpand-pass))))
-    (with-slots (name in-args uniforms code glsl-versions) func
-      (vbind (compiled-func maybe-def-code)
-          (build-function name
-                          (append in-args
-                                  (when uniforms `(&uniform ,@uniforms)))
-                          (expand-macros-for-external-func code)
-                          nil
-                          env)
-        ;; Here we check that we haven't got any behaviour that, while legal for
-        ;; main or local funcs, would be undesired in external functions
-        (when maybe-def-code
-          (assert (null (out-vars maybe-def-code)))
-          (assert (null (current-line maybe-def-code)))
-          (assert (null (flow-ids maybe-def-code)))
-          (assert (null (multi-vals maybe-def-code)))
-          (assert (null (mutations maybe-def-code)))
-          (assert (null (out-of-scope-args maybe-def-code)))
-          (assert (null (place-tree maybe-def-code)))
-          (assert (null (returns maybe-def-code)))
-          (assert (null (to-block maybe-def-code)))
-          (assert (typep (code-type maybe-def-code) 'v-none)))
-        (values compiled-func maybe-def-code)))))
+  (with-slots (name in-args uniforms code glsl-versions) func
+    (vbind (compiled-func maybe-def-code)
+        (build-function name
+                        (append in-args
+                                (when uniforms `(&uniform ,@uniforms)))
+                        code
+                        nil
+                        env)
+      ;; Here we check that we haven't got any behaviour that, while legal for
+      ;; main or local funcs, would be undesired in external functions
+      (when maybe-def-code
+        (assert (null (out-vars maybe-def-code)))
+        (assert (null (current-line maybe-def-code)))
+        (assert (null (flow-ids maybe-def-code)))
+        (assert (null (multi-vals maybe-def-code)))
+        (assert (null (mutations maybe-def-code)))
+        (assert (null (out-of-scope-args maybe-def-code)))
+        (assert (null (place-tree maybe-def-code)))
+        (assert (null (returns maybe-def-code)))
+        (assert (null (to-block maybe-def-code)))
+        (assert (typep (code-type maybe-def-code) 'v-none)))
+      (values compiled-func maybe-def-code))))
 
 (defun build-function (name args body allowed-implicit-args env)
   ;;
@@ -63,12 +58,13 @@
                     (lambda (func-env tripple)
                       (dbind (arg glsl-name flow-ids) tripple
                         (dbind (name type-spec) arg
-                          (add-var name
-                                   (v-make-value
-                                    (type-spec->type type-spec flow-ids)
-                                    func-env
-                                    :glsl-name glsl-name)
-                                   func-env))))
+                          (add-symbol-binding
+                           name
+                           (v-make-value
+                            (type-spec->type type-spec flow-ids)
+                            func-env
+                            :glsl-name glsl-name)
+                           func-env))))
                     (mapcar #'list args arg-glsl-names in-arg-flow-ids)
                     :initial-value (if mainp
                                        func-env
@@ -92,7 +88,8 @@
                          `(,(v-glsl-string (type-spec->type type)) ,name)))
            (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
                              :for name = (v-glsl-name (multi-val-value mval)) :collect
-                             `(,(v-glsl-string (v-type (multi-val-value mval)))
+                             `(,(v-glsl-string (v-type-of
+                                                (multi-val-value mval)))
                                 ,name)))
            (in-out-args
             ;; {TODO} handle multiple returns
@@ -102,13 +99,13 @@
               (let ((closure (ctv type)))
                 (append (in-out-args closure)
                         (implicit-args closure)))))
-           (return-for-glsl (if (typep type 'v-unrepresentable-value)
+           (return-for-glsl (if (typep type 'v-ephemeral-type)
                                 (type-spec->type :void)
                                 type))
            (strip-glsl
             (and (not mainp)
                  (or (v-typep type 'v-void)
-                     (v-typep type 'v-unrepresentable-value))
+                     (v-typep type 'v-ephemeral-type))
                  (null multi-return-vars)))
            (sigs (if mainp
                      (signatures body-obj)
@@ -159,20 +156,25 @@
               code-obj))))
 
 (defun make-new-function-with-unreps (name args body allowed-implicit-args
-                                    env)
+                                      env)
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))
-    (let* ((env (make-func-env env mainp allowed-implicit-args))
+    (let* ((func-env (make-func-env env mainp allowed-implicit-args))
+           (all-vars (env-binding-names env :stop-at-base t
+                                        :variables-only t))
+           (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
+                                        all-vars))
+           (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
            (func (make-user-function-obj name nil nil (mapcar #'second args) nil
-                                         :code (list args body)))
-           ;; {TODO} this ↓↓↓↓↓↓↓↓↓↓↓↓ is a horrible hack
+                                         :code (list args body)
+                                         :captured-vars visible-var-pairs))
            (ast-body (if (= 1 (length body))
                          (first body)
                          `(progn ,@body)))
            (ast (ast-node! :code-section
                            ast-body
                            (gen-none-type)
-                           env env)))
+                           func-env func-env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
                              :signatures nil
@@ -187,8 +189,15 @@
                      :node-tree (ast-node! :code-section
                                            ast-body
                                            (gen-none-type)
-                                           env env))))))
+                                           func-env func-env))))))
 
+(defun capture-var (name env)
+  (let ((val (get-symbol-binding name t env)))
+    (assert (typep val 'v-value))
+    (make-instance 'captured-var
+                   :name name
+                   :value val
+                   :origin-env env)))
 
 (defun function-raw-args-validp (raw-args)
   (every #'function-raw-arg-validp raw-args))

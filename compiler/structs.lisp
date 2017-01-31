@@ -21,7 +21,6 @@
           (true-type-name (true-type-name name))
           (fake-type-name (fake-type-name name)))
       `(progn
-         ,(when shadowing `(add-type-shadow ',name ',class-name))
          (def-v-type-class ,class-name (v-user-struct)
            ((glsl-string :initform ,name-string :initarg :glsl-string
                          :reader v-glsl-string)
@@ -30,6 +29,7 @@
                                           (mapcar #'gen-slot-string slots))
                        :initarg :signature :accessor v-signature)
             (slots :initform ',slots :reader v-slots)))
+         ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod v-true-type ((object ,class-name))
            (make-instance ',true-type-name :flow-ids (flow-ids object)))
          (defmethod v-fake-type ((object ,class-name))
@@ -78,8 +78,15 @@
                   (v-glsl-string type-obj)
                   (safe-glsl-name-string name))))))
 
-(defun add-in-arg-fake-struct (in-var-name glsl-name type qualifiers env)
-  (let* ((struct (set-flow-id (v-fake-type type) (flow-id!)))
+;; mutates env
+(defmethod add-fake-struct ((var input-variable) env)
+  (let* (;;
+         (in-var-name (name var))
+         (type (v-type-of var))
+         (qualifiers (qualifiers var))
+         (glsl-name (glsl-name var))
+         ;;
+         (struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (new-in-args
@@ -96,15 +103,28 @@
                                      (list fake-type)
                                      (list slot-type) :v-place-index nil)
                   env)
-             :collect `(,fake-slot-name ,slot-type ,qualifiers))))
+             :collect (make-instance
+                       'input-variable
+                       :name fake-slot-name
+                       :glsl-name fake-slot-name
+                       :type slot-type
+                       :qualifiers qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
-    (%add-var in-var-name
-              (v-make-value struct env :glsl-name glsl-name :read-only t)
-              env)
+    (%add-symbol-binding
+     in-var-name
+     (v-make-value struct env :glsl-name glsl-name :read-only t)
+     env)
     env))
 
-(defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
-  (let* ((struct (set-flow-id (v-fake-type type) (flow-id!)))
+;; mutates env
+(defmethod add-fake-struct ((var uniform-variable) env)
+  (let* (;;
+         (uniform-name (name var))
+         (type (v-type-of var))
+         (qualifiers (qualifiers var))
+         (glsl-name (glsl-name var))
+         ;;
+         (struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (new-uniform-args
@@ -121,11 +141,17 @@
                                      (list fake-type)
                                      (list slot-type) :v-place-index nil)
                   env)
-             :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
+             :collect (make-instance
+                       'uniform-variable
+                       :name fake-slot-name
+                       :glsl-name fake-slot-name
+                       :type slot-type
+                       :qualifiers qualifiers))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
-    (%add-var uniform-name
-              (v-make-value struct env :glsl-name glsl-name :read-only t)
-              env)
+    (%add-symbol-binding
+     uniform-name
+     (v-make-value struct env :glsl-name glsl-name :read-only t)
+     env)
     env))
 
 (defun fake-slot-name (in-var-name slot-name)

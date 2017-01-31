@@ -17,7 +17,7 @@
                                          "~a")))
                    (versions (mapcar #'kwd versions)))
               (unless (some #'third args)
-                `((add-function-from-spec
+                `((add-form-binding
                    (make-function-obj
                     ',lisp-name ,transform ',versions ',lisp-arg-types
                     ',lisp-return :v-place-index nil :glsl-name nil

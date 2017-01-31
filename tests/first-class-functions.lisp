@@ -8,6 +8,10 @@
  'ext-int-fncaller '((fn (function (:int) :int)) (ham :int)) nil
  `((funcall fn ham)))
 
+(varjo:add-external-function
+ 'ext-return-int '() nil
+ `(10))
+
 ;;------------------------------------------------------------
 ;; Tests
 
@@ -85,14 +89,14 @@
       (v! 0 0 0 0))))
 
 (5am:def-test f-c-func-8 (:suite first-class-func-tests)
-  (is (finishes-p
-       (compile-vert () :450 nil
-         (let ((fn (labels ((test ((x :int)) x))
-                     #'test)))
-           (labels ((foo ((ffn (function (:int) :int)))
-                      (funcall ffn 10)))
-             (foo fn))
-           (v! 0 0 0 0))))))
+  (finishes-p
+   (compile-vert () :450 nil
+     (let ((fn (labels ((test ((x :int)) x))
+                 #'test)))
+       (labels ((foo ((ffn (function (:int) :int)))
+                  (funcall ffn 10)))
+         (foo fn))
+       (v! 0 0 0 0)))))
 
 (5am:def-test f-c-func-9 (:suite first-class-func-tests)
   (finishes-p
@@ -117,3 +121,34 @@
      (labels ((fn ((x :int)) (* 2 x)))
        (ext-int-fncaller #'fn 10)
        (v! 0 0 0 0)))))
+
+(5am:def-test f-c-func-12 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (let ((x 10)
+           (fn #'sin))
+       (funcall fn 10)
+       (v! 1 2 3 4)))))
+
+(5am:def-test f-c-func-13 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (flet ((some-func ((fn (function (:float) :float)))
+              (funcall fn 10s0)))
+       (let ((fn #'sin))
+         (some-func fn)
+         (v! 1 2 3 4))))))
+
+(5am:def-test f-c-func-14 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (let ((fn #'ext-return-int))
+       (v! 0 0 0 0)))))
+
+(5am:def-test f-c-func-15 (:suite first-class-func-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (if (< 1 10)
+         #'sin
+         #'(cos :float))
+     (v! 0 0 0 0))))

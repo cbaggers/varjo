@@ -3,8 +3,6 @@
 
 * low-hanging-fruit: unify labels/flet/labels-no-implicit implementations
 
-* make v-type-of work for v-values & code-objects
-
 * need an across vector loop thing. We can then unroll these loops.
 * also add all the arithmatic operators for non number datatypes
 * add aref, make-array and array constructors
