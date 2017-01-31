@@ -19,12 +19,12 @@
 (defparameter *default-context* '(:330 :vertex))
 (defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
                                            ,@(copy-list *supported-stages*)
-                                           ,@(copy-list *supported-draw-modes*)
-                                           :iuniforms :no-iuniforms))
+                                           ,@(copy-list *supported-draw-modes*)))
 
 
 (defparameter *ast-node-kinds*
-  '(:get :get-stemcell :get-v-value :literal :error :none))
+  '(:get :get-stemcell :get-v-value :literal :error :none :code-section
+    :funcall :break))
 
 (defparameter *stemcell-infer-hook*
   (lambda (name)

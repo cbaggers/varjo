@@ -8,4 +8,12 @@
   :serial t
   :depends-on (#:varjo #:fiveam)
   :components ((:file "tests/package")
-	       (:file "tests/tests")))
+               (:file "tests/tests")
+               (:file "tests/build-tests")
+               (:file "tests/external-functions")
+               (:file "tests/first-class-functions")
+               (:file "tests/flow-control")
+               (:file "tests/multiple-values")
+               (:file "tests/stemcell-tests")
+               (:file "tests/struct-tests")
+               (:file "tests/void-tests")))

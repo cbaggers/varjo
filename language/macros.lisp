@@ -1,5 +1,9 @@
 (in-package :varjo)
 
+(v-defmacro lambda (args &body body)
+  `(labels ((lmbda ,args ,@body))
+     #'lmbda))
+
 (v-defmacro cond (&rest clauses)
   `(if ,(caar clauses)
        ,(cadar clauses)

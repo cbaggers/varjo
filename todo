@@ -1,74 +1,13 @@
-hmm ok so we wanted to make a code graph which id which allow lookup into
-the function-call index. How shall we go about this?
 
-Also we need an index into what macros are used.
+* why use def-v-type-class for v-user-function? Switch to defclass?
 
-Next need to:
-- add out-of-scope-args to the code object.
-* done
-- when compiling a symbol check if v-value is from same scope
-* done
-- if val scope not 0 or same as env then add to out-of-scope-args
-* done
-- labels needs to examine the out-of-scope-args from its body and
-  add the implicit args.
-* done
-- labels must not clear the environment vars in clean-env
-* done
-- calling a function needs to add the implicit args.
-*
+* low-hanging-fruit: unify labels/flet/labels-no-implicit implementations
+
+* make v-type-of work for v-values & code-objects
 
 * need an across vector loop thing. We can then unroll these loops.
-* why does placep live in type? ... basically no reason, fix this ... Ah..
-  ok so functions are types? yeah.
-  This seems weird, ok so the logic is that a block of code could have a type of
-  function and the function could be a place. arent functions a valeu with type of function?
-  Surely we can handle this...we dont need first class functions to be supported anywhere
-  but we need to pull the concept of a place out of the type....Do we?
-  The are blocks of code that can be places (a variable or an accessor (aref a 0)) the type
-  of the code block..
-  NOPE...I got back to my original view, place should be a field in the code object
-  Functions can make something a place so they need that flag. functions can remain as
-  types.
-* Code object also needs an inferred value field and a change-frequency field.
-
-* add all of the following and all their permutations
 * also add all the arithmatic operators for non number datatypes
 * add aref, make-array and array constructors
-
-(v-defun :vec3 (x) "a&&a(~a)" (float) // initializes each component of the vec3 with the float v-thing)
-(v-defun :vec4 (x) "a&&a(~a)" (ivec4) // makes a vec4 with component-wise conversion v-thing)
-(v-defun :vec4 (x) "a&&a(~a)" (mat2) // the vec4 is column 0 followed by column 1 v-thing)
-(v-defun :vec2 (x) "a&&a(~a)" (float, float) v-thing)
-(v-defun :ivec3 (x) "a&&a(~a)" (int, int, int) v-thing)
-(v-defun :bvec4 (x) "a&&a(~a)" (int, int, float, float) // uses 4 Boolean conversions v-thing)
-(v-defun :vec2 (x) "a&&a(~a)" (vec3) v-thing)
-(v-defun :vec3 (x) "a&&a(~a)" (vec4) v-thing)
-(v-defun :vec3 (x) "a&&a(~a)" (vec2, float) v-thing)
-(v-defun :vec3 (x) "a&&a(~a)" (float, vec2) v-thing)
-(v-defun :vec4 (x) "a&&a(~a)" (vec3, float) v-thing)
-(v-defun :vec4 (x) "a&&a(~a)" (float, vec3) v-thing)
-(v-defun :vec4 (x) "a&&a(~a)" (vec2, vec2) v-thing)
-(v-defun :vec4 color = vec4 (x) "a&&a(~a)" (0.0, 1.0, 0.0, 1.0); v-thing)
-(v-defun :vec4 rgba = vec4 (x) "a&&a(~a)" (1.0); // sets each component to 1.0 v-thing)
-(v-defun :vec3 rgb = vec3 (x) "a&&a(~a)" (color); v-thing)
-(v-defun :mat2 (x) "a&&a(~a)" (float) v-thing)
-(v-defun :mat3 (x) "a&&a(~a)" (float) v-thing)
-(v-defun :mat4 (x) "a&&a(~a)" (float) v-thing)
-(v-defun :mat2 (x) "a&&a(~a)" (vec2, vec2); v-thing)
-(v-defun :mat3 (x) "a&&a(~a)" (vec3, vec3, vec3); v-thing)
-(v-defun :mat4 (x) "a&&a(~a)" (vec4, vec4, vec4, vec4); v-thing)
-(v-defun :mat3x2 (x) "a&&a(~a)" (vec2, vec2, vec2); v-thing)
-(v-defun :dmat2 (x) "a&&a(~a)" (dvec2, dvec2); v-thing)
-(v-defun :dmat3 (x) "a&&a(~a)" (dvec3, dvec3, dvec3); v-thing)
-(v-defun :dmat4 (x) "a&&a(~a)" (dvec4, dvec4, dvec4, dvec4); v-thing)
-(v-defun :mat2 (x) "a&&a(~a)" (float, float, float, float); //first 2 first column, etc v-thing)
-(v-defun :mat3 (x) "a&&a(~a)" (float, float, float, float, float, float, float, float, float); v-thing)
-(v-defun :mat4 (x) "a&&a(~a)" (float,float,float,float,float,float,float,float,float,float,float,float,float,float,float,float); v-thing)
-(v-defun :mat2x3 (x) "a&&a(~a)" (vec2, float, vec2, float); // first column v-thing)
-(v-defun :dmat2x4 (x) "a&&a(~a)" (dvec3, double, double, dvec3) // first column
-
------------
 
 * add-function to global should remove functiosn that are totally blocked, so match
   on (cons func-name (v-args func)) as only the newsest one will be selected and it slows
@@ -84,6 +23,3 @@ Next need to:
 * add lisp macros wrappers for this functionality
 * add constants
 * how do we handle ARBs?
-* add correct versions to all functions
-
------------

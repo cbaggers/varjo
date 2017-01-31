@@ -11,14 +11,12 @@
 (defgeneric v-casts-to-p (from-type to-type env))
 (defgeneric post-initialise (object))
 (defgeneric v-code-type-eq (a b &optional env))
-(defgeneric v-make-value (type env &key glsl-name flow-ids function-scope read-only))
+(defgeneric v-make-value (type env &key glsl-name function-scope read-only))
 (defgeneric get-flow-id-for-stem-cell (stem-cell-symbol e))
-(defgeneric dedup-function (code e))
 (defgeneric used-symbol-macros (e))
 (defgeneric (setf used-symbol-macros) (value e))
 (defgeneric used-macros (e))
 (defgeneric used-external-functions (e))
-(defgeneric (setf used-external-functions) (value e))
 (defgeneric (setf used-macros) (value e))
 (defgeneric used-compiler-macros (e))
 (defgeneric (setf used-compiler-macros) (value e))
@@ -34,9 +32,9 @@
 (defgeneric %add-var (var-name val env))
 (defgeneric v-boundp (var-name env))
 (defgeneric add-equivalent-name (existing-name new-name))
-(defgeneric add-function (func-name func-spec env))
+(defgeneric add-function (func-spec env))
 (defgeneric %add-function (func-name func-spec env))
-(defgeneric get-function-by-name (func-name env))
+(defgeneric get-func-set-by-name (func-name env))
 (defgeneric %get-functions-by-name (func-name env))
 (defgeneric special-raw-argp (func))
 (defgeneric special-func-argp (func))
@@ -52,15 +50,14 @@
 (defgeneric v-element-type (object))
 (defgeneric merge-obs (objs &key type current-line to-block
                               out-vars returns multi-vals
-                              stemcells out-of-scope-args flow-ids
+                              stemcells out-of-scope-args
 			      place-tree mutations node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block
                                   out-vars returns multi-vals
-                                  stemcells out-of-scope-args flow-ids
-				  place-tree mutations node-tree))
+                                  stemcells out-of-scope-args
+                                  place-tree mutations node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
-(defgeneric push-non-implicit-function-for-dedup (code func glsl e))
 (defgeneric func-need-arguments-compiledp (func))
 (defgeneric get-macro (macro-name env))
 (defgeneric get-symbol-macro (macro-name env))
@@ -68,7 +65,17 @@
 (defgeneric get-var (var-name env))
 (defgeneric raw-ids (flow-id))
 (defgeneric add-external-function (name in-args uniforms code
-				   &optional valid-glsl-versions))
+                                   &optional valid-glsl-versions))
 (defgeneric delete-external-function (name in-args-types))
 (defgeneric record-func-usage (func env))
 (defgeneric v-name-map (env))
+(defgeneric functions (object))
+(defgeneric all-functions (object))
+(defgeneric v-type-of (func))
+(defgeneric compiled-functions (e key))
+(defgeneric (setf compiled-functions) (val e key))
+(defgeneric all-cached-compiled-functions (e))
+(defgeneric map-environments (func e))
+(defgeneric add-function-from-spec (func-obj env))
+(defgeneric cast-code (obj cast-to-type))
+(defgeneric build-external-function (func env))

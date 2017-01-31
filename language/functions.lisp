@@ -32,7 +32,7 @@
 (v-defun double (x) "double(~a)" (v-bool)  v-double)
 (v-defun double (x) "double(~a)" (v-float) v-double)
 
-(v-defun not (a) "(~a == true)" (v-bool) v-bool)
+(v-defun not (a) "!~a" (v-bool) v-bool)
 (v-defun not (a) "false" (v-type) v-bool)
 
 (v-defun %< (a b) "(~a < ~a)" (v-number v-number) v-bool)
@@ -216,7 +216,7 @@
          (v-float v-float v-float v-float v-float
                   v-float v-float v-float v-float) v-mat3)
 (v-defun m! (a b c) "mat3(~a,~a,~a)" (v-vec3 v-vec3 v-vec3) v-mat3
-        )
+         )
 
 (v-defun m! (a b c d e f g h i j k l m n o p)
   "mat4(~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a)"
@@ -227,7 +227,7 @@
   "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4)
 
 (v-defun v-not (x &context (:330 :440)) "not(~a)"
-	 (v-bvector) 0)
+         (v-bvector) 0)
 
 (v-defun v-equal (x y &context (:330 :440))
   "equal(~a,~a)"
@@ -327,4 +327,9 @@
 
 (v-defun atomic-counter (c &context (:330 :440))
   "atomicCounter(~a)"
-  (v-atomic_uint) v-uint)
+  (v-atomic-uint) v-uint)
+
+(v-defun expt (x y) "pow(~a, ~a)" (v-vec4 v-vec4) v-vec4)
+(v-defun expt (x y) "pow(~a, ~a)" (v-vec3 v-vec3) v-vec3)
+(v-defun expt (x y) "pow(~a, ~a)" (v-vec2 v-vec2) v-vec2)
+(v-defun expt (x y) "pow(~a, ~a)" (v-float v-float) v-float)

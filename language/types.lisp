@@ -2,10 +2,6 @@
 
 ;;----------------------------------------------------------------------
 
-(def-v-type-class v-void (v-t-type)
-  ((core :initform t :reader core-typep)
-   (glsl-string :initform "void" :reader v-glsl-string)))
-
 (def-v-type-class v-bool (v-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "bool" :reader v-glsl-string)))
@@ -294,7 +290,6 @@
    (dimensions :initform '(4) :reader v-dimensions)
    (casts-to :initform '(v-uvec4 v-vec4 v-dvec4))))
 
-(def-v-type-class v-sampler (v-type) ())
 (def-v-type-class v-isampler-1d (v-sampler)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "isampler1D" :reader v-glsl-string)
@@ -627,6 +622,15 @@
 (def-v-type-class v-uimage-2d-ms-array (v-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uimage2DMSArray" :reader v-glsl-string)))
+
+;;----------------------------------------------------------------------
+;; Type Stubs
+;;
+;; {TODO} look into these
+
+(def-v-type-class v-buffer-image (v-type) ())
+(def-v-type-class v-ibuffer-image (v-type) ())
+(def-v-type-class v-ubuffer-image (v-type) ())
 
 ;;----------------------------------------------------------------------
 

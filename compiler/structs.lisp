@@ -31,22 +31,30 @@
                        :initarg :signature :accessor v-signature)
             (slots :initform ',slots :reader v-slots)))
          (defmethod v-true-type ((object ,class-name))
-           (make-instance ',true-type-name))
+           (make-instance ',true-type-name :flow-ids (flow-ids object)))
          (defmethod v-fake-type ((object ,class-name))
-           (make-instance ',fake-type-name))
+           (make-instance ',fake-type-name :flow-ids (flow-ids object)))
          (def-v-type-class ,true-type-name (,class-name) ())
          (def-v-type-class ,fake-type-name (,class-name) ((signature :initform "")))
-	 (defmethod type->type-spec ((type ,true-type-name))
-	   ',name)
+         (defmethod type->type-spec ((type ,true-type-name))
+           ',name)
          (v-defun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
-		    (n-of "~a" (length slots)))
+                    (n-of "~a" (length slots)))
            ,(loop :for slot :in slots :collect (second slot))
            ,true-type-name :v-place-index nil)
          ,@(make-struct-accessors name true-type-name context slots)
          ',name))))
+
+(defmethod post-initialise ((object v-struct))
+  (with-slots (slots) object
+    (setf slots (mapcar (lambda (slot)
+                          `(,(first slot)
+                             ,(type-spec->type (second slot))
+                             ,@(cddr slot)))
+                        slots))))
 
 (defun make-struct-accessors (name true-type-name context slots)
   (loop :for (slot-name slot-type . acc) :in slots :collect
@@ -71,32 +79,32 @@
                   (safe-glsl-name-string name))))))
 
 (defun add-in-arg-fake-struct (in-var-name glsl-name type qualifiers env)
-  (let* ((struct (v-fake-type type))
+  (let* ((struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (new-in-args
           (loop :for (slot-name slot-type . acc) :in slots
              :for fake-slot-name = (fake-slot-name glsl-name slot-name)
-             :for accessor = (if (eq :accessor (first acc))
-                                 (second acc)
-                                 (symb (type->type-spec type) '- slot-name))
+             :for accessor = (dbind (&key accessor) acc
+                               (or accessor
+                                   (symb (type->type-spec type) '- slot-name)))
              :do (%add-function
                   accessor
-                  (func-spec->function
-                   (v-make-f-spec accessor
-                                  fake-slot-name
-                                  nil ;; {TODO} Must be context
-                                  (list fake-type)
-                                  slot-type :v-place-index nil) env) env)
+                  (make-function-obj accessor
+                                     fake-slot-name
+                                     nil ;; {TODO} Must be context
+                                     (list fake-type)
+                                     (list slot-type) :v-place-index nil)
+                  env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers))))
     (setf (v-in-args env) (append (v-in-args env) new-in-args))
     (%add-var in-var-name
-	      (v-make-value struct env :glsl-name glsl-name :read-only t)
-	      env)
+              (v-make-value struct env :glsl-name glsl-name :read-only t)
+              env)
     env))
 
 (defun add-uniform-fake-struct (uniform-name glsl-name type qualifiers env)
-  (let* ((struct (v-fake-type type))
+  (let* ((struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (new-uniform-args
@@ -107,17 +115,17 @@
                                  (symb (type->type-spec type) '- slot-name))
              :do (%add-function
                   accessor
-                  (func-spec->function
-                   (v-make-f-spec accessor
-                                  fake-slot-name
-                                  nil ;; {TODO} Must be context
-                                  (list fake-type)
-                                  slot-type :v-place-index nil) env) env)
+                  (make-function-obj accessor
+                                     fake-slot-name
+                                     nil ;; {TODO} Must be context
+                                     (list fake-type)
+                                     (list slot-type) :v-place-index nil)
+                  env)
              :collect `(,fake-slot-name ,slot-type ,qualifiers ,fake-slot-name))))
     (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
     (%add-var uniform-name
-	      (v-make-value struct env :glsl-name glsl-name :read-only t)
-	      env)
+              (v-make-value struct env :glsl-name glsl-name :read-only t)
+              env)
     env))
 
 (defun fake-slot-name (in-var-name slot-name)

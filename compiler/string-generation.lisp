@@ -1,4 +1,5 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
 (defun gen-number-string (number type)
   (typecase type
@@ -12,10 +13,11 @@
                        (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs &optional out-strings)
-  (apply #'format nil (v-glsl-string func)
-         (append (mapcar #'current-line arg-objs)
-                 out-strings
-                 (mapcar #'v-glsl-name (implicit-args func)))))
+  (when (v-glsl-string func)
+    (apply #'format nil (v-glsl-string func)
+           (append (mapcar #'current-line arg-objs)
+                   out-strings
+                   (mapcar #'v-glsl-name (implicit-args func))))))
 
 (defun gen-function-transform (name args &optional out-args implicit-args)
   (format nil "~a(~{~a~^,~})" name
@@ -23,40 +25,44 @@
                                  (length implicit-args))
              :collect "~a")))
 
-(defun gen-implicit-arg-pairs (implicit-args)
+(defun gen-implicit-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `(,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+     `(nil ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
 
-(defun gen-arg-string (arg-pairs &optional out-pairs)
-  (let ((arg-string (format nil "~{~{~a ~a~}~^,~^ ~}" arg-pairs)))
+(defun gen-in-out-arg-tripples (implicit-args)
+  (loop :for a :in implicit-args :collect
+     `("inout" ,(v-glsl-string (v-type a)) ,(v-glsl-name a))))
+
+(defun gen-arg-string (arg-tripples &optional out-pairs)
+  (let ((arg-string (format nil "~{~{~@[~a ~]~a ~a~}~^,~^ ~}" arg-tripples)))
     (if out-pairs
         (if (> (length arg-string) 0)
             (format nil "~a, ~{~{out ~a ~a~}~^,~^ ~}" arg-string out-pairs)
             (format nil "~{~{out ~a ~a~}~^,~^ ~}" out-pairs))
         arg-string)))
 
-(defun gen-glsl-function-body-string (name args type glsl-string)
-  (format nil "~a ~a(~a) {~%~a~%}~%"
-          (v-glsl-string type)
-          (string-downcase (string name))
-          (gen-arg-string args)
-          glsl-string))
-
-(defun gen-function-signature (name args out-args return-types implicit-args)
-  (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
+(defun gen-function-signature (name args out-args return-types implicit-args
+                               in-out-args)
+  (let ((args (append (mapcar λ(cons nil _) args)
+                      (gen-implicit-arg-tripples implicit-args)
+                      (gen-in-out-arg-tripples in-out-args))))
     (format nil "~a ~a(~a);"
             (v-glsl-string return-types)
             name
             (gen-arg-string args out-args))))
 
-(defun gen-function-body-string (name args out-args type body-obj implicit-args)
-  (let ((args (append args (gen-implicit-arg-pairs implicit-args))))
+(defun gen-function-body-string (name args out-args type body-obj implicit-args
+                                 in-out-args)
+  (let ((args (append (mapcar λ(cons nil _) args)
+                      (gen-implicit-arg-tripples implicit-args)
+                      (gen-in-out-arg-tripples in-out-args))))
     (format nil "~a ~a(~a) {~%~{~a~%~}~{~a~%~}}~%"
             (v-glsl-string type)
             (string name)
             (gen-arg-string args out-args)
             (mapcat #'indent (remove "" (to-block body-obj) :test #'equal))
-            (indent (current-line (end-line body-obj))))))
+            (when (current-line body-obj)
+              (indent (current-line (end-line body-obj)))))))
 
 (defun gen-assignment-string (place val)
   (format nil "~a = ~a" (current-line place) (current-line val)))
@@ -66,7 +72,7 @@
 
 (defun gen-setq-assignment-string (old-value new-value-code-obj)
   (format nil "~a = ~a" (v-glsl-name old-value)
-	  (current-line new-value-code-obj)))
+          (current-line new-value-code-obj)))
 
 (defun gen-out-var-assignment-string (glsl-name val)
   (format nil "~a = ~a" glsl-name (current-line val)))
@@ -76,21 +82,6 @@
 
 (defun gen-bool-and-string (objs)
   (format nil "~{~a~^ && ~}" (mapcar #'current-line objs)))
-
-(defun gen-if-string (test-obj then-obj else-obj)
-  (if else-obj
-      (format nil "~a~&if (~a) {~{~%~a~}~%} else {~{~%~a~}~%}"
-              (or (to-block test-obj) "")
-              (current-line test-obj)
-              (append (remove-empty (mapcat #'indent (to-block then-obj)))
-                      (indent (current-line then-obj)))
-              (append (remove-empty (mapcat #'indent (to-block else-obj)))
-                      (indent (current-line else-obj))))
-      (format nil "~a~&if (~a) {~%~{~a~%~}}"
-              (or (to-block test-obj) "")
-              (current-line test-obj)
-              (append (remove-empty (mapcat #'indent (to-block then-obj)))
-                      (indent (current-line then-obj))))))
 
 (defun gen-while-string (test-obj body-obj)
   (format nil "~{~a~%~}while (~a) {~{~%~a~}~%}"
@@ -146,9 +137,8 @@
   (copy-code obj :current-line (format nil "~(~{~a ~}~)~a"
                                        (string-downcase (string qualifiers))
                                        (current-line obj))
-	     :multi-vals nil
-	     :place-tree nil
-	     :flow-ids (flow-ids obj)))
+             :multi-vals nil
+             :place-tree nil))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
@@ -183,18 +173,20 @@
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
 (defun gen-shader-string (post-proc-obj)
-  (with-slots (code env) post-proc-obj
+  (with-slots (env) post-proc-obj
     (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
-	    (loop :for part :in
-	       (list (used-types post-proc-obj)
-		     (mapcar #'last1 (in-args post-proc-obj))
-		     (mapcar #'last1 (out-vars post-proc-obj))
-		     (concatenate 'list
-				  (mapcar #'last1 (uniforms post-proc-obj))
-				  (mapcar #'third (stemcells post-proc-obj)))
-		     (signatures code)
-		     (func-defs-glsl post-proc-obj))
-	       :if part :collect part))))
+            (loop :for part :in
+               (list (used-types post-proc-obj)
+                     (mapcar #'last1 (in-args post-proc-obj))
+                     (mapcar #'last1 (out-vars post-proc-obj))
+                     (concatenate 'list
+                                  (mapcar #'last1 (uniforms post-proc-obj))
+                                  (mapcar #'third (stemcells post-proc-obj)))
+                     (signatures env)
+                     (let* ((funcs (all-functions post-proc-obj))
+                            (code (remove nil (mapcar #'glsl-code funcs))))
+                       (reverse code)))
+               :if part :collect part))))
 
 ;;----------------------------------------------------------------------
 
@@ -217,28 +209,33 @@
     (let ((name (or accessor slot-name))
           (type-obj (type-spec->type slot-type)))
       (format nil "    ~{~a ~}~a"
-                ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
-nil
-                (if (typep type-obj 'v-array)
-                    (format nil "~a ~a[~a];"
-                            (v-glsl-string (type->type-spec (v-element-type type-obj)))
-                            (safe-glsl-name-string name)
-                            (v-dimensions type-obj))
-                    (format nil "~a ~a;"
-                            (v-glsl-string type-obj)
-                            (safe-glsl-name-string name)))))))
+              ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
+              nil
+              (if (typep type-obj 'v-array)
+                  (format nil "~a ~a[~a];"
+                          (v-glsl-string (v-element-type type-obj))
+                          (safe-glsl-name-string name)
+                          (v-dimensions type-obj))
+                  (format nil "~a ~a;"
+                          (v-glsl-string type-obj)
+                          (safe-glsl-name-string name)))))))
 
 ;;----------------------------------------------------------------------
 
 (defmethod indent ((input string) &optional (count 4))
   (let ((spaces (make-array count :element-type 'character
-                            :initial-element #\space)))
+                             :initial-element #\space)))
     (mapcar #'(lambda (x) (format nil "~a~a" spaces x))
             (split-sequence:split-sequence #\newline input))))
+
+(defun indent-for-block (line/s)
+  (format nil "~@[~%~{~a~^~%~}~]"
+          (remove-empty (mapcat #'indent (listify line/s)))))
 
 ;;----------------------------------------------------------------------
 
 (defun cast-string (type code-obj)
-  (format nil "~a(~a)"
-          (v-glsl-string type)
-          (current-line code-obj)))
+  (when (current-line code-obj)
+    (format nil "~a(~a)"
+            (v-glsl-string type)
+            (current-line code-obj))))

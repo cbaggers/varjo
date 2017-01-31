@@ -5,14 +5,13 @@
    (ending-env :initarg :ending-env :reader ast-ending-env)
    (kind :initarg :kind :reader ast-kind)
    (return-type :initarg :return-type :reader ast-return-type)
-   (flow-id :initarg :flow-id :reader ast-flow-id)
-   (flow-id-origin :initarg :flow-id-origin :initform :incomplete
-		   :reader ast-flow-id-origin)
    (val-origin :initarg :val-origin :initform :incomplete
-	       :reader ast-val-origin)
+               :reader ast-val-origin)
    (parent :initarg :parent :initform :incomplete :reader ast-parent)
    (args :initarg :args :initform nil :reader ast-args)
    (val-origins :initarg :val-origins :initform :incomplete)
+   (flow-id-origin :initarg :flow-id-origin :initform :incomplete
+                   :reader ast-flow-id-origin)
    (flow-id-origins :initarg :flow-id-origins :initform :incomplete)))
 
 ;;----------------------------------------------------------------------
@@ -27,12 +26,8 @@
    (returns :initarg :returns :initform nil :reader returns)
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
-   (injected-uniforms :initarg :injected-uniforms :initform nil
-		      :reader injected-uniforms)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
-   (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-co)
-	     :reader flow-ids)
    (mutations :initarg :mutations :initform nil :reader mutations)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
@@ -40,7 +35,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass post-compile-process ()
-  ((code :initarg :code :accessor code)
+  ((main-func :initarg :main-func :accessor main-func)
    (env :initarg :env :accessor env)
    (in-args :initarg :in-args :accessor in-args)
    (out-vars :initarg :out-vars :accessor out-vars)
@@ -51,11 +46,20 @@
                             :accessor used-external-functions)
    (used-symbol-macros :initarg :used-symbol-macros
                        :accessor used-symbol-macros)
-   (func-defs-glsl :initarg :func-defs-glsl :accessor func-defs-glsl)
    (used-macros :initarg :used-macros :accessor used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
-                         :accessor used-compiler-macros)
-   (ast :initarg :ast :reader ast)))
+                         :accessor used-compiler-macros)))
+
+;;----------------------------------------------------------------------
+
+(defclass compiled-function-result ()
+  ((function-obj :initarg :function-obj :reader function-obj)
+   (glsl-code :initarg :glsl-code :reader glsl-code)
+   (signatures :initarg :signatures :reader signatures)
+   (ast :initarg :ast :reader ast)
+   (used-types :initarg :used-types :reader used-types)
+   (stemcells :initarg :stemcells :reader stemcells)
+   (out-vars :initarg :out-vars :reader out-vars)))
 
 ;;----------------------------------------------------------------------
 
@@ -67,17 +71,18 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (context :initarg :context :accessor context)
+   (allowed-stemcells :initarg :allowed-stemcells :accessor allowed-stemcells)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
    (used-macros :initarg :used-macros :reader used-macros)
    (used-compiler-macros :initarg :used-compiler-macros
-			 :reader used-compiler-macros)
-   (ast :initarg :ast :reader ast)
+                         :reader used-compiler-macros)
+   (function-asts :initarg :function-asts :reader function-asts)
    (used-symbol-macros :initarg :used-symbol-macros
-		       :reader used-symbol-macros)
+                       :reader used-symbol-macros)
    (third-party-metadata :initarg :third-party-metadata
-			 :initform (make-hash-table)
-			 :reader third-party-metadata)))
+                         :initform (make-hash-table)
+                         :reader third-party-metadata)))
 
 ;;----------------------------------------------------------------------
 
@@ -95,26 +100,28 @@
    (multi-val-safe
     :initform nil :initarg :multi-val-safe :reader v-multi-val-safe)
    (function-scope
-    :initform 0 :initarg :function-scope :reader v-function-scope)))
+    :initform 0 :initarg :function-scope :reader v-function-scope)
+   (allowed-outer-vars
+    :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)))
 
 
 (defclass base-environment (environment)
   ((raw-in-args :initform nil :initarg :raw-args :accessor v-raw-in-args)
    (raw-uniforms :initform nil :initarg :raw-uniforms :accessor v-raw-uniforms)
    (raw-context :initform nil :initarg :raw-context :accessor v-raw-context)
-   (iuniforms :initform nil :initarg :iuniforms :accessor v-iuniforms)
    (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
-   (used-external-functions :initform nil :initarg :used-external-functions)
    (used-symbol-macros :initform nil :initarg :used-symbol-macros)
    (used-macros :initform nil :initarg :used-macros)
    (used-compiler-macros :initform nil :initarg :used-compiler-macros)
-   (function-dedup :initform nil :initarg :function-dedup)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (third-party-metadata :initform (make-hash-table) :initarg
-			 :third-party-metadata)
-   (name-map :initform (make-hash-table :test #'equal))))
+                         :third-party-metadata)
+   (name-map :initform (make-hash-table :test #'equal))
+   (compiled-functions :initform (make-hash-table :test #'eq))
+   (stemcells-allowed :initform t :initarg :stemcells-allowed
+                      :reader allows-stemcellsp)))
 
 ;;----------------------------------------------------------------------
 
@@ -144,9 +151,18 @@
    (compiled-stages :initform nil :initarg :compiled-stages)))
 
 ;;----------------------------------------------------------------------
+;;
+;; A match has 2 components to it's score:
+;;
+;; The primary score measures how many arguments needed casting to match
+;; the target signature's type.
+;;
+;; The secondary-score measures how many superclasses you have to cross
+;; to travel from the matched type to the target signature's type
 
 (defclass func-match ()
   ((score :initarg :score :reader score)
+   (secondary-score :initarg :secondary-score :reader secondary-score)
    (func :initarg :func :reader func)
    (arguments :initarg :arguments :reader arguments)))
 
@@ -165,36 +181,12 @@
    (glsl-name :initarg :glsl-name :accessor v-glsl-name)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)
-   (read-only :initarg :read-only :initform nil :reader v-read-only)
-   (flow-ids :initarg :flow-ids :initform (error 'flow-id-must-be-specified-vv)
-	     :reader flow-ids)))
+   (read-only :initarg :read-only :initform nil :reader v-read-only)))
 
 ;;----------------------------------------------------------------------
 
 (defclass mval ()
   ((value :initarg :value :reader multi-val-value)
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
-
-;;----------------------------------------------------------------------
-
-(defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
-  (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
-                       `(append (list ,(kwd (subseq (symbol-name name) 2))
-                                      ',name)
-                                *registered-types*)
-                       `(cons ',name *registered-types*))))
-    `(progn (defclass ,name ,direct-superclass ,direct-slots ,@options)
-            (setf *registered-types* (remove-duplicates ,new-names))
-            ',name)))
-
-(def-v-type-class v-spec-type () ())
-
-(def-v-type-class v-t-type () ())
-
-(def-v-type-class v-type (v-t-type)
-  ((core :initform nil :reader core-typep)
-   (glsl-string :initform "<invalid>" :reader v-glsl-string)
-   (glsl-size :initform 1)
-   (casts-to :initform nil)))
 
 ;;----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 (in-package :varjo)
 
-;-----------INSPIRATION-----------;
+                                        ;-----------INSPIRATION-----------;
 
 ;; (define-condition machine-error (error)
 ;;   ((machine-name :initarg :machine-name :reader machine-error-machine-name))
@@ -8,7 +8,7 @@
 ;;              (format stream "There is a problem with ~A."
 ;;                      (machine-error-machine-name condition)))))
 
-;------------HELPER-----------;
+                                        ;------------HELPER-----------;
 
 (defmacro deferror (name (&key (error-type 'varjo-error) prefix)
                             (&rest args) error-string &body body)
@@ -26,13 +26,13 @@
 (define-condition varjo-error (error) ())
 (define-condition varjo-critical-error (error) ())
 
-;-----------------------------;
+                                        ;-----------------------------;
 
 (define-condition missing-function-error (error)
   ((text :initarg :text :reader text)))
 
 (deferror problem-with-the-compiler () (target)
-  "This shouldnt have been possible so this needs a bug report. Sorry about that~%~s" target)
+    "This shouldnt have been possible so this needs a bug report. Sorry about that~%~s" target)
 
 (deferror cannot-compile () (code)
     "Cannot compile the following code:~%~a" code)
@@ -42,10 +42,10 @@
 ~s" code)
 
 (deferror no-function-returns () (name)
-  "Function '~a' did not specify any return types" name)
+    "Function '~a' did not specify any return types" name)
 
 (deferror not-core-type-error () (type-name)
-  "Type ~a is not a core type and thus cannot end up in glsl src code
+    "Type ~a is not a core type and thus cannot end up in glsl src code
    It must end up being used or converted to something that resolves
    to a glsl type." type-name)
 
@@ -165,7 +165,7 @@ type-of new-value: ~a"
 
 (deferror args-incompatible () (previous-args current-args)
     "Sorry but the output arguments from one stage are not compatible with the input arguments of the next.~%Out vars from previous stage: ~a~%In args from this stage: ~a"
-   previous-args current-args)
+  previous-args current-args)
 
 (deferror invalid-shader-stage () (stage)
     "Sorry but '~a' is not a valid shader stage" stage)
@@ -190,24 +190,24 @@ type-of new-value: ~a"
 
 (deferror invalid-symbol-macro-form () (name form)
     "Symbol macros must expand to a list or atom form : ~s -> ~s~%"
-    name form)
+  name form)
 
 (deferror stage-order-error () (stage-type)
     "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists"
-    stage-type)
+  stage-type)
 
 (deferror multi-val-bind-mismatch () (bindings val-form)
     "Multiple Value Bind - Number of values returned from value form does not match bindings:
 Bindings: ~a
 Value Form: ~a"
-    bindings val-form)
+  bindings val-form)
 
 (deferror merge-env-func-scope-mismatch () (env-a env-b)
-  "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
+    "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
   (cons (v-function-scope env-a) (v-function-scope env-b)) env-a env-b)
 
 (deferror merge-env-parent-mismatch () (env-a env-b)
-  "Attempting to merge two environements with different parent environments ~s~%~s~%~s"
+    "Attempting to merge two environements with different parent environments ~s~%~s~%~s"
   (cons (v-parent-env env-a) (v-parent-env env-b)) env-a env-b)
 
 (deferror env-parent-context-mismatch () (env-a env-b)
@@ -218,11 +218,11 @@ Value Form: ~a"
     "Symbol '~s' is unidentified." sym)
 
 (deferror if-form-type-mismatch () (test-form then-form then-type
-					      else-form else-type)
+                                              else-form else-type)
     "The result if ~a is true is ~a which has type ~a
 however the false case returns ~a which has type ~a
 This is incompatible"
-    test-form then-form then-type else-form else-type)
+  test-form then-form then-type else-form else-type)
 
 (deferror bad-make-function-args () (func-name arg-specs)
     "Trying to define the function ~s but the following argument specifications
@@ -231,30 +231,30 @@ are a bit odd:
 
 Generally arguments are defined in the format (arg-name arg-type)
 e.g. (~a :vec3)"
-    func-name arg-specs
-    ;; this bit below is so that, where possible, the error uses one of
-    ;; your arg names in the example of a valid arg spec.
-    ;; I hope this makes the error message a bit more relevent and approachable
-    (let* ((potential-spec (first arg-specs))
-           (potential-name (cond
-                             ((listp potential-spec) (first potential-spec))
-                             ((and (symbolp potential-spec)
-                                   (not (null potential-spec))
-                                   (not (keywordp potential-spec)))
-                              potential-spec))))
-      (if (and potential-name
-               (symbolp potential-name)
-               (not (keywordp potential-name)))
-          (string-downcase (symbol-name potential-name))
-          "x")))
+  func-name arg-specs
+  ;; this bit below is so that, where possible, the error uses one of
+  ;; your arg names in the example of a valid arg spec.
+  ;; I hope this makes the error message a bit more relevent and approachable
+  (let* ((potential-spec (first arg-specs))
+         (potential-name (cond
+                           ((listp potential-spec) (first potential-spec))
+                           ((and (symbolp potential-spec)
+                                 (not (null potential-spec))
+                                 (not (keywordp potential-spec)))
+                            potential-spec))))
+    (if (and potential-name
+             (symbolp potential-name)
+             (not (keywordp potential-name)))
+        (string-downcase (symbol-name potential-name))
+        "x")))
 
 (deferror none-type-in-out-vars () (glsl-name)
     "One of the values being returned from the shader (~s) is of type :none."
-    glsl-name)
+  glsl-name)
 
 (deferror body-block-empty () (form-name)
     "In varjo it is not valid to have a ~s with an empty body."
-    form-name)
+  form-name)
 
 (deferror flow-ids-mandatory (:error-type varjo-critical-error) (for code-type)
     "~s must be given flow id/s when created: type - ~s" for code-type)
@@ -360,3 +360,33 @@ Here are some types we think may have been meant:
      :for suggestion := (find-alternative-types-for-spec (second a))
      :when suggestion
      :collect (format nil "~%> ~s~{~%~s~}" (first a) suggestion)))
+
+(deferror invalid-special-function-arg-spec (:error-type varjo-critical-error)
+    (name spec)
+    "Varjo: The special function named ~s has an invalid argument spec:
+~a
+
+Please report this bug on github" name spec)
+
+(deferror closures-not-supported (:error-type varjo-critical-error)
+    (func)
+    "Varjo: The function ~s is a closure and currently Varjo doesnt support
+passing these around as first class objects.
+
+Sorry for the odd limitation, this will be fixed in a future version."
+  func)
+
+(deferror cannot-establish-exact-function (:error-type varjo-critical-error)
+    (funcall-form)
+    "Varjo: Could not establish the exact function when compiling:
+
+~s
+
+Because first class functions don't exist in GLSL, Varjo needs to be able to
+work out what function is going to be called at compile time. In this case that
+was not possible.
+
+Usually Varjo should throw a more descriptive error earlier in the compile
+process so if you have time please report this on github. That way we can try
+and detect these cases more accurately and hopefully provide better error
+messages." funcall-form)

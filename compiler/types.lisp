@@ -1,16 +1,169 @@
 (in-package :varjo)
 
-;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+;;------------------------------------------------------------
+;; Macro for defining varjo types
 
-(def-v-type-class v-none (v-t-type) ())
+;; {TODO} proper errors
+(defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
+  (assert (and (listp direct-superclass) (symbolp (first direct-superclass))) ()
+          "Varjo: Types in varjo are allowed, at most, one superclass")
+  (unless (eq name 'v-type)
+    (assert direct-superclass ()
+            "Varjo: All types must specify a superclass, this will usually be v-type"))
+  (let ((new-names (if (equal (package-name (symbol-package name)) "VARJO")
+                       `(append (list ,(kwd (subseq (symbol-name name) 2))
+                                      ',name)
+                                *registered-types*)
+                       `(cons ',name *registered-types*))))
+    `(progn
+       (defclass ,name ,direct-superclass
+         ,(if (eq name 'v-type)
+              direct-slots
+              (cons `(superclass :initform ',(first direct-superclass))
+                    direct-slots))
+         ,@options)
+       (setf *registered-types* (remove-duplicates ,new-names))
+       ',name)))
+
+;;------------------------------------------------------------
+;; Varjo's root type
+
+(def-v-type-class v-type ()
+  ((core :initform nil :reader core-typep)
+   (superclass :initform nil :reader v-superclass)
+   (glsl-string :initform "<invalid>" :reader v-glsl-string)
+   (glsl-size :initform 1 :reader v-glsl-size)
+   (casts-to :initform nil)
+   (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
+   (ctv :initform nil :initarg :ctv :accessor ctv)))
+
+(defmethod v-superclass ((type v-type))
+  (with-slots (superclass) type
+    (when superclass
+      (type-spec->type superclass))))
+
+;;------------------------------------------------------------
+;; Core type methods
+
+(defgeneric copy-type (type)
+  (:documentation
+   "This function returns a new instance of the provided type with the exact
+same values in it's slots.
+
+It is different from (type-spec->type (type->type-spec type)) in that it handles
+compile/unrepresentable values and flow-ids correctly, which the type-spec trick
+doesnt"))
+
+(defmethod copy-type ((type v-type))
+  (let* ((type-name (class-name (class-of type)))
+         (new-inst (make-instance type-name :flow-ids (flow-ids type))))
+    (setf (ctv new-inst) (ctv type))
+    new-inst))
+
+(defmethod type->type-spec ((type v-type))
+  (class-name (class-of type)))
+
+(defmethod make-load-form ((type v-type) &optional environment)
+  (declare (ignore environment))
+  `(type-spec->type ',(type->type-spec type)))
+
+(defmethod post-initialise ((object v-type)))
+
+(defmethod initialize-instance :after ((type-obj v-type) &rest initargs)
+  (declare (ignore initargs))
+  (post-initialise type-obj))
+
+(defmethod v-true-type ((object v-type))
+  object)
+
+;;------------------------------------------------------------
+;; Pass by Ref
+;;
+;; The supertype of everything that is passed by reference by
+;; default
+
+(def-v-type-class v-pass-by-ref-type (v-type) ())
+
+;;------------------------------------------------------------
+;; None
+
+(def-v-type-class v-none (v-type) ())
+
+(defun gen-none-type ()
+  (type-spec->type :none))
+
+;;------------------------------------------------------------
+;; Void
+
+(def-v-type-class v-void (v-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "void" :reader v-glsl-string)
+   (glsl-size :initform :sizeless)))
+
+;;------------------------------------------------------------
+;; Compilation Error
+;;
+;; Attached to failed compilation objects when delaying errors
+;; see functions.lisp for use
+
+(def-v-type-class v-error (v-type)
+  ((payload :initform nil :initarg :payload :accessor v-payload)))
+
+(defun v-errorp (obj)
+  (typep obj 'v-error))
+
+;;------------------------------------------------------------
+;; Unrepresentable Value
+;;
+;; The supertype for all types which are not representable in any
+;; way in glsl. First class functions is the classic example of this.
+
+(def-v-type-class v-unrepresentable-value (v-pass-by-ref-type) ())
+
+;;------------------------------------------------------------
+;; Container
+;;
+;; The supertype of all types that can have values stored into, and
+;; retrieved from, themselves
 
 (def-v-type-class v-container (v-type)
-  ((element-type :initform nil)
+  ((element-type :initform t)
    (dimensions :initform nil :accessor v-dimensions)))
 
+(defmethod post-initialise ((object v-container))
+  (with-slots (dimensions element-type) object
+    (setf dimensions (listify dimensions))
+    (unless (or (typep element-type 'v-type) (eq element-type t))
+      (setf element-type (type-spec->type element-type)))))
+
+;;------------------------------------------------------------
+;; Array
+
 (def-v-type-class v-array (v-container)
-  ((element-type :initform nil :initarg :element-type)
+  ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
+
+(defmethod v-glsl-size ((type v-array))
+  (* (apply #'* (v-dimensions type))
+     (slot-value (v-element-type type) 'glsl-size)))
+
+(defmethod v-element-type ((object v-container))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+(defmethod copy-type ((type v-array))
+  (let* ((new-inst (call-next-method)))
+    (setf (v-dimensions new-inst) (v-dimensions type))
+    new-inst))
+
+(defmethod type->type-spec ((type v-array))
+  (if (and (v-element-type type) (v-dimensions type))
+      (list (type->type-spec (v-element-type type)) (v-dimensions type))
+      'v-array))
 
 (defmethod v-glsl-string ((object v-array))
   (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object))
@@ -18,10 +171,102 @@
                     (if (numberp x) x ""))
                   (v-dimensions object))))
 
-;; (v-glsl-string (type-spec->type '(:vec3 *)))
+;;------------------------------------------------------------
+;; Sampler
 
-(def-v-type-class v-error (v-type)
-  ((payload :initform nil :initarg :payload :accessor v-payload)))
+(def-v-type-class v-sampler (v-type) ())
+
+(defmethod post-initialise ((object v-sampler))
+  (with-slots (element-type) object
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-sampler))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+;;------------------------------------------------------------
+;; Or
+
+(def-v-type-class v-or (v-type)
+  ((types :initform nil :initarg :types :reader v-types)))
+
+(defmethod copy-type ((type v-or))
+  (assert (null (ctv type)))
+  (make-instance 'v-or :types (v-types type) :flow-ids (flow-ids type)))
+
+(defmethod type->type-spec ((type v-or))
+  `(or ,@(mapcar #'type->type-spec (v-types type))))
+
+(defmethod gen-or-type (types)
+  (let* ((types (mapcar (lambda (type)
+                          (etypecase type
+                            (v-type type)
+                            ((or list symbol)
+                             (type-spec->type type (flow-id!)))))
+                        types))
+         (reduced (reduce-types-for-or-type types)))
+    (if (= (length reduced) 1)
+        (first reduced)
+        (make-instance 'v-or :types reduced
+                       :flow-ids (apply #'flow-id! reduced)))))
+
+(defmethod reduce-types-for-or-type (types)
+  (labels ((inner (type)
+             (if (typep type 'v-or)
+                 (mapcat #'inner (v-types type))
+                 (list type))))
+    (remove-duplicates (mapcat #'inner types) :test #'v-type-eq)))
+
+(defmethod print-object ((obj v-or) stream)
+  (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
+
+;;------------------------------------------------------------
+;; Any one of
+;;
+;; This value differs from v-or' becaume v-or means it is one
+;; of the contained types, whereas this means it's represents
+;; all of the values and the compiler is free to pick any which
+;; satisfies it's needs
+
+(def-v-type-class v-any-one-of (v-unrepresentable-value)
+  ((types :initform nil :initarg :types :reader v-types)))
+
+(defmethod copy-type ((type v-any-one-of))
+  (assert (null (ctv type)))
+  (make-instance 'v-any-one-of :types (v-types type) :flow-ids (flow-ids type)))
+
+(defmethod type->type-spec ((type v-any-one-of))
+  `(any-of-of ,@(mapcar #'type->type-spec (v-types type))))
+
+(defmethod gen-any-one-of-type (types)
+  (let* ((types (mapcar (lambda (type)
+                          (etypecase type
+                            (v-type
+                             (if (flow-ids type)
+                                 type
+                                 (set-flow-id type (flow-id!))))
+                            ((or list symbol)
+                             (type-spec->type type (flow-id!)))))
+                        types))
+         (reduced (reduce-types-for-or-type types)))
+    (if (= (length reduced) 1)
+        (first reduced)
+        (make-instance 'v-any-one-of :types reduced
+                       :flow-ids (apply #'flow-id! reduced)))))
+
+(defmethod print-object ((obj v-any-one-of) stream)
+  (format stream "#<ANY-ONE-OF ~{~s~^ ~}>"
+          (mapcar #'type->type-spec (v-types obj))))
+
+;;------------------------------------------------------------
+;; Struct
+;;
+;; Supertype of all structs
 
 (def-v-type-class v-struct (v-type)
   ((versions :initform nil :initarg :versions :accessor v-versions)
@@ -29,159 +274,180 @@
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
+;; Supertype of all structs that are not from the glsl spec
 (def-v-type-class v-user-struct (v-struct) ())
 
-(def-v-type-class v-function (v-type)
-  ((versions :initform nil :initarg :versions :accessor v-versions)
-   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
-   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
-   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
-   (multi-return-vars :initform nil :initarg :multi-return-vars
-                      :reader multi-return-vars)
-   (name :initform nil :initarg :name :reader name)
-   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
-   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-				     :code-type :v-function)
-		    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
-   (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-			      :code-type :v-function)
-	     :initarg :flow-ids :reader flow-ids)))
+;;------------------------------------------------------------
+;; Function Type
+;;
+;; The type of all function objects
 
-(def-v-type-class v-user-function (v-function) ())
+(def-v-type-class v-function-type (v-unrepresentable-value)
+  ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
+   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
+
+(defmethod print-object ((object v-function-type) stream)
+  (with-slots (name argument-spec return-spec) object
+    (format stream "#<V-FUNCTION-TYPE ~s -> ~s>"
+            (if (eq t argument-spec)
+                '(t*)
+                (mapcar #'type-of argument-spec))
+            (typecase (first return-spec)
+              (function t)
+              (v-type (type-of (first return-spec)))
+              (otherwise return-spec)))))
+
+(defun v-closure-p (type)
+  (and (typep type 'v-function-type)
+       (ctv type)
+       (implicit-args (ctv type))))
+
+(defmethod type->type-spec ((type v-function-type))
+  (with-slots (argument-spec return-spec) type
+    ;; {TODO} remove this, done now
+    (assert (listp return-spec))
+    (let* ((in (mapcar #'type->type-spec argument-spec))
+           (out (if (= (length return-spec) 1)
+                    (type->type-spec (first return-spec))
+                    (mapcar #'type->type-spec return-spec))))
+      `(function ,in ,out))))
+
+;;------------------------------------------------------------
+;; Stemcell
 
 (def-v-type-class v-stemcell (v-type) ())
 
-(defmethod v-place-function-p ((f v-function))
-  (not (null (v-place-index f))))
+;;------------------------------------------------------------
+;; Converting specs into types
 
-(defmethod core-typep ((type v-t-type))
-  nil)
-
-;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-(defun v-spec-typep (obj)
-  (and (typep obj 'v-spec-type)
-       (not (typep obj 'v-type))))
-
-(defmethod v-element-type ((object v-t-type))
-  (when (slot-exists-p object 'element-type)
-    (when (slot-value object 'element-type)
-      (type-spec->type (slot-value object 'element-type)))))
-
-(defmethod type->type-spec ((type v-t-type))
-  (class-name (class-of type)))
-(defmethod type->type-spec ((type v-spec-type))
-  (class-name (class-of type)))
-(defmethod type->type-spec ((type v-array))
-  (if (and (v-element-type type) (v-dimensions type))
-      (list (type->type-spec (v-element-type type)) (v-dimensions type))
-      'v-array))
-
-(defun try-type-spec->type (spec &key (env *global-env*))
-  (declare (ignore env))
+(defun try-type-spec->type (spec flow-id)
   (let ((spec (cond ((keywordp spec) (p-symb 'varjo 'v- spec))
                     ((and (listp spec) (keywordp (first spec)))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
           ((and (symbolp spec) (vtype-existsp spec))
-           (let ((type (make-instance spec)))
-	     (when (or (typep type 'v-t-type)
-		       (typep type 'v-spec-type))
-	       type)))
+           (let ((type (make-instance spec :flow-ids flow-id)))
+             (when (typep type 'v-type)
+               type)))
+          ((and (listp spec) (eq (first spec) 'function))
+           (make-instance
+            'v-function-type :arg-spec (mapcar #'type-spec->type (second spec))
+            :return-spec (or (mapcar #'type-spec->type
+                                     (uiop:ensure-list (third spec)))
+                             (list (type-spec->type :void)))
+            :flow-ids flow-id))
+          ((and (listp spec) (eq (first spec) 'or))
+           ;; flow-id is discarded as the flow-id will be the union of the
+           ;; ids of the types in the spec
+           (gen-or-type (rest spec)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
              (make-instance 'v-array :element-type (if (keywordp type)
                                                        (symb 'v- type)
                                                        type)
-                            :dimensions dimensions)))
+                            :dimensions dimensions
+                            :flow-ids flow-id)))
           (t nil))))
 
-(defun type-specp (spec &optional (env *global-env*))
-  (handler-case (and (type-spec->type spec :env env) t)
+;; shouldnt the un-shadow be in try-type-spec->type?
+(defun type-spec->type (spec &optional flow-id)
+  (v-true-type
+   (or (try-type-spec->type (un-shadow spec) flow-id)
+       (error 'unknown-type-spec :type-spec spec))))
+
+;; A probably too forgiving version of type-spec->type, it is a no-op
+;; on v-types
+(defun as-v-type (thing)
+  (etypecase thing
+    (v-type thing)
+    (symbol (type-spec->type thing))))
+
+;;------------------------------------------------------------
+;; Valid type spec predicate
+
+(defun type-specp (spec)
+  (handler-case (and (type-spec->type spec) t)
     (unknown-type-spec (e)
       (declare (ignore e))
       nil)))
 
+;;------------------------------------------------------------
+;; Type shadowing
+
 (let* ((shadow-ht (or (when (boundp '*type-shadow*) (symbol-value '*type-shadow*))
-		      (make-hash-table)))
+                      (make-hash-table)))
        (shadow-ht-backward
-	(let ((ht (make-hash-table)))
-	  (maphash #'(lambda (k v) (setf (gethash v ht) k))
-		   shadow-ht)
-	  ht)))
+        (let ((ht (make-hash-table)))
+          (maphash #'(lambda (k v) (setf (gethash v ht) k))
+                   shadow-ht)
+          ht)))
   (defun add-type-shadow (type shadowing-this-type)
     (assert (and (symbolp type) (symbolp shadowing-this-type)))
     (setf (gethash type shadow-ht) shadowing-this-type)
     (setf (gethash shadowing-this-type shadow-ht-backward) type))
   (defun un-shadow (spec)
     (if (listp spec)
-	`(,(or (gethash (first spec) shadow-ht) (first spec)) ,@(rest spec))
-	(or (gethash spec shadow-ht) spec)))
+        `(,(or (gethash (first spec) shadow-ht) (first spec)) ,@(rest spec))
+        (or (gethash spec shadow-ht) spec)))
   (defun reverse-shadow-lookup (shadowed-type-spec)
     (if (listp shadowed-type-spec)
-	`(,(or (gethash (first shadowed-type-spec) shadow-ht-backward)
-	       (first shadowed-type-spec))
-	   ,@(rest shadowed-type-spec))
-	(or (gethash shadowed-type-spec shadow-ht-backward)
-	    shadowed-type-spec))))
+        `(,(or (gethash (first shadowed-type-spec) shadow-ht-backward)
+               (first shadowed-type-spec))
+           ,@(rest shadowed-type-spec))
+        (or (gethash shadowed-type-spec shadow-ht-backward)
+            shadowed-type-spec))))
 
-;; shouldnt the un-shadow be in try-type-spec->type?
-(defun type-spec->type (spec &key (env *global-env*))
-  (v-true-type
-   (or (try-type-spec->type spec :env env)
-       (try-type-spec->type (un-shadow spec) :env env)
-       (error 'unknown-type-spec :type-spec spec))))
+;;------------------------------------------------------------
+;; Type Equality
 
-(defmethod v-true-type ((object v-t-type))
-  object)
-
-(defmethod v-true-type ((object v-spec-type))
-  object)
-
-(defmethod v-glsl-size ((type t))
-  (slot-value type 'glsl-size))
-
-(defmethod v-glsl-size ((type v-array))
-  (* (apply #'* (v-dimensions type))
-     (slot-value (v-element-type type) 'glsl-size)))
+;; Type <-> Type
 
 (defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
   (declare (ignore env))
-  (equal (type->type-spec a) (type->type-spec b)))
+  (and (equal (type->type-spec a) (type->type-spec b))
+       (eq (ctv a) (ctv b))))
+
+;; Type <-> Spec
+
 (defmethod v-type-eq ((a v-type) (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (equal (type->type-spec a) (type->type-spec (type-spec->type b))))
+  (v-type-eq a (type-spec->type b)))
+
 (defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
-  (equal (type->type-spec a) (type->type-spec (type-spec->type b :env env))))
-(defmethod v-type-eq (a (b v-none) &optional (env *global-env*))
   (declare (ignore env))
-  (eq (type->type-spec a) 'v-none))
-(defmethod v-type-eq ((a v-none) b &optional (env *global-env*))
+  (v-type-eq a (type-spec->type b)))
+
+;;------------------------------------------------------------
+;; Type predicate
+
+(defmethod v-typep (a (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (eq (type->type-spec b) 'v-none))
+  (print "at")
+  (typep a (type-of (type-spec->type b))))
+
+(defmethod v-typep (a (b list) &optional (env *global-env*))
+  (declare (ignore env))
+  (typep a (type-of (type-spec->type b))))
 
 (defmethod v-typep ((a t) (b v-none) &optional (env *global-env*))
   (declare (ignore env))
   (typep a (type-of b)))
 
-(defmethod v-typep ((a v-t-type) (b v-type) &optional (env *global-env*))
+(defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
   (declare (ignore env))
   (typep a (type-of b)))
 
-(defmethod v-typep ((a v-type) (b v-spec-type) &optional (env *global-env*))
-  (declare (ignore env))
-  (typep a (type-of b)))
 (defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
   (v-typep a (type->type-spec b) env))
+
 (defmethod v-typep ((a v-type) b &optional (env *global-env*))
   (declare (ignore env))
   (cond ((symbolp b)
-	 (typep a (un-shadow b)))
+         (typep a (un-shadow b)))
         ((and (listp b) (numberp (second b)))
-	 (typep a (un-shadow (first b))))))
+         (typep a (un-shadow (first b))))))
+
 (defmethod v-typep ((a null) b &optional (env *global-env*))
   (declare (ignore env a b))
   nil)
@@ -192,7 +458,26 @@
   (declare (ignore env a b))
   t)
 
-(defmethod v-casts-to ((from-type v-stemcell) (to-type v-t-type) env)
+;;------------------------------------------------------------
+;; Casting
+
+(defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type) env)
+  (when (and (every #'v-type-eq (v-argument-spec from-type)
+                    (v-argument-spec to-type))
+             (every #'v-type-eq (v-return-spec from-type)
+                    (v-return-spec to-type)))
+    to-type))
+
+(defmethod v-casts-to ((from-type v-any-one-of) (to-type v-function-type) env)
+  (let* ((funcs (mapcar (lambda (fn)
+                          (when (v-casts-to (v-type-of fn) to-type env)
+                            fn))
+                        (mapcar #'ctv (v-types from-type))))
+         (funcs (remove nil funcs))
+         (f-set (make-instance 'v-function-set :functions funcs)))
+    (when funcs (v-type-of f-set))))
+
+(defmethod v-casts-to ((from-type v-stemcell) (to-type v-type) env)
   (declare (ignore env from-type))
   to-type)
 
@@ -202,27 +487,20 @@
 ;;[TODO] vtypep here?
 (defmethod v-casts-to ((from-type v-type) (to-type v-type) env)
   (if (v-typep from-type to-type)
-      from-type
+      (strip-flow-id from-type)
       (when (slot-exists-p from-type 'casts-to)
         (loop :for cast-type :in (slot-value from-type 'casts-to)
            :if (v-typep (type-spec->type cast-type) to-type env)
            :return (type-spec->type cast-type)))))
 
-(defmethod v-casts-to ((from-type v-type) (to-type v-spec-type) env)
-  (when (slot-exists-p from-type 'casts-to)
-    (if (v-typep from-type to-type)
-        from-type
-        (loop :for cast-type :in (slot-value from-type 'casts-to)
-           :if (v-typep (type-spec->type cast-type) to-type env)
-           :return (type-spec->type cast-type)))))
 
 (defun find-mutual-cast-type (&rest types)
   (let ((names (loop :for type :in types
-                  :collect (if (typep type 'v-t-type)
+                  :collect (if (typep type 'v-type)
                                (type->type-spec type)
                                type))))
     (if (loop :for name :in names :always (eq name (first names)))
-        (first names)
+        (type-spec->type (first names))
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
                                          (if (symbolp type)
@@ -232,10 +510,11 @@
                                 #'> :key #'length))
                (master (first all-casts))
                (rest-casts (rest all-casts)))
-          (first (sort (loop :for type :in master
-                          :if (loop :for casts :in rest-casts
-                                 :always (find type casts))
-                          :collect type) #'> :key #'v-superior-score))))))
+          (type-spec->type
+           (first (sort (loop :for type :in master
+                           :if (loop :for casts :in rest-casts
+                                  :always (find type casts))
+                           :collect type) #'> :key #'v-superior-score)))))))
 
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
@@ -250,15 +529,26 @@
 (defun v-superior-type (&rest types)
   (first (sort types #'v-superior)))
 
-(defun v-errorp (obj) (typep obj 'v-error))
+;;------------------------------------------------------------
+;; Distance
 
-(defmethod post-initialise ((object v-t-type)))
-(defmethod post-initialise ((object v-container))
-  (setf (v-dimensions object) (listify (v-dimensions object))))
+;; {TODO} proper errors
+(defmethod get-type-distance ((ancestor v-type) (type v-type)
+                              &optional (value-in-place-of-error nil vset))
+  (labels ((inner (base child accum)
+             (cond
+               ((null child) (if vset
+                                 value-in-place-of-error
+                                 (error "Varjo: ~a is not a descendant of type ~a"
+                                        type ancestor)))
+               ((v-type-eq base child) accum)
+               (t (inner base (v-superclass child) (1+ accum))))))
+    (inner ancestor type 0)))
 
-(defmethod initialize-instance :after ((type-obj v-t-type) &rest initargs)
-  (declare (ignore initargs))
-  (post-initialise type-obj))
+;;------------------------------------------------------------
+;; Finding similarly named types
+;;
+;; used in errors.lisp
 
 (defun find-alternative-types-for-spec (type-spec)
   (when (symbolp type-spec)
