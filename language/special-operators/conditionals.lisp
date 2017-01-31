@@ -52,27 +52,34 @@
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
   (let* ((will-assign (and (not (typep result-type 'v-void))
                            (not (typep result-type 'v-or))))
-         (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp")))))
+         (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp"))))
+         (then-string (gen-string-for-if-block then-obj tmp-var))
+         (else-string (when has-else
+                        (gen-string-for-if-block else-obj tmp-var))))
     (values
-     (format nil "~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
-             (when tmp-var
-               (prefix-type-to-string result-type (end-line-str tmp-var)))
-             (current-line test-obj)
-             (gen-string-for-if-block then-obj tmp-var)
-             (when has-else
-               (gen-string-for-if-block else-obj tmp-var)))
+     (when (or then-string else-string)
+       (format nil "~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
+               (when tmp-var
+                 (prefix-type-to-string result-type (end-line-str tmp-var)))
+               (current-line test-obj)
+               (or then-string (format nil "{~%}"))
+               else-string))
      (when will-assign
        tmp-var))))
 
 (defun gen-string-for-if-block (code-obj glsl-tmp-var-name)
-  (format nil "{~a~a~%}"
-          (indent-for-block (to-block code-obj))
-          (when (current-line code-obj)
-            (let ((current (end-line-str (current-line code-obj))))
-              (indent-for-block
-               (if glsl-tmp-var-name
-                   (%gen-assignment-string glsl-tmp-var-name current)
-                   current))))))
+  (let ((to-block (to-block code-obj))
+        (current-line (current-line code-obj)))
+    ;;
+    (when (or to-block current-line)
+      (format nil "{~a~@[~a~]~%}"
+              (indent-for-block to-block)
+              (when current-line
+                (let ((current (end-line-str current-line)))
+                  (indent-for-block
+                   (if glsl-tmp-var-name
+                       (%gen-assignment-string glsl-tmp-var-name current)
+                       current))))))))
 
 ;;------------------------------------------------------------
 ;; When

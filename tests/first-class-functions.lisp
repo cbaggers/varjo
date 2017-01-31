@@ -148,7 +148,7 @@
 (5am:def-test f-c-func-15 (:suite first-class-func-tests)
   (finishes-p
    (compile-vert () :450 nil
-	 (if (< 1 10)
-		 #'sin
-		 #'(cos :float))
-	 (v! 0 0 0 0))))
+     (if (< 1 10)
+         #'sin
+         #'(cos :float))
+     (v! 0 0 0 0))))
