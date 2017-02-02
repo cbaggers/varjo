@@ -10,7 +10,7 @@
   (progn
     (unless body (error 'body-block-empty :form-name 'let))
     (vbind (body declarations) (extract-declares body)
-      (vbind2 ((new-var-objs nil body-obj) final-env)
+      (vbind ((new-var-objs nil body-obj) final-env)
           (with-fresh-env-scope (fresh-env env)
             (env-> (p-env fresh-env)
               (%mapcar-multi-env-progn

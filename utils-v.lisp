@@ -78,16 +78,6 @@
 (defmacro dbind (lambda-list expression &body body)
   `(destructuring-bind ,lambda-list ,expression ,@body))
 
-(defmacro vbind2 (lambda-list expression &body body)
-  (let ((keys '(&allow-other-keys &environment &rest &aux &key &whole &body
-                &optional)))
-    (if (and (proper-list-p lambda-list)
-             (every #'symbolp lambda-list)
-             (not (some #'null lambda-list))
-             (not (some (lambda (x) (find x keys)) lambda-list)))
-        `(multiple-value-list ,lambda-list ,expression ,@body)
-        `(destructuring-bind ,lambda-list (multiple-value-list ,expression) ,@body))))
-
 (defmacro vbind (vars value-form &body body)
   ;; {TODO} handle declare forms properly. It is complicated
   ;;        as the declare has to be the first thing in the scope
@@ -100,9 +90,20 @@
                           mvb-vars d-vars))
          (d-forms (remove nil d-forms)))
     `(multiple-value-bind ,mvb-vars ,value-form
+       (declare (ignorable ,@mvb-vars))
        ,@(reduce (lambda (accum x)
                    (list (append x accum)))
                  (cons body d-forms)))))
+
+(defmacro vbind* (var-value-form-pairs &body body)
+  (let ((pairs (group var-value-form-pairs 2)))
+    (reduce (lambda (accum x) `(vbind ,@x ,accum))
+            pairs :initial-value `(progn ,@body))))
+
+(defmacro dbind* (lambda-list-expr-pairs &body body)
+  (let ((pairs (group lambda-list-expr-pairs 2)))
+    (reduce (lambda (accum x) `(dbind ,@x ,accum))
+            pairs :initial-value `(progn ,@body))))
 
 (defmacro vlist (value-form)
   `(multiple-value-list ,value-form))
