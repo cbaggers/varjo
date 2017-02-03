@@ -640,3 +640,17 @@ only valid to return nil or a piece of metadata of the correct type."
     "Varjo: Multiple externally defined functions found matching the identifier:
 ~{~s~^~%~}"
   matches)
+
+(deferror doesnt-have-dimensions () (vtype)
+    "Varjo: Compiler bug: Attempted to find the dimensions of ~a. If you have
+the time, please report this on github."
+  vtype)
+
+(deferror cannot-swizzle-this-type () (vtype is-struct)
+    "Varjo: Was asked to swizzle a value with the type ~a
+
+However is not a type that can be swizzled. ~a"
+  vtype
+  (if is-struct
+      "Perhaps you meant one of this struct's slots?"
+      ""))

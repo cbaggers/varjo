@@ -159,6 +159,9 @@ doesnt"))
     (unless (or (typep element-type 'v-type) (eq element-type t))
       (setf element-type (type-spec->type element-type)))))
 
+(defmethod v-dimensions (object)
+  (error 'doesnt-have-dimensions :vtype object))
+
 ;;------------------------------------------------------------
 ;; Array
 
