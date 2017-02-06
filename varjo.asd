@@ -1,7 +1,5 @@
 ;;;; varjo.asd
 
-(declaim (optimize (speed 0) (debug 3) (safety 3)))
-
 (asdf:defsystem #:varjo
   :description "Common Lisp -> GLSL Compiler"
   :author "Chris Bagley (Baggers) <techsnuffle@gmail.com>"
