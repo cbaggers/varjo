@@ -46,6 +46,7 @@
                (:file "language/variables-from-spec")
                (:file "language/functions-from-spec")
                ;;
+               (:file "language/special-operators/uint")
                (:file "language/special-operators/progn")
                (:file "language/special-operators/let")
                (:file "language/special-operators/assignment")

@@ -15,10 +15,7 @@
 (v-defun int (x) "int(~a)" (v-bool) v-int)
 (v-defun int (x) "int(~a)" (v-float) v-int)
 (v-defun int (x) "int(~a)" (v-double)  v-int)
-(v-defun uint (x) "uint(~a)" (v-int) v-uint)
-(v-defun uint (x) "uint(~a)" (v-bool) v-uint)
-(v-defun uint (x) "uint(~a)" (v-float)  v-uint)
-(v-defun uint (x) "uint(~a)" (v-double)  v-uint)
+;; uint handled by special form
 (v-defun bool (x) "bool(~a)" (v-int) v-bool)
 (v-defun bool (x) "bool(~a)" (v-uint) v-bool)
 (v-defun bool (x) "bool(~a)" (v-float)  v-bool)
