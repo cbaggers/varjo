@@ -28,6 +28,7 @@
    :swizzle
    :%break
    :values-safe
+   :glsl-expr
 
    ;; bitwise operators
    :>>
