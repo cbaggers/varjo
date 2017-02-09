@@ -7,7 +7,10 @@
 (v-defspecial let (bindings &rest body)
   :args-valid t
   :return
-  (progn
+  (let* ((binding-names (mapcar λ(first (listify (first _)))
+                                bindings))
+         (dup-names (find-duplicates binding-names)))
+    (assert (not dup-names) () 'dup-names-in-let :names dup-names)
     (unless body (error 'body-block-empty :form-name 'let))
     (vbind (body declarations) (extract-declares body)
       (vbind ((new-var-objs nil body-obj) final-env)

@@ -215,6 +215,17 @@
   (loop :for i :in list :do
      (when (> (count i list :key key :test test) 1) (return t))))
 
+(defun find-duplicates (list)
+  (let ((map (make-hash-table)))
+    (loop :for e :in list :do
+       (incf (gethash e map 0)))
+    (let (result)
+      (maphash (lambda (k v)
+                 (when (> v 1)
+                   (push k result)))
+               map)
+      result)))
+
 (defun last1 (list)
   (car (last list)))
 

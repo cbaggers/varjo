@@ -167,8 +167,16 @@
      (((tc :vec2))
       (v! tc 0 0)))))
 
-(5am:def-test build-17 (:suite build-tests)
-  (finishes-p
-   (compile-vert ((a :int)) :450 nil
-     (let ()
+(5am:def-test build-18 (:suite build-tests)
+  (signals varjo-conditions::dup-names-in-let
+   (compile-vert () :450 nil
+     (let ((a 1)
+           (a 2))
+       (v! 0 0 0 0)))))
+
+(5am:def-test build-19 (:suite build-tests)
+  (signals varjo-conditions::dup-names-in-let
+   (compile-vert () :450 nil
+     (let ((a 1)
+           ((a :int) 2))
        (v! 0 0 0 0)))))

@@ -142,6 +142,8 @@
            :invalid-special-function-arg-spec
            :closures-not-supported
            :cannot-establish-exact-function
+           :dup-name-in-let
+           :dup-names-in-let
 
            ;; restarts
            :setq-supply-alternate-type

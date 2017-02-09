@@ -654,3 +654,12 @@ However is not a type that can be swizzled. ~a"
   (if is-struct
       "Perhaps you meant one of this struct's slots?"
       ""))
+
+(deferror dup-name-in-let () (dup-name)
+    "Varjo: The variable ~a occurs more than once in the LET."
+  dup-name)
+
+(deferror dup-names-in-let () (names)
+    "Varjo: The following variables occur more than once in the LET
+~{~s~}"
+  names)
