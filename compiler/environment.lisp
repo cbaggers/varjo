@@ -637,9 +637,11 @@ For example calling env-prune on this environment..
     (%valid-for-contextp func versions context)))
 
 (defmethod valid-for-contextp ((func external-function) env)
+  (declare (ignore env))
   t)
 
 (defmethod valid-for-contextp ((func v-regular-macro) env)
+  (declare (ignore env))
   t)
 
 (defun %valid-for-contextp (func versions context)

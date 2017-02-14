@@ -266,6 +266,7 @@ Example:
             (out-vars stage)))
   ;;
   (:method (last next (stage stage))
+    (declare (ignore last next))
     (out-vars stage)))
 
 ;;----------------------------------------------------------------------

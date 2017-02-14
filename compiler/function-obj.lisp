@@ -166,7 +166,7 @@
     (make-instance
      'v-function
      :glsl-string (format nil "~a(~{~a~})" glsl-name
-                          (loop :for i :in arg-spec :collect "~a"))
+                          (loop :for nil :in arg-spec :collect "~a"))
      :arg-spec arg-spec
      :return-spec return-spec
      :versions *supported-versions*
@@ -175,7 +175,7 @@
      :name 'dummy-func
      :implicit-args nil
      :flow-ids (flow-id!)
-     :in-arg-flow-ids (loop :for i :in arg-spec :collect (flow-id!))
+     :in-arg-flow-ids (loop :for nil :in arg-spec :collect (flow-id!))
      :in-out-args nil)))
 
 ;;------------------------------------------------------------

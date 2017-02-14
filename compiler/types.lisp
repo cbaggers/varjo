@@ -34,7 +34,7 @@
 
 (def-v-type-class v-type ()
   ((core :initform nil :reader core-typep)
-   (superclass :initform nil :reader v-superclass)
+   (superclass :initform nil)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
@@ -469,10 +469,6 @@ doesnt"))
   (typep a (type-of b)))
 
 (defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
-  (declare (ignore env))
-  (typep a (type-of b)))
-
-(defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
   (v-typep a (type->type-spec b) env))
 
 (defmethod v-typep ((a v-type) b &optional (env *global-env*))
@@ -516,6 +512,7 @@ doesnt"))
 
 (defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type)
                        env)
+  (declare (ignore env))
   (when (and (every #'v-type-eq (v-argument-spec from-type)
                     (v-argument-spec to-type))
              (every #'v-type-eq (v-return-spec from-type)

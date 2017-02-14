@@ -85,7 +85,7 @@
   (cast-code-inner (code-type src-obj) src-obj cast-to-type env))
 
 (defmethod cast-code-inner (varjo-type src-obj cast-to-type env)
-  (declare (ignore varjo-type))
+  (declare (ignore varjo-type env))
   (let* ((src-type (code-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
@@ -95,7 +95,7 @@
 
 (defmethod cast-code-inner
     (varjo-type src-obj (cast-to-type v-function-type) env)
-  (declare (ignore varjo-type))
+  (declare (ignore varjo-type env))
   (let ((new-type (make-instance
                    'v-function-type
                    :arg-spec (v-argument-spec cast-to-type)
