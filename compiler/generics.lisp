@@ -34,7 +34,7 @@
 (defgeneric merge-obs (objs &key type current-line to-block
                               out-vars returns multi-vals
                               stemcells out-of-scope-args
-			      place-tree mutations node-tree))
+                              place-tree mutations node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block
                                   out-vars returns multi-vals
                                   stemcells out-of-scope-args
@@ -83,3 +83,4 @@
 (defgeneric add-fake-struct (var env))
 (defgeneric get-stemcell-name-for-flow-id (id env))
 (defgeneric metadata-for-argument (name metadata-key env))
+(defgeneric v-superclass (type))
