@@ -93,6 +93,7 @@
 (defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
   (assert (typep old-val 'v-value))
   (labels ((w (n)
+			 (declare (notinline w))
              (if (eq n old-env)
                  (env-replace-parent
                   n
