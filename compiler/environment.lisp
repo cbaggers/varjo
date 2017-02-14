@@ -253,13 +253,14 @@ For example calling env-prune on this environment..
 
 (defun env-merge-history (env-a env-b)
   (assert (= (env-depth env-a) (env-depth env-b)))
-  (labels ((w (a b)
+  (labels ((walk (a b)
+			 (declare (notinline walk))
              (if (eq a b)
                  a
                  (env-replace-parent
-                  a (w (v-parent-env a) (v-parent-env b))
+                  a (walk (v-parent-env a) (v-parent-env b))
                   :symbol-bindings (merge-variable-histories a b)))))
-    (w env-a env-b)))
+    (walk env-a env-b)))
 
 (defun merge-variable-histories (env-a env-b)
   ;; we can be sure that both have the var names as assignment
