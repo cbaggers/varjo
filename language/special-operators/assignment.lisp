@@ -92,8 +92,8 @@
 
 (defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
   (assert (typep old-val 'v-value))
-  (labels ((w (n)
-			 (declare (notinline w))
+  (labels ((walk (n)
+			 (declare (notinline walk))
              (if (eq n old-env)
                  (env-replace-parent
                   n
@@ -107,10 +107,10 @@
                           :function-scope (v-function-scope old-val)
                           :glsl-name (v-glsl-name old-val))
                          (copy-list (v-symbol-bindings n))))
-                 (env-replace-parent n (w (v-parent-env n))))))
+                 (env-replace-parent n (walk (v-parent-env n))))))
     (if (or (eq old-env *global-env*) (typep old-env 'base-environment))
         env
-        (w env))))
+        (walk env))))
 
 ;; %assign is only used to set the current-line of the code object
 ;; it has no side effects on the compilation itself
