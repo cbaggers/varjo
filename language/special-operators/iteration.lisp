@@ -117,13 +117,13 @@
     (reduce #'splice-in-flow-id new-flow-id-pairs :initial-value starting-env)))
 
 (defun accumulate-flow-ids (flow-ids new-flow-ids)
-  (labels ((x (accum y)
+  (labels ((work (accum y)
              (dbind (vname . fid) y
                (acons vname (flow-id! (assocr vname accum)
                                       fid)
                       accum))))
     (remove-duplicates
-     (reduce #'x new-flow-ids :initial-value flow-ids)
+     (reduce #'work new-flow-ids :initial-value flow-ids)
      :test #'eq :key #'first :from-end t)))
 
 (defvar *max-resolve-loop-flow-id-pass-count* 100)
