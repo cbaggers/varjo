@@ -19,5 +19,4 @@
 * check out _line_ _file_ and _version_ macros from glsl, are they
   used?
 * add lisp macros wrappers for this functionality
-* add constants
 * how do we handle ARBs?

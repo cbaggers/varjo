@@ -197,6 +197,12 @@ doesnt"))
                     (if (numberp x) x ""))
                   (v-dimensions object))))
 
+(defmethod v-array-type-of ((element-type v-type) dimensions flow-id)
+  (let ((dimensions (ensure-list dimensions)))
+    (make-instance 'v-array :dimensions dimensions
+                   :element-type element-type
+                   :flow-ids flow-id)))
+
 ;;------------------------------------------------------------
 ;; Sampler
 

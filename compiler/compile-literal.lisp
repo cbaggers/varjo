@@ -26,3 +26,16 @@
     (make-code-obj num-type (gen-number-string code num-type)
                    :node-tree (ast-node! :literal code num-type
                                          env env))))
+
+(defun compile-array-literal (arr env)
+  (let* ((len (length arr))
+         (elements (map 'list λ(compile-literal _ env) arr))
+         (types (mapcar #'v-type-of elements))
+         (element-type (apply #'find-mutual-cast-type types))
+         (array-type (v-array-type-of element-type len (flow-id!)))
+         (glsl (gen-array-literal-string elements element-type env))
+         (ast (ast-node! :literal arr array-type env env)))
+    (code! :type array-type
+           :current-line glsl
+           :used-types (list element-type)
+           :node-tree ast)))

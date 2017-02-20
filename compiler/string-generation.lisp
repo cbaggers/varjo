@@ -240,3 +240,15 @@
     (format nil "~a(~a)"
             (v-glsl-string type)
             (current-line code-obj))))
+
+;;----------------------------------------------------------------------
+
+(defun gen-array-literal-string (elements element-type env)
+  (labels ((cast (x)
+             (if (v-type-eq (code-type x) element-type)
+                 x
+                 (cast-code x element-type env))))
+    (let ((elements (mapcar #'cast elements)))
+      (format nil "~a[~a](~{~a~^, ~})"
+              (v-glsl-string element-type) (length elements)
+              (mapcar #'current-line elements)))))
