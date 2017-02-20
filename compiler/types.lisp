@@ -156,7 +156,7 @@ doesnt"))
 (defmethod post-initialise ((object v-container))
   (with-slots (dimensions element-type) object
     (setf dimensions (listify dimensions))
-    (unless (or (typep element-type 'v-type) (eq element-type t))
+    (unless (typep element-type 'v-type)
       (setf element-type (type-spec->type element-type)))))
 
 (defmethod v-dimensions (object)
@@ -379,9 +379,11 @@ doesnt"))
            (gen-or-type (rest spec)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
-             (make-instance 'v-array :element-type (if (keywordp type)
-                                                       (symb 'v- type)
-                                                       type)
+             (make-instance 'v-array
+                            :element-type (type-spec->type
+                                           (if (keywordp type)
+                                               (symb 'v- type)
+                                               type))
                             :dimensions dimensions
                             :flow-ids flow-id)))
           (t nil))))
