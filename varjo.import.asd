@@ -6,6 +6,6 @@
   :license "BSD 2 Clause"
   #+asdf-unicode :encoding #+asdf-unicode :utf-8
   :serial t
-  :depends-on (#:varjo #:glsl-toolkit)
+  :depends-on (#:varjo #:glsl-toolkit #:optima #:fare-quasiquote-extras)
   :components ((:file "import/package")
                (:file "import/import")))
