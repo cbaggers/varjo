@@ -11,6 +11,10 @@ env:
     - LISP=ccl-bin
     - LISP=ecl
 
+matrix:
+  allow_failures:
+    - env: LISP=ecl
+
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
