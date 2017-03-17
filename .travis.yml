@@ -1,0 +1,22 @@
+language: common-lisp
+sudo: required
+
+os:
+  - linux
+  - osx
+
+env:
+  matrix:
+    - LISP=sbcl-bin
+    - LISP=ccl-bin
+    - LISP=ecl
+
+matrix:
+  allow_failures:
+    - env: LISP=ecl
+
+install:
+  - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
+
+script:
+  - ros -e '(handler-case (progn (ql:quickload :varjo.tests :verbose t) (funcall (symbol-function (find-symbol "RUN-ALL-TESTS" :5am))) (uiop:quit 0)) (error () (uiop:quit 1)))'
