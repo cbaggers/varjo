@@ -184,6 +184,7 @@ doesnt"))
 (defmethod copy-type ((type v-array))
   (let* ((new-inst (call-next-method)))
     (setf (v-dimensions new-inst) (v-dimensions type))
+    (setf (slot-value new-inst 'element-type) (v-element-type type))
     new-inst))
 
 (defmethod type->type-spec ((type v-array))
