@@ -193,9 +193,8 @@ doesnt"))
       'v-array))
 
 (defmethod v-glsl-string ((object v-array))
-  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object))
-          (mapcar (lambda (x)
-                    (if (numberp x) x ""))
+  (format nil "~a~{[~a]~} ~~a" (v-glsl-string (v-element-type object))
+          (mapcar (lambda (x) (if (numberp x) x ""))
                   (v-dimensions object))))
 
 (defmethod v-array-type-of ((element-type v-type) dimensions flow-id)

@@ -213,10 +213,10 @@
               ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
               nil
               (if (typep type-obj 'v-array)
-                  (format nil "~a ~a[~a];"
+                  (format nil "~a[~a] ~a;"
                           (v-glsl-string (v-element-type type-obj))
-                          (safe-glsl-name-string name)
-                          (v-dimensions type-obj))
+                          (v-dimensions type-obj)
+                          (safe-glsl-name-string name))
                   (format nil "~a ~a;"
                           (v-glsl-string type-obj)
                           (safe-glsl-name-string name)))))))
