@@ -663,3 +663,11 @@ However is not a type that can be swizzled. ~a"
     "Varjo: The following variables occur more than once in the LET
 ~{~s~}"
   names)
+
+(deferror uninitialized-var () (name)
+    "Varjo: Cannot access the variable ~a as it is currently unbound"
+  name)
+
+(deferror global-uninitialized-var () (name)
+    "Varjo: Cannot declare ~s as an unbound variable at global scope"
+  name)

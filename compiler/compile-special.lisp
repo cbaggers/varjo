@@ -92,12 +92,12 @@
 
 (defun %merge-multi-env-progn (code-objs)
   (merge-obs code-objs
-	     :type (gen-none-type)
-	     :current-line nil
-	     :to-block (append (mapcat #'to-block code-objs)
-			       (mapcar (lambda (_) (current-line (end-line _)))
-				       code-objs))
-	     :node-tree :ignored))
+             :type (gen-none-type)
+             :current-line nil
+             :to-block (append (mapcat #'to-block code-objs)
+                               (mapcar (lambda (_) (current-line (end-line _)))
+                                       code-objs))
+             :node-tree :ignored))
 
 (defmacro merge-multi-env-progn (code-objs)
   (let ((co (gensym "code-objs"))
@@ -110,12 +110,12 @@
 
 (defun typify-code (code-obj &optional new-value)
   (let* ((prefixed-line (prefix-type-declaration code-obj))
-	 (current-line
-	  (if new-value
-	      (%gen-assignment-string prefixed-line (current-line new-value))
-	      prefixed-line))
-	 (to-block (when new-value
-		     (to-block new-value)))
+         (current-line
+          (if new-value
+              (%gen-assignment-string prefixed-line (current-line new-value))
+              prefixed-line))
+         (to-block (when new-value
+                     (to-block new-value)))
          (type (if new-value
                    (progn
                      (assert (flow-ids new-value))
@@ -123,18 +123,19 @@
                                       (flow-ids new-value)))
                    (code-type code-obj))))
     (copy-code code-obj
-	       :type type
-	       :current-line current-line
-	       :to-block to-block
-	       :node-tree :ignored
-	       :multi-vals nil
-	       :place-tree nil)))
+               :type type
+               :current-line current-line
+               :to-block to-block
+               :node-tree :ignored
+               :multi-vals nil
+               :place-tree nil)))
 
 ;;----------------------------------------------------------------------
 
 ;; {TODO} use boundp to error on shadowing specials. Explain that varjo
 ;;        cannot provide dynamic scope so this should be avoided
-(defun compile-let (name type-spec value-form env &optional glsl-name)
+(defun compile-let (name type-spec value-form env
+                    &optional glsl-name (assume-bound t))
   ;;
   (let* ((value-obj (when value-form (compile-form value-form env)))
          (glsl-name (or glsl-name (lisp-name->glsl-name name env)))
@@ -178,9 +179,12 @@
                                      (and value-obj (stemcells value-obj))))
        (add-symbol-binding
         name
-        (v-make-value (or type-obj (code-type value-obj))
-                      env
-                      :glsl-name glsl-name)
+        (if (and (not value-obj) (not assume-bound))
+            (v-make-uninitialized (or type-obj (code-type value-obj)) env
+                                  :glsl-name glsl-name)
+            (v-make-value (or type-obj (code-type value-obj))
+                          env
+                          :glsl-name glsl-name))
         env)))))
 
 (defun %validate-var-types (var-name type code-obj)

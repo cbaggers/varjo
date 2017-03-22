@@ -21,4 +21,5 @@
                (:file "tests/compiler-macros")
                (:file "tests/regular-macros")
                (:file "tests/name-shadowing")
-               (:file "tests/qualifier-tests")))
+               (:file "tests/qualifier-tests")
+               (:file "tests/uninitialized-value-tests")))

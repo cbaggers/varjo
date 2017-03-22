@@ -145,6 +145,8 @@
            :cannot-establish-exact-function
            :dup-name-in-let
            :dup-names-in-let
+           :uninitialized-var
+           :global-uninitialized-var
 
            ;; restarts
            :setq-supply-alternate-type

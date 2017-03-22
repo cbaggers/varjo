@@ -19,7 +19,7 @@
               (%mapcar-multi-env-progn
                (lambda (p-env binding)
                  (with-v-let-spec binding
-                   (compile-let name type-spec value-form p-env)))
+                   (compile-let name type-spec value-form p-env nil nil)))
                p-env bindings)
               (compile-declares declarations p-env)
               (compile-form `(progn ,@body) p-env)))
