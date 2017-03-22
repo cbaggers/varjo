@@ -671,3 +671,15 @@ However is not a type that can be swizzled. ~a"
 (deferror global-uninitialized-var () (name)
     "Varjo: Cannot declare ~s as an unbound variable at global scope"
   name)
+
+(deferror multi-dimensional-array () (dimensions)
+    "Varjo: We do not yet support multidimensional arrays.
+However you can have arrays of arrays.
+
+Problematic dimensions: ~a"
+  dimensions)
+
+;;
+;; Hi! Don't forget to add the name of your condition to the
+;; varjo.conditions package
+;;

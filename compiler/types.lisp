@@ -173,6 +173,15 @@ doesnt"))
   (* (apply #'* (v-dimensions type))
      (slot-value (v-element-type type) 'glsl-size)))
 
+(defmethod post-initialise ((object v-array))
+  (with-slots (dimensions element-type) object
+    (let ((dim (listify dimensions)))
+      (assert (<= (length dim) 1) (dim)
+              'multi-dimensional-array :dimensions dim)
+      (setf dimensions dim))
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
 (defmethod v-element-type ((object v-container))
   (let ((result (slot-value object 'element-type)))
     ;; {TODO} dedicated error
@@ -182,10 +191,9 @@ doesnt"))
     result))
 
 (defmethod copy-type ((type v-array))
-  (let* ((new-inst (call-next-method)))
-    (setf (v-dimensions new-inst) (v-dimensions type))
-    (setf (slot-value new-inst 'element-type) (v-element-type type))
-    new-inst))
+  (make-instance 'v-array
+                 :dimensions (v-dimensions type)
+                 :element-type (v-element-type type)))
 
 (defmethod type->type-spec ((type v-array))
   (if (and (v-element-type type) (v-dimensions type))

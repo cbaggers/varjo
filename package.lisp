@@ -147,6 +147,7 @@
            :dup-names-in-let
            :uninitialized-var
            :global-uninitialized-var
+           :multi-dimensional-array
 
            ;; restarts
            :setq-supply-alternate-type
