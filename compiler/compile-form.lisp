@@ -20,6 +20,20 @@
                   ((typep code 'v-value) (%v-value->code code env))
                   (t (error 'cannot-compile :code code))))))))
 
+(defmethod compile-place (code env &key allow-unbound)
+  (labels ((ensure-env (code-obj &optional new-env)
+             (let* ((new-env (or new-env env))
+                    (code-with-meta (infer-meta code-obj new-env)))
+               (values code-with-meta new-env))))
+    ;;
+    (multiple-value-call #'ensure-env
+      (cond ((symbolp code) (compile-symbol
+                             code env :allow-unbound allow-unbound))
+            ((and (listp code) (listp (first code)))
+             (error 'invalid-form-list :code code))
+            ((listp code) (compile-list-form code env))
+            (t (error 'cannot-compile :code code))))))
+
 (defmethod compile-literal (code env &key (errorp t))
   (multiple-value-bind (code-obj new-env)
       (cond ((or (null code) (eq t code)) (compile-bool code env))

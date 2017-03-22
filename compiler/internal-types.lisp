@@ -190,6 +190,8 @@
                    :accessor v-function-scope)
    (read-only :initarg :read-only :initform nil :reader v-read-only)))
 
+(defclass uninitialized-value (v-value) ())
+
 ;;----------------------------------------------------------------------
 
 (defclass captured-var ()

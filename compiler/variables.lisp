@@ -14,6 +14,16 @@
                  :function-scope (or function-scope (v-function-scope env))
                  :read-only read-only))
 
+(defmethod v-make-uninitialized
+    ((type v-type) env &key (glsl-name (gensym)) function-scope read-only)
+  (let ((flow-ids (flow-ids type)))
+    (unless (or flow-ids (type-doesnt-need-flow-id type))
+      (error 'flow-ids-mandatory :for :v-values
+             :code-type (type->type-spec type))))
+  (assert (not read-only))
+  (make-instance 'uninitialized-value :type type :glsl-name glsl-name
+                 :function-scope (or function-scope (v-function-scope env))))
+
 (defun v-value-equal (a b)
   (equal (v-glsl-name a) (v-glsl-name b)))
 

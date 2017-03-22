@@ -254,7 +254,7 @@ For example calling env-prune on this environment..
 (defun env-merge-history (env-a env-b)
   (assert (= (env-depth env-a) (env-depth env-b)))
   (labels ((walk (a b)
-			 (declare (notinline walk))
+             (declare (notinline walk))
              (if (eq a b)
                  a
                  (env-replace-parent
@@ -434,6 +434,10 @@ For example calling env-prune on this environment..
   (setf (gethash name *global-env-symbol-bindings*) val)
   *global-env*)
 
+(defmethod add-symbol-binding (name (val uninitialized-value)
+                               (env (eql :-genv-)))
+  (error 'global-uninitialized-var :name name))
+
 (defmethod add-symbol-binding (name (macro v-symbol-macro) (env (eql :-genv-)))
   (setf (gethash name *global-env-symbol-bindings*) macro)
   *global-env*)
@@ -469,12 +473,15 @@ For example calling env-prune on this environment..
                     (find binding-name (v-allowed-outer-vars env)))))
       t)))
 
-(defun apply-scope-rules (binding-name binding env)
-  (let ((from-higher-scope (binding-in-higher-scope-p binding env)))
-    (when (or (not from-higher-scope)
-              (or (eq t (v-allowed-outer-vars env))
-                  (find binding-name (v-allowed-outer-vars env))))
-      binding)))
+(defgeneric apply-scope-rules (binding-name binding env)
+  (:method (binding-name binding env)
+    (let ((from-higher-scope (binding-in-higher-scope-p binding env)))
+      (when (or (not from-higher-scope)
+                (or (eq t (v-allowed-outer-vars env))
+                    (find binding-name (v-allowed-outer-vars env))))
+        binding)))
+  (:method (binding-name (binding uninitialized-value) env)
+    binding))
 
 (defmethod binding-in-higher-scope-p ((binding v-value) env)
   (let ((val-scope (v-function-scope binding)))

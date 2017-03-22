@@ -106,6 +106,7 @@
 (5am:def-suite compiler-macro-tests :in test-all)
 (5am:def-suite first-class-func-tests :in test-all)
 (5am:def-suite external-functions-tests :in test-all)
+(5am:def-suite uninitialized-value-tests :in test-all)
 (5am:def-suite multiple-value-return-tests :in test-all)
 
 (5am:in-suite test-all)
