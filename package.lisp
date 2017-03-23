@@ -148,6 +148,13 @@
            :uninitialized-var
            :global-uninitialized-var
            :multi-dimensional-array
+           :make-array-mandatory-args
+           :make-array-conflicting-args
+           :make-array-conflicting-lengths
+           :make-array-cant-cast-args
+           :make-array-cant-establish-default-value
+           :should-be-quoted
+           :should-be-constant
 
            ;; restarts
            :setq-supply-alternate-type

@@ -54,3 +54,27 @@
 - Support the behaviours
 - Don't worry about the const rules for now we will revisit after adding proper support for that
 -
+
+## make-array
+
+Well this is interesting:
+
+```
+lambda-list: (dimensions &key element-type initial-element initial-contents adjustable
+              fill-pointer displaced-to displaced-index-offset)
+```
+
+adjustable, fill-pointer, displaced-to & displaced-index-offset are all clearly
+useless here, so that leaves
+
+```
+lambda-list: (dimensions &key element-type initial-element initial-contents)
+```
+
+dimensions & element-type are fine except that we need to work out if we need to quote things
+
+initial-element could be done by generating a constructor of the correct length...would be ugly
+but would work
+
+initial-contents is odd as again we have quoting, but we could say everything is a literal and be
+done with it

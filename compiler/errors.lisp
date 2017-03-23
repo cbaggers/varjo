@@ -679,6 +679,56 @@ However you can have arrays of arrays.
 Problematic dimensions: ~a"
   dimensions)
 
+(deferror make-array-mandatory-args () (args)
+    "Varjo: Cannot compile make-array as required arguments are missing.
+
+Required args: dimensions & element-type
+Found args: ~s"
+  args)
+
+(deferror make-array-conflicting-args () (args)
+    "Varjo: Cannot compile make-array as found that both initial-element
+and initial-contents were specified.
+
+Found args: ~s"
+  args)
+
+(deferror make-array-conflicting-lengths () (dims initial-contents)
+    "Varjo: Cannot compile make-array as the declared dimensions did not
+match the length of the initial-contents that were specified.
+
+Declared dimensions: ~a
+initial-contents: ~s"
+  dims initial-contents)
+
+(deferror make-array-cant-cast-args () (element-type initial-contents)
+    "Varjo: Cannot cast the provided initial-contents to the specified
+element-type.
+
+element-type: ~a
+initial-contents: ~s"
+  element-type initial-contents)
+
+
+(deferror make-array-cant-establish-default-value ()
+    (element-type initial-contents)
+    "Varjo: Cannot cast the provided initial-contents to the specified
+element-type.
+
+element-type: ~a
+initial-contents: ~s"
+  element-type initial-contents)
+
+(deferror should-be-quoted () (thing val)
+    "Varjo expected ~a to be quoted, however it was not.
+Found: ~s"
+  thing val)
+
+(deferror should-be-constant () (thing val)
+    "Varjo expected ~a to be constant, however it was not.
+Found: ~s"
+  thing val)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

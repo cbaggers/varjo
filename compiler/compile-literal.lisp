@@ -28,6 +28,9 @@
                                          env env))))
 
 (defun compile-array-literal (arr env)
+  (assert (= (array-rank arr) 1) (arr)
+          'multi-dimensional-array
+          :dimensions (array-dimensions arr))
   (let* ((len (length arr))
          (elements (map 'list λ(compile-literal _ env) arr))
          (types (mapcar #'v-type-of elements))

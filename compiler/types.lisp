@@ -39,7 +39,8 @@
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
-   (ctv :initform nil :initarg :ctv :accessor ctv)))
+   (ctv :initform nil :initarg :ctv :accessor ctv)
+   (default-value :initarg :default-value)))
 
 (defmethod v-superclass ((type v-type))
   (with-slots (superclass) type
