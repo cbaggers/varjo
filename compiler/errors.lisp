@@ -712,12 +712,9 @@ initial-contents: ~s"
 
 (deferror make-array-cant-establish-default-value ()
     (element-type initial-contents)
-    "Varjo: Cannot cast the provided initial-contents to the specified
-element-type.
-
-element-type: ~a
-initial-contents: ~s"
-  element-type initial-contents)
+    "Varjo: Cannot establish the default element value for the type:
+~s"
+  element-type)
 
 (deferror should-be-quoted () (thing val)
     "Varjo expected ~a to be quoted, however it was not.

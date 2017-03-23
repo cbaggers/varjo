@@ -1,4 +1,5 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
 (v-defspecial make-array (&rest args)
   :args-valid t
@@ -40,7 +41,7 @@
                       (n-of (slot-value element-type 'default-value) len))
                     (error 'make-array-cant-establish-default-value
                            :initial-contents initial-contents
-                           :element-type element-type)))
+                           :element-type (type->type-spec element-type))))
                (elem-objs (mapcar λ(compile-literal _ env) initial-contents))
                (types (mapcar #'v-type-of elem-objs))
                (array-type (v-array-type-of element-type len (flow-id!))))
@@ -57,3 +58,21 @@
                     :used-types (list element-type)
                     :node-tree ast)
              env)))))))
+
+(v-defspecial vector (&rest elements)
+  :args-valid t
+  :return
+  (vbind (objs) (mapcar λ(try-compile-arg _ env nil) elements)
+    (let* ((len (length elements))
+           (types (mapcar #'v-type-of objs))
+           (element-type (apply #'find-mutual-cast-type types))
+           (array-type (v-array-type-of element-type len (flow-id!)))
+           (glsl (gen-array-literal-string objs element-type env))
+           (ast (ast-node! 'vector (mapcar #'node-tree objs) array-type
+                           env env)))
+      (values
+       (merge-obs objs
+                  :type array-type
+                  :current-line glsl
+                  :node-tree ast)
+       env))))
