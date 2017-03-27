@@ -8,4 +8,5 @@
   :serial t
   :depends-on (#:varjo #:glsl-toolkit #:optima #:fare-quasiquote-extras)
   :components ((:file "import/package")
+			   (:file "import/readtables")
                (:file "import/import")))

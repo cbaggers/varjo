@@ -49,7 +49,8 @@ void main() {
       (dbind (nil nil . main-body) main
         (values
          `(labels ,funcs
-            ,@main-body)
+            ,@main-body
+			(values))
          '(:uniforms-placeholder)
          version)))))
 
