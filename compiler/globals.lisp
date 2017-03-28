@@ -6,7 +6,11 @@
 (defparameter *global-env-symbol-bindings* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
-(defparameter *stage-types* '(:vertex :geometry :tess-eval :tess-control :fragment))
+(defparameter *stage-types* '(:vertex
+                              :tesselation-control
+                              :tesselation-evaluation
+                              :geometry
+                              :fragment))
 (defparameter *supported-stages* *stage-types*) ;; not supported well but theoretically these are supported :p
 (defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
                                        :line-strip-adjacency :lines-adjacency
