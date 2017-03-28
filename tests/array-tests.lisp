@@ -80,3 +80,11 @@
       (let* ((j 1)
              (i (vector (* j 2) 2 3)))
         (v! (aref i 0) 0 0 0)))))
+
+;; {TODO}
+;; (5am:def-test array-13 (:suite array-tests)
+;;   (finishes-p
+;;    (compile-vert () :450 nil
+;;      (let* ((i (vector 1 2 3))
+;;             (j (vector i i)))
+;;        (v! (aref i 0) 0 0 0)))))

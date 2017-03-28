@@ -564,7 +564,7 @@ doesnt"))
                   :collect (if (typep type 'v-type)
                                (type->type-spec type)
                                type))))
-    (if (loop :for name :in names :always (eq name (first names)))
+    (if (loop :for name :in names :always (equal name (first names)))
         (type-spec->type (first names))
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
