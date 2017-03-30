@@ -218,7 +218,7 @@
 (v-defun m! (a b c d e f g h i j k l m n o p)
   "mat4(~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a,~a)"
   (v-float v-float v-float v-float v-float v-float v-float v-float v-float
-           v-float v-float v-float v-float v-float v-float v-float v-float)
+           v-float v-float v-float v-float v-float v-float v-float)
   v-mat4)
 (v-defun m! (a b c d)
   "mat4(~a,~a,~a,~a)" (v-vec4 v-vec4 v-vec4 v-vec4) v-mat4)
