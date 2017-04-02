@@ -4,8 +4,8 @@
 ;;------------------------------------------------------------
 ;; Return
 
-;; - Rename %return to return
-;;  - update places where this is used
+;; - √ Rename %return to return
+;;  - √ update places where this is used
 ;; - comment out %out
 ;; - add ability to specify 'out' metadata in values form
 ;;  - how should be present this?
@@ -110,32 +110,31 @@
           (t `(%out (,(gensym "OUTPUT-VAR"))
                     ,form)))))
 
-;; {TODO} what if type of form is not value
-(v-defspecial %out (name-and-qualifiers form)
-  :args-valid t
-  :return
-  (let* ((form-obj (compile-form form env))
-         (out-var-name (if (consp name-and-qualifiers)
-                           (first name-and-qualifiers)
-                           name-and-qualifiers))
-         (qualifiers (when (consp name-and-qualifiers)
-                       (rest name-and-qualifiers)))
-         (glsl-name (safe-glsl-name-string out-var-name))
-         (type (type-spec->type :void (flow-id!))))
-    (values
-     (end-line
-      (copy-code
-       form-obj :type type
-       :current-line (gen-out-var-assignment-string glsl-name form-obj)
-       :to-block (to-block form-obj)
-       :out-vars (cons `(,out-var-name
-                         ,qualifiers
-                         ,(v-make-value (code-type form-obj) env
-                                        :glsl-name glsl-name))
-                       (out-vars form-obj))
-       :node-tree (ast-node! '%out (list name-and-qualifiers
-                                         (node-tree form-obj))
-                             type env env)
-       :multi-vals nil
-       :place-tree nil) t)
-     env)))
+;; (v-defspecial %out (name-and-qualifiers form)
+;;   :args-valid t
+;;   :return
+;;   (let* ((form-obj (compile-form form env))
+;;          (out-var-name (if (consp name-and-qualifiers)
+;;                            (first name-and-qualifiers)
+;;                            name-and-qualifiers))
+;;          (qualifiers (when (consp name-and-qualifiers)
+;;                        (rest name-and-qualifiers)))
+;;          (glsl-name (safe-glsl-name-string out-var-name))
+;;          (type (type-spec->type :void (flow-id!))))
+;;     (values
+;;      (end-line
+;;       (copy-code
+;;        form-obj :type type
+;;        :current-line (gen-out-var-assignment-string glsl-name form-obj)
+;;        :to-block (to-block form-obj)
+;;        :out-vars (cons `(,out-var-name
+;;                          ,qualifiers
+;;                          ,(v-make-value (code-type form-obj) env
+;;                                         :glsl-name glsl-name))
+;;                        (out-vars form-obj))
+;;        :node-tree (ast-node! '%out (list name-and-qualifiers
+;;                                          (node-tree form-obj))
+;;                              type env env)
+;;        :multi-vals nil
+;;        :place-tree nil) t)
+;;      env)))
