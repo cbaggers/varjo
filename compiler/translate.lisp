@@ -288,8 +288,8 @@
                            :append (ast-args a)
                            :else :collect a)))))
 
-               ;; remove %return nodes
-               ((ast-kindp node '%return)
+               ;; remove return nodes
+               ((ast-kindp node 'return)
                 (funcall walk (first (ast-args node)) :parent parent))
 
                (t (post-process-node node walk parent)))))

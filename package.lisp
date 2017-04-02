@@ -18,7 +18,7 @@
    ;; special functions
    :setf-1
    :%assign
-   :%return
+   :return
    :labels-no-implicit
    :%out
    :%if

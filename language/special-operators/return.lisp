@@ -22,7 +22,7 @@
 ;; - remove %out
 ;; - update all dependent code, testing heavily
 
-(v-defspecial %return (form)
+(v-defspecial return (form)
   :args-valid t
   :return
   (let ((new-env (fresh-environment
@@ -45,7 +45,7 @@
                 (%main-return code-obj env)
                 (%regular-value-return code-obj))))
       (values (copy-code result
-                         :node-tree (ast-node! '%return (node-tree code-obj)
+                         :node-tree (ast-node! 'return (node-tree code-obj)
                                                (code-type result)
                                                env env))
               env))))
