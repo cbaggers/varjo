@@ -4,6 +4,24 @@
 ;;------------------------------------------------------------
 ;; Return
 
+;; - Rename %return to return
+;;  - update places where this is used
+;; - comment out %out
+;; - add ability to specify 'out' metadata in values form
+;;  - how should be present this?
+;;   - 'declaring' form special form? isnt that just 'the'?
+;;   - Gotta use something other than values as we could legitimately want to
+;;     return only one value.
+;;   - using metadata sounds inevitable
+;;  - reuse the out-vars slot from code-obj
+;;   - change it's name to return-set to force breakage
+;;   - out-vars should be a vector, not a list (it is position sensitive and so
+;;     shouldnt be trivially extensible)
+;;   - whole set of out-vars need to be set at once
+;; - Add merging with validation of return-set
+;; - remove %out
+;; - update all dependent code, testing heavily
+
 (v-defspecial %return (form)
   :args-valid t
   :return
