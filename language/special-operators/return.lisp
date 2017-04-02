@@ -104,22 +104,20 @@
                        (rest name-and-qualifiers)))
          (glsl-name (safe-glsl-name-string out-var-name))
          (type (type-spec->type :void (flow-id!))))
-    (if (assoc out-var-name *glsl-variables*)
-        (error 'out-var-name-taken :out-var-name out-var-name)
-        (values
-         (end-line
-          (copy-code
-           form-obj :type type
-           :current-line (gen-out-var-assignment-string glsl-name form-obj)
-           :to-block (to-block form-obj)
-           :out-vars (cons `(,out-var-name
-                             ,qualifiers
-                             ,(v-make-value (code-type form-obj) env
-                                            :glsl-name glsl-name))
-                           (out-vars form-obj))
-           :node-tree (ast-node! '%out (list name-and-qualifiers
-                                             (node-tree form-obj))
-                                 type env env)
-           :multi-vals nil
-           :place-tree nil) t)
-         env))))
+    (values
+     (end-line
+      (copy-code
+       form-obj :type type
+       :current-line (gen-out-var-assignment-string glsl-name form-obj)
+       :to-block (to-block form-obj)
+       :out-vars (cons `(,out-var-name
+                         ,qualifiers
+                         ,(v-make-value (code-type form-obj) env
+                                        :glsl-name glsl-name))
+                       (out-vars form-obj))
+       :node-tree (ast-node! '%out (list name-and-qualifiers
+                                         (node-tree form-obj))
+                             type env env)
+       :multi-vals nil
+       :place-tree nil) t)
+     env)))
