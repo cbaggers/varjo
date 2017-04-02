@@ -66,7 +66,9 @@
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (context :initarg :context :accessor context)
    (lisp-code :initarg :lisp-code :accessor lisp-code)
-   (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)))
+   (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
+   (previous-stage :initarg :previous-stage :accessor previous-stage
+                   :initform nil)))
 
 (defclass varjo-compile-result (stage)
   ((glsl-code :initarg :glsl-code :accessor glsl-code)

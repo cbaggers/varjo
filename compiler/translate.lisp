@@ -399,7 +399,8 @@
                               out-vars))
            (locations (if (member :fragment (v-context env))
                           (calc-locations out-types)
-                          (loop for i below (length out-types) collect nil))))
+                          (loop for i below (length out-types) collect nil)))
+           (stage (stage post-proc-obj)))
       (setf (out-vars post-proc-obj)
             (loop :for (name qualifiers value) :in out-vars
                :for type :in out-types
@@ -414,6 +415,7 @@
                   :qualifiers qualifiers
                   :location location
                   :glsl-decl (gen-out-var-string
+                              (extract-stage-type stage)
                               glsl-name type qualifiers location)))))
       post-proc-obj)))
 
@@ -435,8 +437,8 @@
                   :type type-obj
                   :glsl-decl (cond
                                ((member :ubo qualifiers)
-                                (write-interface-block :uniform string-name
-                                                       (v-slots type-obj)))
+                                (write-ubo-block :uniform string-name
+                                                 (v-slots type-obj)))
                                ((v-typep type-obj 'v-ephemeral-type) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))

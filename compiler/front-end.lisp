@@ -111,9 +111,10 @@ Example:
                     (context-compatiblep stage previous-stage))
                (mapcar #'merge-in-arg out-vars in-vars)
                (error 'args-incompatible
-                      :current-args (mapcar #'to-arg-form in-vars)
-                      :previous-args (mapcar #'to-arg-form
-                                             (out-vars previous-stage))))
+                      :current-args (mapcar λ(subseq _ 0 2)
+                                            (mapcar #'to-arg-form in-vars))
+                      :previous-args (mapcar λ(subseq _ 0 2)
+                                             (mapcar #'to-arg-form out-vars))))
            :uniform-variables (uniform-variables stage)
            :context (context stage)
            :lisp-code (lisp-code stage)
@@ -180,7 +181,9 @@ Example:
   (:method ((stage stage))
     (let ((context (context stage)))
       (find-if λ(when (member _ context) _)
-               *stage-types*))))
+               *stage-types*)))
+  (:method ((ppp post-compile-process))
+    (extract-stage-type (stage ppp))))
 
 (defgeneric args-compatiblep (stage previous-stage))
 
