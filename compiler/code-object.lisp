@@ -1,7 +1,7 @@
 (in-package :varjo)
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
-		out-vars used-types returns multi-vals stemcells
+		return-set used-types returns multi-vals stemcells
 		out-of-scope-args mutations
                 place-tree node-tree)
   (let ((flow-ids (flow-ids type)))
@@ -25,7 +25,7 @@
                    :current-line current-line
                    :signatures signatures
                    :to-block to-block
-                   :out-vars out-vars
+                   :return-set return-set
                    :returns returns
                    :used-types used-types
                    :multi-vals multi-vals
@@ -68,7 +68,7 @@
                         (current-line nil set-current-line)
                         (signatures nil set-sigs)
                         (to-block nil set-block)
-                        (out-vars nil set-out-vars)
+                        (return-set nil set-return-set)
                         (returns nil set-returns)
                         (multi-vals nil set-multi-vals)
                         (stemcells nil set-stemcells)
@@ -82,7 +82,7 @@
 			     (current-line code-obj))
 	   :signatures (if set-sigs signatures (signatures code-obj))
 	   :to-block (if set-block to-block (remove nil (to-block code-obj)))
-	   :out-vars (if set-out-vars out-vars (out-vars code-obj))
+	   :return-set (if set-return-set return-set (return-set code-obj))
 	   :returns (listify (if set-returns returns (returns code-obj)))
 	   :used-types (used-types code-obj)
 	   :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
@@ -99,7 +99,7 @@
                         current-line
                         (signatures nil set-sigs)
                         (to-block nil set-block)
-                        (out-vars nil set-out-vars)
+                        (return-set nil set-return-set)
                         (returns nil set-returns)
                         multi-vals
                         (stemcells nil set-stemcells)
@@ -109,30 +109,37 @@
                         node-tree)
   (assert type () "type is mandatory")
   (assert (typep type 'v-type))
-  (let ((flow-ids (flow-ids type)))
+  (let ((flow-ids (flow-ids type))
+        (return-set
+         (if (or set-return-set (null return-set))
+             return-set
+             (let ((return-sets (remove nil (mapcar #'return-set objs))))
+               (return-set (if (<= (length return-sets) 1)
+                               (first return-sets)
+                               (merge-return-sets return-sets)))))))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object
-             :code-type type)))
-  (code! :type type
-         :current-line current-line
-         :signatures (if set-sigs signatures
-                         (mapcat #'signatures objs))
-         :to-block (if set-block to-block
-                       (mapcat #'to-block objs))
-         :out-vars (if set-out-vars out-vars (mapcat #'out-vars objs))
-         :returns (listify (if set-returns returns (merge-returns objs)))
-         :used-types (mapcat #'used-types objs)
-         :multi-vals multi-vals
-         :stemcells (if set-stemcells stemcells
-                        (mapcat #'stemcells objs))
-         :out-of-scope-args
-         (normalize-out-of-scope-args
-          (if set-out-of-scope-args out-of-scope-args
-              (mapcat #'out-of-scope-args objs)))
-         :place-tree place-tree
-         :mutations (if set-mutations mutations
-                        (mapcat #'mutations objs))
-         :node-tree node-tree))
+             :code-type type))
+    (code! :type type
+           :current-line current-line
+           :signatures (if set-sigs signatures
+                           (mapcat #'signatures objs))
+           :to-block (if set-block to-block
+                         (mapcat #'to-block objs))
+           :return-set return-set
+           :returns (listify (if set-returns returns (merge-returns objs)))
+           :used-types (mapcat #'used-types objs)
+           :multi-vals multi-vals
+           :stemcells (if set-stemcells stemcells
+                          (mapcat #'stemcells objs))
+           :out-of-scope-args
+           (normalize-out-of-scope-args
+            (if set-out-of-scope-args out-of-scope-args
+                (mapcat #'out-of-scope-args objs)))
+           :place-tree place-tree
+           :mutations (if set-mutations mutations
+                          (mapcat #'mutations objs))
+           :node-tree node-tree)))
 
 (defun merge-returns (objs)
   (let* ((returns (mapcar #'returns objs))

@@ -16,7 +16,7 @@
       ;; Here we check that we haven't got any behaviour that, while legal for
       ;; main or local funcs, would be undesired in external functions
       (when maybe-def-code
-        (assert (null (out-vars maybe-def-code)))
+        (assert (null (return-set maybe-def-code)))
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
         (assert (null (multi-vals maybe-def-code)))
@@ -141,7 +141,7 @@
                                 :signatures sigs
                                 :to-block nil
                                 :returns nil
-                                :out-vars (out-vars body-obj)
+                                :return-set (return-set body-obj)
                                 :multi-vals nil
                                 :place-tree nil
                                 :out-of-scope-args implicit-args)))
@@ -152,7 +152,7 @@
                              :used-types (used-types code-obj)
                              :glsl-code func-glsl-def
                              :stemcells (stemcells code-obj)
-                             :out-vars (out-vars code-obj))
+                             :return-set (return-set code-obj))
               code-obj))))
 
 (defun make-new-function-with-unreps (name args body allowed-implicit-args
@@ -182,7 +182,7 @@
                              :used-types nil
                              :glsl-code nil
                              :stemcells nil
-                             :out-vars nil)
+                             :return-set nil)
               (code! :type (gen-none-type)
                      :current-line nil
                      :place-tree nil

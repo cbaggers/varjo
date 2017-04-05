@@ -21,7 +21,7 @@
    (current-line :initarg :current-line :initform "" :reader current-line)
    (signatures :initarg :signatures :initform nil :reader signatures)
    (to-block :initarg :to-block :initform nil :reader to-block)
-   (out-vars :initarg :out-vars :initform nil :reader out-vars)
+   (return-set :initarg :return-set :initform nil :reader return-set)
    (used-types :initarg :used-types :initform nil :reader used-types)
    (returns :initarg :returns :initform nil :reader returns)
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
@@ -56,7 +56,7 @@
    (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)
    (stemcells :initarg :stemcells :reader stemcells)
-   (out-vars :initarg :out-vars :reader out-vars)))
+   (return-set :initarg :return-set :reader return-set)))
 
 ;;----------------------------------------------------------------------
 ;; Compiler output

@@ -6,21 +6,28 @@
 
 ;; - √ Rename %return to return
 ;;  - √ update places where this is used
-;; - comment out %out
-;; - add ability to specify 'out' metadata in values form
-;;  - how should be present this?
-;;   - 'declaring' form special form? isnt that just 'the'?
-;;   - Gotta use something other than values as we could legitimately want to
-;;     return only one value.
-;;   - using metadata sounds inevitable
-;;  - reuse the out-vars slot from code-obj
-;;   - change it's name to return-set to force breakage
-;;   - out-vars should be a vector, not a list (it is position sensitive and so
-;;     shouldnt be trivially extensible)
-;;   - whole set of out-vars need to be set at once
+;; - √ comment out %out
+;; - √ add ability to specify 'out' metadata in values form
+;;  - √ how should be present this?
+;;   - [x] 'declaring' form special form? isnt that just 'the'?
+;;   - [x] Gotta use something other than values as we could legitimately want
+;;         to return only one value.
+;;   - [x] using metadata sounds inevitable
+;;    - √ true, but currently metadata can only be assigned to a singular
+;;        flow-id this is no good for this. So maybe values will have to do for
+;;        now.
+;;    - √ Actually values will be fine, if you want to qualify then just have a
+;;        single values form. Will work well enough for now
+;;  - √ reuse the out-vars slot from code-obj
+;;   - √ change it's name to return-set to force breakage
+;;   - √ out-vars should be a vector, not a list (it is position sensitive and
+;;       so shouldnt be trivially extensible)
+;;   - √ whole set of out-vars need to be set at once
 ;; - Add merging with validation of return-set
 ;; - remove %out
 ;; - update all dependent code, testing heavily
+;; - Update AST generation to add (values) so as not to end up with nesting
+;;   returns.. wait..how do we handle that now?
 
 (v-defspecial return (form)
   :args-valid t
@@ -39,6 +46,7 @@
     ;; - The second is for a shader stage in which the multi-vars become
     ;;   output-variables and the current line is handled in a 'context'
     ;;   specific way.
+    (warn "AHHH horse, we need to handle the return qualifiers")
     (let* ((code-obj (compile-form form new-env))
            (result
             (if (member :main (v-context env))
@@ -109,32 +117,3 @@
           ((member :vertex context) `(setq varjo-lang::gl-position ,form))
           (t `(%out (,(gensym "OUTPUT-VAR"))
                     ,form)))))
-
-;; (v-defspecial %out (name-and-qualifiers form)
-;;   :args-valid t
-;;   :return
-;;   (let* ((form-obj (compile-form form env))
-;;          (out-var-name (if (consp name-and-qualifiers)
-;;                            (first name-and-qualifiers)
-;;                            name-and-qualifiers))
-;;          (qualifiers (when (consp name-and-qualifiers)
-;;                        (rest name-and-qualifiers)))
-;;          (glsl-name (safe-glsl-name-string out-var-name))
-;;          (type (type-spec->type :void (flow-id!))))
-;;     (values
-;;      (end-line
-;;       (copy-code
-;;        form-obj :type type
-;;        :current-line (gen-out-var-assignment-string glsl-name form-obj)
-;;        :to-block (to-block form-obj)
-;;        :out-vars (cons `(,out-var-name
-;;                          ,qualifiers
-;;                          ,(v-make-value (code-type form-obj) env
-;;                                         :glsl-name glsl-name))
-;;                        (out-vars form-obj))
-;;        :node-tree (ast-node! '%out (list name-and-qualifiers
-;;                                          (node-tree form-obj))
-;;                              type env env)
-;;        :multi-vals nil
-;;        :place-tree nil) t)
-;;      env)))

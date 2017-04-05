@@ -377,23 +377,10 @@
 
 ;;----------------------------------------------------------------------
 
-(defun dedup-out-vars (out-vars)
-  (let ((seen (make-hash-table))
-        (deduped nil))
-    (loop :for (name qualifiers value) :in out-vars
-       :do (let ((tspec (type->type-spec (v-type-of value))))
-             (if (gethash name seen)
-                 (unless (equal tspec (gethash name seen))
-                   (error 'out-var-type-mismatch :var-name name
-                          :var-types (list tspec (gethash name seen))))
-                 (setf (gethash name seen) tspec
-                       deduped (cons (list name qualifiers value)
-                                     deduped)))))
-    (reverse deduped)))
-
 (defun gen-out-var-strings (post-proc-obj)
+  (warn "dicks dicks dicks dicks")
   (with-slots (main-func env) post-proc-obj
-    (let* ((out-vars (dedup-out-vars (out-vars main-func)))
+    (let* ((out-vars (return-set main-func))
            (out-types (mapcar (lambda (_)
                                 (v-type-of (third _)))
                               out-vars))

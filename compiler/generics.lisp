@@ -34,11 +34,11 @@
 (defgeneric v-special-functionp (func))
 (defgeneric v-element-type (object))
 (defgeneric merge-obs (objs &key type current-line to-block
-                              out-vars returns multi-vals
+                              return-set returns multi-vals
                               stemcells out-of-scope-args
                               place-tree mutations node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block
-                                  out-vars returns multi-vals
+                                  return-set returns multi-vals
                                   stemcells out-of-scope-args
                                   place-tree mutations node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))

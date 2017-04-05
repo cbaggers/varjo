@@ -18,6 +18,7 @@
                (:file "compiler/names")
                (:file "compiler/internal-types")
                (:file "compiler/types")
+               (:file "compiler/return-set")
                (:file "compiler/function-obj")
                (:file "compiler/deftype")
                (:file "compiler/code-object")
