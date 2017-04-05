@@ -213,9 +213,10 @@
 (defun gen-out-block (post-proc-obj)
   (if (eq (extract-stage-type post-proc-obj) :fragment)
       (mapcar #'%glsl-decl (out-vars post-proc-obj))
-      (list (write-interface-block
-             :out (out-block-name-for post-proc-obj)
-             (out-vars post-proc-obj)))))
+      (when (out-vars post-proc-obj)
+        (list (write-interface-block
+               :out (out-block-name-for post-proc-obj)
+               (out-vars post-proc-obj))))))
 
 (defun gen-in-block (post-proc-obj)
   (if (eq (extract-stage-type post-proc-obj) :vertex)
