@@ -81,7 +81,6 @@
 
 
 ;; Used when this is the main stage function
-;; this
 (defun %main-return (code-obj env)
   (if (multi-vals code-obj)
       (let* ((mvals (multi-vals code-obj))
@@ -98,22 +97,19 @@
                  (compile-let (gensym) (type->type-spec type)
                               nil p-env gname))
                p-env types glsl-lines))
+             ;; We must compile these ↓↓, however we dont want them in the ast.
              (compile-form (%default-out-for-stage code-obj p-env) p-env)
-             (compile-form `(progn ,@(mapcar λ(mval->out-form _ env)
-                                             (multi-vals code-obj)))
-                           p-env)))
+             (compile-form (mvals->out-form code-obj env) p-env)))
          env))
       (with-fresh-env-scope (fresh-env env)
-        (compile-form (%default-out-for-stage code-obj env)
-                      fresh-env))))
+        (compile-form (%default-out-for-stage code-obj env) fresh-env))))
 
 ;; fragment comes first as it doesnt restrict the exit type...this is a bug
 ;; really as fragment out-var should be vec4...We should have a case for
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (form env)
   (let ((context (v-context env)))
-    (cond ((member :fragment context) `(%out (,(gensym "OUTPUT-COLOR"))
-                                             ,form))
-          ((member :vertex context) `(setq varjo-lang::gl-position ,form))
-          (t `(%out (,(gensym "OUTPUT-VAR"))
-                    ,form)))))
+    (if (member :vertex context)
+        `(setq varjo-lang::gl-position ,form)
+        `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0))
+                    :void ,form))))

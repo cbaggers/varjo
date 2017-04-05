@@ -22,3 +22,16 @@
 
 (defun make-return-set (env &rest qualifiers)
   (apply #'vector (check-return-set env qualifiers)))
+
+(defun nth-return-name (n)
+  (format nil "_OUT_~a" n))
+
+(defun mvals->out-form (code-object env)
+  (declare (ignore env))
+  (warn "mvals->out-form: Yo chris. We used to emit:~% `(%out (,(gensym \"OUT\") ,@qualifiers) ,value)~%here. However our changes mean we loose the other qualifiers. Please fix this")
+  (let ((mvals (multi-vals code-object)))
+    `(progn
+       ,@(loop :for mval :in mvals :for i :from 1 :collect
+            (with-slots (value qualifiers) mval
+              `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i))
+                          :void ,value))))))

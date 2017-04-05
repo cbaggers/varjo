@@ -44,8 +44,3 @@
 
 (defun make-mval (v-value &optional qualifiers)
   (make-instance 'mval :value v-value :qualifiers qualifiers))
-
-(defun mval->out-form (mval env)
-  (declare (ignore env))
-  (with-slots (value qualifiers) mval
-    `(%out (,(gensym "OUT") ,@qualifiers) ,value)))

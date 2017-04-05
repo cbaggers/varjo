@@ -45,7 +45,10 @@
     (values (copy-code result
                        :multi-vals (mapcar #'make-mval (rest vals)
                                            (rest qualifier-lists))
-                       :return-set (make-return-set out-qualifiers)
+                       :return-set (make-return-set
+                                    (mapcar #'cons
+                                            (mapcar #'v-type-of vals)
+                                            out-qualifiers))
                        :node-tree ast)
             env)))
 
