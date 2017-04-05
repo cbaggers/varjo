@@ -4,21 +4,34 @@
 ;;------------------------------------------------------------
 ;; Inline GLSL
 
-(v-defspecial glsl-expr (glsl-string type-spec)
+(v-defmacro glsl-expr (glsl-string type-spec &rest args)
+  (if args
+      (let ((gs (loop :for i :in args :collect (gensym))))
+        `(let ,(mapcar #'list gs args)
+           (%glsl-expr ,glsl-string ,type-spec ,@gs)))
+      `(%glsl-expr ,glsl-string ,type-spec)))
+
+(v-defspecial %glsl-expr (glsl-string type-spec &rest args)
   :args-valid t
   :return
   (values
-   (compile-glsl-expression-string glsl-string type-spec)
+   (compile-glsl-expression-string glsl-string type-spec env args)
    env))
 
-(defun compile-glsl-expression-string (current-line type)
-  (let* ((type-obj (if (typep type 'v-type)
+(defun compile-glsl-expression-string (current-line type env args)
+  ;; because of the macro we are guarenteed that 'args' wont
+  ;; have a to-body section.
+  (let* ((objs (mapcar λ(compile-form _ env) args))
+         (arg-lines (mapcar #'current-line objs))
+         (type-obj (if (typep type 'v-type)
                        type
                        (type-spec->type type (flow-id!))))
-         (flow-id (flow-ids type-obj)))
+         (flow-id (flow-ids type-obj))
+         (glsl (apply #'format (append (list nil current-line)
+                                       arg-lines))))
     (assert flow-id)
     (code! :type type-obj
-           :current-line current-line
+           :current-line glsl
            :used-types (list type-obj)
            :node-tree (ast-node! 'glsl-string nil type-obj nil nil))))
 
