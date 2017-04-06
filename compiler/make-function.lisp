@@ -23,7 +23,6 @@
         (assert (null (mutations maybe-def-code)))
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
-        (assert (null (returns maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
         (assert (typep (code-type maybe-def-code) 'v-none)))
       (values compiled-func maybe-def-code))))
@@ -76,21 +75,23 @@
                                                 (out-of-scope-args body-obj))
                                                func-env))
          (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
-         (primary-return (first (returns body-obj)))
-         (multi-return-vars (rest (returns body-obj)))
-         (type (if mainp (type-spec->type 'v-void) primary-return)))
+         (return-set (map 'list #'identity (return-set body-obj)))
+         (primary-type (when return-set (v-type-of (first return-set))))
+         (multi-return-vars (when return-set (rest return-set)))
+         (type (if mainp (type-spec->type 'v-void) primary-type)))
+    ;; (break "hoo ~a ~a ~a ~a" name primary-type multi-return-vars
+    ;;        (return-set body-obj))
     ;;
-    (unless (or mainp primary-return) (error 'no-function-returns :name name))
+    (unless (or mainp primary-type) (error 'no-function-returns :name name))
     (when (v-typep type (gen-none-type))
       (error 'function-with-no-return-type :func-name name))
     (let* ((arg-pairs (loop :for (nil type) :in args
                          :for name :in arg-glsl-names :collect
                          `(,(v-glsl-string (type-spec->type type)) ,name)))
-           (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
-                             :for name = (v-glsl-name (multi-val-value mval)) :collect
-                             `(,(v-glsl-string (v-type-of
-                                                (multi-val-value mval)))
-                                ,name)))
+           (out-arg-pairs (loop :for mval :in multi-return-vars
+                             :for name = (glsl-name mval)
+                             :for i :from 1
+                             :collect `(,(glsl-name mval) ,name)))
            (in-out-args
             ;; {TODO} handle multiple returns
             (when (and (typep type 'v-function-type)
@@ -140,8 +141,7 @@
                                 :current-line nil
                                 :signatures sigs
                                 :to-block nil
-                                :returns nil
-                                :return-set (return-set body-obj)
+                                :return-set #()
                                 :multi-vals nil
                                 :place-tree nil
                                 :out-of-scope-args implicit-args)))

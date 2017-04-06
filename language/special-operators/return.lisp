@@ -4,6 +4,9 @@
 ;;------------------------------------------------------------
 ;; Return
 
+;; type & multi-vals are set by values, return turns those into
+;; a return-set
+
 ;; - √ Rename %return to return
 ;;  - √ update places where this is used
 ;; - √ comment out %out
@@ -23,12 +26,12 @@
 ;;   - √ out-vars should be a vector, not a list (it is position sensitive and
 ;;       so shouldnt be trivially extensible)
 ;;   - √ whole set of out-vars need to be set at once
-;; - Add merging with validation of return-set
+;; - √ Add merging with validation of return-set
 ;; - √ remove %out
 ;; - update all dependent code, testing heavily
 ;; - Update AST generation to add (values) so as not to end up with nesting
 ;;   returns.. wait..how do we handle that now?
-;; - Make ret-val type for the elements of the return set
+;; - √ Make ret-val type for the elements of the return set
 
 
 (v-defspecial return (&optional (form '(values)))
@@ -82,8 +85,7 @@
   (let* ((flow-result
           (if (multi-vals code-obj)
               (m-flow-id! (cons (flow-ids code-obj)
-                                (mapcar (lambda (c)
-                                          (flow-ids (multi-val-value c)))
+                                (mapcar λ(flow-ids (multi-val-value _))
                                         (multi-vals code-obj))))
               (flow-ids code-obj)))
          (suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
@@ -96,7 +98,6 @@
      :type (type-spec->type 'v-void flow-result)
      :current-line (unless suppress-glsl
                      (format nil "return ~a" (current-line code-obj)))
-     :returns (cons (code-type code-obj) (multi-vals code-obj))
      :multi-vals nil
      :place-tree nil
      :return-set ret-set)))

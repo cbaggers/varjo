@@ -23,7 +23,6 @@
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
    (used-types :initarg :used-types :initform nil :reader used-types)
-   (returns :initarg :returns :initform nil :reader returns)
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
@@ -252,6 +251,9 @@
 (defclass return-val ()
   ((type :initarg :type :reader v-type-of)
    (qualifiers :initarg :qualifiers :reader qualifiers)))
+
+(defclass named-return-val (return-val)
+  ((glsl-name :initarg :glsl-name :reader glsl-name)))
 
 ;;----------------------------------------------------------------------
 
