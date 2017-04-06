@@ -16,7 +16,7 @@
       ;; Here we check that we haven't got any behaviour that, while legal for
       ;; main or local funcs, would be undesired in external functions
       (when maybe-def-code
-        (assert (null (return-set maybe-def-code)))
+        (assert (= (length (return-set maybe-def-code)) 0))
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
         (assert (null (multi-vals maybe-def-code)))
@@ -79,10 +79,8 @@
          (primary-type (when return-set (v-type-of (first return-set))))
          (multi-return-vars (when return-set (rest return-set)))
          (type (if mainp (type-spec->type 'v-void) primary-type)))
-    ;; (break "hoo ~a ~a ~a ~a" name primary-type multi-return-vars
-    ;;        (return-set body-obj))
-    ;;
-    (unless (or mainp primary-type) (error 'no-function-returns :name name))
+    (unless (or mainp primary-type)
+      (error 'no-function-returns :name name))
     (when (v-typep type (gen-none-type))
       (error 'function-with-no-return-type :func-name name))
     (let* ((arg-pairs (loop :for (nil type) :in args

@@ -45,13 +45,10 @@
           (subseq set 0 1)
           set))))
 
-(defun make-return-set-from-code-obj (code-obj env)
+(defun make-return-set-from-code-obj (code-obj)
   (let ((mval-rets (mapcar #'make-return-val-from-mval (multi-vals code-obj)))
         (prim-ret (make-return-val (v-type-of code-obj))))
-    (apply #'make-return-set
-           (if (member :vertex (v-context env))
-               mval-rets
-               (cons prim-ret mval-rets)))))
+    (apply #'make-return-set (cons prim-ret mval-rets))))
 
 ;;------------------------------------------------------------
 

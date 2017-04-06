@@ -385,7 +385,6 @@
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
            (stage (stage post-proc-obj)))
-      (warn "gen-out-var-strings: remove make-symbol hack")
       (setf (out-vars post-proc-obj)
             (loop :for ret-val :across ret-set
                :for i :from 1

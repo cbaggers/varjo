@@ -66,7 +66,7 @@
            (result
             (if is-main
                 (%main-return code-obj implicit new-env)
-                (%regular-return code-obj new-env)))
+                (%regular-return code-obj)))
            (ast (ast-node! 'return (node-tree code-obj)
                            (code-type result)
                            env env))
@@ -81,7 +81,7 @@
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
-(defun %regular-return (code-obj env)
+(defun %regular-return (code-obj)
   (let* ((flow-result
           (if (multi-vals code-obj)
               (m-flow-id! (cons (flow-ids code-obj)
@@ -91,7 +91,7 @@
          (suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
                             (v-typep (code-type code-obj)
                                      'v-ephemeral-type)))
-         (ret-set (make-return-set-from-code-obj code-obj env)))
+         (ret-set (make-return-set-from-code-obj code-obj)))
     ;;
     (copy-code
      code-obj
@@ -132,7 +132,7 @@
                              p-env)
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
-          :return-set (make-return-set-from-code-obj code-obj env))))
+          :return-set (make-return-set-from-code-obj code-obj))))
       (t (let ((ret-set (if (member :vertex (v-context env))
                             (make-return-set)
                             (make-return-set (make-return-val type)))))

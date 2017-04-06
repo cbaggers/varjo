@@ -53,7 +53,7 @@
     "Tried to compile form however the first element of the form was a list:
 ~s" code)
 
-(deferror no-function-returns () (name)
+(deferror no-function-returns () (name return-set)
     "Function '~a' did not specify any return types" name)
 
 (deferror not-core-type-error () (type-name)
