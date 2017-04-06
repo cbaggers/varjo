@@ -249,6 +249,10 @@
   ((value :initarg :value :reader multi-val-value)
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
 
+(defclass return-val ()
+  ((type :initarg :type :reader v-type-of)
+   (qualifiers :initarg :qualifiers :reader qualifiers)))
+
 ;;----------------------------------------------------------------------
 
 (defclass standard-value-metadata () ())

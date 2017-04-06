@@ -1,50 +1,49 @@
 (in-package :varjo)
 (in-readtable :fn.reader)
 
-(defun out-qualifier-p (x env)
-  (declare (ignore env))
-  ;; {TODO} make this work properly
-  (find x '(:smooth :flat :noperspective)))
+;;------------------------------------------------------------
 
-(defun valid-return-set-element-p (e env)
-  (and (typep (first e) 'v-type)
-       (every λ(out-qualifier-p _ env) (rest e))))
+(defun make-return-val (type &optional qualifiers)
+  (assert (typep type 'v-type))
+  (assert (every #'keywordp qualifiers))
+  (make-instance 'return-val :type type
+                 :qualifiers (sort (copy-list qualifiers) #'<)))
 
-(defun check-return-set (env set)
-  (assert (every λ(valid-return-set-element-p _ env) set))
-  set)
+(defun make-return-val-from-mval (mval)
+  (make-return-val (v-type-of mval) (multi-val-qualifiers mval)))
 
-(defun %merge-return-sets (set-a set-b)
-  (warn "no ship until fix 0")
-  (assert (every #'equal set-a set-b))
-  set-a)
+(defun return-val-eql (ret-a ret-b)
+  (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
+       (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
+       (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
+
+;;------------------------------------------------------------
+
+(defun make-return-set (&rest return-vals)
+  (assert (every λ(typep _ 'return-val) return-vals))
+  (apply #'vector return-vals))
 
 (defun merge-return-sets (sets)
-  (let ((sets (remove nil sets)))
-    (if (> (length sets) 1)
-        (reduce #'%merge-return-sets (rest sets) :initial-value (first sets))
-        (first sets))))
+  (labels ((%merge-return-sets (set-a set-b)
+             (assert (and (= (length set-a) (length set-b))
+                          (every #'return-val-eql set-a set-b))
+                     () 'return-type-mismatch
+                     :returns (list set-a set-b))
+             set-a))
+    (let ((sets (remove nil sets)))
+      (if (> (length sets) 1)
+          (reduce #'%merge-return-sets (rest sets) :initial-value (first sets))
+          (first sets)))))
 
 (defun make-return-set-from-code-obj (code-obj env)
-  (let ((mval-rets (let ((mvals (multi-vals code-obj)))
-                     (loop :for mval :in mvals :collect
-                        (cons (v-type-of mval)
-                              (multi-val-qualifiers mval)))))
-        (prim-ret (list (v-type-of code-obj))))
+  (let ((mval-rets (mapcar #'make-return-val-from-mval (multi-vals code-obj)))
+        (prim-ret (make-return-val (v-type-of code-obj))))
     (apply #'make-return-set
-           env
            (if (member :vertex (v-context env))
                mval-rets
                (cons prim-ret mval-rets)))))
 
-(defun make-return-set (env &rest qualifiers)
-  (warn "make-return-set should take a type explicitly and assert it")
-  (apply #'vector (check-return-set env qualifiers)))
-
-(defun make-single-val-return-set (env type)
-  (if (member :vertex (v-context env))
-      (make-return-set env)
-      (make-return-set env (list type))))
+;;------------------------------------------------------------
 
 (defun nth-return-name (n)
   (format nil "_OUT_~a" n))
@@ -57,3 +56,9 @@
             (with-slots (value qualifiers) mval
               `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i))
                           :void ,value))))))
+
+
+;; (defun out-qualifier-p (x env)
+;;   (declare (ignore env))
+;;   ;; {TODO} make this work properly
+;;   (find x '(:smooth :flat :noperspective)))

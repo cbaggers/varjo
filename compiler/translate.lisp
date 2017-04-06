@@ -380,16 +380,18 @@
 (defun gen-out-var-strings (post-proc-obj)
   (with-slots (main-func env) post-proc-obj
     (let* ((ret-set (return-set main-func))
-           (out-types (map 'list #'first ret-set))
+           (out-types (map 'list #'v-type-of ret-set))
            (locations (if (member :fragment (v-context env))
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
            (stage (stage post-proc-obj)))
       (warn "gen-out-var-strings: remove make-symbol hack")
       (setf (out-vars post-proc-obj)
-            (loop :for (type . qualifiers) :across ret-set
+            (loop :for ret-val :across ret-set
                :for i :from 1
                :for glsl-name := (nth-return-name i)
+               :for type := (v-type-of ret-val)
+               :for qualifiers := (qualifiers ret-val)
                :for location :in locations
                :collect
                (make-instance

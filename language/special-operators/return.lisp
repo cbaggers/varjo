@@ -132,15 +132,16 @@
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
           :return-set (make-return-set-from-code-obj code-obj env))))
-      (t (copy-code
-          (with-fresh-env-scope (fresh-env env)
-            (compile-form `(progn
-                             ,(%default-out-for-stage code-obj fresh-env)
-                             (glsl-expr "return" :void))
-                          fresh-env))
-          :return-set (make-single-val-return-set
-                       env (v-type-of code-obj)))))))
-
+      (t (let ((ret-set (if (member :vertex (v-context env))
+                            (make-return-set)
+                            (make-return-set (make-return-val type)))))
+           (copy-code
+            (with-fresh-env-scope (fresh-env env)
+              (compile-form `(progn
+                               ,(%default-out-for-stage code-obj fresh-env)
+                               (glsl-expr "return" :void))
+                            fresh-env))
+            :return-set ret-set))))))
 
 ;; fragment comes first as it doesnt restrict the exit type...this is a bug
 ;; really as fragment out-var should be vec4...We should have a case for
