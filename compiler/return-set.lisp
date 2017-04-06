@@ -1,4 +1,5 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
 (defun out-qualifier-p (x env)
   (declare (ignore env))
@@ -20,8 +21,19 @@
         (reduce #'%merge-return-sets (rest sets) :initial-value (first sets))
         (first sets))))
 
+(defun make-return-set-from-code-obj (code-obj)
+  (cons (list (v-type-of code-obj))
+        (let ((mvals (multi-vals code-obj)))
+          (loop :for mval :in mvals :for i :from 1 :collect
+             (cons (v-type-of mval)
+                   (multi-val-qualifiers mval))))))
+
 (defun make-return-set (env &rest qualifiers)
+  (warn "make-return-set should take a type explicitly and assert it")
   (apply #'vector (check-return-set env qualifiers)))
+
+(defun make-single-val-return-set (env type)
+  (make-return-set env (list type)))
 
 (defun nth-return-name (n)
   (format nil "_OUT_~a" n))

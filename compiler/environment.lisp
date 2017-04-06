@@ -203,6 +203,7 @@
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
                     :multi-val-safe ,multi-val-safe)))
        (vbind (,r ,e) (progn ,@body)
+         (assert ,e (,e) 'with-fresh-env-scope-missing-env)
          (values ,r (env-prune (env-depth ,s) ,e))))))
 
 (defun env-replace-parent (env new-parent

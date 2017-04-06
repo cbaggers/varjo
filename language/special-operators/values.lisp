@@ -16,11 +16,6 @@
 (defun %values (values env)
   (let* ((new-env (fresh-environment env :multi-val-base nil))
          (qualifier-lists (mapcar #'extract-value-qualifiers values))
-         (out-qualifiers (mapcar λ(remove-if-not λ(out-qualifier-p _ env) _)
-                                 qualifier-lists))
-         (qualifier-lists (mapcar λ(set-difference _ _1 :test #'equal)
-                                  qualifier-lists
-                                  out-qualifiers))
          (forms (mapcar #'extract-value-form values))
 
          (objs (mapcar λ(compile-form _ new-env) forms))
@@ -45,10 +40,6 @@
     (values (copy-code result
                        :multi-vals (mapcar #'make-mval (rest vals)
                                            (rest qualifier-lists))
-                       :return-set (make-return-set
-                                    (mapcar #'cons
-                                            (mapcar #'v-type-of vals)
-                                            out-qualifiers))
                        :node-tree ast)
             env)))
 

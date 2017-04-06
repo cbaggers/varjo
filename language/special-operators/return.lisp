@@ -24,12 +24,13 @@
 ;;       so shouldnt be trivially extensible)
 ;;   - √ whole set of out-vars need to be set at once
 ;; - Add merging with validation of return-set
-;; - remove %out
+;; - √ remove %out
 ;; - update all dependent code, testing heavily
 ;; - Update AST generation to add (values) so as not to end up with nesting
 ;;   returns.. wait..how do we handle that now?
+;; - Make ret-val type for the elements of the return set
 
-(v-defspecial return (form)
+(v-defspecial return (&optional (form '(values)))
   :args-valid t
   :return
   (let ((new-env (fresh-environment
@@ -55,29 +56,33 @@
       (values (copy-code result
                          :node-tree (ast-node! 'return (node-tree code-obj)
                                                (code-type result)
-                                               env env))
+                                               env env)
+                         :return-set (or (return-set result)
+                                         (error 'nil-return-set)))
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-value-return (code-obj)
-  (let ((flow-result
-         (if (multi-vals code-obj)
-             (m-flow-id! (cons (flow-ids code-obj)
-                               (mapcar (lambda (c)
-                                         (flow-ids (multi-val-value c)))
-                                       (multi-vals code-obj))))
-             (flow-ids code-obj))))
-    ;; {TODO} why not 'end-line' here? who is doing that?
-    (let ((suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
-                             (v-typep (code-type code-obj)
-                                      'v-ephemeral-type))))
-      (copy-code
-       code-obj :type (type-spec->type 'v-void flow-result)
-       :current-line (unless suppress-glsl
-                       (format nil "return ~a" (current-line code-obj)))
-       :returns (cons (code-type code-obj) (multi-vals code-obj))
-       :multi-vals nil
-       :place-tree nil))))
+  (let* ((flow-result
+          (if (multi-vals code-obj)
+              (m-flow-id! (cons (flow-ids code-obj)
+                                (mapcar (lambda (c)
+                                          (flow-ids (multi-val-value c)))
+                                        (multi-vals code-obj))))
+              (flow-ids code-obj)))
+         (suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
+                            (v-typep (code-type code-obj)
+                                     'v-ephemeral-type)))
+         (ret-set (make-return-set-from-code-obj code-obj)))
+    ;;
+    (copy-code
+     code-obj :type (type-spec->type 'v-void flow-result)
+     :current-line (unless suppress-glsl
+                     (format nil "return ~a" (current-line code-obj)))
+     :returns (cons (code-type code-obj) (multi-vals code-obj))
+     :multi-vals nil
+     :place-tree nil
+     :return-set ret-set)))
 
 
 ;; Used when this is the main stage function
@@ -87,29 +92,34 @@
              (v-vals (mapcar #'multi-val-value mvals))
              (types (mapcar #'v-type-of v-vals))
              (glsl-lines (mapcar #'v-glsl-name v-vals)))
+        (copy-code
+         (merge-progn
+          (with-fresh-env-scope (fresh-env env)
+            (env-> (p-env fresh-env)
+              (merge-multi-env-progn
+               (%mapcar-multi-env-progn
+                (lambda (p-env type gname)
+                  (compile-let (gensym) (type->type-spec type)
+                               nil p-env gname))
+                p-env types glsl-lines))
+              ;; We must compile these ↓↓, however we dont want them in the ast
+              (compile-form (%default-out-for-stage code-obj p-env) p-env)
+              (compile-form (mvals->out-form code-obj p-env) p-env)))
+          env)
+         :return-set (make-return-set-from-code-obj code-obj)))
+      (copy-code
+       (with-fresh-env-scope (fresh-env env)
+         (compile-form (%default-out-for-stage code-obj fresh-env)
+                       fresh-env))
+       :return-set (make-single-val-return-set env (v-type-of code-obj)))))
 
-        (merge-progn
-         (with-fresh-env-scope (fresh-env env)
-           (env-> (p-env fresh-env)
-             (merge-multi-env-progn
-              (%mapcar-multi-env-progn
-               (lambda (p-env type gname)
-                 (compile-let (gensym) (type->type-spec type)
-                              nil p-env gname))
-               p-env types glsl-lines))
-             ;; We must compile these ↓↓, however we dont want them in the ast.
-             (compile-form (%default-out-for-stage code-obj p-env) p-env)
-             (compile-form (mvals->out-form code-obj env) p-env)))
-         env))
-      (with-fresh-env-scope (fresh-env env)
-        (compile-form (%default-out-for-stage code-obj env) fresh-env))))
 
 ;; fragment comes first as it doesnt restrict the exit type...this is a bug
 ;; really as fragment out-var should be vec4...We should have a case for
 ;; when context includes all stages, in which case any type is allowed
-(defun %default-out-for-stage (form env)
+(defun %default-out-for-stage (code-obj env)
   (let ((context (v-context env)))
     (if (member :vertex context)
-        `(setq varjo-lang::gl-position ,form)
+        `(setq varjo-lang::gl-position ,code-obj)
         `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0))
-                    :void ,form))))
+                    :void ,code-obj))))

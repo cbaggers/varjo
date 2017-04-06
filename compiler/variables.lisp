@@ -44,3 +44,6 @@
 
 (defun make-mval (v-value &optional qualifiers)
   (make-instance 'mval :value v-value :qualifiers qualifiers))
+
+(defmethod v-type-of ((mval mval))
+  (v-type-of (multi-val-value mval)))

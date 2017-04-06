@@ -380,30 +380,28 @@
 (defun gen-out-var-strings (post-proc-obj)
   (warn "dicks dicks dicks dicks")
   (with-slots (main-func env) post-proc-obj
-    (let* ((out-vars (return-set main-func))
-           (out-types (mapcar (lambda (_)
-                                (v-type-of (third _)))
-                              out-vars))
+    (let* ((ret-set (return-set main-func))
+           (out-types (map 'list #'first ret-set))
            (locations (if (member :fragment (v-context env))
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
            (stage (stage post-proc-obj)))
       (setf (out-vars post-proc-obj)
-            (loop :for (name qualifiers value) :in out-vars
-               :for type :in out-types
+            (loop :for (type . qualifiers) :across ret-set
+               :for i :from 0
+               :for glsl-name := (nth-return-name i)
                :for location :in locations
                :collect
-               (let ((glsl-name (v-glsl-name value)))
-                 (make-instance
-                  'output-variable
-                  :name name
-                  :glsl-name glsl-name
-                  :type (v-type-of value)
-                  :qualifiers qualifiers
-                  :location location
-                  :glsl-decl (gen-out-var-string
-                              (extract-stage-type stage)
-                              glsl-name type qualifiers location)))))
+               (make-instance
+                'output-variable
+                :name (make-symbol glsl-name)
+                :glsl-name glsl-name
+                :type type
+                :qualifiers qualifiers
+                :location location
+                :glsl-decl (gen-out-var-string
+                            (extract-stage-type stage)
+                            glsl-name type qualifiers location))))
       post-proc-obj)))
 
 ;;----------------------------------------------------------------------
