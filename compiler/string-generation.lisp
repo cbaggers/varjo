@@ -202,7 +202,7 @@
   (let ((prev (previous-stage stage)))
     (if prev
         (symb :from_ (extract-stage-type prev))
-        :in-block)))
+        :in_block)))
 
 (defmethod out-block-name-for ((pp post-compile-process))
   (out-block-name-for (stage pp)))
@@ -221,9 +221,10 @@
 (defun gen-in-block (post-proc-obj)
   (if (eq (extract-stage-type post-proc-obj) :vertex)
       (mapcar #'%glsl-decl (in-args post-proc-obj))
-      (list (write-interface-block
-             :in (in-block-name-for post-proc-obj)
-             (in-args post-proc-obj)))))
+      (when (in-args post-proc-obj)
+        (list (write-interface-block
+               :in (in-block-name-for post-proc-obj)
+               (in-args post-proc-obj))))))
 
 ;;----------------------------------------------------------------------
 

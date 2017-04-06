@@ -6,8 +6,12 @@
   ;; {TODO} make this work properly
   (find x '(:smooth :flat :noperspective)))
 
+(defun valid-return-set-element-p (e env)
+  (and (typep (first e) 'v-type)
+       (every λ(out-qualifier-p _ env) (rest e))))
+
 (defun check-return-set (env set)
-  (every λ(every λ(out-qualifier-p _ env) _) set)
+  (assert (every λ(valid-return-set-element-p _ env) set))
   set)
 
 (defun %merge-return-sets (set-a set-b)
@@ -21,26 +25,32 @@
         (reduce #'%merge-return-sets (rest sets) :initial-value (first sets))
         (first sets))))
 
-(defun make-return-set-from-code-obj (code-obj)
-  (cons (list (v-type-of code-obj))
-        (let ((mvals (multi-vals code-obj)))
-          (loop :for mval :in mvals :for i :from 1 :collect
-             (cons (v-type-of mval)
-                   (multi-val-qualifiers mval))))))
+(defun make-return-set-from-code-obj (code-obj env)
+  (let ((mval-rets (let ((mvals (multi-vals code-obj)))
+                     (loop :for mval :in mvals :collect
+                        (cons (v-type-of mval)
+                              (multi-val-qualifiers mval)))))
+        (prim-ret (list (v-type-of code-obj))))
+    (apply #'make-return-set
+           env
+           (if (member :vertex (v-context env))
+               mval-rets
+               (cons prim-ret mval-rets)))))
 
 (defun make-return-set (env &rest qualifiers)
   (warn "make-return-set should take a type explicitly and assert it")
   (apply #'vector (check-return-set env qualifiers)))
 
 (defun make-single-val-return-set (env type)
-  (make-return-set env (list type)))
+  (if (member :vertex (v-context env))
+      (make-return-set env)
+      (make-return-set env (list type))))
 
 (defun nth-return-name (n)
   (format nil "_OUT_~a" n))
 
 (defun mvals->out-form (code-object env)
   (declare (ignore env))
-  (warn "mvals->out-form: Yo chris. We used to emit:~% `(%out (,(gensym \"OUT\") ,@qualifiers) ,value)~%here. However our changes mean we loose the other qualifiers. Please fix this")
   (let ((mvals (multi-vals code-object)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect

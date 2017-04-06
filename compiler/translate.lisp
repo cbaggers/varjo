@@ -378,7 +378,6 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-out-var-strings (post-proc-obj)
-  (warn "dicks dicks dicks dicks")
   (with-slots (main-func env) post-proc-obj
     (let* ((ret-set (return-set main-func))
            (out-types (map 'list #'first ret-set))
@@ -386,9 +385,10 @@
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
            (stage (stage post-proc-obj)))
+      (warn "gen-out-var-strings: remove make-symbol hack")
       (setf (out-vars post-proc-obj)
             (loop :for (type . qualifiers) :across ret-set
-               :for i :from 0
+               :for i :from 1
                :for glsl-name := (nth-return-name i)
                :for location :in locations
                :collect

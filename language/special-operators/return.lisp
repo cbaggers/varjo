@@ -47,12 +47,11 @@
     ;; - The second is for a shader stage in which the multi-vars become
     ;;   output-variables and the current line is handled in a 'context'
     ;;   specific way.
-    (warn "AHHH horse, we need to handle the return qualifiers")
     (let* ((code-obj (compile-form form new-env))
            (result
             (if (member :main (v-context env))
                 (%main-return code-obj env)
-                (%regular-value-return code-obj))))
+                (%regular-value-return code-obj env))))
       (values (copy-code result
                          :node-tree (ast-node! 'return (node-tree code-obj)
                                                (code-type result)
@@ -62,7 +61,7 @@
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
-(defun %regular-value-return (code-obj)
+(defun %regular-value-return (code-obj env)
   (let* ((flow-result
           (if (multi-vals code-obj)
               (m-flow-id! (cons (flow-ids code-obj)
@@ -73,7 +72,7 @@
          (suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
                             (v-typep (code-type code-obj)
                                      'v-ephemeral-type)))
-         (ret-set (make-return-set-from-code-obj code-obj)))
+         (ret-set (make-return-set-from-code-obj code-obj env)))
     ;;
     (copy-code
      code-obj :type (type-spec->type 'v-void flow-result)
@@ -102,11 +101,11 @@
                   (compile-let (gensym) (type->type-spec type)
                                nil p-env gname))
                 p-env types glsl-lines))
-              ;; We must compile these ↓↓, however we dont want them in the ast
+              ;; We compile these ↓↓, however we dont include them in the ast
               (compile-form (%default-out-for-stage code-obj p-env) p-env)
               (compile-form (mvals->out-form code-obj p-env) p-env)))
           env)
-         :return-set (make-return-set-from-code-obj code-obj)))
+         :return-set (make-return-set-from-code-obj code-obj env)))
       (copy-code
        (with-fresh-env-scope (fresh-env env)
          (compile-form (%default-out-for-stage code-obj fresh-env)

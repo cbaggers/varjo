@@ -118,6 +118,7 @@ Example:
            :uniform-variables (uniform-variables stage)
            :context (context stage)
            :lisp-code (lisp-code stage)
+           :previous-stage previous-stage
            :stemcells-allowed (stemcells-allowed stage)))
         stage)))
 
