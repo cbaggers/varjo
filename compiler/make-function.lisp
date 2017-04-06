@@ -70,7 +70,7 @@
                                        func-env
                                        (remove-main-method-flag-from-env
                                         func-env))))
-         (body-obj (compile-form `(return (progn ,@body)) body-env))
+         (body-obj (compile-form `(implicit-return (progn ,@body)) body-env))
          (implicit-args (extract-implicit-args name allowed-implicit-args
                                                (normalize-out-of-scope-args
                                                 (out-of-scope-args body-obj))

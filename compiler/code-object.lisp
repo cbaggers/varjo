@@ -1,8 +1,8 @@
 (in-package :varjo)
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
-		return-set used-types returns multi-vals stemcells
-		out-of-scope-args mutations
+                return-set used-types returns multi-vals stemcells
+                out-of-scope-args mutations
                 place-tree node-tree)
   (let ((flow-ids (flow-ids type)))
     (assert-flow-id-singularity flow-ids)
@@ -78,21 +78,21 @@
                         (node-tree nil set-node-tree))
   (let* ((type (if set-type type (code-type code-obj))))
     (code! :type type
-	   :current-line (if set-current-line current-line
-			     (current-line code-obj))
-	   :signatures (if set-sigs signatures (signatures code-obj))
-	   :to-block (if set-block to-block (remove nil (to-block code-obj)))
-	   :return-set (if set-return-set return-set (return-set code-obj))
-	   :returns (listify (if set-returns returns (returns code-obj)))
-	   :used-types (used-types code-obj)
-	   :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
-	   :stemcells (if set-stemcells stemcells (stemcells code-obj))
-	   :out-of-scope-args (if set-out-of-scope-args
-				  out-of-scope-args
-				  (remove nil (out-of-scope-args code-obj)))
-	   :place-tree (if set-place-tree place-tree (place-tree code-obj))
-	   :mutations (if set-mutations mutations (mutations code-obj))
-	   :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
+           :current-line (if set-current-line current-line
+                             (current-line code-obj))
+           :signatures (if set-sigs signatures (signatures code-obj))
+           :to-block (if set-block to-block (remove nil (to-block code-obj)))
+           :return-set (if set-return-set return-set (return-set code-obj))
+           :returns (listify (if set-returns returns (returns code-obj)))
+           :used-types (used-types code-obj)
+           :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
+           :stemcells (if set-stemcells stemcells (stemcells code-obj))
+           :out-of-scope-args (if set-out-of-scope-args
+                                  out-of-scope-args
+                                  (remove nil (out-of-scope-args code-obj)))
+           :place-tree (if set-place-tree place-tree (place-tree code-obj))
+           :mutations (if set-mutations mutations (mutations code-obj))
+           :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
 
 (defmethod merge-obs ((objs list)
                       &key type
@@ -111,12 +111,12 @@
   (assert (typep type 'v-type))
   (let ((flow-ids (flow-ids type))
         (return-set
-         (if (or set-return-set (null return-set))
+         (if set-return-set
              return-set
              (let ((return-sets (remove nil (mapcar #'return-set objs))))
-               (return-set (if (<= (length return-sets) 1)
-                               (first return-sets)
-                               (merge-return-sets return-sets)))))))
+               (if (<= (length return-sets) 1)
+                   (first return-sets)
+                   (merge-return-sets return-sets))))))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object
              :code-type type))

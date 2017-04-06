@@ -30,9 +30,18 @@
 ;;   returns.. wait..how do we handle that now?
 ;; - Make ret-val type for the elements of the return set
 
+
 (v-defspecial return (&optional (form '(values)))
   :args-valid t
   :return
+  (%return form nil env))
+
+(v-defspecial implicit-return (form)
+  :args-valid t
+  :return
+  (%return form t env))
+
+(defun %return (form implicit env)
   (let ((new-env (fresh-environment
                   env
                   :multi-val-base "return")))
@@ -40,7 +49,9 @@
     ;; down the tree know they will be caught and what their name prefix should
     ;; be.
     ;; We then compile the form using the augmented environment, the values
-    ;; statements will expand and flow back as 'multi-vals' and the current-line
+    ;; statements will expand and flow back as 'multi-vals' and the
+    ;; current-line
+
     ;; now there are two styles of return:
     ;; - The first is for a regular function, in which multivals become
     ;;   out-arguments and the current-line is returned
@@ -48,20 +59,26 @@
     ;;   output-variables and the current line is handled in a 'context'
     ;;   specific way.
     (let* ((code-obj (compile-form form new-env))
+           (is-main (not (null (member :main (v-context new-env)))))
            (result
-            (if (member :main (v-context env))
-                (%main-return code-obj env)
-                (%regular-value-return code-obj env))))
-      (values (copy-code result
-                         :node-tree (ast-node! 'return (node-tree code-obj)
-                                               (code-type result)
-                                               env env)
-                         :return-set (or (return-set result)
-                                         (error 'nil-return-set)))
+            (if is-main
+                (%main-return code-obj implicit new-env)
+                (%regular-return code-obj new-env)))
+           (ast (ast-node! 'return (node-tree code-obj)
+                           (code-type result)
+                           env env))
+           (ret-set (or (return-set result)
+                        (error 'nil-return-set
+                               :form (list (if implicit
+                                               'implicit-return
+                                               'return)
+                                           form)
+                               :possible-set (return-set code-obj)))))
+      (values (copy-code result :node-tree ast :return-set ret-set)
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
-(defun %regular-value-return (code-obj env)
+(defun %regular-return (code-obj env)
   (let* ((flow-result
           (if (multi-vals code-obj)
               (m-flow-id! (cons (flow-ids code-obj)
@@ -75,7 +92,8 @@
          (ret-set (make-return-set-from-code-obj code-obj env)))
     ;;
     (copy-code
-     code-obj :type (type-spec->type 'v-void flow-result)
+     code-obj
+     :type (type-spec->type 'v-void flow-result)
      :current-line (unless suppress-glsl
                      (format nil "return ~a" (current-line code-obj)))
      :returns (cons (code-type code-obj) (multi-vals code-obj))
@@ -85,32 +103,43 @@
 
 
 ;; Used when this is the main stage function
-(defun %main-return (code-obj env)
-  (if (multi-vals code-obj)
-      (let* ((mvals (multi-vals code-obj))
-             (v-vals (mapcar #'multi-val-value mvals))
-             (types (mapcar #'v-type-of v-vals))
-             (glsl-lines (mapcar #'v-glsl-name v-vals)))
-        (copy-code
-         (merge-progn
+(defun %main-return (code-obj implicit env)
+  (let ((type (v-type-of code-obj))
+        (void (type-spec->type :void)))
+    (cond
+      ((and implicit (v-typep type void)) '(values)
+       (values code-obj env))
+      ((multi-vals code-obj)
+       (let* ((mvals (multi-vals code-obj))
+              (v-vals (mapcar #'multi-val-value mvals))
+              (types (mapcar #'v-type-of v-vals))
+              (glsl-lines (mapcar #'v-glsl-name v-vals)))
+         (copy-code
+          (merge-progn
+           (with-fresh-env-scope (fresh-env env)
+             (env-> (p-env fresh-env)
+               (merge-multi-env-progn
+                (%mapcar-multi-env-progn
+                 (lambda (p-env type gname)
+                   (compile-let (gensym) (type->type-spec type)
+                                nil p-env gname))
+                 p-env types glsl-lines))
+               ;; We compile these ↓↓, however we dont include them in the ast
+               (compile-form (%default-out-for-stage code-obj p-env)
+                             p-env)
+               (compile-form (mvals->out-form code-obj p-env)
+                             p-env)
+               (compile-form '(glsl-expr "return" :void) p-env)))
+           env)
+          :return-set (make-return-set-from-code-obj code-obj env))))
+      (t (copy-code
           (with-fresh-env-scope (fresh-env env)
-            (env-> (p-env fresh-env)
-              (merge-multi-env-progn
-               (%mapcar-multi-env-progn
-                (lambda (p-env type gname)
-                  (compile-let (gensym) (type->type-spec type)
-                               nil p-env gname))
-                p-env types glsl-lines))
-              ;; We compile these ↓↓, however we dont include them in the ast
-              (compile-form (%default-out-for-stage code-obj p-env) p-env)
-              (compile-form (mvals->out-form code-obj p-env) p-env)))
-          env)
-         :return-set (make-return-set-from-code-obj code-obj env)))
-      (copy-code
-       (with-fresh-env-scope (fresh-env env)
-         (compile-form (%default-out-for-stage code-obj fresh-env)
-                       fresh-env))
-       :return-set (make-single-val-return-set env (v-type-of code-obj)))))
+            (compile-form `(progn
+                             ,(%default-out-for-stage code-obj fresh-env)
+                             (glsl-expr "return" :void))
+                          fresh-env))
+          :return-set (make-single-val-return-set
+                       env (v-type-of code-obj)))))))
 
 
 ;; fragment comes first as it doesnt restrict the exit type...this is a bug

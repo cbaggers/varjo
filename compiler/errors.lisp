@@ -672,12 +672,17 @@ However is not a type that can be swizzled. ~a"
     "Varjo: Cannot declare ~s as an unbound variable at global scope"
   name)
 
-(deferror nil-return-set () ()
+(deferror nil-return-set () (form possible-set)
     "Varjo Internal Bug: Could not establish return-set.
 
 Our apologies for this mistake. If you have the time please raise an issue at
 https://github.com/cbaggers/varjo/issues including the code that triggered this
-issue.")
+issue.
+
+Problematic form:
+~a
+
+Possible Set: ~a" form possible-set)
 
 (deferror with-fresh-env-scope-missing-env () ()
     "Varjo Bug: with-fresh-env-scope expects a code object & an environment to
