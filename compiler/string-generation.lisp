@@ -165,9 +165,10 @@
           (prefix-type-to-string type glsl-name qualifiers
                                  (when (eq stage :fragment) 'out))))
 
-(defun gen-in-var-string (glsl-name type qualifiers &optional layout)
+(defun gen-in-var-string (stage glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~]~a;" layout
-          (prefix-type-to-string type glsl-name qualifiers 'in)))
+          (prefix-type-to-string type glsl-name qualifiers
+                                 (when (eq stage :vertex) 'in))))
 
 (defun gen-uniform-decl-string (glsl-name type qualifiers)
   (declare (ignore qualifiers))
@@ -211,12 +212,17 @@
   (in-block-name-for (stage pp)))
 
 (defun gen-out-block (post-proc-obj)
-  (if (eq (extract-stage-type post-proc-obj) :fragment)
-      (mapcar #'%glsl-decl (out-vars post-proc-obj))
-      (when (out-vars post-proc-obj)
-        (list (write-interface-block
-               :out (out-block-name-for post-proc-obj)
-               (out-vars post-proc-obj))))))
+  (let ((stage-kind (extract-stage-type post-proc-obj)))
+    (if (eq stage-kind :fragment)
+        (mapcar #'%glsl-decl (out-vars post-proc-obj))
+        (let* ((out-vars (out-vars post-proc-obj))
+               (out-vars (if (eq stage-kind :vertex)
+                             (rest out-vars)
+                             out-vars)))
+          (when out-vars
+            (list (write-interface-block
+                   :out (out-block-name-for post-proc-obj)
+                   out-vars)))))))
 
 (defun gen-in-block (post-proc-obj)
   (if (eq (extract-stage-type post-proc-obj) :vertex)

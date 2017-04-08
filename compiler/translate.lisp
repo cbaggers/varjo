@@ -362,7 +362,8 @@
                 :glsl-name (glsl-name var)
                 :type type
                 :qualifiers (qualifiers var)
-                :glsl-decl (gen-in-var-string (or (glsl-name var)
+                :glsl-decl (gen-in-var-string (extract-stage-type stage)
+                                              (or (glsl-name var)
                                                   (name var))
                                               type
                                               (qualifiers var)

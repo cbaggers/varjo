@@ -45,9 +45,7 @@
   (%return form t env))
 
 (defun %return (form implicit env)
-  (let ((new-env (fresh-environment
-                  env
-                  :multi-val-base "return")))
+  (let ((new-env (fresh-environment env :multi-val-base "return")))
     ;; we create an environment with the signal to let any 'values' forms
     ;; down the tree know they will be caught and what their name prefix should
     ;; be.
@@ -108,7 +106,7 @@
   (let ((type (v-type-of code-obj))
         (void (type-spec->type :void)))
     (cond
-      ((and implicit (v-typep type void)) '(values)
+      ((and implicit (v-typep type void))
        (values code-obj env))
       ((multi-vals code-obj)
        (let* ((mvals (multi-vals code-obj))

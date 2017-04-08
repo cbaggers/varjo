@@ -61,6 +61,10 @@
 ;; Compiler output
 
 (defclass stage ()
+  ;; we cant specialize on the different stage types as it is current possible
+  ;; (and useful) to be able to make a stage which is both vertex & fragment.
+  ;; This is good for testing things compile but when you dont know what kind
+  ;; of stage it should be.
   ((input-variables :initarg :input-variables :accessor input-variables)
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (context :initarg :context :accessor context)

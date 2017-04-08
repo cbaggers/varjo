@@ -83,13 +83,16 @@
       (error 'no-function-returns :name name))
     (when (v-typep type (gen-none-type))
       (error 'function-with-no-return-type :func-name name))
-    (let* ((arg-pairs (loop :for (nil type) :in args
-                         :for name :in arg-glsl-names :collect
-                         `(,(v-glsl-string (type-spec->type type)) ,name)))
-           (out-arg-pairs (loop :for mval :in multi-return-vars
-                             :for name = (glsl-name mval)
-                             :for i :from 1
-                             :collect `(,(glsl-name mval) ,name)))
+    (let* ((arg-pairs (unless mainp
+                        (loop :for (nil type) :in args
+                           :for name :in arg-glsl-names :collect
+                           `(,(v-glsl-string (type-spec->type type)) ,name))))
+           (out-arg-pairs (unless mainp
+                            (loop :for mval :in multi-return-vars
+                               :for i :from 1
+                               :for name = (glsl-name mval)
+                               :for type = (v-glsl-string (v-type-of mval))
+                               :collect `(,type ,name))))
            (in-out-args
             ;; {TODO} handle multiple returns
             (when (and (typep type 'v-function-type)
@@ -117,8 +120,9 @@
                              (signatures body-obj)))))
            (func-glsl-def (unless strip-glsl
                             (gen-function-body-string
-                             glsl-name (unless mainp arg-pairs)
-                             out-arg-pairs return-for-glsl body-obj
+                             glsl-name arg-pairs
+                             out-arg-pairs
+                             return-for-glsl body-obj
                              implicit-args in-out-args)))
            (func (make-user-function-obj name
                                          (unless strip-glsl
@@ -134,12 +138,13 @@
                                          :in-out-args in-out-args
                                          :flow-ids (flow-ids body-obj)
                                          :in-arg-flow-ids in-arg-flow-ids))
+           (ret-set (return-set body-obj))
            (code-obj (copy-code body-obj
                                 :type (gen-none-type)
                                 :current-line nil
                                 :signatures sigs
                                 :to-block nil
-                                :return-set #()
+                                :return-set nil
                                 :multi-vals nil
                                 :place-tree nil
                                 :out-of-scope-args implicit-args)))
@@ -150,7 +155,7 @@
                              :used-types (used-types code-obj)
                              :glsl-code func-glsl-def
                              :stemcells (stemcells code-obj)
-                             :return-set (return-set code-obj))
+                             :return-set ret-set)
               code-obj))))
 
 (defun make-new-function-with-unreps (name args body allowed-implicit-args

@@ -267,7 +267,11 @@ Example:
               :type (type-spec->type (list (type->type-spec (v-type-of _))
                                            '*))
               :qualifiers (qualifiers _))
-            (out-vars stage)))
+            (rest (out-vars stage))))
+  (:method ((last (eql :vertex))
+            next
+            (stage stage))
+    (rest (out-vars stage)))
   ;;
   (:method (last next (stage stage))
     (declare (ignore last next))
