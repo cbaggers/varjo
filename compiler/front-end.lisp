@@ -66,6 +66,35 @@ Example:
 
 ;;----------------------------------------------------------------------
 
+(defgeneric copy-stage (stage &key)
+  (:method ((stage stage)
+            &key (input-variables nil iv-set)
+              (uniform-variables nil uv-set)
+              (context nil c-set)
+              (lisp-code nil lc-set)
+              (previous-stage nil ps-set)
+              (stemcells-allowed nil sa-set))
+    (make-instance
+     'stage
+     :input-variables (if iv-set
+                          input-variables
+                          (input-variables stage))
+     :uniform-variables (if uv-set
+                            uniform-variables
+                            (uniform-variables stage))
+     :context (if c-set
+                  context
+                  (context stage))
+     :lisp-code (if lc-set
+                    lisp-code
+                    (lisp-code stage))
+     :previous-stage (if ps-set
+                         previous-stage
+                         (previous-stage stage))
+     :stemcells-allowed (if sa-set
+                            stemcells-allowed
+                            (stemcells-allowed stage)))))
+
 (defun rolling-translate (stages &optional (compile-func #'translate))
   (let ((result (reduce λ(compile-stage _ _1 compile-func) stages
                         :initial-value (make-instance 'rolling-result))))
@@ -125,60 +154,65 @@ Example:
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
                                     accum)
-  (labels ((gen-aliases ()
-             (let ((in-args (input-variables stage))
-                   (out-vars (out-vars last-stage)))
-               ;; :for (nil . out-rest) :in out-vars
-               ;; :for (in-name type . in-rest) :in in-args
-               (loop :for out-var :in out-vars
-                  :for in-var :in in-args :append
-                  (let ((out-glsl-name (glsl-name out-var))
-                        (in-glsl-name (subseq (glsl-name in-var) 1)))
-                    (when (not (equal out-glsl-name in-glsl-name))
-                      (flow-id-scope
-                        (to-block
-                         (let ((env (%make-base-environment)))
-                           (glsl-let
-                            (name in-var) in-glsl-name (v-type-of in-var)
-                            (compile-glsl-expression-string
-                             out-glsl-name (v-type-of in-var) env nil)
-                            env)))))))))
-           (swap-out-args (glsl-string)
-             (let ((in-args (input-variables stage))
-                   (out-vars (out-vars last-stage)))
-               (loop :for out :in out-vars
-                  :for in :in in-args
-                  :for out-glsl-name := (glsl-name out)
-                  :for in-glsl-name := (subseq (glsl-name in) 1)
-                  :do
-                  (setf glsl-string
-                        (ppcre:regex-replace (format nil "@~a" in-glsl-name)
-                                             glsl-string out-glsl-name))))
-             glsl-string))
-
-    (let ((in-args (input-variables stage))
-          (out-vars (transform-previous-stage-out-vars last-stage stage)))
-      (assert (in-args-compatiblep in-args out-vars))
-      (assert (uniforms-compatiblep (uniform-variables stage)
-                                    (uniform-variables last-stage)))
-      (assert (context-compatiblep stage last-stage))
-      ;; we need to modify the result of the compiled stage if the in-args names
-      ;; dont match the names of the out args
-      (let* ((glsl-aliases (gen-aliases))
-             (glsl-code-0 (glsl-code stage))
-             (glsl-code-1 (swap-out-args glsl-code-0))
-             (final-glsl-code (ppcre:regex-replace
-                               "void main"
-                               glsl-code-1
-                               (format nil "~{~a~}~%~%void main"
-                                       glsl-aliases)))
-             (new-compile-result
-              (clone-compile-result stage :glsl-code final-glsl-code)))
-        (with-slots (compiled-stages) accum
-          (make-instance 'rolling-result
-                         :compiled-stages (cons new-compile-result
-                                                compiled-stages)
-                         :remaining-stages remaining-stage-types))))))
+  (let ((out-vars
+         (if (stage-is last-stage :vertex)
+             (rest (out-vars last-stage))
+             (out-vars last-stage))))
+    (labels ((gen-aliases ()
+               (let ((in-args (input-variables stage)))
+                 ;; :for (nil . out-rest) :in out-vars
+                 ;; :for (in-name type . in-rest) :in in-args
+                 (loop :for out-var :in out-vars
+                    :for in-var :in in-args :append
+                    (let ((out-glsl-name (glsl-name out-var))
+                          (in-glsl-name (subseq (glsl-name in-var) 1)))
+                      (when (not (equal out-glsl-name in-glsl-name))
+                        (flow-id-scope
+                          (to-block
+                           (let ((env (%make-base-environment)))
+                             (glsl-let
+                              (name in-var) in-glsl-name (v-type-of in-var)
+                              (compile-glsl-expression-string
+                               out-glsl-name (v-type-of in-var) env nil)
+                              env)))))))))
+             (swap-out-args (glsl-string)
+               (let ((in-args (input-variables stage)))
+                 (loop :for out :in out-vars
+                    :for in :in in-args
+                    :for out-glsl-name := (glsl-name out)
+                    :for in-glsl-name := (subseq (glsl-name in) 1)
+                    :do
+                    (setf glsl-string
+                          (ppcre:regex-replace (format nil "@~a" in-glsl-name)
+                                               glsl-string out-glsl-name))))
+               glsl-string)
+             (swap-in-block (glsl-string)
+               (ppcre:regex-replace "_IN_BLOCK_" glsl-string
+                                    (block-name-string
+                                     (out-block-name-for last-stage)))))
+      (let ((in-args (input-variables stage))
+            (out-vars (transform-previous-stage-out-vars last-stage stage)))
+        (assert (in-args-compatiblep in-args out-vars))
+        (assert (uniforms-compatiblep (uniform-variables stage)
+                                      (uniform-variables last-stage)))
+        (assert (context-compatiblep stage last-stage))
+        ;; we need to modify the result of the compiled stage if the in-args names
+        ;; dont match the names of the out args
+        (let* ((glsl-aliases (gen-aliases))
+               (glsl-code (glsl-code stage))
+               (glsl-code (swap-out-args glsl-code))
+               (glsl-code (swap-in-block glsl-code))
+               (final-glsl-code (ppcre:regex-replace
+                                 "void main" glsl-code
+                                 (format nil "~{~a~}~%~%void main"
+                                         glsl-aliases)))
+               (new-compile-result
+                (clone-compile-result stage :glsl-code final-glsl-code)))
+          (with-slots (compiled-stages) accum
+            (make-instance 'rolling-result
+                           :compiled-stages (cons new-compile-result
+                                                  compiled-stages)
+                           :remaining-stages remaining-stage-types)))))))
 
 ;;------------------------------------------------------------
 
@@ -243,6 +277,7 @@ Example:
 (defgeneric in-args-compatiblep (in-args last-out-vars)
   ;;
   (:method ((in-args list) (last-out-vars list))
+    (and (= (length in-args) (length last-out-vars)))
     (every (lambda (out in)
              (and (v-type-eq (v-type-of out) (v-type-of in))
                   (%suitable-qualifiersp out in)))

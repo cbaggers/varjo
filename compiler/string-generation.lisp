@@ -205,6 +205,9 @@
         (symb :from_ (extract-stage-type prev))
         :in_block)))
 
+(defun block-name-string (block-name)
+  (format nil "_~a_" block-name))
+
 (defmethod out-block-name-for ((pp post-compile-process))
   (out-block-name-for (stage pp)))
 
@@ -244,7 +247,7 @@
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{    ~a~%~}};"
           layout
           (string-downcase (symbol-name storage-qualifier))
-          (format nil "_~a_" block-name)
+          (block-name-string block-name)
           (mapcar #'%glsl-decl out-vars)))
 
 (defun write-ubo-block (storage-qualifier block-name slots

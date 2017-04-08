@@ -10,6 +10,15 @@
                  :type type
                  :qualifiers (sort (copy-list qualifiers) #'<)))
 
+
+(defun make-external-return-val (glsl-name type &optional qualifiers)
+  (assert (typep type 'v-type))
+  (assert (every #'keywordp qualifiers))
+  (make-instance 'external-return-val
+                 :out-name glsl-name
+                 :type type
+                 :qualifiers (sort (copy-list qualifiers) #'<)))
+
 (defun make-return-val-from-mval (mval)
   (let ((type (v-type-of mval))
         (qualifiers (multi-val-qualifiers mval)))

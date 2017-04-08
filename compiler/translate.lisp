@@ -390,7 +390,9 @@
       (setf (out-vars post-proc-obj)
             (loop :for ret-val :across ret-set
                :for i :from 0
-               :for glsl-name := (nth-return-name i stage-kind)
+               :for glsl-name := (if (typep ret-val 'external-return-val)
+                                     (out-name ret-val)
+                                     (nth-return-name i stage-kind))
                :for type := (v-type-of ret-val)
                :for qualifiers := (qualifiers ret-val)
                :for location :in locations

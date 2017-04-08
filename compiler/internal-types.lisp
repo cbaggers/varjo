@@ -259,6 +259,9 @@
 (defclass named-return-val (return-val)
   ((glsl-name :initarg :glsl-name :reader glsl-name)))
 
+(defclass external-return-val (return-val)
+  ((out-name :initarg :out-name :reader out-name)))
+
 ;;----------------------------------------------------------------------
 
 (defclass standard-value-metadata () ())
