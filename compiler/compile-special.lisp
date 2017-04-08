@@ -231,7 +231,10 @@
         (full-spec (gensym "form")))
     `(let* ((,full-spec ,form)
             (,var-spec (listify (first ,full-spec)))
-            (value-form (second ,full-spec)))
+            (value-form (second ,full-spec))
+            (value-form (if (and (> (length ,full-spec) 1) (null value-form))
+                            `(the :bool nil)
+                            value-form)))
        (declare (ignorable value-form))
        (destructuring-bind (name &optional type-spec ,qual) ,var-spec
          (declare (ignore ,qual))

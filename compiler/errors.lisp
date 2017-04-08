@@ -93,9 +93,10 @@
 (deferror no-valid-function () (name types)
     "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
 
-(deferror return-type-mismatch () (returns)
+(deferror return-type-mismatch () (sets)
     "Some of the return statements return different types:~{~%~a~}"
-  returns)
+  (mapcar (lambda (x) (map 'list #'type->type-spec x))
+          sets))
 
 (deferror non-place-assign () (place val)
     "You cannot setf this: ~a ~%This was attempted as follows ~a"
@@ -687,3 +688,7 @@ Possible Set: ~a" form possible-set)
 (deferror with-fresh-env-scope-missing-env () ()
     "Varjo Bug: with-fresh-env-scope expects a code object & an environment to
 be returned from it's body. However there was no environment returned.")
+
+(deferror vertex-stage-primary-type-mismatch () (prim-type)
+    "Varjo: The primary return value from vertex shaders must be a vec4.
+Instead ~a was found" (type->type-spec prim-type))

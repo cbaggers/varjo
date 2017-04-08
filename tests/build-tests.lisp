@@ -63,7 +63,7 @@
          (v! 0 (test) 0 0))))))
 
 (5am:def-test build-9 (:suite build-tests)
-  (signals varjo-conditions:setq-type-match
+  (signals varjo-conditions:vertex-stage-primary-type-mismatch
     (compile-vert () :450 nil
       ())))
 

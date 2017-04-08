@@ -36,10 +36,7 @@
              (assert (and (= (length set-a) (length set-b))
                           (every #'return-val-eql set-a set-b))
                      () 'return-type-mismatch
-                     :returns (list (map 'list λ(type->type-spec (v-type-of _))
-                                         set-a)
-                                    (map 'list λ(type->type-spec (v-type-of _))
-                                         set-b)))
+                     :sets (list set-a set-b))
              set-a))
     (let* ((sets (remove nil sets))
            (set (reduce #'%merge-return-sets (rest sets)

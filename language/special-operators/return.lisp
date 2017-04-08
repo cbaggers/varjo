@@ -148,6 +148,9 @@
 (defun %default-out-for-stage (code-obj env)
   (let ((context (v-context env)))
     (if (member :vertex context)
-        `(setq varjo-lang::gl-position ,code-obj)
+        (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
+            `(setq varjo-lang::gl-position ,code-obj)
+            (error 'vertex-stage-primary-type-mismatch
+                   :prim-type (v-type-of code-obj)))
         `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0))
                     :void ,code-obj))))

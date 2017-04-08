@@ -147,6 +147,9 @@
            :dup-names-in-let
            :uninitialized-var
            :global-uninitialized-var
+           :nil-return-set
+           :with-fresh-env-scope-missing-env
+           :vertex-stage-primary-type-mismatch
 
            ;; restarts
            :setq-supply-alternate-type
