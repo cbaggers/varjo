@@ -382,14 +382,15 @@
   (with-slots (main-func env) post-proc-obj
     (let* ((ret-set (return-set main-func))
            (out-types (map 'list #'v-type-of ret-set))
-           (locations (if (member :fragment (v-context env))
+           (locations (if (stage-is env :fragment)
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
-           (stage (stage post-proc-obj)))
+           (stage (stage post-proc-obj))
+           (stage-kind (extract-stage-type post-proc-obj)))
       (setf (out-vars post-proc-obj)
             (loop :for ret-val :across ret-set
-               :for i :from 1
-               :for glsl-name := (nth-return-name i)
+               :for i :from 0
+               :for glsl-name := (nth-return-name i stage-kind)
                :for type := (v-type-of ret-val)
                :for qualifiers := (qualifiers ret-val)
                :for location :in locations

@@ -52,16 +52,16 @@
 
 ;;------------------------------------------------------------
 
-(defun nth-return-name (n)
-  (format nil "_OUT_~a" n))
+(defun nth-return-name (n stage)
+  (format nil "_~a_OUT_~a" stage n))
 
 (defun mvals->out-form (code-object env)
-  (declare (ignore env))
-  (let ((mvals (multi-vals code-object)))
+  (let ((mvals (multi-vals code-object))
+        (stage (extract-stage-type env)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect
             (with-slots (value qualifiers) mval
-              `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i))
+              `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i stage))
                           :void ,value))))))
 
 

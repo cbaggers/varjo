@@ -32,7 +32,7 @@ Example:
   (let ((stages (list (when vertex
                         (make-stage (first vertex)
                                     uniforms
-                                    (list  :vertex version)
+                                    (list :vertex version)
                                     (rest vertex)
                                     allow-stemcells))
                       (when tesselation-control
@@ -137,10 +137,12 @@ Example:
                     (when (not (equal out-glsl-name in-glsl-name))
                       (flow-id-scope
                         (to-block
-                         (glsl-let (name in-var) in-glsl-name (v-type-of in-var)
-                                   (compile-glsl-expression-string
-                                    out-glsl-name (v-type-of in-var))
-                                   (%make-base-environment)))))))))
+                         (let ((env (%make-base-environment)))
+                           (glsl-let
+                            (name in-var) in-glsl-name (v-type-of in-var)
+                            (compile-glsl-expression-string
+                             out-glsl-name (v-type-of in-var) env nil)
+                            env)))))))))
            (swap-out-args (glsl-string)
              (let ((in-args (input-variables stage))
                    (out-vars (out-vars last-stage)))
@@ -178,13 +180,33 @@ Example:
                                                 compiled-stages)
                          :remaining-stages remaining-stage-types))))))
 
-(defgeneric extract-stage-type (stage)
-  (:method ((stage stage))
-    (let ((context (context stage)))
-      (find-if λ(when (member _ context) _)
-               *stage-types*)))
-  (:method ((ppp post-compile-process))
-    (extract-stage-type (stage ppp))))
+;;------------------------------------------------------------
+
+(defmethod extract-stage-type ((stage stage))
+  (let ((context (context stage)))
+    (find-if λ(when (member _ context) _)
+             *stage-types*)))
+(defmethod extract-stage-type ((env environment))
+  (let ((context (v-context env)))
+    (find-if λ(when (member _ context) _)
+             *stage-types*)))
+(defmethod extract-stage-type ((ppp post-compile-process))
+  (extract-stage-type (stage ppp)))
+
+;;------------------------------------------------------------
+
+(defmethod stage-is ((stage stage) name)
+  (let ((context (context stage)))
+    (not (null (find name context)))))
+
+(defmethod stage-is ((env environment) name)
+  (let ((context (v-context env)))
+    (not (null (find name context)))))
+
+(defmethod stage-is ((ppp post-compile-process) name)
+  (stage-is (stage ppp) name))
+
+;;------------------------------------------------------------
 
 (defgeneric args-compatiblep (stage previous-stage))
 

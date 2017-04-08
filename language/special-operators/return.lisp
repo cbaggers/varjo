@@ -131,7 +131,7 @@
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
           :return-set (make-return-set-from-code-obj code-obj))))
-      (t (let ((ret-set (if (member :vertex (v-context env))
+      (t (let ((ret-set (if (stage-is env :vertex)
                             (make-return-set)
                             (make-return-set (make-return-val type)))))
            (copy-code
@@ -146,11 +146,11 @@
 ;; really as fragment out-var should be vec4...We should have a case for
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (code-obj env)
-  (let ((context (v-context env)))
-    (if (member :vertex context)
+  (let ((stage-kind (extract-stage-type env)))
+    (if (stage-is env :vertex)
         (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch
                    :prim-type (v-type-of code-obj)))
-        `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0))
+        `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage-kind))
                     :void ,code-obj))))
