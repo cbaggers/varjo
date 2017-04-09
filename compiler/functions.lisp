@@ -251,17 +251,6 @@ however failed to do so when asked."
                            (first (dual-sort matches))))))
       (list (func function) (arguments function)))))
 
-(defun find-function-for-args (func-name args-code env)
-  "Find the function that best matches the name and arg spec given
-   the current environment. This process simply involves finding the
-   functions and then sorting them by their appropriateness score,
-   the lower the better. We then take the first one and return that
-   as the function to use."
-  (let ((candidates (get-form-binding func-name env)))
-    (typecase candidates
-      (v-function-set (find-function-in-set-for-args candidates args-code env))
-      (t (error 'could-not-find-function :name func-name)))))
-
 (defun %func-name-from-set (func-set)
   (let* ((names (mapcar #'name (functions func-set)))
          (names (remove-duplicates names)))

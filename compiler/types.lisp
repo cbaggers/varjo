@@ -39,7 +39,8 @@
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
-   (ctv :initform nil :initarg :ctv :accessor ctv)))
+   (ctv :initform nil :initarg :ctv :accessor ctv)
+   (default-value :initarg :default-value)))
 
 (defmethod v-superclass ((type v-type))
   (with-slots (superclass) type
@@ -173,6 +174,15 @@ doesnt"))
   (* (apply #'* (v-dimensions type))
      (slot-value (v-element-type type) 'glsl-size)))
 
+(defmethod post-initialise ((object v-array))
+  (with-slots (dimensions element-type) object
+    (let ((dim (listify dimensions)))
+      (assert (<= (length dim) 1) (dim)
+              'multi-dimensional-array :dimensions dim)
+      (setf dimensions dim))
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
 (defmethod v-element-type ((object v-container))
   (let ((result (slot-value object 'element-type)))
     ;; {TODO} dedicated error
@@ -182,10 +192,9 @@ doesnt"))
     result))
 
 (defmethod copy-type ((type v-array))
-  (let* ((new-inst (call-next-method)))
-    (setf (v-dimensions new-inst) (v-dimensions type))
-    (setf (slot-value new-inst 'element-type) (v-element-type type))
-    new-inst))
+  (make-instance 'v-array
+                 :dimensions (v-dimensions type)
+                 :element-type (v-element-type type)))
 
 (defmethod type->type-spec ((type v-array))
   (if (and (v-element-type type) (v-dimensions type))
@@ -193,9 +202,8 @@ doesnt"))
       'v-array))
 
 (defmethod v-glsl-string ((object v-array))
-  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object))
-          (mapcar (lambda (x)
-                    (if (numberp x) x ""))
+  (format nil "~a~{[~a]~} ~~a" (v-glsl-string (v-element-type object))
+          (mapcar (lambda (x) (if (numberp x) x ""))
                   (v-dimensions object))))
 
 (defmethod v-array-type-of ((element-type v-type) dimensions flow-id)
@@ -556,7 +564,7 @@ doesnt"))
                   :collect (if (typep type 'v-type)
                                (type->type-spec type)
                                type))))
-    (if (loop :for name :in names :always (eq name (first names)))
+    (if (loop :for name :in names :always (equal name (first names)))
         (type-spec->type (first names))
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
