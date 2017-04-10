@@ -23,6 +23,19 @@
               :fragment ',(second body)
               :allow-stemcells ,allow-stemcells))
 
+(defmacro compile-vert-geom (uniforms version allow-stemcells &body body)
+  `(v-compile ',uniforms ,version
+              :vertex ',(first body)
+              :geometry ',(second body)
+              :allow-stemcells ,allow-stemcells))
+
+(defmacro compile-vert-geom-frag (uniforms version allow-stemcells &body body)
+  `(v-compile ',uniforms ,version
+              :vertex ',(first body)
+              :geometry ',(second body)
+              :fragment ',(third body)
+              :allow-stemcells ,allow-stemcells))
+
 (defun ast-stabalizes-p (compile-result &optional (depth 0) (max-depth 20))
   "Returns t if compile the ast->code of compile-result gives the same ast
    It is allowed to recompile up to 'max-depth' times in order to find

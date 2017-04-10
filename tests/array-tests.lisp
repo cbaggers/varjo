@@ -81,10 +81,28 @@
              (i (vector (* j 2) 2 3)))
         (v! (aref i 0) 0 0 0)))))
 
-;; {TODO}
-;; (5am:def-test array-13 (:suite array-tests)
-;;   (finishes-p
-;;    (compile-vert () :450 nil
-;;      (let* ((i (vector 1 2 3))
-;;             (j (vector i i)))
-;;        (v! (aref i 0) 0 0 0)))))
+(5am:def-test array-13 (:suite array-tests)
+  (finishes-p
+   (compile-vert-frag () :450 nil
+     (()
+      (let ((i (vector 1 2 3)))
+        (values (v! 0 0 0 0)
+                i)))
+     (((foo? (:int 3)))
+      (v! (aref foo? 0) 0 0 0)))))
+
+(5am:def-test array-14 (:suite array-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (let* ((i (vector 1 2 3))
+            (j (vector i i)))
+       (v! (aref i 0) 0 0 0)))))
+
+(5am:def-test array-15 (:suite array-tests)
+  (finishes-p
+   (compile-vert-geom () :450 nil
+     (()
+      (values (v! 0 0 0 0)
+              1))
+     (((foo? (:int 3)))
+      (v! (aref foo? 0) 0 0 0)))))
