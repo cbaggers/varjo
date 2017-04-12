@@ -91,7 +91,8 @@
     "No function, macro or compiler-macro called '~a' could be found in this environment" name)
 
 (deferror no-valid-function () (name types)
-    "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
+    "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s "
+  name (mapcar #'type->type-spec types))
 
 (deferror return-type-mismatch () (sets)
     "Some of the return statements return different types:~{~%~a~}"
