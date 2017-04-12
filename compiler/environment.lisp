@@ -423,11 +423,14 @@ For example calling env-prune on this environment..
 
 ;;[TODO] really no better way of doing this?
 (defun vtype-existsp (type-name)
-  (and type-name
-       (find-class type-name nil)
-       (handler-case (progn (typep (make-instance type-name) 'v-type)
-                            t)
-         (error () nil))))
+  (etypecase type-name
+    (symbol
+     (and type-name
+          (find-class type-name nil)
+          (handler-case (progn (typep (make-instance type-name) 'v-type)
+                               t)
+            (error () nil))))
+    (list (vtype-existsp (first type-name)))))
 
 ;;-------------------------------------------------------------------------
 

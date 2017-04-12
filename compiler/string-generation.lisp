@@ -141,9 +141,7 @@
              :place-tree nil))
 
 (defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
-  (let* ((line (cond ((typep type 'v-array) (format nil (v-glsl-string type)
-                                                    line-string))
-                     ((typep type 'v-type) (format nil "~a ~a"
+  (let* ((line (cond ((typep type 'v-type) (format nil "~a ~a"
                                                    (v-glsl-string type)
                                                    line-string))
                      (t (error "dont know how to add the type here")))))
@@ -266,14 +264,9 @@
       (format nil "    ~{~a ~}~a"
               ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))
               nil
-              (if (typep type-obj 'v-array)
-                  (format nil "~a[~a] ~a;"
-                          (v-glsl-string (v-element-type type-obj))
-                          (v-dimensions type-obj)
-                          (safe-glsl-name-string name))
-                  (format nil "~a ~a;"
-                          (v-glsl-string type-obj)
-                          (safe-glsl-name-string name)))))))
+              (format nil "~a ~a;"
+                      (v-glsl-string type-obj)
+                      (safe-glsl-name-string name))))))
 
 ;;----------------------------------------------------------------------
 

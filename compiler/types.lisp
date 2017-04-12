@@ -175,13 +175,17 @@ doesnt"))
      (slot-value (v-element-type type) 'glsl-size)))
 
 (defmethod post-initialise ((object v-array))
-  (with-slots (dimensions element-type) object
-    (let ((dim (listify dimensions)))
-      (assert (<= (length dim) 1) (dim)
-              'multi-dimensional-array :dimensions dim)
-      (setf dimensions dim))
-    (unless (typep element-type 'v-type)
-      (setf element-type (type-spec->type element-type)))))
+  (labels ((valid-size-p (l)
+             (or (and (integerp l) (>= l 0))
+                 (eq l '*))))
+    (with-slots (dimensions element-type) object
+      (let ((dim (listify dimensions)))
+        (assert (<= (length dim) 1) (dim)
+                'multi-dimensional-array :dimensions dim)
+        (assert (every #'valid-size-p dim))
+        (setf dimensions dim))
+      (unless (typep element-type 'v-type)
+        (setf element-type (type-spec->type element-type))))))
 
 (defmethod v-element-type ((object v-container))
   (let ((result (slot-value object 'element-type)))
@@ -202,9 +206,21 @@ doesnt"))
       'v-array))
 
 (defmethod v-glsl-string ((object v-array))
-  (format nil "~a~{[~a]~} ~~a" (v-glsl-string (v-element-type object))
-          (mapcar (lambda (x) (if (numberp x) x ""))
-                  (v-dimensions object))))
+  (labels ((dims (x)
+             (append (v-dimensions x)
+                     (when (typep (v-element-type x) 'v-array)
+                       (dims (v-element-type x)))))
+           (root-type (x)
+             (if (typep (v-element-type x) 'v-array)
+                 (root-type (v-element-type x))
+                 (v-element-type x))))
+    ;;
+    (let ((dims (mapcar λ(if (eq _ '*) "" _)
+                        (dims object)))
+          ;; The reason for this ↑↑ logic is that we want
+          ;; * to become []  not [*]
+          (elem-type (root-type object)))
+      (format nil "~a~{[~a]~}" (v-glsl-string elem-type) dims))))
 
 (defmethod v-array-type-of ((element-type v-type) dimensions flow-id)
   (let ((dimensions (ensure-list dimensions)))
@@ -394,13 +410,11 @@ doesnt"))
            (gen-or-type (rest spec)))
           ((and (listp spec) (vtype-existsp (first spec)))
            (destructuring-bind (type dimensions) spec
-             (make-instance 'v-array
-                            :element-type (type-spec->type
-                                           (if (keywordp type)
-                                               (symb 'v- type)
-                                               type))
-                            :dimensions dimensions
-                            :flow-ids flow-id)))
+             (make-instance
+              'v-array
+              :element-type (type-spec->type type (when flow-id (flow-id!)))
+              :dimensions dimensions
+              :flow-ids flow-id)))
           (t nil))))
 
 ;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
