@@ -253,38 +253,6 @@ Example:
 
 ;;------------------------------------------------------------
 
-(defgeneric args-compatiblep (stage previous-stage))
-
-(defgeneric in-args-compatible-for-stage-p
-    (in-args stage last-out-vars last-stage))
-
-(defmethod in-args-compatible-for-stage-p
-    ((in-args list) (stage (eql :fragment))
-     (last-out-vars list) (last-stage (eql :geometry)))
-  (declare (ignore in-args last-out-vars))
-  (warn "Varjo: Cannot currently check the validity of type passed from geometry stages to fragment stages.")
-  t)
-
-(defmethod in-args-compatible-for-stage-p
-    ((in-args list) (stage (eql :tesselation-control))
-     (last-out-vars list) (last-stage (eql :vertex)))
-  (declare (ignore in-args last-out-vars))
-  (warn "Varjo: Cannot currently check the validity of type passed from vertex stages to tesselation-control stages.")
-  t)
-
-(defmethod in-args-compatible-for-stage-p
-    ((in-args list) (stage (eql :tesselation-evaluation))
-     (last-out-vars list) (last-stage (eql :tesselation-control)))
-  (declare (ignore in-args last-out-vars))
-  (warn "Varjo: Cannot currently check the validity of type passed from tesselation-control to tesselation-evaluation stages.")
-  t)
-
-(defmethod in-args-compatible-for-stage-p
-    ((in-args list) (stage symbol) (last-out-vars list) (last-stage symbol))
-  (declare (ignore stage last-stage))
-  (in-args-compatiblep in-args last-out-vars))
-
-
 (defgeneric in-args-compatiblep (in-args last-out-vars)
   ;;
   (:method ((in-args list) (last-out-vars list))
@@ -297,7 +265,6 @@ Example:
 (defun %suitable-qualifiersp (out-arg in-arg)
   (let ((out-qual (qualifiers out-arg)))
     (every λ(member _ out-qual) (qualifiers in-arg))))
-
 
 (defgeneric uniforms-compatiblep (uniforms last-uniforms)
   ;;
