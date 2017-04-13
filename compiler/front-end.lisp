@@ -311,6 +311,10 @@ Example:
                          (extract-stage-type next-stage)
                          stage)))
 
+(defun primitive-size (stage)
+  (error "OH jesus, lord help me jesus, it's all fucked up the Lord jesus mercy jesus lord~%~a"
+         stage))
+
 (defgeneric transform-arg-types (last next stage)
   ;;
   (:method ((last (eql :vertex))
@@ -322,7 +326,7 @@ Example:
               :name (name _)
               :glsl-name (glsl-name _)
               :type (type-spec->type (list (type->type-spec (v-type-of _))
-                                           '*))
+                                           (primitive-size stage)))
               :qualifiers (qualifiers _))
             (rest (out-vars stage))))
   (:method ((last (eql :vertex))
