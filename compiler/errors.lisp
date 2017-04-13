@@ -769,6 +769,13 @@ Stage: ~a"
     "Varjo: ~s is not a valid stage kind for ~a stages. Instead try
 points, lines, lines-adjacency, triangles or triangles-adjacency." prim stage)
 
+(deferror rolling-translate-invalid-stage () (invalid)
+    "Varjo: rolling translate expects a list of stages as it's first argument.
+However it found ~a invalid ~a in the list:~{~%~s~}"
+  (if (> (length invalid) 1) "these" "this")
+  (if (> (length invalid) 1) "elements" "element")
+  invalid)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package
