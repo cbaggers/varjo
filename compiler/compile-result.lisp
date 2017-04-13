@@ -51,3 +51,6 @@ Sorry for the inconvenience")
 
 (defmethod extract-stage-type ((cr varjo-compile-result))
   (stage-type cr))
+
+(defmethod glsl-code ((objs list))
+  (mapcar #'glsl-code objs))

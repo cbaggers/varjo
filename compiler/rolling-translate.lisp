@@ -42,24 +42,23 @@
            (args-for-error (x)
              (mapcar #'arg-for-error x)))
     (if previous-stage
-        (let ((out-vars (transform-previous-stage-out-vars previous-stage
-                                                           stage))
-              (in-vars (input-variables stage)))
-          (copy-stage
-           stage
-           :previous-stage previous-stage
-           :input-variables
-           (if (and (in-args-compatiblep in-vars out-vars)
-                    (uniforms-compatiblep
-                     (uniform-variables stage)
-                     (uniform-variables previous-stage))
-                    (context-compatiblep stage previous-stage))
-               (mapcar #'merge-in-arg out-vars in-vars)
-               (error 'args-incompatible
-                      :current-args (args-for-error in-vars)
-                      :previous-args (args-for-error out-vars)))))
+        (vbind (out-vars primitive-kind)
+            (transform-previous-stage-out-data previous-stage stage)
+          (let ((in-vars (input-variables stage)))
+            (copy-stage
+             stage
+             :previous-stage previous-stage
+             :input-variables
+             (if (and (in-args-compatiblep in-vars out-vars)
+                      (uniforms-compatiblep (uniform-variables stage)
+                                            (uniform-variables previous-stage))
+                      (context-compatiblep stage previous-stage))
+                 (mapcar #'merge-in-arg out-vars in-vars)
+                 (error 'args-incompatible
+                        :current-args (args-for-error in-vars)
+                        :previous-args (args-for-error out-vars)))
+             :primitive primitive-kind)))
         stage)))
-
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
                                     accum)
@@ -69,8 +68,6 @@
              (out-vars last-stage))))
     (labels ((gen-aliases ()
                (let ((in-args (input-variables stage)))
-                 ;; :for (nil . out-rest) :in out-vars
-                 ;; :for (in-name type . in-rest) :in in-args
                  (loop :for out-var :in out-vars
                     :for in-var :in in-args :append
                     (let ((out-glsl-name (glsl-name out-var))
@@ -153,37 +150,74 @@
 
 ;;----------------------------------------------------------------------
 
-(defgeneric transform-previous-stage-out-vars (stage next-stage)
-  (:method (stage next-stage)
-    (transform-arg-types (extract-stage-type stage)
-                         (extract-stage-type next-stage)
-                         stage)))
+(defgeneric transform-previous-stage-out-data (stage next-stage)
+  (:method ((stage varjo-compile-result) next-stage)
+    (let ((next-primitive (compute-next-primitive stage next-stage)))
+      (values (transform-arg-types (extract-stage-type stage)
+                                   (extract-stage-type next-stage)
+                                   stage
+                                   next-primitive)
+              next-primitive))))
 
-(defun primitive-size (stage)
-  (error "OH jesus, lord help me jesus, it's all fucked up the Lord jesus mercy jesus lord~%~a"
-         stage))
+(defun compute-next-primitive (compiled-stage next-stage)
+  (let ((primitive (primitive-out compiled-stage))
+        (stage (stage-type compiled-stage))
+        (next-stage (extract-stage-type next-stage)))
+    (%compute-next-primitive primitive stage next-stage)))
 
-(defgeneric transform-arg-types (last next stage)
-  ;;
+(defgeneric %compute-next-primitive (primitive stage next-stage)
+  (:method (primitive
+            (stage (eql :vertex))
+            (next-stage (eql :geometry)))
+    (assert (or (typep primitive 'draw-mode)
+                (typep primitive 'geometry-primitive)))
+    (make-instance
+     (typecase primitive
+       (points :points)
+       ((or lines line-loop line-strip) 'lines)
+       ((or lines-adjacency line-strip-adjacency) 'lines-adjacency)
+       ((or triangles triangle-fan triangle-strip) 'triangles)
+       ((or triangles-adjacency triangle-strip-adjacency) 'triangles-adjacency)
+       (t (error 'couldnt-convert-primitive-for-geometry-stage
+                 :prim (type-of primitive)
+                 :prev-stage stage)))))
+
+  (:method (primitive
+            (stage (eql :vertex))
+            (next-stage (eql :tesselation-control)))
+    (error "IMPLEMENT ME!"))
+
+  (:method (primitive
+            (stage (eql :vertex))
+            (next-stage (eql :tesselation-evaluation)))
+    (error "IMPLEMENT ME!"))
+
+  (:method (primitive
+            stage
+            (next-stage (eql :fragment)))
+    nil))
+
+(defgeneric transform-arg-types (last next stage primitive)
   (:method ((last (eql :vertex))
             (next (eql :geometry))
-            (stage stage))
+            (stage stage)
+            primitive)
     (declare (optimize debug))
     (mapcar λ(make-instance
               'output-variable
               :name (name _)
               :glsl-name (glsl-name _)
               :type (type-spec->type (list (type->type-spec (v-type-of _))
-                                           (primitive-size stage)))
+                                           (vertex-count primitive)))
               :qualifiers (qualifiers _))
             (rest (out-vars stage))))
-  (:method ((last (eql :vertex))
-            next
-            (stage stage))
+
+  (:method ((last (eql :vertex)) next (stage stage) primitive)
+    (declare (ignore last next primitive))
     (rest (out-vars stage)))
-  ;;
-  (:method (last next (stage stage))
-    (declare (ignore last next))
+
+  (:method (last next (stage stage) primitive)
+    (declare (ignore last next primitive))
     (out-vars stage)))
 
 ;;----------------------------------------------------------------------

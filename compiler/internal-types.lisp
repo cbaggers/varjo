@@ -58,7 +58,6 @@
    (return-set :initarg :return-set :reader return-set)))
 
 ;;----------------------------------------------------------------------
-;; Compiler output
 
 (defclass stage ()
   ((input-variables :initarg :input-variables :accessor input-variables)
@@ -89,6 +88,9 @@
      fragment-stage)
   ())
 
+;;----------------------------------------------------------------------
+;; Compiler output
+
 (defclass varjo-compile-result (stage)
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
@@ -97,7 +99,9 @@
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
-   (function-asts :initarg :function-asts :reader function-asts)))
+   (function-asts :initarg :function-asts :reader function-asts)
+   (primitive-in :initarg :primitive-in :accessor primitive-in)
+   (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
 (defclass shader-variable ()
   ((name :initarg :name :reader name)
@@ -287,21 +291,49 @@
 
 ;;-------------------------------------------------------------------------
 
-(defclass draw-mode () ())
-(defclass geometry-primitive () ())
+(defclass primitive () ())
 
-(defclass points (draw-mode geometry-primitive) ())
-(defclass lines (draw-mode geometry-primitive) ())
-(defclass line-loop (draw-mode) ())
-(defclass line-strip (draw-mode) ())
-(defclass lines-adjacency (draw-mode geometry-primitive) ())
-(defclass line-strip-adjacency (draw-mode) ())
-(defclass triangles (draw-mode geometry-primitive) ())
-(defclass triangle-fan (draw-mode) ())
-(defclass triangle-strip (draw-mode) ())
-(defclass triangles-adjacency (draw-mode geometry-primitive) ())
-(defclass triangle-strip-adjacency (draw-mode) ())
-(defclass quads (draw-mode) ())
-(defclass patches (draw-mode) ())
+(defclass draw-mode (primitive) ())
+
+(defclass geometry-primitive (primitive) ())
+
+(defclass points (draw-mode geometry-primitive)
+  ((vertex-count :initform 1 :reader vertex-count)))
+
+(defclass lines (draw-mode geometry-primitive)
+  ((vertex-count :initform 2 :reader vertex-count)))
+
+(defclass line-loop (draw-mode)
+  ())
+
+(defclass line-strip (draw-mode)
+  ())
+
+(defclass lines-adjacency (draw-mode geometry-primitive)
+  ((vertex-count :initform 4 :reader vertex-count)))
+
+(defclass line-strip-adjacency (draw-mode)
+  ())
+
+(defclass triangles (draw-mode geometry-primitive)
+  ((vertex-count :initform 3 :reader vertex-count)))
+
+(defclass triangle-fan (draw-mode)
+  ())
+
+(defclass triangle-strip (draw-mode)
+  ())
+
+(defclass triangles-adjacency (draw-mode geometry-primitive)
+  ((vertex-count :initform 6 :reader vertex-count)))
+
+(defclass triangle-strip-adjacency (draw-mode)
+  ())
+
+(defclass quads (draw-mode)
+  ())
+
+(defclass patches (draw-mode)
+  ())
 
 ;;-------------------------------------------------------------------------

@@ -62,8 +62,7 @@
    ;; struct slot names
    :near
    :far
-   :diff
-   ))
+   :diff))
 
 (uiop:define-package #:varjo-conditions
     (:use #:cl)
@@ -158,8 +157,9 @@
            :should-be-constant
            :stage-in-context
            :invalid-stage-kind
-           :invalid-primtive-for-geometry-stage
+           :invalid-primitive-for-geometry-stage
            :rolling-translate-invalid-stage
+           :couldnt-convert-primitive-for-geometry-stage
 
            ;; restarts
            :setq-supply-alternate-type
