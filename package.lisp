@@ -158,6 +158,8 @@
            :make-array-cant-establish-default-value
            :should-be-quoted
            :should-be-constant
+           :stage-in-context
+           :invalid-stage-kind
 
            ;; restarts
            :setq-supply-alternate-type

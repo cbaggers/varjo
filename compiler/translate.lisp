@@ -10,7 +10,7 @@
                 glsl-name)
         qual-and-maybe-name)))
 
-(defun make-stage (in-args uniforms context code stemcells-allowed)
+(defun make-stage (kind in-args uniforms context code stemcells-allowed)
   (when (and (every #'check-arg-form in-args)
              (every #'check-arg-form uniforms)
              (check-for-dups in-args uniforms))
@@ -23,19 +23,30 @@
                     :glsl-name glsl-name
                     :type (type-spec->type type-spec)
                     :qualifiers qualifiers)))))
-      (let ((r (make-instance
-                'stage
-                :input-variables (mapcar λ(make-var 'input-variable _)
-                                         in-args)
-                :uniform-variables (mapcar λ(make-var 'uniform-variable _)
-                                           uniforms)
-                :context (process-context context)
-                :lisp-code code
-                :stemcells-allowed stemcells-allowed)))
+      (let* ((map '((:vertex vertex-stage)
+                    (:tesselation-control tesselation-control-stage)
+                    (:tesselation-evaluation tesselation-evaluation-stage)
+                    (:geometry geometry-stage)
+                    (:fragment fragment-stage)
+                    (:multi multi-stage)))
+             (kind (or (assocr kind map)
+                       (error 'invalid-stage-kind :kind kind)))
+             (r (make-instance
+                 kind
+                 :input-variables (mapcar λ(make-var 'input-variable _)
+                                          in-args)
+                 :uniform-variables (mapcar λ(make-var 'uniform-variable _)
+                                            uniforms)
+                 :context (process-context context)
+                 :lisp-code code
+                 :stemcells-allowed stemcells-allowed)))
         (check-for-stage-specific-limitations r)
         r))))
 
 (defun process-context (raw-context)
+  ;; As this was a more recent change we wanted a more explanatory error
+  (assert (null (remove-if-not λ(find _ *stage-types*) raw-context))
+          () 'stage-in-context :context raw-context)
   ;; ensure there is a version
   (labels ((valid (x) (find x *valid-contents-symbols*)))
     (assert (every #'valid raw-context) () 'invalid-context-symbols
@@ -77,26 +88,28 @@
 
 ;;----------------------------------------------------------------------
 
-(defun translate (stage)
-  (with-slots (stemcells-allowed) stage
-    (flow-id-scope
-      (let ((env (%make-base-environment :stemcells-allowed stemcells-allowed)))
-        (pipe-> (stage env)
-          #'set-env-context
-          #'add-context-glsl-vars
-          #'process-in-args
-          #'process-uniforms
-          #'compile-pass
-          #'make-post-process-obj
-          #'check-stemcells
-          #'post-process-ast
-          #'filter-used-items
-          #'gen-in-arg-strings
-          #'gen-out-var-strings
-          #'final-uniform-strings
-          #'dedup-used-types
-          #'final-string-compose
-          #'package-as-final-result-object)))))
+(defgeneric translate (stage)
+  (:method ((stage stage))
+    (with-slots (stemcells-allowed) stage
+      (flow-id-scope
+        (let ((env (%make-base-environment
+                    :stemcells-allowed stemcells-allowed)))
+          (pipe-> (stage env)
+            #'set-env-context
+            #'add-context-glsl-vars
+            #'process-in-args
+            #'process-uniforms
+            #'compile-pass
+            #'make-post-process-obj
+            #'check-stemcells
+            #'post-process-ast
+            #'filter-used-items
+            #'gen-in-arg-strings
+            #'gen-out-var-strings
+            #'final-uniform-strings
+            #'dedup-used-types
+            #'final-string-compose
+            #'package-as-final-result-object))))))
 
 ;;----------------------------------------------------------------------
 

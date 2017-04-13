@@ -61,10 +61,6 @@
 ;; Compiler output
 
 (defclass stage ()
-  ;; we cant specialize on the different stage types as it is current possible
-  ;; (and useful) to be able to make a stage which is both vertex & fragment.
-  ;; This is good for testing things compile but when you dont know what kind
-  ;; of stage it should be.
   ((input-variables :initarg :input-variables :accessor input-variables)
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (context :initarg :context :accessor context)
@@ -72,6 +68,25 @@
    (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
    (previous-stage :initarg :previous-stage :accessor previous-stage
                    :initform nil)))
+
+(defclass vertex-stage (stage) ())
+(defclass tesselation-control-stage (stage) ())
+(defclass tesselation-evaluation-stage (stage) ())
+(defclass geometry-stage (stage) ())
+(defclass fragment-stage (stage) ())
+
+(defclass multi-stage
+    ;; This is an interesting beast, it is not allowed in rolling-translate
+    ;; but it is allowed in translate, I think it won't survive the refactor
+    ;; as stage specific variables can have the same names and different types
+    ;; (and I dont allow dual bindings) but it currently exists to keep the
+    ;; behaviour of having one stage that allows any behaviour from any stage
+    (vertex-stage
+     tesselation-control-stage
+     tesselation-evaluation-stage
+     geometry-stage
+     fragment-stage)
+  ())
 
 (defclass varjo-compile-result (stage)
   ((glsl-code :initarg :glsl-code :accessor glsl-code)

@@ -178,7 +178,7 @@ type-of new-value: ~a"
     "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
 
 (deferror invalid-context-symbols () (symbols)
-    "Sorry but the following symbol are not valid as a context specifier:
+    "Sorry but the following symbols are not valid as a context specifiers:
 ~{~s~^ ~}"
   symbols)
 
@@ -747,6 +747,17 @@ Found: ~s"
     "Varjo expected ~a to be constant, however it was not.
 Found: ~s"
   thing val)
+
+(deferror stage-in-context () (context)
+    "Varjo: It is not longer valid for the stage to be declared in the context
+Please simply use #'v-compile or use #'make-stage with #'rolling-translate if
+you need more control.
+
+Context found: ~s" context)
+
+(deferror invalid-stage-kind () (kind)
+    "Varjo: make-stage called with the invalid stage kind ~s"
+  kind)
 
 ;;
 ;; Hi! Don't forget to add the name of your condition to the

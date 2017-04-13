@@ -5,18 +5,24 @@
 (defparameter *global-env-form-bindings* (make-hash-table))
 (defparameter *global-env-symbol-bindings* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
+
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
+
 (defparameter *stage-types* '(:vertex
                               :tesselation-control
                               :tesselation-evaluation
                               :geometry
                               :fragment))
-(defparameter *supported-stages* *stage-types*) ;; not supported well but theoretically these are supported :p
-(defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
-                                       :line-strip-adjacency :lines-adjacency
-                                       :triangle-strip :triangle-fan :triangles
-                                       :triangle-strip-adjacency
-                                       :triangles-adjacency :patches))
+
+(defparameter *supported-stages* *stage-types*)
+
+(defparameter *supported-draw-modes*
+  '(:points
+    :lines :line-loop :line-strip :lines-adjacency :line-strip-adjacency
+    :triangles :triangle-strip :triangle-fan :triangles-adjacency
+    :triangle-strip-adjacency
+    :patches))
+
 (defparameter *unshadowable-names* '(;; special
                                      and flet for function glsl-expr if labels
                                      labels-no-implicit let multiple-value-bind
@@ -26,11 +32,12 @@
                                      ;; macros
                                      let* prog1 setf symbol-macrolet s~ unless
                                      when))
-(defparameter *default-version* :330)
-(defparameter *default-context* '(:330 :vertex))
-(defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
-                                           ,@(copy-list *supported-stages*)
-                                           ,@(copy-list *supported-draw-modes*)))
+
+(defparameter *default-version* :450)
+
+(defparameter *valid-contents-symbols*
+  (append (copy-list *supported-versions*)
+          (copy-list *supported-draw-modes*)))
 
 
 (defparameter *ast-node-kinds*
