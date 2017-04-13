@@ -1,5 +1,5 @@
 (in-package :varjo)
-
+(in-readtable :fn.reader)
 ;;------------------------------------------------------------
 ;; Macro for defining varjo types
 

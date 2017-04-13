@@ -112,8 +112,9 @@
                  (v-symbol-bindings env))
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
-(defun %make-base-environment (&key stemcells-allowed version)
+(defun %make-base-environment (stage &key stemcells-allowed version)
   (make-instance 'base-environment
+                 :stage stage
                  :stemcells-allowed stemcells-allowed
                  :context (when version (list version))))
 
@@ -151,6 +152,7 @@
 (defun remove-main-method-flag-from-env (env)
   (assert (typep env 'environment))
   (make-instance 'environment
+                 :stage (stage env)
                  :symbol-bindings (v-symbol-bindings env)
                  :form-bindings (v-form-bindings env)
                  :macros nil
@@ -167,6 +169,7 @@
                                 (allowed-outer-vars nil set-aov))
   (assert (typep env 'environment))
   (make-instance 'environment
+                 :stage (stage env)
                  :symbol-bindings symbol-bindings
                  :form-bindings form-bindings
                  :macros macros
@@ -211,6 +214,7 @@
   (assert (typep env 'environment))
   (assert (typep new-parent 'environment))
   (make-instance 'environment
+                 :stage (stage env)
                  :symbol-bindings (if symbol-bindings-set
                                 symbol-bindings
                                 (v-symbol-bindings env))
@@ -254,14 +258,13 @@ For example calling env-prune on this environment..
 
 (defun env-merge-history (env-a env-b)
   (assert (= (env-depth env-a) (env-depth env-b)))
-  (labels ((walk (a b)
-             (declare (notinline walk))
+  (labels ((walk-env-parents (a b)
              (if (eq a b)
                  a
                  (env-replace-parent
-                  a (walk (v-parent-env a) (v-parent-env b))
+                  a (walk-env-parents (v-parent-env a) (v-parent-env b))
                   :symbol-bindings (merge-variable-histories a b)))))
-    (walk env-a env-b)))
+    (walk-env-parents env-a env-b)))
 
 (defun merge-variable-histories (env-a env-b)
   ;; we can be sure that both have the var names as assignment
@@ -386,10 +389,6 @@ For example calling env-prune on this environment..
 (defun get-stage-from-env (env)
   (get-version-from-context (v-context env)))
 
-(defun get-stage-from-context (context)
-  (find-if (lambda (x) (member x *supported-stages*)) context))
-
-
 (defun get-primitive-type-from-context (context)
   (or (find-if λ(member _ *supported-draw-modes*) context)
       :triangles))
@@ -510,8 +509,8 @@ For example calling env-prune on this environment..
 (defmethod get-symbol-binding (symbol respect-scope-rules (env (eql :-genv-)))
   (declare (ignore respect-scope-rules))
   (let ((s (gethash symbol *global-env-symbol-bindings*)))
-    (cond (s (values s *global-env*))
-          (t nil))))
+    (when s
+      (values s *global-env*))))
 
 ;; {TODO} does get-symbol-binding need to return the env?
 (defmethod get-symbol-binding (symbol respect-scope-rules (env environment))

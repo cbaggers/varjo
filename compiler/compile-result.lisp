@@ -48,3 +48,6 @@ Sorry for the inconvenience")
 
 (defmethod print-object ((obj implicit-uniform-variable) stream)
   (format stream "#<IMPLICIT-UNIFORM ~a>" (name obj)))
+
+(defmethod extract-stage-type ((cr varjo-compile-result))
+  (stage-type cr))

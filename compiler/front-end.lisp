@@ -30,38 +30,43 @@ Example:
                              (v! 1.0 1.0 hmm (fun a)))))
 "
   (let ((stages (list (when vertex
-                        (make-stage (first vertex)
+                        (make-stage :vertex
+                                    (first vertex)
                                     uniforms
-                                    (list :vertex version)
+                                    (list version)
                                     (rest vertex)
                                     allow-stemcells))
                       (when tesselation-control
-                        (make-stage (first tesselation-control)
+                        (make-stage :tesselation-control
+                                    (first tesselation-control)
                                     uniforms
-                                    (list :tesselation-control version)
+                                    (list version)
                                     (rest tesselation-control)
                                     allow-stemcells))
                       (when tesselation-evaluation
-                        (make-stage (first tesselation-evaluation)
+                        (make-stage :tesselation-evaluation
+                                    (first tesselation-evaluation)
                                     uniforms
-                                    (list :tesselation-evaluation version)
+                                    (list version)
                                     (rest tesselation-evaluation)
                                     allow-stemcells))
                       (when geometry
-                        (make-stage (first geometry)
+                        (make-stage :geometry
+                                    (first geometry)
                                     uniforms
-                                    (list :geometry version)
+                                    (list version)
                                     (rest geometry)
                                     allow-stemcells))
                       (when fragment
-                        (make-stage (first fragment)
+                        (make-stage :fragment
+                                    (first fragment)
                                     uniforms
-                                    (list :fragment version)
+                                    (list version)
                                     (rest fragment)
                                     allow-stemcells)))))
     (rolling-translate (remove nil stages))))
 
-(defun v-macroexpand (form &optional (env (%make-base-environment)))
+(defun v-macroexpand (form env)
   (flow-id-scope (ast->code (compile-form form env))))
 
 ;;----------------------------------------------------------------------
@@ -75,7 +80,7 @@ Example:
               (previous-stage nil ps-set)
               (stemcells-allowed nil sa-set))
     (make-instance
-     'stage
+     (type-of stage)
      :input-variables (if iv-set
                           input-variables
                           (input-variables stage))
@@ -125,13 +130,18 @@ Example:
               :glsl-name (or (glsl-name previous) (glsl-name current))
               :type (or (v-type-of current) (v-type-of previous))
               :qualifiers (union (qualifiers current)
-                                 (qualifiers previous)))))
+                                 (qualifiers previous))))
+           (arg-for-error (x)
+             (subseq (to-arg-form x) 0 2))
+           (args-for-error (x)
+             (mapcar #'arg-for-error x)))
     (if previous-stage
         (let ((out-vars (transform-previous-stage-out-vars previous-stage
                                                            stage))
               (in-vars (input-variables stage)))
-          (make-instance
-           'stage
+          (copy-stage
+           stage
+           :previous-stage previous-stage
            :input-variables
            (if (and (in-args-compatiblep in-vars out-vars)
                     (uniforms-compatiblep
@@ -140,15 +150,8 @@ Example:
                     (context-compatiblep stage previous-stage))
                (mapcar #'merge-in-arg out-vars in-vars)
                (error 'args-incompatible
-                      :current-args (mapcar λ(subseq _ 0 2)
-                                            (mapcar #'to-arg-form in-vars))
-                      :previous-args (mapcar λ(subseq _ 0 2)
-                                             (mapcar #'to-arg-form out-vars))))
-           :uniform-variables (uniform-variables stage)
-           :context (context stage)
-           :lisp-code (lisp-code stage)
-           :previous-stage previous-stage
-           :stemcells-allowed (stemcells-allowed stage)))
+                      :current-args (args-for-error in-vars)
+                      :previous-args (args-for-error out-vars)))))
         stage)))
 
 
@@ -169,7 +172,7 @@ Example:
                       (when (not (equal out-glsl-name in-glsl-name))
                         (flow-id-scope
                           (to-block
-                           (let ((env (%make-base-environment)))
+                           (let ((env (%make-base-environment stage)))
                              (glsl-let
                               (name in-var) in-glsl-name (v-type-of in-var)
                               (compile-glsl-expression-string
@@ -216,26 +219,34 @@ Example:
 
 ;;------------------------------------------------------------
 
-(defmethod extract-stage-type ((stage stage))
-  (let ((context (context stage)))
-    (find-if λ(when (member _ context) _)
-             *stage-types*)))
+(defmethod extract-stage-type ((stage vertex-stage))
+  :vertex)
+
+(defmethod extract-stage-type ((stage tesselation-control-stage))
+  :tesselation-control)
+
+(defmethod extract-stage-type ((stage tesselation-evaluation-stage))
+  :tesselation-evaluation)
+
+(defmethod extract-stage-type ((stage geometry-stage))
+  :geometry)
+
+(defmethod extract-stage-type ((stage fragment-stage))
+  :fragment)
+
 (defmethod extract-stage-type ((env environment))
-  (let ((context (v-context env)))
-    (find-if λ(when (member _ context) _)
-             *stage-types*)))
+  (extract-stage-type (stage env)))
+
 (defmethod extract-stage-type ((ppp post-compile-process))
   (extract-stage-type (stage ppp)))
 
 ;;------------------------------------------------------------
 
 (defmethod stage-is ((stage stage) name)
-  (let ((context (context stage)))
-    (not (null (find name context)))))
+  (typep stage (stage-kind-to-type name)))
 
 (defmethod stage-is ((env environment) name)
-  (let ((context (v-context env)))
-    (not (null (find name context)))))
+  (stage-is (stage env) name))
 
 (defmethod stage-is ((ppp post-compile-process) name)
   (stage-is (stage ppp) name))
@@ -299,9 +310,7 @@ Example:
 
 (defgeneric context-compatiblep (stage previous-stage)
   (:method ((stage stage) (previous-stage stage))
-    (context-ok-given-restriction
-     (remove (extract-stage-type previous-stage) (context previous-stage))
-     (remove (extract-stage-type stage) (context stage)))))
+    (context-ok-given-restriction (context previous-stage) (context stage))))
 
 ;;----------------------------------------------------------------------
 

@@ -10,6 +10,16 @@
                 glsl-name)
         qual-and-maybe-name)))
 
+(defun stage-kind-to-type (kind)
+  (let ((map '((:vertex . vertex-stage)
+               (:tesselation-control . tesselation-control-stage)
+               (:tesselation-evaluation . tesselation-evaluation-stage)
+               (:geometry . geometry-stage)
+               (:fragment . fragment-stage)
+               (:multi . multi-stage))))
+    (or (assocr kind map)
+        (error 'invalid-stage-kind :kind kind))))
+
 (defun make-stage (kind in-args uniforms context code stemcells-allowed)
   (when (and (every #'check-arg-form in-args)
              (every #'check-arg-form uniforms)
@@ -23,23 +33,15 @@
                     :glsl-name glsl-name
                     :type (type-spec->type type-spec)
                     :qualifiers qualifiers)))))
-      (let* ((map '((:vertex vertex-stage)
-                    (:tesselation-control tesselation-control-stage)
-                    (:tesselation-evaluation tesselation-evaluation-stage)
-                    (:geometry geometry-stage)
-                    (:fragment fragment-stage)
-                    (:multi multi-stage)))
-             (kind (or (assocr kind map)
-                       (error 'invalid-stage-kind :kind kind)))
-             (r (make-instance
-                 kind
-                 :input-variables (mapcar λ(make-var 'input-variable _)
-                                          in-args)
-                 :uniform-variables (mapcar λ(make-var 'uniform-variable _)
-                                            uniforms)
-                 :context (process-context context)
-                 :lisp-code code
-                 :stemcells-allowed stemcells-allowed)))
+      (let ((r (make-instance
+                (stage-kind-to-type kind)
+                :input-variables (mapcar λ(make-var 'input-variable _)
+                                         in-args)
+                :uniform-variables (mapcar λ(make-var 'uniform-variable _)
+                                           uniforms)
+                :context (process-context context)
+                :lisp-code code
+                :stemcells-allowed stemcells-allowed)))
         (check-for-stage-specific-limitations r)
         r))))
 
@@ -93,7 +95,7 @@
     (with-slots (stemcells-allowed) stage
       (flow-id-scope
         (let ((env (%make-base-environment
-                    :stemcells-allowed stemcells-allowed)))
+                    stage :stemcells-allowed stemcells-allowed)))
           (pipe-> (stage env)
             #'set-env-context
             #'add-context-glsl-vars
@@ -120,7 +122,7 @@
 ;;----------------------------------------------------------------------
 
 (defun add-context-glsl-vars (stage env)
-  (values stage (add-glsl-vars env *glsl-variables*)))
+  (values stage (add-glsl-vars env)))
 
 ;;----------------------------------------------------------------------
 
@@ -502,7 +504,7 @@
       (make-instance
        'varjo-compile-result
        :glsl-code final-glsl-code
-       :stage-type (find-if λ(find _ *supported-stages*) context)
+       :stage-type (extract-stage-type post-proc-obj)
        :in-args (in-args post-proc-obj)
        :input-variables (input-variables post-proc-obj)
        :out-vars (out-vars post-proc-obj)

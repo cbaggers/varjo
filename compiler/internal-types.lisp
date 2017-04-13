@@ -118,7 +118,10 @@
 ;;----------------------------------------------------------------------
 
 (defclass environment ()
-  ((parent-env
+  ((stage
+    :initform (error "Varjo: stage is mandatory in environment")
+    :initarg :stage :reader stage)
+   (parent-env
     :initform *global-env* :initarg :parent-env :reader v-parent-env)
    (context
     :initform nil :initarg :context :reader v-context)
