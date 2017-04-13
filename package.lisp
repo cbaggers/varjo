@@ -65,8 +65,6 @@
    :diff
    ))
 
-(uiop:define-package #:varjo-syms)
-
 (uiop:define-package #:varjo-conditions
     (:use #:cl)
   (:shadowing-import-from :varjo-lang :clamp :switch)
