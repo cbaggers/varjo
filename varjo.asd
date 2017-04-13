@@ -13,7 +13,6 @@
                (:file "utils-v")
                (:file "compiler/generics")
                (:file "compiler/globals")
-               (:file "compiler/log")
                (:file "compiler/errors")
                (:file "compiler/names")
                (:file "compiler/internal-types")

@@ -13,7 +13,6 @@
     (reverse (slot-value result 'compiled-stages))))
 
 (defun compile-stage (accum stage compile-func)
-  ;;(break "foo ~a" stage)
   (with-slots (remaining-stages compiled-stages) accum
     (let* ((last-stage (first compiled-stages))
            (remaining-stages (check-order (extract-stage-type stage)
