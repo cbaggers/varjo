@@ -759,6 +759,16 @@ Context found: ~s" context)
     "Varjo: make-stage called with the invalid stage kind ~s"
   kind)
 
+(deferror no-primitive-found () (stage)
+    "Varjo: Could not establish primitive type for ~a stage.
+Stage: ~a"
+  (extract-stage-type stage)
+  stage)
+
+(deferror invalid-primtive-for-stage () (stage prim)
+    "Varjo: ~s is not a valid stage kind for ~a stages. Instead try
+points, lines, lines-adjacency, triangles or triangles-adjacency." prim stage)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

@@ -20,7 +20,8 @@
     (or (assocr kind map)
         (error 'invalid-stage-kind :kind kind))))
 
-(defun make-stage (kind in-args uniforms context code stemcells-allowed)
+(defun make-stage (kind in-args uniforms context code
+                   &optional (stemcells-allowed t) primitive)
   (when (and (every #'check-arg-form in-args)
              (every #'check-arg-form uniforms)
              (check-for-dups in-args uniforms))
@@ -41,7 +42,8 @@
                                            uniforms)
                 :context (process-context context)
                 :lisp-code code
-                :stemcells-allowed stemcells-allowed)))
+                :stemcells-allowed stemcells-allowed
+                :primitive primitive)))
         (check-for-stage-specific-limitations r)
         r))))
 
@@ -101,6 +103,7 @@
             #'add-context-glsl-vars
             #'process-in-args
             #'process-uniforms
+            #'process-primitive-type
             #'compile-pass
             #'make-post-process-obj
             #'check-stemcells
@@ -189,6 +192,47 @@
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
   env)
+
+;;----------------------------------------------------------------------
+;;(assert (primitive stage) () 'no-primitive-found :stage stage)
+
+(defun get-primitive (name)
+  (let ((type (find name *draw-modes*)))
+    (assert type () "Varjo: Could not find primtive named ~a" name)
+    (make-instance (find-symbol (symbol-name name) :varjo))))
+
+(defgeneric %process-primitive-type (stage env))
+
+(defmethod %process-primitive-type ((stage vertex-stage) env)
+  (let ((primitive-kind (primitive stage)))
+    (when primitive-kind
+      (get-primitive primitive-kind))))
+
+(defmethod %process-primitive-type ((stage tesselation-control-stage) env)
+  (declare (ignore stage env))
+  (error "%process-primitive-type: IMPLEMENT ME!")
+  nil)
+
+(defmethod %process-primitive-type ((stage tesselation-evaluation-stage) env)
+  (declare (ignore stage env))
+  (error "%process-primitive-type: IMPLEMENT ME!")
+  nil)
+
+(defmethod %process-primitive-type ((stage geometry-stage) env)
+  (let* ((primitive-kind (primitive stage))
+         (primitive (get-primitive primitive-kind)))
+    (assert (typep primitive 'geometry-primitive) ()
+            'invalid-primtive-for-stage
+            :stage :geometry :prim primitive-kind)
+    primitive))
+
+(defmethod %process-primitive-type ((stage fragment-stage) env)
+  (declare (ignore stage env))
+  nil)
+
+(defun process-primitive-type (stage env)
+  (setf (primitive stage) (%process-primitive-type stage env))
+  (values stage env))
 
 ;;----------------------------------------------------------------------
 

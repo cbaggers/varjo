@@ -57,3 +57,18 @@
 (defvar *registered-types* nil)
 
 (defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+
+(defparameter *draw-modes*
+  '(:points
+    :lines
+    :line-loop
+    :line-strip
+    :lines-adjacency
+    :line-strip-adjacency
+    :triangles
+    :triangle-fan
+    :triangle-strip
+    :triangles-adjacency
+    :triangle-strip-adjacency
+    :quads
+    :patches))

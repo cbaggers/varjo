@@ -69,7 +69,9 @@
                ;;
                (:file "language/functions")
                (:file "language/bitwise-operators")
+               (:file "compiler/stages")
                (:file "compiler/translate")
+               (:file "compiler/rolling-translate")
                (:file "compiler/front-end")
                (:file "compiler/environment/public-api")
                (:file "language/rtg-math-equivalents")))

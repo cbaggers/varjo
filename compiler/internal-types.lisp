@@ -67,7 +67,8 @@
    (lisp-code :initarg :lisp-code :accessor lisp-code)
    (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
    (previous-stage :initarg :previous-stage :accessor previous-stage
-                   :initform nil)))
+                   :initform nil)
+   (primitive :initform nil :initarg :primitive :accessor primitive)))
 
 (defclass vertex-stage (stage) ())
 (defclass tesselation-control-stage (stage) ())
@@ -283,5 +284,24 @@
 ;;----------------------------------------------------------------------
 
 (defclass standard-value-metadata () ())
+
+;;-------------------------------------------------------------------------
+
+(defclass draw-mode () ())
+(defclass geometry-primitive () ())
+
+(defclass points (draw-mode geometry-primitive) ())
+(defclass lines (draw-mode geometry-primitive) ())
+(defclass line-loop (draw-mode) ())
+(defclass line-strip (draw-mode) ())
+(defclass lines-adjacency (draw-mode geometry-primitive) ())
+(defclass line-strip-adjacency (draw-mode) ())
+(defclass triangles (draw-mode geometry-primitive) ())
+(defclass triangle-fan (draw-mode) ())
+(defclass triangle-strip (draw-mode) ())
+(defclass triangles-adjacency (draw-mode geometry-primitive) ())
+(defclass triangle-strip-adjacency (draw-mode) ())
+(defclass quads (draw-mode) ())
+(defclass patches (draw-mode) ())
 
 ;;-------------------------------------------------------------------------

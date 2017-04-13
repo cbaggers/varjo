@@ -160,6 +160,7 @@
            :should-be-constant
            :stage-in-context
            :invalid-stage-kind
+           :invalid-primtive-for-geometry-stage
 
            ;; restarts
            :setq-supply-alternate-type
