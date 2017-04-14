@@ -203,6 +203,14 @@ doesnt"))
 (defmethod v-dimensions (object)
   (error 'doesnt-have-dimensions :vtype object))
 
+(defmethod v-element-type ((object v-container))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
 ;;------------------------------------------------------------
 ;; Array
 
@@ -226,14 +234,6 @@ doesnt"))
         (setf dimensions dim))
       (unless (typep element-type 'v-type)
         (setf element-type (type-spec->type element-type))))))
-
-(defmethod v-element-type ((object v-container))
-  (let ((result (slot-value object 'element-type)))
-    ;; {TODO} dedicated error
-    (assert (typep result 'v-type) (object)
-            "The element-type of ~a was ~a which is not an instance of a type."
-            object result)
-    result))
 
 (defmethod copy-type ((type v-array))
   (make-instance 'v-array
