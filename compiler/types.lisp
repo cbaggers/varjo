@@ -8,7 +8,9 @@
   (unless (eq name 'v-type)
     (assert (and (listp direct-superclass)
                  (symbolp (first direct-superclass))
-                 (= (length direct-superclass) 1))
+                 (or (= (length direct-superclass) 1)
+                     (and (= (length direct-superclass) 2)
+                          (find 'v-ephemeral-type direct-superclass))))
             ()
             "Varjo: All types must specify one superclass, this will usually be v-type"))
   ;;
@@ -130,8 +132,17 @@ doesnt"))
 (def-v-type-class v-ephemeral-type (v-type) ())
 
 (defgeneric ephemeral-p (x)
+  (:method ((x v-type))
+    (typep x 'v-ephemeral-type))
   (:method (x)
     (typep (v-type-of x) 'v-ephemeral-type)))
+
+(def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
+
+(def-v-type-class v-block-array (v-ephemeral-array)
+  ((block-name :initform (error 'block-array-name-mandatory)
+               :initarg :block-name
+               :reader block-name)))
 
 ;;------------------------------------------------------------
 ;; Unrepresentable Value
