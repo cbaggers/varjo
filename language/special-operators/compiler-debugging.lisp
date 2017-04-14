@@ -10,12 +10,7 @@
   (progn
     (break (format nil "Varjo compiler breakpoint:~%~s" (or datum ""))
            (mapcar λ(compile-form _ env) args))
-    (let* ((none-type (gen-none-type))
-           (node (make-code-obj
-                  none-type nil
-                  :node-tree (ast-node! :break (cons datum args)
-                                        none-type nil nil))))
-      (values node env))))
+    (compile-form '(values) env)))
 
 (v-defspecial %peek (form)
   :args-valid t
