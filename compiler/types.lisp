@@ -139,26 +139,54 @@ doesnt"))
 
 (def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
 
-(def-v-type-class v-block-array (v-ephemeral-array)
-  ((block-name :initarg :block-name
+;;------------------------------------------------------------
+;; Block Array
+;;
+;;
+;;
+
+(def-v-type-class v-block-array (v-ephemeral-type)
+  ((element-type :initform t :initarg :element-type)
+   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
+   (block-name :initarg :block-name
                :reader block-name)))
+
+(defmethod post-initialise ((object v-block-array))
+  (with-slots (dimensions element-type) object
+    (setf dimensions (listify dimensions))
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-block-array))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
 
 (defmethod type->type-spec ((type v-block-array))
   (list (type->type-spec (v-element-type type)) (v-dimensions type))
   `(v-block-array ,(type->type-spec (v-element-type type))
                   ,(v-dimensions type)))
 
-(defun make-into-block-array (array block-name)
-  (assert (v-typep array 'v-array))
+(defmethod copy-type ((type v-block-array))
+  (make-instance 'v-block-array
+                 :block-name (block-name type)
+                 :dimensions (v-dimensions type)
+                 :element-type (v-element-type type)))
+
+(defun make-into-block-array (array-type block-name)
+  (assert (v-typep array-type 'v-array))
   (let ((r (make-instance 'v-block-array
                           :block-name block-name
-                          :dimensions (v-dimensions array)
-                          :element-type (v-element-type array)
-                          :ctv (ctv array)
-                          :flow-ids (flow-ids array))))
-    (when (slot-boundp array 'default-value)
+                          :dimensions (v-dimensions array-type)
+                          :element-type (v-element-type array-type)
+                          :ctv (ctv array-type)
+                          :flow-ids (flow-ids array-type))))
+    (when (slot-boundp array-type 'default-value)
       (setf (slot-value r 'default-value)
-            (slot-value array 'default-value)))
+            (slot-value array-type 'default-value)))
     r))
 
 (defun block-array-to-regular-array (block-array)
@@ -547,7 +575,9 @@ doesnt"))
   (cond ((symbolp b)
          (typep a (resolve-name-from-alternative b)))
         ((and (listp b) (numberp (second b)))
-         (typep a (resolve-name-from-alternative (first b))))))
+         (typep a (resolve-name-from-alternative (first b))))
+        ((and (listp b) (eq (first b) 'v-block-array))
+         (typep a 'v-block-array))))
 
 (defmethod v-typep ((a null) b &optional (env *global-env*))
   (declare (ignore env a b))
