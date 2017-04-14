@@ -119,7 +119,7 @@
              :for obj :in clause-body-objs
              :append
              (if (eq key default-symb)
-                 (error "Varjo: switch default not implemented") ;; {TODO}
+                 (error "Varjo Bug: switch default not implemented") ;; {TODO}
                  (list key
                        (append (mapcat #'indent (to-block obj))
                                (indent (current-line (end-line obj))))))
