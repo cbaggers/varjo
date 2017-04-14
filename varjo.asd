@@ -65,6 +65,7 @@
                (:file "language/special-operators/inline-code")
                (:file "language/special-operators/compiler-debugging")
                (:file "language/special-operators/make-array")
+               (:file "language/special-operators/aref")
                ;;
                (:file "language/functions")
                (:file "language/bitwise-operators")

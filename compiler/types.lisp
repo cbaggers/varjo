@@ -140,9 +140,38 @@ doesnt"))
 (def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
 
 (def-v-type-class v-block-array (v-ephemeral-array)
-  ((block-name :initform (error 'block-array-name-mandatory)
-               :initarg :block-name
+  ((block-name :initarg :block-name
                :reader block-name)))
+
+(defmethod type->type-spec ((type v-block-array))
+  (list (type->type-spec (v-element-type type)) (v-dimensions type))
+  `(v-block-array ,(type->type-spec (v-element-type type))
+                  ,(v-dimensions type)))
+
+(defun make-into-block-array (array block-name)
+  (assert (v-typep array 'v-array))
+  (let ((r (make-instance 'v-block-array
+                          :block-name block-name
+                          :dimensions (v-dimensions array)
+                          :element-type (v-element-type array)
+                          :ctv (ctv array)
+                          :flow-ids (flow-ids array))))
+    (when (slot-boundp array 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value array 'default-value)))
+    r))
+
+(defun block-array-to-regular-array (block-array)
+  (assert (v-typep block-array 'v-block-array))
+  (let ((r (make-instance 'v-array
+                          :dimensions (v-dimensions block-array)
+                          :element-type (v-element-type block-array)
+                          :ctv (ctv block-array)
+                          :flow-ids (flow-ids block-array))))
+    (when (slot-boundp block-array 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value block-array 'default-value)))
+    r))
 
 ;;------------------------------------------------------------
 ;; Unrepresentable Value
