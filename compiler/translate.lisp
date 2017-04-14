@@ -53,7 +53,12 @@
          (v-struct (add-fake-struct var env))
          (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
                                   name type))
-         (t (let ((type (set-flow-id type (flow-id!))))
+         (t (let* ((type (set-flow-id type (flow-id!)))
+                   (type (if (and (stage-is stage :geometry)
+                                  (typep type 'v-array))
+                             (make-into-block-array
+                              type *in-block-instance-name*)
+                             type)))
               (%add-symbol-binding
                name (v-make-value type env :glsl-name glsl-name-with-block)
                env)
