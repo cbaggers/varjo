@@ -340,7 +340,7 @@ doesnt"))
   (make-instance 'v-any-one-of :types (v-types type) :flow-ids (flow-ids type)))
 
 (defmethod type->type-spec ((type v-any-one-of))
-  `(any-of-of ,@(mapcar #'type->type-spec (v-types type))))
+  `(any-one-of ,@(mapcar #'type->type-spec (v-types type))))
 
 (defgeneric gen-any-one-of-type (types)
   (:method (types)
