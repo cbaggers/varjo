@@ -228,12 +228,22 @@
                  out-vars)))
         (mapcar #'%glsl-decl out-vars))))
 
+(defparameter *in-block-instance-name*
+  "in")
+
+(defun prefix-in-block-name-to-string (str env)
+  (if (eq (extract-stage-type env) :vertex)
+      str
+      (format nil "~a.~a" *in-block-instance-name*
+              str)))
+
 (defun gen-in-block (post-proc-obj)
   (if (requires-in-interface-block post-proc-obj)
       (when (in-args post-proc-obj)
         (list (write-interface-block
                :in (in-block-name-for post-proc-obj)
-               (in-args post-proc-obj))))
+               (in-args post-proc-obj)
+               :instance-name *in-block-instance-name*)))
       (mapcar #'%glsl-decl (in-args post-proc-obj))))
 
 ;;----------------------------------------------------------------------
@@ -244,12 +254,16 @@
 ;; } instance_name;
 
 (defun write-interface-block (storage-qualifier block-name out-vars
-                              &optional layout)
-  (format nil "~@[layout(~a) ~]~a ~a~%{~%~{    ~a~%~}};"
+                              &key layout instance-name length)
+  (assert (not (and length (null instance-name))))
+  (format nil "~@[layout(~a) ~]~a ~a~%{~%~{    ~a~%~}}~a;"
           layout
           (string-downcase (symbol-name storage-qualifier))
           (block-name-string block-name)
-          (mapcar #'%glsl-decl out-vars)))
+          (mapcar #'%glsl-decl out-vars)
+          (if instance-name
+              (format nil " ~a~@[[~a]~]" instance-name length)
+              "")))
 
 (defun write-ubo-block (storage-qualifier block-name slots
                               &optional (layout "std140"))
