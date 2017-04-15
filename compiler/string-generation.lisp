@@ -231,19 +231,18 @@
 (defparameter *in-block-instance-name*
   "in")
 
-(defun prefix-in-block-name-to-string (str env)
-  (if (eq (extract-stage-type env) :vertex)
-      str
-      (format nil "~a.~a" *in-block-instance-name*
-              str)))
-
 (defun gen-in-block (post-proc-obj)
   (if (requires-in-interface-block post-proc-obj)
       (when (in-args post-proc-obj)
-        (list (write-interface-block
-               :in (in-block-name-for post-proc-obj)
-               (in-args post-proc-obj)
-               :instance-name *in-block-instance-name*)))
+        (let* ((is-geom (stage-is post-proc-obj :geometry))
+               (len (when is-geom
+                      (first (v-dimensions
+                              (v-type-of (first (in-args post-proc-obj))))))))
+          (list (write-interface-block
+                 :in (in-block-name-for post-proc-obj)
+                 (in-args post-proc-obj)
+                 :instance-name (when is-geom *in-block-instance-name*)
+                 :length len))))
       (mapcar #'%glsl-decl (in-args post-proc-obj))))
 
 ;;----------------------------------------------------------------------

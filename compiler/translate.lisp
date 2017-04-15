@@ -45,8 +45,7 @@
   "Populate in-args and create fake-structs where they are needed"
   (loop :for var :in (input-variables stage) :do
      ;; with-v-arg (name type qualifiers declared-glsl-name) var
-     (let* ((glsl-name (or (glsl-name var) (safe-glsl-name-string (name var))))
-            (glsl-name-with-block (prefix-in-block-name-to-string glsl-name env))
+     (let* ((glsl-name (glsl-name var))
             (type (v-type-of var))
             (name (name var)))
        (typecase type
@@ -60,8 +59,7 @@
                               type *in-block-instance-name*)
                              type)))
               (%add-symbol-binding
-               name (v-make-value type env :glsl-name glsl-name-with-block)
-               env)
+               name (v-make-value type env :glsl-name glsl-name) env)
               (add-lisp-name name env glsl-name)
               (setf (v-in-args env)
                     (cons-end (make-instance 'input-variable
