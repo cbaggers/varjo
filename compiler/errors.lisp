@@ -1,6 +1,6 @@
 (in-package :varjo)
 
-                                        ;-----------INSPIRATION-----------;
+;;-----------INSPIRATION-----------;
 
 ;; (define-condition machine-error (error)
 ;;   ((machine-name :initarg :machine-name :reader machine-error-machine-name))
@@ -8,7 +8,7 @@
 ;;              (format stream "There is a problem with ~A."
 ;;                      (machine-error-machine-name condition)))))
 
-                                        ;------------HELPER-----------;
+;;------------HELPER-----------;
 
 (defmacro defcondition (name (&key error-type prefix)
                                 (&rest args) error-string &body body)
@@ -30,7 +30,7 @@
        ,error-string ,@body))
 
 (defmacro defwarning (name (&key (error-type 'varjo-warning) prefix)
-                            (&rest args) error-string &body body)
+                              (&rest args) error-string &body body)
   `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
        ,error-string ,@body))
 
@@ -38,7 +38,7 @@
 (define-condition varjo-critical-error (error) ())
 (define-condition varjo-warning (warning) ())
 
-                                        ;-----------------------------;
+;;-----------------------------;
 
 (define-condition missing-function-error (error)
   ((text :initarg :text :reader text)))
@@ -482,7 +482,7 @@ Doc string: ~s
 
 Found in form:
 ~s"
-    dup form)
+  dup form)
 
 (deferror calling-declare-as-func () (decl)
     "Varjo: Found a declare expression in an invalid position.
@@ -548,38 +548,38 @@ declared to something."
   name required provided missing)
 
 (defwarning cant-shadow-user-defined-func () (funcs)
-  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+    "Varjo: Unfortunately we cannot currently shadow user-defined functions.
 The following functions have been skipped:~{~%~s~}"
   funcs)
 
 (defwarning cant-shadow-no-type-match () (shadowed funcs)
-  "Varjo: Was asked to shadow the following functions, however none of the
+    "Varjo: Was asked to shadow the following functions, however none of the
 arguments have the type ~a
 
 The following functions have been skipped:~{~%~s~}"
   shadowed funcs)
 
 (deferror shadowing-user-defined-func () (func)
-  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+    "Varjo: Unfortunately we cannot currently shadow user-defined functions.
 The function in question was: ~s"
   func)
 
 (deferror shadowing-no-type-match () (shadowed func)
-  "Varjo: Was asked to shadow the following function, however none of the
+    "Varjo: Was asked to shadow the following function, however none of the
 arguments have the type ~a
 
 The function in question was: ~s"
   shadowed func)
 
 (deferror shadowing-no-return-matched () (shadowed func)
-  "Varjo: Was asked to shadow the following function, however none of the
+    "Varjo: Was asked to shadow the following function, however none of the
 returned values have the type ~a
 
 The function in question was: ~s"
   shadowed func)
 
 (deferror shadowing-multiple-constructors () (shadow-type func-id funcs)
-  "Varjo: Was asked to shadow the function with the idenifier ~a  as a
+    "Varjo: Was asked to shadow the function with the idenifier ~a  as a
 constructor for the shadow-type ~a.
 
 However this function-identifier names multiple functions, which is not
@@ -589,7 +589,7 @@ The functions in question were:~{~%~a~}"
   func-id shadow-type funcs)
 
 (deferror shadowing-multiple-funcs () (shadow-type pairs)
-  "Varjo: Was asked to shadow the functions for the shadow-type ~a.
+    "Varjo: Was asked to shadow the functions for the shadow-type ~a.
 
 However these function-identifiers name multiple functions, which is not
 allowed in this form.
@@ -599,14 +599,14 @@ The functions in question were:
   shadow-type pairs)
 
 (deferror shadowing-constructor-no-match () (shadow-type func-id)
-  "Varjo: Was asked to shadow the function with the idenifier ~a as
+    "Varjo: Was asked to shadow the function with the idenifier ~a as
 a constructor for the shadow-type ~a.
 
 However no functions were found that matched this identifier."
   func-id shadow-type)
 
 (deferror def-shadow-non-func-identifier () (name func-ids)
-  "Varjo: ~a was ask to shadow some functions, however the following
+    "Varjo: ~a was ask to shadow some functions, however the following
 identifiers are have problems:
 ~{~%~s~}
 
@@ -615,12 +615,12 @@ The identifiers passed to this macro should be in the format:
   name func-ids)
 
 (deferror shadowing-funcs-for-non-shadow-type () (name shadow-type)
-  "Varjo: ~a was ask to shadow some functions for the type ~a,
+    "Varjo: ~a was ask to shadow some functions for the type ~a,
 however the type ~a is not a shadow type."
   name shadow-type shadow-type)
 
 (deferror fell-through-v-typecase () (vtype wanted)
-  "Varjo: ~a fell through V-ETYPECASE expression.
+    "Varjo: ~a fell through V-ETYPECASE expression.
 Wanted one of the following types: ~s}"
   vtype wanted)
 
@@ -781,6 +781,10 @@ However it found ~a invalid ~a in the list:~{~%~s~}"
 weren't sure how to convert this to a primtive kind the geometry shader can
 use."
   prim prev-stage)
+
+(deferror test-stage-invalid () (errors)
+    "Varjo: Code provided not valid for any stage:~{~%~s~}"
+  errors)
 
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
