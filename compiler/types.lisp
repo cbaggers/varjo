@@ -296,6 +296,10 @@ doesnt"))
                    :element-type element-type
                    :flow-ids flow-id)))
 
+(defmethod v-typep ((a v-array) (b v-array) &optional (env *global-env*))
+  (declare (ignore env))
+  (v-typep (v-element-type a) (v-element-type b)))
+
 ;;------------------------------------------------------------
 ;; Sampler
 
@@ -555,36 +559,28 @@ doesnt"))
 ;;------------------------------------------------------------
 ;; Type predicate
 
-(defmethod v-typep (a (b symbol) &optional (env *global-env*))
+(defmethod v-typep ((a v-type) (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (typep a (type-of (type-spec->type b))))
+  (v-typep a (type-spec->type (resolve-name-from-alternative b))))
 
-(defmethod v-typep (a (b list) &optional (env *global-env*))
+(defmethod v-typep ((a v-type) (b list) &optional (env *global-env*))
   (declare (ignore env))
-  (typep a (type-of (type-spec->type b))))
-
-(defmethod v-typep ((a t) (b v-none) &optional (env *global-env*))
-  (declare (ignore env))
-  (typep a (type-of b)))
+  (let ((b (resolve-name-from-alternative
+            (mapcar #'resolve-name-from-alternative b))))
+    (v-typep a (type-spec->type b))))
 
 (defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
-  (v-typep a (type->type-spec b) env))
-
-(defmethod v-typep ((a v-type) b &optional (env *global-env*))
   (declare (ignore env))
-  (cond ((symbolp b)
-         (typep a (resolve-name-from-alternative b)))
-        ((and (listp b) (numberp (second b)))
-         (typep a (resolve-name-from-alternative (first b))))
-        ((and (listp b) (eq (first b) 'v-block-array))
-         (typep a 'v-block-array))))
+  (typep a (type-of b)))
 
 (defmethod v-typep ((a null) b &optional (env *global-env*))
   (declare (ignore env a b))
   nil)
+
 (defmethod v-typep (a (b null) &optional (env *global-env*))
   (declare (ignore env a b))
   nil)
+
 (defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
   (declare (ignore env a b))
   t)
