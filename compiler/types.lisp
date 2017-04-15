@@ -306,7 +306,8 @@ doesnt"))
 ;;------------------------------------------------------------
 ;; Sampler
 
-(def-v-type-class v-sampler (v-type) ())
+(def-v-type-class v-sampler (v-type)
+  ((element-type :initform 'v-type)))
 
 (defmethod post-initialise ((object v-sampler))
   (with-slots (element-type) object
