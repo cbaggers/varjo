@@ -17,8 +17,7 @@
     (assert (= 1 (length stemcells)))
     (copy-code
      code-obj
-     :current-line (unless (typep type 'v-ephemeral-type)
-                     (current-line code-obj))
+     :current-line (unless (ephemeral-p type) (current-line code-obj))
      :type type
      :stemcells (with-slots (name string-name flow-id cpu-side-transform)
                     (first stemcells)

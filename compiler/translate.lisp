@@ -405,7 +405,7 @@
                                ((member :ubo qualifiers)
                                 (write-ubo-block :uniform string-name
                                                  (v-slots type-obj)))
-                               ((v-typep type-obj 'v-ephemeral-type) nil)
+                               ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))
                  final-strings))
@@ -423,7 +423,7 @@
                     :glsl-name string-name
                     :type type-obj
                     :cpu-side-transform cpu-side-transform
-                    :glsl-decl (unless (v-typep type-obj 'v-ephemeral-type)
+                    :glsl-decl (unless (ephemeral-p type-obj)
                                  (gen-uniform-decl-string
                                   (or string-name (error "stem cell without glsl-name"))
                                   type-obj

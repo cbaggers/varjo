@@ -40,7 +40,7 @@
 (defun add-higher-scope-val (code-obj value)
   (let* ((type (v-type-of value))
          (new-oos-args
-          (if (typep type 'v-ephemeral-type)
+          (if (ephemeral-p type)
               (out-of-scope-args code-obj)
               (cons value (out-of-scope-args code-obj)))))
     (copy-code code-obj :out-of-scope-args new-oos-args)))

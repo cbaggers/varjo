@@ -101,13 +101,12 @@
               (let ((closure (ctv type)))
                 (append (in-out-args closure)
                         (implicit-args closure)))))
-           (return-for-glsl (if (typep type 'v-ephemeral-type)
+           (return-for-glsl (if (ephemeral-p type)
                                 (type-spec->type :void)
                                 type))
            (strip-glsl
             (and (not mainp)
-                 (or (v-typep type 'v-void)
-                     (v-typep type 'v-ephemeral-type))
+                 (or (v-typep type 'v-void) (ephemeral-p type))
                  (null multi-return-vars)))
            (sigs (if mainp
                      (signatures body-obj)
