@@ -144,6 +144,16 @@
         (rec source nil)
         nil)))
 
+(defun group-by (key sequence &key (test #'equal))
+  (let ((groups (make-hash-table :test test)))
+    (labels ((do-it (e)
+               (let ((kval (funcall key e)))
+                 (if (gethash kval groups)
+                     (push e (gethash kval groups))
+                     (setf (gethash kval groups) (list e))))))
+      (map nil #'do-it sequence))
+    (hash-table-values groups)))
+
 (defun symb (&rest args)
   "This takes a list of symbols (or strings) and outputs one
    symbol.
