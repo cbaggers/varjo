@@ -2,8 +2,7 @@
 (in-readtable fn:fn-reader)
 
 (defun rolling-translate (stages &optional (compile-func #'translate))
-  (labels ((valid-for-rt (x)
-             (and (typep x 'stage) (not (typep x 'multi-stage)))))
+  (labels ((valid-for-rt (x) (typep x 'stage)))
     (assert (every #'valid-for-rt stages)
             () 'rolling-translate-invalid-stage
             :invalid (remove-if #'valid-for-rt stages)))
