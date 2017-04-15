@@ -18,7 +18,7 @@
 
 (defclass code ()
   ((type :initarg :type :initform nil :reader code-type)
-   (current-line :initarg :current-line :initform "" :reader current-line)
+   (current-line :initarg :current-line :initform "")
    (signatures :initarg :signatures :initform nil :reader signatures)
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
@@ -30,6 +30,8 @@
    (mutations :initarg :mutations :initform nil :reader mutations)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
+
+(defgeneric current-line (code-obj &optional even-when-ephemeral))
 
 ;;----------------------------------------------------------------------
 

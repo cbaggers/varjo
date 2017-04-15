@@ -201,6 +201,9 @@ doesnt"))
             (slot-value block-array 'default-value)))
     r))
 
+(defmethod v-glsl-string ((object v-block-array))
+  (v-glsl-string (v-element-type object)))
+
 ;;------------------------------------------------------------
 ;; Unrepresentable Value
 ;;

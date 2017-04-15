@@ -11,10 +11,10 @@
     (values
      (merge-obs (list arr index)
                 :type elem-type
-                :current-line (format nil "~a.~a[~a]"
+                :current-line (format nil "~a[~a].~a"
                                       (block-name type)
-                                      (current-line arr)
-                                      (current-line index))
+                                      (current-line index)
+                                      (current-line arr t))
                 :node-tree (ast-node! 'aref (list arr index)
                                       elem-type env env))
      env)))

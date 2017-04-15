@@ -37,6 +37,10 @@
 (defmethod v-type-of ((obj code))
   (code-type obj))
 
+(defmethod current-line (code-obj &optional even-when-ephemeral)
+  (unless (and (ephemeral-p (code-type code-obj)) (not even-when-ephemeral))
+    (slot-value code-obj 'current-line)))
+
 (defun add-higher-scope-val (code-obj value)
   (let* ((type (v-type-of value))
          (new-oos-args
@@ -77,7 +81,7 @@
   (let* ((type (if set-type type (code-type code-obj))))
     (code! :type type
            :current-line (if set-current-line current-line
-                             (current-line code-obj))
+                             (current-line code-obj t))
            :signatures (if set-sigs signatures (signatures code-obj))
            :to-block (if set-block to-block (remove nil (to-block code-obj)))
            :return-set (if set-return-set return-set (return-set code-obj))
