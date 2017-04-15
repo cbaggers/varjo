@@ -17,6 +17,13 @@
                  :fragment '(,in-args ,@body)
                  :allow-stemcells ,allow-stemcells))))
 
+(defmacro compile-geom (args version allow-stemcells &body body)
+  (destructuring-bind (in-args uniforms) (split-arguments args '(&uniform))
+    `(first
+      (v-compile ',uniforms ,version
+                 :geometry '(,in-args ,@body)
+                 :allow-stemcells ,allow-stemcells))))
+
 (defmacro compile-vert-frag (uniforms version allow-stemcells &body body)
   `(v-compile ',uniforms ,version
               :vertex ',(first body)
