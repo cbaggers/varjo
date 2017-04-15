@@ -77,19 +77,6 @@
 (defclass geometry-stage (stage) ())
 (defclass fragment-stage (stage) ())
 
-(defclass multi-stage
-    ;; This is an interesting beast, it is not allowed in rolling-translate
-    ;; but it is allowed in translate, I think it won't survive the refactor
-    ;; as stage specific variables can have the same names and different types
-    ;; (and I dont allow dual bindings) but it currently exists to keep the
-    ;; behaviour of having one stage that allows any behaviour from any stage
-    (vertex-stage
-     tesselation-control-stage
-     tesselation-evaluation-stage
-     geometry-stage
-     fragment-stage)
-  ())
-
 ;;----------------------------------------------------------------------
 ;; Compiler output
 

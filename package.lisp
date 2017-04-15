@@ -160,6 +160,7 @@
            :invalid-primitive-for-geometry-stage
            :rolling-translate-invalid-stage
            :couldnt-convert-primitive-for-geometry-stage
+           :test-translate-failed
 
            ;; restarts
            :setq-supply-alternate-type
@@ -401,6 +402,8 @@
            :make-stage
            :translate
            :rolling-translate
+           :test-translate
+           :test-translate-raising
            :split-arguments
            :*stage-types*
            :v-compile

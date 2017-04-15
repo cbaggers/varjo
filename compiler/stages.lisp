@@ -8,17 +8,19 @@
   (when (and (every #'check-arg-form in-args)
              (every #'check-arg-form uniforms)
              (check-for-dups in-args uniforms))
-    (labels ((make-var (kind raw)
+    (labels ((make-var (vkind raw)
                (dbind (name type-spec . rest) raw
                  (vbind (qualifiers glsl-name) (extract-glsl-name rest)
                    (make-instance
-                    kind
+                    vkind
                     :name name
                     :glsl-name (or glsl-name (safe-glsl-name-string name))
                     :type (type-spec->type type-spec)
                     :qualifiers qualifiers)))))
       (let ((r (make-instance
-                (stage-kind-to-type kind)
+                (if kind
+                    (stage-kind-to-type kind)
+                    'stage)
                 :input-variables (mapcar λ(make-var 'input-variable _)
                                          in-args)
                 :uniform-variables (mapcar λ(make-var 'uniform-variable _)
@@ -113,8 +115,7 @@
                (:tesselation-control . tesselation-control-stage)
                (:tesselation-evaluation . tesselation-evaluation-stage)
                (:geometry . geometry-stage)
-               (:fragment . fragment-stage)
-               (:multi . multi-stage))))
+               (:fragment . fragment-stage))))
     (or (assocr kind map)
         (error 'invalid-stage-kind :kind kind))))
 

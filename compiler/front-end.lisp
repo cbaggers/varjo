@@ -85,3 +85,44 @@ Example:
     (flow-id-scope (ast->code (compile-form form env)))))
 
 ;;----------------------------------------------------------------------
+
+(defun test-translate (stage &key (stages *stage-types*))
+  (loop :for kind :in stages :collect
+     (with-slots (input-variables
+                  uniform-variables context lisp-code
+                  stemcells-allowed previous-stage primitive)
+         stage
+       (let* ((type (stage-kind-to-type kind))
+              (stage (make-instance
+                      type
+                      :input-variables input-variables
+                      :uniform-variables uniform-variables
+                      :context context
+                      :lisp-code lisp-code
+                      :stemcells-allowed stemcells-allowed
+                      :previous-stage previous-stage
+                      :primitive primitive)))
+         (handler-case (translate stage)
+           (error (e) e))))))
+
+(defun test-translate-raising
+    (stage &key (stages *stage-types*) (error-on-any-p nil))
+  (let ((results (test-translate stage :stages stages)))
+    (labels ((errorp (x) (typep x 'error)))
+      (if (or (and error-on-any-p (find-if #'errorp results))
+              (every #'errorp results))
+          (raise-test-translate-error results)
+          (remove-if #'errorp results)))))
+
+(defun raise-test-translate-error (errors)
+  (let ((groups (group-by (compose #'princ-to-string #'first)
+                          (remove-if-not
+                           (lambda (x) (typep (first x) 'condition))
+                           (mapcar #'list errors *stage-types*)))))
+    (if (= 1 (length groups))
+        (error (caaar groups))
+        (let ((grouped (mapcar (lambda (grp)
+                                 (cons (mapcar #'second grp)
+                                       (princ-to-string (caar grp))))
+                               groups)))
+          (error 'test-translate-failed :grouped-errors grouped)))))

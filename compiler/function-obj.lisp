@@ -112,7 +112,9 @@
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
                                (loop :for spec :in arg-spec :collect
-                                  (type-spec->type spec))
+                                  (try-type-spec->type
+                                   (resolve-name-from-alternative spec)
+                                   nil))
                                arg-spec)
                  :return-spec
                  (mapcar (lambda (rspec)
