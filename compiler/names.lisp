@@ -1,24 +1,44 @@
 (in-package :varjo)
 
-(defun safe-glsl-name-string (name)
-  (if (valid-user-defined-name name)
-      (let ((name (symbol-name name)))
-        (format nil "~@[~a~]~{~a~}"
-                (when (not (and (find (elt name 0) +ascii-alpha-num+)
-                                (alpha-char-p (elt name 0))))
-
-                  "_")
-                (map 'list (lambda (_)
-                             (if (find _ +ascii-alpha-num+) _
-                                 (if (char= _ #\-) #\_
-                                     (format nil "~a" (char-code _)))))
-                     name)))
-      (error 'name-unsuitable :name name)))
-
 ;;-------------------------------------------------------------------------
 
 ;; safe-glsl-name-string was used on it's own those when we wanted a direct
 ;; translation from lisp name. For example with in-args/uniforms/structs
+
+(defun safe-glsl-name-string (name)
+  (if (valid-user-defined-name name)
+      (gen-glsl-string-for-symbol name)
+      (error 'name-unsuitable :name name)))
+
+(defun gen-glsl-string-for-symbol (name)
+  (let ((name (symbol-name name)))
+    (format nil "~@[~a~]~{~a~}"
+            (when (not (and (find (elt name 0) +ascii-alpha-num+)
+                            (alpha-char-p (elt name 0))))
+
+              "_")
+            (map 'list (lambda (_)
+                         (if (find _ +ascii-alpha-num+) _
+                             (if (char= _ #\-)
+                                 #\_
+                                 (char-name-or-code-str _))))
+                 name))))
+
+(defun char-name-or-code-str (char)
+  (cond
+    ((char= char #\·) "_DOT_")
+    ((char= char #\²) "_SQUARED")
+    ((char= char #\³) "_CUBED")
+    (t (let ((name (char-name char)))
+         (or (when (and (> (length name) 21)
+                        (equal "GREEK_CAPITAL_LETTER_" (subseq name 0 21)))
+               (subseq name 21))
+             (when (and (> (length name) 19)
+                        (equal "GREEK_SMALL_LETTER_" (subseq name 0 19)))
+               (format nil "SMALL_~a" (subseq name 19)))
+             (format nil "~a" (char-code char)))))))
+
+;;-------------------------------------------------------------------------
 
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
@@ -75,31 +95,3 @@
 
 (defun %get-gensym-name (symbol)
   (format nil "g_~a" (gen-glsl-string-for-symbol symbol)))
-
-(defun gen-glsl-string-for-symbol (name)
-  (let ((name (symbol-name name)))
-    (format nil "~@[~a~]~{~a~}"
-            (when (not (and (find (elt name 0) +ascii-alpha-num+)
-                            (alpha-char-p (elt name 0))))
-
-              "_")
-            (map 'list (lambda (_)
-                         (if (find _ +ascii-alpha-num+) _
-                             (if (char= _ #\-)
-                                 #\_
-                                 (char-name-or-code-str _))))
-                 name))))
-
-(defun char-name-or-code-str (char)
-  (cond
-    ((char= char #\·) "_DOT_")
-    ((char= char #\²) "_SQUARED")
-    ((char= char #\³) "_CUBED")
-    (t (let ((name (char-name char)))
-         (or (when (and (> (length name) 21)
-                        (equal "GREEK_CAPITAL_LETTER_" (subseq name 0 21)))
-               (subseq name 21))
-             (when (and (> (length name) 19)
-                        (equal "GREEK_SMALL_LETTER_" (subseq name 0 19)))
-               (format nil "SMALL_~a" (subseq name 19)))
-             (format nil "~a" (char-code char)))))))
