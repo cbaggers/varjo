@@ -14,7 +14,7 @@
                    (make-instance
                     kind
                     :name name
-                    :glsl-name glsl-name
+                    :glsl-name (or glsl-name (safe-glsl-name-string name))
                     :type (type-spec->type type-spec)
                     :qualifiers qualifiers)))))
       (let ((r (make-instance
