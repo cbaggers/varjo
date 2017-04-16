@@ -112,10 +112,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass environment ()
-  ((stage
-    :initform (error "Varjo: stage is mandatory in environment")
-    :initarg :stage :reader stage)
-   (parent-env
+  ((parent-env
     :initform *global-env* :initarg :parent-env :reader v-parent-env)
    (context
     :initform nil :initarg :context :reader v-context)
@@ -136,7 +133,10 @@
 
 
 (defclass base-environment (environment)
-  ((in-args :initform nil :initarg :in-args :accessor v-in-args)
+  ((stage
+    :initform (error "Varjo: stage is mandatory in environment")
+    :initarg :stage :reader stage)
+   (in-args :initform nil :initarg :in-args :accessor v-in-args)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)

@@ -104,6 +104,9 @@
 (defmethod v-name-map ((env environment))
   (slot-value (get-base-env env) 'name-map))
 
+(defmethod stage ((env environment))
+  (stage (get-base-env env)))
+
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
   (unless (every λ(and (symbolp (first _))
@@ -152,7 +155,6 @@
 (defun remove-main-method-flag-from-env (env)
   (assert (typep env 'environment))
   (make-instance 'environment
-                 :stage (stage env)
                  :symbol-bindings (v-symbol-bindings env)
                  :form-bindings (v-form-bindings env)
                  :macros nil
@@ -169,7 +171,6 @@
                                 (allowed-outer-vars nil set-aov))
   (assert (typep env 'environment))
   (make-instance 'environment
-                 :stage (stage env)
                  :symbol-bindings symbol-bindings
                  :form-bindings form-bindings
                  :macros macros
@@ -214,7 +215,6 @@
   (assert (typep env 'environment))
   (assert (typep new-parent 'environment))
   (make-instance 'environment
-                 :stage (stage env)
                  :symbol-bindings (if symbol-bindings-set
                                 symbol-bindings
                                 (v-symbol-bindings env))
