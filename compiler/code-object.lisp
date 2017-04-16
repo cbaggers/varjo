@@ -2,7 +2,7 @@
 
 (defun code! (&key (type nil set-type) (current-line "") signatures to-block
                 return-set used-types multi-vals stemcells
-                out-of-scope-args mutations
+                out-of-scope-args pure
                 place-tree node-tree)
   (let ((flow-ids (flow-ids type)))
     (assert-flow-id-singularity flow-ids)
@@ -31,7 +31,7 @@
                    :stemcells stemcells
                    :out-of-scope-args out-of-scope-args
                    :place-tree place-tree
-                   :mutations mutations
+                   :pure pure
                    :node-tree node-tree)))
 
 (defmethod v-type-of ((obj code))
@@ -59,10 +59,11 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defun make-code-obj (type current-line &key place-tree node-tree)
+(defun make-code-obj (type current-line &key place-tree node-tree pure)
   (code! :type type :current-line current-line
          :place-tree (listify place-tree)
-         :node-tree node-tree))
+         :node-tree node-tree
+         :pure pure))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -76,7 +77,7 @@
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
                         (place-tree nil set-place-tree)
-                        (mutations nil set-mutations)
+                        (pure nil set-pure)
                         (node-tree nil set-node-tree))
   (let* ((type (if set-type type (code-type code-obj))))
     (code! :type type
@@ -92,7 +93,7 @@
                                   out-of-scope-args
                                   (remove nil (out-of-scope-args code-obj)))
            :place-tree (if set-place-tree place-tree (place-tree code-obj))
-           :mutations (if set-mutations mutations (mutations code-obj))
+           :pure (if set-pure pure (pure-p code-obj))
            :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
 
 (defmethod merge-obs ((objs list)
@@ -105,7 +106,7 @@
                         (stemcells nil set-stemcells)
                         (out-of-scope-args nil set-out-of-scope-args)
                         place-tree
-                        (mutations nil set-mutations)
+                        (pure nil set-pure)
                         node-tree)
   (assert type () "type is mandatory")
   (assert (typep type 'v-type))
@@ -133,8 +134,7 @@
             (if set-out-of-scope-args out-of-scope-args
                 (mapcat #'out-of-scope-args objs)))
            :place-tree place-tree
-           :mutations (if set-mutations mutations
-                          (mapcat #'mutations objs))
+           :pure (if set-pure pure (every #'pure-p objs))
            :node-tree node-tree)))
 
 (defun merge-lines-into-block-list (objs)

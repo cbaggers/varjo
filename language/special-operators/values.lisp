@@ -50,7 +50,8 @@
   (let ((void (type-spec->type :void (flow-id!))))
     (values (code! :type void
                    :current-line nil
-                   :node-tree (ast-node! 'values nil void env env))
+                   :node-tree (ast-node! 'values nil void env env)
+                   :pure t)
             env)))
 
 (defun extract-value-qualifiers (value-form)

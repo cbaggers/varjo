@@ -56,7 +56,8 @@
              (code! :type array-type
                     :current-line glsl
                     :used-types (list element-type)
-                    :node-tree ast)
+                    :node-tree ast
+                    :pure t)
              env)))))))
 
 (v-defspecial vector (&rest elements)

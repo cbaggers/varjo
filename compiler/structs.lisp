@@ -101,7 +101,8 @@
                                      fake-slot-name
                                      nil ;; {TODO} Must be context
                                      (list fake-type)
-                                     (list slot-type) :v-place-index nil)
+                                     (list slot-type) :v-place-index nil
+                                     :pure t)
                   env)
              :collect (make-instance
                        'input-variable
@@ -139,7 +140,8 @@
                                      fake-slot-name
                                      nil ;; {TODO} Must be context
                                      (list fake-type)
-                                     (list slot-type) :v-place-index nil)
+                                     (list slot-type) :v-place-index nil
+                                     :pure t)
                   env)
              :collect (make-instance
                        'uniform-variable

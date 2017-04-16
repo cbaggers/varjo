@@ -176,7 +176,8 @@
                                  (node-tree value-obj)
                                  :ignored)
                   :stemcells (append (and let-obj (stemcells let-obj))
-                                     (and value-obj (stemcells value-obj))))
+                                     (and value-obj (stemcells value-obj)))
+                  :pure (if value-obj (pure-p value-obj) t))
        (add-symbol-binding
         name
         (if (and (not value-obj) (not assume-bound))

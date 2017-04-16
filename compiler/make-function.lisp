@@ -20,7 +20,6 @@
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
         (assert (null (multi-vals maybe-def-code)))
-        (assert (null (mutations maybe-def-code)))
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
@@ -106,6 +105,7 @@
                                 type))
            (strip-glsl
             (and (not mainp)
+                 (pure-p body-obj)
                  (or (v-typep type 'v-void) (ephemeral-p type))
                  (null multi-return-vars)))
            (sigs (if mainp
@@ -136,7 +136,8 @@
                                          :implicit-args implicit-args
                                          :in-out-args in-out-args
                                          :flow-ids (flow-ids body-obj)
-                                         :in-arg-flow-ids in-arg-flow-ids))
+                                         :in-arg-flow-ids in-arg-flow-ids
+                                         :pure (pure-p body-obj)))
            (ret-set (return-set body-obj))
            (code-obj (copy-code body-obj
                                 :type (gen-none-type)

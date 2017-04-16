@@ -18,7 +18,8 @@
                     :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
    (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
                               :code-type :v-function)
-             :initarg :flow-ids :reader flow-ids)))
+             :initarg :flow-ids :reader flow-ids)
+   (pure :initform nil :initarg :pure :reader pure-p)))
 
 (defmethod functions ((fn v-function))
   (list fn))
@@ -107,7 +108,7 @@
 
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
-                            in-out-args flow-ids in-arg-flow-ids)
+                            in-out-args flow-ids in-arg-flow-ids pure)
   (make-instance 'v-function
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
@@ -128,12 +129,13 @@
                  :implicit-args implicit-args
                  :in-out-args in-out-args
                  :flow-ids flow-ids
-                 :in-arg-flow-ids in-arg-flow-ids))
+                 :in-arg-flow-ids in-arg-flow-ids
+                 :pure pure))
 
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
-                                 code captured-vars)
+                                 code captured-vars pure)
   (make-instance 'v-user-function
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
@@ -154,7 +156,8 @@
                  :in-arg-flow-ids in-arg-flow-ids
                  :in-out-args in-out-args
                  :code code
-                 :captured-vars captured-vars))
+                 :captured-vars captured-vars
+                 :pure pure))
 
 ;; {TODO} make this use the arg & return types
 (defun gen-dummy-func-glsl-name (func-type)

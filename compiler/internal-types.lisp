@@ -27,7 +27,7 @@
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
-   (mutations :initarg :mutations :initform nil :reader mutations)
+   (pure :initarg :pure :initform nil :reader pure-p)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
 

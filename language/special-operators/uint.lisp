@@ -14,6 +14,7 @@
         (values (code! :type type
                        :current-line (format nil "~au" val)
                        :used-types (list type)
-                       :node-tree (ast-node! 'uint val type env env))
+                       :node-tree (ast-node! 'uint val type env env)
+                       :pure t)
                 env))
       (compile-form `(%uint ,val) env)))

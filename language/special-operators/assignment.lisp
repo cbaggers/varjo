@@ -42,7 +42,8 @@
                                                                 (node-tree val))
                                                           (code-type place)
                                                           env
-                                                          final-env))
+                                                          final-env)
+                                    :pure nil)
                          final-env)))))))))
 
 (v-defspecial setq (var-name new-val-code)
@@ -82,7 +83,8 @@
                                            (node-tree new-val))
                                      actual-type
                                      env
-                                     final-env))
+                                     final-env)
+                         :pure nil)
               final-env))))
 
 (defun calc-setq-type (new-val old-val var-name)
@@ -122,7 +124,8 @@
    (merge-obs (list place val) :type (code-type place)
               :current-line (gen-assignment-string place val)
               :node-tree (ast-node! '%assign (list place val)
-                                    (code-type place) env env))
+                                    (code-type place) env env)
+              :pure nil)
    env))
 
 ;;------------------------------------------------------------

@@ -36,11 +36,11 @@
 (defgeneric merge-obs (objs &key type current-line to-block
                               return-set multi-vals
                               stemcells out-of-scope-args
-                              place-tree mutations node-tree))
+                              place-tree pure node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block
                                   return-set multi-vals
                                   stemcells out-of-scope-args
-                                  place-tree mutations node-tree))
+                                  place-tree pure node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
 (defgeneric func-need-arguments-compiledp (func))
