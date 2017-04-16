@@ -1,4 +1,6 @@
 
+* make context restriction work with special functions
+
 * I think if we edit #'process-in-args & return we could have
   instance names on the interface blocks. Not sure how to have
   arrayed interface blocks though, they are syntactically like structs
