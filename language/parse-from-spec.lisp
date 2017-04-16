@@ -125,7 +125,8 @@
     ("vec3" v-vec3)
     ("vec4" v-vec4)
     ("void" v-void)
-    ("gl_DepthRangeParameters" v-depth-range-parameters)))
+    ("gl_DepthRangeParameters" v-depth-range-parameters)
+    ("gl_PerVertex" v-per-vertex)))
 
 (defun %parse (name &optional (start-at 0) (prefix ""))
   (with-input-from-string (seq name :start start-at)
@@ -157,7 +158,10 @@
 
 (defun parse-gl-type-name (name)
   (assert (stringp name))
-  (if (char= (aref name 0) #\[)
-      (list (parse-gl-type-name (subseq name 1)) '*)
-      (or (first (assocr name *glsl-type->varjo-type* :test #'equal))
-          (error "Could not find varjo type for ~s" name))))
+  (cond
+    ((char= (aref name 0) #\[)
+     `(,(parse-gl-type-name (subseq name 1)) *))
+    ((char= (aref name 0) #\{)
+     `(v-ephemeral-array ,(parse-gl-type-name (subseq name 1)) *))
+    (t (or (first (assocr name *glsl-type->varjo-type* :test #'equal))
+           (error "Could not find varjo type for ~s" name)))))
