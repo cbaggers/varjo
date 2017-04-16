@@ -47,12 +47,9 @@
                      () 'return-type-mismatch
                      :sets (list set-a set-b))
              set-a))
-    (let* ((sets (remove nil sets))
-           (set (reduce #'%merge-return-sets (rest sets)
-                        :initial-value (first sets))))
-      (if (> (length set) 0)
-          (subseq set 0 1)
-          set))))
+    (let* ((sets (remove nil sets)))
+      (reduce #'%merge-return-sets (rest sets)
+                        :initial-value (first sets)))))
 
 (defun make-return-set-from-code-obj (code-obj)
   (let ((mval-rets (mapcar #'make-return-val-from-mval (multi-vals code-obj)))

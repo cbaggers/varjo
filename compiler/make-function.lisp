@@ -75,11 +75,10 @@
                                                func-env))
          (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
          (return-set (map 'list #'identity (return-set body-obj)))
-         (primary-type (when return-set (v-type-of (first return-set))))
+         (primary-type (or (when return-set (v-type-of (first return-set)))
+                           (type-spec->type :void)))
          (multi-return-vars (when return-set (rest return-set)))
          (type (if mainp (type-spec->type 'v-void) primary-type)))
-    (unless (or mainp primary-type)
-      (error 'no-function-returns :name name))
     (when (v-typep type (gen-none-type))
       (error 'function-with-no-return-type :func-name name))
     (let* ((arg-pairs (unless mainp

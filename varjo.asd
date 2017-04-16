@@ -32,7 +32,6 @@
                (:file "compiler/macros")
                (:file "language/macros")
                (:file "compiler/functions")
-               (:file "language/built-in-types")
                (:file "compiler/string-generation")
                (:file "compiler/compile-result")
                (:file "compiler/ast-node")
@@ -45,6 +44,7 @@
                (:file "language/parse-from-spec")
                (:file "language/variables-from-spec")
                (:file "language/functions-from-spec")
+               (:file "language/built-in-types")
                ;;
                (:file "language/special-operators/uint")
                (:file "language/special-operators/progn")

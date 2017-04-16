@@ -52,19 +52,22 @@
     ;; We then compile the form using the augmented environment, the values
     ;; statements will expand and flow back as 'multi-vals' and the
     ;; current-line
-
+    ;;
     ;; now there are two styles of return:
     ;; - The first is for a regular function, in which multivals become
     ;;   out-arguments and the current-line is returned
     ;; - The second is for a shader stage in which the multi-vars become
     ;;   output-variables and the current line is handled in a 'context'
     ;;   specific way.
+    ;;
+    ;; If you make changes here, look at #'emit to see if it needs
+    ;; similar changes
     (let* ((code-obj (compile-form form new-env))
            (is-main (not (null (member :main (v-context new-env)))))
            (result
             (if is-main
                 (%main-return code-obj implicit new-env)
-                (%regular-return code-obj)))
+                (%regular-return code-obj implicit)))
            (ast (ast-node! 'return (node-tree code-obj)
                            (code-type result)
                            env env))
@@ -79,23 +82,34 @@
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
-(defun %regular-return (code-obj)
-  (let* ((flow-result
+(defun %regular-return (code-obj implicit)
+  (let* ((void (type-spec->type :void))
+         (flow-result
           (if (multi-vals code-obj)
               (m-flow-id! (cons (flow-ids code-obj)
                                 (mapcar λ(flow-ids (multi-val-value _))
                                         (multi-vals code-obj))))
               (flow-ids code-obj)))
-         (suppress-glsl (or (v-typep (code-type code-obj) 'v-void)
-                            (v-typep (code-type code-obj)
-                                     'v-ephemeral-type)))
+         (suppress-return (or (v-typep (code-type code-obj) 'v-void)
+                              (v-typep (code-type code-obj)
+                                       'v-ephemeral-type)))
          (ret-set (make-return-set-from-code-obj code-obj)))
+    ;;
+    (when (and implicit (v-typep (code-type code-obj) void))
+      (setf ret-set (or (return-set code-obj) (make-return-set)))
+      (setf flow-result
+            (case= (length ret-set)
+              (0 (flow-ids code-obj))
+              (1 (flow-ids (v-type-of (elt ret-set 0))))
+              (otherwise (m-flow-id!
+                          (map 'list λ(flow-ids (v-type-of _)) ret-set))))))
     ;;
     (copy-code
      code-obj
      :type (type-spec->type 'v-void flow-result)
-     :current-line (unless suppress-glsl
-                     (format nil "return ~a" (current-line code-obj)))
+     :current-line (if suppress-return
+                       (current-line code-obj)
+                       (format nil "return ~a" (current-line code-obj)))
      :multi-vals nil
      :place-tree nil
      :return-set ret-set)))
@@ -103,11 +117,17 @@
 
 ;; Used when this is the main stage function
 (defun %main-return (code-obj implicit env)
+  ;; If you make changes here, look at %emit to see if it needs
+  ;; similar changes
   (let ((type (v-type-of code-obj))
         (void (type-spec->type :void)))
     (cond
       ((and implicit (v-typep type void))
-       (values (copy-code code-obj :return-set (make-return-set)) env))
+       (values (copy-code code-obj
+                          :return-set (or (return-set code-obj)
+                                          (make-return-set))
+                          :pure nil)
+               env))
       ((multi-vals code-obj)
        (let* ((mvals (multi-vals code-obj))
               (v-vals (mapcar #'multi-val-value mvals))
@@ -140,7 +160,8 @@
                                ,(%default-out-for-stage code-obj fresh-env)
                                (glsl-expr "return" :void))
                             fresh-env))
-            :return-set ret-set))))))
+            :return-set ret-set
+            :pure nil))))))
 
 ;; fragment comes first as it doesnt restrict the exit type...this is a bug
 ;; really as fragment out-var should be vec4...We should have a case for

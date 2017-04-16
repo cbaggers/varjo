@@ -1,11 +1,12 @@
 (in-package :varjo)
 (in-readtable fn:fn-reader)
 
-(defparameter *definitions-missing-from-glsl-spec*
-  '((:name "gl_in" :type "{gl_PerVertex" :place-p t
-     :versions (150 330 400 410 420 430 440 450)
-     :stage :geometry)
-    ))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defparameter *definitions-missing-from-glsl-spec*
+    '((:name "gl_in" :type "{gl_PerVertex" :place-p t
+       :versions (150 330 400 410 420 430 440 450)
+       :stage :geometry)
+      )))
 
 (defmacro populate-vars ()
   (let ((vars (mapcar λ(destructuring-bind

@@ -27,3 +27,83 @@
            (return (+ 1 2))
            (return 3)))
      (v! 0 0 0 0))))
+
+(5am:def-test return-3 (:suite return-tests)
+  (glsl-contains-n-p 1
+      "return 1;"
+    (varjo.tests::compile-vert () :450 t
+      (labels ((gen-line ((index :int))
+                 1))
+        (gen-line 2)
+        (values)))))
+
+(5am:def-test return-4 (:suite return-tests)
+  (glsl-doesnt-contain-p "out"
+    (varjo.tests::compile-vert () :450 t
+      (values))))
+
+(5am:def-test return-5 (:suite return-tests)
+  (glsl-contains-n-p 1 "out vec4"
+    (varjo.tests::compile-frag () :450 t
+      (return (v! 1 2 3 4))
+      (values))))
+
+(5am:def-test return-6 (:suite return-tests)
+  (glsl-contains-n-p 1 "out vec4"
+    (varjo.tests::compile-frag () :450 t
+      (v! 1 2 3 4))))
+
+(5am:def-test return-7 (:suite return-tests)
+  (glsl-contains-n-p 1 "out vec4"
+    (varjo.tests::compile-frag () :450 t
+      (return (v! 1 2 3 4)))))
+
+(5am:def-test return-8 (:suite return-tests)
+  (glsl-contains-n-p 1 "return 1;"
+    (varjo.tests::compile-frag () :450 t
+      (labels ((gen-line ()
+                 1))
+        (gen-line)
+        (values)))))
+
+(5am:def-test return-9 (:suite return-tests)
+  (glsl-contains-n-p 1 "return 1;"
+    (varjo.tests::compile-frag () :450 t
+      (labels ((gen-line ()
+                 (return 1)))
+        (gen-line)
+        (values)))))
+
+(5am:def-test return-10 (:suite return-tests)
+  (glsl-contains-all-p  ("\\(out int return1, out int return2\\);"
+                         "return1 = "
+                         "return2 = "
+                         "return g_")
+    (varjo.tests::compile-frag () :450 t
+      (labels ((gen-line ()
+                 (values 1 2 3)))
+        (gen-line)
+        (values)))))
+
+(5am:def-test return-11 (:suite return-tests)
+  (glsl-contains-all-p  ("\\(out int return1, out int return2\\);"
+                         "return1 = "
+                         "return2 = "
+                         "return g_")
+    (varjo.tests::compile-frag () :450 t
+      (labels ((gen-line ()
+                 (return (values 1 2 3))))
+        (gen-line)
+        (values)))))
+
+(5am:def-test return-11 (:suite return-tests)
+  (glsl-contains-all-p  ("\\(out int return1, out int return2\\);"
+                         "return1 = "
+                         "return2 = "
+                         "return g_")
+    (varjo.tests::compile-frag () :450 t
+      (labels ((gen-line ()
+                 (return (values 1 2 3))
+                 (values)))
+        (gen-line)
+        (values)))))

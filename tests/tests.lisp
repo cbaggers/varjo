@@ -110,6 +110,20 @@
                 (not (glsl-contains-invalid ,compiled))
                 (not (glsl-contains-nil ,compiled)))))))
 
+(defmacro glsl-contains-all-p ((&rest regexes) &body form)
+  (assert (= 1 (length form)))
+  (let ((gvars (loop :for i :below (length regexes) :collect (gensym))))
+    (alexandria:with-gensyms (compiled)
+      `(let* ((,compiled ,(first form))
+              ,@(loop :for g :in gvars :for r :in regexes :collect
+                   `(,g (cl-ppcre:all-matches-as-strings
+                         ,r (glsl-code ,compiled)))))
+         (is (and (or (every (lambda (x) (= 1 (length x)))
+                             (list ,@gvars))
+                      (map nil #'print (list ,@gvars)))
+                  (not (glsl-contains-invalid ,compiled))
+                  (not (glsl-contains-nil ,compiled))))))))
+
 ;;------------------------------------------------------------
 
 (5am:def-suite test-all)

@@ -15,6 +15,9 @@
                                       (block-name type)
                                       (current-line index)
                                       (current-line arr t))
-                :node-tree (ast-node! 'aref (list arr index)
-                                      elem-type env env))
+                :node-tree (ast-node!
+                            'aref
+                            (list (node-tree arr)
+                                  (node-tree index))
+                            elem-type env env))
      env)))
