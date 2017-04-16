@@ -450,7 +450,7 @@ For example calling env-prune on this environment..
    This is used when setting up the environment prior to starting the actual
    compilation"
   (setf (slot-value env 'symbol-bindings)
-        (a-add var-name val (v-symbol-bindings env))))
+        (a-set var-name val (v-symbol-bindings env))))
 
 (defmethod %add-symbol-binding (name (macro v-symbol-macro)
                                 (env base-environment))
@@ -458,7 +458,7 @@ For example calling env-prune on this environment..
    This is used when setting up the environment prior to starting the actual
    compilation"
   (setf (slot-value env 'symbol-bindings)
-        (a-add name macro (v-symbol-bindings env))))
+        (a-set name macro (v-symbol-bindings env))))
 
 (defmethod add-symbol-binding (name (val v-value) (env environment))
   (fresh-environment env :symbol-bindings (a-add name val
