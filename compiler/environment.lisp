@@ -107,6 +107,9 @@
 (defmethod stage ((env environment))
   (stage (get-base-env env)))
 
+(defmethod primitive ((env environment))
+  (primitive (stage env)))
+
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
   (unless (every λ(and (symbolp (first _))

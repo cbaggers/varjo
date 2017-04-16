@@ -48,6 +48,9 @@
    (used-external-functions :initarg :used-external-functions
                             :accessor used-external-functions)))
 
+(defmethod primitive ((pp post-compile-process))
+  (primitive (stage pp)))
+
 ;;----------------------------------------------------------------------
 
 (defclass compiled-function-result ()
