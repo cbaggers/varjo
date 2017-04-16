@@ -32,7 +32,7 @@
                (:file "compiler/macros")
                (:file "language/macros")
                (:file "compiler/functions")
-               (:file "language/struct-types")
+               (:file "language/built-in-types")
                (:file "compiler/string-generation")
                (:file "compiler/compile-result")
                (:file "compiler/ast-node")
