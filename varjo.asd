@@ -60,12 +60,12 @@
                (:file "language/special-operators/function")
                (:file "language/special-operators/iteration")
                (:file "language/special-operators/macros")
-               (:file "language/special-operators/type")
                (:file "language/special-operators/swizzle")
                (:file "language/special-operators/inline-code")
                (:file "language/special-operators/compiler-debugging")
                (:file "language/special-operators/make-array")
                (:file "language/special-operators/aref")
+               (:file "language/special-operators/emit")
                ;;
                (:file "language/functions")
                (:file "language/bitwise-operators")
