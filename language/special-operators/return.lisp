@@ -107,7 +107,7 @@
         (void (type-spec->type :void)))
     (cond
       ((and implicit (v-typep type void))
-       (values code-obj env))
+       (values (copy-code code-obj :return-set (make-return-set)) env))
       ((multi-vals code-obj)
        (let* ((mvals (multi-vals code-obj))
               (v-vals (mapcar #'multi-val-value mvals))
