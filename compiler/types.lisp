@@ -168,7 +168,20 @@ doesnt"))
 (def-v-type-class v-block-array (v-ephemeral-type)
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
-   (block-name :initarg :block-name :reader block-name)))
+   (block-name :initarg :block-name :initform "<invalid>" :reader block-name)))
+
+(defmethod v-make-type ((type v-block-array) flow-id &rest args)
+  (destructuring-bind (block-name element-type length) args
+    (let* ((dims (listify length))
+           (length (first dims)))
+      (assert (= 1 (length dims)))
+      (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+                  (and (symbolp length) (string= length :*))))
+      (initialize-instance type
+                           :block-name block-name
+                           :element-type (type-spec->type element-type)
+                           :dimensions dims
+                           :flow-ids flow-id))))
 
 (defmethod post-initialise ((object v-block-array))
   (with-slots (dimensions element-type) object
@@ -185,8 +198,10 @@ doesnt"))
     result))
 
 (defmethod type->type-spec ((type v-block-array))
-  (list (type->type-spec (v-element-type type)) (v-dimensions type))
-  `(v-block-array ,(type->type-spec (v-element-type type))
+  `(v-block-array ,(if (slot-boundp type 'block-name)
+                       (block-name type)
+                       "<invalid>")
+                  ,(type->type-spec (v-element-type type))
                   ,(v-dimensions type)))
 
 (defmethod copy-type ((type v-block-array))

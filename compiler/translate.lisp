@@ -339,7 +339,9 @@
                 'input-variable
                 :name (name var)
                 :glsl-name (glsl-name var)
-                :type type
+                :type (if (typep type 'v-block-array)
+                          (block-array-to-regular-array type)
+                          type)
                 :qualifiers (qualifiers var)
                 :glsl-decl (gen-in-var-string (or (glsl-name var) (name var))
                                               type
@@ -347,8 +349,7 @@
                                               location))))
       ;;
       (setf (input-variables post-proc-obj)
-            (loop :for var :in (input-variables stage)
-               :collect
+            (loop :for var :in (input-variables stage) :collect
                (or (find (name var) (in-args post-proc-obj) :key #'name)
                    var)))))
   post-proc-obj)
