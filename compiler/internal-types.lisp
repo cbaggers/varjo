@@ -39,7 +39,9 @@
   ((main-func :initarg :main-func :accessor main-func)
    (env :initarg :env :accessor env)
    (stage :initarg :stage :accessor stage)
+   (in-decl :initform nil :initarg :in-decl :accessor in-declarations)
    (in-args :initarg :in-args :accessor in-args)
+   (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
    (out-vars :initarg :out-vars :accessor out-vars)
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
@@ -290,40 +292,45 @@
 (defclass geometry-primitive (primitive) ())
 
 (defclass points (draw-mode geometry-primitive)
-  ((vertex-count :initform 1 :reader vertex-count)))
+  ((vertex-count :initform 1 :reader vertex-count)
+   (glsl-string :initform "points" :reader glsl-string)))
 
 (defclass lines (draw-mode geometry-primitive)
-  ((vertex-count :initform 2 :reader vertex-count)))
+  ((vertex-count :initform 2 :reader vertex-count)
+   (glsl-string :initform "lines" :reader glsl-string)))
 
 (defclass line-loop (draw-mode)
-  ())
+  ((glsl-string :initform "line_loop" :reader glsl-string)))
 
 (defclass line-strip (draw-mode)
-  ())
+  ((glsl-string :initform "line_strip" :reader glsl-string)))
 
 (defclass lines-adjacency (draw-mode geometry-primitive)
-  ((vertex-count :initform 4 :reader vertex-count)))
+  ((vertex-count :initform 4 :reader vertex-count)
+   (glsl-string :initform "lines_adjacency" :reader glsl-string)))
 
 (defclass line-strip-adjacency (draw-mode)
-  ())
+  ((glsl-string :initform "line_strip_adjacency" :reader glsl-string)))
 
 (defclass triangles (draw-mode geometry-primitive)
-  ((vertex-count :initform 3 :reader vertex-count)))
+  ((vertex-count :initform 3 :reader vertex-count)
+   (glsl-string :initform "triangles" :reader glsl-string)))
 
 (defclass triangle-fan (draw-mode)
-  ())
+  ((glsl-string :initform "triangle_fan" :reader glsl-string)))
 
 (defclass triangle-strip (draw-mode)
-  ())
+  ((glsl-string :initform "triangle_strip" :reader glsl-string)))
 
 (defclass triangles-adjacency (draw-mode geometry-primitive)
-  ((vertex-count :initform 6 :reader vertex-count)))
+  ((vertex-count :initform 6 :reader vertex-count)
+   (glsl-string :initform "triangles_adjacency" :reader glsl-string)))
 
 (defclass triangle-strip-adjacency (draw-mode)
-  ())
+  ((glsl-string :initform "triangle_strip_adjacency" :reader glsl-string)))
 
 (defclass quads (draw-mode)
-  ())
+  ((glsl-string :initform "quads" :reader glsl-string)))
 
 (defclass patches (draw-mode)
   ())

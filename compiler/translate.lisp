@@ -21,7 +21,9 @@
             #'post-process-ast
             #'filter-used-items
             #'gen-in-arg-strings
+            #'gen-in-decl-strings
             #'gen-out-var-strings
+            #'gen-out-decl-strings
             #'final-uniform-strings
             #'dedup-used-types
             #'final-string-compose
@@ -169,8 +171,8 @@
    :env env
    :used-external-functions (remove-duplicates (used-external-functions env))))
 
-(defmethod all-functions ((ppo post-compile-process))
-  (cons (main-func ppo) (all-cached-compiled-functions (env ppo))))
+(defmethod all-functions ((pp post-compile-process))
+  (cons (main-func pp) (all-cached-compiled-functions (env pp))))
 
 ;;----------------------------------------------------------------------
 
@@ -353,6 +355,14 @@
 
 ;;----------------------------------------------------------------------
 
+(defun gen-in-decl-strings (post-proc-obj)
+  (when (stage-is post-proc-obj :geometry)
+    (setf (in-declarations post-proc-obj)
+          (list (gen-geom-primtive-string (primitive post-proc-obj)))))
+  post-proc-obj)
+
+;;----------------------------------------------------------------------
+
 (defun gen-out-var-strings (post-proc-obj)
   (with-slots (main-func env) post-proc-obj
     (let* ((ret-set (return-set main-func))
@@ -382,6 +392,11 @@
                 :glsl-decl (gen-out-var-string
                             glsl-name type qualifiers location))))
       post-proc-obj)))
+
+;;----------------------------------------------------------------------
+
+(defun gen-out-decl-strings (post-proc-obj)
+  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 

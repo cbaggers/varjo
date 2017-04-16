@@ -172,12 +172,18 @@
   (declare (ignore qualifiers))
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
+(defun gen-geom-primtive-string (primitive)
+  (format nil "layout (~a) in;" (glsl-string primitive)))
+
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
-    (format nil "#version ~a~%~{~%~{~a~%~}~}" (get-version-from-context env)
+    (format nil "#version ~a~%~{~%~{~a~%~}~}"
+            (get-version-from-context env)
             (loop :for part :in
                (list (used-types post-proc-obj)
+                     (in-declarations post-proc-obj)
                      (gen-in-block post-proc-obj)
+                     (out-declarations post-proc-obj)
                      (gen-out-block post-proc-obj)
                      (remove-empty
                       (append
