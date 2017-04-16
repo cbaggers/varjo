@@ -429,9 +429,7 @@ For example calling env-prune on this environment..
     (symbol
      (and type-name
           (find-class type-name nil)
-          (handler-case (progn (typep (make-instance type-name) 'v-type)
-                               t)
-            (error () nil))))
+          (values (subtypep type-name 'v-type))))
     (list (vtype-existsp (first type-name)))))
 
 ;;-------------------------------------------------------------------------
