@@ -13,9 +13,11 @@
                        (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs &optional out-strings)
+  ;; This will include ephemeral types if passed. It is the responsibility
+  ;; of the calling code to handle this
   (when (v-glsl-string func)
     (apply #'format nil (v-glsl-string func)
-           (append (mapcar #'current-line arg-objs)
+           (append (mapcar λ(current-line _ t) arg-objs)
                    out-strings
                    (mapcar #'v-glsl-name (implicit-args func))))))
 
