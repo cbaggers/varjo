@@ -137,19 +137,38 @@ doesnt"))
   (:method (x)
     (ephemeral-p (v-type-of x))))
 
+;;------------------------------------------------------------
+;; Ephemeral Array
+;;
+;; An array for item which that have no representation in glsl.
+;;
+
 (def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
+
+(defmethod v-make-type ((type v-ephemeral-array) flow-id &rest args)
+  (destructuring-bind (element-type length) args
+    (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+                (and (symbolp length) (string= length :*))))
+    (initialize-instance type
+                         :element-type (type-spec->type element-type)
+                         :dimensions (listify length)
+                         :flow-ids flow-id)))
 
 ;;------------------------------------------------------------
 ;; Block Array
 ;;
+;; These serve a very specific purpose; they are used when you have an
+;; array'd interface block but you want to pretend that that members of
+;; the block are array'd.
 ;;
+;; This is different from ephemeral arrays where you are mimicking a true
+;; array.
 ;;
 
 (def-v-type-class v-block-array (v-ephemeral-type)
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
-   (block-name :initarg :block-name
-               :reader block-name)))
+   (block-name :initarg :block-name :reader block-name)))
 
 (defmethod post-initialise ((object v-block-array))
   (with-slots (dimensions element-type) object
@@ -249,6 +268,24 @@ doesnt"))
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 
+(defmethod v-make-type ((type v-array) flow-id &rest args)
+  (destructuring-bind (element-type length) args
+    (initialize-instance
+     type
+     :element-type (type-spec->type element-type (when flow-id (flow-id!)))
+     :dimensions (listify length)
+     :flow-ids flow-id)))
+
+(defun v-array-spec-p (spec)
+  (labels ((valid-dim-p (x)
+             (or (typep x '(integer 0 #xFFFF))
+                 (and (symbolp x) (string= x :*)))))
+    (and (listp spec)
+         (= (length spec) 2)
+         (or (valid-dim-p (second spec))
+             (and (listp spec) (every #'valid-dim-p (second spec))))
+         (vtype-existsp (first spec)))))
+
 (defmethod v-glsl-size ((type v-array))
   (* (apply #'* (v-dimensions type))
      (slot-value (v-element-type type) 'glsl-size)))
@@ -334,6 +371,12 @@ doesnt"))
 
 (defmethod type->type-spec ((type v-or))
   `(or ,@(mapcar #'type->type-spec (v-types type))))
+
+(defmethod v-make-type ((type v-or) flow-id &rest args)
+  (declare (ignore flow-id))
+  ;; flow-id is discarded as the flow-id will be the union of the
+  ;; ids of the types in the spec
+  (gen-or-type args))
 
 (defgeneric gen-or-type (types)
   (:method (types)
@@ -422,6 +465,14 @@ doesnt"))
   ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
 
+(defmethod v-make-type ((type v-function-type) flow-id &rest args)
+  (destructuring-bind (arg-types return-type) args
+    (make-instance
+     'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
+     :return-spec (or (mapcar #'type-spec->type (uiop:ensure-list return-type))
+                      (list (type-spec->type :void)))
+     :flow-ids flow-id)))
+
 (defmethod print-object ((object v-function-type) stream)
   (with-slots (name argument-spec return-spec) object
     (format stream "#<V-FUNCTION-TYPE ~s -> ~s>"
@@ -468,29 +519,27 @@ doesnt"))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
+          ;;
           ((eq spec t) (type-spec->type 'v-type))
+          ;;
           ((and (symbolp spec) (vtype-existsp spec))
-           (let ((type (make-instance spec :flow-ids flow-id)))
-             (when (typep type 'v-type)
-               type)))
+           (make-instance spec :flow-ids flow-id))
+          ;;
+          ;;
           ((and (listp spec) (eq (first spec) 'function))
-           (make-instance
-            'v-function-type :arg-spec (mapcar #'type-spec->type (second spec))
-            :return-spec (or (mapcar #'type-spec->type
-                                     (uiop:ensure-list (third spec)))
-                             (list (type-spec->type :void)))
-            :flow-ids flow-id))
+           (try-type-spec->type `(v-function-type ,@(rest spec)) flow-id))
+          ;;
           ((and (listp spec) (eq (first spec) 'or))
-           ;; flow-id is discarded as the flow-id will be the union of the
-           ;; ids of the types in the spec
-           (gen-or-type (rest spec)))
+           (try-type-spec->type `(v-or ,@(rest spec)) flow-id))
+          ;;
+          ((v-array-spec-p spec)
+           (try-type-spec->type `(v-array ,@spec) flow-id))
+          ;;
           ((and (listp spec) (vtype-existsp (first spec)))
-           (destructuring-bind (type dimensions) spec
-             (make-instance
-              'v-array
-              :element-type (type-spec->type type (when flow-id (flow-id!)))
-              :dimensions dimensions
-              :flow-ids flow-id)))
+           (apply #'v-make-type
+                  (allocate-instance (find-class (first spec)))
+                  flow-id
+                  (rest spec)))
           (t nil))))
 
 ;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
