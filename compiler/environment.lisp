@@ -417,12 +417,8 @@ For example calling env-prune on this environment..
   (or (find-if λ(member _ *supported-draw-modes*) context)
       :triangles))
 
-;;{TODO} move errors to correct place
-;; (defun get-primitive-length (prim-type)
-;;   (let ((pos (position prim-type prims)))
-;;     (if pos
-;;         (1+ pos)
-;;         (error "Varjo: Not a valid primitive type"))))
+(defun get-stage-kind-from-context (context)
+  (find-if λ(member _ *stage-types*) context))
 
 ;;-------------------------------------------------------------------------
 
