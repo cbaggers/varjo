@@ -72,3 +72,5 @@
     :triangle-strip-adjacency
     :quads
     :patches))
+
+(defparameter *glsl-variables* nil)

@@ -20,7 +20,7 @@
                               glsl-spec:*variables*))))
 
     `(progn
-       (defparameter *glsl-variables*
+       (setf *glsl-variables*
          ',(mapcar (lambda (x)
                      (cons x (mapcar #'rest (remove-if-not λ(eq x _) vars
                                                            :key #'first))))
