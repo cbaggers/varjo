@@ -111,14 +111,14 @@ Example:
     (labels ((errorp (x) (typep x 'error)))
       (if (or (and error-on-any-p (find-if #'errorp results))
               (every #'errorp results))
-          (raise-test-translate-error results)
+          (raise-test-translate-error results stages)
           (remove-if #'errorp results)))))
 
-(defun raise-test-translate-error (errors)
+(defun raise-test-translate-error (errors stage-types)
   (let ((groups (group-by (compose #'princ-to-string #'first)
                           (remove-if-not
                            (lambda (x) (typep (first x) 'condition))
-                           (mapcar #'list errors *stage-types*)))))
+                           (mapcar #'list errors stage-types)))))
     (if (= 1 (length groups))
         (error (caaar groups))
         (let ((grouped (mapcar (lambda (grp)
