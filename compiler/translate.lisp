@@ -359,7 +359,7 @@
 (defun gen-in-decl-strings (post-proc-obj)
   (when (stage-is post-proc-obj :geometry)
     (setf (in-declarations post-proc-obj)
-          (list (gen-geom-primtive-string (primitive post-proc-obj)))))
+          (list (gen-geom-input-primitive-string (primitive post-proc-obj)))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -397,6 +397,13 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-out-decl-strings (post-proc-obj)
+  (with-slots (main-func) post-proc-obj
+    (when (stage-is post-proc-obj :geometry)
+      (let* ((meta (top-level-scoped-metadata main-func))
+             (tl (find 'output-primitive meta :key #'type-of)))
+        (assert tl () "The function used as a geometry stage must has a top level output-primitive declaration")
+        (setf (out-declarations post-proc-obj)
+              (list (gen-geom-output-primitive-string tl))))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------

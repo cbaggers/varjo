@@ -3,36 +3,41 @@
 
 ;;-------------------------------------------------------------------------
 
+(defvar *metadata-styles* '(:value :scope))
 (defvar *metadata-kinds* nil)
 
 ;;-------------------------------------------------------------------------
 
 ;; {TODO} proper error
-(defmacro def-metadata-kind (name (&key conc-name) &body slot-names)
+(defmacro def-metadata-kind (name (&key conc-name (binds-to :value))
+                             &body slot-names)
   (check-metadata-slots slot-names)
-  `(progn
-     (defclass ,name (standard-value-metadata)
-       ,(mapcar λ`(,_ :initform nil :initarg ,(kwd _))
-                slot-names))
-     ,@(mapcar λ`(defgeneric ,(if conc-name (symb conc-name _) _) (metadata))
-               slot-names)
-     ,@(mapcar λ`(defmethod ,(if conc-name (symb conc-name _) _)
-                     ((metadata-collection list))
-                   (let ((data (cdr (assoc ',name metadata-collection))))
-                     (when data
-                       (slot-value data ',_))))
-               slot-names)
-     ,@(mapcar λ`(defmethod ,(if conc-name (symb conc-name _) _)
-                     ((metadata ,name))
-                   (slot-value metadata ',_))
-               slot-names)
-     ,(when slot-names (gen-meta-init-check name slot-names))
-     (defmethod print-object ((obj ,name) stream)
-       (print-unreadable-object (obj stream :type t :identity t)
-         (with-slots ,slot-names obj
-           (format stream ,(format nil "~{:~a ~~a~^ ~}" slot-names)
-                   ,@slot-names))))
-     (push ',name *metadata-kinds*)))
+  (let ((type (ecase binds-to
+                (:value 'standard-value-metadata)
+                (:scope 'standard-scope-metadata))))
+    `(progn
+       (defclass ,name (,type)
+         ,(mapcar λ`(,_ :initform nil :initarg ,(kwd _))
+                  slot-names))
+       ,@(mapcar λ`(defgeneric ,(if conc-name (symb conc-name _) _) (metadata))
+                 slot-names)
+       ,@(mapcar λ`(defmethod ,(if conc-name (symb conc-name _) _)
+                       ((metadata-collection list))
+                     (let ((data (cdr (assoc ',name metadata-collection))))
+                       (when data
+                         (slot-value data ',_))))
+                 slot-names)
+       ,@(mapcar λ`(defmethod ,(if conc-name (symb conc-name _) _)
+                       ((metadata ,name))
+                     (slot-value metadata ',_))
+                 slot-names)
+       ,(when slot-names (gen-meta-init-check name slot-names))
+       (defmethod print-object ((obj ,name) stream)
+         (print-unreadable-object (obj stream :type t :identity t)
+           (with-slots ,slot-names obj
+             (format stream ,(format nil "~{:~a ~~a~^ ~}" slot-names)
+                     ,@slot-names))))
+       (pushnew ',name *metadata-kinds*))))
 
 (defun gen-meta-init-check (name slot-names)
   (let ((init-args (loop :for name :in slot-names :collect
@@ -136,44 +141,64 @@
         (let (declarations)
           (loop :for form :in body :for i :from 0
              :while (declp form) :do (push form declarations)
-             :finally (return (values (subseq body i) declarations)))))))
+             :finally (return (values (subseq body i)
+                                      (reverse declarations))))))))
 
 ;;-------------------------------------------------------------------------
 ;; Compiling Declarations
 
 (defun compile-declares (declaration-specifiers env)
-  (let ((decl-forms (loop :for decl :in declaration-specifiers :append
-                       (progn
-                         (assert (eq (first decl) 'declare))
-                         (rest decl)))))
-    (loop :for decl-form :in decl-forms :do
-       (dbind (decl-name . decl-rest) decl-form
-         (let* ((has-args (listp (first decl-rest)))
-                (decl-args (when has-args (first decl-rest)))
-                (decl-targets (if has-args
-                                  (rest decl-rest)
-                                  decl-rest)))
-           (when decl-targets
-             (assert (not (find decl-name +cl-standard-declaration-ids+))
-                     () 'v-unsupported-cl-declaration :decl decl-form)
-             (assert (known-metadata-kind-p decl-name) (decl-name)
-                     'v-unrecognized-declaration :decl decl-form)
-             (assert (every #'symbolp decl-targets) (decl-targets)
-                     'v-only-supporting-declares-on-vars
-                     :targets (remove-if #'symbolp decl-targets))
-             (loop :for target :in decl-targets :do
-                (let ((binding (get-symbol-binding target t env)))
-                  (etypecase binding
-                    (v-value nil)
-                    (null (error 'v-declare-on-nil-binding :target target))
-                    (v-symbol-macro (error 'v-declare-on-symbol-macro
-                                           :target target)))
-                  (let ((id (flow-ids (v-type-of binding))))
-                    (setf (metadata-for-flow-id id env)
-                          (apply #'make-instance decl-name decl-args))))))))))
+  (add-declarations-to-env declaration-specifiers env)
   ;; we return nil so env-> will be satisfied. We are mutating the environment
   ;; so there is not environment to return
   nil)
+
+(defun add-declarations-to-env (declaration-specifiers env)
+  (when declaration-specifiers
+    (let ((decl-forms (loop :for decl :in declaration-specifiers :append
+                         (progn
+                           (assert (eq (first decl) 'declare))
+                           (rest decl)))))
+      (loop :for decl-form :in decl-forms :do
+         (dbind (decl-name . decl-rest) decl-form
+           (assert (subtypep decl-name 'standard-metadata))
+           (assert (not (find decl-name +cl-standard-declaration-ids+))
+                   () 'v-unsupported-cl-declaration :decl decl-form)
+           (assert (known-metadata-kind-p decl-name) (decl-name)
+                   'v-unrecognized-declaration :decl decl-form)
+           (cond
+             ((subtypep decl-name 'standard-value-metadata)
+              (let* ((has-args (listp (first decl-rest)))
+                     (decl-args (when has-args (first decl-rest)))
+                     (decl-targets (if has-args
+                                       (rest decl-rest)
+                                       decl-rest)))
+                (compile-bound-decl decl-name decl-args decl-targets env)))
+             ((subtypep decl-name 'standard-scope-metadata)
+              (compile-scope-decl decl-name decl-rest env))
+             (t (error "Varjo Bug: Invalid metadata kind ~a" decl-name)))))))
+  env)
+
+(defun compile-bound-decl (decl-name decl-args decl-targets env)
+  (assert (subtypep decl-name 'standard-value-metadata))
+  (assert (every #'symbolp decl-targets) (decl-targets)
+          'v-only-supporting-declares-on-vars
+          :targets (remove-if #'symbolp decl-targets))
+  (loop :for target :in decl-targets :do
+     (let ((binding (get-symbol-binding target t env)))
+       (etypecase binding
+         (v-value nil)
+         (null (error 'v-declare-on-nil-binding :target target))
+         (v-symbol-macro (error 'v-declare-on-symbol-macro
+                                :target target)))
+       (let ((id (flow-ids (v-type-of binding))))
+         (setf (metadata-for-flow-id id env)
+               (apply #'make-instance decl-name decl-args))))))
+
+(defun compile-scope-decl (decl-name decl-args env)
+  (assert (subtypep decl-name 'standard-scope-metadata))
+  (setf (metadata-for-scope env)
+        (apply #'make-instance decl-name decl-args)))
 
 ;;-------------------------------------------------------------------------
 
@@ -211,6 +236,7 @@
 (defmacro def-metadata-infer (varjo-type metadata-kind env-var &body body)
   (assert (symbolp varjo-type))
   (assert (symbolp metadata-kind))
+  (assert (subtypep metadata-kind 'standard-value-metadata))
   (let ((varjo-type (type->type-spec (type-spec->type varjo-type))))
     (with-gensyms (type kind)
       `(defmethod infer-meta-by-type ((,type ,varjo-type)

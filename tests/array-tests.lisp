@@ -100,9 +100,10 @@
 
 (5am:def-test array-15 (:suite array-tests)
   (finishes-p
-   (compile-vert-geom () :450 nil
+   (varjo.tests::compile-vert-geom () :450 nil
      (()
       (values (v! 0 0 0 0)
               1))
      (((foo? (:int 3)))
+      (declare (output-primitive :kind :line-strip :max-vertices 6))
       (v! (aref foo? 0) 0 0 0)))))

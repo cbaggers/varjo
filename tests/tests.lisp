@@ -56,9 +56,9 @@
                                  (varjo::uniform-variables compile-result))
                          version
                          (stage-type compile-result)
-                         (list (mapcar #'varjo::to-arg-form
-                                       (varjo::input-variables compile-result))
-                               code)
+                         `(,(mapcar #'varjo::to-arg-form
+                                    (varjo::input-variables compile-result))
+                            ,@code)
                          :allow-stemcells stemcells)))
          (recomp-code (ast->code recomp)))
     (or (values (equal code recomp-code) depth)

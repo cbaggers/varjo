@@ -522,8 +522,8 @@ Full Declaration: ~s"
 (deferror v-only-supporting-declares-on-vars () (targets)
     "We found the following invalid names in the declarations:
 ~@[~{~%~s~}~%~]
-We currently only support declarations against variables. Sorry for the
-inconvenience."
+We don't yet support declarations against functions or symbol-macros.
+Sorry for the inconvenience."
   targets)
 
 (deferror v-declare-on-symbol-macro () (target)
@@ -780,7 +780,7 @@ However it found ~a invalid ~a in the list:~{~%~s~}"
 
 (deferror couldnt-convert-primitive-for-geometry-stage () (prim prev-stage)
     "A primitive of type ~a came from the ~a stage, unfortunately we
-weren't sure how to convert this to a primtive kind the geometry shader can
+weren't sure how to convert this to a primitive kind the geometry shader can
 use."
   prim prev-stage)
 

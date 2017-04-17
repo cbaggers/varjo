@@ -38,10 +38,10 @@
           (let ((x 1))
             (test-cm x 2s0))
           (v! 0 0 0 0)))
-       '(progn
-         (let ((x 1))
-           (varjo.tests::test-cm x 2.0))
-         (v! 0 0 0 0)))))
+       '((progn
+           (let ((x 1))
+             (varjo.tests::test-cm x 2.0))
+           (v! 0 0 0 0))))))
 
 (5am:def-test compiler-macros-2 (:suite compiler-macro-tests)
   (is (equal
@@ -49,4 +49,4 @@
         (varjo.tests::compile-vert () :450 nil
           (varjo.tests::test-cm 1 2s0)
           (v! 0 0 0 0)))
-       '(progn 2.0 (v! 0 0 0 0)))))
+       '((progn 2.0 (v! 0 0 0 0))))))

@@ -382,6 +382,7 @@
 
            ;; metadata
            :combine-metadata
+           :output-primitive
 
            ;; external functions
            :external-function

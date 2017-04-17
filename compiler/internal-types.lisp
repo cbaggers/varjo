@@ -61,7 +61,9 @@
    (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)
    (stemcells :initarg :stemcells :reader stemcells)
-   (return-set :initarg :return-set :reader return-set)))
+   (return-set :initarg :return-set :reader return-set)
+   (top-level-scoped-metadata :initarg :top-level-scoped-metadata
+                              :reader top-level-scoped-metadata)))
 
 ;;----------------------------------------------------------------------
 
@@ -133,7 +135,8 @@
    (function-scope
     :initform 0 :initarg :function-scope :reader v-function-scope)
    (allowed-outer-vars
-    :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)))
+    :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)
+   (local-metadata :initform (make-hash-table :test #'eql))))
 
 
 (defclass base-environment (environment)
@@ -280,7 +283,9 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass standard-value-metadata () ())
+(defclass standard-metadata () ())
+(defclass standard-scope-metadata (standard-metadata) ())
+(defclass standard-value-metadata (standard-metadata) ())
 
 ;;-------------------------------------------------------------------------
 

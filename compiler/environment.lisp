@@ -17,6 +17,11 @@
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
 
+(defmethod (setf compiled-functions) (value (e environment) key)
+  ;; WARNING: MUTATES ENV
+  (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
+        value))
+
 (defmethod all-cached-compiled-functions ((e environment))
   (hash-table-values (slot-value (get-base-env e) 'compiled-functions)))
 
@@ -54,6 +59,8 @@
           (when (not (eq parent *global-env*))
             (map-environments func parent)))))
 
+;;-------------------------------------------------------------------------
+
 (defmethod metadata-for-flow-id ((metadata-kind symbol)
                                  (flow-id flow-identifier)
                                  (env environment))
@@ -61,15 +68,14 @@
           "Cannot declare metadata for multiple values at once: ~a" flow-id)
   (let ((key (slot-value (first (ids flow-id)) 'val))
         (env (get-base-env env)))
-    (cdr (assoc metadata-kind (gethash key (slot-value env 'value-metadata))))))
+    (assocr metadata-kind (gethash key (slot-value env 'value-metadata)))))
 
 (defmethod metadata-for-flow-id (metadata-kind flow-id (env expansion-env))
   (metadata-for-flow-id metadata-kind flow-id (slot-value env 'env)))
 
-;; ugh
-;;
 (defmethod (setf metadata-for-flow-id)
     ((data standard-value-metadata) (flow-id flow-identifier) (env environment))
+  ;; WARNING: MUTATES ENV
   (assert (= 1 (length (ids flow-id))) (flow-id)
           "Cannot declare metadata for multiple values at once: ~a" flow-id)
   (let* ((key (slot-value (first (ids flow-id)) 'val))
@@ -84,10 +90,28 @@
     (setf (gethash key (slot-value env 'value-metadata))
           (cons (cons metadata-kind new-meta) current-metadata))))
 
-(defmethod (setf compiled-functions)
-    (value (e environment) key)
-  (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
-        value))
+(defmethod metadata-for-scope ((metadata-kind symbol)
+                               (env environment))
+  (let ((func-scope (v-function-scope env)))
+    (labels ((walk-envs (env)
+               (or (gethash metadata-kind (slot-value env 'local-metadata))
+                   (when (= (v-function-scope (v-parent-env env)) func-scope)
+                     (walk-envs (v-parent-env env))))))
+      (walk-envs env))))
+
+(defmethod metadata-for-scope (metadata-kind (env expansion-env))
+  (metadata-for-scope metadata-kind (slot-value env 'env)))
+
+(defmethod (setf metadata-for-scope)
+    ((data standard-scope-metadata) (env environment))
+  ;; WARNING: MUTATES ENV
+  (let* ((metadata-kind (type-of data))
+         (current (gethash metadata-kind (slot-value env 'local-metadata))))
+    (assert (null current))
+    (setf (gethash metadata-kind (slot-value env 'local-metadata))
+          data)))
+
+;;-------------------------------------------------------------------------
 
 ;; WARNING:: This is mutated in translate.lisp & structs.lisp
 (defmethod v-in-args ((env environment))

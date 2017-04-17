@@ -8,6 +8,8 @@
 ;; line-strip
 ;; triangle-strip
 
-;; (v-defspecial declare-geom-out (kind ))
+(def-metadata-kind output-primitive (:binds-to :scope)
+  kind
+  max-vertices)
 
 ;;------------------------------------------------------------

@@ -248,6 +248,7 @@ context is implicit"))
                (with-slots (kind args) node
                  (if (keywordp kind)
                      (case kind
+                       (:function-top-level (mapcar walk args))
                        (:get (first args))
                        (:get-stemcell (first args))
                        (:literal (first args))
