@@ -95,29 +95,30 @@
                (ppcre:regex-replace "_IN_BLOCK_" glsl-string
                                     (block-name-string
                                      (out-block-name-for last-stage)))))
-      (let ((in-args (input-variables stage))
-            (out-vars (transform-previous-stage-out-vars last-stage stage)))
-        (assert (in-args-compatiblep in-args out-vars))
-        (assert (uniforms-compatiblep (uniform-variables stage)
-                                      (uniform-variables last-stage)))
-        (assert (context-compatiblep stage last-stage))
-        ;; we need to modify the result of the compiled stage if the in-args names
-        ;; dont match the names of the out args
-        (let* ((glsl-aliases (gen-aliases))
-               (glsl-code (glsl-code stage))
-               (glsl-code (swap-out-args glsl-code))
-               (glsl-code (swap-in-block glsl-code))
-               (final-glsl-code (ppcre:regex-replace
-                                 "void main" glsl-code
-                                 (format nil "~{~a~}~%~%void main"
-                                         glsl-aliases)))
-               (new-compile-result
-                (clone-compile-result stage :glsl-code final-glsl-code)))
-          (with-slots (compiled-stages) accum
-            (make-instance 'rolling-result
-                           :compiled-stages (cons new-compile-result
-                                                  compiled-stages)
-                           :remaining-stages remaining-stage-types)))))))
+      (let ((in-args (input-variables stage)))
+        (vbind (out-vars primitive)
+            (transform-previous-stage-out-data last-stage stage)
+          (assert (in-args-compatiblep in-args out-vars))
+          (assert (uniforms-compatiblep (uniform-variables stage)
+                                        (uniform-variables last-stage)))
+          (assert (context-compatiblep stage last-stage))
+          ;; we need to modify the result of the compiled stage if the in-args names
+          ;; dont match the names of the out args
+          (let* ((glsl-aliases (gen-aliases))
+                 (glsl-code (glsl-code stage))
+                 (glsl-code (swap-out-args glsl-code))
+                 (glsl-code (swap-in-block glsl-code))
+                 (final-glsl-code (ppcre:regex-replace
+                                   "void main" glsl-code
+                                   (format nil "~{~a~}~%~%void main"
+                                           glsl-aliases)))
+                 (new-compile-result
+                  (clone-compile-result stage :glsl-code final-glsl-code)))
+            (with-slots (compiled-stages) accum
+              (make-instance 'rolling-result
+                             :compiled-stages (cons new-compile-result
+                                                    compiled-stages)
+                             :remaining-stages remaining-stage-types))))))))
 
 ;;----------------------------------------------------------------------
 
