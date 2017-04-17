@@ -86,6 +86,15 @@ Example:
 
 ;;----------------------------------------------------------------------
 
+(defun largest-primtive-for-stage (type)
+  (case type
+    (vertex-stage :triangles-adjacency)
+    (tesselation-control-stage :patch)
+    (tesselation-evaluation-stage :quads)
+    (geometry-stage :triangles-adjacency)
+    (fragment-stage nil)
+    (otherwise (error "Varjo: Invalid stage kind name ~a" type))))
+
 (defun test-translate (stage &key (stages *stage-types*))
   (loop :for kind :in stages :collect
      (with-slots (input-variables
@@ -101,7 +110,8 @@ Example:
                       :lisp-code lisp-code
                       :stemcells-allowed stemcells-allowed
                       :previous-stage previous-stage
-                      :primitive primitive)))
+                      :primitive (unless primitive
+                                   (largest-primtive-for-stage type)))))
          (handler-case (translate stage)
            (error (e) e))))))
 
