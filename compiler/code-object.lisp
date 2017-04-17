@@ -1,6 +1,6 @@
 (in-package :varjo)
 
-(defun code! (&key (type nil set-type) (current-line "") signatures to-block
+(defun code! (&key (type nil set-type) (current-line "") to-block
                 return-set used-types multi-vals stemcells
                 out-of-scope-args pure
                 place-tree node-tree)
@@ -23,7 +23,6 @@
     (make-instance 'code
                    :type type
                    :current-line current-line
-                   :signatures signatures
                    :to-block to-block
                    :return-set return-set
                    :used-types used-types
@@ -70,7 +69,6 @@
 (defmethod copy-code ((code-obj code)
                       &key (type nil set-type)
                         (current-line nil set-current-line)
-                        (signatures nil set-sigs)
                         (to-block nil set-block)
                         (return-set nil set-return-set)
                         (multi-vals nil set-multi-vals)
@@ -83,7 +81,6 @@
     (code! :type type
            :current-line (if set-current-line current-line
                              (current-line code-obj t))
-           :signatures (if set-sigs signatures (signatures code-obj))
            :to-block (if set-block to-block (remove nil (to-block code-obj)))
            :return-set (if set-return-set return-set (return-set code-obj))
            :used-types (used-types code-obj)
@@ -99,7 +96,6 @@
 (defmethod merge-obs ((objs list)
                       &key type
                         current-line
-                        (signatures nil set-sigs)
                         (to-block nil set-block)
                         (return-set nil set-return-set)
                         multi-vals
@@ -120,8 +116,6 @@
              :code-type type))
     (code! :type type
            :current-line current-line
-           :signatures (if set-sigs signatures
-                           (mapcat #'signatures objs))
            :to-block (if set-block to-block
                          (mapcat #'to-block objs))
            :return-set return-set

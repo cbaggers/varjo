@@ -19,7 +19,6 @@
 (defclass code ()
   ((type :initarg :type :initform nil :reader code-type)
    (current-line :initarg :current-line :initform "")
-   (signatures :initarg :signatures :initform nil :reader signatures)
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
    (used-types :initarg :used-types :initform nil :reader used-types)

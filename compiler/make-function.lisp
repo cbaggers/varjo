@@ -107,15 +107,12 @@
                  (pure-p body-obj)
                  (or (v-typep type 'v-void) (ephemeral-p type))
                  (null multi-return-vars)))
-           (sigs (if mainp
-                     (signatures body-obj)
-                     (unless strip-glsl
-                       (cons (gen-function-signature glsl-name arg-pairs
-                                                     out-arg-pairs
-                                                     return-for-glsl
-                                                     implicit-args
-                                                     in-out-args)
-                             (signatures body-obj)))))
+           (sigs (unless (or mainp strip-glsl)
+                   (list (gen-function-signature glsl-name arg-pairs
+                                                 out-arg-pairs
+                                                 return-for-glsl
+                                                 implicit-args
+                                                 in-out-args))))
            (func-glsl-def (unless strip-glsl
                             (gen-function-body-string
                              glsl-name arg-pairs
@@ -141,7 +138,6 @@
            (code-obj (copy-code body-obj
                                 :type (gen-none-type)
                                 :current-line nil
-                                :signatures sigs
                                 :to-block nil
                                 :return-set nil
                                 :multi-vals nil
@@ -149,7 +145,7 @@
                                 :out-of-scope-args implicit-args)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
-                             :signatures (signatures code-obj)
+                             :signatures sigs
                              :ast (node-tree body-obj)
                              :used-types (used-types code-obj)
                              :glsl-code func-glsl-def

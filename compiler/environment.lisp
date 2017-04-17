@@ -21,16 +21,13 @@
   (hash-table-values (slot-value (get-base-env e) 'compiled-functions)))
 
 (defmethod signatures ((e environment))
-  (let (signatures)
-    (maphash
-     (lambda (k v)
-       (declare (ignore k))
-       (push (signatures v) signatures))
-     (slot-value (get-base-env e) 'compiled-functions))
-    ;; {TODO} we shouldnt have to remove-duplicates here
-    ;;        find out why this is happening
-    (remove-duplicates (reduce #'append signatures)
-                       :test #'equal)))
+  ;; {TODO} we shouldnt have to remove-duplicates here
+  ;;        find out why this is happening
+  (remove-duplicates
+   (mapcat #'signatures
+           (hash-table-values
+            (slot-value (get-base-env e) 'compiled-functions)))
+   :test #'equal))
 
 (defmethod used-external-functions ((e environment))
   (let (functions)

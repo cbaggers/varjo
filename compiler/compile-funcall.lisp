@@ -208,7 +208,6 @@
     (values (merge-obs args
                        :type type
                        :current-line c-line
-                       :signatures (mapcat #'signatures args)
                        :pure (pure-p func)
                        :stemcells (mapcat #'stemcells args)
                        :multi-vals (when (v-multi-val-safe env)
@@ -288,7 +287,6 @@
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
-                 :signatures (mapcat #'signatures args)
                  :stemcells (mapcat #'stemcells args)
                  :pure (pure-p func)
                  :multi-vals (mapcar (lambda (_ _1 fid)
