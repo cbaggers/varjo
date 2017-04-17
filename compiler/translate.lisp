@@ -397,12 +397,17 @@
 
 (defun gen-out-decl-strings (post-proc-obj)
   (with-slots (main-func) post-proc-obj
-    (when (stage-is post-proc-obj :geometry)
-      (let* ((meta (top-level-scoped-metadata main-func))
-             (tl (find 'output-primitive meta :key #'type-of)))
-        (assert tl () "The function used as a geometry stage must has a top level output-primitive declaration")
-        (setf (out-declarations post-proc-obj)
-              (list (gen-geom-output-primitive-string tl))))))
+    (cond
+      ((stage-is post-proc-obj :geometry)
+       (let* ((meta (top-level-scoped-metadata main-func))
+              (tl (find 'output-primitive meta :key #'type-of)))
+         (assert tl () "The function used as a geometry stage must has a top level output-primitive declaration")
+         (setf (out-declarations post-proc-obj)
+               (list (gen-geom-output-primitive-string tl)))
+         (setf (primitive-out post-proc-obj)
+               (primitive-name-to-instance (slot-value tl 'kind)))))
+      (t (setf (primitive-out post-proc-obj)
+               (primitive (stage post-proc-obj))))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -480,7 +485,6 @@
 ;;----------------------------------------------------------------------
 
 (defun package-as-final-result-object (final-glsl-code post-proc-obj)
-  (warn "package-as-final-result-object: primitive-out needs proper logic")
   (with-slots (env stage) post-proc-obj
     (let* ((context (process-context-for-result (v-context env))))
       (make-instance
@@ -498,7 +502,7 @@
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
        :lisp-code (lisp-code stage)
        :primitive-in (primitive (stage post-proc-obj))
-       :primitive-out (primitive (stage post-proc-obj))))))
+       :primitive-out (primitive-out post-proc-obj)))))
 
 (defun process-context-for-result (context)
   ;; {TODO} having to remove this is probably a bug

@@ -47,7 +47,8 @@
    (input-variables :initarg :input-variables :accessor input-variables)
    (used-types :initarg :used-types :accessor used-types)
    (used-external-functions :initarg :used-external-functions
-                            :accessor used-external-functions)))
+                            :accessor used-external-functions)
+   (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
 (defmethod primitive ((pp post-compile-process))
   (primitive (stage pp)))
@@ -338,5 +339,10 @@
 
 (defclass patches (draw-mode)
   ())
+
+(defun primitive-name-to-instance (name)
+  (let ((symb (intern (symbol-name name) :varjo)))
+    (assert (subtypep symb 'primitive))
+    (make-instance symb)))
 
 ;;-------------------------------------------------------------------------

@@ -176,14 +176,10 @@
   (format nil "layout (~a) in;" (glsl-string primitive)))
 
 (defun gen-geom-output-primitive-string (metadata)
-  (let ((map '((:points . "points")
-               (:line-strip . "line_strip")
-               (:triangle-strip . "triangle_strip"))))
-    (with-slots (kind max-vertices) metadata
-      (format nil "layout (~a, max_vertices = ~a) out;"
-              (or (assocr kind map)
-                  (error "Invalid geometry output primitive kind ~a" kind))
-              max-vertices))))
+  (with-slots (kind max-vertices) metadata
+    (format nil "layout (~a, max_vertices = ~a) out;"
+            (glsl-string (primitive-name-to-instance kind))
+            max-vertices)))
 
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
