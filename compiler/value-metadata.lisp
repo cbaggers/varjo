@@ -16,9 +16,10 @@
                 (:value 'standard-value-metadata)
                 (:scope 'standard-scope-metadata))))
     `(progn
-       (defclass ,name (,type)
-         ,(mapcar λ`(,_ :initform nil :initarg ,(kwd _))
-                  slot-names))
+       (eval-when (:compile-toplevel :load-toplevel :execute)
+         (defclass ,name (,type)
+           ,(mapcar λ`(,_ :initform nil :initarg ,(kwd _))
+                    slot-names)))
        ,@(mapcar λ`(defgeneric ,(if conc-name (symb conc-name _) _) (metadata))
                  slot-names)
        ,@(mapcar λ`(defmethod ,(if conc-name (symb conc-name _) _)
