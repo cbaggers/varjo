@@ -247,7 +247,7 @@
         (mapcar #'%glsl-decl out-vars))))
 
 (defparameter *in-block-instance-name*
-  "in")
+  "inputs")
 
 (defun gen-in-block (post-proc-obj)
   (if (requires-in-interface-block post-proc-obj)

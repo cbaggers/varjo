@@ -29,6 +29,7 @@
    :%break
    :values-safe
    :glsl-expr
+   :output-primitive
 
    ;; bitwise operators
    :>>
