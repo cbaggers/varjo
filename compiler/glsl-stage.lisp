@@ -9,8 +9,13 @@
          (arg-types (mapcar #'type-spec->type
                             (append (mapcar #'second in-args)
                                     (mapcar #'second uniforms))))
+         (primitive-kind (get-primitive-type-from-context context))
+         (primitive (when primitive-kind
+                      (primitive-name-to-instance primitive-kind)))
+         (context (when primitive-kind
+                    (remove primitive-kind context)))
          (stage (make-stage stage-kind in-args uniforms context
-                            nil nil)))
+                            nil nil primitive)))
     (first
      (multiple-value-list
       (flow-id-scope
@@ -39,6 +44,7 @@
             #'check-stemcells
             #'filter-used-items
             #'gen-in-arg-strings
+            #'gen-in-decl-strings
             #'gen-out-var-strings
             #'(lambda (pp)
                 (process-glsl-output-primtive stage-kind body-string pp))

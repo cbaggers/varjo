@@ -212,10 +212,10 @@
           "Vertex shaders cannot have 'in' interface blocks")
   (let ((prev (previous-stage stage)))
     (if prev
-        (symb :from_ (extract-stage-type prev))
-        :in_block)))
+        (out-block-name-for prev)
+        *fallback-block-name*)))
 
-(defun block-name-string (block-name)
+(defmethod block-name-string (block-name)
   (format nil "_~a_" block-name))
 
 (defmethod out-block-name-for ((pp post-compile-process))

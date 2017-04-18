@@ -68,11 +68,15 @@
                (rest out-vars)
                out-vars)))
       (labels ((swap-out-arg (glsl-string old-name new-name)
-                 (let* ((regex (format nil "[^\w_]~a[^\w_]" old-name))
+                 (let* (;; regex matches the name and the surrounding
+                        ;; characters that are not alphanumeric or underscores
+                        (regex (format nil "[^\w_]~a[^\w_]" old-name))
                         (matches (group (ppcre:all-matches regex glsl-string)
                                         2))
                         (result "")
                         (last 0))
+                   ;; the 1+ and 1- below compensate for the overcapture of the
+                   ;; regex
                    (loop :for (start end) :in matches
                       :for chunk := (subseq glsl-string last (1+ start)) :do
                       (setf result (concatenate 'string result chunk new-name))
@@ -91,16 +95,19 @@
                  glsl-string)
                ;;
                (swap-in-block (glsl-string)
-                 (ppcre:regex-replace "_IN_BLOCK_" glsl-string
-                                      (block-name-string
-                                       (out-block-name-for last-stage))))
+                 (let ((block-name (block-name-string *fallback-block-name*)))
+                   (ppcre:regex-replace block-name glsl-string
+                                        (block-name-string
+                                         (out-block-name-for last-stage)))))
                ;;
                (arg-for-error (x)
                  (subseq (to-arg-form x) 0 2))
                (args-for-error (x)
                  (mapcar #'arg-for-error x)))
         ;;
-        (let ((in-args (input-variables stage)))
+        (let ((in-args (input-variables stage))
+              (out-prim (type-of primitive))
+              (in-prim (type-of (primitive-in stage))))
           (assert (in-args-compatiblep in-args out-vars) ()
                   'args-incompatible
                   :current-args (args-for-error in-args)
@@ -108,19 +115,22 @@
           (assert (uniforms-compatiblep (uniform-variables stage)
                                         (uniform-variables last-stage)))
           (assert (context-compatiblep stage last-stage))
-          ;; we need to modify the result of the compiled stage if the in-args
-          ;; names dont match the names of the out args
-          (let* ((glsl-code (glsl-code stage))
-                 (glsl-code (swap-out-args glsl-code))
-                 (glsl-code (swap-in-block glsl-code))
-                 (final-glsl-code glsl-code)
-                 (new-compile-result
-                  (clone-compile-result stage :glsl-code final-glsl-code)))
-            (with-slots (compiled-stages) accum
-              (make-instance 'rolling-result
-                             :compiled-stages (cons new-compile-result
-                                                    compiled-stages)
-                             :remaining-stages remaining-stage-types))))))))
+          (assert (eq in-prim out-prim) () 'primitives-dont-match
+                  :out-stage (stage-type last-stage) :out out-prim
+                  :in-stage (type-of stage) :in in-prim))
+        ;; we need to modify the result of the compiled stage if the in-args
+        ;; names dont match the names of the out args
+        (let* ((glsl-code (glsl-code stage))
+               (glsl-code (swap-out-args glsl-code))
+               (glsl-code (swap-in-block glsl-code))
+               (final-glsl-code glsl-code)
+               (new-compile-result
+                (clone-compile-result stage :glsl-code final-glsl-code)))
+          (with-slots (compiled-stages) accum
+            (make-instance 'rolling-result
+                           :compiled-stages (cons new-compile-result
+                                                  compiled-stages)
+                           :remaining-stages remaining-stage-types)))))))
 
 ;;----------------------------------------------------------------------
 

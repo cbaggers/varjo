@@ -166,6 +166,7 @@
            :couldnt-convert-primitive-for-geometry-stage
            :test-translate-failed
            :returns-in-geometry-stage
+           :primitives-dont-match
 
            ;; restarts
            :setq-supply-alternate-type

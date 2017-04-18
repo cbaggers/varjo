@@ -74,3 +74,5 @@
     :patches))
 
 (defparameter *glsl-variables* nil)
+
+(defparameter *fallback-block-name* :in_block)
