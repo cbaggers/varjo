@@ -72,6 +72,7 @@
                (:file "language/bitwise-operators")
                (:file "compiler/stages")
                (:file "compiler/translate")
+               (:file "compiler/glsl-stage")
                (:file "compiler/rolling-translate")
                (:file "compiler/front-end")
                (:file "compiler/environment/public-api")
