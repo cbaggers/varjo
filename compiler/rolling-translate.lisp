@@ -67,23 +67,44 @@
            (if (stage-is last-stage :vertex)
                (rest out-vars)
                out-vars)))
-      (labels ((swap-out-args (glsl-string)
+      (labels ((swap-out-arg (glsl-string old-name new-name)
+                 (let* ((regex (format nil "[^\w_]~a[^\w_]" old-name))
+                        (matches (group (ppcre:all-matches regex glsl-string)
+                                        2))
+                        (result "")
+                        (last 0))
+                   (loop :for (start end) :in matches
+                      :for chunk := (subseq glsl-string last (1+ start)) :do
+                      (setf result (concatenate 'string result chunk new-name))
+                      (setf last (1- end)))
+                   (concatenate 'string result (subseq glsl-string last))))
+               ;;
+               (swap-out-args (glsl-string)
                  (let ((in-args (input-variables stage)))
                    (loop :for out :in out-vars
                       :for in :in in-args
                       :for out-glsl-name := (glsl-name out)
                       :for in-glsl-name := (glsl-name in)
-                      :do
-                      (setf glsl-string
-                            (ppcre:regex-replace-all
-                             in-glsl-name glsl-string out-glsl-name))))
+                      :do (setf glsl-string (swap-out-arg glsl-string
+                                                          in-glsl-name
+                                                          out-glsl-name))))
                  glsl-string)
+               ;;
                (swap-in-block (glsl-string)
                  (ppcre:regex-replace "_IN_BLOCK_" glsl-string
                                       (block-name-string
-                                       (out-block-name-for last-stage)))))
+                                       (out-block-name-for last-stage))))
+               ;;
+               (arg-for-error (x)
+                 (subseq (to-arg-form x) 0 2))
+               (args-for-error (x)
+                 (mapcar #'arg-for-error x)))
+        ;;
         (let ((in-args (input-variables stage)))
-          (assert (in-args-compatiblep in-args out-vars))
+          (assert (in-args-compatiblep in-args out-vars) ()
+                  'args-incompatible
+                  :current-args (args-for-error in-args)
+                  :previous-args (args-for-error out-vars))
           (assert (uniforms-compatiblep (uniform-variables stage)
                                         (uniform-variables last-stage)))
           (assert (context-compatiblep stage last-stage))
@@ -92,7 +113,7 @@
           (let* ((glsl-code (glsl-code stage))
                  (glsl-code (swap-out-args glsl-code))
                  (glsl-code (swap-in-block glsl-code))
-                 (final-glsl-code (print glsl-code))
+                 (final-glsl-code glsl-code)
                  (new-compile-result
                   (clone-compile-result stage :glsl-code final-glsl-code)))
             (with-slots (compiled-stages) accum

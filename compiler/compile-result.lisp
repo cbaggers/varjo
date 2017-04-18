@@ -13,6 +13,10 @@
                                (context nil context-set)
                                (stemcells-allowed nil a-s-set)
                                (used-external-functions nil used-external-functions-set)
+                               (previous-stage nil previous-stage-set)
+                               (primitive nil primitive-set)
+                               (primitive-in nil primitive-in-set)
+                               (primitive-out nil primitive-out-set)
                                (function-asts nil function-asts-set))
   (make-instance
    'varjo-compile-result
@@ -29,7 +33,11 @@
    :used-external-functions (if used-external-functions-set
                                 used-external-functions
                                 (used-external-functions original))
-   :function-asts (if function-asts-set function-asts (function-asts original))))
+   :function-asts (if function-asts-set function-asts (function-asts original))
+   :previous-stage (if previous-stage-set previous-stage (previous-stage original))
+   :primitive (if primitive-set primitive (primitive original))
+   :primitive-in (if primitive-in-set primitive-in (primitive-in original))
+   :primitive-out (if primitive-out-set primitive-out (primitive-out original))))
 
 (defmethod ast ((obj varjo-compile-result))
   (let* ((res (first (function-asts obj)))

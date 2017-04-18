@@ -23,7 +23,7 @@
             #'gen-in-arg-strings
             #'gen-in-decl-strings
             #'gen-out-var-strings
-            #'gen-out-decl-strings
+            #'process-output-primtive
             #'final-uniform-strings
             #'dedup-used-types
             #'final-string-compose
@@ -404,12 +404,12 @@
 
 ;;----------------------------------------------------------------------
 
-(defun gen-out-decl-strings (post-proc-obj)
+(defun process-output-primtive (post-proc-obj)
   (with-slots (main-metadata) post-proc-obj
     (cond
       ((stage-is post-proc-obj :geometry)
        (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
-         (assert tl () "The function used as a geometry stage must has a top level output-primitive declaration")
+         (assert tl () "Varjo: The function used as a geometry stage must has a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)

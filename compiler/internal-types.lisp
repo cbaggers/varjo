@@ -68,6 +68,7 @@
    (return-set :initarg :return-set :reader return-set)
    (emit-set :initarg :emit-set :reader emit-set)
    (top-level-scoped-metadata :initarg :top-level-scoped-metadata
+                              :initform nil
                               :reader top-level-scoped-metadata)))
 
 ;;----------------------------------------------------------------------
