@@ -115,9 +115,10 @@
           (assert (uniforms-compatiblep (uniform-variables stage)
                                         (uniform-variables last-stage)))
           (assert (context-compatiblep stage last-stage))
-          (assert (eq in-prim out-prim) () 'primitives-dont-match
-                  :out-stage (stage-type last-stage) :out out-prim
-                  :in-stage (type-of stage) :in in-prim))
+          (when (stage-is stage :geometry)
+            (assert (eq in-prim out-prim) () 'primitives-dont-match
+                    :out-stage (stage-type last-stage) :out out-prim
+                    :in-stage (type-of stage) :in in-prim)))
         ;; we need to modify the result of the compiled stage if the in-args
         ;; names dont match the names of the out args
         (let* ((glsl-code (glsl-code stage))
