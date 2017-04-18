@@ -4,35 +4,6 @@
 ;;------------------------------------------------------------
 ;; Return
 
-;; type & multi-vals are set by values, return turns those into
-;; a return-set
-
-;; - √ Rename %return to return
-;;  - √ update places where this is used
-;; - √ comment out %out
-;; - √ add ability to specify 'out' metadata in values form
-;;  - √ how should be present this?
-;;   - [x] 'declaring' form special form? isnt that just 'the'?
-;;   - [x] Gotta use something other than values as we could legitimately want
-;;         to return only one value.
-;;   - [x] using metadata sounds inevitable
-;;    - √ true, but currently metadata can only be assigned to a singular
-;;        flow-id this is no good for this. So maybe values will have to do for
-;;        now.
-;;    - √ Actually values will be fine, if you want to qualify then just have a
-;;        single values form. Will work well enough for now
-;;  - √ reuse the out-vars slot from code-obj
-;;   - √ change it's name to return-set to force breakage
-;;   - √ out-vars should be a vector, not a list (it is position sensitive and
-;;       so shouldnt be trivially extensible)
-;;   - √ whole set of out-vars need to be set at once
-;; - √ Add merging with validation of return-set
-;; - √ remove %out
-;; - update all dependent code, testing heavily
-;; - Update AST generation to add (values) so as not to end up with nesting
-;;   returns.. wait..how do we handle that now?
-;; - √ Make ret-val type for the elements of the return set
-
 
 (v-defspecial return (&optional (form '(values)))
   :args-valid t

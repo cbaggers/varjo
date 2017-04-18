@@ -1,7 +1,7 @@
 (in-package :varjo)
 
 (defun code! (&key (type nil set-type) (current-line "") to-block
-                return-set used-types multi-vals stemcells
+                emit-set return-set used-types multi-vals stemcells
                 out-of-scope-args pure
                 place-tree node-tree)
   (let ((flow-ids (flow-ids type)))
@@ -25,6 +25,7 @@
                    :current-line current-line
                    :to-block to-block
                    :return-set return-set
+                   :emit-set emit-set
                    :used-types used-types
                    :multi-vals multi-vals
                    :stemcells stemcells
@@ -70,6 +71,7 @@
                       &key (type nil set-type)
                         (current-line nil set-current-line)
                         (to-block nil set-block)
+                        (emit-set nil set-emit-set)
                         (return-set nil set-return-set)
                         (multi-vals nil set-multi-vals)
                         (stemcells nil set-stemcells)
@@ -83,6 +85,7 @@
                              (current-line code-obj t))
            :to-block (if set-block to-block (remove nil (to-block code-obj)))
            :return-set (if set-return-set return-set (return-set code-obj))
+           :emit-set (if set-emit-set emit-set (emit-set code-obj))
            :used-types (used-types code-obj)
            :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
            :stemcells (if set-stemcells stemcells (stemcells code-obj))
@@ -97,6 +100,7 @@
                       &key type
                         current-line
                         (to-block nil set-block)
+                        (emit-set nil set-emit-set)
                         (return-set nil set-return-set)
                         multi-vals
                         (stemcells nil set-stemcells)
@@ -110,7 +114,11 @@
         (return-set
          (if set-return-set
              return-set
-             (merge-return-sets (remove nil (mapcar #'return-set objs))))))
+             (merge-return-sets (remove nil (mapcar #'return-set objs)))))
+        (emit-set
+         (if set-emit-set
+             emit-set
+             (merge-emit-sets (remove nil (mapcar #'emit-set objs))))))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object
              :code-type type))
@@ -118,6 +126,7 @@
            :current-line current-line
            :to-block (if set-block to-block
                          (mapcat #'to-block objs))
+           :emit-set emit-set
            :return-set return-set
            :used-types (mapcat #'used-types objs)
            :multi-vals multi-vals

@@ -21,6 +21,7 @@
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
+   (emit-set :initarg :emit-set :initform nil :reader emit-set)
    (used-types :initarg :used-types :initform nil :reader used-types)
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
@@ -35,11 +36,12 @@
 ;;----------------------------------------------------------------------
 
 (defclass post-compile-process ()
-  ((main-func :initarg :main-func :accessor main-func)
+  ((all-functions :initarg :all-functions :accessor all-functions)
    (env :initarg :env :accessor env)
    (stage :initarg :stage :accessor stage)
    (in-decl :initform nil :initarg :in-decl :accessor in-declarations)
    (in-args :initarg :in-args :accessor in-args)
+   (out-set :initarg :out-set :accessor out-set)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
    (out-vars :initarg :out-vars :accessor out-vars)
    (uniforms :initarg :uniforms :accessor uniforms)
@@ -48,6 +50,7 @@
    (used-types :initarg :used-types :accessor used-types)
    (used-external-functions :initarg :used-external-functions
                             :accessor used-external-functions)
+   (main-metadata :initarg :main-metadata :accessor main-metadata)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
 (defmethod primitive ((pp post-compile-process))
@@ -63,6 +66,7 @@
    (used-types :initarg :used-types :reader used-types)
    (stemcells :initarg :stemcells :reader stemcells)
    (return-set :initarg :return-set :reader return-set)
+   (emit-set :initarg :emit-set :reader emit-set)
    (top-level-scoped-metadata :initarg :top-level-scoped-metadata
                               :reader top-level-scoped-metadata)))
 
@@ -281,6 +285,13 @@
 
 (defclass external-return-val (return-val)
   ((out-name :initarg :out-name :reader out-name)))
+
+(defclass emit-val ()
+  ((type :initarg :type :reader v-type-of)
+   (qualifiers :initarg :qualifiers :reader qualifiers)))
+
+(defclass named-emit-val (emit-val)
+  ((glsl-name :initarg :glsl-name :reader glsl-name)))
 
 ;;----------------------------------------------------------------------
 

@@ -106,4 +106,5 @@
               1))
      (((foo? (:int 3)))
       (declare (output-primitive :kind :line-strip :max-vertices 6))
-      (v! (aref foo? 0) 0 0 0)))))
+      (v! (aref foo? 0) 0 0 0)
+      (values)))))

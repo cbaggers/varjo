@@ -19,6 +19,7 @@
    (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
                               :code-type :v-function)
              :initarg :flow-ids :reader flow-ids)
+   (emit-set :initform nil :initarg :emit-set :reader emit-set)
    (pure :initform nil :initarg :pure :reader pure-p)))
 
 (defmethod functions ((fn v-function))
@@ -135,7 +136,7 @@
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
-                                 code captured-vars pure)
+                                 code captured-vars pure emit-set)
   (make-instance 'v-user-function
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
@@ -157,6 +158,7 @@
                  :in-out-args in-out-args
                  :code code
                  :captured-vars captured-vars
+                 :emit-set emit-set
                  :pure pure))
 
 ;; {TODO} make this use the arg & return types

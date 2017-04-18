@@ -83,6 +83,7 @@
            :could-not-find-any
            :no-valid-function
            :return-type-mismatch
+           :emit-type-mismatch
            :non-place-assign
            :setq-readonly
            :setf-readonly
@@ -162,6 +163,7 @@
            :rolling-translate-invalid-stage
            :couldnt-convert-primitive-for-geometry-stage
            :test-translate-failed
+           :returns-in-geometry-stage
 
            ;; restarts
            :setq-supply-alternate-type

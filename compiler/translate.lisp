@@ -163,16 +163,26 @@
 
 ;;----------------------------------------------------------------------
 
+(defgeneric establish-out-set-for-stage (stage main-func)
+  ;;
+  (:method ((stage geometry-stage) main-func)
+    (assert (emptyp (return-set main-func)) ()
+            'returns-in-geometry-stage :return-set (return-set main-func))
+    (when (slot-boundp main-func 'emit-set)
+      (or (slot-value main-func 'emit-set) #())))
+  ;;
+  (:method (stage main-func)
+    (return-set main-func)))
+
 (defun make-post-process-obj (main-func stage env)
   (make-instance
    'post-compile-process
-   :main-func main-func
    :stage stage
    :env env
-   :used-external-functions (remove-duplicates (used-external-functions env))))
-
-(defmethod all-functions ((pp post-compile-process))
-  (cons (main-func pp) (all-cached-compiled-functions (env pp))))
+   :used-external-functions (remove-duplicates (used-external-functions env))
+   :all-functions (cons main-func (all-cached-compiled-functions env))
+   :out-set (establish-out-set-for-stage stage main-func)
+   :main-metadata (top-level-scoped-metadata main-func)))
 
 ;;----------------------------------------------------------------------
 
@@ -365,15 +375,14 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-out-var-strings (post-proc-obj)
-  (with-slots (main-func env) post-proc-obj
-    (let* ((ret-set (return-set main-func))
-           (out-types (map 'list #'v-type-of ret-set))
+  (with-slots (out-set env) post-proc-obj
+    (let* ((out-types (map 'list #'v-type-of out-set))
            (locations (if (stage-is env :fragment)
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
            (stage-kind (extract-stage-type post-proc-obj)))
       (setf (out-vars post-proc-obj)
-            (loop :for ret-val :across ret-set
+            (loop :for ret-val :across out-set
                :for i :from 0
                :for glsl-name := (if (typep ret-val 'external-return-val)
                                      (out-name ret-val)
@@ -396,11 +405,10 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-out-decl-strings (post-proc-obj)
-  (with-slots (main-func) post-proc-obj
+  (with-slots (main-metadata) post-proc-obj
     (cond
       ((stage-is post-proc-obj :geometry)
-       (let* ((meta (top-level-scoped-metadata main-func))
-              (tl (find 'output-primitive meta :key #'type-of)))
+       (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
          (assert tl () "The function used as a geometry stage must has a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))

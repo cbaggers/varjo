@@ -4,8 +4,9 @@
 ;;------------------------------------------------------------
 ;; Values
 
-;; type & multi-vals are set by values, return turns those into
-;; a return-set
+;; type & multi-vals are set by values.
+;; 'return' turns those into a return-set.
+;; 'emit' turns those into a emit-set.
 
 (v-defspecial values (&rest values)
   :args-valid t

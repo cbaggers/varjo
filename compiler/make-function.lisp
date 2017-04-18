@@ -17,6 +17,7 @@
       ;; main or local funcs, would be undesired in external functions
       (when maybe-def-code
         (assert (= (length (return-set maybe-def-code)) 0))
+        ;; (assert (= (length (emit-set maybe-def-code)) 0))
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
         (assert (null (multi-vals maybe-def-code)))
@@ -78,6 +79,7 @@
                                                  func-env))
            (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
            (return-set (map 'list #'identity (return-set body-obj)))
+           (emit-set (emit-set body-obj))
            (primary-type (or (when return-set (v-type-of (first return-set)))
                              (type-spec->type :void)))
            (multi-return-vars (when return-set (rest return-set)))
@@ -144,6 +146,7 @@
                                   :current-line nil
                                   :to-block nil
                                   :return-set nil
+                                  :emit-set emit-set
                                   :multi-vals nil
                                   :place-tree nil
                                   :out-of-scope-args implicit-args))
@@ -156,6 +159,7 @@
                                :glsl-code func-glsl-def
                                :stemcells (stemcells code-obj)
                                :return-set ret-set
+                               :emit-set emit-set
                                :top-level-scoped-metadata tl-meta)
                 code-obj)))))
 
@@ -199,7 +203,8 @@
                              :used-types nil
                              :glsl-code nil
                              :stemcells nil
-                             :return-set nil)
+                             :return-set nil
+                             :emit-set nil)
               (code! :type (gen-none-type)
                      :current-line nil
                      :place-tree nil

@@ -209,6 +209,7 @@
                        :type type
                        :current-line c-line
                        :pure (pure-p func)
+                       :emit-set (emit-set func)
                        :stemcells (mapcat #'stemcells args)
                        :multi-vals (when (v-multi-val-safe env)
                                      (handle-regular-function-mvals args))
@@ -289,6 +290,7 @@
                  :current-line (gen-function-string func args m-r-names)
                  :stemcells (mapcat #'stemcells args)
                  :pure (pure-p func)
+                 :emit-set (emit-set func)
                  :multi-vals (mapcar (lambda (_ _1 fid)
                                        (make-mval
                                         (v-make-value
