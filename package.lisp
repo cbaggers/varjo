@@ -30,6 +30,8 @@
    :values-safe
    :glsl-expr
    :output-primitive
+   :emit-data
+   :emit
 
    ;; bitwise operators
    :>>
@@ -66,7 +68,7 @@
    :diff))
 
 (uiop:define-package #:varjo-conditions
-    (:use #:cl)
+    (:use #:cl #:varjo-lang)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :missing-function-error
            :problem-with-the-compiler

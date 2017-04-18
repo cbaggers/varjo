@@ -79,3 +79,12 @@
                             fresh-env))
             :emit-set emit-set
             :pure nil))))))
+
+;;------------------------------------------------------------
+
+(v-defmacro emit ((&key point-size) position &rest data)
+  `(progn
+     ,@(when point-size `((setf gl-point-size ,point-size)))
+     (setf gl-position ,position)
+     (emit-data (values ,@data))
+     (emit-vertex)))
