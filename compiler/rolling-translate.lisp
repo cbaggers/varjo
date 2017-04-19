@@ -235,7 +235,8 @@
 ;;----------------------------------------------------------------------
 
 (defun check-order (stage-type remaining-stage-types)
-  (let ((check (member stage-type remaining-stage-types)))
+  (let ((check (member stage-type remaining-stage-types
+                       :test #'subtypep)))
     (if check
         (rest check)
         (error 'stage-order-error :stage-type stage-type))))
