@@ -72,13 +72,6 @@
 
 ;;------------------------------------------------------------
 
-;; (defclass external-function ()
-;;   ((name :initarg :name :reader name)
-;;    (in-args :initarg :in-args :reader in-args)
-;;    (uniforms :initarg :uniforms :reader uniforms)
-;;    (code :initarg :code :reader code)
-;;    (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
-
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
     (assert (listp return-spec))

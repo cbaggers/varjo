@@ -60,7 +60,9 @@
 
 (defgeneric nth-return-name (n stage)
   (:method (n (stage stage))
-	(format nil "_~a_OUT_~a" (type-of stage) n)))
+    (format nil "_~a_OUT_~a"
+            (substitute #\_ #\- (symbol-name (type-of stage)))
+            n)))
 
 (defun mvals->out-form (code-object env)
   (let ((mvals (multi-vals code-object))

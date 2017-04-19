@@ -163,7 +163,8 @@
   ((stage
     :initform (error "Varjo: stage is mandatory in environment")
     :initarg :stage :reader stage)
-   (in-args :initform nil :initarg :in-args :accessor v-in-args)
+   (expanded-input-variables :initform nil :initarg :expanded-input-variables
+                             :accessor expanded-input-variables)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)

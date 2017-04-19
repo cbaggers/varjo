@@ -48,7 +48,7 @@
                                   (env environment))
   (declare (ignore stage env))
   ;; {TODO} Proper error
-  (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
+  (error "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
          (name input-variable) var-type))
 
 (defmethod expand-input-variable ((stage stage)
@@ -69,7 +69,6 @@
 
 ;; mutates env
 (defun expand-input-variables (stage env)
-  "Populate in-args and create fake-structs where they are needed"
   (mapcar (lambda (var)
             (vbind (input-value expanded-vars expanded-funcs)
                 (expand-input-variable stage (v-type-of var) var env)
@@ -78,7 +77,8 @@
               ;;
               (add-lisp-name (name var) env (glsl-name input-value))
               ;;
-              (setf (v-in-args env) (append (v-in-args env) expanded-vars))
+              (setf (expanded-input-variables env)
+                    (append (expanded-input-variables env) expanded-vars))
               ;;
               (loop :for func :in expanded-funcs :do
                  (%add-function (name func) func env))
@@ -231,7 +231,7 @@
 (defun post-process-func-ast
     (func env flow-origin-map val-origin-map node-copy-map)
   ;; prime maps with args (env)
-  ;; {TODO} need to prime in-args & structs/array elements
+  ;; {TODO} need to prime expanded-input-variables & structs/array elements
   (labels ((uniform-raw (val)
              (slot-value (first (ids (first (listify (flow-ids val)))))
                          'val)))
@@ -352,33 +352,34 @@
 
 (defun gen-in-arg-strings (post-proc-obj)
   (with-slots (env stage) post-proc-obj
-    (let* ((type-objs (mapcar #'v-type-of (v-in-args env)))
+    (let* ((expanded-vars (expanded-input-variables env))
+           (is-geom (typep (stage post-proc-obj) 'geometry-stage))
+           (instance-name (when is-geom *in-block-instance-name*))
+           (block-arr-length (when is-geom
+                               (first
+                                (v-dimensions
+                                 (v-type-of
+                                  (first expanded-vars))))))
            (locations (if (typep (stage post-proc-obj) 'vertex-stage)
-                          (calc-locations type-objs)
-                          (loop for i below (length type-objs) collect nil))))
+                          (calc-locations (mapcar #'v-type-of expanded-vars))
+                          (n-of nil (length expanded-vars))))
+           (glsl-decls
+            (mapcar (lambda (var location)
+                      (gen-in-var-string (or (glsl-name var) (name var))
+                                         (v-type-of var)
+                                         (qualifiers var)
+                                         location))
+                    expanded-vars
+                    locations)))
       ;;
       (setf (in-args post-proc-obj)
-            (loop :for var :in (v-in-args env)
-               :for location :in locations
-               :for type :in type-objs
-               :collect
-               (make-instance
-                'input-variable
-                :name (name var)
-                :glsl-name (glsl-name var)
-                :type (if (typep type 'v-block-array)
-                          (block-array-to-regular-array type)
-                          type)
-                :qualifiers (qualifiers var)
-                :glsl-decl (gen-in-var-string (or (glsl-name var) (name var))
-                                              type
-                                              (qualifiers var)
-                                              location))))
-      ;;
-      (setf (input-variables post-proc-obj)
-            (loop :for var :in (input-variables stage) :collect
-               (or (find (name var) (in-args post-proc-obj) :key #'name)
-                   var)))))
+            (if (requires-in-interface-block (stage post-proc-obj))
+                (list (write-interface-block
+                       :in (in-block-name-for (stage post-proc-obj))
+                       glsl-decls
+                       :instance-name instance-name
+                       :length block-arr-length))
+                glsl-decls))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -518,7 +519,7 @@
        :glsl-code final-glsl-code
        :starting-stage (stage post-proc-obj)
        :in-args (in-args post-proc-obj)
-       :input-variables (input-variables post-proc-obj)
+       :input-variables (input-variables (stage post-proc-obj))
        :out-vars (out-vars post-proc-obj)
        :uniform-variables (uniforms post-proc-obj)
        :implicit-uniforms (stemcells post-proc-obj)

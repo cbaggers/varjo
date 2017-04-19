@@ -183,27 +183,27 @@
 
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
-    (format nil "#version ~a~%~{~%~{~a~%~}~}"
-            (get-version-from-context env)
-            (loop :for part :in
-               (list (used-types post-proc-obj)
-                     (in-declarations post-proc-obj)
-                     (gen-in-block post-proc-obj)
-                     (out-declarations post-proc-obj)
-                     (gen-out-block post-proc-obj)
-                     (remove-empty
-                      (append
-                       (mapcar #'%glsl-decl (uniforms post-proc-obj))
-                       (mapcar #'%glsl-decl (stemcells post-proc-obj))))
-                     (signatures env)
-                     (let* ((funcs (all-functions post-proc-obj))
-                            (code (remove nil (mapcar #'glsl-code funcs))))
-                       (reverse code)))
-               :if part :collect part))))
+    (format
+     nil "#version ~a~%~{~%~{~a~%~}~}"
+     (get-version-from-context env)
+     (remove nil
+             (list (used-types post-proc-obj)
+                   (in-declarations post-proc-obj)
+                   (in-args post-proc-obj)
+                   (out-declarations post-proc-obj)
+                   (gen-out-block post-proc-obj)
+                   (remove-empty
+                    (append
+                     (mapcar #'%glsl-decl (uniforms post-proc-obj))
+                     (mapcar #'%glsl-decl (stemcells post-proc-obj))))
+                   (signatures env)
+                   (let* ((funcs (all-functions post-proc-obj))
+                          (code (remove nil (mapcar #'glsl-code funcs))))
+                     (reverse code)))))))
 
 (defmethod out-block-name-for ((stage stage))
   (assert (not (typep stage 'fragment-stage)) ()
-		  "Fragment shaders cannot have 'out' interface blocks")
+          "Fragment shaders cannot have 'out' interface blocks")
   (symb :from_ (type-of stage)))
 
 (defmethod in-block-name-for ((stage stage))
@@ -215,19 +215,17 @@
         *fallback-block-name*)))
 
 (defmethod block-name-string (block-name)
-  (format nil "_~a_" block-name))
+  (substitute #\_ #\- (format nil "_~a_" block-name)))
 
 (defmethod out-block-name-for ((pp post-compile-process))
   (out-block-name-for (stage pp)))
 
-(defmethod in-block-name-for ((pp post-compile-process))
-  (in-block-name-for (stage pp)))
 
 (defun requires-out-interface-block (post-proc-obj)
   (not (typep (stage post-proc-obj) 'fragment-stage)))
 
-(defun requires-in-interface-block (post-proc-obj)
-  (not (typep (stage post-proc-obj) 'vertex-stage)))
+(defun requires-in-interface-block (stage)
+  (not (typep stage 'vertex-stage)))
 
 (defun gen-out-block (post-proc-obj)
   (let* ((out-vars (out-vars post-proc-obj))
@@ -238,25 +236,11 @@
         (when out-vars
           (list (write-interface-block
                  :out (out-block-name-for post-proc-obj)
-                 out-vars)))
+                 (mapcar #'%glsl-decl out-vars))))
         (mapcar #'%glsl-decl out-vars))))
 
 (defparameter *in-block-instance-name*
   "inputs")
-
-(defun gen-in-block (post-proc-obj)
-  (if (requires-in-interface-block post-proc-obj)
-      (when (in-args post-proc-obj)
-        (let* ((is-geom (typep (stage post-proc-obj) 'geometry-stage))
-               (len (when is-geom
-                      (first (v-dimensions
-                              (v-type-of (first (in-args post-proc-obj))))))))
-          (list (write-interface-block
-                 :in (in-block-name-for post-proc-obj)
-                 (in-args post-proc-obj)
-                 :instance-name (when is-geom *in-block-instance-name*)
-                 :length len))))
-      (mapcar #'%glsl-decl (in-args post-proc-obj))))
 
 ;;----------------------------------------------------------------------
 
@@ -265,20 +249,20 @@
 ;;   <define members here>
 ;; } instance_name;
 
-(defun write-interface-block (storage-qualifier block-name out-vars
+(defun write-interface-block (storage-qualifier block-name var-strs
                               &key layout instance-name length)
   (assert (not (and length (null instance-name))))
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{    ~a~%~}}~a;"
           layout
           (string-downcase (symbol-name storage-qualifier))
           (block-name-string block-name)
-          (mapcar #'%glsl-decl out-vars)
+          var-strs
           (if instance-name
               (format nil " ~a~@[[~a]~]" instance-name length)
               "")))
 
 (defun write-ubo-block (storage-qualifier block-name slots
-                              &optional (layout "std140"))
+                        &optional (layout "std140"))
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
           layout
           (string-downcase (symbol-name storage-qualifier))
@@ -301,7 +285,7 @@
 
 (defmethod indent ((input string) &optional (count 4))
   (let ((spaces (make-array count :element-type 'character
-                             :initial-element #\space)))
+                            :initial-element #\space)))
     (mapcar #'(lambda (x) (format nil "~a~a" spaces x))
             (split-sequence:split-sequence #\newline input))))
 

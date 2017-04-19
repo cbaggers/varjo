@@ -114,8 +114,8 @@
 ;;-------------------------------------------------------------------------
 
 ;; WARNING:: This is mutated in translate.lisp & structs.lisp
-(defmethod v-in-args ((env environment))
-  (v-in-args (get-base-env env)))
+(defmethod expanded-input-variables ((env environment))
+  (expanded-input-variables (get-base-env env)))
 
 ;; WARNING:: This is mutated in translate.lisp & structs.lisp
 (defmethod v-uniforms ((env environment))
