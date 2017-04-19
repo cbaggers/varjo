@@ -99,7 +99,7 @@ Example:
   (loop :for kind :in stages :collect
      (with-slots (input-variables
                   uniform-variables context lisp-code
-                  stemcells-allowed previous-stage primitive)
+                  stemcells-allowed previous-stage primitive-in)
          stage
        (let* ((type (stage-kind-to-type kind))
               (stage (make-instance
@@ -110,8 +110,8 @@ Example:
                       :lisp-code lisp-code
                       :stemcells-allowed stemcells-allowed
                       :previous-stage previous-stage
-                      :primitive-in (unless primitive
-									  (largest-primtive-for-stage type)))))
+                      :primitive-in (unless primitive-in
+                                      (largest-primtive-for-stage type)))))
          (handler-case (translate stage)
            (error (e) e))))))
 

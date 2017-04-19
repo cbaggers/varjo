@@ -391,6 +391,7 @@
            :output-primitive
 
            ;; external functions
+           :in-args
            :external-function
            :add-external-function
            :delete-external-function
@@ -419,21 +420,33 @@
            ;;compile-result
            :compiled-stage
            :compiled-function-result
-           :glsl-code
-           :starting-stage
-           :output-variables
            :uniforms
-           :implicit-uniforms
-           :context
-           :stemcells-allowed
-           :used-external-functions
            :ast
-           :function-asts
            :to-arg-form
-           :uniform-variables
+
            :stage
+           :vertex-stage
+           :tesselation-control-stage
+           :tesselation-evaluation-stage
+           :geometry-stage
+           :fragment-stage
+           :compiled-stage
+
            :input-variables
+           :uniform-variables
+           :context
            :lisp-code
+           :stemcells-allowed
+           :previous-stage
+           :primitive-in
+
+           :glsl-code
+           :output-variables
+           :starting-stage
+           :implicit-uniforms
+           :used-external-functions
+           :function-asts
+           :primitive-out
 
            ;;utils
            :map-environments
