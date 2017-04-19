@@ -421,7 +421,7 @@
            :compiled-function-result
            :glsl-code
            :starting-stage
-           :out-vars
+           :output-variables
            :uniforms
            :implicit-uniforms
            :context

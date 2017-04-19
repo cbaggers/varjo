@@ -46,7 +46,7 @@
                         :accessor output-variable-glsl)
    (out-set :initarg :out-set :accessor out-set)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
-   (out-vars :initarg :out-vars :accessor out-vars)
+   (output-variables :initarg :output-variables :accessor output-variables)
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
    (input-variables :initarg :input-variables :accessor input-variables)
@@ -97,7 +97,7 @@
 
 (defclass compiled-stage ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
-   (out-vars :initarg :out-vars :accessor out-vars)
+   (output-variables :initarg :output-variables :accessor output-variables)
    (starting-stage :initarg :starting-stage :accessor starting-stage)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (used-external-functions :initarg :used-external-functions

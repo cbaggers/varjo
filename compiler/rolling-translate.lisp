@@ -41,32 +41,32 @@
            (args-for-error (x)
              (mapcar #'arg-for-error x)))
     (if previous-stage
-        (vbind (out-vars primitive-kind)
+        (vbind (output-variables primitive-kind)
             (transform-previous-stage-out-data previous-stage stage)
           (let ((in-vars (input-variables stage)))
             (copy-stage
              stage
              :previous-stage previous-stage
              :input-variables
-             (if (and (input-variables-compatiblep in-vars out-vars)
+             (if (and (input-variables-compatiblep in-vars output-variables)
                       (uniforms-compatiblep (uniform-variables stage)
                                             (uniform-variables previous-stage))
                       (context-compatiblep stage previous-stage))
-                 (mapcar #'merge-in-arg out-vars in-vars)
+                 (mapcar #'merge-in-arg output-variables in-vars)
                  (error 'args-incompatible
                         :current-args (args-for-error in-vars)
-                        :previous-args (args-for-error out-vars)))
+                        :previous-args (args-for-error output-variables)))
              :primitive-in primitive-kind)))
         stage)))
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types
                                     accum)
-  (vbind (out-vars primitive)
+  (vbind (output-variables primitive)
       (transform-previous-stage-out-data last-stage stage)
-    (let ((out-vars
+    (let ((output-variables
            (if (typep last-stage 'vertex-stage)
-               (rest out-vars)
-               out-vars)))
+               (rest output-variables)
+               output-variables)))
       (labels ((swap-out-arg (glsl-string old-name new-name)
                  (let* (;; regex matches the name and the surrounding
                         ;; characters that are not alphanumeric or underscores
@@ -85,7 +85,7 @@
                ;;
                (swap-out-args (glsl-string)
                  (let ((input-variables (input-variables stage)))
-                   (loop :for out :in out-vars
+                   (loop :for out :in output-variables
                       :for in :in input-variables
                       :for out-glsl-name := (glsl-name out)
                       :for in-glsl-name := (glsl-name in)
@@ -108,10 +108,10 @@
         (let ((input-variables (input-variables stage))
               (out-prim (type-of primitive))
               (in-prim (type-of (primitive-in stage))))
-          (assert (input-variables-compatiblep input-variables out-vars) ()
+          (assert (input-variables-compatiblep input-variables output-variables) ()
                   'args-incompatible
                   :current-args (args-for-error input-variables)
-                  :previous-args (args-for-error out-vars))
+                  :previous-args (args-for-error output-variables))
           (assert (uniforms-compatiblep (uniform-variables stage)
                                         (uniform-variables last-stage)))
           (assert (context-compatiblep stage last-stage))
@@ -135,14 +135,14 @@
 
 ;;----------------------------------------------------------------------
 
-(defgeneric input-variables-compatiblep (input-variables last-out-vars)
+(defgeneric input-variables-compatiblep (input-variables last-output-variables)
   ;;
-  (:method ((input-variables list) (last-out-vars list))
-    (and (= (length input-variables) (length last-out-vars)))
+  (:method ((input-variables list) (last-output-variables list))
+    (and (= (length input-variables) (length last-output-variables)))
     (every (lambda (out in)
              (and (v-type-eq (v-type-of out) (v-type-of in))
                   (%suitable-qualifiersp out in)))
-           last-out-vars input-variables)))
+           last-output-variables input-variables)))
 
 (defun %suitable-qualifiersp (out-arg in-arg)
   (let ((out-qual (qualifiers out-arg)))
@@ -222,15 +222,15 @@
               :type (type-spec->type (list (type->type-spec (v-type-of _))
                                            (vertex-count primitive)))
               :qualifiers (qualifiers _))
-            (rest (out-vars stage))))
+            (rest (output-variables stage))))
 
   (:method ((last vertex-stage) next (stage stage) primitive)
     (declare (ignore last next primitive))
-    (rest (out-vars stage)))
+    (rest (output-variables stage)))
 
   (:method (last next (stage stage) primitive)
     (declare (ignore last next primitive))
-    (out-vars stage)))
+    (output-variables stage)))
 
 ;;----------------------------------------------------------------------
 

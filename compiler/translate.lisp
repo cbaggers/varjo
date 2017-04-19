@@ -399,7 +399,7 @@
            (locations (if (typep stage 'fragment-stage)
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil))))
-      (dbind (glsl-decls out-vars)
+      (dbind (glsl-decls output-variables)
           (loop :for out-val :across out-set
              :for location :in locations
              :for i :from 0
@@ -420,9 +420,9 @@
                        :type (v-type-of out-val)
                        :qualifiers (qualifiers out-val)
                        :location location)
-             :into out-vars
+             :into output-variables
 
-             :finally (return (list glsl out-vars)))
+             :finally (return (list glsl output-variables)))
 
         (setf (output-variable-glsl post-proc-obj)
               (if (requires-out-interface-block stage)
@@ -433,7 +433,7 @@
                            glsl-decls)))
                   glsl-decls))
 
-        (setf (out-vars post-proc-obj) out-vars))
+        (setf (output-variables post-proc-obj) output-variables))
 
       post-proc-obj)))
 
@@ -544,7 +544,7 @@
        :primitive-in (primitive-in (stage post-proc-obj))
        ;; compiled-stage slots
        :glsl-code final-glsl-code
-       :out-vars (out-vars post-proc-obj)
+       :output-variables (output-variables post-proc-obj)
        :starting-stage (stage post-proc-obj)
        :implicit-uniforms (stemcells post-proc-obj)
        :used-external-functions (used-external-functions post-proc-obj)
