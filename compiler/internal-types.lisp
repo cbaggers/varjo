@@ -50,7 +50,7 @@
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
    (input-variables :initarg :input-variables :accessor input-variables)
-   (used-types :initarg :used-types :accessor used-types)
+   (used-user-structs :initarg :used-user-structs :accessor used-user-structs)
    (used-external-functions :initarg :used-external-functions
                             :accessor used-external-functions)
    (main-metadata :initarg :main-metadata :accessor main-metadata)

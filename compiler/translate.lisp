@@ -334,7 +334,7 @@
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
   (with-slots (env) post-proc-obj
-    (setf (used-types post-proc-obj)
+    (setf (used-user-structs post-proc-obj)
           (find-used-user-structs (all-functions post-proc-obj) env)))
   post-proc-obj)
 
@@ -459,7 +459,7 @@
 (defun final-uniform-strings (post-proc-obj)
   (with-slots (env) post-proc-obj
     (let* ((final-strings nil)
-           (structs (used-types post-proc-obj))
+           (structs (used-user-structs post-proc-obj))
            (uniforms (v-uniforms env))
            (implicit-uniforms nil))
 
@@ -507,7 +507,7 @@
                                    :test #'v-type-eq)))
                (push type-obj structs)))))
       ;;
-      (setf (used-types post-proc-obj) structs)
+      (setf (used-user-structs post-proc-obj) structs)
       (setf (uniforms post-proc-obj) final-strings)
       (setf (stemcells post-proc-obj) implicit-uniforms)
       post-proc-obj)))
@@ -516,9 +516,9 @@
 
 (defun dedup-used-types (post-proc-obj)
   (with-slots (main-env) post-proc-obj
-    (setf (used-types post-proc-obj)
+    (setf (used-user-structs post-proc-obj)
           (remove-duplicates
-           (mapcar #'v-signature (used-types post-proc-obj))
+           (mapcar #'v-signature (used-user-structs post-proc-obj))
            :test #'equal)))
   post-proc-obj)
 

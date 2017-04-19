@@ -187,7 +187,7 @@
      nil "#version ~a~%~{~%~{~a~%~}~}"
      (get-version-from-context env)
      (remove nil
-             (list (used-types post-proc-obj)
+             (list (used-user-structs post-proc-obj)
                    (in-declarations post-proc-obj)
                    (input-variable-glsl post-proc-obj)
                    (out-declarations post-proc-obj)
