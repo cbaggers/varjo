@@ -422,7 +422,6 @@
            :glsl-code
            :starting-stage
            :out-vars
-           :in-args
            :uniforms
            :implicit-uniforms
            :context

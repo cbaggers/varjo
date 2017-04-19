@@ -189,9 +189,9 @@
      (remove nil
              (list (used-types post-proc-obj)
                    (in-declarations post-proc-obj)
-                   (in-args post-proc-obj)
+                   (input-variable-glsl post-proc-obj)
                    (out-declarations post-proc-obj)
-                   (gen-out-block post-proc-obj)
+                   (output-variable-glsl post-proc-obj)
                    (remove-empty
                     (append
                      (mapcar #'%glsl-decl (uniforms post-proc-obj))
@@ -217,27 +217,11 @@
 (defmethod block-name-string (block-name)
   (substitute #\_ #\- (format nil "_~a_" block-name)))
 
-(defmethod out-block-name-for ((pp post-compile-process))
-  (out-block-name-for (stage pp)))
-
-
-(defun requires-out-interface-block (post-proc-obj)
-  (not (typep (stage post-proc-obj) 'fragment-stage)))
+(defun requires-out-interface-block (stage)
+  (not (typep stage 'fragment-stage)))
 
 (defun requires-in-interface-block (stage)
   (not (typep stage 'vertex-stage)))
-
-(defun gen-out-block (post-proc-obj)
-  (let* ((out-vars (out-vars post-proc-obj))
-         (out-vars (if (typep (stage post-proc-obj) 'vertex-stage)
-                       (rest out-vars)
-                       out-vars)))
-    (if (requires-out-interface-block post-proc-obj)
-        (when out-vars
-          (list (write-interface-block
-                 :out (out-block-name-for post-proc-obj)
-                 (mapcar #'%glsl-decl out-vars))))
-        (mapcar #'%glsl-decl out-vars))))
 
 (defparameter *in-block-instance-name*
   "inputs")

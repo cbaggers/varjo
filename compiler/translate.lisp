@@ -372,7 +372,7 @@
                     expanded-vars
                     locations)))
       ;;
-      (setf (in-args post-proc-obj)
+      (setf (input-variable-glsl post-proc-obj)
             (if (requires-in-interface-block (stage post-proc-obj))
                 (list (write-interface-block
                        :in (in-block-name-for (stage post-proc-obj))
@@ -394,31 +394,47 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-out-var-strings (post-proc-obj)
-  (with-slots (out-set env) post-proc-obj
+  (with-slots (stage out-set env) post-proc-obj
     (let* ((out-types (map 'list #'v-type-of out-set))
-           (locations (if (typep (stage post-proc-obj) 'fragment-stage)
+           (locations (if (typep stage 'fragment-stage)
                           (calc-locations out-types)
-                          (loop for i below (length out-types) collect nil)))
-           (stage (stage post-proc-obj)))
-      (setf (out-vars post-proc-obj)
-            (loop :for ret-val :across out-set
-               :for i :from 0
-               :for glsl-name := (if (typep ret-val 'external-return-val)
-                                     (out-name ret-val)
-                                     (nth-return-name i stage))
-               :for type := (v-type-of ret-val)
-               :for qualifiers := (qualifiers ret-val)
-               :for location :in locations
-               :collect
-               (make-instance
-                'output-variable
-                :name (make-symbol glsl-name)
-                :glsl-name glsl-name
-                :type type
-                :qualifiers qualifiers
-                :location location
-                :glsl-decl (gen-out-var-string
-                            glsl-name type qualifiers location))))
+                          (loop for i below (length out-types) collect nil))))
+      (dbind (glsl-decls out-vars)
+          (loop :for out-val :across out-set
+             :for location :in locations
+             :for i :from 0
+             :for glsl-name := (if (typep out-val 'external-return-val)
+                                   (out-name out-val)
+                                   (nth-return-name i stage))
+
+             :collect (gen-out-var-string glsl-name
+                                          (v-type-of out-val)
+                                          (qualifiers out-val)
+                                          location)
+             :into glsl
+
+             :collect (make-instance
+                       'output-variable
+                       :name (make-symbol glsl-name)
+                       :glsl-name glsl-name
+                       :type (v-type-of out-val)
+                       :qualifiers (qualifiers out-val)
+                       :location location)
+             :into out-vars
+
+             :finally (return (list glsl out-vars)))
+
+        (setf (output-variable-glsl post-proc-obj)
+              (if (requires-out-interface-block stage)
+                  (when glsl-decls
+                    (list (write-interface-block
+                           :out
+                           (out-block-name-for stage)
+                           glsl-decls)))
+                  glsl-decls))
+
+        (setf (out-vars post-proc-obj) out-vars))
+
       post-proc-obj)))
 
 ;;----------------------------------------------------------------------
@@ -428,6 +444,7 @@
     (cond
       ((typep stage 'geometry-stage)
        (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
+         ;; {TODO} proper error
          (assert tl () "Varjo: The function used as a geometry stage must has a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))
@@ -445,6 +462,7 @@
            (structs (used-types post-proc-obj))
            (uniforms (v-uniforms env))
            (implicit-uniforms nil))
+
       (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name))))
            (push (make-instance
@@ -465,6 +483,7 @@
                     (not (find type-obj structs :key #'type->type-spec
                                :test #'v-type-eq)))
            (push type-obj structs)))
+
       (loop :for s :in (stemcells post-proc-obj) :do
          (with-slots (name string-name type cpu-side-transform) s
            (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
@@ -516,19 +535,20 @@
     (let* ((context (process-context-for-result (v-context env))))
       (make-instance
        (compiled-stage-type-for (stage post-proc-obj))
-       :glsl-code final-glsl-code
-       :starting-stage (stage post-proc-obj)
-       :in-args (in-args post-proc-obj)
+       ;; stage slots
        :input-variables (input-variables (stage post-proc-obj))
-       :out-vars (out-vars post-proc-obj)
        :uniform-variables (uniforms post-proc-obj)
-       :implicit-uniforms (stemcells post-proc-obj)
        :context context
+       :lisp-code (lisp-code stage)
        :stemcells-allowed (allows-stemcellsp env)
+       :primitive-in (primitive-in (stage post-proc-obj))
+       ;; compiled-stage slots
+       :glsl-code final-glsl-code
+       :out-vars (out-vars post-proc-obj)
+       :starting-stage (stage post-proc-obj)
+       :implicit-uniforms (stemcells post-proc-obj)
        :used-external-functions (used-external-functions post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
-       :lisp-code (lisp-code stage)
-       :primitive-in (primitive-in (stage post-proc-obj))
        :primitive-out (primitive-out post-proc-obj)))))
 
 (defun process-context-for-result (context)

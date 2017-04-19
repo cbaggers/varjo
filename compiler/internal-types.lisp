@@ -40,7 +40,10 @@
    (env :initarg :env :accessor env)
    (stage :initarg :stage :accessor stage)
    (in-decl :initform nil :initarg :in-decl :accessor in-declarations)
-   (in-args :initarg :in-args :accessor in-args)
+   (input-variable-glsl :initarg :input-variable-glsl
+                        :accessor input-variable-glsl)
+   (output-variable-glsl :initarg :output-variable-glsl
+                        :accessor output-variable-glsl)
    (out-set :initarg :out-set :accessor out-set)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
    (out-vars :initarg :out-vars :accessor out-vars)
@@ -96,7 +99,6 @@
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
    (starting-stage :initarg :starting-stage :accessor starting-stage)
-   (in-args :initarg :in-args :accessor in-args)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
@@ -122,12 +124,12 @@
   ((name :initarg :name :reader name)
    (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
    (glsl-name :initarg :glsl-name :reader glsl-name)
-   (type :initarg :type :reader v-type-of)
-   (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
+   (type :initarg :type :reader v-type-of)))
 
 (defclass input-variable (shader-variable) ())
 
-(defclass uniform-variable (shader-variable) ())
+(defclass uniform-variable (shader-variable)
+  ((glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
 (defclass implicit-uniform-variable (uniform-variable)
   ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
