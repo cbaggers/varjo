@@ -1,3 +1,8 @@
+* all internal code should use stage instances, never stage names
+ - grep -nHirI -e "\(:vertex\|:tesse\|:geometry\|:fragment\)" *
+
+* all internal code should use primitive instances, never primitive names
+
 * make-user-function-obj in make-function.lisp has a daft way of storing the
   return types, we should make it follow the return-set approach. Currently
   I think this is where the return-sets of void are coming from
