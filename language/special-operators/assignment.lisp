@@ -109,7 +109,7 @@
                           n
                           :read-only (v-read-only old-val)
                           :function-scope (v-function-scope old-val)
-                          :glsl-name (v-glsl-name old-val))
+                          :glsl-name (glsl-name old-val))
                          (copy-list (v-symbol-bindings n))))
                  (env-replace-parent n (walk-envs (v-parent-env n))))))
     (if (or (eq old-env *global-env*) (typep old-env 'base-environment))

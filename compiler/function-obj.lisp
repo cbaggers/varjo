@@ -7,7 +7,7 @@
   ((versions :initform nil :initarg :versions :accessor v-versions)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
+   (glsl-name :initarg :glsl-name :accessor glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
    (name :initform nil :initarg :name :reader name)

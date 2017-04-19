@@ -216,7 +216,7 @@
            :v-dimensions
            :v-element-type
            :v-fake-type
-           :v-glsl-name
+           :glsl-name
            :v-glsl-string
            :v-payload
            :v-restriction

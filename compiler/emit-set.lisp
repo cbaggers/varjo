@@ -17,7 +17,7 @@
     (assert (every #'keywordp qualifiers))
     (make-instance 'named-emit-val
                    :type type
-                   :glsl-name (v-glsl-name (multi-val-value mval))
+                   :glsl-name (glsl-name (multi-val-value mval))
                    :qualifiers (sort (copy-list qualifiers) #'<))))
 
 (defun emit-val-eql (ret-a ret-b)

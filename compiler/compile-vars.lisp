@@ -23,8 +23,8 @@
           code-obj))))
 
 (defun %v-value->code (v-val env)
-  (make-code-obj (v-type-of v-val) (v-glsl-name v-val)
-                 :node-tree (ast-node! :get-v-value (list (v-glsl-name v-val))
+  (make-code-obj (v-type-of v-val) (glsl-name v-val)
+                 :node-tree (ast-node! :get-v-value (list (glsl-name v-val))
                                        (v-type-of v-val)
                                        env env)
                  :pure t))

@@ -76,7 +76,7 @@
               ;;
               (%add-symbol-binding (name var) input-value env)
               ;;
-              (add-lisp-name (name var) env (v-glsl-name input-value))
+              (add-lisp-name (name var) env (glsl-name input-value))
               ;;
               (setf (v-in-args env) (append (v-in-args env) expanded-vars))
               ;;

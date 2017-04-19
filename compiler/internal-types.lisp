@@ -214,7 +214,7 @@
 
 (defclass v-value ()
   ((type :initarg :type :initform nil :accessor v-type-of)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
+   (glsl-name :initarg :glsl-name :accessor glsl-name)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)
    (read-only :initarg :read-only :initform nil :reader v-read-only)))

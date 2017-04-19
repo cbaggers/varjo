@@ -25,7 +25,7 @@
                  :function-scope (or function-scope (v-function-scope env))))
 
 (defun v-value-equal (a b)
-  (equal (v-glsl-name a) (v-glsl-name b)))
+  (equal (glsl-name a) (glsl-name b)))
 
 (defun add-glsl-vars (env)
   (labels ((add-vars (vars)

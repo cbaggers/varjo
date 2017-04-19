@@ -9,7 +9,7 @@
     (otherwise (format nil "~a" number))))
 
 (defun gen-variable-string (var-name v-value)
-  (format nil "~a" (or (v-glsl-name v-value) ()
+  (format nil "~a" (or (glsl-name v-value) ()
                        (string-downcase (string var-name)))))
 
 (defun gen-function-string (func arg-objs &optional out-strings)
@@ -19,7 +19,7 @@
     (apply #'format nil (v-glsl-string func)
            (append (mapcar λ(current-line _ t) arg-objs)
                    out-strings
-                   (mapcar #'v-glsl-name (implicit-args func))))))
+                   (mapcar #'glsl-name (implicit-args func))))))
 
 (defun gen-function-transform (name args &optional out-args implicit-args)
   (format nil "~a(~{~a~^,~})" name
@@ -29,11 +29,11 @@
 
 (defun gen-implicit-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `(nil ,(v-glsl-string (v-type-of a)) ,(v-glsl-name a))))
+     `(nil ,(v-glsl-string (v-type-of a)) ,(glsl-name a))))
 
 (defun gen-in-out-arg-tripples (implicit-args)
   (loop :for a :in implicit-args :collect
-     `("inout" ,(v-glsl-string (v-type-of a)) ,(v-glsl-name a))))
+     `("inout" ,(v-glsl-string (v-type-of a)) ,(glsl-name a))))
 
 (defun gen-arg-string (arg-tripples &optional out-pairs)
   (let ((arg-string (format nil "~{~{~@[~a ~]~a ~a~}~^,~^ ~}" arg-tripples)))
@@ -73,7 +73,7 @@
   (format nil "~a = ~a" lhs rhs))
 
 (defun gen-setq-assignment-string (old-value new-value-code-obj)
-  (format nil "~a = ~a" (v-glsl-name old-value)
+  (format nil "~a = ~a" (glsl-name old-value)
           (current-line new-value-code-obj)))
 
 (defun gen-out-var-assignment-string (glsl-name val)

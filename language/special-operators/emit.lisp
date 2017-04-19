@@ -52,7 +52,7 @@
        (let* ((mvals (multi-vals code-obj))
               (v-vals (mapcar #'multi-val-value mvals))
               (types (mapcar #'v-type-of v-vals))
-              (glsl-lines (mapcar #'v-glsl-name v-vals)))
+              (glsl-lines (mapcar #'glsl-name v-vals)))
          (copy-code
           (merge-progn
            (with-fresh-env-scope (fresh-env env)

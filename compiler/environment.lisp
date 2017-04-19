@@ -309,7 +309,7 @@ For example calling env-prune on this environment..
                  env-a ;; this is ignored as function-scope is provided
                  :read-only (v-read-only va)
                  :function-scope (v-function-scope va)
-                 :glsl-name (v-glsl-name va))))))
+                 :glsl-name (glsl-name va))))))
      v-names)))
 
 (defun env-binding-names (env &key stop-at-base variables-only)
