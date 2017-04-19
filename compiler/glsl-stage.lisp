@@ -22,7 +22,7 @@
         (let ((env (%make-base-environment stage)))
           (pipe-> (stage env)
             #'set-env-context
-            #'process-in-args
+            #'expand-input-variables
             #'process-uniforms
             #'(lambda (stage env)
                 (values (make-instance

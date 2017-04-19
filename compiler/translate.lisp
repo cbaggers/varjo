@@ -13,7 +13,7 @@
             #'set-env-context
             #'process-primitive-type
             #'add-context-glsl-vars
-            #'process-in-args
+            #'expand-input-variables
             #'process-uniforms
             #'compile-pass
             #'make-post-process-obj
@@ -43,7 +43,7 @@
 ;;----------------------------------------------------------------------
 
 ;; {TODO} Proper error
-(defun process-in-args (stage env)
+(defun expand-input-variables (stage env)
   "Populate in-args and create fake-structs where they are needed"
   (loop :for var :in (input-variables stage) :do
      ;; with-v-arg (name type qualifiers declared-glsl-name) var
