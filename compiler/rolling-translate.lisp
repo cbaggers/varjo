@@ -56,7 +56,7 @@
                  (error 'args-incompatible
                         :current-args (args-for-error in-vars)
                         :previous-args (args-for-error out-vars)))
-             :primitive primitive-kind)))
+             :primitive-in primitive-kind)))
         stage)))
 
 (defun splice-in-precompiled-stage (last-stage stage remaining-stage-types

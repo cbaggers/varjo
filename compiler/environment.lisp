@@ -128,8 +128,8 @@
 (defmethod stage ((env environment))
   (stage (get-base-env env)))
 
-(defmethod primitive ((env environment))
-  (primitive (stage env)))
+(defmethod primitive-in ((env environment))
+  (primitive-in (stage env)))
 
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))

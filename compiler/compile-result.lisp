@@ -14,7 +14,6 @@
                                (stemcells-allowed nil a-s-set)
                                (used-external-functions nil used-external-functions-set)
                                (previous-stage nil previous-stage-set)
-                               (primitive nil primitive-set)
                                (primitive-in nil primitive-in-set)
                                (primitive-out nil primitive-out-set)
                                (function-asts nil function-asts-set))
@@ -35,7 +34,6 @@
                                 (used-external-functions original))
    :function-asts (if function-asts-set function-asts (function-asts original))
    :previous-stage (if previous-stage-set previous-stage (previous-stage original))
-   :primitive (if primitive-set primitive (primitive original))
    :primitive-in (if primitive-in-set primitive-in (primitive-in original))
    :primitive-out (if primitive-out-set primitive-out (primitive-out original))))
 

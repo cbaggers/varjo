@@ -71,7 +71,7 @@ Example:
                                      nil))))
          (stages (remove nil stages))
          (first (first stages)))
-    (setf (primitive first) draw-mode)
+    (setf (primitive-in first) draw-mode)
     (rolling-translate (remove nil stages))))
 
 ;;----------------------------------------------------------------------
@@ -110,8 +110,8 @@ Example:
                       :lisp-code lisp-code
                       :stemcells-allowed stemcells-allowed
                       :previous-stage previous-stage
-                      :primitive (unless primitive
-                                   (largest-primtive-for-stage type)))))
+                      :primitive-in (unless primitive
+									  (largest-primtive-for-stage type)))))
          (handler-case (translate stage)
            (error (e) e))))))
 

@@ -73,7 +73,7 @@
              (primitive (primitive-name-to-instance primitive-name)))
         (setf (primitive-out post-proc-obj) primitive))
       (setf (primitive-out post-proc-obj)
-            (primitive (stage post-proc-obj))))
+            (primitive-in (stage post-proc-obj))))
   post-proc-obj)
 
 (defun make-glsl-ret-set (outputs)

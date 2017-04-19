@@ -28,7 +28,7 @@
                 :context (process-context context)
                 :lisp-code code
                 :stemcells-allowed stemcells-allowed
-                :primitive primitive)))
+                :primitive-in primitive)))
         (check-for-stage-specific-limitations r)
         r))))
 
@@ -42,7 +42,7 @@
               (lisp-code nil lc-set)
               (previous-stage nil ps-set)
               (stemcells-allowed nil sa-set)
-              (primitive nil p-set))
+              (primitive-in nil p-set))
     (make-instance
      (type-of stage)
      :input-variables (if iv-set
@@ -63,9 +63,9 @@
      :stemcells-allowed (if sa-set
                             stemcells-allowed
                             (stemcells-allowed stage))
-     :primitive (if p-set
-                    primitive
-                    (primitive stage)))))
+     :primitive-in (if p-set
+					   primitive-in
+					   (primitive-in stage)))))
 
 ;;------------------------------------------------------------
 

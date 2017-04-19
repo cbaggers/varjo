@@ -53,8 +53,8 @@
    (main-metadata :initarg :main-metadata :accessor main-metadata)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
-(defmethod primitive ((pp post-compile-process))
-  (primitive (stage pp)))
+(defmethod primitive-in ((pp post-compile-process))
+  (primitive-in (stage pp)))
 
 ;;----------------------------------------------------------------------
 
@@ -81,7 +81,7 @@
    (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
    (previous-stage :initarg :previous-stage :accessor previous-stage
                    :initform nil)
-   (primitive :initform nil :initarg :primitive :accessor primitive)))
+   (primitive-in :initarg :primitive-in :accessor primitive-in)))
 
 (defclass vertex-stage (stage) ())
 (defclass tesselation-control-stage (stage) ())
@@ -101,7 +101,6 @@
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
    (function-asts :initarg :function-asts :reader function-asts)
-   (primitive-in :initarg :primitive-in :accessor primitive-in)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
 (defclass shader-variable ()

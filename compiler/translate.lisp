@@ -146,12 +146,12 @@
              (let ((type (find name *draw-modes*)))
                (assert type () "Varjo: Could not find primitive named ~a" name)
                (make-instance (find-symbol (symbol-name name) :varjo)))))
-    (let* ((prim (primitive stage))
+    (let* ((prim (primitive-in stage))
            (prim (etypecase prim
                    (null nil)
                    (symbol (get-primitive prim))
                    (primitive prim))))
-      (setf (primitive stage) (%process-primitive-type stage prim env)))
+      (setf (primitive-in stage) (%process-primitive-type stage prim env)))
     (values stage env)))
 
 ;;----------------------------------------------------------------------
@@ -369,7 +369,7 @@
 (defun gen-in-decl-strings (post-proc-obj)
   (when (stage-is post-proc-obj :geometry)
     (setf (in-declarations post-proc-obj)
-          (list (gen-geom-input-primitive-string (primitive post-proc-obj)))))
+          (list (gen-geom-input-primitive-string (primitive-in post-proc-obj)))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -415,7 +415,7 @@
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance (slot-value tl 'kind)))))
       (t (setf (primitive-out post-proc-obj)
-               (primitive (stage post-proc-obj))))))
+               (primitive-in (stage post-proc-obj))))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -509,7 +509,7 @@
        :used-external-functions (used-external-functions post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
        :lisp-code (lisp-code stage)
-       :primitive-in (primitive (stage post-proc-obj))
+       :primitive-in (primitive-in (stage post-proc-obj))
        :primitive-out (primitive-out post-proc-obj)))))
 
 (defun process-context-for-result (context)
