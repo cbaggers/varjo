@@ -48,7 +48,7 @@
              stage
              :previous-stage previous-stage
              :input-variables
-             (if (and (in-args-compatiblep in-vars out-vars)
+             (if (and (input-variables-compatiblep in-vars out-vars)
                       (uniforms-compatiblep (uniform-variables stage)
                                             (uniform-variables previous-stage))
                       (context-compatiblep stage previous-stage))
@@ -84,9 +84,9 @@
                    (concatenate 'string result (subseq glsl-string last))))
                ;;
                (swap-out-args (glsl-string)
-                 (let ((in-args (input-variables stage)))
+                 (let ((input-variables (input-variables stage)))
                    (loop :for out :in out-vars
-                      :for in :in in-args
+                      :for in :in input-variables
                       :for out-glsl-name := (glsl-name out)
                       :for in-glsl-name := (glsl-name in)
                       :do (setf glsl-string (swap-out-arg glsl-string
@@ -105,12 +105,12 @@
                (args-for-error (x)
                  (mapcar #'arg-for-error x)))
         ;;
-        (let ((in-args (input-variables stage))
+        (let ((input-variables (input-variables stage))
               (out-prim (type-of primitive))
               (in-prim (type-of (primitive-in stage))))
-          (assert (in-args-compatiblep in-args out-vars) ()
+          (assert (input-variables-compatiblep input-variables out-vars) ()
                   'args-incompatible
-                  :current-args (args-for-error in-args)
+                  :current-args (args-for-error input-variables)
                   :previous-args (args-for-error out-vars))
           (assert (uniforms-compatiblep (uniform-variables stage)
                                         (uniform-variables last-stage)))
@@ -119,7 +119,7 @@
             (assert (eq in-prim out-prim) () 'primitives-dont-match
                     :out-stage (type-of last-stage) :out out-prim
                     :in-stage (type-of stage) :in in-prim)))
-        ;; we need to modify the result of the compiled stage if the in-args
+        ;; we need to modify the result of the compiled stage if the input-variables
         ;; names dont match the names of the out args
         (let* ((glsl-code (glsl-code stage))
                (glsl-code (swap-out-args glsl-code))
@@ -135,14 +135,14 @@
 
 ;;----------------------------------------------------------------------
 
-(defgeneric in-args-compatiblep (in-args last-out-vars)
+(defgeneric input-variables-compatiblep (input-variables last-out-vars)
   ;;
-  (:method ((in-args list) (last-out-vars list))
-    (and (= (length in-args) (length last-out-vars)))
+  (:method ((input-variables list) (last-out-vars list))
+    (and (= (length input-variables) (length last-out-vars)))
     (every (lambda (out in)
              (and (v-type-eq (v-type-of out) (v-type-of in))
                   (%suitable-qualifiersp out in)))
-           last-out-vars in-args)))
+           last-out-vars input-variables)))
 
 (defun %suitable-qualifiersp (out-arg in-arg)
   (let ((out-qual (qualifiers out-arg)))
