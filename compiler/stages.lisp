@@ -64,19 +64,8 @@
                             stemcells-allowed
                             (stemcells-allowed stage))
      :primitive-in (if p-set
-					   primitive-in
-					   (primitive-in stage)))))
-
-;;------------------------------------------------------------
-
-(defmethod stage-is ((stage stage) name)
-  (typep stage (stage-kind-to-type name)))
-
-(defmethod stage-is ((env environment) name)
-  (stage-is (stage env) name))
-
-(defmethod stage-is ((ppp post-compile-process) name)
-  (stage-is (stage ppp) name))
+                       primitive-in
+                       (primitive-in stage)))))
 
 ;;------------------------------------------------------------
 
@@ -135,7 +124,7 @@
 
 ;;{TODO} proper error
 (defun check-for-stage-specific-limitations (stage)
-  (assert (not (and (member :vertex (context stage))
+  (assert (not (and (typep stage 'vertex-stage)
                     (some #'qualifiers (input-variables stage))))
           () "In args to vertex shaders can not have qualifiers"))
 

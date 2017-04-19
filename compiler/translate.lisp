@@ -56,7 +56,7 @@
                                   (input-variable input-variable)
                                   (env environment))
   (let* ((type (set-flow-id var-type (flow-id!)))
-         (type (if (and (stage-is stage :geometry) (typep type 'v-array))
+         (type (if (and (typep stage 'geometry-stage) (typep type 'v-array))
                    (make-into-block-array type *in-block-instance-name*)
                    type)))
     (values (v-make-value type env :glsl-name (glsl-name input-variable))
@@ -353,7 +353,7 @@
 (defun gen-in-arg-strings (post-proc-obj)
   (with-slots (env stage) post-proc-obj
     (let* ((type-objs (mapcar #'v-type-of (v-in-args env)))
-           (locations (if (member :vertex (v-context env))
+           (locations (if (typep (stage post-proc-obj) 'vertex-stage)
                           (calc-locations type-objs)
                           (loop for i below (length type-objs) collect nil))))
       ;;
@@ -384,9 +384,10 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-in-decl-strings (post-proc-obj)
-  (when (stage-is post-proc-obj :geometry)
+  (when (typep (stage post-proc-obj) 'geometry-stage)
     (setf (in-declarations post-proc-obj)
-          (list (gen-geom-input-primitive-string (primitive-in post-proc-obj)))))
+          (list (gen-geom-input-primitive-string
+                 (primitive-in post-proc-obj)))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
@@ -394,7 +395,7 @@
 (defun gen-out-var-strings (post-proc-obj)
   (with-slots (out-set env) post-proc-obj
     (let* ((out-types (map 'list #'v-type-of out-set))
-           (locations (if (stage-is env :fragment)
+           (locations (if (typep (stage post-proc-obj) 'fragment-stage)
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
            (stage (stage post-proc-obj)))
@@ -422,9 +423,9 @@
 ;;----------------------------------------------------------------------
 
 (defun process-output-primtive (post-proc-obj)
-  (with-slots (main-metadata) post-proc-obj
+  (with-slots (main-metadata stage) post-proc-obj
     (cond
-      ((stage-is post-proc-obj :geometry)
+      ((typep stage 'geometry-stage)
        (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
          (assert tl () "Varjo: The function used as a geometry stage must has a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)

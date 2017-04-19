@@ -122,7 +122,7 @@
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
           :return-set (make-return-set-from-code-obj code-obj))))
-      (t (let ((ret-set (if (stage-is env :vertex)
+      (t (let ((ret-set (if (typep (stage env) 'vertex-stage)
                             (make-return-set)
                             (make-return-set (make-return-val type)))))
            (copy-code
@@ -139,7 +139,7 @@
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (code-obj env)
   (let ((stage (stage env)))
-    (if (stage-is env :vertex)
+    (if (typep (stage env) 'vertex-stage)
         (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch

@@ -70,7 +70,7 @@
                              p-env)))
            env)
           :emit-set (make-emit-set-from-code-obj code-obj))))
-      (t (let ((emit-set (if (stage-is env :vertex)
+      (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
                              (make-emit-set)
                              (make-emit-set (make-emit-val type)))))
            (copy-code

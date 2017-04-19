@@ -10,19 +10,17 @@
 
 (defparameter *stage-names*
   '(:vertex
-	:tesselation-control
-	:tesselation-evaluation
-	:geometry
-	:fragment))
+    :tesselation-control
+    :tesselation-evaluation
+    :geometry
+    :fragment))
 
 (defparameter *stage-type-names*
   '(vertex-stage
-	tesselation-control-stage
-	tesselation-evaluation-stage
-	geometry-stage
-	fragment-stage))
-
-(defparameter *supported-stages* *stage-names*)
+    tesselation-control-stage
+    tesselation-evaluation-stage
+    geometry-stage
+    fragment-stage))
 
 (defparameter *supported-draw-modes*
   '(:points

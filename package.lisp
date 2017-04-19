@@ -396,7 +396,8 @@
            :delete-external-function
 
            ;;compiler
-           :*supported-stages*
+           :*stage-names*
+           :*stage-type-names*
            :*supported-versions*
            :make-stage
            :compile-form

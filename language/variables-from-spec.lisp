@@ -21,10 +21,12 @@
 
     `(progn
        (setf *glsl-variables*
-         ',(mapcar (lambda (x)
-                     (cons x (mapcar #'rest (remove-if-not λ(eq x _) vars
-                                                           :key #'first))))
-                   '(t :vertex :tesselation-control :tesselation-evaluation
-                     :geometry :fragment)))
+         ',(mapcar (lambda (stage-name stage-type-name)
+                     (cons stage-type-name
+                           (mapcar #'rest (remove-if-not
+                                           λ(eq stage-name _)
+                                           vars :key #'first))))
+                   (cons t *stage-names*)
+                   (cons t *stage-type-names*)))
        (export ',(mapcar #'second vars) :varjo-lang))))
 (populate-vars)

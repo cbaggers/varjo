@@ -64,7 +64,7 @@
   (vbind (out-vars primitive)
       (transform-previous-stage-out-data last-stage stage)
     (let ((out-vars
-           (if (stage-is last-stage :vertex)
+           (if (typep last-stage 'vertex-stage)
                (rest out-vars)
                out-vars)))
       (labels ((swap-out-arg (glsl-string old-name new-name)
@@ -115,7 +115,7 @@
           (assert (uniforms-compatiblep (uniform-variables stage)
                                         (uniform-variables last-stage)))
           (assert (context-compatiblep stage last-stage))
-          (when (stage-is stage :geometry)
+          (when (typep stage 'geometry-stage)
             (assert (eq in-prim out-prim) () 'primitives-dont-match
                     :out-stage (type-of last-stage) :out out-prim
                     :in-stage (type-of stage) :in in-prim)))

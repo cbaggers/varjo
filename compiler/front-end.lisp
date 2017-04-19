@@ -77,7 +77,7 @@ Example:
 ;;----------------------------------------------------------------------
 
 (defun v-macroexpand (form &optional (as-stage :vertex) (as-version :450))
-  (assert (find as-stage *supported-stages*))
+  (assert (find as-stage *stage-names*))
   (assert (find as-version *supported-versions*))
   (let* ((stage (make-stage as-stage nil nil (list as-version)
                             (list form) nil :triangles))

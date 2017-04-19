@@ -247,7 +247,7 @@
 (defun gen-in-block (post-proc-obj)
   (if (requires-in-interface-block post-proc-obj)
       (when (in-args post-proc-obj)
-        (let* ((is-geom (stage-is post-proc-obj :geometry))
+        (let* ((is-geom (typep (stage post-proc-obj) 'geometry-stage))
                (len (when is-geom
                       (first (v-dimensions
                               (v-type-of (first (in-args post-proc-obj))))))))
