@@ -78,44 +78,44 @@
                   (v-glsl-string type-obj)
                   (safe-glsl-name-string name))))))
 
-;; mutates env
-(defmethod add-fake-struct ((var input-variable) env)
-  (let* (;;
-         (in-var-name (name var))
-         (type (v-type-of var))
-         (qualifiers (qualifiers var))
-         (glsl-name (glsl-name var))
-         ;;
-         (struct (set-flow-id (v-fake-type type) (flow-id!)))
-         (fake-type (class-name (class-of struct)))
-         (slots (v-slots type))
-         (new-in-args
-          (loop :for (slot-name slot-type . acc) :in slots
-             :for fake-slot-name = (fake-slot-name glsl-name slot-name)
-             :for accessor = (dbind (&key accessor) acc
-                               (or accessor
-                                   (symb (type->type-spec type) '- slot-name)))
-             :do (%add-function
-                  accessor
-                  (make-function-obj accessor
-                                     fake-slot-name
-                                     nil ;; {TODO} Must be context
-                                     (list fake-type)
-                                     (list slot-type) :v-place-index nil
-                                     :pure t)
-                  env)
-             :collect (make-instance
-                       'input-variable
-                       :name fake-slot-name
-                       :glsl-name fake-slot-name
-                       :type slot-type
-                       :qualifiers qualifiers))))
-    (setf (v-in-args env) (append (v-in-args env) new-in-args))
-    (%add-symbol-binding
-     in-var-name
-     (v-make-value struct env :glsl-name glsl-name :read-only t)
-     env)
-    env))
+
+(defmethod expand-input-variable ((stage stage)
+                                  (var-type v-type)
+                                  (input-variable input-variable)
+                                  (env environment))
+  (declare (ignore stage))
+  (let* ((glsl-name (glsl-name input-variable))
+         (fake-struct (set-flow-id (v-fake-type var-type) (flow-id!))))
+    ;;
+    (loop :for (slot-name slot-type . acc) :in (v-slots var-type)
+       :for fake-slot-name = (fake-slot-name glsl-name slot-name)
+       :for accessor = (dbind (&key accessor) acc
+                         (or accessor
+                             (symb (type->type-spec var-type) '- slot-name)))
+
+       :collect (make-function-obj accessor
+                              fake-slot-name
+                              nil ;; {TODO} Must be context
+                              (list fake-struct)
+                              (list slot-type)
+                              :v-place-index nil
+                              :pure t)
+       :into funcs
+
+       :collect (make-instance
+                 'input-variable
+                 :name fake-slot-name
+                 :glsl-name fake-slot-name
+                 :type slot-type
+                 :qualifiers (qualifiers input-variable))
+       :into vars
+
+       :finally (return
+                  (values (v-make-value fake-struct env
+                                        :glsl-name glsl-name
+                                        :read-only t)
+                          vars
+                          funcs)))))
 
 ;; mutates env
 (defmethod add-fake-struct ((var uniform-variable) env)

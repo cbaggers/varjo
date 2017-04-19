@@ -42,34 +42,51 @@
 
 ;;----------------------------------------------------------------------
 
-;; {TODO} Proper error
+(defmethod expand-input-variable ((stage stage)
+                                  (var-type v-type)
+                                  (input-variable input-variable)
+                                  (env environment))
+  (declare (ignore stage env))
+  ;; {TODO} Proper error
+  (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
+         (name input-variable) var-type))
+
+(defmethod expand-input-variable ((stage stage)
+                                  (var-type v-type)
+                                  (input-variable input-variable)
+                                  (env environment))
+  (let* ((type (set-flow-id var-type (flow-id!)))
+         (type (if (and (stage-is stage :geometry) (typep type 'v-array))
+                   (make-into-block-array type *in-block-instance-name*)
+                   type)))
+    (values (v-make-value type env :glsl-name (glsl-name input-variable))
+            (list (make-instance 'input-variable
+                                 :name (name input-variable)
+                                 :glsl-name (glsl-name input-variable)
+                                 :type type
+                                 :qualifiers (qualifiers input-variable)))
+            nil)))
+
+;; mutates env
 (defun expand-input-variables (stage env)
   "Populate in-args and create fake-structs where they are needed"
-  (loop :for var :in (input-variables stage) :do
-     ;; with-v-arg (name type qualifiers declared-glsl-name) var
-     (let* ((glsl-name (glsl-name var))
-            (type (v-type-of var))
-            (name (name var)))
-       (typecase type
-         (v-struct (add-fake-struct var env))
-         (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
-                                  name type))
-         (t (let* ((type (set-flow-id type (flow-id!)))
-                   (type (if (and (stage-is stage :geometry)
-                                  (typep type 'v-array))
-                             (make-into-block-array
-                              type *in-block-instance-name*)
-                             type)))
-              (%add-symbol-binding
-               name (v-make-value type env :glsl-name glsl-name) env)
-              (add-lisp-name name env glsl-name)
-              (setf (v-in-args env)
-                    (cons-end (make-instance 'input-variable
-                                             :name name
-                                             :glsl-name glsl-name
-                                             :type type
-                                             :qualifiers (qualifiers var))
-                              (v-in-args env))))))))
+  (mapcar (lambda (var)
+            (vbind (input-value expanded-vars expanded-funcs)
+                (expand-input-variable stage (v-type-of var) var env)
+              ;;
+              (%add-symbol-binding (name var) input-value env)
+              ;;
+              (add-lisp-name (name var) env (v-glsl-name input-value))
+              ;;
+              (setf (v-in-args env) (append (v-in-args env) expanded-vars))
+              ;;
+              (loop :for func :in expanded-funcs :do
+                 (%add-function (name func) func env))
+              ;;
+              ;; dont allow glsl name duplication
+              (loop :for var :in expanded-vars :do
+                 (declare-glsl-name-taken env (glsl-name var)))))
+          (input-variables stage))
   (values stage env))
 
 ;;----------------------------------------------------------------------

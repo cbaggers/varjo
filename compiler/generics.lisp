@@ -88,3 +88,4 @@
 (defgeneric v-superclass (type))
 (defgeneric v-make-type (type flow-id &rest args))
 (defgeneric block-name-string (block-name))
+(defgeneric expand-input-variable (stage var-type input-variable env))

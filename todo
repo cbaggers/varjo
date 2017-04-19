@@ -1,3 +1,6 @@
+* in make-user-function-obj & make-function-obj assert that types are objects
+  dont allow type-specs
+
 * replace stage-is
 
 * all internal code should use stage instances, never stage names

@@ -86,6 +86,11 @@
   (setf (gethash string name-map) symbol)
   nil)
 
+(defun declare-glsl-name-taken (env glsl-name)
+  (let ((name-map (v-name-map env)))
+    (setf (gethash glsl-name name-map) nil))
+  glsl-name)
+
 (defun %get-free-glsl-name (symbol name-map)
   (let* ((orig-str-name (gen-glsl-string-for-symbol symbol))
          (curr-str-name orig-str-name))
