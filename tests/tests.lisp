@@ -48,32 +48,32 @@
    It is allowed to recompile up to 'max-depth' times in order to find
    convergence"
   (labels ((stage->name (stage)
-			 (let ((type-name (type-of stage)))
-			   (elt varjo::*stage-names*
-					(position type-name varjo::*stage-type-names*)))))
-	(let* ((code (ast->code compile-result))
-		   (version (varjo::get-version-from-context-list
-					 (context compile-result)))
-		   (stemcells (stemcells-allowed compile-result))
-		   (recomp (first (v-compile
-						   (mapcar #'varjo::to-arg-form
-								   (varjo::uniform-variables compile-result))
-						   version
-						    (stage->name (starting-stage compile-result))
-						   `(,(mapcar #'varjo::to-arg-form
-									  (varjo::input-variables compile-result))
-							  ,@code)
-						   :allow-stemcells stemcells)))
-		   (recomp-code (ast->code recomp)))
-	  (or (values (equal code recomp-code) depth)
-		  (when (< depth max-depth)
-			(ast-stabalizes-p recomp (incf depth)))))))
+             (let ((type-name (type-of stage)))
+               (elt varjo::*stage-names*
+                    (position type-name varjo::*stage-type-names*)))))
+    (let* ((code (ast->code compile-result))
+           (version (varjo::get-version-from-context-list
+                     (context compile-result)))
+           (stemcells (stemcells-allowed compile-result))
+           (recomp (first (v-compile
+                           (mapcar #'varjo::to-arg-form
+                                   (varjo::uniform-variables compile-result))
+                           version
+                           (stage->name (starting-stage compile-result))
+                           `(,(mapcar #'varjo::to-arg-form
+                                      (varjo::input-variables compile-result))
+                              ,@code)
+                           :allow-stemcells stemcells)))
+           (recomp-code (ast->code recomp)))
+      (or (values (equal code recomp-code) depth)
+          (when (< depth max-depth)
+            (ast-stabalizes-p recomp (incf depth)))))))
 
 (defmacro finishes-p (form)
   (alexandria:with-gensyms (res)
     `(let ((,res (varjo::listify ,form)))
        (is (every (lambda (x)
-                    (and (typep x 'varjo-compile-result)
+                    (and (typep x 'compiled-stage)
                          (ast-stabalizes-p x)
                          (not (glsl-contains-invalid x))
                          (not (glsl-contains-nil x))))

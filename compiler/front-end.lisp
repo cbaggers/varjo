@@ -10,7 +10,7 @@
 This function takes lisp code as lists and returns the results of compiling that
 code to glsl.
 
-Each result is an object of type 'varjo-compile-result.
+Each result is an object of type 'compiled-stage.
 
 The stages must be defined in the following way.
 

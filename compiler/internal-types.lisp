@@ -92,7 +92,7 @@
 ;;----------------------------------------------------------------------
 ;; Compiler output
 
-(defclass varjo-compile-result (stage)
+(defclass compiled-stage ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
    (starting-stage :initarg :starting-stage :accessor starting-stage)
@@ -102,6 +102,21 @@
                             :reader used-external-functions)
    (function-asts :initarg :function-asts :reader function-asts)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
+
+(defclass compiled-vertex-stage
+    (vertex-stage compiled-stage) ())
+
+(defclass compiled-tesselation-control-stage
+    (tesselation-control-stage compiled-stage) ())
+
+(defclass compiled-tesselation-evaluation-stage
+    (tesselation-evaluation-stage compiled-stage) ())
+
+(defclass compiled-geometry-stage
+    (geometry-stage compiled-stage) ())
+
+(defclass compiled-fragment-stage
+    (fragment-stage compiled-stage) ())
 
 (defclass shader-variable ()
   ((name :initarg :name :reader name)

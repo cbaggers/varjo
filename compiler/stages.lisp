@@ -85,6 +85,14 @@
     (or (assocr kind map)
         (error 'invalid-stage-kind :kind kind))))
 
+(defun compiled-stage-type-for (stage)
+  (etypecase stage
+    (vertex-stage 'compiled-vertex-stage)
+    (tesselation-control-stage 'compiled-tesselation-control-stage)
+    (tesselation-evaluation-stage 'compiled-tesselation-evaluation-stage)
+    (geometry-stage 'compiled-geometry-stage)
+    (fragment-stage 'compiled-fragment-stage)))
+
 (defun process-context (raw-context)
   ;; As this was a more recent change we wanted a more explanatory error
   (assert (null (remove-if-not λ(find _ *stage-names*) raw-context))

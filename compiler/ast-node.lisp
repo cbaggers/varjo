@@ -192,7 +192,7 @@ context is implicit"))
                    (t ast)))))
     (typecase from-node
       (code (walk-node (node-tree from-node) :parent nil))
-      (varjo-compile-result (walk-node (ast from-node) :parent nil))
+      (compiled-stage (walk-node (ast from-node) :parent nil))
       (ast-node (walk-node from-node :parent nil))
       (t (error "object with the invalid type ~s passed to ast->code"
                 (type-of from-node))))))

@@ -18,7 +18,7 @@
                                (primitive-out nil primitive-out-set)
                                (function-asts nil function-asts-set))
   (make-instance
-   'varjo-compile-result
+   (compiled-stage-type-for original)
    :glsl-code (if glsl-code-set glsl-code (glsl-code original))
    :lisp-code (if lisp-code-set lisp-code (lisp-code original))
    :out-vars (if out-vars-set out-vars (out-vars original))
@@ -37,12 +37,12 @@
    :primitive-in (if primitive-in-set primitive-in (primitive-in original))
    :primitive-out (if primitive-out-set primitive-out (primitive-out original))))
 
-(defmethod ast ((obj varjo-compile-result))
+(defmethod ast ((obj compiled-stage))
   (let* ((res (first (function-asts obj)))
          (ending-env (ast-ending-env res))
          (context (v-context ending-env)))
     (assert (member :main context) ()
-            "The varjo-compile-result object should have the ast for the main
+            "The compiled-stage object should have the ast for the main
 function at the head of the list returned by #'function-asts.
 However this was not the case.
 

@@ -514,7 +514,7 @@
   (with-slots (env stage) post-proc-obj
     (let* ((context (process-context-for-result (v-context env))))
       (make-instance
-       'varjo-compile-result
+       (compiled-stage-type-for (stage post-proc-obj))
        :glsl-code final-glsl-code
        :starting-stage (stage post-proc-obj)
        :in-args (in-args post-proc-obj)

@@ -8,7 +8,7 @@ This document will explain how to use Varjo. It presumes that you have the basic
 
 Working with Varjo mainly involves using a single function: `#'v-compile`
 
-This function takes lists that describe what needs compiling, and returns an instance of the `varjo-compile-result` class. That `varjo-compile-result` object contains the resulting GLSL, as well as the metadata about the compilation task.
+This function takes lists that describe what needs compiling, and returns an instance of the `compiled-stage` class. That `compiled-stage` object contains the resulting GLSL, as well as the metadata about the compilation task.
 
 As stages in a pipeline are closely related in GL, Varjo can compile them all in one call. At the same time Varjo can check the boundaries between the stages, and make sure the rules around types, names, and other GL restrictions, are held for your code.
 

@@ -417,7 +417,7 @@
            :v-compile
 
            ;;compile-result
-           :varjo-compile-result
+           :compiled-stage
            :compiled-function-result
            :glsl-code
            :starting-stage

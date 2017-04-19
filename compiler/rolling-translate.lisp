@@ -16,7 +16,7 @@
     (let* ((last-stage (first compiled-stages))
            (remaining-stages (check-order (type-of stage)
                                           remaining-stages)))
-      (if (typep stage 'varjo-compile-result)
+      (if (typep stage 'compiled-stage)
           (splice-in-precompiled-stage
            last-stage stage remaining-stages accum )
           (let* ((merged-stage (merge-in-previous-stage-args last-stage stage))
@@ -164,7 +164,7 @@
 ;;----------------------------------------------------------------------
 
 (defgeneric transform-previous-stage-out-data (stage next-stage)
-  (:method ((compile-result varjo-compile-result) next-stage)
+  (:method ((compile-result compiled-stage) next-stage)
     (let ((next-primitive (compute-next-primitive compile-result next-stage)))
       (values (transform-arg-types (starting-stage compile-result)
                                    next-stage
