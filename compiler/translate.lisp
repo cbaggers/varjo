@@ -374,11 +374,12 @@
       ;;
       (setf (input-variable-glsl post-proc-obj)
             (if (requires-in-interface-block (stage post-proc-obj))
-                (list (write-interface-block
-                       :in (in-block-name-for (stage post-proc-obj))
-                       glsl-decls
-                       :instance-name instance-name
-                       :length block-arr-length))
+                (when glsl-decls
+                  (list (write-interface-block
+                         :in (in-block-name-for (stage post-proc-obj))
+                         glsl-decls
+                         :instance-name instance-name
+                         :length block-arr-length)))
                 glsl-decls))))
   post-proc-obj)
 
@@ -430,7 +431,9 @@
                     (list (write-interface-block
                            :out
                            (out-block-name-for stage)
-                           glsl-decls)))
+                           (if (typep stage 'vertex-stage)
+                               (rest glsl-decls)
+                               glsl-decls))))
                   glsl-decls))
 
         (setf (output-variables post-proc-obj) output-variables))

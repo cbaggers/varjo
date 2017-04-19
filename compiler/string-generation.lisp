@@ -204,7 +204,11 @@
 (defmethod out-block-name-for ((stage stage))
   (assert (not (typep stage 'fragment-stage)) ()
           "Fragment shaders cannot have 'out' interface blocks")
-  (symb :from_ (type-of stage)))
+  (let ((stage
+         (if (typep stage 'compiled-stage)
+             (starting-stage stage)
+             stage)))
+    (symb :from_ (type-of stage))))
 
 (defmethod in-block-name-for ((stage stage))
   (assert (not (typep stage 'vertex-stage)) ()

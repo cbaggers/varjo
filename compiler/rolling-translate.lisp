@@ -63,75 +63,71 @@
                                     accum)
   (vbind (output-variables primitive)
       (transform-previous-stage-out-data last-stage stage)
-    (let ((output-variables
-           (if (typep last-stage 'vertex-stage)
-               (rest output-variables)
-               output-variables)))
-      (labels ((swap-out-arg (glsl-string old-name new-name)
-                 (let* (;; regex matches the name and the surrounding
-                        ;; characters that are not alphanumeric or underscores
-                        (regex (format nil "[^\w_]~a[^\w_]" old-name))
-                        (matches (group (ppcre:all-matches regex glsl-string)
-                                        2))
-                        (result "")
-                        (last 0))
-                   ;; the 1+ and 1- below compensate for the overcapture of the
-                   ;; regex
-                   (loop :for (start end) :in matches
-                      :for chunk := (subseq glsl-string last (1+ start)) :do
-                      (setf result (concatenate 'string result chunk new-name))
-                      (setf last (1- end)))
-                   (concatenate 'string result (subseq glsl-string last))))
-               ;;
-               (swap-out-args (glsl-string)
-                 (let ((input-variables (input-variables stage)))
-                   (loop :for out :in output-variables
-                      :for in :in input-variables
-                      :for out-glsl-name := (glsl-name out)
-                      :for in-glsl-name := (glsl-name in)
-                      :do (setf glsl-string (swap-out-arg glsl-string
-                                                          in-glsl-name
-                                                          out-glsl-name))))
-                 glsl-string)
-               ;;
-               (swap-in-block (glsl-string)
-                 (let ((block-name (block-name-string *fallback-block-name*)))
-                   (ppcre:regex-replace block-name glsl-string
-                                        (block-name-string
-                                         (out-block-name-for last-stage)))))
-               ;;
-               (arg-for-error (x)
-                 (subseq (to-arg-form x) 0 2))
-               (args-for-error (x)
-                 (mapcar #'arg-for-error x)))
-        ;;
-        (let ((input-variables (input-variables stage))
-              (out-prim (type-of primitive))
-              (in-prim (type-of (primitive-in stage))))
-          (assert (input-variables-compatiblep input-variables output-variables) ()
-                  'args-incompatible
-                  :current-args (args-for-error input-variables)
-                  :previous-args (args-for-error output-variables))
-          (assert (uniforms-compatiblep (uniform-variables stage)
-                                        (uniform-variables last-stage)))
-          (assert (context-compatiblep stage last-stage))
-          (when (typep stage 'geometry-stage)
-            (assert (eq in-prim out-prim) () 'primitives-dont-match
-                    :out-stage (type-of last-stage) :out out-prim
-                    :in-stage (type-of stage) :in in-prim)))
-        ;; we need to modify the result of the compiled stage if the input-variables
-        ;; names dont match the names of the out args
-        (let* ((glsl-code (glsl-code stage))
-               (glsl-code (swap-out-args glsl-code))
-               (glsl-code (swap-in-block glsl-code))
-               (final-glsl-code glsl-code)
-               (new-compile-result
-                (clone-compile-result stage :glsl-code final-glsl-code)))
-          (with-slots (compiled-stages) accum
-            (make-instance 'rolling-result
-                           :compiled-stages (cons new-compile-result
-                                                  compiled-stages)
-                           :remaining-stages remaining-stage-types)))))))
+    (labels ((swap-out-arg (glsl-string old-name new-name)
+               (let* (;; regex matches the name and the surrounding
+                      ;; characters that are not alphanumeric or underscores
+                      (regex (format nil "[^\w_]~a[^\w_]" old-name))
+                      (matches (group (ppcre:all-matches regex glsl-string)
+                                      2))
+                      (result "")
+                      (last 0))
+                 ;; the 1+ and 1- below compensate for the overcapture of the
+                 ;; regex
+                 (loop :for (start end) :in matches
+                    :for chunk := (subseq glsl-string last (1+ start)) :do
+                    (setf result (concatenate 'string result chunk new-name))
+                    (setf last (1- end)))
+                 (concatenate 'string result (subseq glsl-string last))))
+             ;;
+             (swap-out-args (glsl-string)
+               (let ((input-variables (input-variables stage)))
+                 (loop :for out :in output-variables
+                    :for in :in input-variables
+                    :for out-glsl-name := (glsl-name out)
+                    :for in-glsl-name := (glsl-name in)
+                    :do (setf glsl-string (swap-out-arg glsl-string
+                                                        in-glsl-name
+                                                        out-glsl-name))))
+               glsl-string)
+             ;;
+             (swap-in-block (glsl-string)
+               (let ((block-name (block-name-string *fallback-block-name*)))
+                 (ppcre:regex-replace block-name glsl-string
+                                      (block-name-string
+                                       (out-block-name-for last-stage)))))
+             ;;
+             (arg-for-error (x)
+               (subseq (to-arg-form x) 0 2))
+             (args-for-error (x)
+               (mapcar #'arg-for-error x)))
+      ;;
+      (let ((input-variables (input-variables stage))
+            (out-prim (type-of primitive))
+            (in-prim (type-of (primitive-in stage))))
+        (assert (input-variables-compatiblep input-variables output-variables) ()
+                'args-incompatible
+                :current-args (args-for-error input-variables)
+                :previous-args (args-for-error output-variables))
+        (assert (uniforms-compatiblep (uniform-variables stage)
+                                      (uniform-variables last-stage)))
+        (assert (context-compatiblep stage last-stage))
+        (when (typep stage 'geometry-stage)
+          (assert (eq in-prim out-prim) () 'primitives-dont-match
+                  :out-stage (type-of last-stage) :out out-prim
+                  :in-stage (type-of stage) :in in-prim)))
+      ;; we need to modify the result of the compiled stage if the input-variables
+      ;; names dont match the names of the out args
+      (let* ((glsl-code (glsl-code stage))
+             (glsl-code (swap-out-args glsl-code))
+             (glsl-code (swap-in-block glsl-code))
+             (final-glsl-code glsl-code)
+             (new-compile-result
+              (clone-compile-result stage :glsl-code final-glsl-code)))
+        (with-slots (compiled-stages) accum
+          (make-instance 'rolling-result
+                         :compiled-stages (cons new-compile-result
+                                                compiled-stages)
+                         :remaining-stages remaining-stage-types))))))
 
 ;;----------------------------------------------------------------------
 
