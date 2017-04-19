@@ -14,7 +14,7 @@
 (defun compile-stage (accum stage compile-func)
   (with-slots (remaining-stages compiled-stages) accum
     (let* ((last-stage (first compiled-stages))
-           (remaining-stages (check-order (extract-stage-type stage)
+           (remaining-stages (check-order (type-of stage)
                                           remaining-stages)))
       (if (typep stage 'varjo-compile-result)
           (splice-in-precompiled-stage
@@ -117,7 +117,7 @@
           (assert (context-compatiblep stage last-stage))
           (when (stage-is stage :geometry)
             (assert (eq in-prim out-prim) () 'primitives-dont-match
-                    :out-stage (stage-type last-stage) :out out-prim
+                    :out-stage (type-of last-stage) :out out-prim
                     :in-stage (type-of stage) :in in-prim)))
         ;; we need to modify the result of the compiled stage if the in-args
         ;; names dont match the names of the out args
@@ -164,24 +164,23 @@
 ;;----------------------------------------------------------------------
 
 (defgeneric transform-previous-stage-out-data (stage next-stage)
-  (:method ((stage varjo-compile-result) next-stage)
-    (let ((next-primitive (compute-next-primitive stage next-stage)))
-      (values (transform-arg-types (extract-stage-type stage)
-                                   (extract-stage-type next-stage)
-                                   stage
+  (:method ((compile-result varjo-compile-result) next-stage)
+    (let ((next-primitive (compute-next-primitive compile-result next-stage)))
+      (values (transform-arg-types (starting-stage compile-result)
+                                   next-stage
+                                   compile-result
                                    next-primitive)
               next-primitive))))
 
 (defun compute-next-primitive (compiled-stage next-stage)
   (let ((primitive (primitive-out compiled-stage))
-        (stage (stage-type compiled-stage))
-        (next-stage (extract-stage-type next-stage)))
+        (stage (starting-stage compiled-stage)))
     (%compute-next-primitive primitive stage next-stage)))
 
 (defgeneric %compute-next-primitive (primitive stage next-stage)
   (:method (primitive
-            (stage (eql :vertex))
-            (next-stage (eql :geometry)))
+            (stage vertex-stage)
+            (next-stage geometry-stage))
     (assert (or (typep primitive 'draw-mode)
                 (typep primitive 'geometry-primitive)))
     (make-instance
@@ -196,26 +195,26 @@
                  :prev-stage stage)))))
 
   (:method (primitive
-            (stage (eql :vertex))
-            (next-stage (eql :tesselation-control)))
+            (stage vertex-stage)
+            (next-stage tesselation-control-stage))
     (error "IMPLEMENT ME!"))
 
   (:method (primitive
-            (stage (eql :vertex))
-            (next-stage (eql :tesselation-evaluation)))
+            (stage vertex-stage)
+            (next-stage tesselation-evaluation-stage))
     (error "IMPLEMENT ME!"))
 
   (:method (primitive
             stage
-            (next-stage (eql :fragment)))
+            (next-stage fragment-stage))
     nil))
 
 (defgeneric transform-arg-types (last next stage primitive)
-  (:method ((last (eql :vertex))
-            (next (eql :geometry))
+  (:method ((last vertex-stage)
+            (next geometry-stage)
             (stage stage)
             primitive)
-    (declare (optimize debug))
+    (declare (ignore last next))
     (mapcar λ(make-instance
               'output-variable
               :name (name _)
@@ -225,7 +224,7 @@
               :qualifiers (qualifiers _))
             (rest (out-vars stage))))
 
-  (:method ((last (eql :vertex)) next (stage stage) primitive)
+  (:method ((last vertex-stage) next (stage stage) primitive)
     (declare (ignore last next primitive))
     (rest (out-vars stage)))
 

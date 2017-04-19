@@ -69,29 +69,6 @@
 
 ;;------------------------------------------------------------
 
-(defmethod extract-stage-type ((stage vertex-stage))
-  :vertex)
-
-(defmethod extract-stage-type ((stage tesselation-control-stage))
-  :tesselation-control)
-
-(defmethod extract-stage-type ((stage tesselation-evaluation-stage))
-  :tesselation-evaluation)
-
-(defmethod extract-stage-type ((stage geometry-stage))
-  :geometry)
-
-(defmethod extract-stage-type ((stage fragment-stage))
-  :fragment)
-
-(defmethod extract-stage-type ((env environment))
-  (extract-stage-type (stage env)))
-
-(defmethod extract-stage-type ((ppp post-compile-process))
-  (extract-stage-type (stage ppp)))
-
-;;------------------------------------------------------------
-
 (defmethod stage-is ((stage stage) name)
   (typep stage (stage-kind-to-type name)))
 

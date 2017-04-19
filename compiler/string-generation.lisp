@@ -202,13 +202,12 @@
                :if part :collect part))))
 
 (defmethod out-block-name-for ((stage stage))
-  (let ((name (extract-stage-type stage)))
-    (assert (not (eq name :fragment)) ()
-            "Fragment shaders cannot have 'out' interface blocks")
-    (symb :from_ name)))
+  (assert (not (typep stage 'fragment-stage)) ()
+		  "Fragment shaders cannot have 'out' interface blocks")
+  (symb :from_ (type-of stage)))
 
 (defmethod in-block-name-for ((stage stage))
-  (assert (not (eq (extract-stage-type stage) :vertex)) ()
+  (assert (not (typep stage 'vertex-stage)) ()
           "Vertex shaders cannot have 'in' interface blocks")
   (let ((prev (previous-stage stage)))
     (if prev
@@ -225,14 +224,14 @@
   (in-block-name-for (stage pp)))
 
 (defun requires-out-interface-block (post-proc-obj)
-  (not (eq (extract-stage-type post-proc-obj) :fragment)))
+  (not (typep (stage post-proc-obj) 'fragment-stage)))
 
 (defun requires-in-interface-block (post-proc-obj)
-  (not (eq (extract-stage-type post-proc-obj) :vertex)))
+  (not (typep (stage post-proc-obj) 'vertex-stage)))
 
 (defun gen-out-block (post-proc-obj)
   (let* ((out-vars (out-vars post-proc-obj))
-         (out-vars (if (eq (extract-stage-type post-proc-obj) :vertex)
+         (out-vars (if (typep (stage post-proc-obj) 'vertex-stage)
                        (rest out-vars)
                        out-vars)))
     (if (requires-out-interface-block post-proc-obj)

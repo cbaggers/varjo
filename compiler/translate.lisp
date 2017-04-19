@@ -380,13 +380,13 @@
            (locations (if (stage-is env :fragment)
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil)))
-           (stage-kind (extract-stage-type post-proc-obj)))
+           (stage (stage post-proc-obj)))
       (setf (out-vars post-proc-obj)
             (loop :for ret-val :across out-set
                :for i :from 0
                :for glsl-name := (if (typep ret-val 'external-return-val)
                                      (out-name ret-val)
-                                     (nth-return-name i stage-kind))
+                                     (nth-return-name i stage))
                :for type := (v-type-of ret-val)
                :for qualifiers := (qualifiers ret-val)
                :for location :in locations
@@ -498,7 +498,7 @@
       (make-instance
        'varjo-compile-result
        :glsl-code final-glsl-code
-       :stage-type (extract-stage-type post-proc-obj)
+       :starting-stage (stage post-proc-obj)
        :in-args (in-args post-proc-obj)
        :input-variables (input-variables post-proc-obj)
        :out-vars (out-vars post-proc-obj)

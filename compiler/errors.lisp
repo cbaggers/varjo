@@ -779,9 +779,9 @@ Context found: ~s" context)
   kind)
 
 (deferror no-primitive-found () (stage)
-    "Could not establish primitive type for ~a stage.
+    "Could not establish primitive type for ~a.
 Stage: ~a"
-  (extract-stage-type stage)
+  (type-of stage)
   stage)
 
 (deferror invalid-primitive-for-geometry-stage () (prim)

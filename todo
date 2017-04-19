@@ -1,3 +1,5 @@
+* replace stage-is
+
 * all internal code should use stage instances, never stage names
  - grep -nHirI -e "\(:vertex\|:tesse\|:geometry\|:fragment\)" *
 

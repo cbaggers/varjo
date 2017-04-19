@@ -95,7 +95,7 @@
 (defclass varjo-compile-result (stage)
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
    (out-vars :initarg :out-vars :accessor out-vars)
-   (stage-type :initarg :stage-type :accessor stage-type)
+   (starting-stage :initarg :starting-stage :accessor starting-stage)
    (in-args :initarg :in-args :accessor in-args)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (used-external-functions :initarg :used-external-functions
@@ -182,7 +182,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass rolling-result ()
-  ((remaining-stages :initform *stage-names* :initarg :remaining-stages)
+  ((remaining-stages :initform *stage-type-names* :initarg :remaining-stages)
    (compiled-stages :initform nil :initarg :compiled-stages)))
 
 ;;----------------------------------------------------------------------

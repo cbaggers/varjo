@@ -86,6 +86,5 @@
 (defgeneric get-stemcell-name-for-flow-id (id env))
 (defgeneric metadata-for-argument (name metadata-key env))
 (defgeneric v-superclass (type))
-(defgeneric extract-stage-type (stage))
 (defgeneric v-make-type (type flow-id &rest args))
 (defgeneric block-name-string (block-name))

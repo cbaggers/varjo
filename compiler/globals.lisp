@@ -8,11 +8,19 @@
 
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
 
-(defparameter *stage-names* '(:vertex
-                              :tesselation-control
-                              :tesselation-evaluation
-                              :geometry
-                              :fragment))
+(defparameter *stage-names*
+  '(:vertex
+	:tesselation-control
+	:tesselation-evaluation
+	:geometry
+	:fragment))
+
+(defparameter *stage-type-names*
+  '(vertex-stage
+	tesselation-control-stage
+	tesselation-evaluation-stage
+	geometry-stage
+	fragment-stage))
 
 (defparameter *supported-stages* *stage-names*)
 

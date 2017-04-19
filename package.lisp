@@ -419,7 +419,7 @@
            :varjo-compile-result
            :compiled-function-result
            :glsl-code
-           :stage-type
+           :starting-stage
            :out-vars
            :in-args
            :uniforms

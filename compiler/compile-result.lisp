@@ -5,7 +5,7 @@
                                (glsl-code nil glsl-code-set)
                                (lisp-code nil lisp-code-set)
                                (out-vars nil out-vars-set)
-                               (stage-type nil stage-type-set)
+                               (starting-stage nil starting-stage-set)
                                (in-args nil in-args-set)
                                (input-variables nil inp-vars-set)
                                (uniform-variables nil uniforms-set)
@@ -22,7 +22,7 @@
    :glsl-code (if glsl-code-set glsl-code (glsl-code original))
    :lisp-code (if lisp-code-set lisp-code (lisp-code original))
    :out-vars (if out-vars-set out-vars (out-vars original))
-   :stage-type (if stage-type-set stage-type (stage-type original))
+   :starting-stage (if starting-stage-set starting-stage (starting-stage original))
    :in-args (if in-args-set in-args (in-args original))
    :input-variables (if inp-vars-set input-variables (input-variables original))
    :uniform-variables (if uniforms-set uniform-variables (uniform-variables original))
@@ -54,9 +54,6 @@ Sorry for the inconvenience")
 
 (defmethod print-object ((obj implicit-uniform-variable) stream)
   (format stream "#<IMPLICIT-UNIFORM ~a>" (name obj)))
-
-(defmethod extract-stage-type ((cr varjo-compile-result))
-  (stage-type cr))
 
 (defmethod glsl-code ((objs list))
   (mapcar #'glsl-code objs))

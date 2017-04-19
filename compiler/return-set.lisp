@@ -58,12 +58,13 @@
 
 ;;------------------------------------------------------------
 
-(defun nth-return-name (n stage)
-  (format nil "_~a_OUT_~a" stage n))
+(defgeneric nth-return-name (n stage)
+  (:method (n (stage stage))
+	(format nil "_~a_OUT_~a" (type-of stage) n)))
 
 (defun mvals->out-form (code-object env)
   (let ((mvals (multi-vals code-object))
-        (stage (extract-stage-type env)))
+        (stage (stage env)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect
             (with-slots (value qualifiers) mval
