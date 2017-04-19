@@ -412,7 +412,7 @@
            :test-translate
            :test-translate-raising
            :split-arguments
-           :*stage-types*
+           :*stage-names*
            :v-compile
 
            ;;compile-result

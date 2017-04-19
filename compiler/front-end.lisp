@@ -95,7 +95,7 @@ Example:
     (fragment-stage nil)
     (otherwise (error "Varjo: Invalid stage kind name ~a" type))))
 
-(defun test-translate (stage &key (stages *stage-types*))
+(defun test-translate (stage &key (stages *stage-names*))
   (loop :for kind :in stages :collect
      (with-slots (input-variables
                   uniform-variables context lisp-code
@@ -116,7 +116,7 @@ Example:
            (error (e) e))))))
 
 (defun test-translate-raising
-    (stage &key (stages *stage-types*) (error-on-any-p nil))
+    (stage &key (stages *stage-names*) (error-on-any-p nil))
   (let ((results (test-translate stage :stages stages)))
     (labels ((errorp (x) (typep x 'error)))
       (if (or (and error-on-any-p (find-if #'errorp results))

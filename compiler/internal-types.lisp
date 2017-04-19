@@ -182,7 +182,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass rolling-result ()
-  ((remaining-stages :initform *stage-types* :initarg :remaining-stages)
+  ((remaining-stages :initform *stage-names* :initarg :remaining-stages)
    (compiled-stages :initform nil :initarg :compiled-stages)))
 
 ;;----------------------------------------------------------------------

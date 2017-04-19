@@ -38,7 +38,7 @@
                                           env)
                      (add-reserved-lisp-name lisp-name env glsl-name))))))
     (add-vars (assocr t *glsl-variables*))
-    (loop :for kind :in *stage-types*
+    (loop :for kind :in *stage-names*
        :when (stage-is env kind)
        :do (add-vars (assocr kind *glsl-variables*)))
     env))

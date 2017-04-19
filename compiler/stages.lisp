@@ -121,7 +121,7 @@
 
 (defun process-context (raw-context)
   ;; As this was a more recent change we wanted a more explanatory error
-  (assert (null (remove-if-not λ(find _ *stage-types*) raw-context))
+  (assert (null (remove-if-not λ(find _ *stage-names*) raw-context))
           () 'stage-in-context :context raw-context)
   ;; ensure there is a version
   (labels ((valid (x) (find x *valid-contents-symbols*)))

@@ -418,7 +418,7 @@ For example calling env-prune on this environment..
       :triangles))
 
 (defun get-stage-kind-from-context (context)
-  (find-if λ(member _ *stage-types*) context))
+  (find-if λ(member _ *stage-names*) context))
 
 ;;-------------------------------------------------------------------------
 

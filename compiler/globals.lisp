@@ -8,13 +8,13 @@
 
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
 
-(defparameter *stage-types* '(:vertex
+(defparameter *stage-names* '(:vertex
                               :tesselation-control
                               :tesselation-evaluation
                               :geometry
                               :fragment))
 
-(defparameter *supported-stages* *stage-types*)
+(defparameter *supported-stages* *stage-names*)
 
 (defparameter *supported-draw-modes*
   '(:points
