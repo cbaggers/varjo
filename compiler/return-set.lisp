@@ -66,12 +66,17 @@
 
 (defun mvals->out-form (code-object env)
   (let ((mvals (multi-vals code-object))
-        (stage (stage env)))
+        (stage (stage env))
+		(tess-con-p (typep (stage env) 'tesselation-control-stage)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect
             (with-slots (value qualifiers) mval
-              `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i stage))
-                          :void ,value))))))
+			  (if tess-con-p
+				  `(glsl-expr ,(format nil "~a[gl_InvocationID] = ~~a"
+									   (nth-return-name i stage))
+							  :void ,value)
+				  `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i stage))
+							  :void ,value)))))))
 
 
 ;; (defun out-qualifier-p (x env)

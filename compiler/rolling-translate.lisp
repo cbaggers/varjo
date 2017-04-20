@@ -193,12 +193,19 @@
   (:method (primitive
             (stage vertex-stage)
             (next-stage tesselation-control-stage))
-    (error "IMPLEMENT ME!"))
+	(assert (typep primitive 'patches))
+    primitive)
 
   (:method (primitive
             (stage vertex-stage)
             (next-stage tesselation-evaluation-stage))
-    (error "IMPLEMENT ME!"))
+    (assert (typep primitive 'patches))
+    primitive)
+
+  (:method (primitive
+            (stage tesselation-evaluation-stage)
+            (next-stage geometry-stage))
+	(error "IMPLEMENT ME!"))
 
   (:method (primitive
             stage

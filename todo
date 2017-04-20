@@ -1,7 +1,8 @@
+* rename tesselation to tessellation
+* rename primtive to primitive
+
 * in make-user-function-obj & make-function-obj assert that types are objects
   dont allow type-specs
-
-* all internal code should use primitive instances, never primitive names
 
 * make-user-function-obj in make-function.lisp has a daft way of storing the
   return types, we should make it follow the return-set approach. Currently

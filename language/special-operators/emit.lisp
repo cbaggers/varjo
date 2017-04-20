@@ -13,6 +13,12 @@
   max-vertices)
 
 ;;------------------------------------------------------------
+;; Tessellation Control
+
+(def-metadata-kind output-patch (:binds-to :scope)
+  vertices)
+
+;;------------------------------------------------------------
 ;; emit
 
 

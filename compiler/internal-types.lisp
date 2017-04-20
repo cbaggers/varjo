@@ -324,6 +324,8 @@
 (defclass draw-mode (primitive) ())
 
 (defclass geometry-primitive (primitive) ())
+(defclass tesselation-primitive (primitive) ())
+
 
 (defclass points (draw-mode geometry-primitive)
   ((vertex-count :initform 1 :reader vertex-count)
@@ -366,12 +368,20 @@
 (defclass quads (draw-mode)
   ((glsl-string :initform "quads" :reader glsl-string)))
 
-(defclass patches (draw-mode)
-  ())
+(defclass patches (draw-mode tesselation-primitive)
+  ((vertex-count :initarg :vertex-count :reader vertex-count)))
 
 (defun primitive-name-to-instance (name)
-  (let ((symb (intern (symbol-name name) :varjo)))
-    (assert (subtypep symb 'primitive))
-    (make-instance symb)))
+  (if (listp name)
+	  (dbind (name . length) name
+		(assert (= (length length) 1))
+		(let ((length (first length)))
+		  (assert (and (string= name "PATCH")
+					   (integerp length)
+					   (> length 1)))
+		  (make-instance 'patches :vertex-count length)))
+	  (let ((symb (intern (symbol-name name) :varjo)))
+		(assert (subtypep symb 'primitive))
+		(make-instance symb))))
 
 ;;-------------------------------------------------------------------------

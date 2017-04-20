@@ -73,6 +73,58 @@ block, block member, or variable declaration.
 
 ||#
 
+#|| Tesselation Control.
+
+Unlike Geometry Shaders, where each invocation can output multiple
+primitives, each TCS invocation is only responsible for producing a
+single vertex of output to the output patch.
+
+The number of vertices in the output patch is defined with an output
+layout qualifier:
+
+layout(vertices = patch_size​) out;
+
+patch_size​ must be an integral constant expression greater than zero
+and less than the patch limit (see below). The output patch size does
+not have to match the input patch size.
+
+TCS inputs may have interpolation qualifiers on them. They have no
+actual function however. (so we can remove them in Varjo)
+
+TCS output variables are passed directly to the Tessellation
+Evaluation Shader, without any form of interpolation (that's the TES's
+main job). These can be per-vertex outputs and per-patch outputs.
+
+Per-vertex outputs are aggregated into arrays:
+
+out vec2 vertexTexCoord[];
+
+(So Varjo should array per-vert out's for you)
+
+The length of the array (vertexTexCoord.length() will always be the
+size of the output patch. So you don't need to restate it in the
+definition.
+
+A TCS can only ever write to the per-vertex output variable that
+corresponds to their invocation. So writes to per-vertex outputs must
+be of the form vertexTexCoord[gl_InvocationID]. Any expression that
+writes to a per-vertex output that doesn't index it with exactly
+"gl_InvocationID" results in a compile-time error. Silly things like
+vertexTexCoord[gl_InvocationID - 1 + 1] will also error.
+
+Per-patch output variables are not aggregated into arrays (unless you
+want them to be, in which case you must specify a size). All TCS
+invocations for this patch see the same patch variables. They are
+declared with the patch keyword:
+
+patch out vec4 data;
+
+Any TCS invocation can write to a per-patch output; indeed, all TCS
+invocations will generally write to a per-patch output. As long as
+they all write the same value, everything is fine.
+
+||#
+
 #|| Geometry: built-in variables are intrinsically declared as:
 
 in gl_PerVertex {

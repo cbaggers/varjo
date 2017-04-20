@@ -181,6 +181,10 @@
             (glsl-string (primitive-name-to-instance kind))
             max-vertices)))
 
+(defun gen-tess-con-output-primitive-string (metadata)
+  (with-slots (vertices) metadata
+    (format nil "layout (vertices = ~a) out;" vertices)))
+
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
     (format

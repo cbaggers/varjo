@@ -138,15 +138,19 @@
 
   (:method ((stage tesselation-control-stage)
             primitive env)
-    (declare (ignore stage primitive env))
-    (error "%process-primitive-type: IMPLEMENT ME!")
-    nil)
+    (declare (ignore stage env))
+	(assert (typep primitive 'patches) ()
+            'invalid-primitive-for-tesselation-stage
+            :prim (type-of primitive))
+	primitive)
 
   (:method ((stage tesselation-evaluation-stage)
             primitive env)
-    (declare (ignore stage primitive env))
-    (error "%process-primitive-type: IMPLEMENT ME!")
-    nil)
+    (declare (ignore stage env))
+    (assert (typep primitive 'patches) ()
+            'invalid-primitive-for-tesselation-stage
+            :prim (type-of primitive))
+	primitive)
 
   (:method ((stage geometry-stage) primitive env)
     (assert (typep primitive 'geometry-primitive) ()
@@ -444,17 +448,34 @@
 
 (defun process-output-primtive (post-proc-obj)
   (with-slots (main-metadata stage) post-proc-obj
-    (cond
-      ((typep stage 'geometry-stage)
+    (typecase stage
+
+	  (geometry-stage
        (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
          ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a geometry stage must has a top level output-primitive declaration")
+         (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance (slot-value tl 'kind)))))
+
+	  (tesselation-control-stage
+	   (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
+         ;; {TODO} proper error
+         (assert tl () "Varjo: The function used as a tesselation control stage must have a top level output-primitive declaration")
+         (setf (out-declarations post-proc-obj)
+			   (list (gen-tess-con-output-primitive-string tl)))
+         (setf (primitive-out post-proc-obj)
+               (primitive-name-to-instance (list :patch (slot-value tl 'vertices))))))
+
+	  (tesselation-evaluation-stage
+	   ;; need to generate something that the geom shader could accept
+	   ;; (frag shader doesnt care so no need to think about it)
+	   (error "IMPLEMENT ME!"))
+
       (t (setf (primitive-out post-proc-obj)
                (primitive-in (stage post-proc-obj))))))
+
   post-proc-obj)
 
 ;;----------------------------------------------------------------------

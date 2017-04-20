@@ -414,7 +414,11 @@ For example calling env-prune on this environment..
   (get-version-from-context (v-context env)))
 
 (defun get-primitive-type-from-context (context)
-  (or (find-if λ(member _ *supported-draw-modes*) context)
+  (or (find-if λ(or (member _ *supported-draw-modes*)
+					(and (listp _)
+						 (string= (first _) "PATCH")
+						 (integerp (second _))))
+			   context)
       :triangles))
 
 (defun get-stage-kind-from-context (context)
