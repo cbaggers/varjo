@@ -4,7 +4,9 @@
 (defmacro populate-functions ()
   `(progn
      ,@(loop :for func-spec :in glsl-spec:*functions* :append
-          (destructuring-bind (&key name return args versions) func-spec
+          (destructuring-bind (&key name return args versions
+                                    &allow-other-keys)
+              func-spec
             (let* ((parsed-name (parse-gl-func-name name))
                    (lisp-name (or (find-symbol parsed-name :cl )
                                   (intern parsed-name  :varjo-lang)))

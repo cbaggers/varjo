@@ -3,7 +3,8 @@
 
 (defmacro populate-vars ()
   (let ((vars (mapcar λ(destructuring-bind
-                             (&key name type place-p versions (stage t)) _
+                             (&key name type place-p versions (stage t)
+                                   &allow-other-keys) _
                          (declare (ignore versions))
                          (let* ((lisp-name (intern (parse-gl-var-name name)
                                                    :varjo-lang))
