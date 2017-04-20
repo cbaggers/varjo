@@ -25,27 +25,28 @@
                  :function-scope (or function-scope (v-function-scope env))))
 
 (defun v-value-equal (a b)
-  (equal (v-glsl-name a) (v-glsl-name b)))
+  (equal (glsl-name a) (glsl-name b)))
 
-(defun add-glsl-vars (env source)
-  (loop :for (restrict . vars) :in source
-     :if (or (equal restrict t)
-             (context-ok-given-restriction (v-context env) (listify restrict)))
-     :do (loop :for (lisp-name glsl-name type-spec setable) :in vars :do
-            (let ((type (type-spec->type type-spec (%gl-flow-id!))))
-              (%add-symbol-binding lisp-name (v-make-value
-                                              type env :glsl-name glsl-name
-                                              :read-only (not setable))
-                                   env)
-              (add-reserved-lisp-name lisp-name env glsl-name))))
-  env)
+(defun add-glsl-vars (env)
+  (labels ((add-vars (vars)
+             (loop :for var :in vars :do
+                (loop :for (lisp-name glsl-name type-spec setable) :in vars :do
+                   (let ((type (type-spec->type type-spec (%gl-flow-id!))))
+                     (%add-symbol-binding lisp-name (v-make-value
+                                                     type env :glsl-name glsl-name
+                                                     :read-only (not setable))
+                                          env)
+                     (add-reserved-lisp-name lisp-name env glsl-name))))))
+    (add-vars (assocr t *glsl-variables*))
+    (loop :for kind :in *stage-type-names*
+       :when (typep (stage env) kind)
+       :do (add-vars (assocr kind *glsl-variables*)))
+    env))
 
 ;;--------------------------------------------------
 
 (defun make-mval (v-value &optional qualifiers)
   (make-instance 'mval :value v-value :qualifiers qualifiers))
 
-(defun mval->out-form (mval env)
-  (declare (ignore env))
-  (with-slots (value qualifiers) mval
-    `(%out (,(gensym "OUT") ,@qualifiers) ,value)))
+(defmethod v-type-of ((mval mval))
+  (v-type-of (multi-val-value mval)))

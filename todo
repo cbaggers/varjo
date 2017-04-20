@@ -1,3 +1,18 @@
+* rename tesselation to tessellation
+* rename primtive to primitive
+
+* in make-user-function-obj & make-function-obj assert that types are objects
+  dont allow type-specs
+
+* make-user-function-obj in make-function.lisp has a daft way of storing the
+  return types, we should make it follow the return-set approach. Currently
+  I think this is where the return-sets of void are coming from
+
+* make context restriction work with special functions
+
+* Fail if we find a tesselation stage when the version is below 4
+
+------------------------------------------------------------
 
 * why use def-v-type-class for v-user-function? Switch to defclass?
 

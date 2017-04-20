@@ -14,6 +14,49 @@
 (v-defspecial locally (&rest body)
   :args-valid t
   :return
-  (vbind (body declarations) (extract-declares body)
-    (compile-declares declarations env)
-    (compile-form `(progn ,@body) env)))
+  (vbind (body-san-decl declarations) (extract-declares body)
+    (if declarations
+        (compile-locally body-san-decl declarations env)
+        (compile-form `(progn ,@body) env))))
+
+(defun compile-locally (body declarations env)
+  ;; This ↓↓ mutates the env but nothing else
+  (compile-declares declarations env)
+  ;; This ↓↓ make code objects for the decls and splices them in
+  (let* ((decls (loop :for d :in declarations :collect
+                   (copy-code
+                    (compile-form '(values) env)
+                    :node-tree (make-ast-node-for-declaration d env)))))
+    (vbind (o e) (compile-form `(progn ,@decls ,@body) env)
+      (values
+       (if decls
+           (copy-code o :node-tree (copy-ast-node (node-tree o)
+                                                  :kind 'locally))
+           o)
+       e))))
+
+(defun make-ast-node-for-declaration (declaration env)
+  (ast-node! :code-section declaration
+             (gen-none-type)
+             env env))
+
+;;------------------------------------------------------------
+;; The
+
+(v-defspecial the (type-name form)
+  :args-valid t
+  :return
+  (let* ((compiled (compile-form form env))
+         (obj (if (stemcellp (code-type compiled))
+                  (add-type-to-stemcell-code compiled type-name)
+                  (if (v-typep (code-type compiled)
+                               (type-spec->type type-name))
+                      compiled ;{TODO} proper error here
+                      (error "Incorrect declaration that ~a was of type ~a"
+                             compiled type-name)))))
+    (values
+     (copy-code
+      obj
+      :node-tree (ast-node! 'the (list type-name (node-tree compiled))
+                            (code-type compiled) env env))
+     env)))

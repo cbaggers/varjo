@@ -148,7 +148,7 @@
     (let* ((let-obj
             (cond
               ;; handle unrepresentable values
-              ((and value-obj (typep (v-type-of value-obj) 'v-ephemeral-type))
+              ((and value-obj (ephemeral-p (v-type-of value-obj)))
                value-obj)
               ;;
               (value-obj
@@ -176,7 +176,8 @@
                                  (node-tree value-obj)
                                  :ignored)
                   :stemcells (append (and let-obj (stemcells let-obj))
-                                     (and value-obj (stemcells value-obj))))
+                                     (and value-obj (stemcells value-obj)))
+                  :pure (if value-obj (pure-p value-obj) t))
        (add-symbol-binding
         name
         (if (and (not value-obj) (not assume-bound))
@@ -231,7 +232,10 @@
         (full-spec (gensym "form")))
     `(let* ((,full-spec ,form)
             (,var-spec (listify (first ,full-spec)))
-            (value-form (second ,full-spec)))
+            (value-form (second ,full-spec))
+            (value-form (if (and (> (length ,full-spec) 1) (null value-form))
+                            `(the :bool nil)
+                            value-form)))
        (declare (ignorable value-form))
        (destructuring-bind (name &optional type-spec ,qual) ,var-spec
          (declare (ignore ,qual))

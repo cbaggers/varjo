@@ -17,20 +17,22 @@
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
 
+(defmethod (setf compiled-functions) (value (e environment) key)
+  ;; WARNING: MUTATES ENV
+  (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
+        value))
+
 (defmethod all-cached-compiled-functions ((e environment))
   (hash-table-values (slot-value (get-base-env e) 'compiled-functions)))
 
 (defmethod signatures ((e environment))
-  (let (signatures)
-    (maphash
-     (lambda (k v)
-       (declare (ignore k))
-       (push (signatures v) signatures))
-     (slot-value (get-base-env e) 'compiled-functions))
-    ;; {TODO} we shouldnt have to remove-duplicates here
-    ;;        find out why this is happening
-    (remove-duplicates (reduce #'append signatures)
-                       :test #'equal)))
+  ;; {TODO} we shouldnt have to remove-duplicates here
+  ;;        find out why this is happening
+  (remove-duplicates
+   (mapcat #'signatures
+           (hash-table-values
+            (slot-value (get-base-env e) 'compiled-functions)))
+   :test #'equal))
 
 (defmethod used-external-functions ((e environment))
   (let (functions)
@@ -57,6 +59,8 @@
           (when (not (eq parent *global-env*))
             (map-environments func parent)))))
 
+;;-------------------------------------------------------------------------
+
 (defmethod metadata-for-flow-id ((metadata-kind symbol)
                                  (flow-id flow-identifier)
                                  (env environment))
@@ -64,15 +68,14 @@
           "Cannot declare metadata for multiple values at once: ~a" flow-id)
   (let ((key (slot-value (first (ids flow-id)) 'val))
         (env (get-base-env env)))
-    (cdr (assoc metadata-kind (gethash key (slot-value env 'value-metadata))))))
+    (assocr metadata-kind (gethash key (slot-value env 'value-metadata)))))
 
 (defmethod metadata-for-flow-id (metadata-kind flow-id (env expansion-env))
   (metadata-for-flow-id metadata-kind flow-id (slot-value env 'env)))
 
-;; ugh
-;;
 (defmethod (setf metadata-for-flow-id)
     ((data standard-value-metadata) (flow-id flow-identifier) (env environment))
+  ;; WARNING: MUTATES ENV
   (assert (= 1 (length (ids flow-id))) (flow-id)
           "Cannot declare metadata for multiple values at once: ~a" flow-id)
   (let* ((key (slot-value (first (ids flow-id)) 'val))
@@ -87,14 +90,32 @@
     (setf (gethash key (slot-value env 'value-metadata))
           (cons (cons metadata-kind new-meta) current-metadata))))
 
-(defmethod (setf compiled-functions)
-    (value (e environment) key)
-  (setf (gethash key (slot-value (get-base-env e) 'compiled-functions))
-        value))
+(defmethod metadata-for-scope ((metadata-kind symbol)
+                               (env environment))
+  (let ((func-scope (v-function-scope env)))
+    (labels ((walk-envs (env)
+               (or (gethash metadata-kind (slot-value env 'local-metadata))
+                   (when (= (v-function-scope (v-parent-env env)) func-scope)
+                     (walk-envs (v-parent-env env))))))
+      (walk-envs env))))
+
+(defmethod metadata-for-scope (metadata-kind (env expansion-env))
+  (metadata-for-scope metadata-kind (slot-value env 'env)))
+
+(defmethod (setf metadata-for-scope)
+    ((data standard-scope-metadata) (env environment))
+  ;; WARNING: MUTATES ENV
+  (let* ((metadata-kind (type-of data))
+         (current (gethash metadata-kind (slot-value env 'local-metadata))))
+    (assert (null current))
+    (setf (gethash metadata-kind (slot-value env 'local-metadata))
+          data)))
+
+;;-------------------------------------------------------------------------
 
 ;; WARNING:: This is mutated in translate.lisp & structs.lisp
-(defmethod v-in-args ((env environment))
-  (v-in-args (get-base-env env)))
+(defmethod expanded-input-variables ((env environment))
+  (expanded-input-variables (get-base-env env)))
 
 ;; WARNING:: This is mutated in translate.lisp & structs.lisp
 (defmethod v-uniforms ((env environment))
@@ -104,6 +125,12 @@
 (defmethod v-name-map ((env environment))
   (slot-value (get-base-env env) 'name-map))
 
+(defmethod stage ((env environment))
+  (stage (get-base-env env)))
+
+(defmethod primitive-in ((env environment))
+  (primitive-in (stage env)))
+
 (defmethod initialize-instance :after ((env environment) &rest initargs)
   (declare (ignore initargs))
   (unless (every λ(and (symbolp (first _))
@@ -112,8 +139,9 @@
                  (v-symbol-bindings env))
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
-(defun %make-base-environment (&key stemcells-allowed version)
+(defun %make-base-environment (stage &key stemcells-allowed version)
   (make-instance 'base-environment
+                 :stage stage
                  :stemcells-allowed stemcells-allowed
                  :context (when version (list version))))
 
@@ -203,6 +231,7 @@
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
                     :multi-val-safe ,multi-val-safe)))
        (vbind (,r ,e) (progn ,@body)
+         (assert ,e (,e) 'with-fresh-env-scope-missing-env)
          (values ,r (env-prune (env-depth ,s) ,e))))))
 
 (defun env-replace-parent (env new-parent
@@ -253,14 +282,13 @@ For example calling env-prune on this environment..
 
 (defun env-merge-history (env-a env-b)
   (assert (= (env-depth env-a) (env-depth env-b)))
-  (labels ((walk (a b)
-             (declare (notinline walk))
+  (labels ((walk-env-parents (a b)
              (if (eq a b)
                  a
                  (env-replace-parent
-                  a (walk (v-parent-env a) (v-parent-env b))
+                  a (walk-env-parents (v-parent-env a) (v-parent-env b))
                   :symbol-bindings (merge-variable-histories a b)))))
-    (walk env-a env-b)))
+    (walk-env-parents env-a env-b)))
 
 (defun merge-variable-histories (env-a env-b)
   ;; we can be sure that both have the var names as assignment
@@ -281,7 +309,7 @@ For example calling env-prune on this environment..
                  env-a ;; this is ignored as function-scope is provided
                  :read-only (v-read-only va)
                  :function-scope (v-function-scope va)
-                 :glsl-name (v-glsl-name va))))))
+                 :glsl-name (glsl-name va))))))
      v-names)))
 
 (defun env-binding-names (env &key stop-at-base variables-only)
@@ -385,20 +413,16 @@ For example calling env-prune on this environment..
 (defun get-stage-from-env (env)
   (get-version-from-context (v-context env)))
 
-(defun get-stage-from-context (context)
-  (find-if (lambda (x) (member x *supported-stages*)) context))
-
-
 (defun get-primitive-type-from-context (context)
-  (or (find-if λ(member _ *supported-draw-modes*) context)
+  (or (find-if λ(or (member _ *supported-draw-modes*)
+					(and (listp _)
+						 (string= (first _) "PATCH")
+						 (integerp (second _))))
+			   context)
       :triangles))
 
-;;{TODO} move errors to correct place
-;; (defun get-primitive-length (prim-type)
-;;   (let ((pos (position prim-type prims)))
-;;     (if pos
-;;         (1+ pos)
-;;         (error "Varjo: Not a valid primitive type"))))
+(defun get-stage-kind-from-context (context)
+  (find-if λ(member _ *stage-names*) context))
 
 ;;-------------------------------------------------------------------------
 
@@ -422,11 +446,12 @@ For example calling env-prune on this environment..
 
 ;;[TODO] really no better way of doing this?
 (defun vtype-existsp (type-name)
-  (and type-name
-       (find-class type-name nil)
-       (handler-case (progn (typep (make-instance type-name) 'v-type)
-                            t)
-         (error () nil))))
+  (etypecase type-name
+    (symbol
+     (and type-name
+          (find-class type-name nil)
+          (values (subtypep type-name 'v-type))))
+    (list (vtype-existsp (first type-name)))))
 
 ;;-------------------------------------------------------------------------
 
@@ -447,7 +472,7 @@ For example calling env-prune on this environment..
    This is used when setting up the environment prior to starting the actual
    compilation"
   (setf (slot-value env 'symbol-bindings)
-        (a-add var-name val (v-symbol-bindings env))))
+        (a-set var-name val (v-symbol-bindings env))))
 
 (defmethod %add-symbol-binding (name (macro v-symbol-macro)
                                 (env base-environment))
@@ -455,7 +480,7 @@ For example calling env-prune on this environment..
    This is used when setting up the environment prior to starting the actual
    compilation"
   (setf (slot-value env 'symbol-bindings)
-        (a-add name macro (v-symbol-bindings env))))
+        (a-set name macro (v-symbol-bindings env))))
 
 (defmethod add-symbol-binding (name (val v-value) (env environment))
   (fresh-environment env :symbol-bindings (a-add name val
@@ -506,8 +531,8 @@ For example calling env-prune on this environment..
 (defmethod get-symbol-binding (symbol respect-scope-rules (env (eql :-genv-)))
   (declare (ignore respect-scope-rules))
   (let ((s (gethash symbol *global-env-symbol-bindings*)))
-    (cond (s (values s *global-env*))
-          (t nil))))
+    (when s
+      (values s *global-env*))))
 
 ;; {TODO} does get-symbol-binding need to return the env?
 (defmethod get-symbol-binding (symbol respect-scope-rules (env environment))

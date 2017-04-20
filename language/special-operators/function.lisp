@@ -33,7 +33,8 @@
                    :current-line nil
                    :used-types (list type)
                    :node-tree (ast-node! 'function (list func-name-form)
-                                         type nil nil))
+                                         type nil nil)
+                   :pure t)
             env))))))
 
 ;; {TODO} shouldnt this have a new environment?
@@ -50,7 +51,8 @@
             :current-line nil
             :used-types (list type)
             :node-tree (ast-node! 'function (list func-name-form)
-                                  type nil nil))
+                                  type nil nil)
+            :pure t)
      env)))
 
 ;;------------------------------------------------------------

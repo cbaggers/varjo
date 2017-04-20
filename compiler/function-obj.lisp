@@ -7,7 +7,7 @@
   ((versions :initform nil :initarg :versions :accessor v-versions)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
+   (glsl-name :initarg :glsl-name :accessor glsl-name)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
    (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
    (name :initform nil :initarg :name :reader name)
@@ -18,7 +18,9 @@
                     :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
    (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
                               :code-type :v-function)
-             :initarg :flow-ids :reader flow-ids)))
+             :initarg :flow-ids :reader flow-ids)
+   (emit-set :initform nil :initarg :emit-set :reader emit-set)
+   (pure :initform nil :initarg :pure :reader pure-p)))
 
 (defmethod functions ((fn v-function))
   (list fn))
@@ -70,13 +72,6 @@
 
 ;;------------------------------------------------------------
 
-;; (defclass external-function ()
-;;   ((name :initarg :name :reader name)
-;;    (in-args :initarg :in-args :reader in-args)
-;;    (uniforms :initarg :uniforms :reader uniforms)
-;;    (code :initarg :code :reader code)
-;;    (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
-
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
     (assert (listp return-spec))
@@ -107,12 +102,14 @@
 
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
-                            in-out-args flow-ids in-arg-flow-ids)
+                            in-out-args flow-ids in-arg-flow-ids pure)
   (make-instance 'v-function
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
                                (loop :for spec :in arg-spec :collect
-                                  (type-spec->type spec))
+                                  (try-type-spec->type
+                                   (resolve-name-from-alternative spec)
+                                   nil))
                                arg-spec)
                  :return-spec
                  (mapcar (lambda (rspec)
@@ -126,12 +123,13 @@
                  :implicit-args implicit-args
                  :in-out-args in-out-args
                  :flow-ids flow-ids
-                 :in-arg-flow-ids in-arg-flow-ids))
+                 :in-arg-flow-ids in-arg-flow-ids
+                 :pure pure))
 
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
-                                 code captured-vars)
+                                 code captured-vars pure emit-set)
   (make-instance 'v-user-function
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
@@ -152,7 +150,9 @@
                  :in-arg-flow-ids in-arg-flow-ids
                  :in-out-args in-out-args
                  :code code
-                 :captured-vars captured-vars))
+                 :captured-vars captured-vars
+                 :emit-set emit-set
+                 :pure pure))
 
 ;; {TODO} make this use the arg & return types
 (defun gen-dummy-func-glsl-name (func-type)
@@ -274,7 +274,7 @@
 (defun add-alt-ephemeral-constructor-function (src-type-name alt-type-name)
   (let ((src-type (type-spec->type src-type-name))
         (alt-type (type-spec->type alt-type-name)))
-    (when (typep (type-spec->type src-type-name) 'v-ephemeral-type)
+    (when (ephemeral-p (type-spec->type src-type-name))
       (let* ((func-set (find-form-binding-by-literal (list src-type-name)
                                                      *global-env*))
              (functions (functions func-set))

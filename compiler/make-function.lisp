@@ -16,14 +16,13 @@
       ;; Here we check that we haven't got any behaviour that, while legal for
       ;; main or local funcs, would be undesired in external functions
       (when maybe-def-code
-        (assert (null (out-vars maybe-def-code)))
+        (assert (= (length (return-set maybe-def-code)) 0))
+        ;; (assert (= (length (emit-set maybe-def-code)) 0))
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
         (assert (null (multi-vals maybe-def-code)))
-        (assert (null (mutations maybe-def-code)))
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
-        (assert (null (returns maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
         (assert (typep (code-type maybe-def-code) 'v-none)))
       (values compiled-func maybe-def-code))))
@@ -46,114 +45,136 @@
 
 
 (defun make-regular-function (name args body allowed-implicit-args env)
-  (let* ((mainp (eq name :main))
-         (func-env (make-func-env env mainp allowed-implicit-args))
-         (in-arg-flow-ids (mapcar (lambda (_)
-                                    (declare (ignore _))
-                                    (flow-id!))
-                                  args))
-         (arg-glsl-names (loop :for (name) :in args :collect
-                            (lisp-name->glsl-name name env)))
-         (body-env (reduce
-                    (lambda (func-env tripple)
-                      (dbind (arg glsl-name flow-ids) tripple
-                        (dbind (name type-spec) arg
-                          (add-symbol-binding
-                           name
-                           (v-make-value
-                            (type-spec->type type-spec flow-ids)
-                            func-env
-                            :glsl-name glsl-name)
-                           func-env))))
-                    (mapcar #'list args arg-glsl-names in-arg-flow-ids)
-                    :initial-value (if mainp
-                                       func-env
-                                       (remove-main-method-flag-from-env
-                                        func-env))))
-         (body-obj (compile-form `(%return (progn ,@body)) body-env))
-         (implicit-args (extract-implicit-args name allowed-implicit-args
-                                               (normalize-out-of-scope-args
-                                                (out-of-scope-args body-obj))
-                                               func-env))
-         (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
-         (primary-return (first (returns body-obj)))
-         (multi-return-vars (rest (returns body-obj)))
-         (type (if mainp (type-spec->type 'v-void) primary-return)))
-    ;;
-    (unless (or mainp primary-return) (error 'no-function-returns :name name))
-    (when (v-typep type (gen-none-type))
-      (error 'function-with-no-return-type :func-name name))
-    (let* ((arg-pairs (loop :for (nil type) :in args
-                         :for name :in arg-glsl-names :collect
-                         `(,(v-glsl-string (type-spec->type type)) ,name)))
-           (out-arg-pairs (loop :for mval :in multi-return-vars :for i :from 1
-                             :for name = (v-glsl-name (multi-val-value mval)) :collect
-                             `(,(v-glsl-string (v-type-of
-                                                (multi-val-value mval)))
-                                ,name)))
-           (in-out-args
-            ;; {TODO} handle multiple returns
-            (when (and (typep type 'v-function-type)
-                       (ctv type)
-                       (implicit-args (ctv type)))
-              (let ((closure (ctv type)))
-                (append (in-out-args closure)
-                        (implicit-args closure)))))
-           (return-for-glsl (if (typep type 'v-ephemeral-type)
-                                (type-spec->type :void)
-                                type))
-           (strip-glsl
-            (and (not mainp)
-                 (or (v-typep type 'v-void)
-                     (v-typep type 'v-ephemeral-type))
-                 (null multi-return-vars)))
-           (sigs (if mainp
-                     (signatures body-obj)
-                     (unless strip-glsl
-                       (cons (gen-function-signature glsl-name arg-pairs
-                                                     out-arg-pairs
-                                                     return-for-glsl
-                                                     implicit-args
-                                                     in-out-args)
-                             (signatures body-obj)))))
-           (func-glsl-def (unless strip-glsl
-                            (gen-function-body-string
-                             glsl-name (unless mainp arg-pairs)
-                             out-arg-pairs return-for-glsl body-obj
-                             implicit-args in-out-args)))
-           (func (make-user-function-obj name
-                                         (unless strip-glsl
-                                           (gen-function-transform
-                                            glsl-name args
-                                            multi-return-vars
-                                            implicit-args))
-                                         nil ;;{TODO} should be context
-                                         (mapcar #'second args)
-                                         (cons type multi-return-vars)
-                                         :glsl-name glsl-name
-                                         :implicit-args implicit-args
-                                         :in-out-args in-out-args
-                                         :flow-ids (flow-ids body-obj)
-                                         :in-arg-flow-ids in-arg-flow-ids))
-           (code-obj (copy-code body-obj
-                                :type (gen-none-type)
-                                :current-line nil
-                                :signatures sigs
-                                :to-block nil
-                                :returns nil
-                                :out-vars (out-vars body-obj)
-                                :multi-vals nil
-                                :place-tree nil
-                                :out-of-scope-args implicit-args)))
-      (values (make-instance 'compiled-function-result
-                             :function-obj func
-                             :signatures (signatures code-obj)
-                             :ast (node-tree body-obj)
-                             :used-types (used-types code-obj)
-                             :glsl-code func-glsl-def
-                             :stemcells (stemcells code-obj)
-                             :out-vars (out-vars code-obj))
-              code-obj))))
+  (vbind (body declarations) (extract-declares body)
+    (let* ((mainp (eq name :main))
+           (func-env (make-func-env env mainp allowed-implicit-args))
+           (in-arg-flow-ids (mapcar (lambda (_)
+                                      (declare (ignore _))
+                                      (flow-id!))
+                                    args))
+           (arg-glsl-names (loop :for (name) :in args :collect
+                              (lisp-name->glsl-name name env)))
+           (body-env (add-declarations-to-env
+                      declarations
+                      (reduce
+                       (lambda (func-env tripple)
+                         (dbind (arg glsl-name flow-ids) tripple
+                           (dbind (name type-spec) arg
+                             (add-symbol-binding
+                              name
+                              (v-make-value
+                               (type-spec->type type-spec flow-ids)
+                               func-env
+                               :glsl-name glsl-name)
+                              func-env))))
+                       (mapcar #'list args arg-glsl-names in-arg-flow-ids)
+                       :initial-value (if mainp
+                                          func-env
+                                          (remove-main-method-flag-from-env
+                                           func-env)))))
+           (body-obj (compile-form `(implicit-return (progn ,@body)) body-env))
+           (implicit-args (extract-implicit-args name allowed-implicit-args
+                                                 (normalize-out-of-scope-args
+                                                  (out-of-scope-args body-obj))
+                                                 func-env))
+           (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
+           (return-set (map 'list #'identity (return-set body-obj)))
+           (emit-set (emit-set body-obj))
+           (primary-type (or (when return-set (v-type-of (first return-set)))
+                             (type-spec->type :void)))
+           (multi-return-vars (when return-set (rest return-set)))
+           (type (if mainp (type-spec->type 'v-void) primary-type)))
+      (when (v-typep type (gen-none-type))
+        (error 'function-with-no-return-type :func-name name))
+      (let* ((arg-pairs (unless mainp
+                          (loop :for (nil type) :in args
+                             :for name :in arg-glsl-names :collect
+                             `(,(v-glsl-string (type-spec->type type)) ,name))))
+             (out-arg-pairs (unless mainp
+                              (loop :for mval :in multi-return-vars
+                                 :for i :from 1
+                                 :for name = (glsl-name mval)
+                                 :for type = (v-glsl-string (v-type-of mval))
+                                 :collect `(,type ,name))))
+             (in-out-args
+              ;; {TODO} handle multiple returns
+              (when (and (typep type 'v-function-type)
+                         (ctv type)
+                         (implicit-args (ctv type)))
+                (let ((closure (ctv type)))
+                  (append (in-out-args closure)
+                          (implicit-args closure)))))
+             (return-for-glsl (if (ephemeral-p type)
+                                  (type-spec->type :void)
+                                  type))
+             (strip-glsl
+              (and (not mainp)
+                   (pure-p body-obj)
+                   (or (v-typep type 'v-void) (ephemeral-p type))
+                   (null multi-return-vars)))
+             (sigs (unless (or mainp strip-glsl)
+                     (list (gen-function-signature glsl-name arg-pairs
+                                                   out-arg-pairs
+                                                   return-for-glsl
+                                                   implicit-args
+                                                   in-out-args))))
+             (func-glsl-def (unless strip-glsl
+                              (gen-function-body-string
+                               glsl-name arg-pairs
+                               out-arg-pairs
+                               return-for-glsl body-obj
+                               implicit-args in-out-args)))
+             (func (make-user-function-obj name
+                                           (unless strip-glsl
+                                             (gen-function-transform
+                                              glsl-name args
+                                              multi-return-vars
+                                              implicit-args))
+                                           nil ;;{TODO} should be context
+                                           (mapcar #'second args)
+                                           (cons type multi-return-vars)
+                                           :glsl-name glsl-name
+                                           :implicit-args implicit-args
+                                           :in-out-args in-out-args
+                                           :flow-ids (flow-ids body-obj)
+                                           :in-arg-flow-ids in-arg-flow-ids
+                                           :pure (pure-p body-obj)))
+             (ret-set (return-set body-obj))
+             (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
+             (code-obj (copy-code body-obj
+                                  :type (gen-none-type)
+                                  :current-line nil
+                                  :to-block nil
+                                  :return-set nil
+                                  :emit-set emit-set
+                                  :multi-vals nil
+                                  :place-tree nil
+                                  :out-of-scope-args implicit-args))
+             (ast (to-top-level-ast-node body-obj declarations body-env)))
+        (values (make-instance 'compiled-function-result
+                               :function-obj func
+                               :signatures sigs
+                               :ast ast
+                               :used-types (used-types code-obj)
+                               :glsl-code func-glsl-def
+                               :stemcells (stemcells code-obj)
+                               :return-set ret-set
+                               :emit-set emit-set
+                               :top-level-scoped-metadata tl-meta)
+                code-obj)))))
+
+(defun to-top-level-ast-node (body-obj declarations env)
+  (let* ((ast (node-tree body-obj))
+         (ast-args (ast-args ast))
+         (decl-nodes (mapcar λ(make-ast-node-for-declaration _ env)
+                             declarations)))
+    (if (eq 'progn (ast-kind ast))
+        (copy-ast-node ast :kind :function-top-level
+                       :args (append decl-nodes ast-args))
+        (ast-node! :function-top-level
+                   `(,@decl-nodes ,@ast-args)
+                   (ast-return-type (last1 ast-args))
+                   env env))))
 
 (defun make-new-function-with-unreps (name args body allowed-implicit-args
                                       env)
@@ -182,7 +203,8 @@
                              :used-types nil
                              :glsl-code nil
                              :stemcells nil
-                             :out-vars nil)
+                             :return-set nil
+                             :emit-set nil)
               (code! :type (gen-none-type)
                      :current-line nil
                      :place-tree nil

@@ -18,34 +18,46 @@
 
 (defclass code ()
   ((type :initarg :type :initform nil :reader code-type)
-   (current-line :initarg :current-line :initform "" :reader current-line)
-   (signatures :initarg :signatures :initform nil :reader signatures)
+   (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
-   (out-vars :initarg :out-vars :initform nil :reader out-vars)
+   (return-set :initarg :return-set :initform nil :reader return-set)
+   (emit-set :initarg :emit-set :initform nil :reader emit-set)
    (used-types :initarg :used-types :initform nil :reader used-types)
-   (returns :initarg :returns :initform nil :reader returns)
    (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
-   (mutations :initarg :mutations :initform nil :reader mutations)
+   (pure :initarg :pure :initform nil :reader pure-p)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
+
+(defgeneric current-line (code-obj &optional even-when-ephemeral))
 
 ;;----------------------------------------------------------------------
 
 (defclass post-compile-process ()
-  ((main-func :initarg :main-func :accessor main-func)
+  ((all-functions :initarg :all-functions :accessor all-functions)
    (env :initarg :env :accessor env)
    (stage :initarg :stage :accessor stage)
-   (in-args :initarg :in-args :accessor in-args)
-   (out-vars :initarg :out-vars :accessor out-vars)
+   (in-decl :initform nil :initarg :in-decl :accessor in-declarations)
+   (input-variable-glsl :initarg :input-variable-glsl
+                        :accessor input-variable-glsl)
+   (output-variable-glsl :initarg :output-variable-glsl
+                        :accessor output-variable-glsl)
+   (out-set :initarg :out-set :accessor out-set)
+   (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
+   (output-variables :initarg :output-variables :accessor output-variables)
    (uniforms :initarg :uniforms :accessor uniforms)
    (stemcells :initarg :stemcells :accessor stemcells)
    (input-variables :initarg :input-variables :accessor input-variables)
-   (used-types :initarg :used-types :accessor used-types)
+   (used-user-structs :initarg :used-user-structs :accessor used-user-structs)
    (used-external-functions :initarg :used-external-functions
-                            :accessor used-external-functions)))
+                            :accessor used-external-functions)
+   (main-metadata :initarg :main-metadata :accessor main-metadata)
+   (primitive-out :initarg :primitive-out :accessor primitive-out)))
+
+(defmethod primitive-in ((pp post-compile-process))
+  (primitive-in (stage pp)))
 
 ;;----------------------------------------------------------------------
 
@@ -56,38 +68,68 @@
    (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)
    (stemcells :initarg :stemcells :reader stemcells)
-   (out-vars :initarg :out-vars :reader out-vars)))
+   (return-set :initarg :return-set :reader return-set)
+   (emit-set :initarg :emit-set :reader emit-set)
+   (top-level-scoped-metadata :initarg :top-level-scoped-metadata
+                              :initform nil
+                              :reader top-level-scoped-metadata)))
 
 ;;----------------------------------------------------------------------
-;; Compiler output
 
 (defclass stage ()
   ((input-variables :initarg :input-variables :accessor input-variables)
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (context :initarg :context :accessor context)
    (lisp-code :initarg :lisp-code :accessor lisp-code)
-   (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)))
+   (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
+   (previous-stage :initarg :previous-stage :accessor previous-stage
+                   :initform nil)
+   (primitive-in :initarg :primitive-in :accessor primitive-in)))
 
-(defclass varjo-compile-result (stage)
+(defclass vertex-stage (stage) ())
+(defclass tesselation-control-stage (stage) ())
+(defclass tesselation-evaluation-stage (stage) ())
+(defclass geometry-stage (stage) ())
+(defclass fragment-stage (stage) ())
+
+;;----------------------------------------------------------------------
+;; Compiler output
+
+(defclass compiled-stage ()
   ((glsl-code :initarg :glsl-code :accessor glsl-code)
-   (out-vars :initarg :out-vars :accessor out-vars)
-   (stage-type :initarg :stage-type :accessor stage-type)
-   (in-args :initarg :in-args :accessor in-args)
+   (output-variables :initarg :output-variables :accessor output-variables)
+   (starting-stage :initarg :starting-stage :accessor starting-stage)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
-   (function-asts :initarg :function-asts :reader function-asts)))
+   (function-asts :initarg :function-asts :reader function-asts)
+   (primitive-out :initarg :primitive-out :accessor primitive-out)))
+
+(defclass compiled-vertex-stage
+    (vertex-stage compiled-stage) ())
+
+(defclass compiled-tesselation-control-stage
+    (tesselation-control-stage compiled-stage) ())
+
+(defclass compiled-tesselation-evaluation-stage
+    (tesselation-evaluation-stage compiled-stage) ())
+
+(defclass compiled-geometry-stage
+    (geometry-stage compiled-stage) ())
+
+(defclass compiled-fragment-stage
+    (fragment-stage compiled-stage) ())
 
 (defclass shader-variable ()
   ((name :initarg :name :reader name)
    (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
    (glsl-name :initarg :glsl-name :reader glsl-name)
-   (type :initarg :type :reader v-type-of)
-   (glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
+   (type :initarg :type :reader v-type-of)))
 
 (defclass input-variable (shader-variable) ())
 
-(defclass uniform-variable (shader-variable) ())
+(defclass uniform-variable (shader-variable)
+  ((glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
 (defclass implicit-uniform-variable (uniform-variable)
   ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
@@ -115,11 +157,16 @@
    (function-scope
     :initform 0 :initarg :function-scope :reader v-function-scope)
    (allowed-outer-vars
-    :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)))
+    :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)
+   (local-metadata :initform (make-hash-table :test #'eql))))
 
 
 (defclass base-environment (environment)
-  ((in-args :initform nil :initarg :in-args :accessor v-in-args)
+  ((stage
+    :initform (error "Varjo: stage is mandatory in environment")
+    :initarg :stage :reader stage)
+   (expanded-input-variables :initform nil :initarg :expanded-input-variables
+                             :accessor expanded-input-variables)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (context :initform nil :initarg :context :accessor v-context)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
@@ -153,7 +200,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass rolling-result ()
-  ((remaining-stages :initform *stage-types* :initarg :remaining-stages)
+  ((remaining-stages :initform *stage-type-names* :initarg :remaining-stages)
    (compiled-stages :initform nil :initarg :compiled-stages)))
 
 ;;----------------------------------------------------------------------
@@ -185,7 +232,7 @@
 
 (defclass v-value ()
   ((type :initarg :type :initform nil :accessor v-type-of)
-   (glsl-name :initarg :glsl-name :accessor v-glsl-name)
+   (glsl-name :initarg :glsl-name :accessor glsl-name)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)
    (read-only :initarg :read-only :initform nil :reader v-read-only)))
@@ -247,8 +294,94 @@
   ((value :initarg :value :reader multi-val-value)
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
 
+(defclass return-val ()
+  ((type :initarg :type :reader v-type-of)
+   (qualifiers :initarg :qualifiers :reader qualifiers)))
+
+(defclass named-return-val (return-val)
+  ((glsl-name :initarg :glsl-name :reader glsl-name)))
+
+(defclass external-return-val (return-val)
+  ((out-name :initarg :out-name :reader out-name)))
+
+(defclass emit-val ()
+  ((type :initarg :type :reader v-type-of)
+   (qualifiers :initarg :qualifiers :reader qualifiers)))
+
+(defclass named-emit-val (emit-val)
+  ((glsl-name :initarg :glsl-name :reader glsl-name)))
+
 ;;----------------------------------------------------------------------
 
-(defclass standard-value-metadata () ())
+(defclass standard-metadata () ())
+(defclass standard-scope-metadata (standard-metadata) ())
+(defclass standard-value-metadata (standard-metadata) ())
+
+;;-------------------------------------------------------------------------
+
+(defclass primitive () ())
+
+(defclass draw-mode (primitive) ())
+
+(defclass geometry-primitive (primitive) ())
+(defclass tesselation-primitive (primitive) ())
+
+
+(defclass points (draw-mode geometry-primitive)
+  ((vertex-count :initform 1 :reader vertex-count)
+   (glsl-string :initform "points" :reader glsl-string)))
+
+(defclass lines (draw-mode geometry-primitive)
+  ((vertex-count :initform 2 :reader vertex-count)
+   (glsl-string :initform "lines" :reader glsl-string)))
+
+(defclass line-loop (draw-mode)
+  ((glsl-string :initform "line_loop" :reader glsl-string)))
+
+(defclass line-strip (draw-mode)
+  ((glsl-string :initform "line_strip" :reader glsl-string)))
+
+(defclass lines-adjacency (draw-mode geometry-primitive)
+  ((vertex-count :initform 4 :reader vertex-count)
+   (glsl-string :initform "lines_adjacency" :reader glsl-string)))
+
+(defclass line-strip-adjacency (draw-mode)
+  ((glsl-string :initform "line_strip_adjacency" :reader glsl-string)))
+
+(defclass triangles (draw-mode geometry-primitive)
+  ((vertex-count :initform 3 :reader vertex-count)
+   (glsl-string :initform "triangles" :reader glsl-string)))
+
+(defclass triangle-fan (draw-mode)
+  ((glsl-string :initform "triangle_fan" :reader glsl-string)))
+
+(defclass triangle-strip (draw-mode)
+  ((glsl-string :initform "triangle_strip" :reader glsl-string)))
+
+(defclass triangles-adjacency (draw-mode geometry-primitive)
+  ((vertex-count :initform 6 :reader vertex-count)
+   (glsl-string :initform "triangles_adjacency" :reader glsl-string)))
+
+(defclass triangle-strip-adjacency (draw-mode)
+  ((glsl-string :initform "triangle_strip_adjacency" :reader glsl-string)))
+
+(defclass quads (draw-mode)
+  ((glsl-string :initform "quads" :reader glsl-string)))
+
+(defclass patches (draw-mode tesselation-primitive)
+  ((vertex-count :initarg :vertex-count :reader vertex-count)))
+
+(defun primitive-name-to-instance (name)
+  (if (listp name)
+	  (dbind (name . length) name
+		(assert (= (length length) 1))
+		(let ((length (first length)))
+		  (assert (and (string= name "PATCH")
+					   (integerp length)
+					   (> length 1)))
+		  (make-instance 'patches :vertex-count length)))
+	  (let ((symb (intern (symbol-name name) :varjo)))
+		(assert (subtypep symb 'primitive))
+		(make-instance symb))))
 
 ;;-------------------------------------------------------------------------

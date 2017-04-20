@@ -17,39 +17,63 @@
                  :fragment '(,in-args ,@body)
                  :allow-stemcells ,allow-stemcells))))
 
+(defmacro compile-geom (args version allow-stemcells &body body)
+  (destructuring-bind (in-args uniforms) (split-arguments args '(&uniform))
+    `(first
+      (v-compile ',uniforms ,version
+                 :geometry '(,in-args ,@body)
+                 :allow-stemcells ,allow-stemcells))))
+
 (defmacro compile-vert-frag (uniforms version allow-stemcells &body body)
   `(v-compile ',uniforms ,version
               :vertex ',(first body)
               :fragment ',(second body)
               :allow-stemcells ,allow-stemcells))
 
+(defmacro compile-vert-geom (uniforms version allow-stemcells &body body)
+  `(v-compile ',uniforms ,version
+              :vertex ',(first body)
+              :geometry ',(second body)
+              :allow-stemcells ,allow-stemcells))
+
+(defmacro compile-vert-geom-frag (uniforms version allow-stemcells &body body)
+  `(v-compile ',uniforms ,version
+              :vertex ',(first body)
+              :geometry ',(second body)
+              :fragment ',(third body)
+              :allow-stemcells ,allow-stemcells))
+
 (defun ast-stabalizes-p (compile-result &optional (depth 0) (max-depth 20))
   "Returns t if compile the ast->code of compile-result gives the same ast
    It is allowed to recompile up to 'max-depth' times in order to find
    convergence"
-  (let* ((code (ast->code compile-result))
-         (version (varjo::get-version-from-context-list
-                   (context compile-result)))
-         (stemcells (stemcells-allowed compile-result))
-         (recomp (first (v-compile
-                         (mapcar #'varjo::to-arg-form
-                                 (varjo::uniform-variables compile-result))
-                         version
-                         (stage-type compile-result)
-                         (list (mapcar #'varjo::to-arg-form
-                                       (varjo::input-variables compile-result))
-                               code)
-                         :allow-stemcells stemcells)))
-         (recomp-code (ast->code recomp)))
-    (or (values (equal code recomp-code) depth)
-        (when (< depth max-depth)
-          (ast-stabalizes-p recomp (incf depth))))))
+  (labels ((stage->name (stage)
+             (let ((type-name (type-of stage)))
+               (elt varjo::*stage-names*
+                    (position type-name varjo::*stage-type-names*)))))
+    (let* ((code (ast->code compile-result))
+           (version (varjo::get-version-from-context-list
+                     (context compile-result)))
+           (stemcells (stemcells-allowed compile-result))
+           (recomp (first (v-compile
+                           (mapcar #'varjo::to-arg-form
+                                   (varjo::uniform-variables compile-result))
+                           version
+                           (stage->name (starting-stage compile-result))
+                           `(,(mapcar #'varjo::to-arg-form
+                                      (varjo::input-variables compile-result))
+                              ,@code)
+                           :allow-stemcells stemcells)))
+           (recomp-code (ast->code recomp)))
+      (or (values (equal code recomp-code) depth)
+          (when (< depth max-depth)
+            (ast-stabalizes-p recomp (incf depth)))))))
 
 (defmacro finishes-p (form)
   (alexandria:with-gensyms (res)
     `(let ((,res (varjo::listify ,form)))
        (is (every (lambda (x)
-                    (and (typep x 'varjo-compile-result)
+                    (and (typep x 'compiled-stage)
                          (ast-stabalizes-p x)
                          (not (glsl-contains-invalid x))
                          (not (glsl-contains-nil x))))
@@ -90,15 +114,32 @@
                 (not (glsl-contains-invalid ,compiled))
                 (not (glsl-contains-nil ,compiled)))))))
 
+(defmacro glsl-contains-all-p ((&rest regexes) &body form)
+  (assert (= 1 (length form)))
+  (let ((gvars (loop :for i :below (length regexes) :collect (gensym))))
+    (alexandria:with-gensyms (compiled)
+      `(let* ((,compiled ,(first form))
+              ,@(loop :for g :in gvars :for r :in regexes :collect
+                   `(,g (cl-ppcre:all-matches-as-strings
+                         ,r (glsl-code ,compiled)))))
+         (is (and (or (every (lambda (x) (= 1 (length x)))
+                             (list ,@gvars))
+                      (map nil #'print (list ,@gvars)))
+                  (not (glsl-contains-invalid ,compiled))
+                  (not (glsl-contains-nil ,compiled))))))))
+
 ;;------------------------------------------------------------
 
 (5am:def-suite test-all)
 
 (5am:def-suite void-tests :in test-all)
+(5am:def-suite array-tests :in test-all)
 (5am:def-suite build-tests :in test-all)
 (5am:def-suite struct-tests :in test-all)
+(5am:def-suite return-tests :in test-all)
 (5am:def-suite stemcell-tests :in test-all)
 (5am:def-suite qualifier-tests :in test-all)
+(5am:def-suite assignment-tests :in test-all)
 (5am:def-suite flow-control-tests :in test-all)
 (5am:def-suite symbol-macro-tests :in test-all)
 (5am:def-suite regular-macro-tests :in test-all)

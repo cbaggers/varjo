@@ -1,8 +1,5 @@
 (in-package :varjo)
 
-(v-defun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
-(v-defun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :v-place-index 0)
-
 (v-defun break () "break" () v-void)
 
 (v-defun int (x) "~a" (v-int) v-int)

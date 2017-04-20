@@ -5,18 +5,30 @@
 (defparameter *global-env-form-bindings* (make-hash-table))
 (defparameter *global-env-symbol-bindings* (make-hash-table))
 (defparameter *global-env-compiler-macros* (make-hash-table))
+
 (defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
-(defparameter *stage-types* '(:vertex
-                              :tesselation-control
-                              :tesselation-evaluation
-                              :geometry
-                              :fragment))
-(defparameter *supported-stages* *stage-types*) ;; not supported well but theoretically these are supported :p
-(defparameter *supported-draw-modes* '(:points :line-strip :line-loop :lines
-                                       :line-strip-adjacency :lines-adjacency
-                                       :triangle-strip :triangle-fan :triangles
-                                       :triangle-strip-adjacency
-                                       :triangles-adjacency :patches))
+
+(defparameter *stage-names*
+  '(:vertex
+    :tesselation-control
+    :tesselation-evaluation
+    :geometry
+    :fragment))
+
+(defparameter *stage-type-names*
+  '(vertex-stage
+    tesselation-control-stage
+    tesselation-evaluation-stage
+    geometry-stage
+    fragment-stage))
+
+(defparameter *supported-draw-modes*
+  '(:points
+    :lines :line-loop :line-strip :lines-adjacency :line-strip-adjacency
+    :triangles :triangle-strip :triangle-fan :triangles-adjacency
+    :triangle-strip-adjacency
+    :patches))
+
 (defparameter *unshadowable-names* '(;; special
                                      and flet for function glsl-expr if labels
                                      labels-no-implicit let multiple-value-bind
@@ -26,16 +38,17 @@
                                      ;; macros
                                      let* prog1 setf symbol-macrolet s~ unless
                                      when))
-(defparameter *default-version* :330)
-(defparameter *default-context* '(:330 :vertex))
-(defparameter *valid-contents-symbols* `(,@(copy-list *supported-versions*)
-                                           ,@(copy-list *supported-stages*)
-                                           ,@(copy-list *supported-draw-modes*)))
+
+(defparameter *default-version* :450)
+
+(defparameter *valid-contents-symbols*
+  (append (copy-list *supported-versions*)
+          (copy-list *supported-draw-modes*)))
 
 
 (defparameter *ast-node-kinds*
-  '(:get :get-stemcell :get-v-value :literal :error :none :code-section
-    :funcall :break))
+  '(:function-top-level :get :get-stemcell :get-v-value :literal :error :none
+    :code-section :funcall :break))
 
 (defparameter *stemcell-infer-hook*
   (lambda (name)
@@ -50,3 +63,22 @@
 (defvar *registered-types* nil)
 
 (defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+
+(defparameter *draw-modes*
+  '(:points
+    :lines
+    :line-loop
+    :line-strip
+    :lines-adjacency
+    :line-strip-adjacency
+    :triangles
+    :triangle-fan
+    :triangle-strip
+    :triangles-adjacency
+    :triangle-strip-adjacency
+    :quads
+    :patches))
+
+(defparameter *glsl-variables* nil)
+
+(defparameter *fallback-block-name* :in_block)

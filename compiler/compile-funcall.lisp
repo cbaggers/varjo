@@ -206,16 +206,17 @@
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
     (values (merge-obs args
-		       :type type
-		       :current-line c-line
-		       :signatures (mapcat #'signatures args)
-		       :stemcells (mapcat #'stemcells args)
-		       :multi-vals (when (v-multi-val-safe env)
-				     (handle-regular-function-mvals args))
-		       :place-tree (calc-place-tree func args)
-		       :node-tree (ast-node! func-name (mapcar #'node-tree args)
-					     type env env))
-	    env)))
+                       :type type
+                       :current-line c-line
+                       :pure (pure-p func)
+                       :emit-set (emit-set func)
+                       :stemcells (mapcat #'stemcells args)
+                       :multi-vals (when (v-multi-val-safe env)
+                                     (handle-regular-function-mvals args))
+                       :place-tree (calc-place-tree func args)
+                       :node-tree (ast-node! func-name (mapcar #'node-tree args)
+                                             type env env))
+            env)))
 
 (defun handle-regular-function-mvals (args)
   ;; ok so by getting here a few things are true:
@@ -244,7 +245,7 @@
 (defun calc-function-return-ids-given-args (func func-name arg-code-objs)
   ;; {TODO} (warn "calc-function-return-ids-given-args should be merged with resolve-func-type")
   (when (typep (flow-ids func) 'multi-return-flow-id)
-    (error 'multiple-flow-ids-regular-func func-name func))
+    (error 'multiple-flow-ids-regular-func :func-name func-name :func func))
   (unless (type-doesnt-need-flow-id (first (v-return-spec func)))
     (%calc-flow-id-given-args (in-arg-flow-ids func)
                               (flow-ids func)
@@ -253,8 +254,7 @@
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
   (let ((all-return-types (cons (first (v-return-spec func))
                                 (mapcar #'v-type-of
-                                        (mapcar #'multi-val-value
-                                                (rest (v-return-spec func))))))
+                                        (rest (v-return-spec func)))))
         (m-flow-id (flow-ids func)))
     (assert (typep m-flow-id 'multi-return-flow-id))
     (let ((flow-ids (m-value-ids m-flow-id)))
@@ -283,19 +283,19 @@
                          (fmt "~a~a" m-r-base i))))
       (let* ((bindings (loop :for mval :in mvals :collect
                           `((,(gensym "NC")
-                              ,(type->type-spec
-                                (v-type-of (multi-val-value mval)))))))
+                              ,(type->type-spec (v-type-of mval))))))
 
              (o (merge-obs
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
-                 :signatures (mapcat #'signatures args)
                  :stemcells (mapcat #'stemcells args)
+                 :pure (pure-p func)
+                 :emit-set (emit-set func)
                  :multi-vals (mapcar (lambda (_ _1 fid)
                                        (make-mval
                                         (v-make-value
                                          (replace-flow-id
-                                          (v-type-of (multi-val-value _))
+                                          (v-type-of _)
                                           fid)
                                          env :glsl-name _1
                                          :function-scope 0)))

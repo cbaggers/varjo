@@ -4,7 +4,7 @@
 (defmacro populate-functions ()
   `(progn
      ,@(loop :for func-spec :in glsl-spec:*functions* :append
-          (destructuring-bind (&key name return args versions
+          (destructuring-bind (&key name return args versions pure
                                     &allow-other-keys)
               func-spec
             (let* ((parsed-name (parse-gl-func-name name))
@@ -24,7 +24,8 @@
                     ',lisp-name ,transform ',versions ',lisp-arg-types
                     ',lisp-return :v-place-index nil :glsl-name nil
                     :flow-ids (%gl-flow-id!)
-                    :in-arg-flow-ids (n-of (%gl-flow-id!) ,(length args)))
+                    :in-arg-flow-ids (n-of (%gl-flow-id!) ,(length args))
+                    :pure ,pure)
                    *global-env*)
                   (export ',lisp-name :varjo-lang))))))))
 

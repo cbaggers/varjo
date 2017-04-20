@@ -144,6 +144,20 @@
         (rec source nil)
         nil)))
 
+(defun group-by (key sequence &key (test #'equal))
+  "Groups by key and maintains order"
+  (let ((groups (make-hash-table :test test))
+        (id 0))
+    (labels ((do-it (e)
+               (let ((kval (funcall key e)))
+                 (if (gethash kval groups)
+                     (push e (gethash kval groups))
+                     (setf (gethash kval groups) (list e (incf id)))))))
+      (map nil #'do-it sequence))
+    (mapcar #'rest
+            (sort (mapcar #'reverse (hash-table-values groups))
+                  #'< :key #'first))))
+
 (defun symb (&rest args)
   "This takes a list of symbols (or strings) and outputs one
    symbol.

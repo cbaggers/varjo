@@ -1,6 +1,6 @@
 (in-package :varjo)
 
-                                        ;-----------INSPIRATION-----------;
+;;-----------INSPIRATION-----------;
 
 ;; (define-condition machine-error (error)
 ;;   ((machine-name :initarg :machine-name :reader machine-error-machine-name))
@@ -8,29 +8,31 @@
 ;;              (format stream "There is a problem with ~A."
 ;;                      (machine-error-machine-name condition)))))
 
-                                        ;------------HELPER-----------;
+;;------------HELPERS-----------;
 
 (defmacro defcondition (name (&key error-type prefix)
                                 (&rest args) error-string &body body)
   (assert error-type () "DEFCONDITION: error-type is a mandatory argument")
   (unless (every #'symbolp args) (error "can only take simple args"))
-  (loop :for arg :in args :do
-     (setf body (subst `(,arg condition) arg body :test #'eq)))
-  `(define-condition ,name (,error-type)
-     (,@(loop :for arg :in args :collect
-           `(,arg :initarg ,(kwd arg) :reader ,arg)))
-     (:report (lambda (condition stream)
-                (declare (ignorable condition))
-                (format stream ,(format nil "~@[~a:~] ~a" prefix error-string)
-                        ,@body)))))
+  (let ((control-str (format nil "~@[~a: ~]~a" prefix error-string)))
+    `(define-condition ,name (,error-type)
+       ,(mapcar (lambda (arg) `(,arg :initarg ,(kwd arg))) args)
+       (:report (lambda (condition stream)
+                  (with-slots ,args condition
+                    (format stream ,control-str ,@body)))))))
 
-(defmacro deferror (name (&key (error-type 'varjo-error) prefix)
+(defmacro defbug (name (&key (error-type 'varjo-error) (prefix "Varjo Bug"))
                             (&rest args) error-string &body body)
   `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
        ,error-string ,@body))
 
-(defmacro defwarning (name (&key (error-type 'varjo-warning) prefix)
+(defmacro deferror (name (&key (error-type 'varjo-error) (prefix "Varjo"))
                             (&rest args) error-string &body body)
+  `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
+       ,error-string ,@body))
+
+(defmacro defwarning (name (&key (error-type 'varjo-warning) (prefix "Varjo"))
+                              (&rest args) error-string &body body)
   `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
        ,error-string ,@body))
 
@@ -38,12 +40,12 @@
 (define-condition varjo-critical-error (error) ())
 (define-condition varjo-warning (warning) ())
 
-                                        ;-----------------------------;
+;;-----------------------------;
 
 (define-condition missing-function-error (error)
   ((text :initarg :text :reader text)))
 
-(deferror problem-with-the-compiler () (target)
+(defbug problem-with-the-compiler () (target)
     "This shouldnt have been possible so this needs a bug report. Sorry about that~%~s" target)
 
 (deferror cannot-compile () (code)
@@ -53,7 +55,7 @@
     "Tried to compile form however the first element of the form was a list:
 ~s" code)
 
-(deferror no-function-returns () (name)
+(deferror no-function-returns () (name return-set)
     "Function '~a' did not specify any return types" name)
 
 (deferror not-core-type-error () (type-name)
@@ -91,11 +93,18 @@
     "No function, macro or compiler-macro called '~a' could be found in this environment" name)
 
 (deferror no-valid-function () (name types)
-    "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s " name types)
+    "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s "
+  name (mapcar #'type->type-spec types))
 
-(deferror return-type-mismatch () (returns)
+(deferror return-type-mismatch () (sets)
     "Some of the return statements return different types:~{~%~a~}"
-  returns)
+  (mapcar (lambda (x) (map 'list #'type->type-spec x))
+          sets))
+
+(deferror emit-type-mismatch () (sets)
+    "Some of the emit statements emit different types:~{~%~a~}"
+  (mapcar (lambda (x) (map 'list #'type->type-spec x))
+          sets))
 
 (deferror non-place-assign () (place val)
     "You cannot setf this: ~a ~%This was attempted as follows ~a"
@@ -176,7 +185,7 @@ type-of new-value: ~a"
     "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
 
 (deferror invalid-context-symbols () (symbols)
-    "Sorry but the following symbol are not valid as a context specifier:
+    "Sorry but the following symbols are not valid as a context specifiers:
 ~{~s~^ ~}"
   symbols)
 
@@ -282,7 +291,7 @@ e.g. (~a :vec3)"
 (deferror flow-id-must-be-specified-co (:error-type varjo-critical-error) ()
     "code objects must be given a flow id when created")
 
-(deferror multiple-flow-ids-regular-func (:error-type varjo-critical-error)
+(defbug multiple-flow-ids-regular-func (:error-type varjo-critical-error)
     (func-name func)
     "the function ~s is a regular function but has multiple flow ids.
 this is an error as only functions with multiple returns are allowed
@@ -314,7 +323,7 @@ Tried to mutate ~s
 ~{~s~}"
   func-name return-type)
 
-(deferror loop-flow-analysis-failure (:error-type varjo-critical-error) ()
+(defbug loop-flow-analysis-failure (:error-type varjo-critical-error) ()
     "Varjo's flow analyzer has been unable to resolve the variable flow in this
 loop within a reasonable ammount of time. This counts as a compiler bug so
 please report it on github")
@@ -335,17 +344,17 @@ Compiled Args:
   args)
 
 (deferror empty-progn (:error-type varjo-critical-error) ()
-    "Varjo: progn with no body found, this is not currently allowed by varjo")
+    "progn with no body found, this is not currently allowed by varjo")
 
-(deferror name-clash (:error-type varjo-critical-error) (lisp glsl)
-    "Varjo: The glsl name ~s was generated for the lisp-name ~s
+(defbug name-clash (:error-type varjo-critical-error) (lisp glsl)
+    "The glsl name ~s was generated for the lisp-name ~s
 However this name was already taken. This is Varjo bug, please raise an issue
 on github.
 Sorry for the inconvenience"
   glsl lisp)
 
-(deferror name-mismatch (:error-type varjo-critical-error) (lisp glsl taken)
-    "Varjo: The glsl name ~s was generated for the lisp-name ~s
+(defbug name-mismatch (:error-type varjo-critical-error) (lisp glsl taken)
+    "The glsl name ~s was generated for the lisp-name ~s
 However this clashes with glsl name for the previous symbol ~s.
 This is Varjo bug, please raise an issue on github.
 Sorry for the inconvenience"
@@ -353,7 +362,7 @@ Sorry for the inconvenience"
 
 (deferror function-with-no-return-type (:error-type varjo-critical-error)
     (func-name)
-    "Varjo: The function named ~s does not return anything, this is not
+    "The function named ~s does not return anything, this is not
 currently allowed. The tail position of the function must be an expression with
 a return type.
 
@@ -362,7 +371,7 @@ Most likely you currently have one of the following in the tail position:
 
 (deferror external-function-invalid-in-arg-types
     (:error-type varjo-critical-error) (name args)
-    "Varjo: When defining the function ~a we found some args with types that
+    "When defining the function ~a we found some args with types that
 we didnt recognise:
 
 ~{> ~s~}
@@ -378,16 +387,16 @@ Here are some types we think may have been meant:
      :when suggestion
      :collect (format nil "~%> ~s~{~%~s~}" (first a) suggestion)))
 
-(deferror invalid-special-function-arg-spec (:error-type varjo-critical-error)
+(defbug invalid-special-function-arg-spec (:error-type varjo-critical-error)
     (name spec)
-    "Varjo: The special function named ~s has an invalid argument spec:
+    "The special function named ~s has an invalid argument spec:
 ~a
 
 Please report this bug on github" name spec)
 
 (deferror closures-not-supported (:error-type varjo-critical-error)
     (func)
-    "Varjo: The function ~s is a closure and currently Varjo doesnt support
+    "The function ~s is a closure and currently Varjo doesnt support
 passing these around as first class objects.
 
 Sorry for the odd limitation, this will be fixed in a future version."
@@ -395,7 +404,7 @@ Sorry for the odd limitation, this will be fixed in a future version."
 
 (deferror cannot-establish-exact-function (:error-type varjo-critical-error)
     (funcall-form)
-    "Varjo: Could not establish the exact function when compiling:
+    "Could not establish the exact function when compiling:
 
 ~s
 
@@ -410,23 +419,23 @@ messages." funcall-form)
 
 
 (deferror uniform-in-cmacro () (name)
-    "Varjo: We do not currently support &uniforms args in compiler macros, only in shader stages: ~a"
+    "We do not currently support &uniforms args in compiler macros, only in shader stages: ~a"
   name)
 
 (deferror optional-in-cmacro () (name)
-    "Varjo: We do not currently support &optional args in compiler macros: ~a"
+    "We do not currently support &optional args in compiler macros: ~a"
   name)
 
 (deferror rest-in-cmacro () (name)
-    "Varjo: We do not currently support &rest args in compiler macros: ~a"
+    "We do not currently support &rest args in compiler macros: ~a"
   name)
 
 (deferror key-in-cmacro () (name)
-    "Varjo: We do not currently support &key args in compiler macros: ~a"
+    "We do not currently support &key args in compiler macros: ~a"
   name)
 
 (deferror no-types-for-regular-macro-args () (macro-name arg)
-    "Varjo: The type of the argument ~a is unknown at this stage.
+    "The type of the argument ~a is unknown at this stage.
 
 The macro named ~a is a regular macro (defined with v-defmacro). This means
 that, the arguments passed to it are uncompiled code and as such, we cannot get
@@ -436,7 +445,7 @@ It is however possible to retrieve the argument types for compiler-macros."
   arg macro-name)
 
 (deferror no-metadata-for-regular-macro-args () (macro-name arg)
-    "Varjo: The metadata for the argument ~a is unknown at this stage.
+    "The metadata for the argument ~a is unknown at this stage.
 
 The macro named ~a is a regular macro (defined with v-defmacro). This means
 that, the arguments passed to it are uncompiled code and as such, we cannot get
@@ -446,7 +455,7 @@ It is however possible to retrieve the metadata of arguments in compiler-macros.
   arg macro-name)
 
 (deferror no-tracking-for-regular-macro-args () (macro-name arg)
-    "Varjo: The flow information for the argument ~a is unknown at this stage.
+    "The flow information for the argument ~a is unknown at this stage.
 
 The macro named ~a is a regular macro (defined with v-defmacro). This means
 that, the arguments passed to it are uncompiled code and as such, we cannot
@@ -456,34 +465,34 @@ It is however possible to retrieve this data for arguments in compiler-macros."
   arg macro-name)
 
 (deferror unknown-macro-argument () (macro-name arg)
-    "Varjo: Could not find an argument named ~a in the macro ~a"
+    "Could not find an argument named ~a in the macro ~a"
   arg macro-name)
 
 (deferror symbol-macro-not-var () (callee name)
-    "Varjo: ~a was asked to find the value bound to the symbol ~a, however ~a is
+    "~a was asked to find the value bound to the symbol ~a, however ~a is
 currently bound to a symbol-macro."
   callee name name)
 
 (deferror unbound-not-var () (callee name)
-    "Varjo: ~a was asked to find the value bound to the symbol ~a, however ~a is
+    "~a was asked to find the value bound to the symbol ~a, however ~a is
 currently unbound."
   callee name name)
 
 (deferror not-proved-a-uniform (:error-type varjo-critical-error) (name)
-    "Varjo: We are unable to prove that ~a has come from a uniform"
+    "We are unable to prove that ~a has come from a uniform"
   name)
 
 (deferror duplicate-varjo-doc-string () (form dup)
-    "Varjo: We have found an illegal duplicate docs string.
+    "We have found an illegal duplicate docs string.
 
 Doc string: ~s
 
 Found in form:
 ~s"
-    dup form)
+  dup form)
 
 (deferror calling-declare-as-func () (decl)
-    "Varjo: Found a declare expression in an invalid position.
+    "Found a declare expression in an invalid position.
 
 Declaration: ~s
 
@@ -492,7 +501,7 @@ the starts of blocks) are unevaluated expressions, but here it is illegal."
   decl)
 
 (deferror treating-declare-as-func () (decl)
-    "Varjo: Found an attempt to take a reference to declare as a function.
+    "Found an attempt to take a reference to declare as a function.
 
 Form: ~s
 
@@ -501,13 +510,13 @@ the starts of blocks) are unevaluated expressions, but here it is illegal."
   decl)
 
 (deferror v-unrecognized-declaration () (decl)
-    "Varjo: Found an unregonised declaration named ~a
+    "Found an unregonised declaration named ~a
 ~@[~%Might you have meant one of these?:~{~%~s~}~%~]
 Full Declaration: ~s"
   (first decl) (find-alternative-declaration-kinds (first decl)) decl)
 
 (deferror v-unsupported-cl-declaration () (decl)
-    "Varjo: Found an unregonised declaration named ~a
+    "Found an unregonised declaration named ~a
 
 Whilst this is valid in standard common-lisp, it is not currently valid in
 Varjo.
@@ -516,25 +525,25 @@ Full Declaration: ~s"
   (first decl) decl)
 
 (deferror v-only-supporting-declares-on-vars () (targets)
-    "Varjo: We found the following invalid names in the declarations:
+    "We found the following invalid names in the declarations:
 ~@[~{~%~s~}~%~]
-We currently only support declarations against variables. Sorry for the
-inconvenience."
+We don't yet support declarations against functions or symbol-macros.
+Sorry for the inconvenience."
   targets)
 
 (deferror v-declare-on-symbol-macro () (target)
-    "Varjo: We found a declaration against ~s. However at this point in the
+    "We found a declaration against ~s. However at this point in the
 compilation, ~s is bound to a symbol-macro and Varjo does not support
 declarations against symbol-macros."
   target target)
 
 (deferror v-declare-on-nil-binding () (target)
-    "Varjo: We found a declaration against ~s. However at this point in the
+    "We found a declaration against ~s. However at this point in the
 compilation, ~s is not bound to anything."
   target target)
 
 (deferror v-metadata-missing-args () (name required provided missing)
-    "Varjo: The metadata type ~a requires the following args to be specified
+    "The metadata type ~a requires the following args to be specified
 on creation: ~{~a~^, ~}
 
 However, the following was provided instead: ~s
@@ -546,38 +555,38 @@ declared to something."
   name required provided missing)
 
 (defwarning cant-shadow-user-defined-func () (funcs)
-  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+    "Unfortunately we cannot currently shadow user-defined functions.
 The following functions have been skipped:~{~%~s~}"
   funcs)
 
 (defwarning cant-shadow-no-type-match () (shadowed funcs)
-  "Varjo: Was asked to shadow the following functions, however none of the
+    "Was asked to shadow the following functions, however none of the
 arguments have the type ~a
 
 The following functions have been skipped:~{~%~s~}"
   shadowed funcs)
 
 (deferror shadowing-user-defined-func () (func)
-  "Varjo: Unfortunately we cannot currently shadow user-defined functions.
+    "Unfortunately we cannot currently shadow user-defined functions.
 The function in question was: ~s"
   func)
 
 (deferror shadowing-no-type-match () (shadowed func)
-  "Varjo: Was asked to shadow the following function, however none of the
+    "Was asked to shadow the following function, however none of the
 arguments have the type ~a
 
 The function in question was: ~s"
   shadowed func)
 
 (deferror shadowing-no-return-matched () (shadowed func)
-  "Varjo: Was asked to shadow the following function, however none of the
+    "Was asked to shadow the following function, however none of the
 returned values have the type ~a
 
 The function in question was: ~s"
   shadowed func)
 
 (deferror shadowing-multiple-constructors () (shadow-type func-id funcs)
-  "Varjo: Was asked to shadow the function with the idenifier ~a  as a
+    "Was asked to shadow the function with the idenifier ~a  as a
 constructor for the shadow-type ~a.
 
 However this function-identifier names multiple functions, which is not
@@ -587,7 +596,7 @@ The functions in question were:~{~%~a~}"
   func-id shadow-type funcs)
 
 (deferror shadowing-multiple-funcs () (shadow-type pairs)
-  "Varjo: Was asked to shadow the functions for the shadow-type ~a.
+    "Was asked to shadow the functions for the shadow-type ~a.
 
 However these function-identifiers name multiple functions, which is not
 allowed in this form.
@@ -597,14 +606,14 @@ The functions in question were:
   shadow-type pairs)
 
 (deferror shadowing-constructor-no-match () (shadow-type func-id)
-  "Varjo: Was asked to shadow the function with the idenifier ~a as
+    "Was asked to shadow the function with the idenifier ~a as
 a constructor for the shadow-type ~a.
 
 However no functions were found that matched this identifier."
   func-id shadow-type)
 
 (deferror def-shadow-non-func-identifier () (name func-ids)
-  "Varjo: ~a was ask to shadow some functions, however the following
+    "~a was ask to shadow some functions, however the following
 identifiers are have problems:
 ~{~%~s~}
 
@@ -613,17 +622,17 @@ The identifiers passed to this macro should be in the format:
   name func-ids)
 
 (deferror shadowing-funcs-for-non-shadow-type () (name shadow-type)
-  "Varjo: ~a was ask to shadow some functions for the type ~a,
+    "~a was ask to shadow some functions for the type ~a,
 however the type ~a is not a shadow type."
   name shadow-type shadow-type)
 
 (deferror fell-through-v-typecase () (vtype wanted)
-  "Varjo: ~a fell through V-ETYPECASE expression.
+    "~a fell through V-ETYPECASE expression.
 Wanted one of the following types: ~s}"
   vtype wanted)
 
 (deferror metadata-conflict () (metadata-kind flow-id new-meta old-meta)
-    "Varjo: ~a metadata already found for flow-id ~a.~%Metadata cannot be redefined
+    "~a metadata already found for flow-id ~a.~%Metadata cannot be redefined
 
 Tried to apply: ~a
 
@@ -631,23 +640,23 @@ Metadata already present: ~a"
   metadata-kind flow-id new-meta old-meta)
 
 (deferror metadata-combine-invalid-type () (expected found)
-    "Varjo: Asked for a combined version of the two pieces of metadata of kind
+    "Asked for a combined version of the two pieces of metadata of kind
 ~a, however the metadata returned was of type ~a. When combining metadata it is
 only valid to return nil or a piece of metadata of the correct type."
   expected found)
 
 (deferror multiple-external-func-match () (matches)
-    "Varjo: Multiple externally defined functions found matching the identifier:
+    "Multiple externally defined functions found matching the identifier:
 ~{~s~^~%~}"
   matches)
 
-(deferror doesnt-have-dimensions () (vtype)
-    "Varjo: Compiler bug: Attempted to find the dimensions of ~a. If you have
+(defbug doesnt-have-dimensions () (vtype)
+    "Compiler bug: Attempted to find the dimensions of ~a. If you have
 the time, please report this on github."
   vtype)
 
 (deferror cannot-swizzle-this-type () (vtype is-struct)
-    "Varjo: Was asked to swizzle a value with the type ~a
+    "Was asked to swizzle a value with the type ~a
 
 However is not a type that can be swizzled. ~a"
   vtype
@@ -656,18 +665,169 @@ However is not a type that can be swizzled. ~a"
       ""))
 
 (deferror dup-name-in-let () (dup-name)
-    "Varjo: The variable ~a occurs more than once in the LET."
+    "The variable ~a occurs more than once in the LET."
   dup-name)
 
 (deferror dup-names-in-let () (names)
-    "Varjo: The following variables occur more than once in the LET
+    "The following variables occur more than once in the LET
 ~{~s~}"
   names)
 
 (deferror uninitialized-var () (name)
-    "Varjo: Cannot access the variable ~a as it is currently unbound"
+    "Cannot access the variable ~a as it is currently unbound"
   name)
 
 (deferror global-uninitialized-var () (name)
-    "Varjo: Cannot declare ~s as an unbound variable at global scope"
+    "Cannot declare ~s as an unbound variable at global scope"
   name)
+
+(defbug nil-return-set () (form possible-set)
+    "Could not establish return-set.
+
+Our apologies for this mistake. If you have the time please raise an issue at
+https://github.com/cbaggers/varjo/issues including the code that triggered this
+issue.
+
+Problematic form:
+~a
+
+Possible Set: ~a" form possible-set)
+
+(defbug nil-emit-set () (form possible-set)
+    "Could not establish emit-set.
+
+Our apologies for this mistake. If you have the time please raise an issue at
+https://github.com/cbaggers/varjo/issues including the code that triggered this
+issue.
+
+Problematic form:
+~a
+
+Possible Set: ~a" form possible-set)
+
+(defbug with-fresh-env-scope-missing-env () ()
+    "with-fresh-env-scope expects a code object & an environment to
+be returned from it's body. However there was no environment returned.")
+
+(deferror vertex-stage-primary-type-mismatch () (prim-type)
+    "The primary return value from vertex shaders must be a vec4.
+Instead ~a was found" (type->type-spec prim-type))
+
+(deferror multi-dimensional-array () (dimensions)
+    "We do not yet support multidimensional arrays.
+However you can have arrays of arrays.
+
+Problematic dimensions: ~a"
+  dimensions)
+
+(deferror make-array-mandatory-args () (args)
+    "Cannot compile make-array as required arguments are missing.
+
+Required args: dimensions & element-type
+Found args: ~s"
+  args)
+
+(deferror make-array-conflicting-args () (args)
+    "Cannot compile make-array as found that both initial-element
+and initial-contents were specified.
+
+Found args: ~s"
+  args)
+
+(deferror make-array-conflicting-lengths () (dims initial-contents)
+    "Cannot compile make-array as the declared dimensions did not
+match the length of the initial-contents that were specified.
+
+Declared dimensions: ~a
+initial-contents: ~s"
+  dims initial-contents)
+
+(deferror make-array-cant-cast-args () (element-type initial-contents)
+    "Cannot cast the provided initial-contents to the specified
+element-type.
+
+element-type: ~a
+initial-contents: ~s"
+  element-type initial-contents)
+
+
+(deferror make-array-cant-establish-default-value ()
+    (element-type initial-contents)
+    "Cannot establish the default element value for the type:
+~s"
+  element-type)
+
+(deferror should-be-quoted () (thing val)
+    "Varjo expected ~a to be quoted, however it was not.
+Found: ~s"
+  thing val)
+
+(deferror should-be-constant () (thing val)
+    "Varjo expected ~a to be constant, however it was not.
+Found: ~s"
+  thing val)
+
+(deferror stage-in-context () (context)
+    "It is not longer valid for the stage to be declared in the context
+Please simply use #'v-compile or use #'make-stage with #'rolling-translate if
+you need more control.
+
+Context found: ~s" context)
+
+(deferror invalid-stage-kind () (kind)
+    "make-stage called with the invalid stage kind ~s"
+  kind)
+
+(deferror no-primitive-found () (stage)
+    "Could not establish primitive type for ~a.
+Stage: ~a"
+  (type-of stage)
+  stage)
+
+(deferror invalid-primitive-for-geometry-stage () (prim)
+    "~s is not a valid stage kind for geometry stages. Instead try
+points, lines, lines-adjacency, triangles or triangles-adjacency." prim)
+
+(deferror invalid-primitive-for-tesselation-stage () (prim)
+    "~s is not a valid stage kind for geometry stages. You must use a patch
+e.g. (:patch 4)" prim)
+
+(deferror rolling-translate-invalid-stage () (invalid)
+    "rolling translate expects a list of stages as it's first argument.
+However it found ~a invalid ~a in the list:~{~%~s~}"
+  (if (> (length invalid) 1) "these" "this")
+  (if (> (length invalid) 1) "elements" "element")
+  invalid)
+
+(deferror couldnt-convert-primitive-for-geometry-stage () (prim prev-stage)
+    "A primitive of type ~a came from the ~a stage, unfortunately we
+weren't sure how to convert this to a primitive kind the geometry shader can
+use."
+  prim prev-stage)
+
+(deferror test-translate-failed () (grouped-errors)
+    "Compilation Failed:
+~{~%~a~%~}"
+  (mapcar (lambda (grp) (format nil "Stages:~{ ~a~}~%~a" (car grp) (cdr grp)))
+          grouped-errors))
+
+(deferror returns-in-geometry-stage () (return-set)
+    "In geometry stages please do not return values from the main stage
+function. Instead use #'emit-data & then #'emit-vertex to attach the data to
+the vertex itself.
+
+Like #'return, #'emit-data can handle multiple values.
+
+Found the following return values from the main stage function:~{~%~a~}"
+  (mapcar #'type->type-spec (map 'list #'v-type-of return-set)))
+
+
+(deferror primitives-dont-match () (out-stage out in-stage in)
+    "The primitives leaving the ~a stage are of type ~a, however the
+~a was expecting ~a"
+  out-stage out in-stage in)
+
+;;
+;; Hi! Don't forget to add the name of your condition to the
+;; varjo.conditions package
+;;

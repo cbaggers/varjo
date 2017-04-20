@@ -100,19 +100,19 @@ context is implicit"))
 (defmethod val-origins ((node ast-node) &optional error-on-missingp)
   (let ((origins-dict (slot-value node 'val-origins)))
     (labels ((get-seen (raw-id)
-	       (or (gethash raw-id origins-dict)
-		   (when error-on-missingp
-		     (error "Could not find origin for ~s" raw-id))))
+               (or (gethash raw-id origins-dict)
+                   (when error-on-missingp
+                     (error "Could not find origin for ~s" raw-id))))
 
-	     (f-origin (val-id fcall-node)
-	       (let* ((func (ast-kind fcall-node))
-		      (flow-result (flow-ids func)))
-		 (if (m-flow-id-p flow-result)
-		     (let ((return-pos (slot-value val-id 'return-pos)))
-		       (mapcar λ(or (get-seen (slot-value _ 'val))
+             (f-origin (val-id fcall-node)
+               (let* ((func (ast-kind fcall-node))
+                      (flow-result (flow-ids func)))
+                 (if (m-flow-id-p flow-result)
+                     (let ((return-pos (slot-value val-id 'return-pos)))
+                       (mapcar λ(or (get-seen (slot-value _ 'val))
                                     fcall-node)
-			       (ids (nth return-pos
-					 (m-value-ids flow-result)))))
+                               (ids (nth return-pos
+                                         (m-value-ids flow-result)))))
                      (progn
                        (assert flow-result (func)
                                "trying to process flow-ids of ~a but found nil"
@@ -121,19 +121,19 @@ context is implicit"))
                                     fcall-node)
                                (ids flow-result))))))
 
-	     (per-id (val-id node)
-	       (let ((raw (slot-value val-id 'val)))
-		 (or (get-seen raw)
-		     (setf (gethash raw origins-dict)
-			   (if (typep (ast-kind node) 'v-user-function)
-			       (f-origin val-id node)
-			       node)))))
+             (per-id (val-id node)
+               (let ((raw (slot-value val-id 'val)))
+                 (or (get-seen raw)
+                     (setf (gethash raw origins-dict)
+                           (if (typep (ast-kind node) 'v-user-function)
+                               (f-origin val-id node)
+                               node)))))
 
-	     (per-flow-id (flow-id node)
-	       (mapcar λ(per-id _ node) (ids flow-id)))
+             (per-flow-id (flow-id node)
+               (mapcar λ(per-id _ node) (ids flow-id)))
 
-	     (get-origins (node)
-	       (mapcar λ(per-flow-id _ node) (listify (flow-ids node)))))
+             (get-origins (node)
+               (mapcar λ(per-flow-id _ node) (listify (flow-ids node)))))
       (flatten
        (typecase origins-dict
          (hash-table (get-origins node))
@@ -192,7 +192,7 @@ context is implicit"))
                    (t ast)))))
     (typecase from-node
       (code (walk-node (node-tree from-node) :parent nil))
-      (varjo-compile-result (walk-node (ast from-node) :parent nil))
+      (compiled-stage (walk-node (ast from-node) :parent nil))
       (ast-node (walk-node from-node :parent nil))
       (t (error "object with the invalid type ~s passed to ast->code"
                 (type-of from-node))))))
@@ -248,6 +248,7 @@ context is implicit"))
                (with-slots (kind args) node
                  (if (keywordp kind)
                      (case kind
+                       (:function-top-level (mapcar walk args))
                        (:get (first args))
                        (:get-stemcell (first args))
                        (:literal (first args))

@@ -3,100 +3,31 @@
 
 ;;----------------------------------------------------------------------
 
-(defun extract-glsl-name (qual-and-maybe-name)
-  (let ((glsl-name (last1 qual-and-maybe-name)))
-    (if (stringp glsl-name)
-        (values (butlast qual-and-maybe-name)
-                glsl-name)
-        qual-and-maybe-name)))
-
-(defun make-stage (in-args uniforms context code stemcells-allowed)
-  (when (and (every #'check-arg-form in-args)
-             (every #'check-arg-form uniforms)
-             (check-for-dups in-args uniforms))
-    (labels ((make-var (kind raw)
-               (dbind (name type-spec . rest) raw
-                 (vbind (qualifiers glsl-name) (extract-glsl-name rest)
-                   (make-instance
-                    kind
-                    :name name
-                    :glsl-name glsl-name
-                    :type (type-spec->type type-spec)
-                    :qualifiers qualifiers)))))
-      (let ((r (make-instance
-                'stage
-                :input-variables (mapcar λ(make-var 'input-variable _)
-                                         in-args)
-                :uniform-variables (mapcar λ(make-var 'uniform-variable _)
-                                           uniforms)
-                :context (process-context context)
-                :lisp-code code
-                :stemcells-allowed stemcells-allowed)))
-        (check-for-stage-specific-limitations r)
-        r))))
-
-(defun process-context (raw-context)
-  ;; ensure there is a version
-  (labels ((valid (x) (find x *valid-contents-symbols*)))
-    (assert (every #'valid raw-context) () 'invalid-context-symbols
-            :symbols (remove #'valid raw-context )))
-  ;;
-  (if (intersection raw-context *supported-versions*)
-      raw-context
-      (cons *default-version* raw-context)))
-
-;;{TODO} proper error
-(defun check-arg-form (arg)
-  (unless
-      (and
-       ;; needs to at least have name and type
-       (>= (length arg) 2)
-       ;; of the rest of the list it must be keyword qualifiers and optionally a
-       ;; string at the end. The string is a declaration of what the name of the
-       ;; var will be in glsl. This feature is intended for use only by the compiler
-       ;; but I see not reason to lock this away.
-       (let* ((qualifiers (subseq arg 2))
-              (qualifiers (if (stringp (last1 qualifiers))
-                              (butlast qualifiers)
-                              qualifiers)))
-         (every #'keywordp qualifiers)))
-    (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" arg))
-  t)
-
-;;{TODO} proper error
-(defun check-for-dups (in-args uniforms)
-  (if (intersection (mapcar #'first in-args) (mapcar #'first uniforms))
-      (error "Varjo: Duplicates names found between in-args and uniforms")
-      t))
-
-;;{TODO} proper error
-(defun check-for-stage-specific-limitations (stage)
-  (assert (not (and (member :vertex (context stage))
-                    (some #'qualifiers (input-variables stage))))
-          () "In args to vertex shaders can not have qualifiers"))
-
-;;----------------------------------------------------------------------
-
-(defun translate (stage)
-  (with-slots (stemcells-allowed) stage
-    (flow-id-scope
-      (let ((env (%make-base-environment :stemcells-allowed stemcells-allowed)))
-        (pipe-> (stage env)
-          #'set-env-context
-          #'add-context-glsl-vars
-          #'process-in-args
-          #'process-uniforms
-          #'compile-pass
-          #'make-post-process-obj
-          #'check-stemcells
-          #'post-process-ast
-          #'filter-used-items
-          #'gen-in-arg-strings
-          #'gen-out-var-strings
-          #'final-uniform-strings
-          #'dedup-used-types
-          #'final-string-compose
-          #'package-as-final-result-object)))))
+(defgeneric translate (stage)
+  (:method ((stage stage))
+    (with-slots (stemcells-allowed) stage
+      (flow-id-scope
+        (let ((env (%make-base-environment
+                    stage :stemcells-allowed stemcells-allowed)))
+          (pipe-> (stage env)
+            #'set-env-context
+            #'process-primitive-type
+            #'add-context-glsl-vars
+            #'expand-input-variables
+            #'process-uniforms
+            #'compile-pass
+            #'make-post-process-obj
+            #'check-stemcells
+            #'post-process-ast
+            #'filter-used-items
+            #'gen-in-arg-strings
+            #'gen-in-decl-strings
+            #'gen-out-var-strings
+            #'process-output-primtive
+            #'final-uniform-strings
+            #'dedup-used-types
+            #'final-string-compose
+            #'package-as-final-result-object))))))
 
 ;;----------------------------------------------------------------------
 
@@ -107,33 +38,55 @@
 ;;----------------------------------------------------------------------
 
 (defun add-context-glsl-vars (stage env)
-  (values stage (add-glsl-vars env *glsl-variables*)))
+  (values stage (add-glsl-vars env)))
 
 ;;----------------------------------------------------------------------
 
-;; {TODO} Proper error
-(defun process-in-args (stage env)
-  "Populate in-args and create fake-structs where they are needed"
-  (loop :for var :in (input-variables stage) :do
-     ;; with-v-arg (name type qualifiers declared-glsl-name) var
-     (let* ((glsl-name (or (glsl-name var) (safe-glsl-name-string (name var))))
-            (type (v-type-of var))
-            (name (name var)))
-       (typecase type
-         (v-struct (add-fake-struct var env))
-         (v-ephemeral-type (error "Varjo: Cannot have in-args with ephemeral types:~%~a has type ~a"
-                                  name type))
-         (t (let ((type (set-flow-id type (flow-id!))))
-              (%add-symbol-binding
-               name (v-make-value type env :glsl-name glsl-name) env)
-              (add-lisp-name name env glsl-name)
-              (setf (v-in-args env)
-                    (cons-end (make-instance 'input-variable
-                                             :name name
-                                             :glsl-name glsl-name
-                                             :type type
-                                             :qualifiers (qualifiers var))
-                              (v-in-args env))))))))
+(defmethod expand-input-variable ((stage stage)
+                                  (var-type v-type)
+                                  (input-variable input-variable)
+                                  (env environment))
+  (declare (ignore stage env))
+  ;; {TODO} Proper error
+  (error "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
+         (name input-variable) var-type))
+
+(defmethod expand-input-variable ((stage stage)
+                                  (var-type v-type)
+                                  (input-variable input-variable)
+                                  (env environment))
+  (let* ((type (set-flow-id var-type (flow-id!)))
+         (type (if (and (typep stage 'geometry-stage) (typep type 'v-array))
+                   (make-into-block-array type *in-block-instance-name*)
+                   type)))
+    (values (v-make-value type env :glsl-name (glsl-name input-variable))
+            (list (make-instance 'input-variable
+                                 :name (name input-variable)
+                                 :glsl-name (glsl-name input-variable)
+                                 :type type
+                                 :qualifiers (qualifiers input-variable)))
+            nil)))
+
+;; mutates env
+(defun expand-input-variables (stage env)
+  (mapcar (lambda (var)
+            (vbind (input-value expanded-vars expanded-funcs)
+                (expand-input-variable stage (v-type-of var) var env)
+              ;;
+              (%add-symbol-binding (name var) input-value env)
+              ;;
+              (add-lisp-name (name var) env (glsl-name input-value))
+              ;;
+              (setf (expanded-input-variables env)
+                    (append (expanded-input-variables env) expanded-vars))
+              ;;
+              (loop :for func :in expanded-funcs :do
+                 (%add-function (name func) func env))
+              ;;
+              ;; dont allow glsl name duplication
+              (loop :for var :in expanded-vars :do
+                 (declare-glsl-name-taken env (glsl-name var)))))
+          (input-variables stage))
   (values stage env))
 
 ;;----------------------------------------------------------------------
@@ -177,6 +130,53 @@
 
 ;;----------------------------------------------------------------------
 
+(defgeneric %process-primitive-type (stage primitive env)
+  ;;
+  (:method ((stage vertex-stage) primitive env)
+    (declare (ignore stage env))
+    primitive)
+
+  (:method ((stage tesselation-control-stage)
+            primitive env)
+    (declare (ignore stage env))
+	(assert (typep primitive 'patches) ()
+            'invalid-primitive-for-tesselation-stage
+            :prim (type-of primitive))
+	primitive)
+
+  (:method ((stage tesselation-evaluation-stage)
+            primitive env)
+    (declare (ignore stage env))
+    (assert (typep primitive 'patches) ()
+            'invalid-primitive-for-tesselation-stage
+            :prim (type-of primitive))
+	primitive)
+
+  (:method ((stage geometry-stage) primitive env)
+    (assert (typep primitive 'geometry-primitive) ()
+            'invalid-primitive-for-geometry-stage
+            :prim (type-of primitive))
+    primitive)
+
+  (:method ((stage fragment-stage) primitive env)
+    (declare (ignore stage env))
+    nil))
+
+(defun process-primitive-type (stage env)
+  (labels ((get-primitive (name)
+             (let ((type (find name *draw-modes*)))
+               (assert type () "Varjo: Could not find primitive named ~a" name)
+               (make-instance (find-symbol (symbol-name name) :varjo)))))
+    (let* ((prim (primitive-in stage))
+           (prim (etypecase prim
+                   (null nil)
+                   (symbol (get-primitive prim))
+                   (primitive prim))))
+      (setf (primitive-in stage) (%process-primitive-type stage prim env)))
+    (values stage env)))
+
+;;----------------------------------------------------------------------
+
 (defun compile-pass (stage env)
   (values (build-function :main () (lisp-code stage) nil env)
           stage
@@ -184,16 +184,26 @@
 
 ;;----------------------------------------------------------------------
 
+(defgeneric establish-out-set-for-stage (stage main-func)
+  ;;
+  (:method ((stage geometry-stage) main-func)
+    (assert (emptyp (return-set main-func)) ()
+            'returns-in-geometry-stage :return-set (return-set main-func))
+    (when (slot-boundp main-func 'emit-set)
+      (or (slot-value main-func 'emit-set) #())))
+  ;;
+  (:method (stage main-func)
+    (return-set main-func)))
+
 (defun make-post-process-obj (main-func stage env)
   (make-instance
    'post-compile-process
-   :main-func main-func
    :stage stage
    :env env
-   :used-external-functions (remove-duplicates (used-external-functions env))))
-
-(defmethod all-functions ((ppo post-compile-process))
-  (cons (main-func ppo) (all-cached-compiled-functions (env ppo))))
+   :used-external-functions (remove-duplicates (used-external-functions env))
+   :all-functions (cons main-func (all-cached-compiled-functions env))
+   :out-set (establish-out-set-for-stage stage main-func)
+   :main-metadata (top-level-scoped-metadata main-func)))
 
 ;;----------------------------------------------------------------------
 
@@ -225,7 +235,7 @@
 (defun post-process-func-ast
     (func env flow-origin-map val-origin-map node-copy-map)
   ;; prime maps with args (env)
-  ;; {TODO} need to prime in-args & structs/array elements
+  ;; {TODO} need to prime expanded-input-variables & structs/array elements
   (labels ((uniform-raw (val)
              (slot-value (first (ids (first (listify (flow-ids val)))))
                          'val)))
@@ -288,8 +298,8 @@
                            :append (ast-args a)
                            :else :collect a)))))
 
-               ;; remove %return nodes
-               ((ast-kindp node '%return)
+               ;; remove return nodes
+               ((ast-kindp node 'return)
                 (funcall walk (first (ast-args node)) :parent parent))
 
                (t (post-process-node node walk parent)))))
@@ -328,7 +338,7 @@
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
   (with-slots (env) post-proc-obj
-    (setf (used-types post-proc-obj)
+    (setf (used-user-structs post-proc-obj)
           (find-used-user-structs (all-functions post-proc-obj) env)))
   post-proc-obj)
 
@@ -346,85 +356,137 @@
 
 (defun gen-in-arg-strings (post-proc-obj)
   (with-slots (env stage) post-proc-obj
-    (let* ((type-objs (mapcar #'v-type-of (v-in-args env)))
-           (locations (if (member :vertex (v-context env))
-                          (calc-locations type-objs)
-                          (loop for i below (length type-objs) collect nil))))
+    (let* ((expanded-vars (expanded-input-variables env))
+           (is-geom (typep (stage post-proc-obj) 'geometry-stage))
+           (instance-name (when is-geom *in-block-instance-name*))
+           (block-arr-length (when is-geom
+                               (first
+                                (v-dimensions
+                                 (v-type-of
+                                  (first expanded-vars))))))
+           (locations (if (typep (stage post-proc-obj) 'vertex-stage)
+                          (calc-locations (mapcar #'v-type-of expanded-vars))
+                          (n-of nil (length expanded-vars))))
+           (glsl-decls
+            (mapcar (lambda (var location)
+                      (gen-in-var-string (or (glsl-name var) (name var))
+                                         (v-type-of var)
+                                         (qualifiers var)
+                                         location))
+                    expanded-vars
+                    locations)))
       ;;
-      (setf (in-args post-proc-obj)
-            (loop :for var :in (v-in-args env)
-               :for location :in locations
-               :for type :in type-objs
-               :collect
-               (make-instance
-                'input-variable
-                :name (name var)
-                :glsl-name (glsl-name var)
-                :type type
-                :qualifiers (qualifiers var)
-                :glsl-decl (gen-in-var-string (or (glsl-name var)
-                                                  (name var))
-                                              type
-                                              (qualifiers var)
-                                              location))))
-      ;;
-      (setf (input-variables post-proc-obj)
-            (loop :for var :in (input-variables stage)
-               :collect
-               (or (find (name var) (in-args post-proc-obj) :key #'name)
-                   var)))))
+      (setf (input-variable-glsl post-proc-obj)
+            (if (requires-in-interface-block (stage post-proc-obj))
+                (when glsl-decls
+                  (list (write-interface-block
+                         :in (in-block-name-for (stage post-proc-obj))
+                         glsl-decls
+                         :instance-name instance-name
+                         :length block-arr-length)))
+                glsl-decls))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
 
-(defun dedup-out-vars (out-vars)
-  (let ((seen (make-hash-table))
-        (deduped nil))
-    (loop :for (name qualifiers value) :in out-vars
-       :do (let ((tspec (type->type-spec (v-type-of value))))
-             (if (gethash name seen)
-                 (unless (equal tspec (gethash name seen))
-                   (error 'out-var-type-mismatch :var-name name
-                          :var-types (list tspec (gethash name seen))))
-                 (setf (gethash name seen) tspec
-                       deduped (cons (list name qualifiers value)
-                                     deduped)))))
-    (reverse deduped)))
+(defun gen-in-decl-strings (post-proc-obj)
+  (when (typep (stage post-proc-obj) 'geometry-stage)
+    (setf (in-declarations post-proc-obj)
+          (list (gen-geom-input-primitive-string
+                 (primitive-in post-proc-obj)))))
+  post-proc-obj)
+
+;;----------------------------------------------------------------------
 
 (defun gen-out-var-strings (post-proc-obj)
-  (with-slots (main-func env) post-proc-obj
-    (let* ((out-vars (dedup-out-vars (out-vars main-func)))
-           (out-types (mapcar (lambda (_)
-                                (v-type-of (third _)))
-                              out-vars))
-           (locations (if (member :fragment (v-context env))
+  (with-slots (stage out-set env) post-proc-obj
+    (let* ((out-types (map 'list #'v-type-of out-set))
+           (locations (if (typep stage 'fragment-stage)
                           (calc-locations out-types)
                           (loop for i below (length out-types) collect nil))))
-      (setf (out-vars post-proc-obj)
-            (loop :for (name qualifiers value) :in out-vars
-               :for type :in out-types
-               :for location :in locations
-               :collect
-               (let ((glsl-name (v-glsl-name value)))
-                 (make-instance
-                  'output-variable
-                  :name name
-                  :glsl-name glsl-name
-                  :type (v-type-of value)
-                  :qualifiers qualifiers
-                  :location location
-                  :glsl-decl (gen-out-var-string
-                              glsl-name type qualifiers location)))))
+      (dbind (glsl-decls output-variables)
+          (loop :for out-val :across out-set
+             :for location :in locations
+             :for i :from 0
+             :for glsl-name := (if (typep out-val 'external-return-val)
+                                   (out-name out-val)
+                                   (nth-return-name i stage))
+
+             :collect (gen-out-var-string glsl-name
+                                          (v-type-of out-val)
+                                          (qualifiers out-val)
+                                          location)
+             :into glsl
+
+             :collect (make-instance
+                       'output-variable
+                       :name (make-symbol glsl-name)
+                       :glsl-name glsl-name
+                       :type (v-type-of out-val)
+                       :qualifiers (qualifiers out-val)
+                       :location location)
+             :into output-variables
+
+             :finally (return (list glsl output-variables)))
+
+        (setf (output-variable-glsl post-proc-obj)
+              (if (requires-out-interface-block stage)
+                  (when glsl-decls
+                    (list (write-interface-block
+                           :out
+                           (out-block-name-for stage)
+                           (if (typep stage 'vertex-stage)
+                               (rest glsl-decls)
+                               glsl-decls))))
+                  glsl-decls))
+
+        (setf (output-variables post-proc-obj) output-variables))
+
       post-proc-obj)))
+
+;;----------------------------------------------------------------------
+
+(defun process-output-primtive (post-proc-obj)
+  (with-slots (main-metadata stage) post-proc-obj
+    (typecase stage
+
+	  (geometry-stage
+       (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
+         ;; {TODO} proper error
+         (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
+         (setf (out-declarations post-proc-obj)
+               (list (gen-geom-output-primitive-string tl)))
+         (setf (primitive-out post-proc-obj)
+               (primitive-name-to-instance (slot-value tl 'kind)))))
+
+	  (tesselation-control-stage
+	   (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
+         ;; {TODO} proper error
+         (assert tl () "Varjo: The function used as a tesselation control stage must have a top level output-primitive declaration")
+         (setf (out-declarations post-proc-obj)
+			   (list (gen-tess-con-output-primitive-string tl)))
+         (setf (primitive-out post-proc-obj)
+               (primitive-name-to-instance (list :patch (slot-value tl 'vertices))))))
+
+	  (tesselation-evaluation-stage
+	   ;; need to generate something that the geom shader could accept
+	   ;; (frag shader doesnt care so no need to think about it)
+	   (error "IMPLEMENT ME!"))
+
+      (t (setf (primitive-out post-proc-obj)
+               (primitive-in (stage post-proc-obj))))))
+
+  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 
 (defun final-uniform-strings (post-proc-obj)
   (with-slots (env) post-proc-obj
     (let* ((final-strings nil)
-           (structs (used-types post-proc-obj))
+           (structs (used-user-structs post-proc-obj))
            (uniforms (v-uniforms env))
            (implicit-uniforms nil))
+
       (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name))))
            (push (make-instance
@@ -435,9 +497,9 @@
                   :type type-obj
                   :glsl-decl (cond
                                ((member :ubo qualifiers)
-                                (write-interface-block :uniform string-name
-                                                       (v-slots type-obj)))
-                               ((v-typep type-obj 'v-ephemeral-type) nil)
+                                (write-ubo-block :uniform string-name
+                                                 (v-slots type-obj)))
+                               ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))
                  final-strings))
@@ -445,6 +507,7 @@
                     (not (find type-obj structs :key #'type->type-spec
                                :test #'v-type-eq)))
            (push type-obj structs)))
+
       (loop :for s :in (stemcells post-proc-obj) :do
          (with-slots (name string-name type cpu-side-transform) s
            (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
@@ -455,7 +518,7 @@
                     :glsl-name string-name
                     :type type-obj
                     :cpu-side-transform cpu-side-transform
-                    :glsl-decl (unless (v-typep type-obj 'v-ephemeral-type)
+                    :glsl-decl (unless (ephemeral-p type-obj)
                                  (gen-uniform-decl-string
                                   (or string-name (error "stem cell without glsl-name"))
                                   type-obj
@@ -468,7 +531,7 @@
                                    :test #'v-type-eq)))
                (push type-obj structs)))))
       ;;
-      (setf (used-types post-proc-obj) structs)
+      (setf (used-user-structs post-proc-obj) structs)
       (setf (uniforms post-proc-obj) final-strings)
       (setf (stemcells post-proc-obj) implicit-uniforms)
       post-proc-obj)))
@@ -477,9 +540,9 @@
 
 (defun dedup-used-types (post-proc-obj)
   (with-slots (main-env) post-proc-obj
-    (setf (used-types post-proc-obj)
+    (setf (used-user-structs post-proc-obj)
           (remove-duplicates
-           (mapcar #'v-signature (used-types post-proc-obj))
+           (mapcar #'v-signature (used-user-structs post-proc-obj))
            :test #'equal)))
   post-proc-obj)
 
@@ -495,19 +558,22 @@
   (with-slots (env stage) post-proc-obj
     (let* ((context (process-context-for-result (v-context env))))
       (make-instance
-       'varjo-compile-result
-       :glsl-code final-glsl-code
-       :stage-type (find-if λ(find _ *supported-stages*) context)
-       :in-args (in-args post-proc-obj)
-       :input-variables (input-variables post-proc-obj)
-       :out-vars (out-vars post-proc-obj)
+       (compiled-stage-type-for (stage post-proc-obj))
+       ;; stage slots
+       :input-variables (input-variables (stage post-proc-obj))
        :uniform-variables (uniforms post-proc-obj)
-       :implicit-uniforms (stemcells post-proc-obj)
        :context context
+       :lisp-code (lisp-code stage)
        :stemcells-allowed (allows-stemcellsp env)
+       :primitive-in (primitive-in (stage post-proc-obj))
+       ;; compiled-stage slots
+       :glsl-code final-glsl-code
+       :output-variables (output-variables post-proc-obj)
+       :starting-stage (stage post-proc-obj)
+       :implicit-uniforms (stemcells post-proc-obj)
        :used-external-functions (used-external-functions post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
-       :lisp-code (lisp-code stage)))))
+       :primitive-out (primitive-out post-proc-obj)))))
 
 (defun process-context-for-result (context)
   ;; {TODO} having to remove this is probably a bug

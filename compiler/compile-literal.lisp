@@ -7,10 +7,12 @@
     (if code
         (make-code-obj bool-type "true" :node-tree (ast-node! :literal code
                                                               bool-type
-                                                              env env))
+                                                              env env)
+                       :pure t)
         (make-code-obj bool-type "false" :node-tree (ast-node! :literal code
                                                                bool-type
-                                                               env env)))))
+                                                               env env)
+                       :pure t))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -25,9 +27,13 @@
          (num-type (set-flow-id (get-number-type code) flow-id)))
     (make-code-obj num-type (gen-number-string code num-type)
                    :node-tree (ast-node! :literal code num-type
-                                         env env))))
+                                         env env)
+                   :pure t)))
 
 (defun compile-array-literal (arr env)
+  (assert (= (array-rank arr) 1) (arr)
+          'multi-dimensional-array
+          :dimensions (array-dimensions arr))
   (let* ((len (length arr))
          (elements (map 'list λ(compile-literal _ env) arr))
          (types (mapcar #'v-type-of elements))
@@ -38,4 +44,5 @@
     (code! :type array-type
            :current-line glsl
            :used-types (list element-type)
-           :node-tree ast)))
+           :node-tree ast
+           :pure t)))

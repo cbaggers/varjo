@@ -1,5 +1,5 @@
 (in-package :varjo)
-
+(in-readtable :fn.reader)
 ;;------------------------------------------------------------
 ;; Macro for defining varjo types
 
@@ -8,7 +8,9 @@
   (unless (eq name 'v-type)
     (assert (and (listp direct-superclass)
                  (symbolp (first direct-superclass))
-                 (= (length direct-superclass) 1))
+                 (or (= (length direct-superclass) 1)
+                     (and (= (length direct-superclass) 2)
+                          (find 'v-ephemeral-type direct-superclass))))
             ()
             "Varjo: All types must specify one superclass, this will usually be v-type"))
   ;;
@@ -39,7 +41,8 @@
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
-   (ctv :initform nil :initarg :ctv :accessor ctv)))
+   (ctv :initform nil :initarg :ctv :accessor ctv)
+   (default-value :initarg :default-value)))
 
 (defmethod v-superclass ((type v-type))
   (with-slots (superclass) type
@@ -129,8 +132,111 @@ doesnt"))
 (def-v-type-class v-ephemeral-type (v-type) ())
 
 (defgeneric ephemeral-p (x)
+  (:method ((x v-type))
+    (typep x 'v-ephemeral-type))
   (:method (x)
-    (typep (v-type-of x) 'v-ephemeral-type)))
+    (ephemeral-p (v-type-of x))))
+
+;;------------------------------------------------------------
+;; Ephemeral Array
+;;
+;; An array for item which that have no representation in glsl.
+;;
+
+(def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
+
+(defmethod v-make-type ((type v-ephemeral-array) flow-id &rest args)
+  (destructuring-bind (element-type length) args
+    (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+                (and (symbolp length) (string= length :*))))
+    (initialize-instance type
+                         :element-type (type-spec->type element-type)
+                         :dimensions (listify length)
+                         :flow-ids flow-id)))
+
+;;------------------------------------------------------------
+;; Block Array
+;;
+;; These serve a very specific purpose; they are used when you have an
+;; array'd interface block but you want to pretend that that members of
+;; the block are array'd.
+;;
+;; This is different from ephemeral arrays where you are mimicking a true
+;; array.
+;;
+
+(def-v-type-class v-block-array (v-ephemeral-type)
+  ((element-type :initform t :initarg :element-type)
+   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
+   (block-name :initarg :block-name :initform "<invalid>" :reader block-name)))
+
+(defmethod v-make-type ((type v-block-array) flow-id &rest args)
+  (destructuring-bind (block-name element-type length) args
+    (let* ((dims (listify length))
+           (length (first dims)))
+      (assert (= 1 (length dims)))
+      (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+                  (and (symbolp length) (string= length :*))))
+      (initialize-instance type
+                           :block-name block-name
+                           :element-type (type-spec->type element-type)
+                           :dimensions dims
+                           :flow-ids flow-id))))
+
+(defmethod post-initialise ((object v-block-array))
+  (with-slots (dimensions element-type) object
+    (setf dimensions (listify dimensions))
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-block-array))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+(defmethod type->type-spec ((type v-block-array))
+  `(v-block-array ,(if (slot-boundp type 'block-name)
+                       (block-name type)
+                       "<invalid>")
+                  ,(type->type-spec (v-element-type type))
+                  ,(v-dimensions type)))
+
+(defmethod copy-type ((type v-block-array))
+  (make-instance 'v-block-array
+                 :block-name (block-name type)
+                 :dimensions (v-dimensions type)
+                 :element-type (v-element-type type)))
+
+(defun make-into-block-array (array-type block-name)
+  (assert (v-typep array-type 'v-array))
+  (let ((r (make-instance 'v-block-array
+                          :block-name block-name
+                          :dimensions (v-dimensions array-type)
+                          :element-type (v-element-type array-type)
+                          :ctv (ctv array-type)
+                          :flow-ids (flow-ids array-type))))
+    (when (slot-boundp array-type 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value array-type 'default-value)))
+    r))
+
+(defun block-array-to-regular-array (block-array)
+  (assert (v-typep block-array 'v-block-array))
+  (let ((r (make-instance 'v-array
+                          :dimensions (v-dimensions block-array)
+                          :element-type (v-element-type block-array)
+                          :ctv (ctv block-array)
+                          :flow-ids (flow-ids block-array))))
+    (when (slot-boundp block-array 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value block-array 'default-value)))
+    r))
+
+(defmethod v-glsl-string ((object v-block-array))
+  (v-glsl-string (v-element-type object)))
 
 ;;------------------------------------------------------------
 ;; Unrepresentable Value
@@ -162,17 +268,6 @@ doesnt"))
 (defmethod v-dimensions (object)
   (error 'doesnt-have-dimensions :vtype object))
 
-;;------------------------------------------------------------
-;; Array
-
-(def-v-type-class v-array (v-container)
-  ((element-type :initform t :initarg :element-type)
-   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
-
-(defmethod v-glsl-size ((type v-array))
-  (* (apply #'* (v-dimensions type))
-     (slot-value (v-element-type type) 'glsl-size)))
-
 (defmethod v-element-type ((object v-container))
   (let ((result (slot-value object 'element-type)))
     ;; {TODO} dedicated error
@@ -181,11 +276,52 @@ doesnt"))
             object result)
     result))
 
+;;------------------------------------------------------------
+;; Array
+
+(def-v-type-class v-array (v-container)
+  ((element-type :initform t :initarg :element-type)
+   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
+
+(defmethod v-make-type ((type v-array) flow-id &rest args)
+  (destructuring-bind (element-type length) args
+    (initialize-instance
+     type
+     :element-type (type-spec->type element-type (when flow-id (flow-id!)))
+     :dimensions (listify length)
+     :flow-ids flow-id)))
+
+(defun v-array-spec-p (spec)
+  (labels ((valid-dim-p (x)
+             (or (typep x '(integer 0 #xFFFF))
+                 (and (symbolp x) (string= x :*)))))
+    (and (listp spec)
+         (= (length spec) 2)
+         (or (valid-dim-p (second spec))
+             (and (listp spec) (every #'valid-dim-p (second spec))))
+         (vtype-existsp (first spec)))))
+
+(defmethod v-glsl-size ((type v-array))
+  (* (apply #'* (v-dimensions type))
+     (slot-value (v-element-type type) 'glsl-size)))
+
+(defmethod post-initialise ((object v-array))
+  (labels ((valid-size-p (l)
+             (or (and (integerp l) (>= l 0))
+                 (eq l '*))))
+    (with-slots (dimensions element-type) object
+      (let ((dim (listify dimensions)))
+        (assert (<= (length dim) 1) (dim)
+                'multi-dimensional-array :dimensions dim)
+        (assert (every #'valid-size-p dim))
+        (setf dimensions dim))
+      (unless (typep element-type 'v-type)
+        (setf element-type (type-spec->type element-type))))))
+
 (defmethod copy-type ((type v-array))
-  (let* ((new-inst (call-next-method)))
-    (setf (v-dimensions new-inst) (v-dimensions type))
-    (setf (slot-value new-inst 'element-type) (v-element-type type))
-    new-inst))
+  (make-instance 'v-array
+                 :dimensions (v-dimensions type)
+                 :element-type (v-element-type type)))
 
 (defmethod type->type-spec ((type v-array))
   (if (and (v-element-type type) (v-dimensions type))
@@ -193,10 +329,21 @@ doesnt"))
       'v-array))
 
 (defmethod v-glsl-string ((object v-array))
-  (format nil "~a ~~a~{[~a]~}" (v-glsl-string (v-element-type object))
-          (mapcar (lambda (x)
-                    (if (numberp x) x ""))
-                  (v-dimensions object))))
+  (labels ((dims (x)
+             (append (v-dimensions x)
+                     (when (typep (v-element-type x) 'v-array)
+                       (dims (v-element-type x)))))
+           (root-type (x)
+             (if (typep (v-element-type x) 'v-array)
+                 (root-type (v-element-type x))
+                 (v-element-type x))))
+    ;;
+    (let ((dims (mapcar λ(if (eq _ '*) "" _)
+                        (dims object)))
+          ;; The reason for this ↑↑ logic is that we want
+          ;; * to become []  not [*]
+          (elem-type (root-type object)))
+      (format nil "~a~{[~a]~}" (v-glsl-string elem-type) dims))))
 
 (defmethod v-array-type-of ((element-type v-type) dimensions flow-id)
   (let ((dimensions (ensure-list dimensions)))
@@ -204,10 +351,15 @@ doesnt"))
                    :element-type element-type
                    :flow-ids flow-id)))
 
+(defmethod v-typep ((a v-array) (b v-array) &optional (env *global-env*))
+  (declare (ignore env))
+  (v-typep (v-element-type a) (v-element-type b)))
+
 ;;------------------------------------------------------------
 ;; Sampler
 
-(def-v-type-class v-sampler (v-type) ())
+(def-v-type-class v-sampler (v-type)
+  ((element-type :initform 'v-type)))
 
 (defmethod post-initialise ((object v-sampler))
   (with-slots (element-type) object
@@ -234,6 +386,12 @@ doesnt"))
 
 (defmethod type->type-spec ((type v-or))
   `(or ,@(mapcar #'type->type-spec (v-types type))))
+
+(defmethod v-make-type ((type v-or) flow-id &rest args)
+  (declare (ignore flow-id))
+  ;; flow-id is discarded as the flow-id will be the union of the
+  ;; ids of the types in the spec
+  (gen-or-type args))
 
 (defgeneric gen-or-type (types)
   (:method (types)
@@ -276,7 +434,7 @@ doesnt"))
   (make-instance 'v-any-one-of :types (v-types type) :flow-ids (flow-ids type)))
 
 (defmethod type->type-spec ((type v-any-one-of))
-  `(any-of-of ,@(mapcar #'type->type-spec (v-types type))))
+  `(any-one-of ,@(mapcar #'type->type-spec (v-types type))))
 
 (defgeneric gen-any-one-of-type (types)
   (:method (types)
@@ -321,6 +479,14 @@ doesnt"))
 (def-v-type-class v-function-type (v-unrepresentable-value)
   ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
+
+(defmethod v-make-type ((type v-function-type) flow-id &rest args)
+  (destructuring-bind (arg-types return-type) args
+    (make-instance
+     'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
+     :return-spec (or (mapcar #'type-spec->type (uiop:ensure-list return-type))
+                      (list (type-spec->type :void)))
+     :flow-ids flow-id)))
 
 (defmethod print-object ((object v-function-type) stream)
   (with-slots (name argument-spec return-spec) object
@@ -368,31 +534,27 @@ doesnt"))
                      (cons (p-symb 'varjo 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
+          ;;
           ((eq spec t) (type-spec->type 'v-type))
+          ;;
           ((and (symbolp spec) (vtype-existsp spec))
-           (let ((type (make-instance spec :flow-ids flow-id)))
-             (when (typep type 'v-type)
-               type)))
+           (make-instance spec :flow-ids flow-id))
+          ;;
+          ;;
           ((and (listp spec) (eq (first spec) 'function))
-           (make-instance
-            'v-function-type :arg-spec (mapcar #'type-spec->type (second spec))
-            :return-spec (or (mapcar #'type-spec->type
-                                     (uiop:ensure-list (third spec)))
-                             (list (type-spec->type :void)))
-            :flow-ids flow-id))
+           (try-type-spec->type `(v-function-type ,@(rest spec)) flow-id))
+          ;;
           ((and (listp spec) (eq (first spec) 'or))
-           ;; flow-id is discarded as the flow-id will be the union of the
-           ;; ids of the types in the spec
-           (gen-or-type (rest spec)))
+           (try-type-spec->type `(v-or ,@(rest spec)) flow-id))
+          ;;
+          ((v-array-spec-p spec)
+           (try-type-spec->type `(v-array ,@spec) flow-id))
+          ;;
           ((and (listp spec) (vtype-existsp (first spec)))
-           (destructuring-bind (type dimensions) spec
-             (make-instance 'v-array
-                            :element-type (type-spec->type
-                                           (if (keywordp type)
-                                               (symb 'v- type)
-                                               type))
-                            :dimensions dimensions
-                            :flow-ids flow-id)))
+           (apply #'v-make-type
+                  (allocate-instance (find-class (first spec)))
+                  flow-id
+                  (rest spec)))
           (t nil))))
 
 ;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
@@ -426,7 +588,7 @@ doesnt"))
     (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
     (setf (gethash alt-type-name alternate-ht) src-type-name)
     (setf (gethash src-type-name alternate-ht-backward) alt-type-name)
-    (when (and (typep (type-spec->type src-type-name) 'v-ephemeral-type)
+    (when (and (ephemeral-p (type-spec->type src-type-name))
                (not (get-form-binding alt-type-name *global-env*)))
       (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
     alt-type-name)
@@ -465,34 +627,28 @@ doesnt"))
 ;;------------------------------------------------------------
 ;; Type predicate
 
-(defmethod v-typep (a (b symbol) &optional (env *global-env*))
+(defmethod v-typep ((a v-type) (b symbol) &optional (env *global-env*))
   (declare (ignore env))
-  (typep a (type-of (type-spec->type b))))
+  (v-typep a (type-spec->type (resolve-name-from-alternative b))))
 
-(defmethod v-typep (a (b list) &optional (env *global-env*))
+(defmethod v-typep ((a v-type) (b list) &optional (env *global-env*))
   (declare (ignore env))
-  (typep a (type-of (type-spec->type b))))
-
-(defmethod v-typep ((a t) (b v-none) &optional (env *global-env*))
-  (declare (ignore env))
-  (typep a (type-of b)))
+  (let ((b (resolve-name-from-alternative
+            (mapcar #'resolve-name-from-alternative b))))
+    (v-typep a (type-spec->type b))))
 
 (defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
-  (v-typep a (type->type-spec b) env))
-
-(defmethod v-typep ((a v-type) b &optional (env *global-env*))
   (declare (ignore env))
-  (cond ((symbolp b)
-         (typep a (resolve-name-from-alternative b)))
-        ((and (listp b) (numberp (second b)))
-         (typep a (resolve-name-from-alternative (first b))))))
+  (typep a (type-of b)))
 
 (defmethod v-typep ((a null) b &optional (env *global-env*))
   (declare (ignore env a b))
   nil)
+
 (defmethod v-typep (a (b null) &optional (env *global-env*))
   (declare (ignore env a b))
   nil)
+
 (defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
   (declare (ignore env a b))
   t)
@@ -556,7 +712,7 @@ doesnt"))
                   :collect (if (typep type 'v-type)
                                (type->type-spec type)
                                type))))
-    (if (loop :for name :in names :always (eq name (first names)))
+    (if (loop :for name :in names :always (equal name (first names)))
         (type-spec->type (first names))
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name

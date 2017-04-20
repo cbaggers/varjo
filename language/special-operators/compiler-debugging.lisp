@@ -8,14 +8,13 @@
   :args-valid t
   :return
   (progn
-    (break (format nil "Varjo compiler breakpoint:~%~s" (or datum ""))
+    (assert (or (null datum) (stringp datum)) (datum)
+            "Varjo: first argument to %break must be a format string or nil")
+    (break (format nil "Varjo compiler breakpoint (~~a):~%~a~%~%~~a"
+                   (apply #'format nil (or datum "~{~s~}") args))
+           env
            (mapcar λ(compile-form _ env) args))
-    (let* ((none-type (gen-none-type))
-           (node (make-code-obj
-                  none-type nil
-                  :node-tree (ast-node! :break (cons datum args)
-                                        none-type nil nil))))
-      (values node env))))
+    (compile-form '(values) env)))
 
 (v-defspecial %peek (form)
   :args-valid t

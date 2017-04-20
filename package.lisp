@@ -18,7 +18,7 @@
    ;; special functions
    :setf-1
    :%assign
-   :%return
+   :return
    :labels-no-implicit
    :%out
    :%if
@@ -29,6 +29,9 @@
    :%break
    :values-safe
    :glsl-expr
+   :output-primitive
+   :emit-data
+   :emit
 
    ;; bitwise operators
    :>>
@@ -62,13 +65,10 @@
    ;; struct slot names
    :near
    :far
-   :diff
-   ))
-
-(uiop:define-package #:varjo-syms)
+   :diff))
 
 (uiop:define-package #:varjo-conditions
-    (:use #:cl)
+    (:use #:cl #:varjo-lang)
   (:shadowing-import-from :varjo-lang :clamp :switch)
   (:export :missing-function-error
            :problem-with-the-compiler
@@ -85,6 +85,7 @@
            :could-not-find-any
            :no-valid-function
            :return-type-mismatch
+           :emit-type-mismatch
            :non-place-assign
            :setq-readonly
            :setf-readonly
@@ -147,6 +148,25 @@
            :dup-names-in-let
            :uninitialized-var
            :global-uninitialized-var
+           :nil-return-set
+           :with-fresh-env-scope-missing-env
+           :vertex-stage-primary-type-mismatch
+           :multi-dimensional-array
+           :make-array-mandatory-args
+           :make-array-conflicting-args
+           :make-array-conflicting-lengths
+           :make-array-cant-cast-args
+           :make-array-cant-establish-default-value
+           :should-be-quoted
+           :should-be-constant
+           :stage-in-context
+           :invalid-stage-kind
+           :invalid-primitive-for-geometry-stage
+           :rolling-translate-invalid-stage
+           :couldnt-convert-primitive-for-geometry-stage
+           :test-translate-failed
+           :returns-in-geometry-stage
+           :primitives-dont-match
 
            ;; restarts
            :setq-supply-alternate-type
@@ -196,7 +216,7 @@
            :v-dimensions
            :v-element-type
            :v-fake-type
-           :v-glsl-name
+           :glsl-name
            :v-glsl-string
            :v-payload
            :v-restriction
@@ -368,14 +388,17 @@
 
            ;; metadata
            :combine-metadata
+           :output-primitive
 
            ;; external functions
+           :in-args
            :external-function
            :add-external-function
            :delete-external-function
 
            ;;compiler
-           :*supported-stages*
+           :*stage-names*
+           :*stage-type-names*
            :*supported-versions*
            :make-stage
            :compile-form
@@ -388,29 +411,42 @@
            :make-stage
            :translate
            :rolling-translate
+           :test-translate
+           :test-translate-raising
            :split-arguments
-           :*stage-types*
+           :*stage-names*
            :v-compile
 
            ;;compile-result
-           :varjo-compile-result
+           :compiled-stage
            :compiled-function-result
-           :glsl-code
-           :stage-type
-           :out-vars
-           :in-args
            :uniforms
-           :implicit-uniforms
-           :context
-           :stemcells-allowed
-           :used-external-functions
            :ast
-           :function-asts
            :to-arg-form
-           :uniform-variables
+
            :stage
+           :vertex-stage
+           :tesselation-control-stage
+           :tesselation-evaluation-stage
+           :geometry-stage
+           :fragment-stage
+           :compiled-stage
+
            :input-variables
+           :uniform-variables
+           :context
            :lisp-code
+           :stemcells-allowed
+           :previous-stage
+           :primitive-in
+
+           :glsl-code
+           :output-variables
+           :starting-stage
+           :implicit-uniforms
+           :used-external-functions
+           :function-asts
+           :primitive-out
 
            ;;utils
            :map-environments

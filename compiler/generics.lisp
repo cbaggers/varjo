@@ -34,13 +34,13 @@
 (defgeneric v-special-functionp (func))
 (defgeneric v-element-type (object))
 (defgeneric merge-obs (objs &key type current-line to-block
-                              out-vars returns multi-vals
+                              emit-set return-set multi-vals
                               stemcells out-of-scope-args
-                              place-tree mutations node-tree))
+                              place-tree pure node-tree))
 (defgeneric copy-code (code-obj &key type current-line to-block
-                                  out-vars returns multi-vals
+                                  emit-set return-set multi-vals
                                   stemcells out-of-scope-args
-                                  place-tree mutations node-tree))
+                                  place-tree pure node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
 (defgeneric func-need-arguments-compiledp (func))
@@ -86,3 +86,6 @@
 (defgeneric get-stemcell-name-for-flow-id (id env))
 (defgeneric metadata-for-argument (name metadata-key env))
 (defgeneric v-superclass (type))
+(defgeneric v-make-type (type flow-id &rest args))
+(defgeneric block-name-string (block-name))
+(defgeneric expand-input-variable (stage var-type input-variable env))

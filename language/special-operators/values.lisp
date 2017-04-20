@@ -4,6 +4,10 @@
 ;;------------------------------------------------------------
 ;; Values
 
+;; type & multi-vals are set by values.
+;; 'return' turns those into a return-set.
+;; 'emit' turns those into a emit-set.
+
 (v-defspecial values (&rest values)
   :args-valid t
   :return
@@ -37,8 +41,9 @@
                                  objs
                                  qualifier-lists)
                          (code-type result) env env)))
-    (values (copy-code result :multi-vals (mapcar #'make-mval (rest vals)
-                                                  (rest qualifier-lists))
+    (values (copy-code result
+                       :multi-vals (mapcar #'make-mval (rest vals)
+                                           (rest qualifier-lists))
                        :node-tree ast)
             env)))
 
@@ -46,7 +51,8 @@
   (let ((void (type-spec->type :void (flow-id!))))
     (values (code! :type void
                    :current-line nil
-                   :node-tree (ast-node! 'values nil void env env))
+                   :node-tree (ast-node! 'values nil void env env)
+                   :pure t)
             env)))
 
 (defun extract-value-qualifiers (value-form)
