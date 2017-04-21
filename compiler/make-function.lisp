@@ -124,6 +124,7 @@
                                out-arg-pairs
                                return-for-glsl body-obj
                                implicit-args in-out-args)))
+             (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
              (func (make-user-function-obj name
                                            (unless strip-glsl
                                              (gen-function-transform
@@ -131,7 +132,7 @@
                                               multi-return-vars
                                               implicit-args))
                                            nil ;;{TODO} should be context
-                                           (mapcar #'second args)
+                                           arg-types
                                            (cons type multi-return-vars)
                                            :glsl-name glsl-name
                                            :implicit-args implicit-args
@@ -186,7 +187,8 @@
            (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
                                         all-vars))
            (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
-           (func (make-user-function-obj name nil nil (mapcar #'second args) nil
+           (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
+           (func (make-user-function-obj name nil nil arg-types nil
                                          :code (list args body)
                                          :captured-vars visible-var-pairs))
            (ast-body (if (= 1 (length body))

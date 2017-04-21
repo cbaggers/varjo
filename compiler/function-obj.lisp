@@ -133,18 +133,19 @@
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
                                  code captured-vars pure emit-set)
+  (when (listp return-spec)
+    (assert (every (lambda (x)
+                     (or (typep x 'v-type)
+                         (typep x 'named-return-val)))
+                   return-spec)
+            () 'user-func-invalid-x :returns name arg-spec))
+  (when (listp arg-spec)
+    (assert (every (lambda (x) (typep x 'v-type)) arg-spec)
+            () 'user-func-invalid-x :args name arg-spec))
   (make-instance 'v-user-function
                  :glsl-string transform
-                 :arg-spec (if (listp arg-spec)
-                               (loop :for spec :in arg-spec :collect
-                                  (type-spec->type spec))
-                               arg-spec)
-                 :return-spec
-                 (mapcar (lambda (rspec)
-                           (if (type-specp rspec)
-                               (type-spec->type rspec)
-                               rspec))
-                         return-spec)
+                 :arg-spec arg-spec
+                 :return-spec return-spec
                  :versions versions :v-place-index v-place-index
                  :glsl-name glsl-name
                  :name name
