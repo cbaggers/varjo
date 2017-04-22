@@ -40,7 +40,7 @@
                 (%main-return code-obj implicit new-env)
                 (%regular-return code-obj implicit)))
            (ast (ast-node! 'return (node-tree code-obj)
-                           (code-type result)
+                           (primary-type result)
                            env env))
            (ret-set (or (return-set result)
                         (error 'nil-return-set
@@ -61,12 +61,12 @@
                                 (mapcar λ(flow-ids (multi-val-value _))
                                         (multi-vals code-obj))))
               (flow-ids code-obj)))
-         (suppress-return (or (v-typep (code-type code-obj) 'v-void)
-                              (v-typep (code-type code-obj)
+         (suppress-return (or (v-typep (primary-type code-obj) 'v-void)
+                              (v-typep (primary-type code-obj)
                                        'v-ephemeral-type)))
          (ret-set (make-return-set-from-code-obj code-obj)))
     ;;
-    (when (and implicit (v-typep (code-type code-obj) void))
+    (when (and implicit (v-typep (primary-type code-obj) void))
       (setf ret-set (or (return-set code-obj) (make-return-set)))
       (setf flow-result
             (case= (length ret-set)

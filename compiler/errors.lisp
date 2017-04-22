@@ -124,7 +124,7 @@
 (deferror setf-type-match (:error-type varjo-critical-error)
     (code-obj-a code-obj-b)
     "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
-  (code-type code-obj-a) (code-type code-obj-b))
+  (primary-type code-obj-a) (primary-type code-obj-b))
 
 (deferror setq-type-match (:error-type varjo-critical-error)
     (var-name old-value new-value)
@@ -134,7 +134,7 @@ due to the static nature of glsl.
 var name: ~a
 type-of ~a: ~a
 type-of new-value: ~a"
-  var-name var-name (v-type-of old-value) (code-type new-value))
+  var-name var-name (v-type-of old-value) (primary-type new-value))
 
 (deferror cannot-not-shadow-core () ()
     "You cannot shadow or replace core macros or special functions.")
@@ -148,13 +148,13 @@ type-of new-value: ~a"
 
 (deferror var-type-mismatch () (var-type code-obj)
     "Type specified does not match the type of the form~%~s~%~s"
-  (code-type code-obj) var-type)
+  (primary-type code-obj) var-type)
 
 (deferror switch-type-error () (test-obj keys)
-    "In a switch statement the result of the test and the keys must all be either ints or uints:~%Test type: ~a~%Keys used: ~{~a~^,~}" (code-type test-obj) keys)
+    "In a switch statement the result of the test and the keys must all be either ints or uints:~%Test type: ~a~%Keys used: ~{~a~^,~}" (primary-type test-obj) keys)
 
 (deferror loop-will-never-halt () (test-code test-obj)
-    "The loop is using the following code as it's test.~%~a~%~%This will only ever result in a ~a which means the loop will never halt" test-code (type->type-spec (code-type test-obj)))
+    "The loop is using the following code as it's test.~%~a~%~%This will only ever result in a ~a which means the loop will never halt" test-code (type->type-spec (primary-type test-obj)))
 
 (deferror for-loop-simple-expression () ()
     "Only simple expressions are allowed in the condition and update slots of a for loop")
@@ -164,7 +164,7 @@ type-of new-value: ~a"
 
 (deferror invalid-for-loop-type () (decl-obj)
     "Invalid type ~a used as counter for for-loop"
-  (code-type decl-obj))
+  (primary-type decl-obj))
 
 (deferror no-version-in-context () (env)
     "No supported version found in context:~%~a"
@@ -176,7 +176,8 @@ type-of new-value: ~a"
 (deferror unable-to-resolve-func-type () (func-name args)
     "Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%"
   func-name
-  (mapcar #'type->type-spec (mapcar #'code-type args)))
+  (mapcar #'type->type-spec (mapcar #'primary-type args)))
+
 
 (deferror out-var-type-mismatch () (var-name var-types)
     "The out variable ~a is has been set with different types.~%Types used: ~a" var-name var-types)
@@ -285,8 +286,8 @@ e.g. (~a :vec3)"
     "In varjo it is not valid to have a ~s with an empty body."
   form-name)
 
-(deferror flow-ids-mandatory (:error-type varjo-critical-error) (for code-type)
-    "~s must be given flow id/s when created: type - ~s" for code-type)
+(deferror flow-ids-mandatory (:error-type varjo-critical-error) (for primary-type)
+    "~s must be given flow id/s when created: type - ~s" for primary-type)
 
 (deferror flow-id-must-be-specified-vv (:error-type varjo-critical-error) ()
     "v-values must be given a flow id when created")
@@ -305,10 +306,10 @@ This is a compiler bug
 
 (deferror if-branch-type-mismatch (:error-type varjo-critical-error) (then-obj)
     "Type mismatch: else-case is nil which is of bool type, yet the then form is of ~s type."
-  (type->type-spec (code-type then-obj)))
+  (type->type-spec (primary-type then-obj)))
 
 (deferror if-test-type-mismatch (:error-type varjo-critical-error) (test-obj)
-    "The result of the test must be a bool.~%~s" (code-type test-obj))
+    "The result of the test must be a bool.~%~s" (primary-type test-obj))
 
 (deferror cross-scope-mutate (:error-type varjo-critical-error) (var-name code)
     "It is illegal to setf or setq variables from outside the function's own scope~%

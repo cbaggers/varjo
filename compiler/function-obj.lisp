@@ -14,10 +14,10 @@
    (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
    (in-out-args :initform nil :initarg :in-out-args :reader in-out-args)
    (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-                                     :code-type :v-function)
+                                     :primary-type :v-function)
                     :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
    (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-                              :code-type :v-function)
+                              :primary-type :v-function)
              :initarg :flow-ids :reader flow-ids)
    (emit-set :initform nil :initarg :emit-set :reader emit-set)
    (pure :initform nil :initarg :pure :reader pure-p)))

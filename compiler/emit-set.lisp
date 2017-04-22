@@ -44,7 +44,7 @@
               :initial-value (first sets)))))
 
 (defun make-emit-set-from-code-obj (code-obj)
-  (assert (not (v-typep (code-type code-obj) (type-spec->type :void))) ()
+  (assert (not (v-typep (primary-type code-obj) (type-spec->type :void))) ()
           "Varjo: Cannot emit void data")
   (let ((mval-rets (mapcar #'make-emit-val-from-mval (multi-vals code-obj)))
         (prim-emit (make-emit-val (v-type-of code-obj))))

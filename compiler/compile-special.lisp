@@ -46,12 +46,12 @@
       (first code-objs)
       (let* ((last-obj (last1 (remove nil code-objs))))
         (merge-obs code-objs
-                   :type (code-type last-obj)
+                   :type (primary-type last-obj)
                    :current-line (current-line last-obj)
                    :to-block (merge-lines-into-block-list code-objs)
                    :multi-vals (multi-vals (last1 code-objs))
                    :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
-                                         (code-type last-obj)
+                                         (primary-type last-obj)
                                          starting-env final-env)))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)
@@ -119,9 +119,9 @@
          (type (if new-value
                    (progn
                      (assert (flow-ids new-value))
-                     (replace-flow-id (code-type code-obj)
+                     (replace-flow-id (primary-type code-obj)
                                       (flow-ids new-value)))
-                   (code-type code-obj))))
+                   (primary-type code-obj))))
     (copy-code code-obj
                :type type
                :current-line current-line
@@ -153,7 +153,7 @@
               ;;
               (value-obj
                (typify-code
-                (make-code-obj (or type-obj (code-type value-obj))
+                (make-code-obj (or type-obj (primary-type value-obj))
                                glsl-name
                                :node-tree :ignored)
                 value-obj))
@@ -181,22 +181,22 @@
        (add-symbol-binding
         name
         (if (and (not value-obj) (not assume-bound))
-            (v-make-uninitialized (or type-obj (code-type value-obj)) env
+            (v-make-uninitialized (or type-obj (primary-type value-obj)) env
                                   :glsl-name glsl-name)
-            (v-make-value (or type-obj (code-type value-obj))
+            (v-make-value (or type-obj (primary-type value-obj))
                           env
                           :glsl-name glsl-name))
         env)))))
 
 (defun %validate-var-types (var-name type code-obj)
-  (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
+  (when (and code-obj (typep (primary-type code-obj) 'v-stemcell))
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
            (string-downcase var-name) (current-line code-obj)))
   (when (and (null type) (null code-obj))
     (error "Could not establish the type of the variable: ~s" var-name))
-  (when (and code-obj type (not (v-type-eq (code-type code-obj) type)))
+  (when (and code-obj type (not (v-type-eq (primary-type code-obj) type)))
     (error "Type specified does not match the type of the form~%~s~%~s"
-           (code-type code-obj) type))
+           (primary-type code-obj) type))
   t)
 
 ;;----------------------------------------------------------------------

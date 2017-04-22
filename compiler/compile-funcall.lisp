@@ -49,7 +49,7 @@
                             (to-block obj))))
             (assert (eq final-env (ast-ending-env ast)))
             (merge-obs (list func-code-obj obj)
-                       :type (code-type obj)
+                       :type (primary-type obj)
                        :current-line (current-line obj)
                        :to-block (remove nil to-block)
                        :node-tree funcall-ast)))))))
@@ -70,10 +70,10 @@
         (t (error 'problem-with-the-compiler :target func))))))
 
 (defun get-actual-function (func-code-obj code)
-  (let ((code-type (code-type func-code-obj)))
-    (if (typep code-type 'v-any-one-of)
-        (make-function-set (mapcar #'ctv (v-types code-type)))
-        (let* ((func (ctv code-type)))
+  (let ((primary-type (primary-type func-code-obj)))
+    (if (typep primary-type 'v-any-one-of)
+        (make-function-set (mapcar #'ctv (v-types primary-type)))
+        (let* ((func (ctv primary-type)))
           (restart-case (typecase func
                           (v-function func)
                           (v-function-set func)
@@ -81,7 +81,7 @@
                                     :funcall-form code)))
             ;;
             (allow-call-function-signature ()
-              (values (make-dummy-function-from-type (code-type func-code-obj))
+              (values (make-dummy-function-from-type (primary-type func-code-obj))
                       t)))))))
 
 (defun find-and-expand-compiler-macro (func args env)
@@ -330,7 +330,7 @@
 
 (defun end-line (obj &optional force)
   (when obj
-    (if (and (typep (code-type obj) 'v-none) (not force))
+    (if (and (typep (primary-type obj) 'v-none) (not force))
         obj
         (if (null (current-line obj))
             obj

@@ -17,7 +17,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass code ()
-  ((type :initarg :type :initform nil :reader code-type)
+  ((type :initarg :type :initform nil :reader primary-type)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)

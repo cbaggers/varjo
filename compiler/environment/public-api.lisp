@@ -41,7 +41,7 @@
 
 (defmethod argument-type ((name symbol)
                           (env compiler-macro-expansion-environment))
-  (code-type (%get-macro-arg name env)))
+  (primary-type (%get-macro-arg name env)))
 
 ;;-------------------------------------------------------------------------
 ;; Uniforms

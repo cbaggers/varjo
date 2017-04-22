@@ -6,7 +6,7 @@
 
 (v-defspecial aref ((arr (v-block-array "n/a" t *)) (index v-int))
   :return
-  (let* ((type (code-type arr))
+  (let* ((type (primary-type arr))
          (elem-type (set-flow-id (v-element-type type) (flow-id!))))
     (values
      (merge-obs (list arr index)

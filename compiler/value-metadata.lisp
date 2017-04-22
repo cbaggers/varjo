@@ -216,7 +216,7 @@
 (defun infer-meta (code-obj env)
   (assert (typep code-obj 'code))
   (assert (typep env 'environment))
-  (let* ((type (code-type code-obj))
+  (let* ((type (primary-type code-obj))
          (flow-id (flow-ids type))
          (flow-ids (etypecase flow-id
                      (multi-return-flow-id (m-value-ids flow-id))

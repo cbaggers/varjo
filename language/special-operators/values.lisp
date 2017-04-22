@@ -27,7 +27,7 @@
          (glsl-names (loop :for i :below (length forms) :collect
                         (postfix-glsl-index base i)))
          (vals (loop :for o :in objs :for n :in glsl-names :collect
-                  (v-make-value (code-type o) env :glsl-name n)))
+                  (v-make-value (primary-type o) env :glsl-name n)))
          (first-name (gensym))
          (result (compile-form
                   `(let ((,first-name ,(first objs)))
@@ -40,7 +40,7 @@
                          (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
                                  objs
                                  qualifier-lists)
-                         (code-type result) env env)))
+                         (primary-type result) env env)))
     (values (copy-code result
                        :multi-vals (mapcar #'make-mval (rest vals)
                                            (rest qualifier-lists))
@@ -83,7 +83,7 @@
           (let* ((final-env (fresh-environment e :multi-val-safe nil))
                  (ast (ast-node! 'varjo-lang:values-safe
                                  (list (node-tree c))
-                                 (code-type c)
+                                 (primary-type c)
                                  env
                                  final-env)))
             (values (copy-code c :node-tree ast)

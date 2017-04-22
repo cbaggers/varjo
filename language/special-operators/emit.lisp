@@ -46,7 +46,7 @@
          (code-obj (compile-form form new-env))
          (result (%emit code-obj new-env))
          (ast (ast-node! 'emit (node-tree code-obj)
-                         (code-type result)
+                         (primary-type result)
                          env env))
          (emit-set (or (emit-set result)
                        (error 'nil-emit-set

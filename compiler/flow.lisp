@@ -178,7 +178,7 @@
 ;; Helpers
 
 (defmethod flow-ids ((obj code))
-  (flow-ids (code-type obj)))
+  (flow-ids (primary-type obj)))
 
 (defmethod flow-ids ((obj v-value))
   (flow-ids (v-type-of obj)))

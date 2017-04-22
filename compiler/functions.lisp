@@ -90,11 +90,11 @@
                 :spec arg-spec)))))
 
 (defun cast-code (src-obj cast-to-type env)
-  (cast-code-inner (code-type src-obj) src-obj cast-to-type env))
+  (cast-code-inner (primary-type src-obj) src-obj cast-to-type env))
 
 (defmethod cast-code-inner (varjo-type src-obj cast-to-type env)
   (declare (ignore varjo-type env))
-  (let* ((src-type (code-type src-obj))
+  (let* ((src-type (primary-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
         (copy-code src-obj :type dest-type)
@@ -110,7 +110,7 @@
                    :return-spec (v-return-spec cast-to-type)
                    :ctv (ctv (v-type-of src-obj))
                    :flow-ids (flow-ids src-obj))))
-    (if (v-type-eq (code-type src-obj) new-type)
+    (if (v-type-eq (primary-type src-obj) new-type)
         (copy-code src-obj :type new-type)
         (copy-code
          src-obj
@@ -174,7 +174,7 @@ however failed to do so when asked."
                        :secondary-score secondary-score)))))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
-  (let* ((arg-types (mapcar #'code-type compiled-args))
+  (let* ((arg-types (mapcar #'primary-type compiled-args))
          (any-errors (some #'v-errorp arg-types)))
     (if (v-special-functionp candidate)
         (special-arg-matchp candidate args-code compiled-args arg-types
@@ -226,7 +226,7 @@ however failed to do so when asked."
         (progn
           (assert (every λ(numberp (score _)) matches))
           matches)
-        (func-find-failure func-name (mapcar #'code-type compiled-args)))))
+        (func-find-failure func-name (mapcar #'primary-type compiled-args)))))
 
 (defun find-function-in-set-for-args (func-set args-code env &optional name)
   "Find the function that best matches the name and arg spec given
@@ -237,7 +237,7 @@ however failed to do so when asked."
   (labels ((check-for-stemcell-issue (matches func-name)
              (when (and (> (length matches) 1)
                         (some (lambda (x)
-                                (some (lambda (x) (stemcellp (code-type x)))
+                                (some (lambda (x) (stemcellp (primary-type x)))
                                       (arguments x)))
                               matches))
                (error 'multi-func-stemcells :func-name func-name)))
@@ -302,7 +302,7 @@ however failed to do so when asked."
    list - type spec"
   (declare (ignore env))
   (let* ((spec (first (v-return-spec func)))
-         (arg-types (mapcar #'code-type args))
+         (arg-types (mapcar #'primary-type args))
          (result
           (cond ((null spec)
                  (or (apply #'find-mutual-cast-type arg-types)

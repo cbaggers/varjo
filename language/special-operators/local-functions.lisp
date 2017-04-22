@@ -30,7 +30,7 @@
                                            definitions
                                            func-def-objs))
                        (node-tree body-obj))
-                 (code-type body-obj) env env)))
+                 (primary-type body-obj) env env)))
       (values (copy-code merged :node-tree ast)
               e))))
 
@@ -58,7 +58,7 @@
                                            definitions
                                            func-def-objs))
                        (node-tree body-obj))
-                 (code-type body-obj) env env)))
+                 (primary-type body-obj) env env)))
       (values (copy-code merged :node-tree ast)
               e))))
 
@@ -92,6 +92,6 @@
                                            func-def-objs))
                        exceptions
                        (node-tree body-obj))
-                 (code-type body-obj) env env)))
+                 (primary-type body-obj) env env)))
       (values (copy-code merged :node-tree ast)
               pruned-starting-env))))

@@ -49,7 +49,7 @@
              set-a))
     (let* ((sets (remove nil sets)))
       (reduce #'%merge-return-sets (rest sets)
-                        :initial-value (first sets)))))
+              :initial-value (first sets)))))
 
 (defun make-return-set-from-code-obj (code-obj)
   (let ((mval-rets (mapcar #'make-return-val-from-mval (multi-vals code-obj)))

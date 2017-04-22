@@ -155,7 +155,7 @@
         (format nil "~@[~(~a ~)~]~a" storage-qual line))))
 
 (defun prefix-type-declaration (code-obj &optional qualifiers storage-qual)
-  (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers
+  (prefix-type-to-string (primary-type code-obj) (current-line code-obj) qualifiers
                          storage-qual))
 
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)
@@ -315,7 +315,7 @@
 
 (defun gen-array-literal-string (elements element-type env)
   (labels ((cast (x)
-             (if (v-type-eq (code-type x) element-type)
+             (if (v-type-eq (primary-type x) element-type)
                  x
                  (cast-code x element-type env))))
     (let ((elements (mapcar #'cast elements)))

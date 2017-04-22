@@ -9,7 +9,7 @@
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
-    (let ((always-true (or (not (v-typep (code-type test-obj) 'v-bool))
+    (let ((always-true (or (not (v-typep (primary-type test-obj) 'v-bool))
                            (eq test-form t)))
           (always-false (eq test-form nil))
           (has-else (not (or (null else-form) (equal else-form '(values)))))
@@ -32,8 +32,8 @@
              (final-env
               (apply #'env-merge-history
                      (env-prune* (env-depth test-env) then-env else-env)))
-             (result-type (gen-or-type (list (code-type then-obj)
-                                             (code-type else-obj))))
+             (result-type (gen-or-type (list (primary-type then-obj)
+                                             (primary-type else-obj))))
              (node-tree (ast-node! 'if
                                    (mapcar #'node-tree
                                            (list test-obj then-obj else-obj))
@@ -115,8 +115,8 @@
                                (mapcar #'second clause-pairs))))
               (reduce #'env-merge-history
                       (rest envs) :initial-value (first envs)))))
-      (if (and (or (v-typep (code-type test-obj) 'v-uint)
-                   (v-typep (code-type test-obj) 'v-int))
+      (if (and (or (v-typep (primary-type test-obj) 'v-uint)
+                   (v-typep (primary-type test-obj) 'v-int))
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
           (let ((type (type-spec->type :void (flow-id!))))

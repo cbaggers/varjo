@@ -21,7 +21,7 @@
       (cond
         ((not (place-tree place))
          (error 'non-place-assign :place place :val val))
-        ((not (v-type-eq (code-type place) (code-type val)))
+        ((not (v-type-eq (primary-type place) (primary-type val)))
          (error 'setf-type-match :code-obj-a place :code-obj-b val))
         (t (destructuring-bind (name value) (last1 (place-tree place))
              (when (v-read-only value)
@@ -35,12 +35,12 @@
                (let ((final-env (replace-flow-ids name old-val (flow-ids val)
                                                   old-env env)))
                  (values (merge-obs (list place val)
-                                    :type (code-type val)
+                                    :type (primary-type val)
                                     :current-line (gen-assignment-string place val)
                                     :node-tree (ast-node! 'setf
                                                           (list (node-tree place)
                                                                 (node-tree val))
-                                                          (code-type place)
+                                                          (primary-type place)
                                                           env
                                                           final-env)
                                     :pure nil)
@@ -88,8 +88,8 @@
               final-env))))
 
 (defun calc-setq-type (new-val old-val var-name)
-  (restart-case (if (v-type-eq (v-type-of old-val) (code-type new-val))
-                    (code-type new-val)
+  (restart-case (if (v-type-eq (v-type-of old-val) (primary-type new-val))
+                    (primary-type new-val)
                     (error 'setq-type-match :var-name var-name
                            :old-value old-val :new-value new-val))
     (setq-supply-alternate-type (replacement-type-spec)
@@ -121,10 +121,10 @@
 (v-defspecial %assign ((place v-type) (val v-type))
   :return
   (values
-   (merge-obs (list place val) :type (code-type place)
+   (merge-obs (list place val) :type (primary-type place)
               :current-line (gen-assignment-string place val)
               :node-tree (ast-node! '%assign (list place val)
-                                    (code-type place) env env)
+                                    (primary-type place) env env)
               :pure nil)
    env))
 

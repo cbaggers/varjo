@@ -24,7 +24,7 @@
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
-        (assert (typep (code-type maybe-def-code) 'v-none)))
+        (assert (typep (primary-type maybe-def-code) 'v-none)))
       (values compiled-func maybe-def-code))))
 
 (defun build-function (name args body allowed-implicit-args env)

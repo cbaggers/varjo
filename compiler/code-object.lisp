@@ -8,7 +8,7 @@
     (assert-flow-id-singularity flow-ids)
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object
-             :code-type (type->type-spec type))))
+             :primary-type (type->type-spec type))))
   (unless set-type
     (error "Type must be specified when creating an instance of varjo:code"))
   (unless (or (eq node-tree :ignored)
@@ -35,10 +35,10 @@
                    :node-tree node-tree)))
 
 (defmethod v-type-of ((obj code))
-  (code-type obj))
+  (primary-type obj))
 
 (defmethod current-line (code-obj &optional even-when-ephemeral)
-  (unless (and (ephemeral-p (code-type code-obj)) (not even-when-ephemeral))
+  (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
     (slot-value code-obj 'current-line)))
 
 (defun add-higher-scope-val (code-obj value)
@@ -54,8 +54,8 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defmethod v-code-type-eq ((a code) (b code) &optional (env *global-env*))
-  (v-type-eq (code-type a) (code-type b) env))
+(defmethod v-primary-type-eq ((a code) (b code) &optional (env *global-env*))
+  (v-type-eq (primary-type a) (primary-type b) env))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -79,7 +79,7 @@
                         (place-tree nil set-place-tree)
                         (pure nil set-pure)
                         (node-tree nil set-node-tree))
-  (let* ((type (if set-type type (code-type code-obj))))
+  (let* ((type (if set-type type (primary-type code-obj))))
     (code! :type type
            :current-line (if set-current-line current-line
                              (current-line code-obj t))
@@ -121,7 +121,7 @@
              (merge-emit-sets (remove nil (mapcar #'emit-set objs))))))
     (unless (or flow-ids (type-doesnt-need-flow-id type))
       (error 'flow-ids-mandatory :for :code-object
-             :code-type type))
+             :primary-type type))
     (code! :type type
            :current-line current-line
            :to-block (if set-block to-block

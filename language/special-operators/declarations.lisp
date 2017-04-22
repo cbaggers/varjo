@@ -47,9 +47,9 @@
   :args-valid t
   :return
   (let* ((compiled (compile-form form env))
-         (obj (if (stemcellp (code-type compiled))
+         (obj (if (stemcellp (primary-type compiled))
                   (add-type-to-stemcell-code compiled type-name)
-                  (if (v-typep (code-type compiled)
+                  (if (v-typep (primary-type compiled)
                                (type-spec->type type-name))
                       compiled ;{TODO} proper error here
                       (error "Incorrect declaration that ~a was of type ~a"
@@ -58,5 +58,5 @@
      (copy-code
       obj
       :node-tree (ast-node! 'the (list type-name (node-tree compiled))
-                            (code-type compiled) env env))
+                            (primary-type compiled) env env))
      env)))

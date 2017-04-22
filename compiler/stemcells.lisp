@@ -11,7 +11,7 @@
        (boundp symb)))
 
 (defun add-type-to-stemcell-code (code-obj type-name)
-  (assert (stemcellp (code-type code-obj)))
+  (assert (stemcellp (primary-type code-obj)))
   (let ((type (type-spec->type type-name (flow-ids code-obj)))
         (stemcells (stemcells code-obj)))
     (assert (= 1 (length stemcells)))

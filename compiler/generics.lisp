@@ -12,7 +12,7 @@
 (defgeneric v-casts-to (from-type to-type env))
 (defgeneric v-casts-to-p (from-type to-type env))
 (defgeneric post-initialise (object))
-(defgeneric v-code-type-eq (a b &optional env))
+(defgeneric v-primary-type-eq (a b &optional env))
 (defgeneric v-make-value (type env &key glsl-name function-scope read-only))
 (defgeneric get-flow-id-for-stem-cell (stem-cell-symbol e))
 (defgeneric used-external-functions (e))
