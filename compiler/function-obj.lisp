@@ -103,23 +103,28 @@
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
                             in-out-args flow-ids in-arg-flow-ids pure)
+  (when (listp return-spec)
+    (assert (every (lambda (x)
+                     (or (template-return-spec-p x)
+                         (typep x 'named-return-val)))
+                   return-spec)
+            () 'user-func-invalid-x
+            :kind 'returns
+            :name name
+            :args return-spec))
+  (when (listp arg-spec)
+    (assert (every (lambda (x)
+                     (or (typep x 'v-type)
+                         (functionp x)))
+                   arg-spec)
+            () 'user-func-invalid-x
+            :kind 'args
+            :name name
+            :args arg-spec))
   (make-instance 'v-function
                  :glsl-string transform
-                 :arg-spec (if (listp arg-spec)
-                               (loop :for spec :in arg-spec :collect
-                                  (if (typep spec 'v-type)
-                                      spec
-                                      (or (try-type-spec->type
-                                           (resolve-name-from-alternative spec)
-                                           nil)
-                                          (error "BUG: NEEDS A REAL ERROR HERE"))))
-                               arg-spec)
-                 :return-spec
-                 (mapcar (lambda (rspec)
-                           (if (type-specp rspec)
-                               (type-spec->type rspec)
-                               rspec))
-                         return-spec)
+                 :arg-spec arg-spec
+                 :return-spec return-spec
                  :versions versions :v-place-index v-place-index
                  :glsl-name glsl-name
                  :name name

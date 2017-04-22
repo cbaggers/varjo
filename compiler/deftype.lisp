@@ -9,7 +9,8 @@
     (assert (symbolp type-form) () "compound & array types not yet supported")
     (if ephemeral
         `(progn
-           (def-v-type-class ,name (v-ephemeral-type) ())
+           (eval-when (:compile-toplevel :load-toplevel :execute)
+             (def-v-type-class ,name (v-ephemeral-type) ()))
            (v-defun ,name () nil () ,name)
            (defmethod meta-kinds-to-infer ((varjo-type ,name))
              (declare (ignore varjo-type))

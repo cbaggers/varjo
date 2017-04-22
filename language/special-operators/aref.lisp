@@ -4,7 +4,7 @@
 (v-defun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
 (v-defun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :v-place-index 0)
 
-(v-defspecial aref ((arr v-block-array) (index v-int))
+(v-defspecial aref ((arr (v-block-array "n/a" t *)) (index v-int))
   :return
   (let* ((type (code-type arr))
          (elem-type (set-flow-id (v-element-type type) (flow-id!))))

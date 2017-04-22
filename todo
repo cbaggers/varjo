@@ -1,6 +1,3 @@
-* in make-user-function-obj & make-function-obj assert that types are objects
-  dont allow type-specs
-
 * make-user-function-obj in make-function.lisp has a daft way of storing the
   return types, we should make it follow the return-set approach. Currently
   I think this is where the return-sets of void are coming from

@@ -20,15 +20,21 @@
         (error 'invalid-v-defun-template :func-name name :template template))
       (destructuring-bind (transform arg-types return-spec
                                      &key v-place-index glsl-name) body
-        `(progn (add-form-binding
-                 (make-function-obj
-                  ',name ,transform ',context ',arg-types '(,return-spec)
-                  :v-place-index ',v-place-index :glsl-name ',glsl-name
-                  :flow-ids (%gl-flow-id!)
-                  :in-arg-flow-ids
-                  ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
-                 *global-env*)
-                ',name)))))
+        (let ((arg-types (if (listp arg-types)
+                             (mapcar #'type-spec->type arg-types)
+                             arg-types))
+              (return-spec (if (type-specp return-spec)
+                               (type-spec->type return-spec)
+                               return-spec)))
+          `(progn (add-form-binding
+                   (make-function-obj
+                    ',name ,transform ',context ',arg-types '(,return-spec)
+                    :v-place-index ',v-place-index :glsl-name ',glsl-name
+                    :flow-ids (%gl-flow-id!)
+                    :in-arg-flow-ids
+                    ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
+                   *global-env*)
+                  ',name))))))
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
@@ -61,7 +67,9 @@
                   ,return)
                 (add-form-binding
                  (make-function-obj ',name :special ',context
-                                    ',(mapcar #'second args) (list #',func-name)
+                                    ',(mapcar λ(type-spec->type (second _))
+                                              args)
+                                    (list #',func-name)
                                     :v-place-index ',v-place-index)
                  *global-env*)
                 ',name)))))))
@@ -276,6 +284,16 @@ however failed to do so when asked."
                                                         :types arg-types))
                     :arguments nil)))))
 
+(defun element-spec-p (spec)
+  (and (listp spec) (eq (first spec) :element)))
+
+(defun template-return-spec-p (spec)
+  (or (null spec)
+      (typep spec 'v-type)
+      (numberp spec)
+      (functionp spec)
+      (element-spec-p spec)))
+
 (defun resolve-func-type (func args env)
   "nil - superior type
    number - type of nth arg
@@ -293,9 +311,8 @@ however failed to do so when asked."
                 ((typep spec 'v-type) spec)
                 ((numberp spec) (nth spec arg-types))
                 ((functionp spec) (apply spec args))
-                ((and (listp spec) (eq (first spec) :element))
+                ((element-spec-p spec)
                  (v-element-type (nth (second spec) arg-types)))
-                ((or (symbolp spec) (listp spec)) (type-spec->type spec))
                 (t (error 'invalid-function-return-spec :func func :spec spec)))))
     (assert (typep result 'v-type))
     result))

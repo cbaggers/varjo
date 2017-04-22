@@ -8,7 +8,8 @@
   (far v-float :accessor far)
   (diff v-float :accessor diff))
 
-(def-v-type-class v-per-vertex (v-ephemeral-type) ())
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (def-v-type-class v-per-vertex (v-ephemeral-type) ()))
 
 (v-defun gl-position (vert-data) "~a.gl_Position" (v-per-vertex) :vec4)
 (v-defun gl-point-size (vert-data) "~a.gl_PointSize" (v-per-vertex) :float)
