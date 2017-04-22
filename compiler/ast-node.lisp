@@ -16,10 +16,8 @@
       (t (eq kind actual-kind)))))
 
 (defmethod ast-typep (node type)
-  (let ((type (if (typep type 'v-type)
-                  type
-                  (type-spec->type type))))
-    (v-typep (ast-return-type node) type)))
+  (assert (typep type 'v-type))
+  (v-typep (ast-return-type node) type))
 
 ;;----------------------------------------------------------------------
 

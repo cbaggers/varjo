@@ -38,10 +38,16 @@
            :arg-specs (remove-if #'function-raw-arg-validp args)))
   ;;
   ;; Parse the types
-  (let ((arg-types (mapcar λ(type-spec->type (second _)) args)))
+  (let* ((arg-types (mapcar λ(type-spec->type (second _)) args))
+         (args-with-types (mapcar λ(dbind (name nil . rest) _
+                                     `(,name ,_1 ,@rest))
+                                  args
+                                  arg-types)))
     (if (some λ(typep _ 'v-unrepresentable-value) arg-types)
-        (make-new-function-with-unreps name args body allowed-implicit-args env)
-        (make-regular-function name args body allowed-implicit-args env))))
+        (make-new-function-with-unreps
+         name args body allowed-implicit-args env)
+        (make-regular-function
+         name args-with-types body allowed-implicit-args env))))
 
 
 (defun make-regular-function (name args body allowed-implicit-args env)
@@ -59,11 +65,11 @@
                       (reduce
                        (lambda (func-env tripple)
                          (dbind (arg glsl-name flow-ids) tripple
-                           (dbind (name type-spec) arg
+                           (dbind (name type) arg
                              (add-symbol-binding
                               name
                               (v-make-value
-                               (type-spec->type type-spec flow-ids)
+                               (set-flow-id type flow-ids)
                                func-env
                                :glsl-name glsl-name)
                               func-env))))
@@ -89,7 +95,7 @@
       (let* ((arg-pairs (unless mainp
                           (loop :for (nil type) :in args
                              :for name :in arg-glsl-names :collect
-                             `(,(v-glsl-string (type-spec->type type)) ,name))))
+                             `(,(v-glsl-string type) ,name))))
              (out-arg-pairs (unless mainp
                               (loop :for mval :in multi-return-vars
                                  :for i :from 1
@@ -124,7 +130,7 @@
                                out-arg-pairs
                                return-for-glsl body-obj
                                implicit-args in-out-args)))
-             (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
+             (arg-types (mapcar #'second args))
              (func (make-user-function-obj name
                                            (unless strip-glsl
                                              (gen-function-transform
