@@ -53,7 +53,7 @@
 
 (defun make-return-set-from-code-obj (code-obj)
   (let ((mval-rets (mapcar #'make-return-val-from-mval (multi-vals code-obj)))
-        (prim-ret (make-return-val (v-type-of code-obj))))
+        (prim-ret (make-return-val (primary-type code-obj))))
     (apply #'make-return-set (cons prim-ret mval-rets))))
 
 ;;------------------------------------------------------------

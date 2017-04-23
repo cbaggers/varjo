@@ -9,8 +9,8 @@
   :args-valid t
   :return
   (let ((vec-obj (compile-form vec-form env)))
-    (unless (v-typep (v-type-of vec-obj) 'v-vector)
-      (let ((type (v-true-type (v-type-of vec-obj))))
+    (unless (v-typep (primary-type vec-obj) 'v-vector)
+      (let ((type (v-true-type (primary-type vec-obj))))
         (error 'cannot-swizzle-this-type :vtype (type->type-spec type)
                :is-struct (typep type 'v-struct))))
     (let* ((allowed (subseq (list #\x #\y #\z #\w) 0

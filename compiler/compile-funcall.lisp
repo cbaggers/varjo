@@ -124,7 +124,7 @@
 
 (defun compile-function-taking-unreps (func-name func args env)
   (assert (v-code func))
-  (labels ((unrep-p (x) (typep (v-type-of x) 'v-unrepresentable-value)))
+  (labels ((unrep-p (x) (typep (primary-type x) 'v-unrepresentable-value)))
     (dbind (args-code body-code) (v-code func)
       (dbind (trimmed-args hard-coded)
           (loop :for arg-code :in args-code :for arg :in args

@@ -17,7 +17,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass compiled ()
-  ((type :initarg :type :initform nil :reader primary-type)
+  ((type-set :initarg :type :initform nil)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
@@ -30,6 +30,10 @@
    (pure :initarg :pure :initform nil :reader pure-p)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
+
+(defgeneric primary-type (compiled)
+  (:method ((compiled compiled))
+    (slot-value compiled 'type-set)))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 

@@ -26,12 +26,12 @@
 
 (5am:def-test uninitialized-value-3 (:suite uninitialized-value-tests)
   (signals varjo-conditions:uninitialized-var
-   (compile-vert () :450 nil
-     (let (((i (:int 4))))
-       (setf (aref i 0) 10)
-       (v! 0 0 0 0)))))
+    (compile-vert () :450 nil
+      (let (((i (:int 4))))
+        (setf (aref i 0) 10)
+        (v! 0 0 0 0)))))
 
-(5am:def-test uninitialized-value-3 (:suite uninitialized-value-tests)
+(5am:def-test uninitialized-value-4 (:suite uninitialized-value-tests)
   (finishes-p
    (compile-vert () :450 nil
      (let (((i (:int 4))))

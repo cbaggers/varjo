@@ -41,7 +41,7 @@
           :dimensions (array-dimensions arr))
   (let* ((len (length arr))
          (elements (map 'list λ(compile-literal _ env) arr))
-         (types (mapcar #'v-type-of elements))
+         (types (mapcar #'primary-type elements))
          (element-type (apply #'find-mutual-cast-type types))
          (array-type (v-array-type-of element-type len (flow-id!)))
          (glsl (gen-array-literal-string elements element-type env))

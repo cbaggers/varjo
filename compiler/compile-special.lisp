@@ -150,7 +150,7 @@
     (let* ((let-obj
             (cond
               ;; handle unrepresentable values
-              ((and value-obj (ephemeral-p (v-type-of value-obj)))
+              ((and value-obj (ephemeral-p (primary-type value-obj)))
                value-obj)
               ;;
               (value-obj

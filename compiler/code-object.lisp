@@ -34,9 +34,6 @@
                    :pure pure
                    :node-tree node-tree)))
 
-(defmethod v-type-of ((obj compiled))
-  (primary-type obj))
-
 (defmethod current-line (code-obj &optional even-when-ephemeral)
   (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
     (slot-value code-obj 'current-line)))

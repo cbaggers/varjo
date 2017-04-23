@@ -90,7 +90,7 @@
 (defun %main-return (code-obj implicit env)
   ;; If you make changes here, look at %emit to see if it needs
   ;; similar changes
-  (let ((type (v-type-of code-obj))
+  (let ((type (primary-type code-obj))
         (void (type-spec->type :void)))
     (cond
       ((and implicit (v-typep type void))
@@ -144,6 +144,6 @@
         (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch
-                   :prim-type (v-type-of code-obj)))
+                   :prim-type (primary-type code-obj)))
         `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
                     :void ,code-obj))))

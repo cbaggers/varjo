@@ -43,7 +43,7 @@
                            :initial-contents initial-contents
                            :element-type (type->type-spec element-type))))
                (elem-objs (mapcar λ(compile-literal _ env) initial-contents))
-               (types (mapcar #'v-type-of elem-objs))
+               (types (mapcar #'primary-type elem-objs))
                (array-type (v-array-type-of element-type len (flow-id!))))
           (assert (every λ(v-casts-to-p _ element-type env) types) ()
                   'make-array-cant-cast-args
@@ -65,7 +65,7 @@
   :return
   (vbind (objs) (mapcar λ(try-compile-arg _ env nil) elements)
     (let* ((len (length elements))
-           (types (mapcar #'v-type-of objs))
+           (types (mapcar #'primary-type objs))
            (element-type (apply #'find-mutual-cast-type types))
            (array-type (v-array-type-of element-type len (flow-id!)))
            (glsl (gen-array-literal-string objs element-type env))
