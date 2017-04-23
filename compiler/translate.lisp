@@ -495,7 +495,7 @@
   (loop :for out-val :across out-set
      :for location :in locations
      :for i :from 0
-     :for glsl-name := (if (typep out-val 'external-return-val)
+     :for glsl-name := (if (typep out-val 'external-qualified)
                            (out-name out-val)
                            (nth-return-name i stage))
 
@@ -508,7 +508,7 @@
   (loop :for out-val :across out-set
      :for location :in locations
      :for i :from 0
-     :for glsl-name := (if (typep out-val 'external-return-val)
+     :for glsl-name := (if (typep out-val 'external-qualified)
                            (out-name out-val)
                            (nth-return-name i stage))
 

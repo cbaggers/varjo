@@ -86,10 +86,7 @@
 ;; construction
 
 (defun m-flow-id! (flow-ids)
-  (assert (and (listp flow-ids)
-               (every #'flow-id-p flow-ids)))
-  (make-instance 'multi-return-flow-id
-                 :m-value-ids flow-ids))
+  (error "titsicles ~a" flow-ids))
 
 (defun flow-id! (&rest ids)
   (labels ((key (_) (slot-value _ 'val))

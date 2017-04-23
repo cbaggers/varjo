@@ -3,47 +3,47 @@
 
 ;;------------------------------------------------------------
 
-(defun make-return-val (type &optional qualifiers)
+(defun make-qualified (type &optional qualifiers)
   (assert (typep type 'v-type))
   (assert (every #'keywordp qualifiers))
-  (make-instance 'return-val
+  (make-instance 'qualified
                  :type type
                  :qualifiers (sort (copy-list qualifiers) #'<)))
 
 
-(defun make-external-return-val (glsl-name type &optional qualifiers)
+(defun make-external-qualified (glsl-name type &optional qualifiers)
   (assert (typep type 'v-type))
   (assert (every #'keywordp qualifiers))
-  (make-instance 'external-return-val
+  (make-instance 'external-qualified
                  :out-name glsl-name
                  :type type
                  :qualifiers (sort (copy-list qualifiers) #'<)))
 
-(defun make-return-val-from-mval (mval)
+(defun make-qualified-from-mval (mval)
   (let ((type (v-type-of mval))
         (qualifiers (multi-val-qualifiers mval)))
     (assert (typep type 'v-type))
     (assert (every #'keywordp qualifiers))
-    (make-instance 'named-return-val
+    (make-instance 'named-qualified
                    :type type
                    :glsl-name (glsl-name (multi-val-value mval))
                    :qualifiers (sort (copy-list qualifiers) #'<))))
 
-(defun return-val-eql (ret-a ret-b)
+(defun qualified-eql (ret-a ret-b)
   (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
        (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
        (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
 
 ;;------------------------------------------------------------
 
-(defun make-return-set (&rest return-vals)
-  (assert (every λ(typep _ 'return-val) return-vals))
-  (apply #'vector return-vals))
+(defun make-return-set (&rest qualifieds)
+  (assert (every λ(typep _ 'qualified) qualifieds))
+  (apply #'vector qualifieds))
 
 (defun merge-return-sets (sets)
   (labels ((%merge-return-sets (set-a set-b)
              (assert (and (= (length set-a) (length set-b))
-                          (every #'return-val-eql set-a set-b))
+                          (every #'qualified-eql set-a set-b))
                      () 'return-type-mismatch
                      :sets (list set-a set-b))
              set-a))
@@ -52,8 +52,8 @@
               :initial-value (first sets)))))
 
 (defun make-return-set-from-code-obj (code-obj)
-  (let ((mval-rets (mapcar #'make-return-val-from-mval (multi-vals code-obj)))
-        (prim-ret (make-return-val (primary-type code-obj))))
+  (let ((mval-rets (mapcar #'make-qualified-from-mval (multi-vals code-obj)))
+        (prim-ret (make-qualified (primary-type code-obj))))
     (apply #'make-return-set (cons prim-ret mval-rets))))
 
 ;;------------------------------------------------------------

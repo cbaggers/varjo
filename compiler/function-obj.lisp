@@ -76,7 +76,7 @@
   (when (listp return-spec)
     (assert (every (lambda (x)
                      (or (template-return-spec-p x)
-                         (typep x 'named-return-val)))
+                         (typep x 'named-qualified)))
                    return-spec)
             () 'user-func-invalid-x
             :kind 'returns
@@ -111,7 +111,7 @@
   (when (listp return-spec)
     (assert (every (lambda (x)
                      (or (typep x 'v-type)
-                         (typep x 'named-return-val)))
+                         (typep x 'named-qualified)))
                    return-spec)
             () 'user-func-invalid-x :returns name arg-spec))
   (when (listp arg-spec)

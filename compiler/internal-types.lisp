@@ -310,14 +310,14 @@
   ((value :initarg :value :reader multi-val-value)
    (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
 
-(defclass return-val ()
+(defclass qualified ()
   ((type :initarg :type :reader v-type-of)
    (qualifiers :initarg :qualifiers :reader qualifiers)))
 
-(defclass named-return-val (return-val)
+(defclass named-qualified (qualified)
   ((glsl-name :initarg :glsl-name :reader glsl-name)))
 
-(defclass external-return-val (return-val)
+(defclass external-qualified (qualified)
   ((out-name :initarg :out-name :reader out-name)))
 
 (defclass emit-val ()

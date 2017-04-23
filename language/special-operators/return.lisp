@@ -54,30 +54,17 @@
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-return (code-obj implicit)
-  (let* ((flow-result
-          (if (multi-vals code-obj)
-              (m-flow-id! (cons (flow-ids code-obj)
-                                (mapcar λ(flow-ids (multi-val-value _))
-                                        (multi-vals code-obj))))
-              (flow-ids code-obj)))
-         (suppress-return (or (v-typep (primary-type code-obj)
+  (let* ((suppress-return (or (v-typep (primary-type code-obj)
                                        'v-void)
                               (v-typep (primary-type code-obj)
                                        'v-ephemeral-type)))
-         (ret-set (make-return-set-from-code-obj code-obj)))
-    ;;
-    (when (and implicit (v-typep (primary-type code-obj) 'v-void))
-      (setf ret-set (or (return-set code-obj) (make-return-set)))
-      (setf flow-result
-            (case= (length ret-set)
-              (0 (flow-ids code-obj))
-              (1 (flow-ids (v-type-of (elt ret-set 0))))
-              (otherwise (m-flow-id!
-                          (map 'list λ(flow-ids (v-type-of _)) ret-set))))))
+         (ret-set (if (and implicit (v-typep (primary-type code-obj) 'v-void))
+                      (return-set code-obj)
+                      (make-return-set-from-code-obj code-obj))))
     ;;
     (copy-compiled
      code-obj
-     :type (type-spec->type 'v-void flow-result)
+     :type (type-spec->type 'v-void (flow-id!))
      :current-line (if suppress-return
                        (current-line code-obj)
                        (format nil "return ~a" (current-line code-obj)))
@@ -125,7 +112,7 @@
       (t (let ((ret-set
                 (if (stage-where-first-return-is-position-p (stage env))
                     (make-return-set)
-                    (make-return-set (make-return-val type)))))
+                    (make-return-set (make-qualified type)))))
            (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form `(progn
