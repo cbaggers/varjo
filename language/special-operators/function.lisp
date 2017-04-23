@@ -29,12 +29,12 @@
                      (and (some #'captured-vars functions)))
              (error 'closures-not-supported :func func-name-form))
            (values
-            (code! :type type
-                   :current-line nil
-                   :used-types (list type)
-                   :node-tree (ast-node! 'function (list func-name-form)
-                                         type nil nil)
-                   :pure t)
+            (make-compiled :type type
+                           :current-line nil
+                           :used-types (list type)
+                           :node-tree (ast-node! 'function (list func-name-form)
+                                                 type nil nil)
+                           :pure t)
             env))))))
 
 ;; {TODO} shouldnt this have a new environment?
@@ -47,12 +47,12 @@
     (when (implicit-args func)
       (error 'closures-not-supported :func func-name-form))
     (values
-     (code! :type type
-            :current-line nil
-            :used-types (list type)
-            :node-tree (ast-node! 'function (list func-name-form)
-                                  type nil nil)
-            :pure t)
+     (make-compiled :type type
+                    :current-line nil
+                    :used-types (list type)
+                    :node-tree (ast-node! 'function (list func-name-form)
+                                          type nil nil)
+                    :pure t)
      env)))
 
 ;;------------------------------------------------------------

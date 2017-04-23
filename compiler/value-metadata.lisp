@@ -214,7 +214,7 @@
     nil))
 
 (defun infer-meta (code-obj env)
-  (assert (typep code-obj 'code))
+  (assert (typep code-obj 'compiled))
   (assert (typep env 'environment))
   (let* ((type (primary-type code-obj))
          (flow-id (flow-ids type))

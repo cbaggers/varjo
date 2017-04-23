@@ -5,14 +5,18 @@
   (let* ((flow-id (flow-id!))
          (bool-type (type-spec->type 'v-bool flow-id)))
     (if code
-        (make-code-obj bool-type "true" :node-tree (ast-node! :literal code
-                                                              bool-type
-                                                              env env)
-                       :pure t)
-        (make-code-obj bool-type "false" :node-tree (ast-node! :literal code
-                                                               bool-type
-                                                               env env)
-                       :pure t))))
+        (make-compiled
+         :type bool-type
+         :current-line "true"
+         :node-tree (ast-node! :literal code
+                               bool-type
+                               env env)
+         :pure t)
+        (make-compiled
+         :type bool-type
+         :current-line "false"
+         :node-tree (ast-node! :literal code bool-type env env)
+         :pure t))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -25,10 +29,11 @@
 (defun compile-number (code env)
   (let* ((flow-id (flow-id!))
          (num-type (set-flow-id (get-number-type code) flow-id)))
-    (make-code-obj num-type (gen-number-string code num-type)
-                   :node-tree (ast-node! :literal code num-type
-                                         env env)
-                   :pure t)))
+    (make-compiled
+     :type num-type
+     :current-line (gen-number-string code num-type)
+     :node-tree (ast-node! :literal code num-type env env)
+     :pure t)))
 
 (defun compile-array-literal (arr env)
   (assert (= (array-rank arr) 1) (arr)
@@ -41,8 +46,8 @@
          (array-type (v-array-type-of element-type len (flow-id!)))
          (glsl (gen-array-literal-string elements element-type env))
          (ast (ast-node! :literal arr array-type env env)))
-    (code! :type array-type
-           :current-line glsl
-           :used-types (list element-type)
-           :node-tree ast
-           :pure t)))
+    (make-compiled :type array-type
+                   :current-line glsl
+                   :used-types (list element-type)
+                   :node-tree ast
+                   :pure t)))

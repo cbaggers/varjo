@@ -48,11 +48,11 @@
                             (list (current-line (end-line func-code-obj)))
                             (to-block obj))))
             (assert (eq final-env (ast-ending-env ast)))
-            (merge-obs (list func-code-obj obj)
-                       :type (primary-type obj)
-                       :current-line (current-line obj)
-                       :to-block (remove nil to-block)
-                       :node-tree funcall-ast)))))))
+            (merge-compiled (list func-code-obj obj)
+                            :type (primary-type obj)
+                            :current-line (current-line obj)
+                            :to-block (remove nil to-block)
+                            :node-tree funcall-ast)))))))
 
 (defun compile-call-with-set-of-functions (func-set args-code env
                                            &optional name code)
@@ -81,8 +81,9 @@
                                     :funcall-form code)))
             ;;
             (allow-call-function-signature ()
-              (values (make-dummy-function-from-type (primary-type func-code-obj))
-                      t)))))))
+              (values
+               (make-dummy-function-from-type (primary-type func-code-obj))
+               t)))))))
 
 (defun find-and-expand-compiler-macro (func args env)
   (unless (v-special-functionp func)
@@ -164,11 +165,11 @@
       (when (implicit-args func)
         (error 'closures-not-supported :func func-name-form))
       (values
-       (code! :type type
-              :current-line nil
-              :used-types (list type)
-              :node-tree (ast-node! 'function (list func-name-form)
-                                    type nil nil))
+       (make-compiled :type type
+                      :current-line nil
+                      :used-types (list type)
+                      :node-tree (ast-node! 'function (list func-name-form)
+                                            type nil nil))
        env))))
 
 (defun compile-external-function-call (func args env)
@@ -178,8 +179,8 @@
   ;; there. We can then extract the signatures we need from this and add them
   ;; to the final source. The deduplication will be achieved by the fact that
   ;; we will use the external-function object as a key to a hashtable in the
-  ;; base-env which will cache the results of these compiled external functions.
-  ;;
+  ;; base-env which will cache the results of these compiled external
+  ;; functions.
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
                             (build-external-function func base-env))))
@@ -205,17 +206,18 @@
                    (set-flow-id type flow-ids))))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
-    (values (merge-obs args
-                       :type type
-                       :current-line c-line
-                       :pure (pure-p func)
-                       :emit-set (emit-set func)
-                       :stemcells (mapcat #'stemcells args)
-                       :multi-vals (when (v-multi-val-safe env)
-                                     (handle-regular-function-mvals args))
-                       :place-tree (calc-place-tree func args)
-                       :node-tree (ast-node! func-name (mapcar #'node-tree args)
-                                             type env env))
+    (values (merge-compiled args
+                            :type type
+                            :current-line c-line
+                            :pure (pure-p func)
+                            :emit-set (emit-set func)
+                            :stemcells (mapcat #'stemcells args)
+                            :multi-vals (when (v-multi-val-safe env)
+                                          (handle-regular-function-mvals args))
+                            :place-tree (calc-place-tree func args)
+                            :node-tree (ast-node! func-name
+                                                  (mapcar #'node-tree args)
+                                                  type env env))
             env)))
 
 (defun handle-regular-function-mvals (args)
@@ -285,7 +287,7 @@
                           `((,(gensym "NC")
                               ,(type->type-spec (v-type-of mval))))))
 
-             (o (merge-obs
+             (o (merge-compiled
                  args :type type
                  :current-line (gen-function-string func args m-r-names)
                  :stemcells (mapcat #'stemcells args)
@@ -320,10 +322,11 @@
                          p-env bindings m-r-names))
                        (compile-form o p-env)))
                    env env))))
-        (values (copy-code final :node-tree (ast-node! func-name
-                                                       (mapcar #'node-tree args)
-                                                       type
-                                                       env env))
+        (values (copy-compiled final
+                               :node-tree (ast-node! func-name
+                                                     (mapcar #'node-tree args)
+                                                     type
+                                                     env env))
                 env)))))
 
 ;;----------------------------------------------------------------------
@@ -334,9 +337,9 @@
         obj
         (if (null (current-line obj))
             obj
-            (copy-code obj :current-line (end-line-str (current-line obj))
-                       :multi-vals nil
-                       :place-tree nil)))))
+            (copy-compiled obj :current-line (end-line-str (current-line obj))
+                           :multi-vals nil
+                           :place-tree nil)))))
 
 (defun end-line-str (str)
   (format nil "~a;" str))

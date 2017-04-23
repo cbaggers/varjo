@@ -16,7 +16,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass code ()
+(defclass compiled ()
   ((type :initarg :type :initform nil :reader primary-type)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
@@ -43,7 +43,7 @@
    (input-variable-glsl :initarg :input-variable-glsl
                         :accessor input-variable-glsl)
    (output-variable-glsl :initarg :output-variable-glsl
-                        :accessor output-variable-glsl)
+                         :accessor output-variable-glsl)
    (out-set :initarg :out-set :accessor out-set)
    (raw-out-set :initarg :raw-out-set :accessor raw-out-set)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
@@ -135,7 +135,8 @@
   ((glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
 (defclass implicit-uniform-variable (uniform-variable)
-  ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
+  ((cpu-side-transform :initarg :cpu-side-transform
+                       :reader cpu-side-transform)))
 
 (defclass output-variable (shader-variable)
   ((location :initarg :location :reader location)))
@@ -414,3 +415,33 @@
         (make-instance symb))))
 
 ;;-------------------------------------------------------------------------
+
+(defclass v-function ()
+  ((versions :initform nil :initarg :versions :accessor v-versions)
+   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
+   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
+   (glsl-name :initarg :glsl-name :accessor glsl-name)
+   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
+   (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
+   (name :initform nil :initarg :name :reader name)
+   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
+   (in-out-args :initform nil :initarg :in-out-args :reader in-out-args)
+   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
+                                     :primary-type :v-function)
+                    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
+   (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
+                              :primary-type :v-function)
+             :initarg :flow-ids :reader flow-ids)
+   (emit-set :initform nil :initarg :emit-set :reader emit-set)
+   (pure :initform nil :initarg :pure :reader pure-p)))
+
+(defmethod functions ((fn v-function))
+  (list fn))
+
+;;------------------------------------------------------------
+
+(defclass v-user-function (v-function)
+  ((captured-vars :initform nil :initarg :captured-vars :reader captured-vars)
+   (code :initform nil :initarg :code :reader v-code)))
+
+;;------------------------------------------------------------

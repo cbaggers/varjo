@@ -56,9 +56,9 @@
 
 (defmethod argument-is-uniform-p ((name symbol)
                                   (env macro-expansion-environment))
-    (with-slots (macro-obj) env
-      (error 'no-tracking-for-regular-macro-args
-             :macro-name (name macro-obj) :arg name)))
+  (with-slots (macro-obj) env
+    (error 'no-tracking-for-regular-macro-args
+           :macro-name (name macro-obj) :arg name)))
 
 (defmethod variable-uniform-name ((name symbol) (env extended-environment))
   (or (%uniform-name (%get-val-binding name 'variable-uniform-name env) env)
@@ -71,9 +71,9 @@
 
 (defmethod argument-uniform-name ((name symbol)
                                   (env macro-expansion-environment))
-    (with-slots (macro-obj) env
-      (error 'no-tracking-for-regular-macro-args
-             :macro-name (name macro-obj) :arg name)))
+  (with-slots (macro-obj) env
+    (error 'no-tracking-for-regular-macro-args
+           :macro-name (name macro-obj) :arg name)))
 
 (defmethod add-lisp-form-as-uniform (form type-spec (env extended-environment)
                                      &optional name)
@@ -124,8 +124,8 @@
                      :key λ(flow-ids (second _))))
         (get-stemcell-name-for-flow-id id env))))
 
-(defmethod %uniform-name ((code code) (env extended-environment))
-  (let ((id (flow-ids code)))
+(defmethod %uniform-name ((compiled compiled) (env extended-environment))
+  (let ((id (flow-ids compiled)))
     (%uniform-name id env)))
 
 (defmethod %uniform-name ((val v-value) (env extended-environment))
@@ -151,7 +151,9 @@
            (loop :for binding :in (v-symbol-bindings current-env) :do
               (push binding result)))))
     (let* ((dedup (remove-duplicates result :key #'first))
-           (accessible (remove-if-not λ(apply #'binding-accesible-p env (subseq _ 0 2)) ;; <<this subseq is a hack
-                                      dedup))
+           (accessible (remove-if-not
+                        ;; <<this subseq is a hack
+                        λ(apply #'binding-accesible-p env (subseq _ 0 2))
+                        dedup))
            (names (mapcar #'first accessible)))
       names)))

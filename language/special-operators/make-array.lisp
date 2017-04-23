@@ -30,8 +30,8 @@
                   (dimensions initial-contents) 'make-array-conflicting-lengths
                   :dims dimensions :initial-contents initial-contents))
         (let* ((element-type (type-spec->type (if (keywordp element-type)
-                                               element-type
-                                               (second element-type))))
+                                                  element-type
+                                                  (second element-type))))
                (len dimensions)
                (initial-contents
                 (or initial-contents
@@ -53,11 +53,11 @@
                 (ast (ast-node! :code-section (cons 'make-array args)
                                 (gen-none-type) env env)))
             (values
-             (code! :type array-type
-                    :current-line glsl
-                    :used-types (list element-type)
-                    :node-tree ast
-                    :pure t)
+             (make-compiled :type array-type
+                            :current-line glsl
+                            :used-types (list element-type)
+                            :node-tree ast
+                            :pure t)
              env)))))))
 
 (v-defspecial vector (&rest elements)
@@ -72,8 +72,8 @@
            (ast (ast-node! 'vector (mapcar #'node-tree objs) array-type
                            env env)))
       (values
-       (merge-obs objs
-                  :type array-type
-                  :current-line glsl
-                  :node-tree ast)
+       (merge-compiled objs
+                       :type array-type
+                       :current-line glsl
+                       :node-tree ast)
        env))))

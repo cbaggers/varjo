@@ -16,19 +16,19 @@
 
 
 (defmacro jam ()
-  `(ham 1))
+`(ham 1))
 
 (let ((jam))
-  ham)
+ham)
 
 (defmacro in (space &body body) `(list ',space ',body))
 
 
 
 (defun-g testing ((vert g-pnt) &uniform (ws space))
-  (let ((p (p! (pos vert))))
-    (in ws
-      )))
+(let ((p (p! (pos vert))))
+(in ws
+)))
 
 
 (defpipeline blah (g-> #'v #'testing))

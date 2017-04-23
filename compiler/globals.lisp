@@ -62,7 +62,8 @@
 
 (defvar *registered-types* nil)
 
-(defvar +ascii-alpha-num+ "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+(defvar +ascii-alpha-num+
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
 (defparameter *draw-modes*
   '(:points

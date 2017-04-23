@@ -189,7 +189,7 @@ context is implicit"))
                    (list (mapcar λ(walk-node _ :parent parent) ast))
                    (t ast)))))
     (typecase from-node
-      (code (walk-node (node-tree from-node) :parent nil))
+      (compiled (walk-node (node-tree from-node) :parent nil))
       (compiled-stage (walk-node (ast from-node) :parent nil))
       (ast-node (walk-node from-node :parent nil))
       (t (error "object with the invalid type ~s passed to ast->code"

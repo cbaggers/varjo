@@ -40,7 +40,7 @@
                (ast (ast-node! 'let ast-args (primary-type merged)
                                env final-env)))
           (values
-           (copy-code merged :node-tree ast)
+           (copy-compiled merged :node-tree ast)
            final-env))))))
 
 (v-defmacro let* (bindings &rest body)

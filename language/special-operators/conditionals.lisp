@@ -42,11 +42,11 @@
         (vbind (block-string current-line-string)
             (gen-string-for-if-form test-obj then-obj else-obj result-type
                                     has-else)
-          (values (merge-obs arg-objs
-                             :type result-type
-                             :current-line current-line-string
-                             :to-block (list block-string)
-                             :node-tree node-tree)
+          (values (merge-compiled arg-objs
+                                  :type result-type
+                                  :current-line current-line-string
+                                  :to-block (list block-string)
+                                  :node-tree node-tree)
                   final-env))))))
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
@@ -120,20 +120,20 @@
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
           (let ((type (type-spec->type :void (flow-id!))))
-            (values (merge-obs clause-objs
-                               :type type
-                               :current-line nil
-                               :to-block (list (gen-switch-string test-obj keys
-                                                                  clause-objs))
-                               :node-tree (ast-node!
-                                           'switch
-                                           (cons (node-tree test-obj)
-
-                                                 (mapcar λ`(,(first _)
-                                                             ,(node-tree _1))
-                                                         clauses
-                                                         clause-objs))
-                                           type env final-env))
+            (values (merge-compiled
+                     clause-objs
+                     :type type
+                     :current-line nil
+                     :to-block (list (gen-switch-string test-obj keys
+                                                        clause-objs))
+                     :node-tree (ast-node!
+                                 'switch
+                                 (cons (node-tree test-obj)
+                                       (mapcar λ`(,(first _)
+                                                   ,(node-tree _1))
+                                               clauses
+                                               clause-objs))
+                                 type env final-env))
                     final-env))
           (error 'switch-type-error :test-obj test-obj :keys keys)))))
 

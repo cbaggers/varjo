@@ -49,7 +49,7 @@
                                                'return)
                                            form)
                                :possible-set (return-set code-obj)))))
-      (values (copy-code result :node-tree ast :return-set ret-set)
+      (values (copy-compiled result :node-tree ast :return-set ret-set)
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
@@ -75,7 +75,7 @@
               (otherwise (m-flow-id!
                           (map 'list λ(flow-ids (v-type-of _)) ret-set))))))
     ;;
-    (copy-code
+    (copy-compiled
      code-obj
      :type (type-spec->type 'v-void flow-result)
      :current-line (if suppress-return
@@ -94,17 +94,17 @@
         (void (type-spec->type :void)))
     (cond
       ((and implicit (v-typep type void))
-       (values (copy-code code-obj
-                          :return-set (or (return-set code-obj)
-                                          (make-return-set))
-                          :pure nil)
+       (values (copy-compiled code-obj
+                              :return-set (or (return-set code-obj)
+                                              (make-return-set))
+                              :pure nil)
                env))
       ((multi-vals code-obj)
        (let* ((mvals (multi-vals code-obj))
               (v-vals (mapcar #'multi-val-value mvals))
               (types (mapcar #'v-type-of v-vals))
               (glsl-lines (mapcar #'glsl-name v-vals)))
-         (copy-code
+         (copy-compiled
           (merge-progn
            (with-fresh-env-scope (fresh-env env)
              (env-> (p-env fresh-env)
@@ -126,7 +126,7 @@
                 (if (stage-where-first-return-is-position-p (stage env))
                     (make-return-set)
                     (make-return-set (make-return-val type)))))
-           (copy-code
+           (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form `(progn
                                ,(%default-out-for-stage code-obj fresh-env)

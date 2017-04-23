@@ -11,23 +11,24 @@
     (assert (flow-ids var-type) (var-type)
             "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
     (let ((code-obj
-           (make-code-obj var-type
-                          (gen-variable-string var-name v-value)
-                          :place-tree `((,var-name ,v-value))
-                          :node-tree (ast-node! :get var-name
-                                                var-type
-                                                env env)
-                          :pure t)))
+           (make-compiled
+            :type var-type
+            :current-line (gen-variable-string var-name v-value)
+            :place-tree `((,var-name ,v-value))
+            :node-tree (ast-node! :get var-name var-type env env)
+            :pure t)))
       (if from-higher-scope
           (add-higher-scope-val code-obj v-value)
           code-obj))))
 
 (defun %v-value->code (v-val env)
-  (make-code-obj (v-type-of v-val) (glsl-name v-val)
-                 :node-tree (ast-node! :get-v-value (list (glsl-name v-val))
-                                       (v-type-of v-val)
-                                       env env)
-                 :pure t))
+  (make-compiled
+   :type (v-type-of v-val)
+   :current-line (glsl-name v-val)
+   :node-tree (ast-node! :get-v-value (list (glsl-name v-val))
+                         (v-type-of v-val)
+                         env env)
+   :pure t))
 
 (defun maybe-add-constant-or-stemcell (var-name env)
   (let ((constant-to-inject (when (constantp var-name)

@@ -97,7 +97,7 @@
              (etypecase thing
                (null nil)
                (flow-identifier thing)
-               (code (flow-ids thing))
+               (compiled (flow-ids thing))
                (v-type (flow-ids thing)))))
     (let ((ids (remove nil (mapcar #'extract-id ids))))
       (if (null ids)
@@ -177,7 +177,7 @@
 ;;----------------------------------------------------------------------
 ;; Helpers
 
-(defmethod flow-ids ((obj code))
+(defmethod flow-ids ((obj compiled))
   (flow-ids (primary-type obj)))
 
 (defmethod flow-ids ((obj v-value))

@@ -30,20 +30,21 @@
                          (= (v-function-scope value) 0))
                (error 'cross-scope-mutate :var-name name
                       :code (format nil "(setf (... ~s) ...)" name)))
-             (multiple-value-bind (old-val old-env) (get-symbol-binding name nil env)
+             (vbind (old-val old-env) (get-symbol-binding name nil env)
                (assert (eq old-val value))
                (let ((final-env (replace-flow-ids name old-val (flow-ids val)
                                                   old-env env)))
-                 (values (merge-obs (list place val)
-                                    :type (primary-type val)
-                                    :current-line (gen-assignment-string place val)
-                                    :node-tree (ast-node! 'setf
-                                                          (list (node-tree place)
-                                                                (node-tree val))
-                                                          (primary-type place)
-                                                          env
-                                                          final-env)
-                                    :pure nil)
+                 (values (merge-compiled
+                          (list place val)
+                          :type (primary-type val)
+                          :current-line (gen-assignment-string place val)
+                          :node-tree (ast-node! 'setf
+                                                (list (node-tree place)
+                                                      (node-tree val))
+                                                (primary-type place)
+                                                env
+                                                final-env)
+                          :pure nil)
                          final-env)))))))))
 
 (v-defspecial setq (var-name new-val-code)
@@ -70,21 +71,21 @@
                                        (flow-ids new-val)
                                        old-env env))
           (actual-type (calc-setq-type new-val old-val var-name)))
-      (values (copy-code new-val :type actual-type
-                         :current-line (gen-setq-assignment-string
-                                        old-val new-val)
-                         :multi-vals nil
-                         :place-tree nil
-                         :node-tree (ast-node!
-                                     'setq
-                                     (list (ast-node! :get var-name
-                                                      actual-type
-                                                      env env)
-                                           (node-tree new-val))
-                                     actual-type
-                                     env
-                                     final-env)
-                         :pure nil)
+      (values (copy-compiled new-val :type actual-type
+                             :current-line (gen-setq-assignment-string
+                                            old-val new-val)
+                             :multi-vals nil
+                             :place-tree nil
+                             :node-tree (ast-node!
+                                         'setq
+                                         (list (ast-node! :get var-name
+                                                          actual-type
+                                                          env env)
+                                               (node-tree new-val))
+                                         actual-type
+                                         env
+                                         final-env)
+                             :pure nil)
               final-env))))
 
 (defun calc-setq-type (new-val old-val var-name)
@@ -121,11 +122,11 @@
 (v-defspecial %assign ((place v-type) (val v-type))
   :return
   (values
-   (merge-obs (list place val) :type (primary-type place)
-              :current-line (gen-assignment-string place val)
-              :node-tree (ast-node! '%assign (list place val)
-                                    (primary-type place) env env)
-              :pure nil)
+   (merge-compiled (list place val) :type (primary-type place)
+                   :current-line (gen-assignment-string place val)
+                   :node-tree (ast-node! '%assign (list place val)
+                                         (primary-type place) env env)
+                   :pure nil)
    env))
 
 ;;------------------------------------------------------------

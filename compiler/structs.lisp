@@ -37,7 +37,8 @@
                          :initarg :signature :accessor v-signature)
               (slots :initform ',slots-with-types :reader v-slots)))
            (def-v-type-class ,true-type-name (,class-name) ())
-           (def-v-type-class ,fake-type-name (,class-name) ((signature :initform ""))))
+           (def-v-type-class ,fake-type-name (,class-name)
+             ((signature :initform ""))))
          ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod v-true-type ((object ,class-name))
            (make-instance ',true-type-name :flow-ids (flow-ids object)))
@@ -59,7 +60,8 @@
   (loop :for (slot-name slot-type . acc) :in slots :collect
      (let ((accessor (if (eq :accessor (first acc)) (second acc)
                          (symb name '- slot-name))))
-       `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
+       `(v-defun ,accessor (,(symb name '-ob)
+                             ,@(when context `(&context ,@context)))
           ,(concatenate 'string "~a." (safe-glsl-name-string
                                        (or accessor slot-name)))
           (,true-type-name) ,slot-type :v-place-index 0))))

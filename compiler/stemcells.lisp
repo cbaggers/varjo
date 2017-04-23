@@ -15,7 +15,7 @@
   (let ((type (type-spec->type type-name (flow-ids code-obj)))
         (stemcells (stemcells code-obj)))
     (assert (= 1 (length stemcells)))
-    (copy-code
+    (copy-compiled
      code-obj
      :current-line (unless (ephemeral-p type) (current-line code-obj))
      :type type
@@ -40,7 +40,7 @@
          (original-name symbol)
          (flow-id (get-flow-id-for-stem-cell original-name env))
          (type (type-spec->type 'v-stemcell flow-id)))
-    (code!
+    (make-compiled
      :type type
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
@@ -57,7 +57,7 @@
                         (list symbol type-spec cpu-side-transform)
                         (type-spec->type type-spec)
                         env env)))
-    (copy-code code :node-tree ast)))
+    (copy-compiled code :node-tree ast)))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

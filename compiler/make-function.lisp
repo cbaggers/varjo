@@ -148,15 +148,15 @@
                                            :pure (pure-p body-obj)))
              (ret-set (return-set body-obj))
              (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
-             (code-obj (copy-code body-obj
-                                  :type (gen-none-type)
-                                  :current-line nil
-                                  :to-block nil
-                                  :return-set nil
-                                  :emit-set emit-set
-                                  :multi-vals nil
-                                  :place-tree nil
-                                  :out-of-scope-args implicit-args))
+             (code-obj (copy-compiled body-obj
+                                      :type (gen-none-type)
+                                      :current-line nil
+                                      :to-block nil
+                                      :return-set nil
+                                      :emit-set emit-set
+                                      :multi-vals nil
+                                      :place-tree nil
+                                      :out-of-scope-args implicit-args))
              (ast (to-top-level-ast-node body-obj declarations body-env)))
         (values (make-instance 'compiled-function-result
                                :function-obj func
@@ -213,13 +213,13 @@
                              :stemcells nil
                              :return-set nil
                              :emit-set nil)
-              (code! :type (gen-none-type)
-                     :current-line nil
-                     :place-tree nil
-                     :node-tree (ast-node! :code-section
-                                           ast-body
-                                           (gen-none-type)
-                                           func-env func-env))))))
+              (make-compiled :type (gen-none-type)
+                             :current-line nil
+                             :place-tree nil
+                             :node-tree (ast-node! :code-section
+                                                   ast-body
+                                                   (gen-none-type)
+                                                   func-env func-env))))))
 
 (defun capture-var (name env)
   (let ((val (get-symbol-binding name t env)))

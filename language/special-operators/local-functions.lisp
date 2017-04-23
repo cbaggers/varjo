@@ -31,7 +31,7 @@
                                            func-def-objs))
                        (node-tree body-obj))
                  (primary-type body-obj) env env)))
-      (values (copy-code merged :node-tree ast)
+      (values (copy-compiled merged :node-tree ast)
               e))))
 
 (v-defspecial flet (definitions &rest body)
@@ -59,7 +59,7 @@
                                            func-def-objs))
                        (node-tree body-obj))
                  (primary-type body-obj) env env)))
-      (values (copy-code merged :node-tree ast)
+      (values (copy-compiled merged :node-tree ast)
               e))))
 
 (v-defspecial labels-no-implicit (definitions exceptions &rest body)
@@ -93,5 +93,5 @@
                        exceptions
                        (node-tree body-obj))
                  (primary-type body-obj) env env)))
-      (values (copy-code merged :node-tree ast)
+      (values (copy-compiled merged :node-tree ast)
               pruned-starting-env))))

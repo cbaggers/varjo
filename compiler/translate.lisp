@@ -49,8 +49,9 @@
                                   (env environment))
   (declare (ignore stage env))
   ;; {TODO} Proper error
-  (error "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
-         (name input-variable) var-type))
+  (error
+   "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
+   (name input-variable) var-type))
 
 (defun should-make-an-ephermal-block-p (stage)
   (with-slots (previous-stage) stage
@@ -134,7 +135,7 @@
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-symbol-binding
      name (v-make-value true-type env :glsl-name glsl-name
-                                 :function-scope 0 :read-only t)
+                        :function-scope 0 :read-only t)
      env)
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
@@ -596,7 +597,8 @@
 
       (loop :for s :in (stemcells post-proc-obj) :do
          (with-slots (name string-name type cpu-side-transform) s
-           (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
+           (when (eq type :|unknown-type|)
+             (error 'symbol-unidentified :sym name))
            (let ((type-obj (type-spec->type type)))
              (push (make-instance
                     'implicit-uniform-variable

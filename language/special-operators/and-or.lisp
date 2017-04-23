@@ -12,12 +12,13 @@
     (unless (loop for o in objs always (v-primary-type-eq o (first objs)))
       (error "all forms of an 'AND' form must resolve to the same type"))
     (if (v-typep (primary-type (first objs)) (type-spec->type :bool))
-        (values (merge-obs objs
-                           :type (type-spec->type :bool flow-id)
-                           :current-line (gen-bool-and-string objs)
-                           :node-tree (ast-node! 'and (mapcar #'node-tree objs)
-                                                 (type-spec->type :bool)
-                                                 env env))
+        (values (merge-compiled objs
+                                :type (type-spec->type :bool flow-id)
+                                :current-line (gen-bool-and-string objs)
+                                :node-tree (ast-node! 'and
+                                                      (mapcar #'node-tree objs)
+                                                      (type-spec->type :bool)
+                                                      env env))
                 env) ;; pretty sure this env is wrong, what if side effects in
         ;;              forms?
         (values (last1 objs) env))))
@@ -37,12 +38,13 @@
     (unless (loop for o in objs always (v-primary-type-eq o (first objs)))
       (error "all forms of an 'OR' form must resolve to the same type"))
     (if (v-typep (primary-type (first objs)) (type-spec->type :bool))
-        (values (merge-obs objs
-                           :type (type-spec->type :bool flow-id)
-                           :current-line (gen-bool-or-string objs)
-                           :node-tree (ast-node! 'or (mapcar #'node-tree objs)
-                                                 (type-spec->type :bool)
-                                                 env env))
+        (values (merge-compiled
+                 objs
+                 :type (type-spec->type :bool flow-id)
+                 :current-line (gen-bool-or-string objs)
+                 :node-tree (ast-node! 'or (mapcar #'node-tree objs)
+                                       (type-spec->type :bool)
+                                       env env))
                 env)
         (values (first objs) env))))
 

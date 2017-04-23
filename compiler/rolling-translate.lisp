@@ -104,8 +104,8 @@
       (let ((input-variables (input-variables stage))
             (out-prim (type-of primitive))
             (in-prim (type-of (primitive-in stage))))
-        (assert (input-variables-compatiblep input-variables output-variables) ()
-                'args-incompatible
+        (assert (input-variables-compatiblep input-variables output-variables)
+                () 'args-incompatible
                 :current-args (args-for-error input-variables)
                 :previous-args (args-for-error output-variables))
         (assert (uniforms-compatiblep (uniform-variables stage)
@@ -115,8 +115,8 @@
           (assert (eq in-prim out-prim) () 'primitives-dont-match
                   :out-stage (type-of last-stage) :out out-prim
                   :in-stage (type-of stage) :in in-prim)))
-      ;; we need to modify the result of the compiled stage if the input-variables
-      ;; names dont match the names of the out args
+      ;; we need to modify the result of the compiled stage if the
+      ;; input-variables names dont match the names of the out args
       (let* ((glsl-code (glsl-code stage))
              (glsl-code (swap-out-args glsl-code))
              (glsl-code (swap-in-block glsl-code))

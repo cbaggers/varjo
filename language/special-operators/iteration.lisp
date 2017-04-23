@@ -12,16 +12,16 @@
                                                              test-env)
       (if (v-typep (primary-type test-obj) 'v-bool)
           (let ((type (type-spec->type :void (flow-id!))))
-            (values (merge-obs (list body-obj test-obj)
-                               :type type
-                               :current-line nil
-                               :to-block (list (gen-while-string
-                                                test-obj (end-line body-obj)))
-                               :node-tree (ast-node!
-                                           'while (mapcar #'node-tree
-                                                          (list test-obj
-                                                                body-obj))
-                                           type env final-env))
+            (values (merge-compiled
+                     (list body-obj test-obj)
+                     :type type
+                     :current-line nil
+                     :to-block (list (gen-while-string
+                                      test-obj (end-line body-obj)))
+                     :node-tree (ast-node!
+                                 'while (mapcar #'node-tree
+                                                (list test-obj body-obj))
+                                 type env final-env))
                     final-env))
           (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
@@ -49,13 +49,15 @@
                       (v-typep (primary-type decl-obj) 'v-int)
                       (v-typep (primary-type decl-obj) 'v-float))
             (error 'invalid-for-loop-type :decl-obj decl-obj))
-          (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
-            (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
+          (vbind (body-obj final-env)
+              (search-for-flow-id-fixpoint `(progn ,@body) new-env)
+            (if (and (null (to-block condition-obj))
+                     (null (to-block update-obj)))
                 (let ((loop-str (gen-for-loop-string
                                  var-string condition-obj update-obj
                                  (end-line body-obj)))
                       (void (type-spec->type :void (flow-id!))))
-                  (values (copy-code
+                  (values (copy-compiled
                            body-obj :type void
                            :current-line nil
                            :to-block (list loop-str)
@@ -162,8 +164,10 @@
      ;; values from the outer scope we stop (as information
      ;; has stopped flowing into the loop, there is nothing
      ;; else to glean)
-     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-symbol-binding _ nil starting-env))
-                                       variables-changed))
-            (starting-super-id (reduce #'flow-id! starting-flow-ids)))
+     (let* ((starting-flow-ids
+             (mapcar λ(flow-ids (get-symbol-binding _ nil starting-env))
+                     variables-changed))
+            (starting-super-id
+             (reduce #'flow-id! starting-flow-ids)))
        (not (some λ(id~= _ starting-super-id)
                   (mapcar #'cdr new-flow-ids)))))))

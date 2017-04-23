@@ -31,13 +31,15 @@
                                           (vec-of element-type new-len))
                                       flow-id)))
             (values
-             (copy-code vec-obj :type r-type
-                        :current-line (gen-swizzle-string vec-obj comp-string)
-                        :node-tree (ast-node! 'swizzle
-                                              `(,(node-tree vec-obj) ,components)
-                                              r-type env env)
-                        :multi-vals nil
-                        :place-tree nil)
+             (copy-compiled
+              vec-obj
+              :type r-type
+              :current-line (gen-swizzle-string vec-obj comp-string)
+              :node-tree (ast-node! 'swizzle
+                                    `(,(node-tree vec-obj) ,components)
+                                    r-type env env)
+              :multi-vals nil
+              :place-tree nil)
              env))
           (error "swizzle form invalid")))))
 

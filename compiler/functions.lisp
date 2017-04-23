@@ -57,7 +57,8 @@
                 (declare (ignorable ,env ,@arg-names))
                 ,return)
               (add-form-binding
-               (make-function-obj ',name :special ',context t (list #',func-name)
+               (make-function-obj ',name :special ',context t
+                                  (list #',func-name)
                                   :v-place-index ',v-place-index)
                *global-env*)
               ',name))
@@ -97,9 +98,9 @@
   (let* ((src-type (primary-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
-        (copy-code src-obj :type dest-type)
-        (copy-code src-obj :current-line (cast-string cast-to-type src-obj)
-                   :type dest-type))))
+        (copy-compiled src-obj :type dest-type)
+        (copy-compiled src-obj :current-line (cast-string cast-to-type src-obj)
+                       :type dest-type))))
 
 (defmethod cast-code-inner
     (varjo-type src-obj (cast-to-type v-function-type) env)
@@ -111,8 +112,8 @@
                    :ctv (ctv (v-type-of src-obj))
                    :flow-ids (flow-ids src-obj))))
     (if (v-type-eq (primary-type src-obj) new-type)
-        (copy-code src-obj :type new-type)
-        (copy-code
+        (copy-compiled src-obj :type new-type)
+        (copy-compiled
          src-obj
          :current-line (cast-string new-type src-obj)
          :type new-type))))
@@ -123,7 +124,7 @@
   (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type env))
                               (v-types varjo-type))))
     (if funcs
-        (copy-code src-obj :type (gen-any-one-of-type funcs))
+        (copy-compiled src-obj :type (gen-any-one-of-type funcs))
         (error "Varjo: compiler bug: Had already decided it was possible to cast ~a to ~a
 however failed to do so when asked."
                src-obj cast-to-type))))
@@ -145,7 +146,9 @@ however failed to do so when asked."
                    most-positive-fixnum)))
       ;;
       (when (eql (length arg-types) (length spec-types))
-        (let* ((perfect-matches (mapcar λ(v-typep _ _1 env) arg-types spec-types))
+        (let* ((perfect-matches (mapcar λ(v-typep _ _1 env)
+                                        arg-types
+                                        spec-types))
                (score (- (length arg-types)
                          (length (remove nil perfect-matches)))))
 
@@ -155,7 +158,7 @@ however failed to do so when asked."
                 (make-instance
                  'func-match
                  :func func
-                 :arguments (mapcar #'copy-code arg-objs)
+                 :arguments (mapcar #'copy-compiled arg-objs)
                  :score score
                  :secondary-score secondary-score))
               (when allow-casting
@@ -199,8 +202,9 @@ however failed to do so when asked."
     (handler-case (compile-form arg env)
       (varjo-error (e)
         (if wrap-errors-p
-            (make-code-obj
-             (make-instance 'v-error :payload e) ""
+            (make-compiled
+             :type (make-instance 'v-error :payload e)
+             :current-line ""
              :node-tree (ast-node! :error nil (gen-none-type)
                                    env env))
             (error e))))))
@@ -313,7 +317,9 @@ however failed to do so when asked."
                 ((functionp spec) (apply spec args))
                 ((element-spec-p spec)
                  (v-element-type (nth (second spec) arg-types)))
-                (t (error 'invalid-function-return-spec :func func :spec spec)))))
+                (t (error 'invalid-function-return-spec
+                          :func func
+                          :spec spec)))))
     (assert (typep result 'v-type))
     result))
 

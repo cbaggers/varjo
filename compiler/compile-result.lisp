@@ -1,21 +1,22 @@
 (in-package :varjo)
 
-(defun clone-compile-result (original
-                             &key
-                               (glsl-code nil glsl-code-set)
-                               (lisp-code nil lisp-code-set)
-                               (output-variables nil output-variables-set)
-                               (starting-stage nil starting-stage-set)
-                               (input-variables nil inp-vars-set)
-                               (uniform-variables nil uniforms-set)
-                               (implicit-uniforms nil implicit-uniforms-set)
-                               (context nil context-set)
-                               (stemcells-allowed nil a-s-set)
-                               (used-external-functions nil used-external-functions-set)
-                               (previous-stage nil previous-stage-set)
-                               (primitive-in nil primitive-in-set)
-                               (primitive-out nil primitive-out-set)
-                               (function-asts nil function-asts-set))
+(defun clone-compile-result
+    (original
+     &key
+       (glsl-code nil glsl-code-set)
+       (lisp-code nil lisp-code-set)
+       (output-variables nil output-variables-set)
+       (starting-stage nil starting-stage-set)
+       (input-variables nil inp-vars-set)
+       (uniform-variables nil uniforms-set)
+       (implicit-uniforms nil implicit-uniforms-set)
+       (context nil context-set)
+       (stemcells-allowed nil a-s-set)
+       (used-external-functions nil used-external-functions-set)
+       (previous-stage nil previous-stage-set)
+       (primitive-in nil primitive-in-set)
+       (primitive-out nil primitive-out-set)
+       (function-asts nil function-asts-set))
   (make-instance
    (compiled-stage-type-for original)
    :glsl-code (if glsl-code-set

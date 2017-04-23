@@ -14,7 +14,8 @@
         (error 'multi-val-bind-mismatch :val-form value-form :bindings vars))
       (let* ((mvals (multi-vals value-obj))
              (v-vals (mapcar #'multi-val-value mvals))
-             (types (cons (primary-type value-obj) (mapcar #'v-type-of v-vals))))
+             (types (cons (primary-type value-obj)
+                          (mapcar #'v-type-of v-vals))))
         (vbind ((m-objs s-obj b-objs) final-env)
             (with-fresh-env-scope (fresh-env env)
               (env-> (p-env fresh-env)
@@ -29,7 +30,7 @@
                  (merged (merge-progn `(,m-obj ,s-obj ,@b-objs)
                                       env final-env)))
             (values
-             (copy-code
+             (copy-compiled
               merged
               :node-tree (ast-node! 'multiple-value-bind
                                     `(,vars ,(node-tree value-obj)

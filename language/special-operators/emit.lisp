@@ -53,7 +53,7 @@
                               :form (list 'emit form)
                               :possible-set (emit-set code-obj)))))
     ;;0
-    (values (copy-code result :node-tree ast :emit-set emit-set)
+    (values (copy-compiled result :node-tree ast :emit-set emit-set)
             env)))
 
 ;; Used when this is the main stage function
@@ -69,7 +69,7 @@
               (v-vals (mapcar #'multi-val-value mvals))
               (types (mapcar #'v-type-of v-vals))
               (glsl-lines (mapcar #'glsl-name v-vals)))
-         (copy-code
+         (copy-compiled
           (merge-progn
            (with-fresh-env-scope (fresh-env env)
              (env-> (p-env fresh-env)
@@ -89,7 +89,7 @@
       (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
                              (make-emit-set)
                              (make-emit-set (make-emit-val type)))))
-           (copy-code
+           (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form (%default-out-for-stage code-obj fresh-env)
                             fresh-env))

@@ -93,7 +93,8 @@
                   (indent (current-line body-obj)))))
 
 (defun gen-swizzle-string (vec-obj components-string)
-  (format nil "~a.~a" (current-line vec-obj) (string-downcase components-string)))
+  (format nil "~a.~a" (current-line vec-obj)
+          (string-downcase components-string)))
 
 (defun remove-empty (list)
   (labels ((empty-p (x)
@@ -136,26 +137,30 @@
   (%qualify obj qualifiers))
 
 (defun %qualify (obj qualifiers)
-  (copy-code obj :current-line (format nil "~(~{~a ~}~)~a"
-                                       (string-downcase (string qualifiers))
-                                       (current-line obj))
-             :multi-vals nil
-             :place-tree nil))
+  (copy-compiled obj :current-line (format nil "~(~{~a ~}~)~a"
+                                           (string-downcase (string qualifiers))
+                                           (current-line obj))
+                 :multi-vals nil
+                 :place-tree nil))
 
-(defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
+(defun prefix-type-to-string (type line-string
+                              &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-type) (format nil "~a ~a"
                                                    (v-glsl-string type)
                                                    line-string))
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
         (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a"
-                (loop :for q :in qualifiers :collect (string-downcase (string q)))
+                (loop :for q :in qualifiers :collect
+                   (string-downcase (string q)))
                 storage-qual
                 line)
         (format nil "~@[~(~a ~)~]~a" storage-qual line))))
 
 (defun prefix-type-declaration (code-obj &optional qualifiers storage-qual)
-  (prefix-type-to-string (primary-type code-obj) (current-line code-obj) qualifiers
+  (prefix-type-to-string (primary-type code-obj)
+                         (current-line code-obj)
+                         qualifiers
                          storage-qual))
 
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)

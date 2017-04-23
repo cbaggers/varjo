@@ -53,5 +53,5 @@
   (let* ((type (type-spec->type name (flow-id!)))
          (ast (ast-node! 'init-ephemeral (list name) type env env)))
     (assert (ephemeral-p type) () "~a is not an ephemeral type" name)
-    (values (code! :type type :current-line nil :node-tree ast)
+    (values (make-compiled :type type :current-line nil :node-tree ast)
             env)))

@@ -7,8 +7,8 @@
                   &key vertex tessellation-control tessellation-evaluation
                     geometry fragment allow-stemcells (draw-mode :triangles))
   "
-This function takes lisp code as lists and returns the results of compiling that
-code to glsl.
+This function takes lisp code as lists and returns the results of compiling
+that code to glsl.
 
 Each result is an object of type 'compiled-stage.
 
@@ -28,7 +28,8 @@ Example:
                                       (* x x)))
                              (v! 1.0 1.0 hmm (fun a)))))
 "
-  (assert (or vertex tessellation-control tessellation-evaluation geometry fragment))
+  (assert (or vertex tessellation-control tessellation-evaluation
+              geometry fragment))
   (let* ((stages (list (when vertex
                          (make-stage :vertex
                                      (first vertex)

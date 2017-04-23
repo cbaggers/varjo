@@ -45,14 +45,15 @@
   (if (= 1 (length code-objs))
       (first code-objs)
       (let* ((last-obj (last1 (remove nil code-objs))))
-        (merge-obs code-objs
-                   :type (primary-type last-obj)
-                   :current-line (current-line last-obj)
-                   :to-block (merge-lines-into-block-list code-objs)
-                   :multi-vals (multi-vals (last1 code-objs))
-                   :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
-                                         (primary-type last-obj)
-                                         starting-env final-env)))))
+        (merge-compiled code-objs
+                        :type (primary-type last-obj)
+                        :current-line (current-line last-obj)
+                        :to-block (merge-lines-into-block-list code-objs)
+                        :multi-vals (multi-vals (last1 code-objs))
+                        :node-tree (ast-node! 'progn
+                                              (mapcar #'node-tree code-objs)
+                                              (primary-type last-obj)
+                                              starting-env final-env)))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)
   (let ((co (gensym "code-objs"))
@@ -91,13 +92,14 @@
       (values code-objs merged-env))))
 
 (defun %merge-multi-env-progn (code-objs)
-  (merge-obs code-objs
-             :type (gen-none-type)
-             :current-line nil
-             :to-block (append (mapcat #'to-block code-objs)
-                               (mapcar (lambda (_) (current-line (end-line _)))
-                                       code-objs))
-             :node-tree :ignored))
+  (merge-compiled
+   code-objs
+   :type (gen-none-type)
+   :current-line nil
+   :to-block (append (mapcat #'to-block code-objs)
+                     (mapcar (lambda (_) (current-line (end-line _)))
+                             code-objs))
+   :node-tree :ignored))
 
 (defmacro merge-multi-env-progn (code-objs)
   (let ((co (gensym "code-objs"))
@@ -122,13 +124,13 @@
                      (replace-flow-id (primary-type code-obj)
                                       (flow-ids new-value)))
                    (primary-type code-obj))))
-    (copy-code code-obj
-               :type type
-               :current-line current-line
-               :to-block to-block
-               :node-tree :ignored
-               :multi-vals nil
-               :place-tree nil)))
+    (copy-compiled code-obj
+                   :type type
+                   :current-line current-line
+                   :to-block to-block
+                   :node-tree :ignored
+                   :multi-vals nil
+                   :place-tree nil)))
 
 ;;----------------------------------------------------------------------
 
@@ -153,31 +155,32 @@
               ;;
               (value-obj
                (typify-code
-                (make-code-obj (or type-obj (primary-type value-obj))
-                               glsl-name
-                               :node-tree :ignored)
+                (make-compiled
+                 :type (or type-obj (primary-type value-obj))
+                 :current-line glsl-name
+                 :node-tree :ignored)
                 value-obj))
               ;;
               (t (typify-code
-                  (make-code-obj type-obj
-                                 glsl-name
+                  (make-compiled :type type-obj
+                                 :current-line glsl-name
                                  :node-tree :ignored)))))
            (to-block
             (cons-end (current-line (end-line let-obj))
                       (to-block let-obj))))
       (values
-       (copy-code let-obj
-                  :type (gen-none-type)
-                  :current-line nil
-                  :to-block to-block
-                  :multi-vals nil
-                  :place-tree nil
-                  :node-tree (if value-form
-                                 (node-tree value-obj)
-                                 :ignored)
-                  :stemcells (append (and let-obj (stemcells let-obj))
-                                     (and value-obj (stemcells value-obj)))
-                  :pure (if value-obj (pure-p value-obj) t))
+       (copy-compiled let-obj
+                      :type (gen-none-type)
+                      :current-line nil
+                      :to-block to-block
+                      :multi-vals nil
+                      :place-tree nil
+                      :node-tree (if value-form
+                                     (node-tree value-obj)
+                                     :ignored)
+                      :stemcells (append (and let-obj (stemcells let-obj))
+                                         (and value-obj (stemcells value-obj)))
+                      :pure (if value-obj (pure-p value-obj) t))
        (add-symbol-binding
         name
         (if (and (not value-obj) (not assume-bound))

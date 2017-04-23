@@ -16,7 +16,7 @@
                   ((and (listp code) (listp (first code)))
                    (error 'invalid-form-list :code code))
                   ((listp code) (compile-list-form code env))
-                  ((typep code 'code) code)
+                  ((typep code 'compiled) code)
                   ((typep code 'v-value) (%v-value->code code env))
                   (t (error 'cannot-compile :code code))))))))
 

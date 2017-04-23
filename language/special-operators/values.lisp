@@ -41,18 +41,18 @@
                                  objs
                                  qualifier-lists)
                          (primary-type result) env env)))
-    (values (copy-code result
-                       :multi-vals (mapcar #'make-mval (rest vals)
-                                           (rest qualifier-lists))
-                       :node-tree ast)
+    (values (copy-compiled result
+                           :multi-vals (mapcar #'make-mval (rest vals)
+                                               (rest qualifier-lists))
+                           :node-tree ast)
             env)))
 
 (defun %values-void (env)
   (let ((void (type-spec->type :void (flow-id!))))
-    (values (code! :type void
-                   :current-line nil
-                   :node-tree (ast-node! 'values nil void env env)
-                   :pure t)
+    (values (make-compiled :type void
+                           :current-line nil
+                           :node-tree (ast-node! 'values nil void env env)
+                           :pure t)
             env)))
 
 (defun extract-value-qualifiers (value-form)
@@ -86,6 +86,6 @@
                                  (primary-type c)
                                  env
                                  final-env)))
-            (values (copy-code c :node-tree ast)
+            (values (copy-compiled c :node-tree ast)
                     final-env))))
       (compile-form form env )))

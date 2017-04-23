@@ -11,10 +11,10 @@
   (if (typep val '(integer 0 *))
       (let* ((flow-id (flow-id!))
              (type (type-spec->type :uint flow-id)))
-        (values (code! :type type
-                       :current-line (format nil "~au" val)
-                       :used-types (list type)
-                       :node-tree (ast-node! 'uint val type env env)
-                       :pure t)
+        (values (make-compiled :type type
+                               :current-line (format nil "~au" val)
+                               :used-types (list type)
+                               :node-tree (ast-node! 'uint val type env env)
+                               :pure t)
                 env))
       (compile-form `(%uint ,val) env)))

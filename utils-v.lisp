@@ -287,7 +287,8 @@ are supported in this context are: ~s"
                    (if (= (length unknown) 1) (first unknown) unknown)
                    (remove nil template)))))))
 
-(defun split-arguments (args &optional (template '(&uniform &context &instancing)))
+(defun split-arguments (args
+                        &optional (template '(&uniform &context &instancing)))
   (let* ((split (lambda-list-split template args))
          (in-args (cdr (assoc nil split))))
     (cons in-args
@@ -332,14 +333,15 @@ are supported in this context are: ~s"
 (defmacro asserting (assert-forms error-form &rest error-args)
   `(let ,assert-forms
      (unless (and ,@(mapcar #'first assert-forms))
-       ,(typecase error-form
-                  (symbol `(error ',error-form ,@error-args))
-                  (string `(error ',(format nil "~a~%~{~a~%~}" error-form
-                                            (n-of "~@[~a~]" (length error-args)))
-                                  ,@(loop :for e :in error-args
-                                       :for f :in assert-forms :collect
-                                       `(unless ,(first f) ,e))))
-                  (otherwise (error "The error-form used in the asserting macro must be a symbol or a string"))))))
+       ,(typecase
+         error-form
+         (symbol `(error ',error-form ,@error-args))
+         (string `(error ',(format nil "~a~%~{~a~%~}" error-form
+                                   (n-of "~@[~a~]" (length error-args)))
+                         ,@(loop :for e :in error-args
+                              :for f :in assert-forms :collect
+                              `(unless ,(first f) ,e))))
+         (otherwise (error "The error-form used in the asserting macro must be a symbol or a string"))))))
 
 (defmacro case= (form &body cases)
   (let ((g (gensym "val")))

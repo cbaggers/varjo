@@ -9,15 +9,15 @@
   (let* ((type (primary-type arr))
          (elem-type (set-flow-id (v-element-type type) (flow-id!))))
     (values
-     (merge-obs (list arr index)
-                :type elem-type
-                :current-line (format nil "~a[~a].~a"
-                                      (block-name type)
-                                      (current-line index)
-                                      (current-line arr t))
-                :node-tree (ast-node!
-                            'aref
-                            (list (node-tree arr)
-                                  (node-tree index))
-                            elem-type env env))
+     (merge-compiled (list arr index)
+                     :type elem-type
+                     :current-line (format nil "~a[~a].~a"
+                                           (block-name type)
+                                           (current-line index)
+                                           (current-line arr t))
+                     :node-tree (ast-node!
+                                 'aref
+                                 (list (node-tree arr)
+                                       (node-tree index))
+                                 elem-type env env))
      env)))
