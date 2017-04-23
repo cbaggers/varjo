@@ -237,8 +237,7 @@
             'output-variable
             :name (name _)
             :glsl-name (glsl-name _)
-            :type (type-spec->type (list (type->type-spec (v-type-of _))
-                                         (vertex-count primitive)))
+            :type (v-array-type-of (v-type-of _) (vertex-count primitive))
             :qualifiers (qualifiers _))
           output-variables))
 
@@ -285,6 +284,10 @@
     (%array-the-output-variables-for-primitive
      primitive
      (rest (output-variables stage))))
+
+  (:method ((last vertex-stage) next (stage stage) primitive)
+    (declare (ignore last next primitive))
+    (rest (output-variables stage)))
 
   (:method (last next (stage stage) primitive)
     (declare (ignore last next primitive))

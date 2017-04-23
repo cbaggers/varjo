@@ -38,7 +38,9 @@
                    :pure nil)))
 
 (defun glsl-let (name-symbol name-string type value-form env)
-  (let ((type-spec (if (typep type 'v-type) (type->type-spec type) type)))
+  (let ((type-spec (if (typep type 'v-type)
+                       (type->type-spec type)
+                       type)))
     (compile-let name-symbol type-spec value-form env name-string)))
 
 

@@ -591,8 +591,7 @@
                                                            qualifiers))))
                  final-strings))
          (when (and (v-typep type-obj 'v-user-struct)
-                    (not (find type-obj structs :key #'type->type-spec
-                               :test #'v-type-eq)))
+                    (not (find type-obj structs :test #'v-type-eq)))
            (push type-obj structs)))
 
       (loop :for s :in (stemcells post-proc-obj) :do
@@ -614,9 +613,7 @@
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
-                        (not (find type-obj structs
-                                   :key #'type->type-spec
-                                   :test #'v-type-eq)))
+                        (not (find type-obj structs :test #'v-type-eq)))
                (push type-obj structs)))))
       ;;
       (setf (used-user-structs post-proc-obj) structs)
