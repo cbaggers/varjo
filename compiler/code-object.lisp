@@ -19,15 +19,20 @@
   (let* ((used-types (if (and (not (find type used-types :test #'v-type-eq))
                               (not (v-type-eq type (gen-none-type))))
                          (cons type used-types)
-                         used-types)))
+                         used-types))
+         (set (cond
+                ((and (v-typep type :void) (not multi-vals))
+                 (vector))
+                ((and (v-typep type :void) multi-vals)
+                 (break "Ah so that's when this can happen"))
+                (t (apply #'vector (cons type multi-vals))))))
     (make-instance 'compiled
-                   :type type
+                   :type-set set
                    :current-line current-line
                    :to-block to-block
                    :return-set return-set
                    :emit-set emit-set
                    :used-types used-types
-                   :multi-vals multi-vals
                    :stemcells stemcells
                    :out-of-scope-args out-of-scope-args
                    :place-tree place-tree

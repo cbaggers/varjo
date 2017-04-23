@@ -17,13 +17,12 @@
 ;;----------------------------------------------------------------------
 
 (defclass compiled ()
-  ((type-set :initarg :type :initform nil)
+  ((type-set :initarg :type-set :initform nil)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
    (emit-set :initarg :emit-set :initform nil :reader emit-set)
    (used-types :initarg :used-types :initform nil :reader used-types)
-   (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
@@ -33,7 +32,16 @@
 
 (defgeneric primary-type (compiled)
   (:method ((compiled compiled))
-    (slot-value compiled 'type-set)))
+    (let ((set (slot-value compiled 'type-set)))
+      (if (arrayp set)
+          (if (emptyp set)
+              (type-spec->type :void (flow-id!))
+              (elt set 0))
+          (error "blarg")))))
+
+(defgeneric multi-vals (compiled)
+  (:method ((compiled compiled))
+    (rest (map 'list #'identity (slot-value compiled 'type-set)))))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 
