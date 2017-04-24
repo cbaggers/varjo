@@ -40,7 +40,7 @@
                 (%main-return code-obj implicit new-env)
                 (%regular-return code-obj implicit)))
            (ast (ast-node! 'return (node-tree code-obj)
-                           (make-type-set (primary-type result))
+                           (make-type-set)
                            env env))
            (ret-set (or (return-set result)
                         (error 'nil-return-set
@@ -49,17 +49,21 @@
                                                'return)
                                            form)
                                :possible-set (return-set code-obj)))))
-      (values (copy-compiled result :node-tree ast :return-set ret-set)
+      (values (copy-compiled result
+                             :type-set (make-type-set)
+                             :node-tree ast
+                             :return-set ret-set)
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-return (code-obj implicit)
   (let* ((suppress-return (or (v-typep (primary-type code-obj)
-                                       'v-void)
+                                       :void)
                               (v-typep (primary-type code-obj)
-                                       'v-ephemeral-type)))
+                                       :ephemeral-type)))
          (ret-set (if (and implicit (v-typep (primary-type code-obj) 'v-void))
-                      (return-set code-obj)
+                      (or (return-set code-obj)
+                          (make-type-set))
                       (type-set code-obj))))
     ;;
     (copy-compiled
@@ -86,10 +90,9 @@
                 :pure nil)
                env))
       ((multi-vals code-obj)
-       (let* ((mvals (multi-vals code-obj))
-              (v-vals (mapcar #'multi-val-value mvals))
-              (types (mapcar #'v-type-of v-vals))
-              (glsl-lines (mapcar #'glsl-name v-vals)))
+       (let* ((mvals (rest (coerce (type-set code-obj) 'list)))
+              (types (mapcar #'v-type-of mvals))
+              (glsl-lines (mapcar #'glsl-name mvals)))
          (copy-compiled
           (merge-progn
            (with-fresh-env-scope (fresh-env env)

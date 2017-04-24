@@ -39,13 +39,14 @@
   (let* ((string-name (string (safe-glsl-name-string symbol)))
          (original-name symbol)
          (flow-id (get-flow-id-for-stem-cell original-name env))
-         (type (type-spec->type 'v-stemcell flow-id)))
+         (type (type-spec->type 'v-stemcell flow-id))
+         (type-set (make-type-set type)))
     (make-compiled
-     :type-set (make-type-set type)
+     :type-set type-set
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
                               flow-id cpu-side-transform))
-     :node-tree (ast-node! :get-stemcell symbol type env env))))
+     :node-tree (ast-node! :get-stemcell symbol type-set env env))))
 
 (defun inject-implicit-uniform (symbol type-spec env
                                 &optional cpu-side-transform)

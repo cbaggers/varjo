@@ -1,14 +1,14 @@
 (in-package :varjo)
 (in-readtable :fn.reader)
 
-(defun make-compiled (&key (type-set nil set-type-set) (current-line "")
+(defun make-compiled (&key (type-set #() set-type-set) (current-line "")
                         to-block emit-set return-set used-types stemcells
                         out-of-scope-args pure
                         place-tree node-tree)
   (let ((flow-ids (flow-ids (primary-type type-set))))
     (assert-flow-id-singularity flow-ids)
-    (unless (or flow-ids (type-doesnt-need-flow-id type-set))
-      (error 'flow-ids-mandatory :for :code-object
+    (unless (or flow-ids (type-doesnt-need-flow-id (primary-type type-set)))
+      (error 'flow-ids-mandatory :for "compiled object"
              :primary-type (map 'vector #'type->type-spec type-set))))
   (unless set-type-set
     (error "The type-set must be specified when creating an instance of varjo:compiled"))
@@ -16,6 +16,7 @@
               (and (typep node-tree 'ast-node)
                    (listp (slot-value node-tree 'args))))
     (error "invalid ast node-tree ~s" node-tree))
+  (assert type-set () "Varjo: type-set is mandatory when making compiled objects")
   (assert (every λ(typep _ 'v-type) type-set))
   (let* ((used-types (%merge-used-types used-types type-set)))
     (when (and (v-typep (primary-type type-set) :void)
@@ -71,21 +72,24 @@
                             (place-tree nil set-place-tree)
                             (pure nil set-pure)
                             (node-tree nil set-node-tree))
-  (make-compiled
-   :type-set (if set-type-set type-set (type-set code-obj))
-   :current-line (if set-current-line current-line
-                     (current-line code-obj t))
-   :to-block (if set-block to-block (remove nil (to-block code-obj)))
-   :return-set (if set-return-set return-set (return-set code-obj))
-   :emit-set (if set-emit-set emit-set (emit-set code-obj))
-   :used-types (used-types code-obj)
-   :stemcells (if set-stemcells stemcells (stemcells code-obj))
-   :out-of-scope-args (if set-out-of-scope-args
-                          out-of-scope-args
-                          (remove nil (out-of-scope-args code-obj)))
-   :place-tree (if set-place-tree place-tree (place-tree code-obj))
-   :pure (if set-pure pure (pure-p code-obj))
-   :node-tree (if set-node-tree node-tree (node-tree code-obj))))
+  (let ((type-set (if set-type-set type-set (type-set code-obj))))
+    (assert type-set () "Varjo: type-set is mandatory when copying compiled objects")
+    (assert (every λ(typep _ 'v-type) type-set))
+    (make-compiled
+     :type-set type-set
+     :current-line (if set-current-line current-line
+                       (current-line code-obj t))
+     :to-block (if set-block to-block (remove nil (to-block code-obj)))
+     :return-set (if set-return-set return-set (return-set code-obj))
+     :emit-set (if set-emit-set emit-set (emit-set code-obj))
+     :used-types (used-types code-obj)
+     :stemcells (if set-stemcells stemcells (stemcells code-obj))
+     :out-of-scope-args (if set-out-of-scope-args
+                            out-of-scope-args
+                            (remove nil (out-of-scope-args code-obj)))
+     :place-tree (if set-place-tree place-tree (place-tree code-obj))
+     :pure (if set-pure pure (pure-p code-obj))
+     :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
 
 (defmethod merge-compiled ((objs list)
                            &key type-set

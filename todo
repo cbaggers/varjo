@@ -1,3 +1,8 @@
+* check which places actually need primary-type
+
+* enforce type . named-types layout to type-sets
+  assert type is never :void
+
 * unify type & multi-vals in code objects
 
 * make-user-function-obj in make-function.lisp has a daft way of storing the

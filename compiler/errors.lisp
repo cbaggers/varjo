@@ -287,7 +287,7 @@ e.g. (~a :vec3)"
   form-name)
 
 (deferror flow-ids-mandatory (:error-type varjo-critical-error) (for primary-type)
-    "~s must be given flow id/s when created: type - ~s" for primary-type)
+    "~a must be given flow id/s when created: type - ~s" for primary-type)
 
 (deferror flow-id-must-be-specified-vv (:error-type varjo-critical-error) ()
     "v-values must be given a flow id when created")

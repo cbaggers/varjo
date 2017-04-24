@@ -30,7 +30,8 @@
                                            definitions
                                            func-def-objs))
                        (node-tree body-obj))
-                 (primary-type body-obj) env env)))
+                 (type-set body-obj)
+                 env env)))
       (values (copy-compiled merged :node-tree ast)
               e))))
 

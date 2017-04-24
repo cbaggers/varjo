@@ -783,4 +783,7 @@ type-spec trick doesnt"))
 ;;------------------------------------------------------------
 
 (defun make-type-set (&rest members)
+  (when (and (= (length members) 1)
+             (not (typep (first members) 'v-stemcell)))
+    (assert (not (v-typep (first members) :void))))
   (apply #'vector members))

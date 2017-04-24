@@ -553,6 +553,8 @@
     (with-slots (out-set) post-proc-obj
       (gen-out-glsl-decls stage out-set locations))))
 
+;;----------------------------------------------------------------------
+
 (defun gen-out-var-strings (post-proc-obj)
   (with-slots (stage out-set) post-proc-obj
     (let* ((locations (gen-stage-locations stage out-set)))

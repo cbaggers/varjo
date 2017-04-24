@@ -204,7 +204,7 @@ however failed to do so when asked."
       (varjo-error (e)
         (if wrap-errors-p
             (make-compiled
-             :type-set (make-instance 'v-error :payload e)
+             :type-set (make-type-set (make-instance 'v-error :payload e))
              :current-line ""
              :node-tree (ast-node! :error nil (make-type-set)
                                    env env))

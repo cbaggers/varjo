@@ -41,21 +41,22 @@
                           `(%assign ,v ,o))
                      ,first-name)
                   env))
+         (type-set (apply #'make-type-set
+                          (cons (primary-type result)
+                                (rest vals))))
          (ast (ast-node! 'values
                          (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
                                  objs
                                  qualifier-lists)
-                         (primary-type result) env env)))
+                         type-set env env)))
     (values (copy-compiled
              result
-             :type-set (apply #'make-type-set
-                              (cons (primary-type result)
-                                    (rest vals)))
+             :type-set type-set
              :node-tree ast)
             env)))
 
 (defun %values-void (env)
-  (let ((void (make-type-set (type-spec->type :void (flow-id!)))))
+  (let ((void (make-type-set)))
     (values (make-compiled :type-set void
                            :current-line nil
                            :node-tree (ast-node! 'values nil void env env)

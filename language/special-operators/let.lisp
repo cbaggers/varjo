@@ -38,7 +38,7 @@
                               val-ast-nodes)
                       (node-tree body-obj)))
                (ast (ast-node! 'let ast-args
-                               (make-type-set (primary-type merged))
+                               (type-set merged)
                                env final-env)))
           (values
            (copy-compiled merged :node-tree ast)

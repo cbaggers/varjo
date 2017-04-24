@@ -8,19 +8,22 @@
                                     &allow-other-keys)
               func-spec
             (let* ((parsed-name (parse-gl-func-name name))
-                   (lisp-name (or (find-symbol parsed-name :cl )
+                   (lisp-name (or (find-symbol parsed-name :cl)
                                   (intern parsed-name  :varjo-lang)))
                    (arg-types (mapcar #'second args))
                    (lisp-arg-types (mapcar λ(type-spec->type
                                              (parse-gl-type-name _))
                                            arg-types))
                    (spec-returns (ensure-list return))
-                   (lisp-return (mapcar λ(type-spec->type
-                                          (parse-gl-type-name _))
-                                        spec-returns))
+                   (lisp-return (if (equal spec-returns '("void"))
+                                    (make-type-set)
+                                    (map 'vector
+                                         λ(type-spec->type
+                                           (parse-gl-type-name _))
+                                         spec-returns)))
                    (transform (format nil "~a(~{~a~^,~})" name
-                                      (loop :for i :below (length args) :collect
-                                         "~a")))
+                                      (loop :for i :below (length args)
+                                         :collect "~a")))
                    (versions (mapcar #'kwd versions)))
               (unless (some #'third args)
                 `((add-form-binding

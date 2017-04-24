@@ -45,9 +45,7 @@
   (if (= 1 (length code-objs))
       (first code-objs)
       (let* ((last-obj (last1 (remove nil code-objs)))
-             (type-set (apply #'make-type-set
-                              (cons (primary-type last-obj)
-                                    (multi-vals (last1 code-objs))))))
+             (type-set (type-set (last1 code-objs))))
         (merge-compiled code-objs
                         :type-set type-set
                         :current-line (current-line last-obj)

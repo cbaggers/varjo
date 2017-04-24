@@ -17,7 +17,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass compiled ()
-  ((type-set :initarg :type-set :initform nil :reader type-set)
+  ((type-set :initarg :type-set :reader type-set)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
@@ -40,7 +40,7 @@
 
 (defgeneric multi-vals (compiled)
   (:method ((compiled compiled))
-    (rest (map 'list #'identity (slot-value compiled 'type-set)))))
+    (rest (coerce (slot-value compiled 'type-set) 'list))))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 

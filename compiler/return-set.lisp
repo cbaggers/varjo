@@ -12,9 +12,13 @@
                  :qualifiers (sort (copy-list qualifiers) #'string<)))
 
 (defun qualified-eql (ret-a ret-b)
-  (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
-       (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-       (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
+  (if (and (typep ret-a 'v-type) (typep ret-b 'v-type))
+      (and (v-type-eq ret-a ret-b)
+           (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
+           (every #'eq (qualifiers ret-a) (qualifiers ret-b)))
+      (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
+           (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
+           (every #'eq (qualifiers ret-a) (qualifiers ret-b)))))
 
 (defun merge-return-sets (sets)
   (labels ((%merge-return-sets (set-a set-b)

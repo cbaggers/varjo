@@ -34,16 +34,19 @@
                      (env-prune* (env-depth test-env) then-env else-env)))
              (result-type (gen-or-type (list (primary-type then-obj)
                                              (primary-type else-obj))))
+             (type-set (if (v-typep result-type :void)
+                           (make-type-set)
+                           (make-type-set result-type)))
              (node-tree (ast-node! 'if
                                    (mapcar #'node-tree
                                            (list test-obj then-obj else-obj))
-                                   result-type
+                                   type-set
                                    starting-env final-env)))
         (vbind (block-string current-line-string)
             (gen-string-for-if-form test-obj then-obj else-obj result-type
                                     has-else)
           (values (merge-compiled arg-objs
-                                  :type-set (make-type-set result-type)
+                                  :type-set type-set
                                   :current-line current-line-string
                                   :to-block (list block-string)
                                   :node-tree node-tree)

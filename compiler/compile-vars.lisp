@@ -22,15 +22,6 @@
           (add-higher-scope-val code-obj v-value)
           code-obj))))
 
-(defun %v-value->code (v-val env)
-  (make-compiled
-   :type-set (make-type-set (v-type-of v-val))
-   :current-line (glsl-name v-val)
-   :node-tree (ast-node! :get-v-value (list (glsl-name v-val))
-                         (v-type-of v-val)
-                         env env)
-   :pure t))
-
 (defun maybe-add-constant-or-stemcell (var-name env)
   (let ((constant-to-inject (when (constantp var-name)
                               (funcall *constant-inject-hook* var-name))))
