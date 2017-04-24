@@ -206,7 +206,7 @@ however failed to do so when asked."
             (make-compiled
              :type-set (make-instance 'v-error :payload e)
              :current-line ""
-             :node-tree (ast-node! :error nil (gen-none-type)
+             :node-tree (ast-node! :error nil (make-type-set)
                                    env env))
             (error e))))))
 

@@ -94,7 +94,7 @@
       (values code-objs merged-env))))
 
 (defun %merge-multi-env-progn (code-objs)
-  (let ((type-set (make-type-set (gen-none-type))))
+  (let ((type-set (make-type-set)))
     (merge-compiled
      code-objs
      :type-set type-set
@@ -174,7 +174,7 @@
                       (to-block let-obj))))
       (values
        (copy-compiled let-obj
-                      :type-set (make-type-set (gen-none-type))
+                      :type-set (make-type-set)
                       :current-line nil
                       :to-block to-block
                       :place-tree nil

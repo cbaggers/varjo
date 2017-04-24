@@ -332,13 +332,12 @@
 ;;----------------------------------------------------------------------
 
 (defun end-line (obj &optional force)
+  (assert (not force))
   (when obj
-    (if (and (typep (primary-type obj) 'v-none) (not force))
+    (if (null (current-line obj))
         obj
-        (if (null (current-line obj))
-            obj
-            (copy-compiled obj :current-line (end-line-str (current-line obj))
-                           :place-tree nil)))))
+        (copy-compiled obj :current-line (end-line-str (current-line obj))
+                       :place-tree nil))))
 
 (defun end-line-str (str)
   (format nil "~a;" str))

@@ -237,7 +237,6 @@
            :v-type
            :v-stemcell
            :v-array
-           :v-none
            :v-function
            :v-function-type
            :v-user-function

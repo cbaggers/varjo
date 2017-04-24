@@ -115,12 +115,9 @@
   (make-instance 'flow-identifier :ids (list (%gen-flow-gl-id))))
 
 (defun type-doesnt-need-flow-id (type)
-  (when (or (eq type 'v-none)
-            (eq type :void)
-            (eq type :none))
+  (when (eq type :void)
     (error "deprecated behaviour bug ~a" type))
-  (or (typep type 'v-error)
-      (typep type 'v-none)))
+  (typep type 'v-error))
 
 
 ;;----------------------------------------------------------------------

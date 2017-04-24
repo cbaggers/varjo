@@ -37,7 +37,7 @@
 
 (defun make-ast-node-for-declaration (declaration env)
   (ast-node! :code-section declaration
-             (gen-none-type)
+             (make-type-set)
              env env))
 
 ;;------------------------------------------------------------

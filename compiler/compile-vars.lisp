@@ -10,13 +10,14 @@
               () 'symbol-unidentified :sym var-name))
     (assert (flow-ids var-type) (var-type)
             "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
-    (let ((code-obj
-           (make-compiled
-            :type-set (make-type-set var-type)
-            :current-line (gen-variable-string var-name v-value)
-            :place-tree `((,var-name ,v-value))
-            :node-tree (ast-node! :get var-name var-type env env)
-            :pure t)))
+    (let* ((type-set (make-type-set var-type))
+           (code-obj
+            (make-compiled
+             :type-set type-set
+             :current-line (gen-variable-string var-name v-value)
+             :place-tree `((,var-name ,v-value))
+             :node-tree (ast-node! :get var-name type-set env env)
+             :pure t)))
       (if from-higher-scope
           (add-higher-scope-val code-obj v-value)
           code-obj))))

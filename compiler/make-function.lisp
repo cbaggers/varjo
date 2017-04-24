@@ -24,7 +24,7 @@
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
-        (assert (typep (primary-type maybe-def-code) 'v-none)))
+        (assert (typep (primary-type maybe-def-code) :void)))
       (values compiled-func maybe-def-code))))
 
 (defun build-function (name args body allowed-implicit-args env)
@@ -147,7 +147,7 @@
              (ret-set (return-set body-obj))
              (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
              (code-obj (copy-compiled body-obj
-                                      :type-set (make-type-set (gen-none-type))
+                                      :type-set (make-type-set)
                                       :current-line nil
                                       :to-block nil
                                       :return-set nil
@@ -199,7 +199,7 @@
                          `(progn ,@body)))
            (ast (ast-node! :code-section
                            ast-body
-                           (gen-none-type)
+                           (make-type-set)
                            func-env func-env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
@@ -210,12 +210,12 @@
                              :stemcells nil
                              :return-set nil
                              :emit-set nil)
-              (make-compiled :type (gen-none-type)
+              (make-compiled :type-set (make-type-set)
                              :current-line nil
                              :place-tree nil
                              :node-tree (ast-node! :code-section
                                                    ast-body
-                                                   (gen-none-type)
+                                                   (make-type-set)
                                                    func-env func-env))))))
 
 (defun capture-var (name env)
