@@ -33,14 +33,14 @@
 (defgeneric v-fake-type (object))
 (defgeneric v-special-functionp (func))
 (defgeneric v-element-type (object))
-(defgeneric merge-compiled (objs &key type current-line to-block
-                                   emit-set return-set multi-vals
-                                   stemcells out-of-scope-args
-                                   place-tree pure node-tree))
-(defgeneric copy-compiled (code-obj &key type current-line to-block
-                                      emit-set return-set multi-vals
+(defgeneric copy-compiled (code-obj &key type-set current-line to-block
+                                      emit-set return-set
                                       stemcells out-of-scope-args
                                       place-tree pure node-tree))
+(defgeneric merge-compiled (objs &key type-set emit-set return-set
+                                   current-line to-block
+                                   stemcells out-of-scope-args
+                                   place-tree pure node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
 
 (defgeneric func-need-arguments-compiledp (func))
@@ -96,3 +96,4 @@
 (defgeneric v-make-uninitialized (type env &key glsl-name function-scope read-only))
 (defgeneric v-array-type-of (element-type dimensions flow-id))
 (defgeneric primitive-in (pp))
+(defgeneric qualify-type (type qualifiers))

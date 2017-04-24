@@ -45,12 +45,6 @@
 
 ;;--------------------------------------------------
 
-(defun make-mval (v-value &optional qualifiers)
-  (make-instance 'mval :value v-value :qualifiers qualifiers))
-
-(defmethod v-type-of ((mval mval))
-  (v-type-of (multi-val-value mval)))
-
 (defun postfix-glsl-index (base index)
   (assert (and (stringp base) (integerp index)))
   (format nil "~a_~a" base index))

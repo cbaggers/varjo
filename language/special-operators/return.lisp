@@ -40,7 +40,7 @@
                 (%main-return code-obj implicit new-env)
                 (%regular-return code-obj implicit)))
            (ast (ast-node! 'return (node-tree code-obj)
-                           (primary-type result)
+                           (make-type-set (primary-type result))
                            env env))
            (ret-set (or (return-set result)
                         (error 'nil-return-set
@@ -60,15 +60,14 @@
                                        'v-ephemeral-type)))
          (ret-set (if (and implicit (v-typep (primary-type code-obj) 'v-void))
                       (return-set code-obj)
-                      (make-return-set-from-code-obj code-obj))))
+                      (type-set code-obj))))
     ;;
     (copy-compiled
      code-obj
-     :type (type-spec->type 'v-void (flow-id!))
+     :type-set (make-type-set)
      :current-line (if suppress-return
                        (current-line code-obj)
                        (format nil "return ~a" (current-line code-obj)))
-     :multi-vals nil
      :place-tree nil
      :return-set ret-set)))
 
@@ -81,10 +80,10 @@
         (void (type-spec->type :void)))
     (cond
       ((and implicit (v-typep type void))
-       (values (copy-compiled code-obj
-                              :return-set (or (return-set code-obj)
-                                              (make-return-set))
-                              :pure nil)
+       (values (copy-compiled
+                code-obj
+                :return-set (or (return-set code-obj) (make-type-set))
+                :pure nil)
                env))
       ((multi-vals code-obj)
        (let* ((mvals (multi-vals code-obj))
@@ -108,11 +107,11 @@
                              p-env)
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
-          :return-set (make-return-set-from-code-obj code-obj))))
+          :return-set (type-set code-obj))))
       (t (let ((ret-set
                 (if (stage-where-first-return-is-position-p (stage env))
-                    (make-return-set)
-                    (make-return-set (make-qualified type)))))
+                    (make-type-set)
+                    (make-type-set type))))
            (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form `(progn

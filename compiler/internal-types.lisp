@@ -17,7 +17,7 @@
 ;;----------------------------------------------------------------------
 
 (defclass compiled ()
-  ((type-set :initarg :type-set :initform nil)
+  ((type-set :initarg :type-set :initform nil :reader type-set)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
@@ -32,12 +32,11 @@
 
 (defgeneric primary-type (compiled)
   (:method ((compiled compiled))
-    (let ((set (slot-value compiled 'type-set)))
-      (if (arrayp set)
-          (if (emptyp set)
-              (type-spec->type :void (flow-id!))
-              (elt set 0))
-          (error "blarg")))))
+    (primary-type (slot-value compiled 'type-set)))
+  (:method ((set vector))
+    (if (emptyp set)
+        (type-spec->type :void (flow-id!))
+        (elt set 0))))
 
 (defgeneric multi-vals (compiled)
   (:method ((compiled compiled))
@@ -306,26 +305,13 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass mval ()
-  ((value :initarg :value :reader multi-val-value)
-   (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
-
-(defclass qualified ()
+(defclass typed-glsl-name ()
   ((type :initarg :type :reader v-type-of)
-   (qualifiers :initarg :qualifiers :reader qualifiers)))
+   (glsl-name :initarg :glsl-name :reader glsl-name)))
 
-(defclass named-qualified (qualified)
-  ((glsl-name :initarg :glsl-name :reader glsl-name)))
-
-(defclass external-qualified (qualified)
-  ((out-name :initarg :out-name :reader out-name)))
-
-(defclass emit-val ()
+(defclass typed-out-name ()
   ((type :initarg :type :reader v-type-of)
-   (qualifiers :initarg :qualifiers :reader qualifiers)))
-
-(defclass named-emit-val (emit-val)
-  ((glsl-name :initarg :glsl-name :reader glsl-name)))
+   (out-name :initarg :out-name :reader out-name)))
 
 ;;----------------------------------------------------------------------
 

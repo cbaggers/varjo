@@ -1,15 +1,7 @@
 (in-package :varjo)
 (in-readtable :fn.reader)
 
-;;------------------------------------------------------------
-
-(defun make-qualified (type &optional qualifiers)
-  (assert (typep type 'v-type))
-  (assert (every #'keywordp qualifiers))
-  (make-instance 'qualified
-                 :type type
-                 :qualifiers (sort (copy-list qualifiers) #'<)))
-
+;;-----------------------------------------------------------
 
 (defun make-external-qualified (glsl-name type &optional qualifiers)
   (assert (typep type 'v-type))
@@ -17,28 +9,12 @@
   (make-instance 'external-qualified
                  :out-name glsl-name
                  :type type
-                 :qualifiers (sort (copy-list qualifiers) #'<)))
-
-(defun make-qualified-from-mval (mval)
-  (let ((type (v-type-of mval))
-        (qualifiers (multi-val-qualifiers mval)))
-    (assert (typep type 'v-type))
-    (assert (every #'keywordp qualifiers))
-    (make-instance 'named-qualified
-                   :type type
-                   :glsl-name (glsl-name (multi-val-value mval))
-                   :qualifiers (sort (copy-list qualifiers) #'<))))
+                 :qualifiers (sort (copy-list qualifiers) #'string<)))
 
 (defun qualified-eql (ret-a ret-b)
   (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
        (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
        (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
-
-;;------------------------------------------------------------
-
-(defun make-return-set (&rest qualifieds)
-  (assert (every λ(typep _ 'qualified) qualifieds))
-  (apply #'vector qualifieds))
 
 (defun merge-return-sets (sets)
   (labels ((%merge-return-sets (set-a set-b)
@@ -50,11 +26,6 @@
     (let* ((sets (remove nil sets)))
       (reduce #'%merge-return-sets (rest sets)
               :initial-value (first sets)))))
-
-(defun make-return-set-from-code-obj (code-obj)
-  (let ((mval-rets (mapcar #'make-qualified-from-mval (multi-vals code-obj)))
-        (prim-ret (make-qualified (primary-type code-obj))))
-    (apply #'make-return-set (cons prim-ret mval-rets))))
 
 ;;------------------------------------------------------------
 

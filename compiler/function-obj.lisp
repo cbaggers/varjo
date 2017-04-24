@@ -28,10 +28,12 @@
 ;;------------------------------------------------------------
 
 (defgeneric function-identifier (func)
+  ;; account for this
   (:method ((func v-function))
     (cons (name func) (mapcar #'type->type-spec (v-argument-spec func)))))
 
 (defgeneric function-identifier-with-return (func)
+  ;; account for this
   (:method ((func v-function))
     (let* ((returns (mapcar #'type->type-spec (v-return-spec func)))
            (returns (if (= (length returns) 1)
@@ -76,7 +78,7 @@
   (when (listp return-spec)
     (assert (every (lambda (x)
                      (or (template-return-spec-p x)
-                         (typep x 'named-qualified)))
+                         (typep x 'typed-glsl-name)))
                    return-spec)
             () 'user-func-invalid-x
             :kind 'returns
@@ -111,7 +113,7 @@
   (when (listp return-spec)
     (assert (every (lambda (x)
                      (or (typep x 'v-type)
-                         (typep x 'named-qualified)))
+                         (typep x 'typed-glsl-name)))
                    return-spec)
             () 'user-func-invalid-x :returns name arg-spec))
   (when (listp arg-spec)

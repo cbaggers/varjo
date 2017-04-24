@@ -26,8 +26,13 @@
          (base (v-multi-val-base env))
          (glsl-names (loop :for i :below (length forms) :collect
                         (postfix-glsl-index base i)))
-         (vals (loop :for o :in objs :for n :in glsl-names :collect
-                  (v-make-value (primary-type o) env :glsl-name n)))
+
+         (vals (loop :for o :in objs
+                  :for n :in glsl-names
+                  :for q :in qualifier-lists
+                  :collect (make-typed-glsl-name
+                            (qualify-type (primary-type o) q)
+                            n)))
          (first-name (gensym))
          (result (compile-form
                   `(let ((,first-name ,(first objs)))
@@ -41,15 +46,17 @@
                                  objs
                                  qualifier-lists)
                          (primary-type result) env env)))
-    (values (copy-compiled result
-                           :multi-vals (mapcar #'make-mval (rest vals)
-                                               (rest qualifier-lists))
-                           :node-tree ast)
+    (values (copy-compiled
+             result
+             :type-set (apply #'make-type-set
+                              (cons (primary-type result)
+                                    (rest vals)))
+             :node-tree ast)
             env)))
 
 (defun %values-void (env)
-  (let ((void (type-spec->type :void (flow-id!))))
-    (values (make-compiled :type void
+  (let ((void (make-type-set (type-spec->type :void (flow-id!)))))
+    (values (make-compiled :type-set void
                            :current-line nil
                            :node-tree (ast-node! 'values nil void env env)
                            :pure t)

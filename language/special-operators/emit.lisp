@@ -85,10 +85,10 @@
                (compile-form (mvals->out-form code-obj p-env)
                              p-env)))
            env)
-          :emit-set (make-emit-set-from-code-obj code-obj))))
+          :emit-set (type-set code-obj))))
       (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
-                             (make-emit-set)
-                             (make-emit-set (make-emit-val type)))))
+                             (make-type-set)
+                             (make-type-set (make-emit-val type)))))
            (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form (%default-out-for-stage code-obj fresh-env)

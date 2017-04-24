@@ -29,7 +29,7 @@
                      (and (some #'captured-vars functions)))
              (error 'closures-not-supported :func func-name-form))
            (values
-            (make-compiled :type type
+            (make-compiled :type-set (make-type-set type)
                            :current-line nil
                            :used-types (list type)
                            :node-tree (ast-node! 'function (list func-name-form)
@@ -47,7 +47,7 @@
     (when (implicit-args func)
       (error 'closures-not-supported :func func-name-form))
     (values
-     (make-compiled :type type
+     (make-compiled :type-set (make-type-set type)
                     :current-line nil
                     :used-types (list type)
                     :node-tree (ast-node! 'function (list func-name-form)

@@ -42,7 +42,8 @@
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
    (ctv :initform nil :initarg :ctv :accessor ctv)
-   (default-value :initarg :default-value)))
+   (default-value :initarg :default-value)
+   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)))
 
 (defmethod v-superclass ((type v-type))
   (with-slots (superclass) type
@@ -57,15 +58,22 @@
    "This function returns a new instance of the provided type with the exact
 same values in it's slots.
 
-It is different from (type-spec->type (type->type-spec type)) in that it handles
-compile/unrepresentable values and flow-ids correctly, which the type-spec trick
-doesnt"))
+It is different from (type-spec->type (type->type-spec type)) in that it
+handles compile/unrepresentable values and flow-ids correctly, which the
+type-spec trick doesnt"))
 
 (defmethod copy-type ((type v-type))
   (let* ((type-name (class-name (class-of type)))
-         (new-inst (make-instance type-name :flow-ids (flow-ids type))))
+         (new-inst (make-instance type-name
+                                  :flow-ids (flow-ids type)
+                                  :qualifiers (qualifiers type))))
     (setf (ctv new-inst) (ctv type))
     new-inst))
+
+(defmethod qualify-type ((type v-type) qualifiers)
+  (let ((type (copy-type type)))
+    (setf (slot-value type 'qualifiers) qualifiers)
+    type))
 
 (defmethod type->type-spec ((type v-type))
   (class-name (class-of type)))
@@ -82,14 +90,6 @@ doesnt"))
 
 (defmethod v-true-type ((object v-type))
   object)
-
-;;------------------------------------------------------------
-;; None
-
-(def-v-type-class v-none (v-type) ())
-
-(defun gen-none-type ()
-  (type-spec->type :none))
 
 ;;------------------------------------------------------------
 ;; Void
@@ -767,3 +767,20 @@ doesnt"))
 
 (defun find-alternative-types-for-spec (type-spec)
   (find-similarly-named-symbol type-spec *registered-types*))
+
+;;------------------------------------------------------------
+;; Typed Names (these probably need a better home)
+
+(defgeneric make-typed-glsl-name (type glsl-name)
+  (:method ((type v-type) (glsl-name string))
+    (make-instance 'typed-glsl-name :type type
+                   :glsl-name glsl-name)))
+
+(defgeneric make-typed-out-name (type glsl-name)
+  (:method ((type v-type) (glsl-name symbol))
+    (make-instance 'typed-out-name :type type
+                   :out-name glsl-name)))
+;;------------------------------------------------------------
+
+(defun make-type-set (&rest members)
+  (apply #'vector members))

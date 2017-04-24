@@ -43,7 +43,7 @@
             (gen-string-for-if-form test-obj then-obj else-obj result-type
                                     has-else)
           (values (merge-compiled arg-objs
-                                  :type result-type
+                                  :type-set (make-type-set result-type)
                                   :current-line current-line-string
                                   :to-block (list block-string)
                                   :node-tree node-tree)
@@ -119,10 +119,11 @@
                    (v-typep (primary-type test-obj) 'v-int))
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
-          (let ((type (type-spec->type :void (flow-id!))))
+          (let* ((type (type-spec->type :void (flow-id!)))
+                 (type-set (make-type-set type)))
             (values (merge-compiled
                      clause-objs
-                     :type type
+                     :type-set type-set
                      :current-line nil
                      :to-block (list (gen-switch-string test-obj keys
                                                         clause-objs))
@@ -133,7 +134,7 @@
                                                    ,(node-tree _1))
                                                clauses
                                                clause-objs))
-                                 type env final-env))
+                                 type-set env final-env))
                     final-env))
           (error 'switch-type-error :test-obj test-obj :keys keys)))))
 

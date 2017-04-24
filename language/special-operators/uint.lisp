@@ -11,7 +11,7 @@
   (if (typep val '(integer 0 *))
       (let* ((flow-id (flow-id!))
              (type (type-spec->type :uint flow-id)))
-        (values (make-compiled :type type
+        (values (make-compiled :type-set (make-type-set type)
                                :current-line (format nil "~au" val)
                                :used-types (list type)
                                :node-tree (ast-node! 'uint val type env env)

@@ -140,7 +140,6 @@
   (copy-compiled obj :current-line (format nil "~(~{~a ~}~)~a"
                                            (string-downcase (string qualifiers))
                                            (current-line obj))
-                 :multi-vals nil
                  :place-tree nil))
 
 (defun prefix-type-to-string (type line-string

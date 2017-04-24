@@ -10,7 +10,7 @@
          (elem-type (set-flow-id (v-element-type type) (flow-id!))))
     (values
      (merge-compiled (list arr index)
-                     :type elem-type
+                     :type-set (make-type-set elem-type)
                      :current-line (format nil "~a[~a].~a"
                                            (block-name type)
                                            (current-line index)

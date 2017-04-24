@@ -49,11 +49,12 @@
                   'make-array-cant-cast-args
                   :element-type element-type
                   :initial-contents initial-contents)
-          (let ((glsl (gen-array-literal-string elem-objs element-type env))
-                (ast (ast-node! :code-section (cons 'make-array args)
-                                (gen-none-type) env env)))
+          (let* ((glsl (gen-array-literal-string elem-objs element-type env))
+                 (type-set (make-type-set array-type))
+                 (ast (ast-node! :code-section (cons 'make-array args)
+                                 type-set env env)))
             (values
-             (make-compiled :type array-type
+             (make-compiled :type-set type-set
                             :current-line glsl
                             :used-types (list element-type)
                             :node-tree ast
@@ -73,7 +74,7 @@
                            env env)))
       (values
        (merge-compiled objs
-                       :type array-type
+                       :type-set (make-type-set array-type)
                        :current-line glsl
                        :node-tree ast)
        env))))

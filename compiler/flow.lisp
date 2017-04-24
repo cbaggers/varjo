@@ -181,8 +181,10 @@
   (flow-ids (v-type-of obj)))
 
 (defmethod flow-ids ((obj ast-node))
-  (flow-ids (ast-return-type obj)))
+  ;; {TODO} why only check 1 return
+  (flow-ids (primary-type (ast-return-type obj))))
 
 (defgeneric strip-flow-id (obj)
+  ;; need to address this one
   (:method ((obj v-type))
     (type-spec->type (type->type-spec obj))))

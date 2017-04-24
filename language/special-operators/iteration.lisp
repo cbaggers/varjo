@@ -14,7 +14,7 @@
           (let ((type (type-spec->type :void (flow-id!))))
             (values (merge-compiled
                      (list body-obj test-obj)
-                     :type type
+                     :type-set (make-type-set type)
                      :current-line nil
                      :to-block (list (gen-while-string
                                       test-obj (end-line body-obj)))
@@ -58,7 +58,8 @@
                                  (end-line body-obj)))
                       (void (type-spec->type :void (flow-id!))))
                   (values (copy-compiled
-                           body-obj :type void
+                           body-obj
+                           :type-set (make-type-set)
                            :current-line nil
                            :to-block (list loop-str)
                            :node-tree (ast-node!
@@ -68,7 +69,6 @@
                                                                 update-obj
                                                                 body-obj)))
                                        void env final-env)
-                           :multi-vals nil
                            :place-tree nil)
                           final-env))
                 (error 'for-loop-simple-expression)))))))

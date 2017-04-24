@@ -138,17 +138,19 @@ context is implicit"))
          (null (ast-val-origin node)))))))
 
 
-(defun ast-node! (kind args return-type starting-env ending-env)
+(defun ast-node! (kind args return-type-set starting-env ending-env)
   (assert (if (keywordp kind)
               (member kind *ast-node-kinds*)
               t))
-  (assert (or (null return-type)
-              (typep return-type 'v-type)))
+  (assert (and (arrayp return-type-set)
+               (every λ(typep _ 'v-type) return-type-set))
+          (return-type-set)
+          "Invalid ast-node! type-set: ~a" return-type-set)
 
   (make-instance 'ast-node
                  :kind kind
                  :args (listify args)
-                 :return-type return-type
+                 :return-type return-type-set
                  :starting-env starting-env
                  :ending-env ending-env))
 
@@ -156,20 +158,22 @@ context is implicit"))
                       &key
                         (kind nil set-kind)
                         (args nil set-args)
-                        (return-type nil set-return-type)
+                        (return-type-set nil set-return-type)
                         (flow-id-origin nil set-fio)
                         (val-origin nil set-vo)
                         (starting-env nil set-starting-env)
                         (ending-env nil set-ending-env)
                         (parent nil set-parent))
-  (let ((return-type (if set-return-type return-type (ast-return-type node))))
-    (assert (or (null return-type)
-                (typep return-type 'v-type)))
+  (let ((return-type-set (if set-return-type
+                             return-type-set
+                             (ast-return-type node))))
+    (assert (and (arrayp return-type-set)
+                 (every λ(typep _ 'v-type) return-type-set)))
     (make-instance
      'ast-node
      :kind (if set-kind kind (ast-kind node))
      :args (if set-args args (ast-args node))
-     :return-type return-type
+     :return-type return-type-set
      :starting-env (if set-starting-env starting-env (ast-starting-env node))
      :ending-env (if set-ending-env ending-env (ast-ending-env node))
      :parent (if set-parent parent (ast-parent node))

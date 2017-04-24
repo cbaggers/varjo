@@ -98,9 +98,9 @@
   (let* ((src-type (primary-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
-        (copy-compiled src-obj :type dest-type)
+        (copy-compiled src-obj :type-set (make-type-set dest-type))
         (copy-compiled src-obj :current-line (cast-string cast-to-type src-obj)
-                       :type dest-type))))
+                       :type-set (make-type-set dest-type)))))
 
 (defmethod cast-code-inner
     (varjo-type src-obj (cast-to-type v-function-type) env)
@@ -112,11 +112,11 @@
                    :ctv (ctv (v-type-of src-obj))
                    :flow-ids (flow-ids src-obj))))
     (if (v-type-eq (primary-type src-obj) new-type)
-        (copy-compiled src-obj :type new-type)
+        (copy-compiled src-obj :type-set (make-type-set new-type))
         (copy-compiled
          src-obj
          :current-line (cast-string new-type src-obj)
-         :type new-type))))
+         :type-set (make-type-set new-type)))))
 
 ;; {TODO} proper error
 (defmethod cast-code-inner
@@ -124,7 +124,8 @@
   (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type env))
                               (v-types varjo-type))))
     (if funcs
-        (copy-compiled src-obj :type (gen-any-one-of-type funcs))
+        (copy-compiled src-obj
+                       :type-set (make-type-set (gen-any-one-of-type funcs)))
         (error "Varjo: compiler bug: Had already decided it was possible to cast ~a to ~a
 however failed to do so when asked."
                src-obj cast-to-type))))
@@ -203,7 +204,7 @@ however failed to do so when asked."
       (varjo-error (e)
         (if wrap-errors-p
             (make-compiled
-             :type (make-instance 'v-error :payload e)
+             :type-set (make-instance 'v-error :payload e)
              :current-line ""
              :node-tree (ast-node! :error nil (gen-none-type)
                                    env env))

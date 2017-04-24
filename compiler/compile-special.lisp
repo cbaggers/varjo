@@ -44,15 +44,17 @@
 (defun %merge-progn (code-objs starting-env final-env)
   (if (= 1 (length code-objs))
       (first code-objs)
-      (let* ((last-obj (last1 (remove nil code-objs))))
+      (let* ((last-obj (last1 (remove nil code-objs)))
+             (type-set (apply #'make-type-set
+                              (cons (primary-type last-obj)
+                                    (multi-vals (last1 code-objs))))))
         (merge-compiled code-objs
-                        :type (primary-type last-obj)
+                        :type-set type-set
                         :current-line (current-line last-obj)
                         :to-block (merge-lines-into-block-list code-objs)
-                        :multi-vals (multi-vals (last1 code-objs))
                         :node-tree (ast-node! 'progn
                                               (mapcar #'node-tree code-objs)
-                                              (primary-type last-obj)
+                                              type-set
                                               starting-env final-env)))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)
@@ -92,14 +94,15 @@
       (values code-objs merged-env))))
 
 (defun %merge-multi-env-progn (code-objs)
-  (merge-compiled
-   code-objs
-   :type (gen-none-type)
-   :current-line nil
-   :to-block (append (mapcat #'to-block code-objs)
-                     (mapcar (lambda (_) (current-line (end-line _)))
-                             code-objs))
-   :node-tree :ignored))
+  (let ((type-set (make-type-set (gen-none-type))))
+    (merge-compiled
+     code-objs
+     :type-set type-set
+     :current-line nil
+     :to-block (append (mapcat #'to-block code-objs)
+                       (mapcar (lambda (_) (current-line (end-line _)))
+                               code-objs))
+     :node-tree :ignored)))
 
 (defmacro merge-multi-env-progn (code-objs)
   (let ((co (gensym "code-objs"))
@@ -123,13 +126,13 @@
                      (assert (flow-ids new-value))
                      (replace-flow-id (primary-type code-obj)
                                       (flow-ids new-value)))
-                   (primary-type code-obj))))
+                   (primary-type code-obj)))
+         (type-set (make-type-set type)))
     (copy-compiled code-obj
-                   :type type
+                   :type-set type-set
                    :current-line current-line
                    :to-block to-block
                    :node-tree :ignored
-                   :multi-vals nil
                    :place-tree nil)))
 
 ;;----------------------------------------------------------------------
@@ -156,13 +159,14 @@
               (value-obj
                (typify-code
                 (make-compiled
-                 :type (or type-obj (primary-type value-obj))
+                 :type-set (make-type-set
+                            (or type-obj (primary-type value-obj)))
                  :current-line glsl-name
                  :node-tree :ignored)
                 value-obj))
               ;;
               (t (typify-code
-                  (make-compiled :type type-obj
+                  (make-compiled :type-set (make-type-set type-obj)
                                  :current-line glsl-name
                                  :node-tree :ignored)))))
            (to-block
@@ -170,10 +174,9 @@
                       (to-block let-obj))))
       (values
        (copy-compiled let-obj
-                      :type (gen-none-type)
+                      :type-set (make-type-set (gen-none-type))
                       :current-line nil
                       :to-block to-block
-                      :multi-vals nil
                       :place-tree nil
                       :node-tree (if value-form
                                      (node-tree value-obj)

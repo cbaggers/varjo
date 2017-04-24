@@ -12,7 +12,7 @@
             "Hmm, v-variable->code-obj failed as ~s has no flow-ids" var-type)
     (let ((code-obj
            (make-compiled
-            :type var-type
+            :type-set (make-type-set var-type)
             :current-line (gen-variable-string var-name v-value)
             :place-tree `((,var-name ,v-value))
             :node-tree (ast-node! :get var-name var-type env env)
@@ -23,7 +23,7 @@
 
 (defun %v-value->code (v-val env)
   (make-compiled
-   :type (v-type-of v-val)
+   :type-set (make-type-set (v-type-of v-val))
    :current-line (glsl-name v-val)
    :node-tree (ast-node! :get-v-value (list (glsl-name v-val))
                          (v-type-of v-val)

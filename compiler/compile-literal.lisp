@@ -3,19 +3,17 @@
 
 (defun compile-bool (code env)
   (let* ((flow-id (flow-id!))
-         (bool-type (type-spec->type 'v-bool flow-id)))
+         (type-set (make-type-set (type-spec->type 'v-bool flow-id))))
     (if code
         (make-compiled
-         :type bool-type
+         :type-set type-set
          :current-line "true"
-         :node-tree (ast-node! :literal code
-                               bool-type
-                               env env)
+         :node-tree (ast-node! :literal code type-set env env)
          :pure t)
         (make-compiled
-         :type bool-type
+         :type-set type-set
          :current-line "false"
-         :node-tree (ast-node! :literal code bool-type env env)
+         :node-tree (ast-node! :literal code type-set env env)
          :pure t))))
 
 (defun get-number-type (x)
@@ -28,11 +26,12 @@
 
 (defun compile-number (code env)
   (let* ((flow-id (flow-id!))
-         (num-type (set-flow-id (get-number-type code) flow-id)))
+         (num-type (set-flow-id (get-number-type code) flow-id))
+         (type-set (make-type-set num-type)))
     (make-compiled
-     :type num-type
+     :type-set type-set
      :current-line (gen-number-string code num-type)
-     :node-tree (ast-node! :literal code num-type env env)
+     :node-tree (ast-node! :literal code type-set env env)
      :pure t)))
 
 (defun compile-array-literal (arr env)
@@ -46,7 +45,7 @@
          (array-type (v-array-type-of element-type len (flow-id!)))
          (glsl (gen-array-literal-string elements element-type env))
          (ast (ast-node! :literal arr array-type env env)))
-    (make-compiled :type array-type
+    (make-compiled :type-set (make-type-set array-type)
                    :current-line glsl
                    :used-types (list element-type)
                    :node-tree ast

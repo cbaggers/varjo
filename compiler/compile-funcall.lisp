@@ -49,7 +49,7 @@
                             (to-block obj))))
             (assert (eq final-env (ast-ending-env ast)))
             (merge-compiled (list func-code-obj obj)
-                            :type (primary-type obj)
+                            :type-set (make-type-set (primary-type obj))
                             :current-line (current-line obj)
                             :to-block (remove nil to-block)
                             :node-tree funcall-ast)))))))
@@ -165,7 +165,7 @@
       (when (implicit-args func)
         (error 'closures-not-supported :func func-name-form))
       (values
-       (make-compiled :type type
+       (make-compiled :type-set (make-type-set type)
                       :current-line nil
                       :used-types (list type)
                       :node-tree (ast-node! 'function (list func-name-form)
@@ -206,18 +206,20 @@
                    (set-flow-id type flow-ids))))
     (unless type (error 'unable-to-resolve-func-type
                         :func-name func-name :args args))
-    (values (merge-compiled args
-                            :type type
-                            :current-line c-line
-                            :pure (pure-p func)
-                            :emit-set (emit-set func)
-                            :stemcells (mapcat #'stemcells args)
-                            :multi-vals (when (v-multi-val-safe env)
-                                          (handle-regular-function-mvals args))
-                            :place-tree (calc-place-tree func args)
-                            :node-tree (ast-node! func-name
-                                                  (mapcar #'node-tree args)
-                                                  type env env))
+    (values (merge-compiled
+             args
+             :type-set (apply #'make-type-set
+                              (cons type (handle-regular-function-mvals args)))
+             :current-line c-line
+             :pure (pure-p func)
+             :emit-set (emit-set func)
+             :stemcells (mapcat #'stemcells args)
+             :place-tree (calc-place-tree func args)
+             :node-tree (ast-node! func-name
+                                   (mapcar #'node-tree args)
+                                   (make-type-set type)
+                                   env
+                                   env))
             env)))
 
 (defun handle-regular-function-mvals (args)
@@ -288,22 +290,20 @@
                               ,(type->type-spec (v-type-of mval))))))
 
              (o (merge-compiled
-                 args :type type
+                 args
+                 :type-set (apply #'make-type-set
+                                  (cons type
+                                        (mapcar (lambda (mval glsl-name fid)
+                                                  (make-typed-glsl-name
+                                                   (replace-flow-id (v-type-of mval) fid)
+                                                   glsl-name))
+                                                mvals
+                                                m-r-names
+                                                (rest flow-ids))))
                  :current-line (gen-function-string func args m-r-names)
                  :stemcells (mapcat #'stemcells args)
                  :pure (pure-p func)
                  :emit-set (emit-set func)
-                 :multi-vals (mapcar (lambda (_ _1 fid)
-                                       (make-mval
-                                        (v-make-value
-                                         (replace-flow-id
-                                          (v-type-of _)
-                                          fid)
-                                         env :glsl-name _1
-                                         :function-scope 0)))
-                                     mvals
-                                     m-r-names
-                                     (rest flow-ids))
                  :place-tree (calc-place-tree func args)
                  :node-tree :ignored))
              (final
@@ -338,7 +338,6 @@
         (if (null (current-line obj))
             obj
             (copy-compiled obj :current-line (end-line-str (current-line obj))
-                           :multi-vals nil
                            :place-tree nil)))))
 
 (defun end-line-str (str)

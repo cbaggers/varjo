@@ -18,7 +18,7 @@
     (copy-compiled
      code-obj
      :current-line (unless (ephemeral-p type) (current-line code-obj))
-     :type type
+     :type-set (make-type-set type)
      :stemcells (with-slots (name string-name flow-id cpu-side-transform)
                     (first stemcells)
                   (list (stemcell! name string-name type-name flow-id
@@ -41,7 +41,7 @@
          (flow-id (get-flow-id-for-stem-cell original-name env))
          (type (type-spec->type 'v-stemcell flow-id)))
     (make-compiled
-     :type type
+     :type-set (make-type-set type)
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
                               flow-id cpu-side-transform))

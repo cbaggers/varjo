@@ -1,33 +1,28 @@
 (in-package :varjo)
+(in-readtable :fn.reader)
 
-(defun make-compiled (&key (type nil set-type) (current-line "") to-block
-                        emit-set return-set used-types multi-vals stemcells
+(defun make-compiled (&key (type-set nil set-type-set) (current-line "")
+                        to-block emit-set return-set used-types stemcells
                         out-of-scope-args pure
                         place-tree node-tree)
-  (let ((flow-ids (flow-ids type)))
+  (let ((flow-ids (flow-ids (primary-type type-set))))
     (assert-flow-id-singularity flow-ids)
-    (unless (or flow-ids (type-doesnt-need-flow-id type))
+    (unless (or flow-ids (type-doesnt-need-flow-id type-set))
       (error 'flow-ids-mandatory :for :code-object
-             :primary-type (type->type-spec type))))
-  (unless set-type
-    (error "Type must be specified when creating an instance of varjo:code"))
+             :primary-type (map 'vector #'type->type-spec type-set))))
+  (unless set-type-set
+    (error "The type-set must be specified when creating an instance of varjo:compiled"))
   (unless (or (eq node-tree :ignored)
               (and (typep node-tree 'ast-node)
                    (listp (slot-value node-tree 'args))))
     (error "invalid ast node-tree ~s" node-tree))
-  (assert (typep type 'v-type))
-  (let* ((used-types (if (and (not (find type used-types :test #'v-type-eq))
-                              (not (v-type-eq type (gen-none-type))))
-                         (cons type used-types)
-                         used-types))
-         (set (cond
-                ((and (v-typep type :void) (not multi-vals))
-                 (vector))
-                ((and (v-typep type :void) multi-vals)
-                 (break "Ah so that's when this can happen"))
-                (t (apply #'vector (cons type multi-vals))))))
+  (assert (every λ(typep _ 'v-type) type-set))
+  (let* ((used-types (%merge-used-types used-types type-set)))
+    (when (and (v-typep (primary-type type-set) :void)
+               (> (length type-set) 1))
+      (break "Ah so that's when this can happen"))
     (make-instance 'compiled
-                   :type-set set
+                   :type-set type-set
                    :current-line current-line
                    :to-block to-block
                    :return-set return-set
@@ -38,6 +33,9 @@
                    :place-tree place-tree
                    :pure pure
                    :node-tree node-tree)))
+
+(defun %merge-used-types (a b)
+  (concatenate 'list a (remove-if λ(find _ a :test #'v-type-eq) b)))
 
 (defmethod current-line (code-obj &optional even-when-ephemeral)
   (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
@@ -63,51 +61,46 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defmethod copy-compiled ((code-obj compiled)
-                          &key (type nil set-type)
+                          &key (type-set nil set-type-set)
                             (current-line nil set-current-line)
                             (to-block nil set-block)
                             (emit-set nil set-emit-set)
                             (return-set nil set-return-set)
-                            (multi-vals nil set-multi-vals)
                             (stemcells nil set-stemcells)
                             (out-of-scope-args nil set-out-of-scope-args)
                             (place-tree nil set-place-tree)
                             (pure nil set-pure)
                             (node-tree nil set-node-tree))
-  (let* ((type (if set-type type (primary-type code-obj))))
-    (make-compiled
-     :type type
-     :current-line (if set-current-line current-line
-                       (current-line code-obj t))
-     :to-block (if set-block to-block (remove nil (to-block code-obj)))
-     :return-set (if set-return-set return-set (return-set code-obj))
-     :emit-set (if set-emit-set emit-set (emit-set code-obj))
-     :used-types (used-types code-obj)
-     :multi-vals (if set-multi-vals multi-vals (multi-vals code-obj))
-     :stemcells (if set-stemcells stemcells (stemcells code-obj))
-     :out-of-scope-args (if set-out-of-scope-args
-                            out-of-scope-args
-                            (remove nil (out-of-scope-args code-obj)))
-     :place-tree (if set-place-tree place-tree (place-tree code-obj))
-     :pure (if set-pure pure (pure-p code-obj))
-     :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
+  (make-compiled
+   :type-set (if set-type-set type-set (type-set code-obj))
+   :current-line (if set-current-line current-line
+                     (current-line code-obj t))
+   :to-block (if set-block to-block (remove nil (to-block code-obj)))
+   :return-set (if set-return-set return-set (return-set code-obj))
+   :emit-set (if set-emit-set emit-set (emit-set code-obj))
+   :used-types (used-types code-obj)
+   :stemcells (if set-stemcells stemcells (stemcells code-obj))
+   :out-of-scope-args (if set-out-of-scope-args
+                          out-of-scope-args
+                          (remove nil (out-of-scope-args code-obj)))
+   :place-tree (if set-place-tree place-tree (place-tree code-obj))
+   :pure (if set-pure pure (pure-p code-obj))
+   :node-tree (if set-node-tree node-tree (node-tree code-obj))))
 
 (defmethod merge-compiled ((objs list)
-                           &key type
+                           &key type-set
                              current-line
                              (to-block nil set-block)
                              (emit-set nil set-emit-set)
                              (return-set nil set-return-set)
-                             multi-vals
                              (stemcells nil set-stemcells)
                              (out-of-scope-args nil set-out-of-scope-args)
                              place-tree
                              (pure nil set-pure)
                              node-tree)
-  (assert type () "type is mandatory")
-  (assert (typep type 'v-type))
-  (let ((flow-ids (flow-ids type))
-        (return-set
+  (assert type-set () "Varjo: type-set is mandatory when merging compiled objects")
+  (assert (every λ(typep _ 'v-type) type-set))
+  (let ((return-set
          (if set-return-set
              return-set
              (merge-return-sets (remove nil (mapcar #'return-set objs)))))
@@ -115,17 +108,19 @@
          (if set-emit-set
              emit-set
              (merge-emit-sets (remove nil (mapcar #'emit-set objs))))))
-    (unless (or flow-ids (type-doesnt-need-flow-id type))
+    (unless (or (flow-ids (primary-type type-set))
+                (type-doesnt-need-flow-id (primary-type type-set)))
+      ;; {TODO} should check for all
       (error 'flow-ids-mandatory :for :code-object
-             :primary-type type))
-    (make-compiled :type type
+             :primary-type (map 'vector λ(type->type-spec (v-type-of _))
+                                type-set)))
+    (make-compiled :type-set type-set
                    :current-line current-line
                    :to-block (if set-block to-block
                                  (mapcat #'to-block objs))
                    :emit-set emit-set
                    :return-set return-set
                    :used-types (mapcat #'used-types objs)
-                   :multi-vals multi-vals
                    :stemcells (if set-stemcells stemcells
                                   (mapcat #'stemcells objs))
                    :out-of-scope-args

@@ -1,6 +1,6 @@
 (defun make-none-ob ()
   (let ((none-type (gen-none-type)))
     (make-compiled
-     :type none-type
+     :type-set (make-type-set none-type)
      :current-line nil
-     :node-tree (ast-node! :none nil none-type nil nil))))
+     :node-tree (ast-node! :none nil (make-type-set none-type) nil nil))))

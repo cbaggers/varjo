@@ -31,11 +31,15 @@
          (glsl (apply #'format (append (list nil current-line)
                                        arg-lines))))
     (assert flow-id)
-    (make-compiled :type type-obj
-                   :current-line glsl
-                   :used-types (list type-obj)
-                   :node-tree (ast-node! 'glsl-string nil type-obj nil nil)
-                   :pure nil)))
+    (make-compiled
+     :type-set (make-type-set type-obj)
+     :current-line glsl
+     :used-types (list type-obj)
+     :node-tree (ast-node! 'glsl-string
+                           nil
+                           (make-type-set type-obj)
+                           nil nil)
+     :pure nil)))
 
 (defun glsl-let (name-symbol name-string type value-form env)
   (let ((type-spec (if (typep type 'v-type)

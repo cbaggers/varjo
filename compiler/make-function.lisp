@@ -90,8 +90,6 @@
                              (type-spec->type :void)))
            (multi-return-vars (when return-set (rest return-set)))
            (type (if mainp (type-spec->type 'v-void) primary-type)))
-      (when (v-typep type (gen-none-type))
-        (error 'function-with-no-return-type :func-name name))
       (let* ((arg-pairs (unless mainp
                           (loop :for (nil type) :in args
                              :for name :in arg-glsl-names :collect
@@ -149,12 +147,11 @@
              (ret-set (return-set body-obj))
              (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
              (code-obj (copy-compiled body-obj
-                                      :type (gen-none-type)
+                                      :type-set (make-type-set (gen-none-type))
                                       :current-line nil
                                       :to-block nil
                                       :return-set nil
                                       :emit-set emit-set
-                                      :multi-vals nil
                                       :place-tree nil
                                       :out-of-scope-args implicit-args))
              (ast (to-top-level-ast-node body-obj declarations body-env)))
