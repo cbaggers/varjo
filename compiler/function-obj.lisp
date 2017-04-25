@@ -107,9 +107,12 @@
                  :glsl-string transform
                  :arg-spec (if (listp arg-spec)
                                (loop :for spec :in arg-spec :collect
-                                  (try-type-spec->type
-                                   (resolve-name-from-alternative spec)
-                                   nil))
+								  (if (typep spec 'v-type)
+									  spec
+									  (or (try-type-spec->type
+										   (resolve-name-from-alternative spec)
+										   nil)
+										  (error "BUG: NEEDS A REAL ERROR HERE"))))
                                arg-spec)
                  :return-spec
                  (mapcar (lambda (rspec)

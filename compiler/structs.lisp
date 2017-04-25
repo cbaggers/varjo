@@ -80,7 +80,7 @@
 
 
 (defmethod expand-input-variable ((stage stage)
-                                  (var-type v-type)
+                                  (var-type v-struct)
                                   (input-variable input-variable)
                                   (env environment))
   (declare (ignore stage))

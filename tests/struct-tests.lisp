@@ -41,3 +41,9 @@
      (((tc :vec2) (veec :vec3))
       (pos-rot-pos thing)
       (v! tc 0 0)))))
+
+(5am:def-test structs-3 (:suite struct-tests)
+  (glsl-doesnt-contain-p "in POS_COL VERT;"
+   (compile-vert ((vert pos-col)) :450 nil
+     (values (v! (pos vert) 1.0)
+             (col vert)))))
