@@ -18,6 +18,7 @@
     `(define-condition ,name (,error-type)
        ,(mapcar (lambda (arg) `(,arg :initarg ,(kwd arg))) args)
        (:report (lambda (condition stream)
+                  (declare (ignorable condition))
                   (with-slots ,args condition
                     (format stream ,control-str ,@body)))))))
 

@@ -121,135 +121,6 @@ doesnt"))
   ((shadowed-type :initform nil :reader shadowed-type)))
 
 ;;------------------------------------------------------------
-;; Ephemeral Values
-;;
-;; The supertype for all types which that have no representation
-;; in glsl.
-;;
-;; Make sure you define these using deftype
-;;
-
-(def-v-type-class v-ephemeral-type (v-type) ())
-
-(defgeneric ephemeral-p (x)
-  (:method ((x v-type))
-    (typep x 'v-ephemeral-type))
-  (:method (x)
-    (ephemeral-p (v-type-of x))))
-
-;;------------------------------------------------------------
-;; Ephemeral Array
-;;
-;; An array for item which that have no representation in glsl.
-;;
-
-(def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
-
-(defmethod v-make-type ((type v-ephemeral-array) flow-id &rest args)
-  (destructuring-bind (element-type length) args
-    (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
-                (and (symbolp length) (string= length :*))))
-    (initialize-instance type
-                         :element-type (type-spec->type element-type)
-                         :dimensions (listify length)
-                         :flow-ids flow-id)))
-
-;;------------------------------------------------------------
-;; Block Array
-;;
-;; These serve a very specific purpose; they are used when you have an
-;; array'd interface block but you want to pretend that that members of
-;; the block are array'd.
-;;
-;; This is different from ephemeral arrays where you are mimicking a true
-;; array.
-;;
-
-(def-v-type-class v-block-array (v-ephemeral-type)
-  ((element-type :initform t :initarg :element-type)
-   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
-   (block-name :initarg :block-name :initform "<invalid>" :reader block-name)))
-
-(defmethod v-make-type ((type v-block-array) flow-id &rest args)
-  (destructuring-bind (block-name element-type length) args
-    (let* ((dims (listify length))
-           (length (first dims)))
-      (assert (= 1 (length dims)))
-      (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
-                  (and (symbolp length) (string= length :*))))
-      (initialize-instance type
-                           :block-name block-name
-                           :element-type (type-spec->type element-type)
-                           :dimensions dims
-                           :flow-ids flow-id))))
-
-(defmethod post-initialise ((object v-block-array))
-  (with-slots (dimensions element-type) object
-    (setf dimensions (listify dimensions))
-    (unless (typep element-type 'v-type)
-      (setf element-type (type-spec->type element-type)))))
-
-(defmethod v-element-type ((object v-block-array))
-  (let ((result (slot-value object 'element-type)))
-    ;; {TODO} dedicated error
-    (assert (typep result 'v-type) (object)
-            "The element-type of ~a was ~a which is not an instance of a type."
-            object result)
-    result))
-
-(defmethod type->type-spec ((type v-block-array))
-  `(v-block-array ,(if (slot-boundp type 'block-name)
-                       (block-name type)
-                       "<invalid>")
-                  ,(type->type-spec (v-element-type type))
-                  ,(v-dimensions type)))
-
-(defmethod copy-type ((type v-block-array))
-  (make-instance 'v-block-array
-                 :block-name (block-name type)
-                 :dimensions (v-dimensions type)
-                 :element-type (v-element-type type)))
-
-(defun make-into-block-array (array-type block-name)
-  (assert (v-typep array-type 'v-array))
-  (let ((r (make-instance 'v-block-array
-                          :block-name block-name
-                          :dimensions (v-dimensions array-type)
-                          :element-type (v-element-type array-type)
-                          :ctv (ctv array-type)
-                          :flow-ids (flow-ids array-type))))
-    (when (slot-boundp array-type 'default-value)
-      (setf (slot-value r 'default-value)
-            (slot-value array-type 'default-value)))
-    r))
-
-(defun block-array-to-regular-array (block-array)
-  (assert (v-typep block-array 'v-block-array))
-  (let ((r (make-instance 'v-array
-                          :dimensions (v-dimensions block-array)
-                          :element-type (v-element-type block-array)
-                          :ctv (ctv block-array)
-                          :flow-ids (flow-ids block-array))))
-    (when (slot-boundp block-array 'default-value)
-      (setf (slot-value r 'default-value)
-            (slot-value block-array 'default-value)))
-    r))
-
-(defmethod v-glsl-string ((object v-block-array))
-  (v-glsl-string (v-element-type object)))
-
-;;------------------------------------------------------------
-;; Unrepresentable Value
-;;
-;; The supertype for all types which are not representable in any
-;; way in glsl. First class functions is the classic example of this.
-;;
-;; {TODO} I think this should be a field on ephemeral-types. We then
-;;        have func spicing ephemerals and regular.
-
-(def-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
-
-;;------------------------------------------------------------
 ;; Container
 ;;
 ;; The supertype of all types that can have values stored into, and
@@ -373,6 +244,135 @@ doesnt"))
             "The element-type of ~a was ~a which is not an instance of a type."
             object result)
     result))
+
+;;------------------------------------------------------------
+;; Ephemeral Values
+;;
+;; The supertype for all types which that have no representation
+;; in glsl.
+;;
+;; Make sure you define these using deftype
+;;
+
+(def-v-type-class v-ephemeral-type (v-type) ())
+
+(defgeneric ephemeral-p (x)
+  (:method ((x v-type))
+    (typep x 'v-ephemeral-type))
+  (:method (x)
+    (ephemeral-p (v-type-of x))))
+
+;;------------------------------------------------------------
+;; Ephemeral Array
+;;
+;; An array for item which that have no representation in glsl.
+;;
+
+(def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
+
+(defmethod v-make-type ((type v-ephemeral-array) flow-id &rest args)
+  (destructuring-bind (element-type length) args
+    (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+                (and (symbolp length) (string= length :*))))
+    (initialize-instance type
+                         :element-type (type-spec->type element-type)
+                         :dimensions (listify length)
+                         :flow-ids flow-id)))
+
+;;------------------------------------------------------------
+;; Unrepresentable Value
+;;
+;; The supertype for all types which are not representable in any
+;; way in glsl. First class functions is the classic example of this.
+;;
+;; {TODO} I think this should be a field on ephemeral-types. We then
+;;        have func spicing ephemerals and regular.
+
+(def-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
+
+;;------------------------------------------------------------
+;; Block Array
+;;
+;; These serve a very specific purpose; they are used when you have an
+;; array'd interface block but you want to pretend that that members of
+;; the block are array'd.
+;;
+;; This is different from ephemeral arrays where you are mimicking a true
+;; array.
+;;
+
+(def-v-type-class v-block-array (v-ephemeral-type)
+  ((element-type :initform t :initarg :element-type)
+   (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
+   (block-name :initarg :block-name :initform "<invalid>" :reader block-name)))
+
+(defmethod v-make-type ((type v-block-array) flow-id &rest args)
+  (destructuring-bind (block-name element-type length) args
+    (let* ((dims (listify length))
+           (length (first dims)))
+      (assert (= 1 (length dims)))
+      (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+                  (and (symbolp length) (string= length :*))))
+      (initialize-instance type
+                           :block-name block-name
+                           :element-type (type-spec->type element-type)
+                           :dimensions dims
+                           :flow-ids flow-id))))
+
+(defmethod post-initialise ((object v-block-array))
+  (with-slots (dimensions element-type) object
+    (setf dimensions (listify dimensions))
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-block-array))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+(defmethod type->type-spec ((type v-block-array))
+  `(v-block-array ,(if (slot-boundp type 'block-name)
+                       (block-name type)
+                       "<invalid>")
+                  ,(type->type-spec (v-element-type type))
+                  ,(v-dimensions type)))
+
+(defmethod copy-type ((type v-block-array))
+  (make-instance 'v-block-array
+                 :block-name (block-name type)
+                 :dimensions (v-dimensions type)
+                 :element-type (v-element-type type)))
+
+(defun make-into-block-array (array-type block-name)
+  (assert (v-typep array-type 'v-array))
+  (let ((r (make-instance 'v-block-array
+                          :block-name block-name
+                          :dimensions (v-dimensions array-type)
+                          :element-type (v-element-type array-type)
+                          :ctv (ctv array-type)
+                          :flow-ids (flow-ids array-type))))
+    (when (slot-boundp array-type 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value array-type 'default-value)))
+    r))
+
+(defun block-array-to-regular-array (block-array)
+  (assert (v-typep block-array 'v-block-array))
+  (let ((r (make-instance 'v-array
+                          :dimensions (v-dimensions block-array)
+                          :element-type (v-element-type block-array)
+                          :ctv (ctv block-array)
+                          :flow-ids (flow-ids block-array))))
+    (when (slot-boundp block-array 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value block-array 'default-value)))
+    r))
+
+(defmethod v-glsl-string ((object v-block-array))
+  (v-glsl-string (v-element-type object)))
 
 ;;------------------------------------------------------------
 ;; Or
