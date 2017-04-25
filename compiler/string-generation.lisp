@@ -161,12 +161,14 @@
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)
   (when (typep type 'v-none)
     (error 'none-type-in-out-vars :glsl-name glsl-name))
-  (format nil "~@[layout(location = ~a) ~]out ~a;" layout
-          (prefix-type-to-string type glsl-name qualifiers)))
+
+  (format nil "~@[layout(location = ~a) ~] ~a;" layout
+          (prefix-type-to-string type glsl-name
+								 (append qualifiers '("out")))))
 
 (defun gen-in-var-string (glsl-name type qualifiers &optional layout)
-  (format nil "~@[layout(location = ~a) ~]in ~a;" layout
-          (prefix-type-to-string type glsl-name qualifiers)))
+  (format nil "~@[layout(location = ~a) ~] ~a;" layout
+          (prefix-type-to-string type glsl-name (append qualifiers '("in")))))
 
 (defun gen-uniform-decl-string (glsl-name type qualifiers)
   (declare (ignore qualifiers))
