@@ -506,6 +506,7 @@ For example calling env-prune on this environment..
                     (find binding-name (v-allowed-outer-vars env))))
         binding)))
   (:method (binding-name (binding uninitialized-value) env)
+    (declare (ignore binding-name env))
     binding))
 
 (defmethod binding-in-higher-scope-p ((binding v-value) env)

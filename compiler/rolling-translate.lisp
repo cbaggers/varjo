@@ -205,11 +205,13 @@
   (:method (primitive
             (stage tesselation-evaluation-stage)
             (next-stage geometry-stage))
-	(error "IMPLEMENT ME!"))
+    (declare (ignore primitive stage next-stage))
+    (error "IMPLEMENT ME!"))
 
   (:method (primitive
             stage
             (next-stage fragment-stage))
+    (declare (ignore primitive stage next-stage))
     nil))
 
 (defgeneric transform-arg-types (last next stage primitive)

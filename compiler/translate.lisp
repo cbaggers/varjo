@@ -43,7 +43,7 @@
 ;;----------------------------------------------------------------------
 
 (defmethod expand-input-variable ((stage stage)
-                                  (var-type v-type)
+                                  (var-type v-ephemeral-type)
                                   (input-variable input-variable)
                                   (env environment))
   (declare (ignore stage env))
@@ -153,13 +153,14 @@
 	primitive)
 
   (:method ((stage geometry-stage) primitive env)
+    (declare (ignore env))
     (assert (typep primitive 'geometry-primitive) ()
             'invalid-primitive-for-geometry-stage
             :prim (type-of primitive))
     primitive)
 
   (:method ((stage fragment-stage) primitive env)
-    (declare (ignore stage env))
+    (declare (ignore stage primitive env))
     nil))
 
 (defun process-primitive-type (stage env)
@@ -193,6 +194,7 @@
       (or (slot-value main-func 'emit-set) #())))
   ;;
   (:method (stage main-func)
+    (declare (ignore stage))
     (return-set main-func)))
 
 (defun make-post-process-obj (main-func stage env)
