@@ -189,10 +189,19 @@
 
 (defun gen-tess-eval-output-primitive-string (metadata)
   (with-slots (primitive spacing order) metadata
-    (format nil "layout (~a, ~a, ~a) in;"
-            (string-downcase primitive)
-            (string-downcase spacing)
-            (string-downcase order))))
+    (let ((primitive (primitive-name-to-instance primitive)))
+      (format nil "layout (~a, ~a, ~a) in;"
+              (glsl-string primitive)
+              (ecase spacing
+                (:equal "equal_spacing")
+                (:equal-spacing "equal_spacing")
+                (:fractional-even "fractional_even_spacing")
+                (:fractional-even-spacing "fractional_even_spacing")
+                (:fractional-odd "fractional_odd_spacing")
+                (:fractional-odd-spacing "fractional_odd_spacing"))
+              (ecase order
+                (:cw "cw")
+                (:ccw "ccw"))))))
 
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
