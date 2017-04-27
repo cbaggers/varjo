@@ -216,24 +216,43 @@
     (declare (ignore primitive stage next-stage))
     nil))
 
+(defun %array-the-output-variables-for-primitive (primitive output-variables)
+  (mapcar λ(make-instance
+            'output-variable
+            :name (name _)
+            :glsl-name (glsl-name _)
+            :type (type-spec->type (list (type->type-spec (v-type-of _))
+                                         (vertex-count primitive)))
+            :qualifiers (qualifiers _))
+          output-variables))
+
 (defgeneric transform-arg-types (last next stage primitive)
   (:method ((last vertex-stage)
             (next geometry-stage)
             (stage stage)
             primitive)
     (declare (ignore last next))
-    (mapcar λ(make-instance
-              'output-variable
-              :name (name _)
-              :glsl-name (glsl-name _)
-              :type (type-spec->type (list (type->type-spec (v-type-of _))
-                                           (vertex-count primitive)))
-              :qualifiers (qualifiers _))
-            (rest (output-variables stage))))
+    (%array-the-output-variables-for-primitive
+     primitive
+     (rest (output-variables stage))))
 
-  (:method ((last vertex-stage) next (stage stage) primitive)
-    (declare (ignore last next primitive))
-    (rest (output-variables stage)))
+  (:method ((last vertex-stage)
+            (next tesselation-control-stage)
+            (stage stage)
+            primitive)
+    (declare (ignore last next))
+    (%array-the-output-variables-for-primitive
+     primitive
+     (rest (output-variables stage))))
+
+  (:method ((last vertex-stage)
+            (next tesselation-evaluation-stage)
+            (stage stage)
+            primitive)
+    (declare (ignore last next))
+    (%array-the-output-variables-for-primitive
+     primitive
+     (rest (output-variables stage))))
 
   (:method (last next (stage stage) primitive)
     (declare (ignore last next primitive))
