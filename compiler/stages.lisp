@@ -17,18 +17,23 @@
                     :glsl-name (or glsl-name (safe-glsl-name-string name))
                     :type (type-spec->type type-spec)
                     :qualifiers qualifiers)))))
-      (let ((r (make-instance
-                (if kind
-                    (stage-kind-to-type kind)
-                    'stage)
-                :input-variables (mapcar λ(make-var 'input-variable _)
-                                         in-args)
-                :uniform-variables (mapcar λ(make-var 'uniform-variable _)
-                                           uniforms)
-                :context (process-context context)
-                :lisp-code code
-                :stemcells-allowed stemcells-allowed
-                :primitive-in primitive)))
+      (let* ((context (process-context context))
+             (r (make-instance
+                 (if kind
+                     (stage-kind-to-type kind)
+                     'stage)
+                 :input-variables (mapcar λ(make-var 'input-variable _)
+                                          in-args)
+                 :uniform-variables (mapcar λ(make-var 'uniform-variable _)
+                                            uniforms)
+                 :context context
+                 :lisp-code code
+                 :stemcells-allowed stemcells-allowed
+                 :primitive-in primitive)))
+        (when (member kind '(:tesselation-control :tesselation-evaluation))
+          ;; {TODO} proper error
+          (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
+                  "Varjo: Tesselation stages require a GLSL version of at least 400"))
         (check-for-stage-specific-limitations r)
         r))))
 
