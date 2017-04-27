@@ -164,17 +164,13 @@
     nil))
 
 (defun process-primitive-type (stage env)
-  (labels ((get-primitive (name)
-             (let ((type (find name *draw-modes*)))
-               (assert type () "Varjo: Could not find primitive named ~a" name)
-               (make-instance (find-symbol (symbol-name name) :varjo)))))
-    (let* ((prim (primitive-in stage))
-           (prim (etypecase prim
-                   (null nil)
-                   (symbol (get-primitive prim))
-                   (primitive prim))))
-      (setf (primitive-in stage) (%process-primitive-type stage prim env)))
-    (values stage env)))
+  (let* ((prim (primitive-in stage))
+         (prim (etypecase prim
+                 (null nil)
+                 ((or symbol list) (primitive-name-to-instance prim))
+                 (primitive prim))))
+    (setf (primitive-in stage) (%process-primitive-type stage prim env)))
+  (values stage env))
 
 ;;----------------------------------------------------------------------
 
