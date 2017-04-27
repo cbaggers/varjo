@@ -6,7 +6,7 @@
 
 (v-defmacro glsl-expr (glsl-string type-spec &rest args)
   (if args
-      (let ((gs (loop :for i :in args :collect
+      (let ((gs (loop :for i :below (length args) :collect
                    (gensym (format nil "GEXPR~a" i)))))
         `(let ,(mapcar #'list gs args)
            (%glsl-expr ,glsl-string ,type-spec ,@gs)))
