@@ -478,7 +478,6 @@
        ;; need to generate something that the geom shader could accept
        ;; (frag shader doesnt care so no need to think about it)
        (let* ((tl (find 'tessellate-to main-metadata :key #'type-of)))
-         ;; {TODO} proper error
          (if tl
              (with-slots (primitive) tl
                (let ((primitive (primitive-name-to-instance
