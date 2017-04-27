@@ -189,6 +189,13 @@
     (when (slot-boundp main-func 'emit-set)
       (or (slot-value main-func 'emit-set) #())))
   ;;
+  (:method ((stage tesselation-control-stage) main-func)
+    (assert (emptyp (return-set main-func)) ()
+            'returns-in-geometry-stage :return-set (return-set main-func))
+    (when (slot-boundp main-func 'emit-set)
+      (or (%array-the-emit-vals-for-size '* (slot-value main-func 'emit-set))
+          #())))
+
   (:method (stage main-func)
     (declare (ignore stage))
     (return-set main-func)))
@@ -448,7 +455,7 @@
   (with-slots (main-metadata stage) post-proc-obj
     (typecase stage
 
-	  (geometry-stage
+      (geometry-stage
        (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
          ;; {TODO} proper error
          (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
@@ -457,19 +464,19 @@
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance (slot-value tl 'kind)))))
 
-	  (tesselation-control-stage
-	   (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
+      (tesselation-control-stage
+       (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
          ;; {TODO} proper error
          (assert tl () "Varjo: The function used as a tesselation control stage must have a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
-			   (list (gen-tess-con-output-primitive-string tl)))
+               (list (gen-tess-con-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance (list :patch (slot-value tl 'vertices))))))
 
-	  (tesselation-evaluation-stage
-	   ;; need to generate something that the geom shader could accept
-	   ;; (frag shader doesnt care so no need to think about it)
-	   (error "IMPLEMENT ME!"))
+      (tesselation-evaluation-stage
+       ;; need to generate something that the geom shader could accept
+       ;; (frag shader doesnt care so no need to think about it)
+       (error "IMPLEMENT ME!"))
 
       (t (setf (primitive-out post-proc-obj)
                (primitive-in (stage post-proc-obj))))))
