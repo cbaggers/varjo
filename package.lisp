@@ -167,6 +167,7 @@
            :test-translate-failed
            :returns-in-geometry-stage
            :primitives-dont-match
+           :tessellation-control-expects-patches
 
            ;; restarts
            :setq-supply-alternate-type

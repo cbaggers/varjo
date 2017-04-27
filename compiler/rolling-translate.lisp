@@ -193,7 +193,9 @@
   (:method (primitive
             (stage vertex-stage)
             (next-stage tesselation-control-stage))
-	(assert (typep primitive 'patches))
+    (assert (typep primitive 'patches) ()
+            'tessellation-control-expects-patches
+            :primitive primitive)
     primitive)
 
   (:method (primitive
