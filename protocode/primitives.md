@@ -57,7 +57,7 @@ output of tessellation-control shaders is via the 'out' variable.
 
     Evaluation Stage
 
-primitives in: point-mode, triangles, quads?, isolines?
+primitives in: point-mode, triangles, quads, isolines
 
 The primitives here are specifying how the tessellation engine will split up the
 incoming primitives:
@@ -66,12 +66,6 @@ incoming primitives:
     triangles are subdivided in smaller triangles
     quads are subdivided into triangles
     isolines means the primitive is a quad but will be split into lines
-
-the question marks next to quads & isolines are because quads are not valid
-draw modes in OpenGL core. This makes me wonder to what extent we need to
-support them..then again we shouldn't need special logic in the compiler
-for them so it's probably fine to leave them in. Core GL choice are CEPL's
-business, not Varjo's.
 
 -- Geometry --
 
@@ -92,7 +86,7 @@ points, lines, triangles
 
 This should be something we can infer in the simple cases. Looking at the list
 of draw modes these fall into the camps fairly well. Except quads, which seem
-to only be valid up to the tessellation stage, and patches which ¯_(ツ)_/¯
+to only be valid up to the tessellation stage, and patches which ¯\_(ツ)_/¯
 
 The allowed output primitives for this stage are:
 
