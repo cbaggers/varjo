@@ -90,7 +90,6 @@
 ;; in vec3 gFacetNormal;
 ;; in vec3 gTriDistance;
 ;; in vec3 gPatchDistance;
-;; in float gPrimitive;
 ;; uniform vec3 LightPosition;
 ;; uniform vec3 DiffuseMaterial;
 ;; uniform vec3 AmbientMaterial;

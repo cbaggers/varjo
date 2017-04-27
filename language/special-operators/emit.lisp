@@ -19,6 +19,14 @@
   vertices)
 
 ;;------------------------------------------------------------
+;; Tessellation Evaluation
+
+(def-metadata-kind tessellate-to (:binds-to :scope)
+  primitive
+  spacing
+  order)
+
+;;------------------------------------------------------------
 ;; emit
 
 
@@ -28,10 +36,10 @@
   :return
   (let* ((new-env (fresh-environment env :multi-val-base "return"))
          ;; we create an environment with the signal to let any 'values' forms
-         ;; down the tree know they will be caught and what their name prefix should
-         ;; be.
-         ;; We then compile the form using the augmented environment, the values
-         ;; statements will expand and flow back as 'multi-vals' and the
+         ;; down the tree know they will be caught and what their name prefix
+         ;; should be.
+         ;; We then compile the form using the augmented environment, the
+         ;; values statements will expand and flow back as 'multi-vals' and the
          ;; current-line
          (code-obj (compile-form form new-env))
          (result (%emit code-obj new-env))

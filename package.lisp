@@ -168,6 +168,7 @@
            :returns-in-geometry-stage
            :primitives-dont-match
            :tessellation-control-expects-patches
+           :tessellation-evaluation-invalid-primitive
 
            ;; restarts
            :setq-supply-alternate-type

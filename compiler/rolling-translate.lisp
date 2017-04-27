@@ -205,10 +205,23 @@
     primitive)
 
   (:method (primitive
+            (stage tesselation-control-stage)
+            (next-stage tesselation-evaluation-stage))
+    (declare (ignore stage next-stage))
+    primitive)
+
+  (:method (primitive
             (stage tesselation-evaluation-stage)
             (next-stage geometry-stage))
-    (declare (ignore primitive stage next-stage))
-    (error "IMPLEMENT ME!"))
+    (declare (ignore next-stage))
+    (primitive-name-to-instance
+     (typecase primitive
+       (points :points)
+       (iso-lines :lines)
+       (triangles :triangles)
+       (t (error 'couldnt-convert-primitive-for-geometry-stage
+                 :prim (type-of primitive)
+                 :prev-stage stage)))))
 
   (:method (primitive
             stage
@@ -247,6 +260,15 @@
 
   (:method ((last vertex-stage)
             (next tesselation-evaluation-stage)
+            (stage stage)
+            primitive)
+    (declare (ignore last next))
+    (%array-the-output-variables-for-primitive
+     primitive
+     (rest (output-variables stage))))
+
+  (:method ((last tesselation-evaluation-stage)
+            (next geometry-stage)
             (stage stage)
             primitive)
     (declare (ignore last next))

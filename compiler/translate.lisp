@@ -471,12 +471,27 @@
          (setf (out-declarations post-proc-obj)
                (list (gen-tess-con-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
-               (primitive-name-to-instance (list :patch (slot-value tl 'vertices))))))
+               (primitive-name-to-instance
+                (list :patch (slot-value tl 'vertices))))))
 
       (tesselation-evaluation-stage
        ;; need to generate something that the geom shader could accept
        ;; (frag shader doesnt care so no need to think about it)
-       (error "IMPLEMENT ME!"))
+       (let* ((tl (find 'tessellate-to main-metadata :key #'type-of)))
+         ;; {TODO} proper error
+         (if tl
+             (with-slots (primitive) tl
+               (let ((primitive (primitive-name-to-instance
+                                 (or primitive :triangles))))
+                 (setf (out-declarations post-proc-obj)
+                       (list (gen-tess-eval-output-primitive-string tl)))
+                 (setf (primitive-out post-proc-obj) primitive)))
+             (setf (primitive-out post-proc-obj)
+                   (primitive-name-to-instance :triangles)))
+         (assert (typep (primitive-out post-proc-obj)
+                        'tessellation-out-primitive)
+                 () 'tessellation-evaluation-invalid-primitive
+                 :primitive (primitive-out post-proc-obj))))
 
       (t (setf (primitive-out post-proc-obj)
                (primitive-in (stage post-proc-obj))))))

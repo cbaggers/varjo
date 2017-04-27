@@ -187,6 +187,13 @@
   (with-slots (vertices) metadata
     (format nil "layout (vertices = ~a) out;" vertices)))
 
+(defun gen-tess-eval-output-primitive-string (metadata)
+  (with-slots (primitive spacing order) metadata
+    (format nil "layout (~a, ~a, ~a) in;"
+            (string-downcase primitive)
+            (string-downcase spacing)
+            (string-downcase order))))
+
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
     (format

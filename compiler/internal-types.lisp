@@ -324,16 +324,20 @@
 (defclass draw-mode (primitive) ())
 
 (defclass geometry-primitive (primitive) ())
-(defclass tesselation-primitive (primitive) ())
+(defclass tessellation-in-primitive (primitive) ())
+(defclass tessellation-out-primitive (primitive) ())
 
-
-(defclass points (draw-mode geometry-primitive)
+(defclass points (draw-mode geometry-primitive tessellation-out-primitive)
   ((vertex-count :initform 1 :reader vertex-count)
    (glsl-string :initform "points" :reader glsl-string)))
 
 (defclass lines (draw-mode geometry-primitive)
   ((vertex-count :initform 2 :reader vertex-count)
    (glsl-string :initform "lines" :reader glsl-string)))
+
+(defclass iso-lines (tessellation-out-primitive)
+  ((vertex-count :initform 2 :reader vertex-count)
+   (glsl-string :initform "iso_lines" :reader glsl-string)))
 
 (defclass line-loop (draw-mode)
   ((glsl-string :initform "line_loop" :reader glsl-string)))
@@ -348,7 +352,7 @@
 (defclass line-strip-adjacency (draw-mode)
   ((glsl-string :initform "line_strip_adjacency" :reader glsl-string)))
 
-(defclass triangles (draw-mode geometry-primitive)
+(defclass triangles (draw-mode geometry-primitive tessellation-out-primitive)
   ((vertex-count :initform 3 :reader vertex-count)
    (glsl-string :initform "triangles" :reader glsl-string)))
 
@@ -365,10 +369,10 @@
 (defclass triangle-strip-adjacency (draw-mode)
   ((glsl-string :initform "triangle_strip_adjacency" :reader glsl-string)))
 
-(defclass quads (draw-mode)
+(defclass quads (draw-mode tessellation-out-primitive)
   ((glsl-string :initform "quads" :reader glsl-string)))
 
-(defclass patches (draw-mode tesselation-primitive)
+(defclass patches (draw-mode tessellation-in-primitive)
   ((vertex-count :initarg :vertex-count :reader vertex-count)))
 
 (defun primitive-name-to-instance (name)
