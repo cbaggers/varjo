@@ -268,7 +268,10 @@
           (block-name-string block-name)
           var-strs
           (if instance-name
-              (format nil " ~a~@[[~a]~]" instance-name length)
+              (format nil " ~a~@[[~a]~]" instance-name
+                      (if (and (symbolp length) (string= length '*))
+                          ""
+                          length))
               "")))
 
 (defun write-ubo-block (storage-qualifier block-name slots
