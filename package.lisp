@@ -30,6 +30,8 @@
    :values-safe
    :glsl-expr
    :output-primitive
+   :output-patch
+   :tessellate-to
    :emit-data
    :emit
 
@@ -391,6 +393,8 @@
            ;; metadata
            :combine-metadata
            :output-primitive
+           :output-patch
+           :tessellate-to
 
            ;; external functions
            :in-args
