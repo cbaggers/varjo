@@ -89,7 +89,7 @@ Example:
 (defun largest-primitive-for-stage (type)
   (case type
     (vertex-stage :triangles-adjacency)
-    (tessellation-control-stage :patch)
+    (tessellation-control-stage :patches)
     (tessellation-evaluation-stage :quads)
     (geometry-stage :triangles-adjacency)
     (fragment-stage nil)
