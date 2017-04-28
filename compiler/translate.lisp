@@ -62,11 +62,16 @@
                                   (var-type v-type)
                                   (input-variable input-variable)
                                   (env environment))
-  (let* ((type (set-flow-id var-type (flow-id!)))
-         (type (if (should-make-an-ephermal-block-p stage)
-                   (make-into-block-array stage type *in-block-instance-name*)
-                   type)))
-    (values (v-make-value type env :glsl-name (glsl-name input-variable))
+  (let* ((ephem-p (should-make-an-ephermal-block-p stage))
+         (type (set-flow-id var-type (flow-id!)))
+         (type (if ephem-p
+                   (make-into-block-array stage type *in-block-name*)
+                   type))
+         (glsl-name (glsl-name input-variable))
+         (glsl-name (if ephem-p
+                        glsl-name
+                        (prefix-in-block-to-glsl-name glsl-name))))
+    (values (v-make-value type env :glsl-name glsl-name)
             (list (make-instance 'input-variable
                                  :name (name input-variable)
                                  :glsl-name (glsl-name input-variable)
@@ -370,7 +375,7 @@
   (with-slots (env stage) post-proc-obj
     (let* ((expanded-vars (expanded-input-variables env))
            (emphem-block-p (should-make-an-ephermal-block-p stage))
-           (instance-name (when emphem-block-p *in-block-instance-name*))
+           (instance-name *in-block-name*)
            (block-arr-length (when emphem-block-p
                                (first
                                 (v-dimensions

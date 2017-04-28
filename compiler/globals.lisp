@@ -82,4 +82,5 @@
 (defparameter *glsl-variables* nil)
 
 (defparameter *fallback-block-name* :in_block)
+(defvar *in-block-name* "v_in")
 (defvar *out-block-name* "v_out")

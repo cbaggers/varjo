@@ -249,9 +249,6 @@
 (defun requires-in-interface-block (stage)
   (not (typep stage 'vertex-stage)))
 
-(defparameter *in-block-instance-name*
-  "inputs")
-
 ;;----------------------------------------------------------------------
 
 ;; storage_qualifier block_name
