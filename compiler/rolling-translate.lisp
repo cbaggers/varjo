@@ -171,7 +171,8 @@
 (defun compute-next-primitive (compiled-stage next-stage)
   (let ((primitive (primitive-out compiled-stage))
         (stage (starting-stage compiled-stage)))
-    (%compute-next-primitive primitive stage next-stage)))
+	(unless (typep next-stage 'fragment-stage)
+	  (%compute-next-primitive primitive stage next-stage))))
 
 (defgeneric %compute-next-primitive (primitive stage next-stage)
   (:method (primitive
@@ -245,9 +246,16 @@
             (stage stage)
             primitive)
     (declare (ignore last next))
-    (%array-the-output-variables-for-primitive
+	(%array-the-output-variables-for-primitive
      primitive
      (rest (output-variables stage))))
+
+  (:method ((last vertex-stage)
+            (next fragment-stage)
+            (stage stage)
+            primitive)
+    (declare (ignore last next))
+    (rest (output-variables stage)))
 
   (:method ((last vertex-stage)
             (next tessellation-control-stage)
