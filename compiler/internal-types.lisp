@@ -87,8 +87,8 @@
    (primitive-in :initarg :primitive-in :accessor primitive-in)))
 
 (defclass vertex-stage (stage) ())
-(defclass tesselation-control-stage (stage) ())
-(defclass tesselation-evaluation-stage (stage) ())
+(defclass tessellation-control-stage (stage) ())
+(defclass tessellation-evaluation-stage (stage) ())
 (defclass geometry-stage (stage) ())
 (defclass fragment-stage (stage) ())
 
@@ -108,11 +108,11 @@
 (defclass compiled-vertex-stage
     (vertex-stage compiled-stage) ())
 
-(defclass compiled-tesselation-control-stage
-    (tesselation-control-stage compiled-stage) ())
+(defclass compiled-tessellation-control-stage
+    (tessellation-control-stage compiled-stage) ())
 
-(defclass compiled-tesselation-evaluation-stage
-    (tesselation-evaluation-stage compiled-stage) ())
+(defclass compiled-tessellation-evaluation-stage
+    (tessellation-evaluation-stage compiled-stage) ())
 
 (defclass compiled-geometry-stage
     (geometry-stage compiled-stage) ())

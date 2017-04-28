@@ -10,15 +10,15 @@
 
 (defparameter *stage-names*
   '(:vertex
-    :tesselation-control
-    :tesselation-evaluation
+    :tessellation-control
+    :tessellation-evaluation
     :geometry
     :fragment))
 
 (defparameter *stage-type-names*
   '(vertex-stage
-    tesselation-control-stage
-    tesselation-evaluation-stage
+    tessellation-control-stage
+    tessellation-evaluation-stage
     geometry-stage
     fragment-stage))
 

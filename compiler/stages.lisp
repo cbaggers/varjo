@@ -30,10 +30,10 @@
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
                  :primitive-in primitive)))
-        (when (member kind '(:tesselation-control :tesselation-evaluation))
+        (when (member kind '(:tessellation-control :tessellation-evaluation))
           ;; {TODO} proper error
           (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
-                  "Varjo: Tesselation stages require a GLSL version of at least 400"))
+                  "Varjo: Tessellation stages require a GLSL version of at least 400"))
         (check-for-stage-specific-limitations r)
         r))))
 
@@ -83,8 +83,8 @@
 
 (defun stage-kind-to-type (kind)
   (let ((map '((:vertex . vertex-stage)
-               (:tesselation-control . tesselation-control-stage)
-               (:tesselation-evaluation . tesselation-evaluation-stage)
+               (:tessellation-control . tessellation-control-stage)
+               (:tessellation-evaluation . tessellation-evaluation-stage)
                (:geometry . geometry-stage)
                (:fragment . fragment-stage))))
     (or (assocr kind map)
@@ -93,8 +93,8 @@
 (defun compiled-stage-type-for (stage)
   (etypecase stage
     (vertex-stage 'compiled-vertex-stage)
-    (tesselation-control-stage 'compiled-tesselation-control-stage)
-    (tesselation-evaluation-stage 'compiled-tesselation-evaluation-stage)
+    (tessellation-control-stage 'compiled-tessellation-control-stage)
+    (tessellation-evaluation-stage 'compiled-tessellation-evaluation-stage)
     (geometry-stage 'compiled-geometry-stage)
     (fragment-stage 'compiled-fragment-stage)))
 

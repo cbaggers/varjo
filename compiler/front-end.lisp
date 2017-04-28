@@ -4,7 +4,7 @@
 ;;----------------------------------------------------------------------
 
 (defun v-compile (uniforms version
-                  &key vertex tesselation-control tesselation-evaluation
+                  &key vertex tessellation-control tessellation-evaluation
                     geometry fragment allow-stemcells (draw-mode :triangles))
   "
 This function takes lisp code as lists and returns the results of compiling that
@@ -28,7 +28,7 @@ Example:
                                       (* x x)))
                              (v! 1.0 1.0 hmm (fun a)))))
 "
-  (assert (or vertex tesselation-control tesselation-evaluation geometry fragment))
+  (assert (or vertex tessellation-control tessellation-evaluation geometry fragment))
   (let* ((stages (list (when vertex
                          (make-stage :vertex
                                      (first vertex)
@@ -37,20 +37,20 @@ Example:
                                      (rest vertex)
                                      allow-stemcells
                                      nil))
-                       (when tesselation-control
-                         (make-stage :tesselation-control
-                                     (first tesselation-control)
+                       (when tessellation-control
+                         (make-stage :tessellation-control
+                                     (first tessellation-control)
                                      uniforms
                                      (list version)
-                                     (rest tesselation-control)
+                                     (rest tessellation-control)
                                      allow-stemcells
                                      nil))
-                       (when tesselation-evaluation
-                         (make-stage :tesselation-evaluation
-                                     (first tesselation-evaluation)
+                       (when tessellation-evaluation
+                         (make-stage :tessellation-evaluation
+                                     (first tessellation-evaluation)
                                      uniforms
                                      (list version)
-                                     (rest tesselation-evaluation)
+                                     (rest tessellation-evaluation)
                                      allow-stemcells
                                      nil))
                        (when geometry
@@ -86,11 +86,11 @@ Example:
 
 ;;----------------------------------------------------------------------
 
-(defun largest-primtive-for-stage (type)
+(defun largest-primitive-for-stage (type)
   (case type
     (vertex-stage :triangles-adjacency)
-    (tesselation-control-stage :patch)
-    (tesselation-evaluation-stage :quads)
+    (tessellation-control-stage :patch)
+    (tessellation-evaluation-stage :quads)
     (geometry-stage :triangles-adjacency)
     (fragment-stage nil)
     (otherwise (error "Varjo: Invalid stage kind name ~a" type))))
@@ -111,7 +111,7 @@ Example:
                       :stemcells-allowed stemcells-allowed
                       :previous-stage previous-stage
                       :primitive-in (unless primitive-in
-                                      (largest-primtive-for-stage type)))))
+                                      (largest-primitive-for-stage type)))))
          (handler-case (translate stage)
            (error (e) e))))))
 

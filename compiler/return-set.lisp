@@ -67,7 +67,7 @@
 (defun mvals->out-form (code-object env)
   (let ((mvals (multi-vals code-object))
         (stage (stage env))
-		(tess-con-p (typep (stage env) 'tesselation-control-stage)))
+		(tess-con-p (typep (stage env) 'tessellation-control-stage)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect
             (with-slots (value qualifiers) mval

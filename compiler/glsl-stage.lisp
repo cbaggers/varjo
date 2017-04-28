@@ -47,12 +47,12 @@
             #'gen-in-decl-strings
             #'gen-out-var-strings
             #'(lambda (pp)
-                (process-glsl-output-primtive stage-kind body-string pp))
+                (process-glsl-output-primitive stage-kind body-string pp))
             #'final-uniform-strings
             #'final-string-compose
             #'package-as-final-result-object)))))))
 
-(defun process-glsl-output-primtive (stage-kind body-string post-proc-obj)
+(defun process-glsl-output-primitive (stage-kind body-string post-proc-obj)
   (if (eq stage-kind :geometry)
       (let* ((map '(("points" . :points)
                     ("line_strip" . :line-strip)

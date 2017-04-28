@@ -23,7 +23,7 @@
             #'gen-in-arg-strings
             #'gen-in-decl-strings
             #'gen-out-var-strings
-            #'process-output-primtive
+            #'process-output-primitive
             #'final-uniform-strings
             #'dedup-used-types
             #'final-string-compose
@@ -136,19 +136,19 @@
     (declare (ignore stage env))
     primitive)
 
-  (:method ((stage tesselation-control-stage)
+  (:method ((stage tessellation-control-stage)
             primitive env)
     (declare (ignore stage env))
 	(assert (typep primitive 'patches) ()
-            'invalid-primitive-for-tesselation-stage
+            'invalid-primitive-for-tessellation-stage
             :prim (type-of primitive))
 	primitive)
 
-  (:method ((stage tesselation-evaluation-stage)
+  (:method ((stage tessellation-evaluation-stage)
             primitive env)
     (declare (ignore stage env))
     (assert (typep primitive 'patches) ()
-            'invalid-primitive-for-tesselation-stage
+            'invalid-primitive-for-tessellation-stage
             :prim (type-of primitive))
 	primitive)
 
@@ -189,7 +189,7 @@
     (when (slot-boundp main-func 'emit-set)
       (or (slot-value main-func 'emit-set) #())))
   ;;
-  (:method ((stage tesselation-control-stage) main-func)
+  (:method ((stage tessellation-control-stage) main-func)
     (assert (emptyp (return-set main-func)) ()
             'returns-in-geometry-stage :return-set (return-set main-func))
     (when (slot-boundp main-func 'emit-set)
@@ -451,7 +451,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defun process-output-primtive (post-proc-obj)
+(defun process-output-primitive (post-proc-obj)
   (with-slots (main-metadata stage) post-proc-obj
     (typecase stage
 
@@ -464,17 +464,17 @@
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance (slot-value tl 'kind)))))
 
-      (tesselation-control-stage
+      (tessellation-control-stage
        (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
          ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a tesselation control stage must have a top level output-primitive declaration")
+         (assert tl () "Varjo: The function used as a tessellation control stage must have a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-tess-con-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance
                 (list :patch (slot-value tl 'vertices))))))
 
-      (tesselation-evaluation-stage
+      (tessellation-evaluation-stage
        ;; need to generate something that the geom shader could accept
        ;; (frag shader doesnt care so no need to think about it)
        (let* ((tl (find 'tessellate-to main-metadata :key #'type-of)))

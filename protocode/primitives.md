@@ -102,12 +102,12 @@ on some other function used in the shader body, but I'm not sure quite how yet (
 djeis97 commented
 
 Patches are used as a draw primitive so that you can supply a variable
-number of verticies per primitive as input to the tesselation
-stage. For example, in the tesselation branch of djeis97/bezier I'm
+number of verticies per primitive as input to the tessellation
+stage. For example, in the tessellation branch of djeis97/bezier I'm
 using 4 verticies per patch to draw a bezier curve. The first and last
 are the start and end points of the curve, while the two in the middle
 are the control points. Then all of those vertices are available at
-tesselation The number of verticies per patch is set at
+tessellation The number of verticies per patch is set at
 (%gl:patch-parameter-i :patch-vertices 4).
 
 ------------------------------------------------------------

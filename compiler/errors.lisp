@@ -789,7 +789,7 @@ Stage: ~a"
     "~s is not a valid stage kind for geometry stages. Instead try
 points, lines, lines-adjacency, triangles or triangles-adjacency." prim)
 
-(deferror invalid-primitive-for-tesselation-stage () (prim)
+(deferror invalid-primitive-for-tessellation-stage () (prim)
     "~s is not a valid stage kind for geometry stages. You must use a patch
 e.g. (:patch 4)" prim)
 

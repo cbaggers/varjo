@@ -192,7 +192,7 @@
 
   (:method (primitive
             (stage vertex-stage)
-            (next-stage tesselation-control-stage))
+            (next-stage tessellation-control-stage))
     (assert (typep primitive 'patches) ()
             'tessellation-control-expects-patches
             :primitive primitive)
@@ -200,18 +200,18 @@
 
   (:method (primitive
             (stage vertex-stage)
-            (next-stage tesselation-evaluation-stage))
+            (next-stage tessellation-evaluation-stage))
     (assert (typep primitive 'patches))
     primitive)
 
   (:method (primitive
-            (stage tesselation-control-stage)
-            (next-stage tesselation-evaluation-stage))
+            (stage tessellation-control-stage)
+            (next-stage tessellation-evaluation-stage))
     (declare (ignore stage next-stage))
     primitive)
 
   (:method (primitive
-            (stage tesselation-evaluation-stage)
+            (stage tessellation-evaluation-stage)
             (next-stage geometry-stage))
     (declare (ignore next-stage))
     (primitive-name-to-instance
@@ -250,7 +250,7 @@
      (rest (output-variables stage))))
 
   (:method ((last vertex-stage)
-            (next tesselation-control-stage)
+            (next tessellation-control-stage)
             (stage stage)
             primitive)
     (declare (ignore last next))
@@ -259,7 +259,7 @@
      (rest (output-variables stage))))
 
   (:method ((last vertex-stage)
-            (next tesselation-evaluation-stage)
+            (next tessellation-evaluation-stage)
             (stage stage)
             primitive)
     (declare (ignore last next))
@@ -267,7 +267,7 @@
      primitive
      (rest (output-variables stage))))
 
-  (:method ((last tesselation-evaluation-stage)
+  (:method ((last tessellation-evaluation-stage)
             (next geometry-stage)
             (stage stage)
             primitive)

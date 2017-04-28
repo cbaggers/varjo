@@ -73,7 +73,7 @@ block, block member, or variable declaration.
 
 ||#
 
-#|| Tesselation Control.
+#|| Tessellation Control.
 
 Unlike Geometry Shaders, where each invocation can output multiple
 primitives, each TCS invocation is only responsible for producing a

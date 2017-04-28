@@ -428,8 +428,8 @@
 
            :stage
            :vertex-stage
-           :tesselation-control-stage
-           :tesselation-evaluation-stage
+           :tessellation-control-stage
+           :tessellation-evaluation-stage
            :geometry-stage
            :fragment-stage
            :compiled-stage

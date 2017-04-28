@@ -19,8 +19,8 @@ The `v-compile` function takes the following arguments:
 - the GLSL version to compile this code for, specified as a keyword;
 - one or more of the following key arguments for each desired stage.  Each corresponding value must be a list, where the first element is the list of `in` arguments for that stage, and the rest of the list is the code for that stage.
  - `:vertex`
- - `:tesselation-control`
- - `:tesselation-evaluation`
+ - `:tessellation-control`
+ - `:tessellation-evaluation`
  - `:geometry`
  - `:fragment`
 
@@ -28,7 +28,7 @@ The elements of the `uniforms` & `in` arguments lists must be follow the `stage 
 
 The code to be compiled must follow the format detailed in the `Varjo CL Subset` section below.
 
-`tesselation-evaluation` argument must be used with a `tesselation-control` argument.
+`tessellation-evaluation` argument must be used with a `tessellation-control` argument.
 
 Here is an example of a call to `#'v-compile`:
 

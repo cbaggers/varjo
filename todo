@@ -1,6 +1,3 @@
-* rename tesselation to tessellation
-* rename primtive to primitive
-
 * in make-user-function-obj & make-function-obj assert that types are objects
   dont allow type-specs
 
@@ -9,8 +6,6 @@
   I think this is where the return-sets of void are coming from
 
 * make context restriction work with special functions
-
-* Fail if we find a tesselation stage when the version is below 4
 
 ------------------------------------------------------------
 

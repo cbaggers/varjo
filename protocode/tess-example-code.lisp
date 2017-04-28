@@ -131,7 +131,7 @@
     (values position
      (s~ position :xyz)))
 
-  :tesselation-control
+  :tessellation-control
   '(((position (:vec3 3)))
     (declare (output-patch :vertices 3))
     (emit-data (values (aref position gl-invocation-id)))
@@ -142,7 +142,7 @@
             (aref gl-tess-level-outer 2) tess-level-outer))
     (values))
 
-  :tesselation-evaluation
+  :tessellation-evaluation
   '(((position (:vec3 *)))
     (declare (tessellate-to
               :primitive :triangles
