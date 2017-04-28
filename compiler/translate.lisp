@@ -51,13 +51,20 @@
   (error "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
          (name input-variable) var-type))
 
+(defun should-make-an-ephermal-block-p (stage)
+  (with-slots (previous-stage) stage
+    (and (typep previous-stage 'vertex-stage)
+         (or (typep stage 'geometry-stage)
+             (typep stage 'tessellation-control-stage)
+             (typep stage 'tessellation-evaluation-stage)))))
+
 (defmethod expand-input-variable ((stage stage)
                                   (var-type v-type)
                                   (input-variable input-variable)
                                   (env environment))
   (let* ((type (set-flow-id var-type (flow-id!)))
-         (type (if (and (typep stage 'geometry-stage) (typep type 'v-array))
-                   (make-into-block-array type *in-block-instance-name*)
+         (type (if (should-make-an-ephermal-block-p stage)
+                   (make-into-block-array stage type *in-block-instance-name*)
                    type)))
     (values (v-make-value type env :glsl-name (glsl-name input-variable))
             (list (make-instance 'input-variable
@@ -362,9 +369,9 @@
 (defun gen-in-arg-strings (post-proc-obj)
   (with-slots (env stage) post-proc-obj
     (let* ((expanded-vars (expanded-input-variables env))
-           (is-geom (typep (stage post-proc-obj) 'geometry-stage))
-           (instance-name (when is-geom *in-block-instance-name*))
-           (block-arr-length (when is-geom
+           (emphem-block-p (should-make-an-ephermal-block-p stage))
+           (instance-name (when emphem-block-p *in-block-instance-name*))
+           (block-arr-length (when emphem-block-p
                                (first
                                 (v-dimensions
                                  (v-type-of
@@ -442,7 +449,8 @@
                            (out-block-name-for stage)
                            (if (typep stage 'vertex-stage)
                                (rest glsl-decls)
-                               glsl-decls))))
+                               glsl-decls)
+                           :instance-name *out-block-name*)))
                   glsl-decls))
 
         (setf (output-variables post-proc-obj) output-variables))
