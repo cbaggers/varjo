@@ -389,6 +389,14 @@
   ((lisp-name :initform :patches :reader lisp-name)
    (vertex-count :initarg :vertex-count :reader vertex-count)))
 
+(defmethod make-load-form ((prim primitive) &optional environment)
+  (declare (ignore environment))
+  `(make-instance ',(type-of prim)))
+
+(defmethod make-load-form ((prim patches) &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'patches :vertex-count ,(vertex-count prim)))
+
 (defun primitive-name-to-instance (name)
   (if (listp name)
 	  (dbind (name . length) name
