@@ -346,14 +346,18 @@ doesnt"))
                  :dimensions (v-dimensions type)
                  :element-type (v-element-type type)))
 
-(defun make-into-block-array (array-type block-name)
+(defun make-into-block-array (stage array-type block-name)
   (assert (v-typep array-type 'v-array))
-  (let ((r (make-instance 'v-block-array
-                          :block-name block-name
-                          :dimensions (v-dimensions array-type)
-                          :element-type (v-element-type array-type)
-                          :ctv (ctv array-type)
-                          :flow-ids (flow-ids array-type))))
+  (let* ((dim (if (typep stage 'tessellation-control-stage)
+                  '* ;; OpenGL/ES does not allow input array declarations with
+                  ;;↑___size not equal to gl_MaxPatchVertices
+                  (v-dimensions array-type)))
+         (r (make-instance 'v-block-array
+                           :block-name block-name
+                           :dimensions dim
+                           :element-type (v-element-type array-type)
+                           :ctv (ctv array-type)
+                           :flow-ids (flow-ids array-type))))
     (when (slot-boundp array-type 'default-value)
       (setf (slot-value r 'default-value)
             (slot-value array-type 'default-value)))

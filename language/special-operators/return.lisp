@@ -144,9 +144,9 @@
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch
                    :prim-type (v-type-of code-obj)))
-		(if (typep (stage env) 'tessellation-control-stage)
-			`(glsl-expr ,(format nil "~a[gl_InvocationID] = ~~a"
-								 (nth-return-name 0 stage))
-						:void ,code-obj)
-			`(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage))
-						:void ,code-obj)))))
+        (if (typep (stage env) 'tessellation-control-stage)
+            `(glsl-expr ,(format nil "~a[gl_InvocationID] = ~~a"
+                                 (nth-return-name 0 stage t))
+                        :void ,code-obj)
+            `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
+                        :void ,code-obj)))))

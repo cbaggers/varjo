@@ -58,8 +58,14 @@
 
 ;;------------------------------------------------------------
 
-(defgeneric nth-return-name (n stage)
-  (:method (n (stage stage))
+(defgeneric nth-return-name (n stage &optional include-instance-name)
+  (:method (n (stage stage) &optional include-instance-name)
+    (format nil "~@[~a.~]_~a_OUT_~a"
+            (when include-instance-name *out-block-name*)
+            (substitute #\_ #\- (symbol-name (type-of stage)))
+            n))
+  (:method (n (stage fragment-stage) &optional include-instance-name)
+    (declare (ignore include-instance-name))
     (format nil "_~a_OUT_~a"
             (substitute #\_ #\- (symbol-name (type-of stage)))
             n)))
@@ -67,16 +73,17 @@
 (defun mvals->out-form (code-object env)
   (let ((mvals (multi-vals code-object))
         (stage (stage env))
-		(tess-con-p (typep (stage env) 'tessellation-control-stage)))
+        (tess-con-p (typep (stage env) 'tessellation-control-stage)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect
             (with-slots (value qualifiers) mval
-			  (if tess-con-p
-				  `(glsl-expr ,(format nil "~a[gl_InvocationID] = ~~a"
-									   (nth-return-name i stage))
-							  :void ,value)
-				  `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name i stage))
-							  :void ,value)))))))
+              (if tess-con-p
+                  `(glsl-expr ,(format nil "~a[gl_InvocationID] = ~~a"
+                                       (nth-return-name i stage t))
+                              :void ,value)
+                  `(glsl-expr ,(format nil "~a = ~~a"
+                                       (nth-return-name i stage t))
+                              :void ,value)))))))
 
 
 ;; (defun out-qualifier-p (x env)
