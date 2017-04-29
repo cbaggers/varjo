@@ -246,7 +246,7 @@
             (stage stage)
             primitive)
     (declare (ignore last next))
-	(%array-the-output-variables-for-primitive
+    (%array-the-output-variables-for-primitive
      primitive
      (rest (output-variables stage))))
 

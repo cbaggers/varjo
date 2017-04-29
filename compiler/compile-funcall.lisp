@@ -280,7 +280,7 @@
            (start-index 1)
            (m-r-names (loop :for i :from start-index
                          :below (+ start-index (length mvals)) :collect
-                         (fmt "~a~a" m-r-base i))))
+                         (postfix-glsl-index m-r-base i))))
       (let* ((bindings (loop :for mval :in mvals :collect
                           `((,(gensym "NC")
                               ,(type->type-spec (v-type-of mval))))))

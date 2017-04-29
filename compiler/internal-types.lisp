@@ -45,6 +45,7 @@
    (output-variable-glsl :initarg :output-variable-glsl
                         :accessor output-variable-glsl)
    (out-set :initarg :out-set :accessor out-set)
+   (raw-out-set :initarg :raw-out-set :accessor raw-out-set)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
    (output-variables :initarg :output-variables :accessor output-variables)
    (uniforms :initarg :uniforms :accessor uniforms)
@@ -86,9 +87,11 @@
                    :initform nil)
    (primitive-in :initarg :primitive-in :accessor primitive-in)))
 
+(defclass tessellation-stage () ())
+
 (defclass vertex-stage (stage) ())
-(defclass tessellation-control-stage (stage) ())
-(defclass tessellation-evaluation-stage (stage) ())
+(defclass tessellation-control-stage (stage tessellation-stage) ())
+(defclass tessellation-evaluation-stage (stage tessellation-stage) ())
 (defclass geometry-stage (stage) ())
 (defclass fragment-stage (stage) ())
 

@@ -50,6 +50,10 @@
 (defmethod v-type-of ((mval mval))
   (v-type-of (multi-val-value mval)))
 
+(defun postfix-glsl-index (base index)
+  (assert (and (stringp base) (integerp index)))
+  (format nil "~a_~a" base index))
+
 ;;--------------------------------------------------
 
 (defgeneric prefix-in-block-to-glsl-name (var)

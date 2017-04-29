@@ -171,6 +171,7 @@
            :primitives-dont-match
            :tessellation-control-expects-patches
            :tessellation-evaluation-invalid-primitive
+           :emit-not-in-geometry-stage
 
            ;; restarts
            :setq-supply-alternate-type

@@ -25,7 +25,7 @@
          (objs (mapcar λ(compile-form _ new-env) forms))
          (base (v-multi-val-base env))
          (glsl-names (loop :for i :below (length forms) :collect
-                        (format nil "~a~a" base i)))
+                        (postfix-glsl-index base i)))
          (vals (loop :for o :in objs :for n :in glsl-names :collect
                   (v-make-value (code-type o) env :glsl-name n)))
          (first-name (gensym))

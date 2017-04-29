@@ -21,7 +21,7 @@
                 (%mapcar-multi-env-progn
                  (lambda (env type name i)
                    (compile-let name (type->type-spec type) nil env
-                                (format nil "~a~a" base i)))
+                                (postfix-glsl-index base i)))
                  p-env types vars (iota (length types)))
                 (compile-form `(setq ,(first vars) ,value-obj) p-env)
                 (compile-progn body p-env)))

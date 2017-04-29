@@ -29,12 +29,14 @@
 ;;------------------------------------------------------------
 ;; emit
 
+(defvar *emit-base-name* 'emit)
 
 (v-defspecial emit-data (&optional (form '(values)))
   :args-valid t
   :context :geometry
   :return
-  (let* ((new-env (fresh-environment env :multi-val-base "return"))
+  (let* ((emit-base-glsl (lisp-name->glsl-name *emit-base-name* env))
+         (new-env (fresh-environment env :multi-val-base emit-base-glsl))
          ;; we create an environment with the signal to let any 'values' forms
          ;; down the tree know they will be caught and what their name prefix
          ;; should be.

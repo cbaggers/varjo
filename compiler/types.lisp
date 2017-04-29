@@ -346,12 +346,9 @@ doesnt"))
                  :dimensions (v-dimensions type)
                  :element-type (v-element-type type)))
 
-(defun make-into-block-array (stage array-type block-name)
+(defun make-into-block-array (array-type block-name)
   (assert (v-typep array-type 'v-array))
-  (let* ((dim (if (typep stage 'tessellation-control-stage)
-                  '* ;; OpenGL/ES does not allow input array declarations with
-                  ;;↑___size not equal to gl_MaxPatchVertices
-                  (v-dimensions array-type)))
+  (let* ((dim (v-dimensions array-type))
          (r (make-instance 'v-block-array
                            :block-name block-name
                            :dimensions dim

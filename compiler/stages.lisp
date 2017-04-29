@@ -142,3 +142,8 @@
           () "In args to vertex shaders can not have qualifiers"))
 
 ;;------------------------------------------------------------
+
+(defgeneric stage-where-first-return-is-position-p (stage)
+  (:method ((stage stage))
+    (or (typep stage 'vertex-stage)
+        (typep stage 'tessellation-evaluation-stage))))

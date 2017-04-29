@@ -122,9 +122,10 @@
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
           :return-set (make-return-set-from-code-obj code-obj))))
-      (t (let ((ret-set (if (typep (stage env) 'vertex-stage)
-                            (make-return-set)
-                            (make-return-set (make-return-val type)))))
+      (t (let ((ret-set
+                (if (stage-where-first-return-is-position-p (stage env))
+                    (make-return-set)
+                    (make-return-set (make-return-val type)))))
            (copy-code
             (with-fresh-env-scope (fresh-env env)
               (compile-form `(progn
@@ -139,14 +140,10 @@
 ;; when context includes all stages, in which case any type is allowed
 (defun %default-out-for-stage (code-obj env)
   (let ((stage (stage env)))
-    (if (typep (stage env) 'vertex-stage)
+    (if (stage-where-first-return-is-position-p (stage env))
         (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch
                    :prim-type (v-type-of code-obj)))
-        (if (typep (stage env) 'tessellation-control-stage)
-            `(glsl-expr ,(format nil "~a[gl_InvocationID] = ~~a"
-                                 (nth-return-name 0 stage t))
-                        :void ,code-obj)
-            `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
-                        :void ,code-obj)))))
+        `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
+                    :void ,code-obj))))

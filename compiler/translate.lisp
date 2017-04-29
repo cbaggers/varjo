@@ -17,13 +17,14 @@
             #'process-uniforms
             #'compile-pass
             #'make-post-process-obj
+            #'process-output-primitive
+            #'make-out-set
             #'check-stemcells
             #'post-process-ast
             #'filter-used-items
             #'gen-in-arg-strings
             #'gen-in-decl-strings
             #'gen-out-var-strings
-            #'process-output-primitive
             #'final-uniform-strings
             #'dedup-used-types
             #'final-string-compose
@@ -53,7 +54,9 @@
 
 (defun should-make-an-ephermal-block-p (stage)
   (with-slots (previous-stage) stage
-    (and (typep previous-stage 'vertex-stage)
+    (and (or (typep previous-stage 'vertex-stage)
+             (typep previous-stage 'tessellation-control-stage)
+             (typep previous-stage 'tessellation-evaluation-stage))
          (or (typep stage 'geometry-stage)
              (typep stage 'tessellation-control-stage)
              (typep stage 'tessellation-evaluation-stage)))))
@@ -65,7 +68,7 @@
   (let* ((ephem-p (should-make-an-ephermal-block-p stage))
          (type (set-flow-id var-type (flow-id!)))
          (type (if ephem-p
-                   (make-into-block-array stage type *in-block-name*)
+                   (make-into-block-array type *in-block-name*)
                    type))
          (glsl-name (glsl-name input-variable))
          (glsl-name (if ephem-p
@@ -151,10 +154,10 @@
   (:method ((stage tessellation-control-stage)
             primitive env)
     (declare (ignore stage env))
-	(assert (typep primitive 'patches) ()
+    (assert (typep primitive 'patches) ()
             'invalid-primitive-for-tessellation-stage
             :prim (type-of primitive))
-	primitive)
+    primitive)
 
   (:method ((stage tessellation-evaluation-stage)
             primitive env)
@@ -162,7 +165,7 @@
     (assert (typep primitive 'patches) ()
             'invalid-primitive-for-tessellation-stage
             :prim (type-of primitive))
-	primitive)
+    primitive)
 
   (:method ((stage geometry-stage) primitive env)
     (declare (ignore env))
@@ -200,27 +203,94 @@
             'returns-in-geometry-stage :return-set (return-set main-func))
     (when (slot-boundp main-func 'emit-set)
       (or (slot-value main-func 'emit-set) #())))
-  ;;
-  (:method ((stage tessellation-control-stage) main-func)
-    (assert (emptyp (return-set main-func)) ()
-            'returns-in-geometry-stage :return-set (return-set main-func))
-    (when (slot-boundp main-func 'emit-set)
-      (or (%array-the-emit-vals-for-size '* (slot-value main-func 'emit-set))
-          #())))
 
   (:method (stage main-func)
-    (declare (ignore stage))
+    (assert (emptyp (emit-set main-func)) ()
+            'emit-not-in-geometry-stage
+            :stage stage
+            :emit-set (emit-set main-func))
     (return-set main-func)))
 
 (defun make-post-process-obj (main-func stage env)
+  ()
   (make-instance
    'post-compile-process
    :stage stage
    :env env
    :used-external-functions (remove-duplicates (used-external-functions env))
    :all-functions (cons main-func (all-cached-compiled-functions env))
-   :out-set (establish-out-set-for-stage stage main-func)
+   :raw-out-set (establish-out-set-for-stage stage main-func)
    :main-metadata (top-level-scoped-metadata main-func)))
+
+;;----------------------------------------------------------------------
+
+(defun process-output-primitive (post-proc-obj)
+  (with-slots (main-metadata stage) post-proc-obj
+    (typecase stage
+
+      (geometry-stage
+       (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
+         ;; {TODO} proper error
+         (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
+         (setf (out-declarations post-proc-obj)
+               (list (gen-geom-output-primitive-string tl)))
+         (setf (primitive-out post-proc-obj)
+               (primitive-name-to-instance (slot-value tl 'kind)))))
+
+      (tessellation-control-stage
+       (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
+         ;; {TODO} proper error
+         (assert tl () "Varjo: The function used as a tessellation control stage must have a top level output-primitive declaration")
+         (setf (out-declarations post-proc-obj)
+               (list (gen-tess-con-output-primitive-string tl)))
+         (setf (primitive-out post-proc-obj)
+               (primitive-name-to-instance
+                (list :patch (slot-value tl 'vertices))))))
+
+      (tessellation-evaluation-stage
+       ;; need to generate something that the geom shader could accept
+       ;; (frag shader doesnt care so no need to think about it)
+       (let* ((tl (find 'tessellate-to main-metadata :key #'type-of)))
+         (if tl
+             (with-slots (primitive) tl
+               (let ((primitive (primitive-name-to-instance
+                                 (or primitive :triangles))))
+                 (setf (out-declarations post-proc-obj)
+                       (list (gen-tess-eval-output-primitive-string tl)))
+                 (setf (primitive-out post-proc-obj) primitive)))
+             (setf (primitive-out post-proc-obj)
+                   (primitive-name-to-instance :triangles)))
+         (assert (typep (primitive-out post-proc-obj)
+                        'tessellation-out-primitive)
+                 () 'tessellation-evaluation-invalid-primitive
+                 :primitive (primitive-out post-proc-obj))))
+
+      (t (setf (primitive-out post-proc-obj)
+               (primitive-in (stage post-proc-obj))))))
+
+  post-proc-obj)
+
+;;----------------------------------------------------------------------
+
+(defgeneric transform-out-set-for-stage (stage raw-out-set primitive-out)
+  ;;
+  (:method ((stage tessellation-control-stage) raw-out-set primitive-out)
+    (when raw-out-set
+      raw-out-set
+      (%array-the-emit-vals-for-size
+       (vertex-count primitive-out)
+       raw-out-set)))
+
+  (:method (stage raw-out-set primitive-out)
+    (declare (ignore stage))
+    raw-out-set))
+
+(defun make-out-set (post-proc-obj)
+  (setf (out-set post-proc-obj)
+        (transform-out-set-for-stage (stage post-proc-obj)
+                                     (raw-out-set post-proc-obj)
+                                     (primitive-out post-proc-obj)))
+  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 
@@ -376,11 +446,13 @@
     (let* ((expanded-vars (expanded-input-variables env))
            (emphem-block-p (should-make-an-ephermal-block-p stage))
            (instance-name *in-block-name*)
-           (block-arr-length (when emphem-block-p
-                               (first
-                                (v-dimensions
-                                 (v-type-of
-                                  (first expanded-vars))))))
+           (block-arr-length (if (typep stage 'tessellation-stage)
+                                 "gl_MaxPatchVertices"
+                                 (when emphem-block-p
+                                   (first
+                                    (v-dimensions
+                                     (v-type-of
+                                      (first expanded-vars)))))))
            (locations (if (typep (stage post-proc-obj) 'vertex-stage)
                           (calc-locations (mapcar #'v-type-of expanded-vars))
                           (n-of nil (length expanded-vars))))
@@ -415,100 +487,86 @@
 
 ;;----------------------------------------------------------------------
 
+(defgeneric gen-stage-locations (stage out-set)
+  (:method ((stage fragment-stage) out-set)
+    (let ((out-types (map 'list #'v-type-of out-set)))
+      (calc-locations out-types)))
+  (:method (stage out-set)
+    (n-of nil (length out-set))))
+
+(defun gen-out-glsl-decls (stage out-set locations)
+  (loop :for out-val :across out-set
+     :for location :in locations
+     :for i :from 0
+     :for glsl-name := (if (typep out-val 'external-return-val)
+                           (out-name out-val)
+                           (nth-return-name i stage))
+
+     :collect (gen-out-var-string glsl-name
+                                  (v-type-of out-val)
+                                  (qualifiers out-val)
+                                  location)))
+
+(defun gen-out-vars (stage out-set locations)
+  (loop :for out-val :across out-set
+     :for location :in locations
+     :for i :from 0
+     :for glsl-name := (if (typep out-val 'external-return-val)
+                           (out-name out-val)
+                           (nth-return-name i stage))
+
+     :collect (make-instance
+               'output-variable
+               :name (make-symbol glsl-name)
+               :glsl-name glsl-name
+               :type (v-type-of out-val)
+               :qualifiers (qualifiers out-val)
+               :location location)))
+
+(defgeneric gen-stage-out-interface-block (stage post-proc-obj locations)
+
+  (:method (stage post-proc-obj locations)
+    (with-slots (out-set) post-proc-obj
+      (let ((glsl-decls (gen-out-glsl-decls stage out-set locations)))
+        (when glsl-decls
+          (list
+           (write-interface-block
+            :out
+            (out-block-name-for stage)
+            (if (stage-where-first-return-is-position-p stage)
+                (rest glsl-decls)
+                glsl-decls)
+            :instance-name *out-block-name*))))))
+
+  (:method ((stage tessellation-control-stage) post-proc-obj locations)
+    (with-slots (out-set raw-out-set) post-proc-obj
+      (let ((glsl-decls (gen-out-glsl-decls stage raw-out-set locations)))
+        (when glsl-decls
+          (list
+           (write-interface-block
+            :out
+            (out-block-name-for stage)
+            (if (typep stage 'vertex-stage)
+                (rest glsl-decls)
+                glsl-decls)
+            :instance-name *out-block-name*
+            :length (first (v-dimensions (v-type-of (elt out-set 0))))))))))
+
+  (:method ((stage fragment-stage) post-proc-obj locations)
+    (with-slots (out-set) post-proc-obj
+      (gen-out-glsl-decls stage out-set locations))))
+
 (defun gen-out-var-strings (post-proc-obj)
-  (with-slots (stage out-set env) post-proc-obj
-    (let* ((out-types (map 'list #'v-type-of out-set))
-           (locations (if (typep stage 'fragment-stage)
-                          (calc-locations out-types)
-                          (loop for i below (length out-types) collect nil))))
-      (dbind (glsl-decls output-variables)
-          (loop :for out-val :across out-set
-             :for location :in locations
-             :for i :from 0
-             :for glsl-name := (if (typep out-val 'external-return-val)
-                                   (out-name out-val)
-                                   (nth-return-name i stage))
+  (with-slots (stage out-set) post-proc-obj
+    (let* ((locations (gen-stage-locations stage out-set)))
 
-             :collect (gen-out-var-string glsl-name
-                                          (v-type-of out-val)
-                                          (qualifiers out-val)
-                                          location)
-             :into glsl
+      (setf (output-variable-glsl post-proc-obj)
+            (gen-stage-out-interface-block stage post-proc-obj locations))
 
-             :collect (make-instance
-                       'output-variable
-                       :name (make-symbol glsl-name)
-                       :glsl-name glsl-name
-                       :type (v-type-of out-val)
-                       :qualifiers (qualifiers out-val)
-                       :location location)
-             :into output-variables
-
-             :finally (return (list glsl output-variables)))
-
-        (setf (output-variable-glsl post-proc-obj)
-              (if (requires-out-interface-block stage)
-                  (when glsl-decls
-                    (list (write-interface-block
-                           :out
-                           (out-block-name-for stage)
-                           (if (typep stage 'vertex-stage)
-                               (rest glsl-decls)
-                               glsl-decls)
-                           :instance-name *out-block-name*)))
-                  glsl-decls))
-
-        (setf (output-variables post-proc-obj) output-variables))
+      (setf (output-variables post-proc-obj)
+            (gen-out-vars stage out-set locations))
 
       post-proc-obj)))
-
-;;----------------------------------------------------------------------
-
-(defun process-output-primitive (post-proc-obj)
-  (with-slots (main-metadata stage) post-proc-obj
-    (typecase stage
-
-      (geometry-stage
-       (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
-         ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
-         (setf (out-declarations post-proc-obj)
-               (list (gen-geom-output-primitive-string tl)))
-         (setf (primitive-out post-proc-obj)
-               (primitive-name-to-instance (slot-value tl 'kind)))))
-
-      (tessellation-control-stage
-       (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
-         ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a tessellation control stage must have a top level output-primitive declaration")
-         (setf (out-declarations post-proc-obj)
-               (list (gen-tess-con-output-primitive-string tl)))
-         (setf (primitive-out post-proc-obj)
-               (primitive-name-to-instance
-                (list :patch (slot-value tl 'vertices))))))
-
-      (tessellation-evaluation-stage
-       ;; need to generate something that the geom shader could accept
-       ;; (frag shader doesnt care so no need to think about it)
-       (let* ((tl (find 'tessellate-to main-metadata :key #'type-of)))
-         (if tl
-             (with-slots (primitive) tl
-               (let ((primitive (primitive-name-to-instance
-                                 (or primitive :triangles))))
-                 (setf (out-declarations post-proc-obj)
-                       (list (gen-tess-eval-output-primitive-string tl)))
-                 (setf (primitive-out post-proc-obj) primitive)))
-             (setf (primitive-out post-proc-obj)
-                   (primitive-name-to-instance :triangles)))
-         (assert (typep (primitive-out post-proc-obj)
-                        'tessellation-out-primitive)
-                 () 'tessellation-evaluation-invalid-primitive
-                 :primitive (primitive-out post-proc-obj))))
-
-      (t (setf (primitive-out post-proc-obj)
-               (primitive-in (stage post-proc-obj))))))
-
-  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 
