@@ -171,8 +171,8 @@
 (defun compute-next-primitive (compiled-stage next-stage)
   (let ((primitive (primitive-out compiled-stage))
         (stage (starting-stage compiled-stage)))
-	(unless (typep next-stage 'fragment-stage)
-	  (%compute-next-primitive primitive stage next-stage))))
+    (unless (typep next-stage 'fragment-stage)
+      (%compute-next-primitive primitive stage next-stage))))
 
 (defgeneric %compute-next-primitive (primitive stage next-stage)
   (:method (primitive
@@ -306,7 +306,7 @@
 
 (defmethod to-arg-form ((in-var input-variable))
   `(,(name in-var)
-    ,(type->type-spec (v-type-of in-var))
+     ,(type->type-spec (v-type-of in-var))
      ,@(qualifiers in-var)
      ,@(when (glsl-name in-var) (list (glsl-name in-var)))))
 

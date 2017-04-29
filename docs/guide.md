@@ -81,11 +81,11 @@ Please see [./built-in-types.md](./built-in-types.md) for a full list of the bui
 
 Users can define new types by using the `v-defstruct` macro:
 
-	;;              [0]↓
-	(v-defstruct some-struct () ; ←[1]
-	  (near :float :accessor near) ; ←[2]
-	  (far :float :accessor far)
-	  (diff :float :accessor diff))
+    ;;              [0]↓
+    (v-defstruct some-struct () ; ←[1]
+      (near :float :accessor near) ; ←[2]
+      (far :float :accessor far)
+      (diff :float :accessor diff))
 
 `[0]` - The name of struct: The name can be any non-keyword symbol;
 

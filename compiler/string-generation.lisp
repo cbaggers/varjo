@@ -164,7 +164,7 @@
 
   (format nil "~@[layout(location = ~a) ~] ~a;" layout
           (prefix-type-to-string type glsl-name
-								 (append qualifiers '("out")))))
+                                 (append qualifiers '("out")))))
 
 (defun gen-in-var-string (glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~] ~a;" layout
