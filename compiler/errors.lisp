@@ -174,7 +174,9 @@ type-of new-value: ~a"
     "Names of variables and functions must start with an alpha char.~%They also may not start with 'gl-' 'fk-' or 'sym-' ~%Supplied Name: ~a~%" name)
 
 (deferror unable-to-resolve-func-type () (func-name args)
-    "Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%" func-name (mapcar #'code-type args))
+    "Unable to resolve the result type of function '~a' when called~%with the argument types:~%~a~%"
+  func-name
+  (mapcar #'type->type-spec (mapcar #'code-type args)))
 
 (deferror out-var-type-mismatch () (var-name var-types)
     "The out variable ~a is has been set with different types.~%Types used: ~a" var-name var-types)

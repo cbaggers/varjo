@@ -714,7 +714,7 @@ doesnt"))
                                (type->type-spec type)
                                type))))
     (if (loop :for name :in names :always (equal name (first names)))
-        (type-spec->type (first names))
+        (when (first names) (type-spec->type (first names)))
         (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
                                    (cons name
                                          (if (symbolp type)
@@ -723,12 +723,12 @@ doesnt"))
                                              (slot-value type 'casts-to))))
                                 #'> :key #'length))
                (master (first all-casts))
-               (rest-casts (rest all-casts)))
-          (type-spec->type
-           (first (sort (loop :for type :in master
-                           :if (loop :for casts :in rest-casts
-                                  :always (find type casts))
-                           :collect type) #'> :key #'v-superior-score)))))))
+               (rest-casts (rest all-casts))
+               (result (first (sort (loop :for type :in master
+                                       :if (loop :for casts :in rest-casts
+                                              :always (find type casts))
+                                       :collect type) #'> :key #'v-superior-score))))
+          (when result (type-spec->type result))))))
 
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4

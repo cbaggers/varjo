@@ -286,7 +286,10 @@ however failed to do so when asked."
   (let* ((spec (first (v-return-spec func)))
          (arg-types (mapcar #'code-type args))
          (result
-          (cond ((null spec) (apply #'find-mutual-cast-type arg-types))
+          (cond ((null spec)
+                 (or (apply #'find-mutual-cast-type arg-types)
+                     (error 'unable-to-resolve-func-type
+                            :func-name (name func) :args args)))
                 ((typep spec 'v-type) spec)
                 ((numberp spec) (nth spec arg-types))
                 ((functionp spec) (apply spec args))
