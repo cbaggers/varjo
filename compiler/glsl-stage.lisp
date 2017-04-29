@@ -1,10 +1,28 @@
 (in-package :varjo)
 
+(defun check-for-input-output-name-clashes (stage-kind in-args outputs)
+  (let* ((in-args (remove-if-not #'listp in-args))
+         (in-args (mapcar (lambda (in-arg)
+                            (dbind (nil type name) in-arg
+                              (list name type)))
+                          in-args))
+         (outputs (remove-if-not #'listp outputs))
+         (clashes (intersection in-args outputs :key #'first :test #'string=)))
+    (when clashes
+      (error 'clashes-found-between-input-and-output-names
+             :stage-kind stage-kind
+             :inputs in-args
+             :outputs outputs
+             :clashes clashes))))
+
 (defun glsl-to-compile-result
     (stage-kind in-args uniforms outputs context body-string)
   "Here our goal is to simple reuse as much from varjo as possible.
    This will mean we have less duplication, even if things seem a little
    ugly here"
+  (assert (not (eq stage-kind :vertex)) ()
+          'inline-glsl-vertex-stage-not-supported)
+  (check-for-input-output-name-clashes stage-kind in-args outputs)
   (let* ((none-type (type-spec->type :none))
          (arg-types (mapcar #'type-spec->type
                             (append (mapcar #'second in-args)
