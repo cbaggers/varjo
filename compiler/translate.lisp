@@ -71,7 +71,7 @@
                    (make-into-block-array type *in-block-name*)
                    type))
          (glsl-name (glsl-name input-variable))
-         (glsl-name (if ephem-p
+         (glsl-name (if (or ephem-p (typep stage 'vertex-stage))
                         glsl-name
                         (prefix-in-block-to-glsl-name glsl-name))))
     (values (v-make-value type env :glsl-name glsl-name)
