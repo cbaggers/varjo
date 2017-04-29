@@ -13,7 +13,7 @@
          (primitive (when primitive-kind
                       (primitive-name-to-instance primitive-kind)))
          (context (when primitive-kind
-                    (remove primitive-kind context)))
+                    (remove primitive-kind context :test #'equal)))
          (stage (make-stage stage-kind in-args uniforms context
                             nil nil primitive)))
     (first
@@ -37,9 +37,9 @@
                          :stemcells nil
                          :used-types arg-types
                          :return-set (unless (eq stage-kind :geometry)
-                                       (make-glsl-ret-set outputs))
+                                       (make-glsl-ret-set stage outputs))
                          :emit-set (when (eq stage-kind :geometry)
-                                     (make-glsl-ret-set outputs)))
+                                     (make-glsl-ret-set stage outputs)))
                         stage
                         env))
             #'make-post-process-obj
@@ -56,32 +56,56 @@
             #'package-as-final-result-object)))))))
 
 (defun process-glsl-output-primitive (stage-kind body-string post-proc-obj)
-  (if (eq stage-kind :geometry)
-      (let* ((map '(("points" . :points)
-                    ("line_strip" . :line-strip)
-                    ("triangle_strip" . :triangle-strip)))
-             (layout-string
-              (first
-               (cl-ppcre:all-matches-as-strings
-                "layout.*\\(.*(points|line_strip|triangle_strip).*\\).*out.*;"
-                body-string)))
-             (primitive-str
-              (when layout-string
-                (first
-                 (cl-ppcre:all-matches-as-strings
-                  "(points|line_strip|triangle_strip)" layout-string))))
-             (primitive-name (or (assocr primitive-str map :test #'equal)
-                                 (error 'glsl-geom-stage-no-out-layout
-                                        :glsl-body body-string)))
-             (primitive (primitive-name-to-instance primitive-name)))
-        (setf (primitive-out post-proc-obj) primitive))
-      (setf (primitive-out post-proc-obj)
-            (primitive-in (stage post-proc-obj))))
+  (case stage-kind
+    (:geometry
+     (let* ((map '(("points" . :points)
+                   ("line_strip" . :line-strip)
+                   ("triangle_strip" . :triangle-strip)))
+            (layout-string
+             (first
+              (cl-ppcre:all-matches-as-strings
+               "layout.*\\(.*(points|line_strip|triangle_strip).*\\).*out.*;"
+               body-string)))
+            (primitive-str
+             (when layout-string
+               (first
+                (cl-ppcre:all-matches-as-strings
+                 "(points|line_strip|triangle_strip)" layout-string))))
+            (primitive-name (or (assocr primitive-str map :test #'equal)
+                                (error 'glsl-geom-stage-no-out-layout
+                                       :glsl-body body-string)))
+            (primitive (primitive-name-to-instance primitive-name)))
+       (setf (primitive-out post-proc-obj) primitive)))
+    (:tessellation-evaluation
+     (let* ((map '(("isolines" . :iso-lines)
+                   ("triangles" . :triangles)
+                   ("quads" . :quads)))
+            (layout-string
+             (first
+              (cl-ppcre:all-matches-as-strings
+               "layout.*\\(.*(isolines|triangles|quads).*\\).*in.*;"
+               body-string)))
+            (primitive-str
+             (when layout-string
+               (first
+                (cl-ppcre:all-matches-as-strings
+                 "(isolines|triangles|quads)" layout-string))))
+            (primitive-name (or (assocr primitive-str map :test #'equal)
+                                (error 'glsl-geom-stage-no-out-layout
+                                       :glsl-body body-string)))
+            (primitive (primitive-name-to-instance primitive-name)))
+       (setf (primitive-out post-proc-obj) primitive)))
+    (otherwise
+     (setf (primitive-out post-proc-obj)
+           (primitive-in (stage post-proc-obj)))))
   post-proc-obj)
 
-(defun make-glsl-ret-set (outputs)
-  (apply #'vector
-         (loop :for (glsl-name type . qualifiers) :in outputs :collect
-            (make-external-return-val
-             glsl-name (type-spec->type type (flow-id!))
-             (sort (copy-list qualifiers) #'<)))))
+(defun make-glsl-ret-set (stage outputs)
+  (let ((outputs (if (stage-where-first-return-is-position-p stage)
+                     (cons `("dummy" :vec4) outputs)
+                     outputs)))
+    (apply #'vector
+           (loop :for (glsl-name type . qualifiers) :in outputs :collect
+              (make-external-return-val
+               glsl-name (type-spec->type type (flow-id!))
+               (sort (copy-list qualifiers) #'<))))))

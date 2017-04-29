@@ -402,15 +402,15 @@
 
 (defun primitive-name-to-instance (name)
   (if (listp name)
-	  (dbind (name . length) name
-		(assert (= (length length) 1))
-		(let ((length (first length)))
-		  (assert (and (string= name "PATCH")
-					   (integerp length)
-					   (> length 1)))
-		  (make-instance 'patches :vertex-count length)))
-	  (let ((symb (intern (symbol-name name) :varjo)))
-		(assert (subtypep symb 'primitive))
-		(make-instance symb))))
+      (dbind (name . length) name
+        (assert (= (length length) 1))
+        (let ((length (first length)))
+          (assert (and (string= name "PATCH")
+                       (integerp length)
+                       (> length 1)))
+          (make-instance 'patches :vertex-count length)))
+      (let ((symb (intern (symbol-name name) :varjo)))
+        (assert (subtypep symb 'primitive))
+        (make-instance symb))))
 
 ;;-------------------------------------------------------------------------

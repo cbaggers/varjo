@@ -415,10 +415,10 @@ For example calling env-prune on this environment..
 
 (defun get-primitive-type-from-context (context)
   (or (find-if λ(or (member _ *supported-draw-modes*)
-					(and (listp _)
-						 (string= (first _) "PATCH")
-						 (integerp (second _))))
-			   context)
+                    (and (listp _)
+                         (string= (first _) "PATCH")
+                         (integerp (second _))))
+               context)
       :triangles))
 
 (defun get-stage-kind-from-context (context)
