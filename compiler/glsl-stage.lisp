@@ -22,6 +22,8 @@
         (let ((env (%make-base-environment stage)))
           (pipe-> (stage env)
             #'set-env-context
+            #'process-primitive-type
+            #'add-context-glsl-vars
             #'expand-input-variables
             #'process-uniforms
             #'(lambda (stage env)
