@@ -41,13 +41,14 @@
                         stage
                         env))
             #'make-post-process-obj
+            #'(lambda (pp)
+                (process-glsl-output-primitive stage-kind body-string pp))
+            #'make-out-set
             #'check-stemcells
             #'filter-used-items
             #'gen-in-arg-strings
             #'gen-in-decl-strings
             #'gen-out-var-strings
-            #'(lambda (pp)
-                (process-glsl-output-primitive stage-kind body-string pp))
             #'final-uniform-strings
             #'final-string-compose
             #'package-as-final-result-object)))))))
