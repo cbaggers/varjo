@@ -54,12 +54,9 @@
 
 (defun should-make-an-ephermal-block-p (stage)
   (with-slots (previous-stage) stage
-    (and (or (typep previous-stage 'vertex-stage)
-             (typep previous-stage 'tessellation-control-stage)
-             (typep previous-stage 'tessellation-evaluation-stage))
-         (or (typep stage 'geometry-stage)
-             (typep stage 'tessellation-control-stage)
-             (typep stage 'tessellation-evaluation-stage)))))
+    (or (typep stage 'geometry-stage)
+        (typep stage 'tessellation-control-stage)
+        (typep stage 'tessellation-evaluation-stage))))
 
 (defmethod expand-input-variable ((stage stage)
                                   (var-type v-type)
