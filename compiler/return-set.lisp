@@ -83,8 +83,23 @@
                                    (nth-return-name i stage t))
                           :void ,value))))))
 
-
 ;; (defun out-qualifier-p (x env)
 ;;   (declare (ignore env))
 ;;   ;; {TODO} make this work properly
 ;;   (find x '(:smooth :flat :noperspective)))
+
+;;------------------------------------------------------------
+
+(defun %array-the-return-vals-for-size (size emit-vals)
+  (map 'vector
+       λ(let ((type (v-type-of _)))
+          (if (typep _ 'external-return-val)
+              (make-external-return-val
+               (out-name _)
+               (v-array-type-of type size (flow-ids type))
+               (qualifiers _))
+              (make-emit-val (v-array-type-of type size (flow-ids type))
+                             (qualifiers _))))
+       emit-vals))
+
+;;------------------------------------------------------------

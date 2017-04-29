@@ -76,6 +76,19 @@
                                        :glsl-body body-string)))
             (primitive (primitive-name-to-instance primitive-name)))
        (setf (primitive-out post-proc-obj) primitive)))
+    (:tessellation-control
+     (let* ((layout-string
+             (first
+              (cl-ppcre:all-matches-as-strings "layout.*out.*;" body-string)))
+            (patch-size-str
+             (when layout-string
+               (first (cl-ppcre:all-matches-as-strings "[0-9]+" layout-string))))
+            (patch-size (if patch-size-str
+                            (parse-integer patch-size-str)
+                            3))
+            (primitive-name `(:patch ,patch-size))
+            (primitive (primitive-name-to-instance primitive-name)))
+       (setf (primitive-out post-proc-obj) primitive)))
     (:tessellation-evaluation
      (let* ((map '(("isolines" . :iso-lines)
                    ("triangles" . :triangles)

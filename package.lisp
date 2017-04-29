@@ -172,6 +172,8 @@
            :tessellation-control-expects-patches
            :tessellation-evaluation-invalid-primitive
            :emit-not-in-geometry-stage
+           :inline-glsl-vertex-stage-not-supported
+           :clashes-found-between-input-and-output-names
 
            ;; restarts
            :setq-supply-alternate-type

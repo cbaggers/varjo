@@ -51,12 +51,3 @@
     (apply #'make-emit-set (cons prim-emit mval-rets))))
 
 ;;------------------------------------------------------------
-
-(defun %array-the-emit-vals-for-size (size emit-vals)
-  (map 'vector
-       λ(let ((type (v-type-of _)))
-          (make-emit-val (v-array-type-of type size (flow-ids type))
-                         (qualifiers _)))
-       emit-vals))
-
-;;------------------------------------------------------------

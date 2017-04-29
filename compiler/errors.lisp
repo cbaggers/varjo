@@ -846,6 +846,20 @@ of type ~a rather than a patch."
 or iso-lines. Found ~a instead"
   (type-of primitive))
 
+(deferror inline-glsl-vertex-stage-not-supported () ()
+    "Inline glsl vertex stages are not yet supported.")
+
+(deferror clashes-found-between-input-and-output-names ()
+    (stage-kind inputs outputs clashes)
+    "When compiling a GLSL ~a stage duplicate names we found in the inputs and
+outputs. This is not allowed.
+
+In Arguments: ~s
+Out Values: ~s
+
+Clashes: ~s
+" stage-kind inputs outputs clashes)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

@@ -273,8 +273,7 @@
   ;;
   (:method ((stage tessellation-control-stage) raw-out-set primitive-out)
     (when raw-out-set
-      raw-out-set
-      (%array-the-emit-vals-for-size
+      (%array-the-return-vals-for-size
        (vertex-count primitive-out)
        raw-out-set)))
 
