@@ -331,6 +331,7 @@
            ;;definitions
            :v-defstruct
            :v-defun
+           :v-def-glsl-template-fun
            :v-defmacro
            :v-define-compiler-macro
            :def-metadata-infer

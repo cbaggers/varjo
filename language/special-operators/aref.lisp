@@ -1,8 +1,8 @@
 (in-package :varjo)
 (in-readtable :fn.reader)
 
-(v-defun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
-(v-defun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :v-place-index 0)
 
 (v-defspecial aref ((arr (v-block-array "n/a" t *)) (index v-int))
   :return

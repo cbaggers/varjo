@@ -211,7 +211,8 @@ type-of new-value: ~a"
   func-name)
 
 (deferror invalid-v-defun-template () (func-name template)
-    "Template passed to vdefun must be a format string : ~a~%~a~%"
+    "Template passed to v-def-glsl-template-fun must be a format string:
+~a~%~a~%"
   func-name template)
 
 (deferror keyword-in-function-position () (form)

@@ -10,31 +10,38 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defmacro v-defun (name args &body body)
+;; (defmacro v-defun (name args &body body)
+;;   (destructuring-bind (in-args uniforms context)
+;;       (split-arguments args '(&uniform &context))
+;;     (declare (ignore context))
+;;     `(progn
+;;        (varjo:add-external-function ',name ',in-args ',uniforms ',body)
+;;        ',name)))
+
+(defmacro v-def-glsl-template-fun (name args transform arg-types return-spec
+                                   &key v-place-index glsl-name)
   (destructuring-bind (in-args uniforms context)
       (split-arguments args '(&uniform &context))
     (declare (ignore in-args))
     (when uniforms (error 'uniform-in-sfunc :func-name name))
-    (let* ((template (first body)))
-      (unless (or (stringp template) (null template))
-        (error 'invalid-v-defun-template :func-name name :template template))
-      (destructuring-bind (transform arg-types return-spec
-                                     &key v-place-index glsl-name) body
-        (let ((arg-types (if (listp arg-types)
-                             (mapcar #'type-spec->type arg-types)
-                             arg-types))
-              (return-spec (if (type-specp return-spec)
-                               (type-spec->type return-spec)
-                               return-spec)))
-          `(progn (add-form-binding
-                   (make-function-obj
-                    ',name ,transform ',context ',arg-types '(,return-spec)
-                    :v-place-index ',v-place-index :glsl-name ',glsl-name
-                    :flow-ids (%gl-flow-id!)
-                    :in-arg-flow-ids
-                    ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
-                   *global-env*)
-                  ',name))))))
+    (unless (or (stringp transform) (null transform))
+      (error 'invalid-v-defun-template :func-name name :template transform))
+    (let ((arg-types (if (listp arg-types)
+                         (mapcar #'type-spec->type arg-types)
+                         arg-types))
+          (return-type (if (type-specp return-spec)
+                           (type-spec->type return-spec)
+                           return-spec)))
+      `(progn (add-form-binding
+               (make-function-obj
+                ',name ,transform ',context ',arg-types
+                ,(make-type-set return-type)
+                :v-place-index ',v-place-index :glsl-name ',glsl-name
+                :flow-ids (%gl-flow-id!)
+                :in-arg-flow-ids
+                ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
+               *global-env*)
+              ',name))))
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form

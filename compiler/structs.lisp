@@ -46,7 +46,7 @@
            (make-instance ',fake-type-name :flow-ids (flow-ids object)))
          (defmethod type->type-spec ((type ,true-type-name))
            ',name)
-         (v-defun ,(symb 'make- (or constructor name))
+         (v-def-glsl-template-fun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
@@ -60,7 +60,7 @@
   (loop :for (slot-name slot-type . acc) :in slots :collect
      (let ((accessor (if (eq :accessor (first acc)) (second acc)
                          (symb name '- slot-name))))
-       `(v-defun ,accessor (,(symb name '-ob)
+       `(v-def-glsl-template-fun ,accessor (,(symb name '-ob)
                              ,@(when context `(&context ,@context)))
           ,(concatenate 'string "~a." (safe-glsl-name-string
                                        (or accessor slot-name)))

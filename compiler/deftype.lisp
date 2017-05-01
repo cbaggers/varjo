@@ -11,7 +11,7 @@
         `(progn
            (eval-when (:compile-toplevel :load-toplevel :execute)
              (def-v-type-class ,name (v-ephemeral-type) ()))
-           (v-defun ,name () nil () ,name)
+           (v-def-glsl-template-fun ,name () nil () ,name)
            (defmethod meta-kinds-to-infer ((varjo-type ,name))
              (declare (ignore varjo-type))
              ',valid-metadata-kinds)

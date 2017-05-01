@@ -11,6 +11,6 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (def-v-type-class v-per-vertex (v-ephemeral-type) ()))
 
-(v-defun gl-position (vert-data) "~a.gl_Position" (v-per-vertex) :vec4)
-(v-defun gl-point-size (vert-data) "~a.gl_PointSize" (v-per-vertex) :float)
-(v-defun gl-clip-distance (vert-data) "~a.gl_ClipDistance" (v-per-vertex) (:float *))
+(v-def-glsl-template-fun gl-position (vert-data) "~a.gl_Position" (v-per-vertex) :vec4)
+(v-def-glsl-template-fun gl-point-size (vert-data) "~a.gl_PointSize" (v-per-vertex) :float)
+(v-def-glsl-template-fun gl-clip-distance (vert-data) "~a.gl_ClipDistance" (v-per-vertex) (:float *))
