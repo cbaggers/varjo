@@ -17,7 +17,7 @@
                    (listp (slot-value node-tree 'args))))
     (error "invalid ast node-tree ~s" node-tree))
   (assert type-set () "Varjo: type-set is mandatory when making compiled objects")
-  (assert (every λ(typep _ 'v-type) type-set))
+  (assert-valid-type-set type-set :error-hint "ast-node")
   (let* ((used-types (%merge-used-types used-types type-set)))
     (when (and (v-typep (primary-type type-set) :void)
                (> (length type-set) 1))
@@ -36,7 +36,10 @@
                    :node-tree node-tree)))
 
 (defun %merge-used-types (a b)
-  (concatenate 'list a (remove-if λ(find _ a :test #'v-type-eq) b)))
+  (labels ((extract (x) (if (typep x 'v-type) x (v-type-of x))))
+    (let ((a (map 'list #'extract a))
+          (b (map 'list #'extract b)))
+      (concatenate 'list a (remove-if λ(find _ a :test #'v-type-eq) b)))))
 
 (defmethod current-line (code-obj &optional even-when-ephemeral)
   (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
@@ -74,7 +77,7 @@
                             (node-tree nil set-node-tree))
   (let ((type-set (if set-type-set type-set (type-set code-obj))))
     (assert type-set () "Varjo: type-set is mandatory when copying compiled objects")
-    (assert (every λ(typep _ 'v-type) type-set))
+    (assert-valid-type-set type-set :error-hint "ast-node")
     (make-compiled
      :type-set type-set
      :current-line (if set-current-line current-line
@@ -103,7 +106,7 @@
                              (pure nil set-pure)
                              node-tree)
   (assert type-set () "Varjo: type-set is mandatory when merging compiled objects")
-  (assert (every λ(typep _ 'v-type) type-set))
+  (assert-valid-type-set type-set :error-hint "ast-node")
   (let ((return-set
          (if set-return-set
              return-set

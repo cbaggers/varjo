@@ -787,3 +787,18 @@ type-spec trick doesnt"))
              (not (typep (first members) 'v-stemcell)))
     (assert (not (v-typep (first members) :void))))
   (apply #'vector members))
+
+;;------------------------------------------------------------
+
+(defun assert-valid-type-set (set &key (error-hint ""))
+  (let ((set-list (coerce set 'list)))
+    (assert (and (arrayp set)
+                 (if (> (length set) 0)
+                     (typep (first set-list) 'v-type)
+                     t)
+                 (every λ(typep _ 'typed-glsl-name) (rest set-list)))
+            (set) "Invalid ~a type-set: ~a" error-hint set)))
+
+(defun type-set-to-type-list (set)
+  (let ((set-list (coerce set 'list)))
+    (cons (first set-list) (mapcar #'v-type-of (rest set-list)))))

@@ -142,11 +142,7 @@ context is implicit"))
   (assert (if (keywordp kind)
               (member kind *ast-node-kinds*)
               t))
-  (assert (and (arrayp return-type-set)
-               (every λ(typep _ 'v-type) return-type-set))
-          (return-type-set)
-          "Invalid ast-node! type-set: ~a" return-type-set)
-
+  (assert-valid-type-set return-type-set :error-hint "ast-node")
   (make-instance 'ast-node
                  :kind kind
                  :args (listify args)
@@ -167,8 +163,7 @@ context is implicit"))
   (let ((return-type-set (if set-return-type
                              return-type-set
                              (ast-return-type node))))
-    (assert (and (arrayp return-type-set)
-                 (every λ(typep _ 'v-type) return-type-set)))
+    (assert-valid-type-set return-type-set)
     (make-instance
      'ast-node
      :kind (if set-kind kind (ast-kind node))
