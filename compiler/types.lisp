@@ -191,6 +191,9 @@ type-spec trick doesnt"))
 
 (defmethod copy-type ((type v-array))
   (make-instance 'v-array
+                 :ctv (ctv type)
+                 :flow-ids (flow-ids type)
+                 :qualifiers (qualifiers type)
                  :dimensions (v-dimensions type)
                  :element-type (v-element-type type)))
 
@@ -769,18 +772,6 @@ type-spec trick doesnt"))
   (find-similarly-named-symbol type-spec *registered-types*))
 
 ;;------------------------------------------------------------
-;; Typed Names (these probably need a better home)
-
-(defgeneric make-typed-glsl-name (type glsl-name)
-  (:method ((type v-type) (glsl-name string))
-    (make-instance 'typed-glsl-name :type type
-                   :glsl-name glsl-name)))
-
-(defgeneric make-typed-out-name (type glsl-name)
-  (:method ((type v-type) (glsl-name symbol))
-    (make-instance 'typed-out-name :type type
-                   :out-name glsl-name)))
-;;------------------------------------------------------------
 
 (defun make-type-set (&rest members)
   (when (and (= (length members) 1)
@@ -802,3 +793,31 @@ type-spec trick doesnt"))
 (defun type-set-to-type-list (set)
   (let ((set-list (coerce set 'list)))
     (cons (first set-list) (mapcar #'v-type-of (rest set-list)))))
+
+;;------------------------------------------------------------
+;; Typed Names (these probably need a better home)
+
+(defgeneric make-typed-glsl-name (type glsl-name &optional qualifiers)
+  (:method ((type v-type) (glsl-name string) &optional qualifiers)
+    (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers))
+                            #'string<)))
+      (make-instance 'typed-glsl-name
+                     :type (qualify-type type qualifiers)
+                     :glsl-name glsl-name))))
+
+(defgeneric make-typed-out-name (glsl-name type &optional qualifiers)
+  (:method ((glsl-name symbol) (type v-type) &optional qualifiers)
+    (assert (every #'keywordp qualifiers))
+    (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers))
+                            #'string<)))
+      (make-instance 'typed-out-name
+                     :out-name glsl-name
+                     :type (qualify-type type qualifiers)))))
+
+(defmethod flow-ids ((obj typed-glsl-name))
+  (flow-ids (v-type-of obj)))
+
+(defmethod flow-ids ((obj typed-out-name))
+  (flow-ids (v-type-of obj)))
+
+;;------------------------------------------------------------

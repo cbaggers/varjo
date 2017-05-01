@@ -5,11 +5,11 @@
                         to-block emit-set return-set used-types stemcells
                         out-of-scope-args pure
                         place-tree node-tree)
-  (let ((flow-ids (flow-ids (primary-type type-set))))
-    (assert-flow-id-singularity flow-ids)
-    (unless (or flow-ids (set-doesnt-need-flow-ids type-set))
-      (error 'flow-ids-mandatory :for "compiled object"
-             :primary-type (map 'vector #'type->type-spec type-set))))
+  (assert-flow-id-singularity (flow-ids (primary-type type-set)))
+  (unless (or (every #'flow-ids type-set) (set-doesnt-need-flow-ids type-set))
+    (break "hii")
+    (error 'flow-ids-mandatory :for "compiled object"
+           :primary-type (map 'vector #'type->type-spec type-set)))
   (unless set-type-set
     (error "The type-set must be specified when creating an instance of varjo:compiled"))
   (unless (or (eq node-tree :ignored)
@@ -21,6 +21,7 @@
   (let* ((used-types (%merge-used-types used-types type-set)))
     (when (and (v-typep (primary-type type-set) :void)
                (> (length type-set) 1))
+      ;; {TODO} Remove this
       (break "Ah so that's when this can happen"))
     (make-instance 'compiled
                    :type-set type-set

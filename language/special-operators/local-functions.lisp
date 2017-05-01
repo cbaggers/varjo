@@ -93,6 +93,6 @@
                                            func-def-objs))
                        exceptions
                        (node-tree body-obj))
-                 (primary-type body-obj) env env)))
+                 (type-set body-obj) env env)))
       (values (copy-compiled merged :node-tree ast)
               pruned-starting-env))))

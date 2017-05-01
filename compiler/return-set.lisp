@@ -1,16 +1,6 @@
 (in-package :varjo)
 (in-readtable :fn.reader)
 
-;;-----------------------------------------------------------
-
-(defun make-typed-out-name (glsl-name type &optional qualifiers)
-  (assert (typep type 'v-type))
-  (assert (every #'keywordp qualifiers))
-  (let ((qualifiers (sort (copy-list qualifiers) #'string<)))
-    (make-instance 'typed-out-name
-                   :out-name glsl-name
-                   :type (qualify-type type qualifiers))))
-
 (defun qualified-eql (ret-a ret-b)
   (if (and (typep ret-a 'v-type) (typep ret-b 'v-type))
       (and (v-type-eq ret-a ret-b)

@@ -24,16 +24,17 @@
       ((and has-external (= len 1))
        (%function-for-external-funcs (first functions) func-name-form env))
       (has-external (error 'multiple-external-func-match :matches functions))
-      (t (let* ((type (v-type-of func-set)))
+      (t (let* ((type (v-type-of func-set))
+                (type-set (make-type-set type)))
            (when (or (some #'implicit-args functions)
                      (and (some #'captured-vars functions)))
              (error 'closures-not-supported :func func-name-form))
            (values
-            (make-compiled :type-set (make-type-set type)
+            (make-compiled :type-set type-set
                            :current-line nil
                            :used-types (list type)
                            :node-tree (ast-node! 'function (list func-name-form)
-                                                 type nil nil)
+                                                 type-set nil nil)
                            :pure t)
             env))))))
 
