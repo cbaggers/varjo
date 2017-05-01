@@ -3,13 +3,13 @@
 
 ;;-----------------------------------------------------------
 
-(defun make-external-qualified (glsl-name type &optional qualifiers)
+(defun make-typed-out-name (glsl-name type &optional qualifiers)
   (assert (typep type 'v-type))
   (assert (every #'keywordp qualifiers))
-  (make-instance 'external-qualified
-                 :out-name glsl-name
-                 :type type
-                 :qualifiers (sort (copy-list qualifiers) #'string<)))
+  (let ((qualifiers (sort (copy-list qualifiers) #'string<)))
+    (make-instance 'typed-out-name
+                   :out-name glsl-name
+                   :type (qualify-type type qualifiers))))
 
 (defun qualified-eql (ret-a ret-b)
   (if (and (typep ret-a 'v-type) (typep ret-b 'v-type))
@@ -54,9 +54,10 @@
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect
             (with-slots (value qualifiers) mval
-              `(glsl-expr ,(format nil "~a = ~~a"
-                                   (nth-return-name i stage t))
-                          :void ,value))))))
+              `(glsl-expr ,(format nil "~a = ~a"
+                                   (nth-return-name i stage t)
+                                   (glsl-name mval))
+                          :void))))))
 
 ;; (defun out-qualifier-p (x env)
 ;;   (declare (ignore env))

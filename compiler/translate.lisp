@@ -486,7 +486,7 @@
 
 (defgeneric gen-stage-locations (stage out-set)
   (:method ((stage fragment-stage) out-set)
-    (let ((out-types (map 'list #'v-type-of out-set)))
+    (let ((out-types (type-set-to-type-list out-set)))
       (calc-locations out-types)))
   (:method (stage out-set)
     (n-of nil (length out-set))))
@@ -495,29 +495,35 @@
   (loop :for out-val :across out-set
      :for location :in locations
      :for i :from 0
-     :for glsl-name := (if (typep out-val 'external-qualified)
-                           (out-name out-val)
+     :for glsl-name := (if (typep out-val 'typed-out-name)
+                           (glsl-name out-val)
                            (nth-return-name i stage))
+     :for type := (if (typep out-val 'v-type)
+                      out-val
+                      (v-type-of out-val))
 
      :collect (gen-out-var-string glsl-name
-                                  (v-type-of out-val)
-                                  (qualifiers out-val)
+                                  type
+                                  (qualifiers type)
                                   location)))
 
 (defun gen-out-vars (stage out-set locations)
   (loop :for out-val :across out-set
      :for location :in locations
      :for i :from 0
-     :for glsl-name := (if (typep out-val 'external-qualified)
-                           (out-name out-val)
+     :for glsl-name := (if (typep out-val 'typed-out-name)
+                           (glsl-name out-val)
                            (nth-return-name i stage))
+     :for type := (if (typep out-val 'v-type)
+                      out-val
+                      (v-type-of out-val))
 
      :collect (make-instance
                'output-variable
                :name (make-symbol glsl-name)
                :glsl-name glsl-name
-               :type (v-type-of out-val)
-               :qualifiers (qualifiers out-val)
+               :type type
+               :qualifiers (qualifiers type)
                :location location)))
 
 (defgeneric gen-stage-out-interface-block (stage post-proc-obj locations)

@@ -137,6 +137,6 @@
                      outputs)))
     (apply #'vector
            (loop :for (glsl-name type . qualifiers) :in outputs :collect
-              (make-external-qualified
+              (make-typed-out-name
                glsl-name (type-spec->type type (flow-id!))
                (sort (copy-list qualifiers) #'<))))))
