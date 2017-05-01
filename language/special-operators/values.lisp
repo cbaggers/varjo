@@ -41,9 +41,7 @@
                           `(%assign ,v ,o))
                      ,first-name)
                   env))
-         (type-set (apply #'make-type-set
-                          (cons (primary-type result)
-                                (rest vals))))
+         (type-set (make-type-set* (cons (primary-type result) (rest vals))))
          (ast (ast-node! 'values
                          (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
                                  objs

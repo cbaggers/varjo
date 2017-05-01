@@ -415,9 +415,9 @@ type-spec trick doesnt"))
   (:method (types)
     (labels ((inner (type)
                (if (typep type 'v-or)
-                   (mapcat #'inner (v-types type))
+                   (mappend #'inner (v-types type))
                    (list type))))
-      (remove-duplicates (mapcat #'inner types) :test #'v-type-eq))))
+      (remove-duplicates (mappend #'inner types) :test #'v-type-eq))))
 
 (defmethod print-object ((obj v-or) stream)
   (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
@@ -488,9 +488,9 @@ type-spec trick doesnt"))
   (destructuring-bind (arg-types return-type) args
     (make-instance
      'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
-     :return-spec (apply #'make-type-set
-                         (mapcar #'type-spec->type
-                                 (uiop:ensure-list return-type)))
+     :return-spec (make-type-set*
+                   (mapcar #'type-spec->type
+                           (uiop:ensure-list return-type)))
      :flow-ids flow-id)))
 
 (defmethod print-object ((object v-function-type) stream)
@@ -774,15 +774,28 @@ type-spec trick doesnt"))
 
 ;;------------------------------------------------------------
 
-(defun make-type-set (&rest members)
+(defun make-type-set* (members)
   (when (and (= (length members) 1)
              (not (typep (first members) 'v-stemcell)))
     (assert (not (v-typep (first members) :void))))
   (apply #'vector members))
 
+(defun make-type-set (&rest members)
+  (let ((subs (mappend λ(typecase _
+                          (list _)
+                          (vector (coerce _ 'list))
+                          (otherwise (list _)))
+                       members)))
+    (make-type-set* subs)))
+
 ;;------------------------------------------------------------
 
+(defun valid-type-set-member-p (x)
+  (or (typep x 'v-type)
+      (typep x 'typed-glsl-name)))
+
 (defun valid-type-set-p (set)
+  ;; {TODO} replace with (every #'valid-type-set-member set)
   (let ((set-list (coerce set 'list)))
     (and (arrayp set)
          (if (> (length set) 0)

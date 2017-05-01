@@ -122,10 +122,7 @@
                                  in-out-args flow-ids in-arg-flow-ids
                                  code captured-vars pure emit-set)
   (assert (and (vectorp return-spec)
-               (every (lambda (x)
-                        (or (typep x 'v-type)
-                            (typep x 'typed-glsl-name)))
-                      return-spec))
+               (every #'valid-type-set-member-p return-spec))
           () 'user-func-invalid-x :kind :returns :name name :args arg-spec)
   (when (listp arg-spec)
     (assert (every (lambda (x) (typep x 'v-type)) arg-spec)

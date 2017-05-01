@@ -62,7 +62,7 @@
             (v-glsl-string type)
             (string name)
             (gen-arg-string args out-args)
-            (mapcat #'indent (remove "" (to-block body-obj) :test #'equal))
+            (mappend #'indent (remove "" (to-block body-obj) :test #'equal))
             (when (current-line body-obj)
               (indent (current-line (end-line body-obj)))))))
 
@@ -89,7 +89,7 @@
   (format nil "~{~a~%~}while (~a) {~{~%~a~}~%}"
           (to-block test-obj)
           (current-line test-obj)
-          (append (remove-empty (mapcat #'indent (to-block body-obj)))
+          (append (remove-empty (mappend #'indent (to-block body-obj)))
                   (indent (current-line body-obj)))))
 
 (defun gen-swizzle-string (vec-obj components-string)
@@ -110,7 +110,7 @@
             var-string
             (current-line condition-obj)
             (current-line update-obj)
-            (remove-empty (mapcat #'indent prog-strs))
+            (remove-empty (mappend #'indent prog-strs))
             (remove-empty (when (current-line body-obj)
                             (indent (current-line body-obj)))))))
 
@@ -124,7 +124,7 @@
              (if (eq key default-symb)
                  (error "Varjo Bug: switch default not implemented") ;; {TODO}
                  (list key
-                       (append (mapcat #'indent (to-block obj))
+                       (append (mappend #'indent (to-block obj))
                                (indent (current-line (end-line obj))))))
              :into result
              :finally (return (append result default-clause)))))
@@ -301,7 +301,7 @@
 
 (defun indent-for-block (line/s)
   (format nil "~@[~%~{~a~^~%~}~]"
-          (remove-empty (mapcat #'indent (listify line/s)))))
+          (remove-empty (mappend #'indent (listify line/s)))))
 
 ;;----------------------------------------------------------------------
 

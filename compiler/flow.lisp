@@ -98,7 +98,7 @@
           (make-instance 'flow-identifier :ids (list (funcall flow-gen-func)))
           (make-instance 'flow-identifier
                          :ids (sort (copy-list (remove-duplicates
-                                                (mapcat #'ids ids)
+                                                (mappend #'ids ids)
                                                 :key #'key))
                                     #'< :key #'key))))))
 

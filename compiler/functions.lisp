@@ -47,11 +47,11 @@
   (cond
     ((or (eq x :void) (eq x 'v-void)) (make-type-set))
     ((functionp x) x)
-    ((null x) (make-instance 'ret-gen-superior-type))
-    ((numberp x) (make-instance 'ret-gen-nth-arg-type
-                                :arg-num x))
-    ((element-spec-p x) (make-instance 'ret-gen-element-of-nth-arg-type
-                                       :arg-num (second x)))
+    ((null x) (vector (make-instance 'ret-gen-superior-type)))
+    ((numberp x) (vector (make-instance 'ret-gen-nth-arg-type
+                                        :arg-num x)))
+    ((element-spec-p x) (vector (make-instance 'ret-gen-element-of-nth-arg-type
+                                               :arg-num (second x))))
     ((typep x 'v-type) (make-type-set x))
     ((type-specp x) (make-type-set (type-spec->type x)))
     ;; {TODO} proper error
@@ -323,33 +323,62 @@ however failed to do so when asked."
                                                         :types arg-types))
                     :arguments nil)))))
 
-(defun valid-func-return-spec-p (spec)
-  (or (typep spec 'return-type-generator)
-      (functionp spec)
-      (valid-type-set-p spec)))
+(defun valid-return-spec-member-p (x)
+  (or (typep x 'return-type-generator)
+      (valid-type-set-member-p x)))
 
-(defun resolve-func-type (func args)
-  (let* ((arg-types (map 'list #'primary-type args))
-         (spec (v-return-spec func))
-         (result
-          (typecase spec
-            (vector (if (= (length spec) 0)
-                        (type-spec->type :void)
-                        (elt (v-return-spec func) 0)))
-            (function (apply spec args))
-            (ret-gen-superior-type
-             (or (apply #'find-mutual-cast-type arg-types)
-                 (error 'unable-to-resolve-func-type
-                        :func-name (name func) :args args)))
-            (ret-gen-nth-arg-type
-             (nth (arg-num spec) arg-types))
-            (ret-gen-element-of-nth-arg-type
-             (v-element-type (nth (arg-num spec) arg-types)))
-            (t (error 'invalid-function-return-spec
-                      :func func
-                      :spec spec)))))
-    (assert (typep result 'v-type))
-    result))
+(defun valid-func-return-spec-p (spec)
+  (or (functionp spec)
+      (every #'valid-return-spec-member-p spec)))
+
+(defun resolve-func-set (func compiled-args)
+  (let* ((arg-types (map 'list #'primary-type compiled-args))
+         (new-flow-ids (funcall
+                        (if (multi-return-function-p func)
+                            #'calc-mfunction-return-ids-given-args
+                            #'calc-regular-function-return-ids-given-args)
+                        func compiled-args)))
+    (labels ((force-flow-id (type flow-id)
+               ;; This is one of the few cases where we want to set a flow id
+               ;; regardless of the current state
+               (if (flow-ids type)
+                   (replace-flow-id type flow-id)
+                   (set-flow-id type flow-id)))
+
+             (resolve-return-type (spec new-flow-id)
+               (typecase spec
+                 (v-type
+                  (force-flow-id spec new-flow-id))
+
+                 (ret-gen-superior-type
+                  (or (force-flow-id (apply #'find-mutual-cast-type arg-types)
+                                     new-flow-id)
+                      (error 'unable-to-resolve-func-type
+                             :func-name (name func) :args compiled-args)))
+
+                 (ret-gen-nth-arg-type
+                  (force-flow-id (nth (arg-num spec) arg-types)
+                                 new-flow-id))
+
+                 (ret-gen-element-of-nth-arg-type
+                  (force-flow-id (v-element-type (nth (arg-num spec)
+                                                      arg-types))
+                                 new-flow-id))
+
+                 (typed-glsl-name
+                  (make-typed-glsl-name
+                   (force-flow-id
+                    (resolve-return-type (v-type-of spec) new-flow-id)
+                    new-flow-id)
+                   (glsl-name spec)))
+
+                 (t (error 'invalid-function-return-spec
+                           :func func
+                           :spec spec)))))
+
+      (make-type-set* (map 'list #'resolve-return-type
+                           (v-return-spec func)
+                           new-flow-ids)))))
 
 ;;------------------------------------------------------------
 

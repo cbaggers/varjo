@@ -97,7 +97,7 @@
      code-objs
      :type-set type-set
      :current-line nil
-     :to-block (append (mapcat #'to-block code-objs)
+     :to-block (append (mappend #'to-block code-objs)
                        (mapcar (lambda (_) (current-line (end-line _)))
                                code-objs))
      :node-tree :ignored)))

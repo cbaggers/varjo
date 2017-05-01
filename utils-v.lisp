@@ -28,12 +28,6 @@
                    accum)))
       (reverse (reduce #'f sequence :initial-value nil)))))
 
-(define-compiler-macro mapcat (function &rest lists)
-  `(apply #'concatenate 'list (mapcar ,function ,@lists)))
-
-(defun mapcat (function &rest lists)
-  (reduce #'append (apply #'mapcar function lists) :initial-value nil))
-
 (defun elt* (sequence &rest indicies)
   (labels ((_elt* (sequence indicies accum)
              (if indicies
@@ -195,10 +189,6 @@
 
 (defun equal-elements (list)
   (or (null list) (every (equalp! (car list)) list)))
-
-;;[TODO] what is it used for?
-(defun identity-filter (list t-map)
-  (mapcat (lambda (x m) (when m (list x))) list t-map))
 
 (defun symbol-name-position (symbol list)
   (let ((symb-name (string-upcase symbol)))

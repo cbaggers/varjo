@@ -121,16 +121,16 @@
     (make-compiled :type-set type-set
                    :current-line current-line
                    :to-block (if set-block to-block
-                                 (mapcat #'to-block objs))
+                                 (mappend #'to-block objs))
                    :emit-set emit-set
                    :return-set return-set
-                   :used-types (mapcat #'used-types objs)
+                   :used-types (mappend #'used-types objs)
                    :stemcells (if set-stemcells stemcells
-                                  (mapcat #'stemcells objs))
+                                  (mappend #'stemcells objs))
                    :out-of-scope-args
                    (normalize-out-of-scope-args
                     (if set-out-of-scope-args out-of-scope-args
-                        (mapcat #'out-of-scope-args objs)))
+                        (mappend #'out-of-scope-args objs)))
                    :place-tree place-tree
                    :pure (if set-pure pure (every #'pure-p objs))
                    :node-tree node-tree)))

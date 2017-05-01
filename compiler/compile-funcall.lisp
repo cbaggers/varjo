@@ -60,7 +60,7 @@
     (dbind (func args) (find-function-in-set-for-args
                         func-set args-code env func-name)
       (typecase func
-        (v-function (compile-function-call func-name func args env))
+        (v-function (compile-function-call func args env))
         (external-function (compile-external-function-call func args env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
@@ -97,7 +97,7 @@
                    (mapcar #'ast->code args)
                    public-env))))))
 
-(defun compile-function-call (func-name func args env)
+(defun compile-function-call (func args env)
   (vbind (expansion use-expansion)
       (find-and-expand-compiler-macro func args env)
     (if use-expansion
@@ -112,19 +112,22 @@
               ((and (typep func 'v-user-function)
                     (some λ(typep _ 'v-unrepresentable-value)
                           (v-argument-spec func)))
-               (compile-function-taking-unreps func-name func args env))
+               (compile-function-taking-unreps func args env))
 
               ;; funcs with multiple return values
-              ((and (vectorp (v-return-spec func))
-                    (> (length (v-return-spec func)) 1))
-               (compile-multi-return-function-call func-name func args env))
+              ((multi-return-function-p func)
+               (compile-multi-return-function-call func args env))
 
               ;; all the other funcs :)
-              (t (compile-regular-function-call func-name func args env)))
+              (t (compile-regular-function-call func args env)))
           (assert new-env)
           (values code-obj new-env)))))
 
-(defun compile-function-taking-unreps (func-name func args env)
+(defun multi-return-function-p (func)
+  (let ((rset (v-return-spec func)))
+    (and (vectorp rset) (> (length rset) 1))))
+
+(defun compile-function-taking-unreps (func args env)
   (assert (v-code func))
   (labels ((unrep-p (x) (typep (primary-type x) 'v-unrepresentable-value)))
     (dbind (args-code body-code) (v-code func)
@@ -139,7 +142,8 @@
                (captured (remove-if-not λ(descendant-env-p env (origin-env _))
                                         captured))
                (allowed (append (mapcar #'first hard-coded)
-                                (mapcar #'name captured))))
+                                (mapcar #'name captured)))
+               (func-name (name func)))
           (compile-form
            `(let ,hard-coded
               (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
@@ -188,8 +192,7 @@
          (compiled-func (or (compiled-functions base-env func)
                             (build-external-function func base-env))))
     (setf (compiled-functions base-env func) compiled-func)
-    (compile-function-call (name func)
-                           (function-obj compiled-func)
+    (compile-function-call (function-obj compiled-func)
                            args
                            env)))
 
@@ -197,36 +200,6 @@
   (when (v-place-function-p func)
     (let ((i (v-place-index func)))
       (cons (list func (elt args i)) (place-tree (elt args i))))))
-
-(defun compile-regular-function-call (func-name func args env)
-  (let* ((c-line (gen-function-string func args))
-         (flow-ids (calc-regular-function-return-ids-given-args func args))
-         ;; This is one of the few cases where we want to set a flow id
-         ;; regardless of the current state
-         (type (or (resolve-func-type func args)
-                   (error 'unable-to-resolve-func-type
-                          :func-name func-name :args args)))
-         (type-set (if (v-voidp type)
-                       (make-type-set)
-                       (apply #'make-type-set
-                              (cons (if (flow-ids type)
-                                        (replace-flow-id type flow-ids)
-                                        (set-flow-id type flow-ids))
-                                    (handle-regular-function-mvals args))))))
-    (values (merge-compiled
-             args
-             :type-set type-set
-             :current-line c-line
-             :pure (pure-p func)
-             :emit-set (emit-set func)
-             :stemcells (mapcat #'stemcells args)
-             :place-tree (calc-place-tree func args)
-             :node-tree (ast-node! func-name
-                                   (mapcar #'node-tree args)
-                                   type-set
-                                   env
-                                   env))
-            env)))
 
 (defun handle-regular-function-mvals (args)
   ;; ok so by getting here a few things are true:
@@ -243,6 +216,77 @@
             ((= count 1) (rest (coerce (type-set (nth n args)) 'list)))
             (t nil)))))
 
+(defun compile-regular-function-call (func args env)
+  (let ((type-set (make-type-set (resolve-func-set func args)
+                                 (handle-regular-function-mvals args))))
+    (values (merge-compiled
+             args
+             :type-set type-set
+             :current-line (gen-function-string func args)
+             :pure (pure-p func)
+             :emit-set (emit-set func)
+             :stemcells (mappend #'stemcells args)
+             :place-tree (calc-place-tree func args)
+             :node-tree (ast-node! (name func)
+                                   (mapcar #'node-tree args)
+                                   type-set
+                                   env
+                                   env))
+            env)))
+
+;;----------------------------------------------------------------------
+
+(defun compile-multi-return-function-call (func args env)
+  (let* ((type-set (resolve-func-set func args))
+         (m-r-base (or (v-multi-val-base env)
+                       (lisp-name->glsl-name 'nc env)))
+         (m-r-names (loop :for i :from 1 :below (length type-set) :collect
+                       (postfix-glsl-index m-r-base i)))
+         (type-set (make-type-set*
+                    (map 'list
+                         (lambda (mval m-r-glsl-name)
+                           (if (typep mval 'typed-glsl-name)
+                               (make-typed-glsl-name (v-type-of mval)
+                                                     m-r-glsl-name)
+                               mval))
+                         type-set
+                         (cons "dummy" m-r-names))))
+         (o (merge-compiled
+             args
+             :type-set type-set
+             :current-line (gen-function-string func args m-r-names)
+             :stemcells (mappend #'stemcells args)
+             :pure (pure-p func)
+             :emit-set (emit-set func)
+             :place-tree (calc-place-tree func args)
+             :node-tree :ignored))
+         (bindings (loop :for i :from 1 :below (length type-set) :collect
+                      (let ((mval (aref type-set i)))
+                        `((,(gensym "NC")
+                            ,(type->type-spec (v-type-of mval)))))))
+         (final
+          ;; when (v-multi-val-base env) is not null then a return or mvbind
+          ;; has already written the lets for the vars
+          (if (v-multi-val-base env)
+              o
+              (merge-progn
+               (with-fresh-env-scope (fresh-env env)
+                 (env-> (p-env fresh-env)
+                   (merge-multi-env-progn
+                    (%mapcar-multi-env-progn
+                     (lambda (env binding gname)
+                       (with-v-let-spec binding
+                         (compile-let name type-spec nil env gname)))
+                     p-env bindings m-r-names))
+                   (compile-form o p-env)))
+               env env))))
+    (values (copy-compiled final
+                           :node-tree (ast-node! (name func)
+                                                 (mapcar #'node-tree args)
+                                                 type-set
+                                                 env env))
+            env)))
+
 ;;----------------------------------------------------------------------
 
 (defun %calc-flow-id-given-args (in-arg-flow-ids return-flow-id arg-code-objs
@@ -257,76 +301,24 @@
 
 (defun calc-regular-function-return-ids-given-args (func arg-code-objs)
   (unless (function-return-spec-doesnt-need-flow-ids (v-return-spec func))
-    (%calc-flow-id-given-args (in-arg-flow-ids func)
-                              (flow-ids func)
-                              arg-code-objs)))
+    (list (%calc-flow-id-given-args (in-arg-flow-ids func)
+                                    (flow-ids func)
+                                    arg-code-objs))))
 
-(defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
-  (let ((all-return-types (type-set-to-type-list (v-return-spec func))))
-    (let ((flow-ids (map 'list #'flow-ids all-return-types)))
-      (if (some #'type-doesnt-need-flow-id all-return-types)
-          (error 'invalid-flow-id-multi-return :func-name func-name
-                 :return-type all-return-types)
-          (mapcar #'(lambda (flow-id position)
-                      (%calc-flow-id-given-args (in-arg-flow-ids func)
-                                                flow-id
-                                                arg-code-objs
-                                                position))
-                  flow-ids
-                  (iota (length flow-ids)))))))
-
-(defun compile-multi-return-function-call (func-name func args env)
-  (let* ((flow-ids (calc-mfunction-return-ids-given-args func func-name args))
-         (type (resolve-func-type func args))
-         (type (replace-flow-id type (first flow-ids)))
-         (has-base (not (null (v-multi-val-base env))))
-         (m-r-base (or (v-multi-val-base env)
-                       (lisp-name->glsl-name 'nc env)))
-         (return-set (v-return-spec func))
-         (mvals (rest (coerce return-set 'list)))
-         (m-r-names (loop :for i :from 1 :below (length return-set) :collect
-                       (postfix-glsl-index m-r-base i)))
-         (bindings (loop :for mval :in mvals :collect
-                      `((,(gensym "NC") ,(type->type-spec (v-type-of mval))))))
-         (o (merge-compiled
-             args
-             :type-set (apply #'make-type-set
-                              (cons type
-                                    (mapcar (lambda (mval glsl-name fid)
-                                              (make-typed-glsl-name
-                                               (replace-flow-id (v-type-of mval) fid)
-                                               glsl-name))
-                                            mvals
-                                            m-r-names
-                                            (rest flow-ids))))
-             :current-line (gen-function-string func args m-r-names)
-             :stemcells (mapcat #'stemcells args)
-             :pure (pure-p func)
-             :emit-set (emit-set func)
-             :place-tree (calc-place-tree func args)
-             :node-tree :ignored))
-         (final
-          ;; when has-base is true then a return or mvbind has already
-          ;; written the lets for the vars
-          (if has-base
-              o
-              (merge-progn
-               (with-fresh-env-scope (fresh-env env)
-                 (env-> (p-env fresh-env)
-                   (merge-multi-env-progn
-                    (%mapcar-multi-env-progn
-                     (lambda (env binding gname)
-                       (with-v-let-spec binding
-                         (compile-let name type-spec nil env gname)))
-                     p-env bindings m-r-names))
-                   (compile-form o p-env)))
-               env env))))
-    (values (copy-compiled final
-                           :node-tree (ast-node! func-name
-                                                 (mapcar #'node-tree args)
-                                                 (make-type-set type)
-                                                 env env))
-            env)))
+(defun calc-mfunction-return-ids-given-args (func arg-code-objs)
+  (let* ((func-name (name func))
+         (all-return-types (type-set-to-type-list (v-return-spec func)))
+         (flow-ids (map 'list #'flow-ids all-return-types)))
+    (if (some #'type-doesnt-need-flow-id all-return-types)
+        (error 'invalid-flow-id-multi-return :func-name func-name
+               :return-type all-return-types)
+        (mapcar #'(lambda (flow-id position)
+                    (%calc-flow-id-given-args (in-arg-flow-ids func)
+                                              flow-id
+                                              arg-code-objs
+                                              position))
+                flow-ids
+                (iota (length flow-ids))))))
 
 ;;----------------------------------------------------------------------
 

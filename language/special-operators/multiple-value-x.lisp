@@ -11,7 +11,10 @@
          (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
       (unless (= (length vars) (length (type-set value-obj)))
-        (error 'multi-val-bind-mismatch :val-form value-form :bindings vars))
+        (error 'multi-val-bind-mismatch
+               :val-form value-form
+               :bindings vars
+               :return-set (type-set value-obj)))
       (let ((types (type-set-to-type-list (type-set value-obj))))
         (vbind ((m-objs s-obj b-objs) final-env)
             (with-fresh-env-scope (fresh-env env)

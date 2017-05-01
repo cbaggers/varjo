@@ -227,11 +227,12 @@ type-of new-value: ~a"
     "stage of type ~s is not valid at this place in the pipeline, this is either out of order or a stage of this type already exists"
   stage-type)
 
-(deferror multi-val-bind-mismatch () (bindings val-form)
+(deferror multi-val-bind-mismatch () (bindings val-form return-set)
     "Multiple Value Bind - Number of values returned from value form does not match bindings:
 Bindings: ~a
-Value Form: ~a"
-  bindings val-form)
+Value Form: ~a
+Returned Values: ~a"
+  bindings val-form return-set)
 
 (deferror merge-env-func-scope-mismatch () (env-a env-b)
     "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
