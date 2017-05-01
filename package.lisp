@@ -175,6 +175,7 @@
            :inline-glsl-vertex-stage-not-supported
            :clashes-found-between-input-and-output-names
            :user-func-invalid-x
+           :invalid-inline-glsl-stage-arg-layout
 
            ;; restarts
            :setq-supply-alternate-type

@@ -38,7 +38,10 @@
      :type-set type-set
      :current-line glsl
      :used-types (list type-obj)
-     :node-tree (ast-node! 'glsl-string nil type-set nil nil)
+     :node-tree (ast-node! '%glsl-expr
+                           (list current-line type)
+                           type-set
+                           nil nil)
      :pure nil)))
 
 (defun glsl-let (name-symbol name-string type value-form env)

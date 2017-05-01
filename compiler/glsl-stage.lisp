@@ -2,10 +2,6 @@
 
 (defun check-for-input-output-name-clashes (stage-kind in-args outputs)
   (let* ((in-args (remove-if-not #'listp in-args))
-         (in-args (mapcar (lambda (in-arg)
-                            (dbind (nil type name) in-arg
-                              (list name type)))
-                          in-args))
          (outputs (remove-if-not #'listp outputs))
          (clashes (intersection in-args outputs :key #'first :test #'string=)))
     (when clashes
@@ -22,6 +18,8 @@
    ugly here"
   (assert (not (eq stage-kind :vertex)) ()
           'inline-glsl-vertex-stage-not-supported)
+  (mapcar (lambda (x) (assert-glsl-arg-format x)) in-args)
+  (mapcar (lambda (x) (assert-glsl-arg-format x)) uniforms)
   (check-for-input-output-name-clashes stage-kind in-args outputs)
   (let* ((arg-types (mapcar #'type-spec->type
                             (append (mapcar #'second in-args)
@@ -31,6 +29,8 @@
                       (primitive-name-to-instance primitive-kind)))
          (context (when primitive-kind
                     (remove primitive-kind context :test #'equal)))
+         (in-args (mapcar #'process-glsl-arg in-args))
+         (uniforms (mapcar #'process-glsl-arg uniforms))
          (stage (make-stage stage-kind in-args uniforms context
                             nil nil primitive)))
     (first
@@ -134,6 +134,11 @@
            (primitive-in (stage post-proc-obj)))))
   post-proc-obj)
 
+(defun process-glsl-arg (arg)
+  (destructuring-bind (glsl-name type . qualifiers) arg
+    (let ((name (make-symbol (string-upcase glsl-name))))
+      `(,name ,type ,@qualifiers ,glsl-name))))
+
 (defun make-glsl-ret-set (stage outputs)
   (let ((outputs (if (stage-where-first-return-is-position-p stage)
                      (cons `("dummy" :vec4) outputs)
@@ -147,3 +152,10 @@
                (type-spec->type type (flow-id!))
                glsl-name
                (sort (copy-list qualifiers) #'<))))))
+
+(defun assert-glsl-arg-format (arg)
+  (destructuring-bind (glsl-name type . qualifiers) arg
+    (assert (and (stringp glsl-name)
+                 (varjo:type-specp type)
+                 (every #'keywordp qualifiers))
+            () 'invalid-inline-glsl-stage-arg-layout :arg arg)))

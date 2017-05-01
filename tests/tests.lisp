@@ -142,6 +142,7 @@
 (5am:def-suite stemcell-tests :in test-all)
 (5am:def-suite qualifier-tests :in test-all)
 (5am:def-suite assignment-tests :in test-all)
+(5am:def-suite inline-glsl-tests :in test-all)
 (5am:def-suite flow-control-tests :in test-all)
 (5am:def-suite symbol-macro-tests :in test-all)
 (5am:def-suite regular-macro-tests :in test-all)

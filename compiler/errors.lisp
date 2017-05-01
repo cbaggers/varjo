@@ -866,6 +866,12 @@ Problematic Definition:
 NAME: ~s
 ~a: ~s" name kind args)
 
+(deferror invalid-inline-glsl-stage-arg-layout () (arg)
+    "Invalid arg layout found in glsl stage. The correct layout for a argument
+to a glsl-stage is (\"string-name-of-arg\" arg-type ,@keyword-qualifiers)
+
+Problematic arg was: ~a"
+  arg)
 
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
