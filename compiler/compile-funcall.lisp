@@ -202,16 +202,19 @@
          (flow-ids (calc-function-return-ids-given-args func args))
          ;; This is one of the few cases where we want to set a flow id
          ;; regardless of the current state
-         (type (resolve-func-type func args))
-         (type (if (flow-ids type)
-                   (replace-flow-id type flow-ids)
-                   (set-flow-id type flow-ids))))
-    (unless type (error 'unable-to-resolve-func-type
-                        :func-name func-name :args args))
+         (type (or (resolve-func-type func args)
+                   (error 'unable-to-resolve-func-type
+                          :func-name func-name :args args)))
+         (type-set (if (v-typep type :void)
+                       (make-type-set)
+                       (apply #'make-type-set
+                              (cons (if (flow-ids type)
+                                        (replace-flow-id type flow-ids)
+                                        (set-flow-id type flow-ids))
+                                    (handle-regular-function-mvals args))))))
     (values (merge-compiled
              args
-             :type-set (apply #'make-type-set
-                              (cons type (handle-regular-function-mvals args)))
+             :type-set type-set
              :current-line c-line
              :pure (pure-p func)
              :emit-set (emit-set func)
@@ -219,7 +222,7 @@
              :place-tree (calc-place-tree func args)
              :node-tree (ast-node! func-name
                                    (mapcar #'node-tree args)
-                                   (make-type-set type)
+                                   type-set
                                    env
                                    env))
             env)))
@@ -278,6 +281,7 @@
   (let* ((flow-ids (calc-mfunction-return-ids-given-args func func-name args))
          (type (replace-flow-id (resolve-func-type func args)
                                 (first flow-ids))))
+    (assert (not (v-typep type :void)))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
     (let* ((has-base (not (null (v-multi-val-base env))))

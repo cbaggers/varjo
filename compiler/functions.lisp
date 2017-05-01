@@ -333,7 +333,9 @@ however failed to do so when asked."
          (spec (v-return-spec func))
          (result
           (typecase spec
-            (vector (elt (v-return-spec func) 0))
+            (vector (if (= (length spec) 0)
+                        (type-spec->type :void)
+                        (elt (v-return-spec func) 0)))
             (function (apply spec args))
             (ret-gen-superior-type
              (or (apply #'find-mutual-cast-type arg-types)

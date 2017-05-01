@@ -58,14 +58,14 @@
 
 (defun %array-the-return-vals-for-size (size emit-vals)
   (map 'vector
-       λ(let ((type (v-type-of _)))
-          (if (typep _ 'external-return-val)
-              (make-external-return-val
+       λ(if (typep _ 'typed-out-name)
+            (let ((type (v-type-of _)))
+              (make-typed-out-name
                (out-name _)
                (v-array-type-of type size (flow-ids type))
-               (qualifiers _))
-              (make-emit-val (v-array-type-of type size (flow-ids type))
-                             (qualifiers _))))
+               (qualifiers _)))
+            (qualify-type (v-array-type-of _ size (flow-ids _))
+                          (qualifiers _)))
        emit-vals))
 
 ;;------------------------------------------------------------

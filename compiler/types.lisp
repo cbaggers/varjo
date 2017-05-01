@@ -704,7 +704,6 @@ type-spec trick doesnt"))
 (defmethod v-casts-to-p (from-type to-type env)
   (not (null (v-casts-to from-type to-type env))))
 
-;;[TODO] vtypep here?
 (defmethod v-casts-to ((from-type v-type) (to-type v-type) env)
   (if (v-typep from-type to-type)
       (strip-flow-id from-type)
