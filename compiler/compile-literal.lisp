@@ -44,8 +44,9 @@
          (element-type (apply #'find-mutual-cast-type types))
          (array-type (v-array-type-of element-type len (flow-id!)))
          (glsl (gen-array-literal-string elements element-type env))
-         (ast (ast-node! :literal arr array-type env env)))
-    (make-compiled :type-set (make-type-set array-type)
+         (type-set (make-type-set array-type))
+         (ast (ast-node! :literal arr type-set env env)))
+    (make-compiled :type-set type-set
                    :current-line glsl
                    :used-types (list element-type)
                    :node-tree ast

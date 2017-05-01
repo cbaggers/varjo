@@ -488,8 +488,10 @@ type-spec trick doesnt"))
   (destructuring-bind (arg-types return-type) args
     (make-instance
      'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
-     :return-spec (or (mapcar #'type-spec->type (uiop:ensure-list return-type))
-                      (list (type-spec->type :void)))
+     :return-spec (apply #'make-type-set
+                         (or (mapcar #'type-spec->type
+                                     (uiop:ensure-list return-type))
+                             (list (type-spec->type :void))))
      :flow-ids flow-id)))
 
 (defmethod print-object ((object v-function-type) stream)
@@ -498,10 +500,11 @@ type-spec trick doesnt"))
             (if (eq t argument-spec)
                 '(t*)
                 (mapcar #'type-of argument-spec))
-            (typecase (first return-spec)
-              (function t)
-              (v-type (type-of (first return-spec)))
-              (otherwise return-spec)))))
+            (let ((return-spec (type-set-to-type-list return-spec)))
+              (typecase (first return-spec)
+                (function t)
+                (v-type (type-of (first return-spec)))
+                (otherwise return-spec))))))
 
 (defmethod copy-type ((type v-function-type))
   (let* ((new-inst (call-next-method)))
@@ -517,11 +520,11 @@ type-spec trick doesnt"))
 (defmethod type->type-spec ((type v-function-type))
   (with-slots (argument-spec return-spec) type
     ;; {TODO} remove this, done now
-    (assert (listp return-spec))
+    (assert (vectorp return-spec))
     (let* ((in (mapcar #'type->type-spec argument-spec))
            (out (if (= (length return-spec) 1)
-                    (type->type-spec (first return-spec))
-                    (mapcar #'type->type-spec return-spec))))
+                    (type->type-spec (elt return-spec 0))
+                    (map 'list #'type->type-spec return-spec))))
       `(function ,in ,out))))
 
 ;;------------------------------------------------------------

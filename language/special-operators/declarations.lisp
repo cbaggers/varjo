@@ -58,5 +58,5 @@
      (copy-compiled
       obj
       :node-tree (ast-node! 'the (list type-name (node-tree compiled))
-                            (primary-type compiled) env env))
+                            (type-set compiled) env env))
      env)))

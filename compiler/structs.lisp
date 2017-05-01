@@ -64,7 +64,9 @@
                              ,@(when context `(&context ,@context)))
           ,(concatenate 'string "~a." (safe-glsl-name-string
                                        (or accessor slot-name)))
-          (,true-type-name) ,slot-type :v-place-index 0))))
+          (,true-type-name)
+          ,slot-type
+          :v-place-index 0))))
 
 (defun gen-struct-sig (name-string slots-with-types)
   (format nil "struct ~a {~%~{~a~%~}};"

@@ -252,7 +252,7 @@
 (defun calc-function-return-ids-given-args (func arg-code-objs)
   ;; {TODO} (warn "calc-function-return-ids-given-args should be merged with resolve-func-type")
   (assert (<= (length (v-return-spec func)) 1))
-  (unless (type-doesnt-need-flow-id (first (v-return-spec func)))
+  (unless (set-doesnt-need-flow-ids (v-return-spec func))
     (%calc-flow-id-given-args (in-arg-flow-ids func)
                               (flow-ids func)
                               arg-code-objs)))

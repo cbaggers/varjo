@@ -136,7 +136,7 @@
                                               implicit-args))
                                            nil ;;{TODO} should be context
                                            arg-types
-                                           (cons type multi-return-vars)
+                                           (return-set body-obj)
                                            :glsl-name glsl-name
                                            :implicit-args implicit-args
                                            :in-out-args in-out-args

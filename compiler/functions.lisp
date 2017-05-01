@@ -306,8 +306,8 @@ however failed to do so when asked."
    (:element n) - element type of nth arg
    list - type spec"
   (declare (ignore env))
-  (let* ((spec (first (v-return-spec func)))
-         (arg-types (mapcar #'primary-type args))
+  (let* ((spec (elt (v-return-spec func) 0))
+         (arg-types (map 'list #'primary-type args))
          (result
           (cond ((null spec)
                  (or (apply #'find-mutual-cast-type arg-types)

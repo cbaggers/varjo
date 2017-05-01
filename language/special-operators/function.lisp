@@ -44,15 +44,16 @@
 
 (defun %function-for-regular-funcs (func-name-form func env)
   (let* ((flow-id (flow-id!))
-         (type (set-flow-id (v-type-of func) flow-id)))
+         (type (set-flow-id (v-type-of func) flow-id))
+         (type-set (make-type-set type)))
     (when (implicit-args func)
       (error 'closures-not-supported :func func-name-form))
     (values
-     (make-compiled :type-set (make-type-set type)
+     (make-compiled :type-set type-set
                     :current-line nil
                     :used-types (list type)
                     :node-tree (ast-node! 'function (list func-name-form)
-                                          type nil nil)
+                                          type-set nil nil)
                     :pure t)
      env)))
 
