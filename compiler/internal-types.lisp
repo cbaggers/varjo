@@ -448,3 +448,18 @@
   ((arg-num :initform (error "ret-gen-nth-arg-type - arg-num must be provided")
             :initarg :arg-num
             :reader arg-num)))
+
+(defmethod make-load-form ((obj ret-gen-superior-type)
+                           &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'ret-gen-superior-type))
+
+(defmethod make-load-form ((obj ret-gen-nth-arg-type)
+                           &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'ret-gen-nth-arg-type :arg-num ,(arg-num obj)))
+
+(defmethod make-load-form ((obj ret-gen-element-of-nth-arg-type)
+                           &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'ret-gen-element-of-nth-arg-type :arg-num ,(arg-num obj)))

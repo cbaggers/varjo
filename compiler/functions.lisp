@@ -28,20 +28,35 @@
       (error 'invalid-v-defun-template :func-name name :template transform))
     (let ((arg-types (if (listp arg-types)
                          (mapcar #'type-spec->type arg-types)
-                         arg-types))
-          (return-type (if (type-specp return-spec)
-                           (type-spec->type return-spec)
-                           return-spec)))
+                         arg-types)))
       `(progn (add-form-binding
                (make-function-obj
                 ',name ,transform ',context ',arg-types
-                ,(make-type-set return-type)
+                ,(make-template-return-spec-generator return-spec)
                 :v-place-index ',v-place-index :glsl-name ',glsl-name
                 :flow-ids (%gl-flow-id!)
                 :in-arg-flow-ids
-                ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
+                (list ,@(n-of '(%gl-flow-id!) (length args))))
                *global-env*)
               ',name))))
+
+(defun element-spec-p (spec)
+  (and (listp spec) (eq (first spec) :element)))
+
+(defun make-template-return-spec-generator (x)
+  (cond
+    ((or (eq x :void) (eq x 'v-void)) (make-type-set))
+    ((functionp x) x)
+    ((null x) (make-instance 'ret-gen-superior-type))
+    ((numberp x) (make-instance 'ret-gen-nth-arg-type
+                                :arg-num x))
+    ((element-spec-p x) (make-instance 'ret-gen-element-of-nth-arg-type
+                                       :arg-num (second x)))
+    ((typep x 'v-type) (make-type-set x))
+    ((type-specp x) (make-type-set (type-spec->type x)))
+    ;; {TODO} proper error
+    (t (error "Varjo: Invalid return-type specifier in template-function ~a"
+              x))))
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
@@ -295,9 +310,6 @@ however failed to do so when asked."
                                                         :name func-name
                                                         :types arg-types))
                     :arguments nil)))))
-
-(defun element-spec-p (spec)
-  (and (listp spec) (eq (first spec) :element)))
 
 (defun valid-func-return-spec-p (spec)
   (or (typep spec 'return-type-generator)

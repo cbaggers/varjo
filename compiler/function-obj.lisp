@@ -35,7 +35,7 @@
 (defgeneric function-identifier-with-return (func)
   ;; account for this
   (:method ((func v-function))
-    (let* ((returns (mapcar #'type->type-spec (v-return-spec func)))
+    (let* ((returns (map 'list #'type->type-spec (v-return-spec func)))
            (returns (if (= (length returns) 1)
                         (first returns)
                         returns)))
@@ -258,7 +258,8 @@
              (functions (functions func-set))
              (constr (first (remove-if λ(> (length (v-argument-spec _)) 0)
                                        functions))))
-        (when (v-type-eq (first (v-return-spec constr)) src-type)
+
+        (when (v-type-eq (primary-type (v-return-spec constr)) src-type)
           (function-identifier-with-return
            (shadow-function constr src-type alt-type
                             :new-name alt-type-name
