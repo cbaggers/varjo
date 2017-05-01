@@ -802,27 +802,24 @@ type-spec trick doesnt"))
 ;;------------------------------------------------------------
 ;; Typed Names (these probably need a better home)
 
-(defgeneric make-typed-glsl-name (type glsl-name &optional qualifiers)
+(defgeneric make-typed-glsl-name (type glsl-name)
+  (:method ((type v-type) (glsl-name string))
+    (make-instance 'typed-glsl-name
+                   :type type
+                   :glsl-name glsl-name)))
+
+(defgeneric make-typed-external-name (type glsl-name &optional qualifiers)
   (:method ((type v-type) (glsl-name string) &optional qualifiers)
     (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers))
                             #'string<)))
-      (make-instance 'typed-glsl-name
+      (make-instance 'typed-external-name
                      :type (qualify-type type qualifiers)
                      :glsl-name glsl-name))))
-
-(defgeneric make-typed-out-name (glsl-name type &optional qualifiers)
-  (:method ((glsl-name symbol) (type v-type) &optional qualifiers)
-    (assert (every #'keywordp qualifiers))
-    (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers))
-                            #'string<)))
-      (make-instance 'typed-out-name
-                     :out-name glsl-name
-                     :type (qualify-type type qualifiers)))))
 
 (defmethod flow-ids ((obj typed-glsl-name))
   (flow-ids (v-type-of obj)))
 
-(defmethod flow-ids ((obj typed-out-name))
+(defmethod flow-ids ((obj typed-external-name))
   (flow-ids (v-type-of obj)))
 
 ;;------------------------------------------------------------

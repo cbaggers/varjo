@@ -58,12 +58,11 @@
 
 (defun %array-the-return-vals-for-size (size emit-vals)
   (map 'vector
-       λ(if (typep _ 'typed-out-name)
+       λ(if (typep _ 'typed-glsl-name)
             (let ((type (v-type-of _)))
-              (make-typed-out-name
-               (out-name _)
+              (make-typed-glsl-name
                (v-array-type-of type size (flow-ids type))
-               (qualifiers _)))
+               (glsl-name _)))
             (qualify-type (v-array-type-of _ size (flow-ids _))
                           (qualifiers _)))
        emit-vals))

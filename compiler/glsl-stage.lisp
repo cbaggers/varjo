@@ -23,8 +23,7 @@
   (assert (not (eq stage-kind :vertex)) ()
           'inline-glsl-vertex-stage-not-supported)
   (check-for-input-output-name-clashes stage-kind in-args outputs)
-  (let* ((none-type (type-spec->type :none))
-         (arg-types (mapcar #'type-spec->type
+  (let* ((arg-types (mapcar #'type-spec->type
                             (append (mapcar #'second in-args)
                                     (mapcar #'second uniforms))))
          (primitive-kind (get-primitive-type-from-context context))
@@ -45,21 +44,25 @@
             #'expand-input-variables
             #'process-uniforms
             #'(lambda (stage env)
-                (values (make-instance
-                         'compiled-function-result
-                         :function-obj nil
-                         :signatures nil
-                         :ast (ast-node! :error nil none-type nil nil)
-                         :used-types nil
-                         :glsl-code body-string
-                         :stemcells nil
-                         :used-types arg-types
-                         :return-set (unless (eq stage-kind :geometry)
-                                       (make-glsl-ret-set stage outputs))
-                         :emit-set (when (eq stage-kind :geometry)
-                                     (make-glsl-ret-set stage outputs)))
-                        stage
-                        env))
+                (let ((return-set (if (eq stage-kind :geometry)
+                                      #()
+                                      (make-glsl-ret-set stage outputs)))
+                      (emit-set (if (eq stage-kind :geometry)
+                                    (make-glsl-ret-set stage outputs)
+                                    #())))
+                  (values (make-instance
+                           'compiled-function-result
+                           :function-obj nil
+                           :signatures nil
+                           :ast (ast-node! :error nil #() nil nil)
+                           :used-types nil
+                           :glsl-code body-string
+                           :stemcells nil
+                           :used-types arg-types
+                           :return-set return-set
+                           :emit-set emit-set)
+                          stage
+                          env)))
             #'make-post-process-obj
             #'(lambda (pp)
                 (process-glsl-output-primitive stage-kind body-string pp))
@@ -135,8 +138,12 @@
   (let ((outputs (if (stage-where-first-return-is-position-p stage)
                      (cons `("dummy" :vec4) outputs)
                      outputs)))
+    ;; We use #'vector here to get around checks we would otherwise
+    ;; have to adhere to
+    ;;        ↓↓↓
     (apply #'vector
            (loop :for (glsl-name type . qualifiers) :in outputs :collect
-              (make-typed-out-name
-               glsl-name (type-spec->type type (flow-id!))
+              (make-typed-external-name
+               (type-spec->type type (flow-id!))
+               glsl-name
                (sort (copy-list qualifiers) #'<))))))
