@@ -152,6 +152,18 @@
 however failed to do so when asked."
                src-obj cast-to-type))))
 
+(defmethod cast-code-inner ((varjo-type v-any-one-of)
+                            src-obj
+                            (cast-to-type v-any-one-of)
+                            env)
+  ;; in cases where v-casts-to has been used to calculate a new
+  ;; v-any-one-of type then the type has the flow-ids of the ctvs
+  ;; this means we don't want to use the flow-ids in the src-obj
+  (declare (ignore varjo-type env))
+  (assert (flow-ids cast-to-type))
+  (let* ((dest-type cast-to-type))
+    (copy-compiled src-obj :type-set (make-type-set dest-type))))
+
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env
                          &key (allow-casting t))
