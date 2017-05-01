@@ -122,8 +122,7 @@
                    (v-typep (primary-type test-obj) 'v-int))
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
-          (let* ((type (type-spec->type :void (flow-id!)))
-                 (type-set (make-type-set type)))
+          (let* ((type-set (make-type-set)))
             (values (merge-compiled
                      clause-objs
                      :type-set type-set

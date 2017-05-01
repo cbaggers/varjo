@@ -237,7 +237,7 @@
             'output-variable
             :name (name _)
             :glsl-name (glsl-name _)
-            :type (v-array-type-of (v-type-of _) (vertex-count primitive))
+            :type (v-array-type-of (v-type-of _) (vertex-count primitive) nil)
             :qualifiers (qualifiers _))
           output-variables))
 

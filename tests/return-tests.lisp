@@ -75,7 +75,7 @@
         (values)))))
 
 (5am:def-test return-10 (:suite return-tests)
-  (glsl-contains-all-p  ("\\(out int return1, out int return2\\);"
+  (glsl-contains-all-p  ("\\(out int return_1, out int return_2\\);"
                          "return_1 = "
                          "return_2 = "
                          "return g_")

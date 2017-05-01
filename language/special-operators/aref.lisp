@@ -7,10 +7,11 @@
 (v-defspecial aref ((arr (v-block-array "n/a" t *)) (index v-int))
   :return
   (let* ((type (primary-type arr))
-         (elem-type (set-flow-id (v-element-type type) (flow-id!))))
+         (elem-type (set-flow-id (v-element-type type) (flow-id!)))
+         (type-set (make-type-set elem-type)))
     (values
      (merge-compiled (list arr index)
-                     :type-set (make-type-set elem-type)
+                     :type-set type-set
                      :current-line (format nil "~a[~a].~a"
                                            (block-name type)
                                            (current-line index)
@@ -19,5 +20,5 @@
                                  'aref
                                  (list (node-tree arr)
                                        (node-tree index))
-                                 elem-type env env))
+                                 type-set env env))
      env)))

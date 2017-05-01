@@ -11,17 +11,17 @@
     (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body)
                                                              test-env)
       (if (v-typep (primary-type test-obj) 'v-bool)
-          (let ((type (type-spec->type :void (flow-id!))))
+          (let ((type-set (make-type-set)))
             (values (merge-compiled
                      (list body-obj test-obj)
-                     :type-set (make-type-set type)
+                     :type-set type-set
                      :current-line nil
                      :to-block (list (gen-while-string
                                       test-obj (end-line body-obj)))
                      :node-tree (ast-node!
                                  'while (mapcar #'node-tree
                                                 (list test-obj body-obj))
-                                 type env final-env))
+                                 type-set env final-env))
                     final-env))
           (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
