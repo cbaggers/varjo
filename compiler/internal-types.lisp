@@ -202,9 +202,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass multi-return-flow-id ()
-  ((m-value-ids :initform nil :initarg :m-value-ids :reader m-value-ids)))
-
 (defclass flow-identifier ()
   ((ids :initform nil :initarg :ids :reader ids)))
 

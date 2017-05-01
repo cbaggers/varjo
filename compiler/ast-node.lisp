@@ -103,21 +103,19 @@ context is implicit"))
                      (error "Could not find origin for ~s" raw-id))))
 
              (f-origin (val-id fcall-node)
-               (let* ((func (ast-kind fcall-node))
-                      (flow-result (flow-ids func)))
-                 (if (m-flow-id-p flow-result)
+               (let* ((func (ast-kind fcall-node)))
+                 (if (> (length (ast-return-type func)) 1)
                      (let ((return-pos (slot-value val-id 'return-pos)))
-                       (mapcar λ(or (get-seen (slot-value _ 'val))
-                                    fcall-node)
-                               (ids (nth return-pos
-                                         (m-value-ids flow-result)))))
+                       (mapcar λ(or (get-seen (slot-value _ 'val)) fcall-node)
+                               (ids (flow-ids
+                                     (nth return-pos
+                                          (ast-return-type func))))))
                      (progn
-                       (assert flow-result (func)
+                       (assert (flow-ids func) (func)
                                "trying to process flow-ids of ~a but found nil"
                                func)
-                       (mapcar λ(or (get-seen (slot-value _ 'val))
-                                    fcall-node)
-                               (ids flow-result))))))
+                       (mapcar λ(or (get-seen (slot-value _ 'val)) fcall-node)
+                               (ids (flow-ids func)))))))
 
              (per-id (val-id node)
                (let ((raw (slot-value val-id 'val)))

@@ -295,15 +295,6 @@ e.g. (~a :vec3)"
 (deferror flow-id-must-be-specified-co (:error-type varjo-critical-error) ()
     "code objects must be given a flow id when created")
 
-(defbug multiple-flow-ids-regular-func (:error-type varjo-critical-error)
-    (func-name func)
-    "the function ~s is a regular function but has multiple flow ids.
-this is an error as only functions with multiple returns are allowed
-multiple flow-ids.
-This is a compiler bug
-
-~s" func-name func)
-
 (deferror if-branch-type-mismatch (:error-type varjo-critical-error) (then-obj)
     "Type mismatch: else-case is nil which is of bool type, yet the then form is of ~s type."
   (type->type-spec (primary-type then-obj)))

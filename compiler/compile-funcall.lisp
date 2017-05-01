@@ -197,7 +197,7 @@
 
 (defun compile-regular-function-call (func-name func args env)
   (let* ((c-line (gen-function-string func args))
-         (flow-ids (calc-function-return-ids-given-args func func-name args))
+         (flow-ids (calc-function-return-ids-given-args func args))
          ;; This is one of the few cases where we want to set a flow id
          ;; regardless of the current state
          (type (resolve-func-type func args env))
@@ -246,10 +246,9 @@
                         p))
         (flow-id+meta! :return-pos multi-return-position))))
 
-(defun calc-function-return-ids-given-args (func func-name arg-code-objs)
+(defun calc-function-return-ids-given-args (func arg-code-objs)
   ;; {TODO} (warn "calc-function-return-ids-given-args should be merged with resolve-func-type")
-  (when (typep (flow-ids func) 'multi-return-flow-id)
-    (error 'multiple-flow-ids-regular-func :func-name func-name :func func))
+  (assert (<= (length (v-return-spec func)) 1))
   (unless (type-doesnt-need-flow-id (first (v-return-spec func)))
     (%calc-flow-id-given-args (in-arg-flow-ids func)
                               (flow-ids func)
@@ -258,10 +257,8 @@
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
   (let ((all-return-types (cons (first (v-return-spec func))
                                 (mapcar #'v-type-of
-                                        (rest (v-return-spec func)))))
-        (m-flow-id (flow-ids func)))
-    (assert (typep m-flow-id 'multi-return-flow-id))
-    (let ((flow-ids (m-value-ids m-flow-id)))
+                                        (rest (v-return-spec func))))))
+    (let ((flow-ids (map 'list #'flow-ids all-return-types)))
       (if (some #'type-doesnt-need-flow-id all-return-types)
           (error 'invalid-flow-id-multi-return :func-name func-name
                  :return-type all-return-types)
@@ -325,7 +322,7 @@
         (values (copy-compiled final
                                :node-tree (ast-node! func-name
                                                      (mapcar #'node-tree args)
-                                                     type
+                                                     (make-type-set type)
                                                      env env))
                 env)))))
 

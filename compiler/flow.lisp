@@ -12,9 +12,6 @@
 ;;----------------------------------------------------------------------
 ;; internals
 
-(defun m-flow-id-p (id)
-  (typep id 'multi-return-flow-id))
-
 (defun flow-id-p (id)
   (typep id 'flow-identifier))
 
