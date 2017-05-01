@@ -38,10 +38,6 @@
         (type-spec->type :void)
         (elt set 0))))
 
-(defgeneric multi-vals (compiled)
-  (:method ((compiled compiled))
-    (rest (coerce (slot-value compiled 'type-set) 'list))))
-
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 
 ;;----------------------------------------------------------------------

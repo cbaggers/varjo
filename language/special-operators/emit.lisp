@@ -64,9 +64,8 @@
     (assert (not (v-typep type (type-spec->type :void))) ()
             "Varjo: emit-data cannot emit void")
     (cond
-      ((multi-vals code-obj)
-       (let* ((mvals (multi-vals code-obj))
-              (v-vals (mapcar #'multi-val-value mvals))
+      ((> (length (emit-set code-obj)) 1)
+       (let* ((v-vals (rest (coerce (type-set code-obj) 'list)))
               (types (mapcar #'v-type-of v-vals))
               (glsl-lines (mapcar #'glsl-name v-vals)))
          (copy-compiled
@@ -88,7 +87,7 @@
           :emit-set (type-set code-obj))))
       (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
                              (make-type-set)
-                             (make-type-set (make-emit-val type)))))
+                             (make-type-set type))))
            (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form (%default-out-for-stage code-obj fresh-env)

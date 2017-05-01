@@ -229,10 +229,13 @@
   ;; - someone is subverting this by using the 'value-safe special-form.
   ;;   let's hope they know what they are doing :p
   ;; - we now have to work out the mvals for a regular function.
-  (let ((count (count-if #'multi-vals args)))
-    (cond ((> count 1) (error 'values-safe-wasnt-safe :args args))
-          ((= count 1) (multi-vals (find-if #'multi-vals args)))
-          (t nil))))
+  (labels ((multi-vals-p (x)
+             (> (length (type-set x)) 1)))
+    (let ((count (count-if #'multi-vals-p args))
+          (n (position-if #'multi-vals-p args)))
+      (cond ((> count 1) (error 'values-safe-wasnt-safe :args args))
+            ((= count 1) (rest (coerce (type-set (nth n args)) 'list)))
+            (t nil)))))
 
 ;;----------------------------------------------------------------------
 

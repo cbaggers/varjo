@@ -20,11 +20,10 @@
         ;; (assert (= (length (emit-set maybe-def-code)) 0))
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
-        (assert (null (multi-vals maybe-def-code)))
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
-        (assert (v-typep (primary-type maybe-def-code) :void)))
+        (assert (emptyp (type-set maybe-def-code))))
       (values compiled-func maybe-def-code))))
 
 (defun build-function (name args body allowed-implicit-args env)

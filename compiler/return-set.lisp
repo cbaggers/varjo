@@ -49,7 +49,7 @@
             n)))
 
 (defun mvals->out-form (code-object env)
-  (let ((mvals (multi-vals code-object))
+  (let ((mvals (rest (coerce (type-set code-object) 'list)))
         (stage (stage env)))
     `(progn
        ,@(loop :for mval :in mvals :for i :from 1 :collect

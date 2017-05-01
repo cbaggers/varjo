@@ -89,7 +89,7 @@
                 :return-set (or (return-set code-obj) (make-type-set))
                 :pure nil)
                env))
-      ((multi-vals code-obj)
+      ((> (length (type-set code-obj)) 1)
        (let* ((mvals (rest (coerce (type-set code-obj) 'list)))
               (types (mapcar #'v-type-of mvals))
               (glsl-lines (mapcar #'glsl-name mvals)))
