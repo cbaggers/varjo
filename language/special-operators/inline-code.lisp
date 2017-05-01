@@ -27,7 +27,7 @@
          (type-obj (if (typep type 'v-type)
                        type
                        (type-spec->type type (flow-id!))))
-         (type-set (if (v-typep type-obj :void)
+         (type-set (if (v-voidp type-obj)
                        (make-type-set)
                        (make-type-set type-obj)))
          (flow-id (flow-ids type-obj))

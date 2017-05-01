@@ -34,7 +34,7 @@
                      (env-prune* (env-depth test-env) then-env else-env)))
              (result-type (gen-or-type (list (primary-type then-obj)
                                              (primary-type else-obj))))
-             (type-set (if (v-typep result-type :void)
+             (type-set (if (v-voidp result-type)
                            (make-type-set)
                            (make-type-set result-type)))
              (node-tree (ast-node! 'if
@@ -53,7 +53,7 @@
                   final-env))))))
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
-  (let* ((will-assign (and (not (typep result-type 'v-void))
+  (let* ((will-assign (and (not (v-voidp result-type))
                            (not (typep result-type 'v-or))))
          (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp"))))
          (then-string (gen-string-for-if-block then-obj tmp-var))

@@ -489,9 +489,8 @@ type-spec trick doesnt"))
     (make-instance
      'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
      :return-spec (apply #'make-type-set
-                         (or (mapcar #'type-spec->type
-                                     (uiop:ensure-list return-type))
-                             (list (type-spec->type :void))))
+                         (mapcar #'type-spec->type
+                                 (uiop:ensure-list return-type)))
      :flow-ids flow-id)))
 
 (defmethod print-object ((object v-function-type) stream)
@@ -823,3 +822,7 @@ type-spec trick doesnt"))
   (flow-ids (v-type-of obj)))
 
 ;;------------------------------------------------------------
+
+(defun v-voidp (x)
+  (or (and (vectorp x) (= (length x) 0))
+      (typep x 'v-void)))

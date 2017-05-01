@@ -153,14 +153,13 @@
 
 (defun make-dummy-function-from-type (func-type)
   (let ((arg-spec (v-argument-spec func-type))
-        (return-spec (v-return-spec func-type))
         (glsl-name (gen-dummy-func-glsl-name func-type)))
     (make-instance
      'v-function
      :glsl-string (format nil "~a(~{~a~})" glsl-name
                           (loop :for nil :in arg-spec :collect "~a"))
      :arg-spec arg-spec
-     :return-spec return-spec
+     :return-spec (v-return-spec func-type)
      :versions *supported-versions*
      :v-place-index nil
      :glsl-name glsl-name

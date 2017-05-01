@@ -117,6 +117,9 @@
   (typep type 'v-error))
 
 (defun function-return-spec-doesnt-need-flow-ids (spec)
+  (assert (or (functionp spec)
+              (typep spec 'return-type-generator)
+              (<= (length spec) 1)))
   (and (vectorp spec)
        (or (= (length spec) 0)
            (typep (elt spec 0) 'v-error))))

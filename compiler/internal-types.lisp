@@ -417,6 +417,9 @@
    (name :initform nil :initarg :name :reader name)
    (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
    (in-out-args :initform nil :initarg :in-out-args :reader in-out-args)
+   ;; as of now the flow-ids of the return are never related to in-arg-flow-ids
+   ;; in v-function. We have it here purely to support multiple returns in spec
+   ;; functions (when we get around to supporting those)
    (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
                                      :primary-type :v-function)
                     :initarg :in-arg-flow-ids :reader in-arg-flow-ids)

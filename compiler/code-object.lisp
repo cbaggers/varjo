@@ -19,10 +19,6 @@
   (assert type-set () "Varjo: type-set is mandatory when making compiled objects")
   (assert-valid-type-set type-set :error-hint "ast-node")
   (let* ((used-types (%merge-used-types used-types type-set)))
-    (when (and (v-typep (primary-type type-set) :void)
-               (> (length type-set) 1))
-      ;; {TODO} Remove this
-      (break "Ah so that's when this can happen"))
     (make-instance 'compiled
                    :type-set type-set
                    :current-line current-line

@@ -57,11 +57,10 @@
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-return (code-obj implicit)
-  (let* ((suppress-return (or (v-typep (primary-type code-obj)
-                                       :void)
+  (let* ((suppress-return (or (v-voidp (primary-type code-obj))
                               (v-typep (primary-type code-obj)
                                        :ephemeral-type)))
-         (ret-set (if (and implicit (v-typep (primary-type code-obj) 'v-void))
+         (ret-set (if (and implicit (v-voidp (primary-type code-obj)))
                       (or (return-set code-obj)
                           (make-type-set))
                       (type-set code-obj))))
@@ -80,10 +79,9 @@
 (defun %main-return (code-obj implicit env)
   ;; If you make changes here, look at %emit to see if it needs
   ;; similar changes
-  (let ((type (primary-type code-obj))
-        (void (type-spec->type :void)))
+  (let ((type (primary-type code-obj)))
     (cond
-      ((and implicit (v-typep type void))
+      ((and implicit (v-voidp type))
        (values (copy-compiled
                 code-obj
                 :return-set (or (return-set code-obj) (make-type-set))

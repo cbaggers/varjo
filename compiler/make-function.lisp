@@ -85,10 +85,11 @@
            (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
            (return-set (coerce (return-set body-obj) 'list))
            (emit-set (emit-set body-obj))
-           (primary-type (or (when return-set (first return-set))
-                             (type-spec->type :void)))
            (multi-return-vars (when return-set (rest return-set)))
-           (type (if mainp (type-spec->type 'v-void) primary-type)))
+           (type (if mainp
+                     (type-spec->type 'v-void)
+                     (or (when return-set (first return-set))
+                         (type-spec->type :void)))))
       (let* ((arg-pairs (unless mainp
                           (loop :for (nil type) :in args
                              :for name :in arg-glsl-names :collect
@@ -113,7 +114,7 @@
              (strip-glsl
               (and (not mainp)
                    (pure-p body-obj)
-                   (or (v-typep type 'v-void) (ephemeral-p type))
+                   (or (v-voidp type) (ephemeral-p type))
                    (null multi-return-vars)))
              (sigs (unless (or mainp strip-glsl)
                      (list (gen-function-signature glsl-name arg-pairs
