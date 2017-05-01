@@ -317,12 +317,11 @@ however failed to do so when asked."
       (valid-type-set-p spec)))
 
 (defun resolve-func-type (func args)
-  (let* ((spec (elt (v-return-spec func) 0))
-         (arg-types (map 'list #'primary-type args))
+  (let* ((arg-types (map 'list #'primary-type args))
+         (spec (v-return-spec func))
          (result
           (typecase spec
-            ;;(vector spec)
-            (v-type spec)
+            (vector (elt (v-return-spec func) 0))
             (function (apply spec args))
             (ret-gen-superior-type
              (or (apply #'find-mutual-cast-type arg-types)

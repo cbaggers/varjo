@@ -56,10 +56,10 @@
                 (let ((loop-str (gen-for-loop-string
                                  var-string condition-obj update-obj
                                  (end-line body-obj)))
-                      (void (type-spec->type :void (flow-id!))))
+                      (type-set (make-type-set)))
                   (values (copy-compiled
                            body-obj
-                           :type-set (make-type-set)
+                           :type-set type-set
                            :current-line nil
                            :to-block (list loop-str)
                            :node-tree (ast-node!
@@ -68,7 +68,7 @@
                                                           (list condition-obj
                                                                 update-obj
                                                                 body-obj)))
-                                       void env final-env)
+                                       type-set env final-env)
                            :place-tree nil)
                           final-env))
                 (error 'for-loop-simple-expression)))))))

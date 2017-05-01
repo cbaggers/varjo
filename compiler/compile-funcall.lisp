@@ -108,7 +108,8 @@
               ((v-special-functionp func) (compile-special-function func args
                                                                     env))
               ;; funcs with multiple return values
-              ((> (length (v-return-spec func)) 1)
+              ((and (vectorp (v-return-spec func))
+                    (> (length (v-return-spec func)) 1))
                (compile-multi-return-function-call func-name func args env))
 
               ;; funcs taking unrepresentable values as arguments
@@ -161,15 +162,16 @@
     ;;
     (let* ((func (function-obj compiled-func))
            (flow-id (flow-id!))
-           (type (set-flow-id (v-type-of func) flow-id)))
+           (type (set-flow-id (v-type-of func) flow-id))
+           (type-set (make-type-set type)))
       (when (implicit-args func)
         (error 'closures-not-supported :func func-name-form))
       (values
-       (make-compiled :type-set (make-type-set type)
+       (make-compiled :type-set type-set
                       :current-line nil
                       :used-types (list type)
                       :node-tree (ast-node! 'function (list func-name-form)
-                                            type nil nil))
+                                            type-set nil nil))
        env))))
 
 (defun compile-external-function-call (func args env)
@@ -251,16 +253,17 @@
 
 (defun calc-function-return-ids-given-args (func arg-code-objs)
   ;; {TODO} (warn "calc-function-return-ids-given-args should be merged with resolve-func-type")
-  (assert (<= (length (v-return-spec func)) 1))
-  (unless (set-doesnt-need-flow-ids (v-return-spec func))
+  (let ((rspec (v-return-spec func)))
+    (assert (or (functionp rspec)
+                (typep rspec 'return-type-generator)
+                (<= (length rspec) 1))))
+  (unless (function-return-spec-doesnt-need-flow-ids (v-return-spec func))
     (%calc-flow-id-given-args (in-arg-flow-ids func)
                               (flow-ids func)
                               arg-code-objs)))
 
 (defun calc-mfunction-return-ids-given-args (func func-name arg-code-objs)
-  (let ((all-return-types (cons (first (v-return-spec func))
-                                (mapcar #'v-type-of
-                                        (rest (v-return-spec func))))))
+  (let ((all-return-types (type-set-to-type-list (v-return-spec func))))
     (let ((flow-ids (map 'list #'flow-ids all-return-types)))
       (if (some #'type-doesnt-need-flow-id all-return-types)
           (error 'invalid-flow-id-multi-return :func-name func-name
@@ -280,10 +283,12 @@
     (let* ((has-base (not (null (v-multi-val-base env))))
            (m-r-base (or (v-multi-val-base env)
                          (lisp-name->glsl-name 'nc env)))
-           (mvals (rest (v-return-spec func)))
+           (return-set (v-return-spec func))
+           (mvals (rest (coerce return-set 'list)))
+           (mval-count (length mvals))
            (start-index 1)
            (m-r-names (loop :for i :from start-index
-                         :below (+ start-index (length mvals)) :collect
+                         :below (+ start-index mval-count) :collect
                          (postfix-glsl-index m-r-base i))))
       (let* ((bindings (loop :for mval :in mvals :collect
                           `((,(gensym "NC")

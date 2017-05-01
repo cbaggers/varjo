@@ -64,7 +64,7 @@
             name
             (if (eq t argument-spec)
                 '(t*)
-                (mapcar #'type-of argument-spec))
+                (mapcar #'type->type-spec argument-spec))
             (let ((return-spec (if (vectorp return-spec)
                                    (type-set-to-type-list return-spec)
                                    return-spec)))
@@ -75,6 +75,14 @@
                    (if (= (length ret-types) 1)
                        (type->type-spec (first ret-types))
                        ret-types)))
+                (ret-gen-superior-type :mutual-cast)
+                (ret-gen-nth-arg-type
+                 (type->type-spec
+                  (elt argument-spec (arg-num return-spec))))
+                (ret-gen-element-of-nth-arg-type
+                 (type->type-spec
+                  (v-element-type
+                   (elt argument-spec (arg-num return-spec)))))
                 (otherwise return-spec))))))
 
 ;;------------------------------------------------------------
