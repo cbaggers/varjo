@@ -4,9 +4,11 @@
 ;;------------------------------------------------------------
 
 (defun emit-val-eql (ret-a ret-b)
-  (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
-       (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-       (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
+  (let ((ret-a (if (typep ret-a 'v-type) ret-a (v-type-of ret-a)))
+        (ret-b (if (typep ret-b 'v-type) ret-b (v-type-of ret-b))))
+    (and (v-type-eq ret-a ret-b)
+         (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
+         (every #'eq (qualifiers ret-a) (qualifiers ret-b)))))
 
 (defun merge-emit-sets (sets)
   (labels ((%merge-emit-sets (set-a set-b)
