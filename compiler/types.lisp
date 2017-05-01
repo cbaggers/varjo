@@ -784,14 +784,17 @@ type-spec trick doesnt"))
 
 ;;------------------------------------------------------------
 
-(defun assert-valid-type-set (set &key (error-hint ""))
+(defun valid-type-set-p (set)
   (let ((set-list (coerce set 'list)))
-    (assert (and (arrayp set)
-                 (if (> (length set) 0)
-                     (typep (first set-list) 'v-type)
-                     t)
-                 (every λ(typep _ 'typed-glsl-name) (rest set-list)))
-            (set) "Invalid ~a type-set: ~a" error-hint set)))
+    (and (arrayp set)
+         (if (> (length set) 0)
+             (typep (first set-list) 'v-type)
+             t)
+         (every λ(typep _ 'typed-glsl-name) (rest set-list)))))
+
+(defun assert-valid-type-set (set &key (error-hint ""))
+  (assert (valid-type-set-p set)
+          (set) "Invalid ~a type-set: ~a" error-hint set))
 
 (defun type-set-to-type-list (set)
   (let ((set-list (coerce set 'list)))

@@ -436,3 +436,15 @@
    (code :initform nil :initarg :code :reader v-code)))
 
 ;;------------------------------------------------------------
+
+(defclass return-type-generator () ())
+
+(defclass ret-gen-superior-type (return-type-generator) ())
+(defclass ret-gen-nth-arg-type (return-type-generator)
+  ((arg-num :initform (error "ret-gen-nth-arg-type - arg-num must be provided")
+            :initarg :arg-num
+            :reader arg-num)))
+(defclass ret-gen-element-of-nth-arg-type (return-type-generator)
+  ((arg-num :initform (error "ret-gen-nth-arg-type - arg-num must be provided")
+            :initarg :arg-num
+            :reader arg-num)))

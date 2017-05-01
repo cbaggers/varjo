@@ -200,7 +200,7 @@
          (flow-ids (calc-function-return-ids-given-args func args))
          ;; This is one of the few cases where we want to set a flow id
          ;; regardless of the current state
-         (type (resolve-func-type func args env))
+         (type (resolve-func-type func args))
          (type (if (flow-ids type)
                    (replace-flow-id type flow-ids)
                    (set-flow-id type flow-ids))))
@@ -273,7 +273,7 @@
 
 (defun compile-multi-return-function-call (func-name func args env)
   (let* ((flow-ids (calc-mfunction-return-ids-given-args func func-name args))
-         (type (replace-flow-id (resolve-func-type func args env)
+         (type (replace-flow-id (resolve-func-type func args)
                                 (first flow-ids))))
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))

@@ -76,15 +76,11 @@
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
                             in-out-args flow-ids in-arg-flow-ids pure)
-  (when (listp return-spec)
-    (assert (every (lambda (x)
-                     (or (template-return-spec-p x)
-                         (typep x 'typed-glsl-name)))
-                   return-spec)
-            () 'user-func-invalid-x
-            :kind 'returns
-            :name name
-            :args return-spec))
+  (assert (valid-func-return-spec-p return-spec)
+          () 'user-func-invalid-x
+          :kind 'returns
+          :name name
+          :args return-spec)
   (when (listp arg-spec)
     (assert (every (lambda (x)
                      (or (typep x 'v-type)
@@ -94,34 +90,29 @@
             :kind 'args
             :name name
             :args arg-spec))
-  (let ((return-spec (if (listp return-spec)
-                         (apply #'make-type-set return-spec)
-                         return-spec)))
-    (make-instance 'v-function
-                   :glsl-string transform
-                   :arg-spec arg-spec
-                   :return-spec return-spec
-                   :versions versions :v-place-index v-place-index
-                   :glsl-name glsl-name
-                   :name name
-                   :implicit-args implicit-args
-                   :in-out-args in-out-args
-                   :flow-ids flow-ids
-                   :in-arg-flow-ids in-arg-flow-ids
-                   :pure pure)))
+  (make-instance 'v-function
+                 :glsl-string transform
+                 :arg-spec arg-spec
+                 :return-spec return-spec
+                 :versions versions :v-place-index v-place-index
+                 :glsl-name glsl-name
+                 :name name
+                 :implicit-args implicit-args
+                 :in-out-args in-out-args
+                 :flow-ids flow-ids
+                 :in-arg-flow-ids in-arg-flow-ids
+                 :pure pure))
 
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
                                  code captured-vars pure emit-set)
-  (when return-spec
-    (assert (not (listp return-spec))))
-  (when (vectorp return-spec)
-    (assert (every (lambda (x)
-                     (or (typep x 'v-type)
-                         (typep x 'typed-glsl-name)))
-                   return-spec)
-            () 'user-func-invalid-x :returns name arg-spec))
+  (assert (and (vectorp return-spec)
+               (every (lambda (x)
+                        (or (typep x 'v-type)
+                            (typep x 'typed-glsl-name)))
+                      return-spec))
+          () 'user-func-invalid-x :returns name arg-spec)
   (when (listp arg-spec)
     (assert (every (lambda (x) (typep x 'v-type)) arg-spec)
             () 'user-func-invalid-x :args name arg-spec))

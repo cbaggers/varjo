@@ -58,7 +58,7 @@
                 ,return)
               (add-form-binding
                (make-function-obj ',name :special ',context t
-                                  (list #',func-name)
+                                  #',func-name
                                   :v-place-index ',v-place-index)
                *global-env*)
               ',name))
@@ -70,7 +70,7 @@
                  (make-function-obj ',name :special ',context
                                     ',(mapcar λ(type-spec->type (second _))
                                               args)
-                                    (list #',func-name)
+                                    #',func-name
                                     :v-place-index ',v-place-index)
                  *global-env*)
                 ',name)))))))
@@ -292,35 +292,29 @@ however failed to do so when asked."
 (defun element-spec-p (spec)
   (and (listp spec) (eq (first spec) :element)))
 
-(defun template-return-spec-p (spec)
-  (or (null spec)
-      (typep spec 'v-type)
-      (numberp spec)
+(defun valid-func-return-spec-p (spec)
+  (or (typep spec 'return-type-generator)
       (functionp spec)
-      (element-spec-p spec)))
+      (valid-type-set-p spec)))
 
-(defun resolve-func-type (func args env)
-  "nil - superior type
-   number - type of nth arg
-   function - call the function
-   (:element n) - element type of nth arg
-   list - type spec"
-  (declare (ignore env))
+(defun resolve-func-type (func args)
   (let* ((spec (elt (v-return-spec func) 0))
          (arg-types (map 'list #'primary-type args))
          (result
-          (cond ((null spec)
-                 (or (apply #'find-mutual-cast-type arg-types)
-                     (error 'unable-to-resolve-func-type
-                            :func-name (name func) :args args)))
-                ((typep spec 'v-type) spec)
-                ((numberp spec) (nth spec arg-types))
-                ((functionp spec) (apply spec args))
-                ((element-spec-p spec)
-                 (v-element-type (nth (second spec) arg-types)))
-                (t (error 'invalid-function-return-spec
-                          :func func
-                          :spec spec)))))
+          (typecase spec
+            (vector spec)
+            (function (apply spec args))
+            (ret-gen-superior-type
+             (or (apply #'find-mutual-cast-type arg-types)
+                 (error 'unable-to-resolve-func-type
+                        :func-name (name func) :args args)))
+            (ret-gen-nth-arg-type
+             (nth (arg-num spec) arg-types))
+            (ret-gen-element-of-nth-arg-type
+             (v-element-type (nth (arg-num spec) arg-types)))
+            (t (error 'invalid-function-return-spec
+                      :func func
+                      :spec spec)))))
     (assert (typep result 'v-type))
     result))
 

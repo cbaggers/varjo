@@ -104,7 +104,7 @@
                               fake-slot-name
                               nil ;; {TODO} Must be context
                               (list fake-struct)
-                              (list slot-type)
+                              (make-type-set slot-type)
                               :v-place-index nil
                               :pure t)
        :into funcs
@@ -150,7 +150,8 @@
                                      fake-slot-name
                                      nil ;; {TODO} Must be context
                                      (list fake-type-obj)
-                                     (list (type-spec->type slot-type))
+                                     (make-type-set
+                                      (type-spec->type slot-type))
                                      :v-place-index nil
                                      :pure t)
                   env)
