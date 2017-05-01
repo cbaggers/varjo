@@ -321,7 +321,8 @@ however failed to do so when asked."
          (arg-types (map 'list #'primary-type args))
          (result
           (typecase spec
-            (vector spec)
+            ;;(vector spec)
+            (v-type spec)
             (function (apply spec args))
             (ret-gen-superior-type
              (or (apply #'find-mutual-cast-type arg-types)

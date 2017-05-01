@@ -65,10 +65,16 @@
             (if (eq t argument-spec)
                 '(t*)
                 (mapcar #'type-of argument-spec))
-            (let ((return-spec (type-set-to-type-list return-spec)))
-              (typecase (first return-spec)
+            (let ((return-spec (if (vectorp return-spec)
+                                   (type-set-to-type-list return-spec)
+                                   return-spec)))
+              (typecase return-spec
                 (function t)
-                (v-type (type-of (first return-spec)))
+                (vector
+                 (let ((ret-types (type-set-to-type-list return-spec)))
+                   (if (= (length ret-types) 1)
+                       (type->type-spec (first ret-types))
+                       ret-types)))
                 (otherwise return-spec))))))
 
 ;;------------------------------------------------------------
@@ -112,7 +118,7 @@
                         (or (typep x 'v-type)
                             (typep x 'typed-glsl-name)))
                       return-spec))
-          () 'user-func-invalid-x :returns name arg-spec)
+          () 'user-func-invalid-x :kind :returns :name name :args arg-spec)
   (when (listp arg-spec)
     (assert (every (lambda (x) (typep x 'v-type)) arg-spec)
             () 'user-func-invalid-x :args name arg-spec))
