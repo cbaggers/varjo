@@ -130,7 +130,7 @@
 (defun %default-out-for-stage (code-obj env)
   (let ((stage (stage env)))
     (if (stage-where-first-return-is-position-p (stage env))
-        (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
+        (if (v-type-eq (primary-type code-obj) (type-spec->type :vec4))
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch
                    :prim-type (primary-type code-obj)))
