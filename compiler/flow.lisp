@@ -119,6 +119,9 @@
     (error "deprecated behaviour bug ~a" type))
   (typep type 'v-error))
 
+(defun set-doesnt-need-flow-ids (set)
+  (or (= (length set) 0) (typep (elt set 0) 'v-error)))
+
 
 ;;----------------------------------------------------------------------
 ;; inspection

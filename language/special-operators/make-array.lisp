@@ -70,11 +70,13 @@
            (element-type (apply #'find-mutual-cast-type types))
            (array-type (v-array-type-of element-type len (flow-id!)))
            (glsl (gen-array-literal-string objs element-type env))
-           (ast (ast-node! 'vector (mapcar #'node-tree objs) array-type
+           (type-set (make-type-set array-type))
+           (ast (ast-node! 'vector (mapcar #'node-tree objs)
+                           (make-type-set array-type)
                            env env)))
       (values
        (merge-compiled objs
-                       :type-set (make-type-set array-type)
+                       :type-set type-set
                        :current-line glsl
                        :node-tree ast)
        env))))

@@ -7,7 +7,7 @@
                         place-tree node-tree)
   (let ((flow-ids (flow-ids (primary-type type-set))))
     (assert-flow-id-singularity flow-ids)
-    (unless (or flow-ids (type-doesnt-need-flow-id (primary-type type-set)))
+    (unless (or flow-ids (set-doesnt-need-flow-ids type-set))
       (error 'flow-ids-mandatory :for "compiled object"
              :primary-type (map 'vector #'type->type-spec type-set))))
   (unless set-type-set
@@ -116,7 +116,7 @@
              emit-set
              (merge-emit-sets (remove nil (mapcar #'emit-set objs))))))
     (unless (or (flow-ids (primary-type type-set))
-                (type-doesnt-need-flow-id (primary-type type-set)))
+                (set-doesnt-need-flow-ids type-set))
       ;; {TODO} should check for all
       (error 'flow-ids-mandatory :for :code-object
              :primary-type (map 'vector λ(type->type-spec (v-type-of _))

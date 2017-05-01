@@ -35,7 +35,7 @@
     (primary-type (slot-value compiled 'type-set)))
   (:method ((set vector))
     (if (emptyp set)
-        (type-spec->type :void (flow-id!))
+        (type-spec->type :void)
         (elt set 0))))
 
 (defgeneric multi-vals (compiled)
