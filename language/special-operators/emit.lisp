@@ -45,13 +45,14 @@
          ;; current-line
          (code-obj (compile-form form new-env))
          (result (%emit code-obj new-env))
-         (ast (ast-node! 'emit (node-tree code-obj)
-                         (primary-type result)
-                         env env))
          (emit-set (or (emit-set result)
                        (error 'nil-emit-set
                               :form (list 'emit form)
-                              :possible-set (emit-set code-obj)))))
+                              :possible-set (emit-set code-obj))))
+         (ast (ast-node! 'emit-data
+                         (node-tree code-obj)
+                         (type-set result)
+                         env env)))
     ;;0
     (values (copy-compiled result :node-tree ast :emit-set emit-set)
             env)))
