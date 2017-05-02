@@ -10,11 +10,13 @@
   :return
   (if (typep val '(integer 0 *))
       (let* ((flow-id (flow-id!))
-             (type (type-spec->type :uint flow-id)))
-        (values (make-compiled :type-set (make-type-set type)
+             (type (type-spec->type :uint flow-id))
+             (type-set (make-type-set type)))
+        (values (make-compiled :type-set type-set
                                :current-line (format nil "~au" val)
                                :used-types (list type)
-                               :node-tree (ast-node! 'uint val type env env)
+                               :node-tree (ast-node! 'uint val type-set
+                                                     env env)
                                :pure t)
                 env))
       (compile-form `(%uint ,val) env)))
