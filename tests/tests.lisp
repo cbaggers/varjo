@@ -139,6 +139,7 @@
 (5am:def-suite build-tests :in test-all)
 (5am:def-suite struct-tests :in test-all)
 (5am:def-suite return-tests :in test-all)
+(5am:def-suite metadata-tests :in test-all)
 (5am:def-suite stemcell-tests :in test-all)
 (5am:def-suite qualifier-tests :in test-all)
 (5am:def-suite assignment-tests :in test-all)

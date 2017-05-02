@@ -269,3 +269,9 @@
                          (amplify d1 40 -0.5)
                          (amplify d2 50 -0.5))))
           (v! color 1)))))))
+
+(5am:def-test build-21 (:suite build-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 nil
+     (uint 32)
+     (v! 0 0 0 0))))
