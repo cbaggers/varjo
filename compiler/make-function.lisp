@@ -38,7 +38,8 @@
   ;;
   ;; Parse the types
   (let* ((arg-types (mapcar λ(type-spec->type (second _)) args))
-         (args-with-types (mapcar λ(dbind (name nil . rest) _
+         (args-with-types (mapcar λ(dbind (name ig . rest) _
+                                     (declare (ignore ig))
                                      `(,name ,_1 ,@rest))
                                   args
                                   arg-types)))
