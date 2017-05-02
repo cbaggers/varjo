@@ -56,7 +56,7 @@
                type-spec))
         (ast (ast-node! 'lisp-code-as-uniform
                         (list symbol type-spec cpu-side-transform)
-                        (type-spec->type type-spec)
+                        (make-type-set (type-spec->type type-spec))
                         env env)))
     (copy-compiled code :node-tree ast)))
 

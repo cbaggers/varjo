@@ -204,7 +204,7 @@ type-of new-value: ~a"
     "Swizzle expects a keyword to specify the components. Recieved ~a instead" item)
 
 (deferror multi-func-stemcells () (func-name)
-    "Multiple functions found name ~a that match arguments.~%However varjo cannot decide which function to use because n of the arguments passed in are of stemcell type" func-name)
+    "Multiple functions found named ~a that match arguments.~%However varjo cannot decide which function to use because n of the arguments passed in are of stemcell type" func-name)
 
 (deferror uniform-in-sfunc () (func-name)
     "Must not have uniforms in shader functions, only appropriate in shader stages: ~a"
