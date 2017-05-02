@@ -553,7 +553,11 @@
                 (rest glsl-decls)
                 glsl-decls)
             :instance-name *out-block-name*
-            :length (first (v-dimensions (elt out-set 0)))))))))
+            :length (let* ((type (elt out-set 0))
+                           (type (if (typep type 'v-type)
+                                     type
+                                     (v-type-of type))))
+                      (first (v-dimensions type)))))))))
 
   (:method ((stage fragment-stage) post-proc-obj locations)
     (with-slots (out-set) post-proc-obj

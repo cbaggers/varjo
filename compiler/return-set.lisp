@@ -58,13 +58,20 @@
 
 (defun %array-the-return-vals-for-size (size emit-vals)
   (map 'vector
-       λ(if (typep _ 'typed-glsl-name)
-            (let ((type (v-type-of _)))
-              (make-typed-glsl-name
-               (v-array-type-of type size (flow-ids type))
-               (glsl-name _)))
-            (qualify-type (v-array-type-of _ size (flow-ids _))
-                          (qualifiers _)))
+       (lambda (emit-val)
+         (typecase emit-val
+           (typed-glsl-name
+              (let ((type (print (v-type-of emit-val))))
+                (make-typed-glsl-name
+                 (v-array-type-of type size (flow-ids type))
+                 (glsl-name emit-val))))
+           (typed-external-name
+              (let ((type (print (v-type-of emit-val))))
+                (make-typed-external-name
+                 (v-array-type-of type size (flow-ids type))
+                 (glsl-name emit-val))))
+           (t (qualify-type (v-array-type-of emit-val size (flow-ids emit-val))
+                            (qualifiers emit-val)))))
        emit-vals))
 
 ;;------------------------------------------------------------
