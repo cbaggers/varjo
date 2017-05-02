@@ -24,21 +24,20 @@
 
          (objs (mapcar λ(compile-form _ new-env) forms))
          (base (v-multi-val-base env))
-         (glsl-names (loop :for i :below (length forms) :collect
+         (glsl-names (loop :for i :from 1 :below (length forms) :collect
                         (postfix-glsl-index base i)))
 
          (vals (loop :for o :in objs
-                  :for n :in glsl-names
                   :for q :in qualifier-lists
-                  :collect (make-typed-glsl-name
-                            (qualify-type (primary-type o) q)
-                            n)))
+                  :collect (qualify-type (primary-type o) q)))
          (first-name (gensym))
          (result (compile-form
                   `(let ((,first-name ,(first objs)))
                      ,@(loop :for o :in (rest objs)
-                          :for v :in (rest vals) :collect
-                          `(%assign ,v ,o))
+                          :for n :in glsl-names :collect
+                          `(glsl-expr ,(format nil "~a = ~~a" n)
+                                      ,(primary-type o)
+                                      ,o))
                      ,first-name)
                   env))
          (type-set (make-type-set* (cons (primary-type result) (rest vals))))

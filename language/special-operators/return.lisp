@@ -16,7 +16,8 @@
   (%return form t env))
 
 (defun %return (form implicit env)
-  (let ((new-env (fresh-environment env :multi-val-base "return")))
+  (let ((new-env (fresh-environment
+                  env :multi-val-base *return-var-name-base*)))
     ;; we create an environment with the signal to let any 'values' forms
     ;; down the tree know they will be caught and what their name prefix should
     ;; be.
@@ -88,9 +89,10 @@
                 :pure nil)
                env))
       ((> (length (type-set code-obj)) 1)
-       (let* ((mvals (rest (coerce (type-set code-obj) 'list)))
-              (types (mapcar #'v-type-of mvals))
-              (glsl-lines (mapcar #'glsl-name mvals)))
+       (let* ((m-v-types (rest (coerce (type-set code-obj) 'list)))
+              (base (v-multi-val-base env))
+              (glsl-lines (loop :for i :below (length m-v-types)
+                             :collect (postfix-glsl-index base (1+ i)))))
          (copy-compiled
           (merge-progn
            (with-fresh-env-scope (fresh-env env)
@@ -100,13 +102,13 @@
                  (lambda (p-env type gname)
                    (compile-let (gensym) (type->type-spec type)
                                 nil p-env gname))
-                 p-env types glsl-lines))
+                 p-env m-v-types glsl-lines))
                ;; We compile these ↓↓, however we dont include them in the ast
                (compile-form (%default-out-for-stage code-obj p-env)
                              p-env)
-               (compile-form (mvals->out-form code-obj p-env)
+               (compile-form (mvals->out-form code-obj base p-env)
                              p-env)
-               (compile-form '(glsl-expr "return" :void) p-env)))
+               (compile-form `(glsl-expr ,*return-var-name-base* :void) p-env)))
            env)
           :return-set (type-set code-obj))))
       (t (let ((ret-set
@@ -117,7 +119,7 @@
             (with-fresh-env-scope (fresh-env env)
               (compile-form `(progn
                                ,(%default-out-for-stage code-obj fresh-env)
-                               (glsl-expr "return" :void))
+                               (glsl-expr ,*return-var-name-base* :void))
                             fresh-env))
             :return-set ret-set
             :pure nil))))))

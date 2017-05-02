@@ -61,10 +61,11 @@
   ;; If you make changes here, look at %main-return to see if it needs
   ;; similar changes
   (cond
-    ((> (length (type-set code-obj)) 1)
-     (let* ((v-vals (rest (coerce (type-set code-obj) 'list)))
-            (types (mapcar #'v-type-of v-vals))
-            (glsl-lines (mapcar #'glsl-name v-vals)))
+    ((> (length (print (type-set code-obj))) 1)
+     (let* ((types (rest (coerce (type-set code-obj) 'list)))
+            (base (v-multi-val-base env))
+            (glsl-lines (loop :for i :below (length types) :collect
+                           (postfix-glsl-index base (1+ i)))))
        (copy-compiled
         (merge-progn
          (with-fresh-env-scope (fresh-env env)
@@ -78,7 +79,7 @@
              ;; We compile these ↓↓, however we dont include them in the ast
              (compile-form (%default-out-for-stage code-obj p-env)
                            p-env)
-             (compile-form (mvals->out-form code-obj p-env)
+             (compile-form (mvals->out-form code-obj base p-env)
                            p-env)))
          env)
         :emit-set (type-set code-obj))))

@@ -240,17 +240,9 @@
   (let* ((type-set (resolve-func-set func args))
          (m-r-base (or (v-multi-val-base env)
                        (lisp-name->glsl-name 'nc env)))
-         (m-r-names (loop :for i :from 1 :below (length type-set) :collect
-                       (postfix-glsl-index m-r-base i)))
-         (type-set (make-type-set*
-                    (map 'list
-                         (lambda (mval m-r-glsl-name)
-                           (if (typep mval 'typed-glsl-name)
-                               (make-typed-glsl-name (v-type-of mval)
-                                                     m-r-glsl-name)
-                               mval))
-                         type-set
-                         (cons "dummy" m-r-names))))
+         (m-r-names (loop :for i :from 1 :below (length type-set)
+                       :collect (postfix-glsl-index m-r-base i)))
+         (type-set type-set)
          (o (merge-compiled
              args
              :type-set type-set
@@ -263,7 +255,7 @@
          (bindings (loop :for i :from 1 :below (length type-set) :collect
                       (let ((mval (aref type-set i)))
                         `((,(gensym "NC")
-                            ,(type->type-spec (v-type-of mval)))))))
+                            ,(type->type-spec mval))))))
          (final
           ;; when (v-multi-val-base env) is not null then a return or mvbind
           ;; has already written the lets for the vars

@@ -498,7 +498,6 @@ type-spec trick doesnt"))
   (labels ((extract (x)
              (etypecase x
                (v-type (type->type-spec x))
-               (typed-glsl-name (type->type-spec (v-type-of x)))
                (ret-gen-superior-type :mutual-cast)
                (ret-gen-nth-arg-type
                 (type->type-spec
@@ -808,34 +807,23 @@ type-spec trick doesnt"))
 ;;------------------------------------------------------------
 
 (defun valid-type-set-member-p (x)
-  (or (typep x 'v-type)
-      (typep x 'typed-glsl-name)))
+  (typep x 'v-type))
 
 (defun valid-type-set-p (set)
   ;; {TODO} replace with (every #'valid-type-set-member set)
   (let ((set-list (coerce set 'list)))
     (and (arrayp set)
-         (if (> (length set) 0)
-             (typep (first set-list) 'v-type)
-             t)
-         (every λ(typep _ 'typed-glsl-name) (rest set-list)))))
+         (every λ(typep _ 'v-type) set-list))))
 
 (defun assert-valid-type-set (set &key (error-hint ""))
   (assert (valid-type-set-p set)
           (set) "Invalid ~a type-set: ~a" error-hint set))
 
 (defun type-set-to-type-list (set)
-  (let ((set-list (coerce set 'list)))
-    (cons (first set-list) (mapcar #'v-type-of (rest set-list)))))
+  (coerce set 'list))
 
 ;;------------------------------------------------------------
 ;; Typed Names (these probably need a better home)
-
-(defgeneric make-typed-glsl-name (type glsl-name)
-  (:method ((type v-type) (glsl-name string))
-    (make-instance 'typed-glsl-name
-                   :type type
-                   :glsl-name glsl-name)))
 
 (defgeneric make-typed-external-name (type glsl-name &optional qualifiers)
   (:method ((type v-type) (glsl-name string) &optional qualifiers)
@@ -844,9 +832,6 @@ type-spec trick doesnt"))
       (make-instance 'typed-external-name
                      :type (qualify-type type qualifiers)
                      :glsl-name glsl-name))))
-
-(defmethod flow-ids ((obj typed-glsl-name))
-  (flow-ids (v-type-of obj)))
 
 (defmethod flow-ids ((obj typed-external-name))
   (flow-ids (v-type-of obj)))

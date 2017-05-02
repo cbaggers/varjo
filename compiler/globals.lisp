@@ -85,3 +85,4 @@
 (defparameter *fallback-block-name* :in_block)
 (defvar *in-block-name* "v_in")
 (defvar *out-block-name* "v_out")
+(defvar *return-var-name-base* "return")

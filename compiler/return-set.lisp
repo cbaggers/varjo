@@ -2,13 +2,9 @@
 (in-readtable :fn.reader)
 
 (defun qualified-eql (ret-a ret-b)
-  (if (and (typep ret-a 'v-type) (typep ret-b 'v-type))
-      (and (v-type-eq ret-a ret-b)
-           (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-           (every #'eq (qualifiers ret-a) (qualifiers ret-b)))
-      (and (v-type-eq (v-type-of ret-a) (v-type-of ret-b))
-           (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-           (every #'eq (qualifiers ret-a) (qualifiers ret-b)))))
+  (and (v-type-eq ret-a ret-b)
+       (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
+       (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
 
 (defun merge-return-sets (sets)
   (labels ((%merge-return-sets (set-a set-b)
@@ -38,7 +34,7 @@
             (substitute #\_ #\- (symbol-name (type-of stage)))
             n)))
 
-(defun mvals->out-form (code-object env)
+(defun mvals->out-form (code-object base env)
   (let ((mvals (rest (coerce (type-set code-object) 'list)))
         (stage (stage env)))
     `(progn
@@ -46,32 +42,12 @@
             (with-slots (value qualifiers) mval
               `(glsl-expr ,(format nil "~a = ~a"
                                    (nth-return-name i stage t)
-                                   (glsl-name mval))
+                                   (postfix-glsl-index base i))
                           :void))))))
 
 ;; (defun out-qualifier-p (x env)
 ;;   (declare (ignore env))
 ;;   ;; {TODO} make this work properly
 ;;   (find x '(:smooth :flat :noperspective)))
-
-;;------------------------------------------------------------
-
-(defun %array-the-return-vals-for-size (size emit-vals)
-  (map 'vector
-       (lambda (emit-val)
-         (typecase emit-val
-           (typed-glsl-name
-              (let ((type (print (v-type-of emit-val))))
-                (make-typed-glsl-name
-                 (v-array-type-of type size (flow-ids type))
-                 (glsl-name emit-val))))
-           (typed-external-name
-              (let ((type (print (v-type-of emit-val))))
-                (make-typed-external-name
-                 (v-array-type-of type size (flow-ids type))
-                 (glsl-name emit-val))))
-           (t (qualify-type (v-array-type-of emit-val size (flow-ids emit-val))
-                            (qualifiers emit-val)))))
-       emit-vals))
 
 ;;------------------------------------------------------------

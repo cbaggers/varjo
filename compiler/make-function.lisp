@@ -98,8 +98,9 @@
              (out-arg-pairs (unless mainp
                               (loop :for mval :in multi-return-vars
                                  :for i :from 1
-                                 :for name = (glsl-name mval)
-                                 :for type = (v-glsl-string (v-type-of mval))
+                                 :for name = (postfix-glsl-index
+                                              *return-var-name-base* i)
+                                 :for type = (v-glsl-string mval)
                                  :collect `(,type ,name))))
              (in-out-args
               ;; {TODO} handle multiple returns

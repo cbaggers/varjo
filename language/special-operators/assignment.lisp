@@ -119,18 +119,4 @@
         env
         (walk-envs env))))
 
-;; %assign is only used to set the current-line of the code object
-;; it has no side effects on the compilation itself
-(v-defspecial %assign ((place v-type) (val v-type))
-  :return
-  (values
-   (let ((type-set (make-type-set (primary-type place))))
-     (merge-compiled (list place val)
-                     :type-set type-set
-                     :current-line (gen-assignment-string place val)
-                     :node-tree (ast-node! '%assign (list place val)
-                                           type-set env env)
-                     :pure nil))
-   env))
-
 ;;------------------------------------------------------------

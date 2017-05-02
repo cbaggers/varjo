@@ -270,6 +270,19 @@
 
 ;;----------------------------------------------------------------------
 
+(defun %array-the-return-vals-for-size (size emit-vals)
+  (map 'vector
+       (lambda (emit-val)
+         (typecase emit-val
+           (typed-external-name
+              (let ((type (v-type-of emit-val)))
+                (make-typed-external-name
+                 (v-array-type-of type size (flow-ids type))
+                 (glsl-name emit-val))))
+           (t (qualify-type (v-array-type-of emit-val size (flow-ids emit-val))
+                            (qualifiers emit-val)))))
+       emit-vals))
+
 (defgeneric transform-out-set-for-stage (stage raw-out-set primitive-out)
   ;;
   (:method ((stage tessellation-control-stage) raw-out-set primitive-out)

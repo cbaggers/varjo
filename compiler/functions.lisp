@@ -365,13 +365,6 @@ however failed to do so when asked."
                                                       arg-types))
                                  new-flow-id))
 
-                 (typed-glsl-name
-                  (make-typed-glsl-name
-                   (force-flow-id
-                    (resolve-return-type (v-type-of spec) new-flow-id)
-                    new-flow-id)
-                   (glsl-name spec)))
-
                  (t (error 'invalid-function-return-spec
                            :func func
                            :spec spec)))))

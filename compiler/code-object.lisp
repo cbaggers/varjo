@@ -32,10 +32,7 @@
                    :node-tree node-tree)))
 
 (defun %merge-used-types (a b)
-  (labels ((extract (x) (if (typep x 'v-type) x (v-type-of x))))
-    (let ((a (map 'list #'extract a))
-          (b (map 'list #'extract b)))
-      (concatenate 'list a (remove-if λ(find _ a :test #'v-type-eq) b)))))
+  (concatenate 'list a (remove-if λ(find _ a :test #'v-type-eq) b)))
 
 (defmethod current-line (code-obj &optional even-when-ephemeral)
   (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
@@ -111,12 +108,10 @@
          (if set-emit-set
              emit-set
              (merge-emit-sets (remove nil (mapcar #'emit-set objs))))))
-    (unless (or (flow-ids (primary-type type-set))
+    (unless (or (every #'flow-ids type-set)
                 (set-doesnt-need-flow-ids type-set))
-      ;; {TODO} should check for all
       (error 'flow-ids-mandatory :for :code-object
-             :primary-type (map 'vector λ(type->type-spec (v-type-of _))
-                                type-set)))
+             :primary-type (map 'vector #'type->type-spec type-set)))
     (make-compiled :type-set type-set
                    :current-line current-line
                    :to-block (if set-block to-block

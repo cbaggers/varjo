@@ -298,10 +298,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass typed-glsl-name ()
-  ((type :initarg :type :reader v-type-of)
-   (glsl-name :initarg :glsl-name :reader glsl-name)))
-
 (defclass typed-external-name ()
   ((type :initarg :type :reader v-type-of)
    (glsl-name :initarg :glsl-name :reader glsl-name)))

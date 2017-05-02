@@ -87,8 +87,7 @@
                      (cons list more-lists)))
            (code-objs (mapcar #'first e))
            (env-objs (mapcar #'second e))
-           (merged-env (reduce (lambda (_ _1) (merge-env _ _1))
-                               env-objs)))
+           (merged-env (reduce #'merge-env env-objs)))
       (values code-objs merged-env))))
 
 (defun %merge-multi-env-progn (code-objs)
