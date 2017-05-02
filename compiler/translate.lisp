@@ -10,7 +10,6 @@
         (let ((env (%make-base-environment
                     stage :stemcells-allowed stemcells-allowed)))
           (pipe-> (stage env)
-            #'set-env-context
             #'process-primitive-type
             #'add-context-glsl-vars
             #'expand-input-variables
@@ -32,8 +31,12 @@
 
 ;;----------------------------------------------------------------------
 
-(defun set-env-context (stage env)
-  (setf (v-context env) (context stage))
+(defun process-primitive-type (stage env)
+  ;;
+  (setf (primitive-in stage)
+        (%process-primitive-type (stage-obj-to-name stage)
+                                 (primitive-in stage)
+                                 :allow-null nil))
   (values stage env))
 
 ;;----------------------------------------------------------------------
@@ -140,50 +143,6 @@
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
   env)
-
-;;----------------------------------------------------------------------
-
-(defgeneric %process-primitive-type (stage primitive env)
-  ;;
-  (:method ((stage vertex-stage) primitive env)
-    (declare (ignore stage env))
-    primitive)
-
-  (:method ((stage tessellation-control-stage)
-            primitive env)
-    (declare (ignore stage env))
-    (assert (typep primitive 'patches) ()
-            'invalid-primitive-for-tessellation-stage
-            :prim (type-of primitive))
-    primitive)
-
-  (:method ((stage tessellation-evaluation-stage)
-            primitive env)
-    (declare (ignore stage env))
-    (assert (typep primitive 'patches) ()
-            'invalid-primitive-for-tessellation-stage
-            :prim (type-of primitive))
-    primitive)
-
-  (:method ((stage geometry-stage) primitive env)
-    (declare (ignore env))
-    (assert (typep primitive 'geometry-primitive) ()
-            'invalid-primitive-for-geometry-stage
-            :prim (type-of primitive))
-    primitive)
-
-  (:method ((stage fragment-stage) primitive env)
-    (declare (ignore stage primitive env))
-    nil))
-
-(defun process-primitive-type (stage env)
-  (let* ((prim (primitive-in stage))
-         (prim (etypecase prim
-                 (null nil)
-                 ((or symbol list) (primitive-name-to-instance prim))
-                 (primitive prim))))
-    (setf (primitive-in stage) (%process-primitive-type stage prim env)))
-  (values stage env))
 
 ;;----------------------------------------------------------------------
 

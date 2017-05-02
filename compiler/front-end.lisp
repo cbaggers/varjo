@@ -30,14 +30,15 @@ Example:
 "
   (assert (or vertex tessellation-control tessellation-evaluation
               geometry fragment))
-  (let* ((stages (list (when vertex
+  (let* ((prim (list draw-mode))
+         (stages (list (when vertex
                          (make-stage :vertex
                                      (first vertex)
                                      uniforms
                                      (list version)
                                      (rest vertex)
                                      allow-stemcells
-                                     nil))
+                                     (pop prim)))
                        (when tessellation-control
                          (make-stage :tessellation-control
                                      (first tessellation-control)
@@ -45,7 +46,7 @@ Example:
                                      (list version)
                                      (rest tessellation-control)
                                      allow-stemcells
-                                     nil))
+                                     (pop prim)))
                        (when tessellation-evaluation
                          (make-stage :tessellation-evaluation
                                      (first tessellation-evaluation)
@@ -53,7 +54,7 @@ Example:
                                      (list version)
                                      (rest tessellation-evaluation)
                                      allow-stemcells
-                                     nil))
+                                     (pop prim)))
                        (when geometry
                          (make-stage :geometry
                                      (first geometry)
@@ -61,7 +62,7 @@ Example:
                                      (list version)
                                      (rest geometry)
                                      allow-stemcells
-                                     nil))
+                                     (pop prim)))
                        (when fragment
                          (make-stage :fragment
                                      (first fragment)
@@ -69,7 +70,7 @@ Example:
                                      (list version)
                                      (rest fragment)
                                      allow-stemcells
-                                     nil))))
+                                     (pop prim)))))
          (stages (remove nil stages))
          (first (first stages)))
     (setf (primitive-in first) draw-mode)
@@ -82,7 +83,7 @@ Example:
   (assert (find as-version *supported-versions*))
   (let* ((stage (make-stage as-stage nil nil (list as-version)
                             (list form) nil :triangles))
-         (env (%make-base-environment stage :version as-version)))
+         (env (%make-base-environment stage)))
     (flow-id-scope (ast->code (compile-form form env)))))
 
 ;;----------------------------------------------------------------------

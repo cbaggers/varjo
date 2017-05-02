@@ -20,6 +20,7 @@
                (:file "tests/assignment-tests")
                (:file "tests/return-tests")
                (:file "tests/void-tests")
+               (:file "tests/flow-ids")
                (:file "tests/inline-glsl")
                (:file "tests/symbol-macros")
                (:file "tests/compiler-macros")

@@ -132,6 +132,46 @@
 
 ;;------------------------------------------------------------
 
+(defmacro def-finishes-test (name (&key suite) &body body)
+  `(progn
+     (defun ,name () ,@body)
+     (def-test ,name (:suite ,suite)
+       (finishes (,name)))))
+
+(defmacro def-is-true-test (name (&key suite) &body body)
+  `(progn
+     (defun ,name () ,@body)
+     (def-test ,name (:suite ,suite)
+       (is-true (,name)))))
+
+(defmacro def-dbind-test (name (&key suite) bind-vars test-form &body body)
+  `(progn
+     (defun ,name () ,@body)
+     (def-test ,name (:suite ,suite)
+       (destructuring-bind ,bind-vars (,name)
+         ,test-form))))
+
+(defmacro def-vbind-test (name (&key suite) bind-vars test-form &body body)
+  `(progn
+     (defun ,name () ,@body)
+     (def-test ,name (:suite ,suite)
+       (vbind ,bind-vars (,name)
+         ,test-form))))
+
+(defun make-env (stage-kind
+                 &optional in-args uniforms (version :450) allow-stemcells)
+  (let* ((stage (make-stage stage-kind in-args uniforms (list version) allow-stemcells))
+         (env (varjo::%make-base-environment stage)))
+    (varjo::pipe-> (stage env)
+      #'varjo::process-primitive-type
+      #'varjo::add-context-glsl-vars
+      #'varjo::expand-input-variables
+      #'varjo::process-uniforms
+      #'(lambda (stage env)
+          (values env stage)))))
+
+;;------------------------------------------------------------
+
 (5am:def-suite test-all)
 
 (5am:def-suite void-tests :in test-all)
@@ -139,6 +179,7 @@
 (5am:def-suite build-tests :in test-all)
 (5am:def-suite struct-tests :in test-all)
 (5am:def-suite return-tests :in test-all)
+(5am:def-suite flow-id-tests :in test-all)
 (5am:def-suite metadata-tests :in test-all)
 (5am:def-suite stemcell-tests :in test-all)
 (5am:def-suite qualifier-tests :in test-all)

@@ -139,11 +139,11 @@
                  (v-symbol-bindings env))
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
-(defun %make-base-environment (stage &key stemcells-allowed version)
+(defun %make-base-environment (stage &key stemcells-allowed)
   (make-instance 'base-environment
                  :stage stage
-                 :stemcells-allowed stemcells-allowed
-                 :context (when version (list version))))
+                 :context (context stage)
+                 :stemcells-allowed stemcells-allowed))
 
 ;;-------------------------------------------------------------------------
 ;; global env

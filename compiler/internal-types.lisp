@@ -32,7 +32,7 @@
 
 (defgeneric primary-type (compiled)
   (:method ((compiled compiled))
-    (primary-type (slot-value compiled 'type-set)))
+    (primary-type (type-set compiled)))
   (:method ((set vector))
     (if (emptyp set)
         (type-spec->type :void)

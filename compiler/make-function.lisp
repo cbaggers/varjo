@@ -143,7 +143,7 @@
                                            :glsl-name glsl-name
                                            :implicit-args implicit-args
                                            :in-out-args in-out-args
-                                           :flow-ids (flow-ids body-obj)
+                                           :flow-ids (flow-ids (return-set body-obj))
                                            :in-arg-flow-ids in-arg-flow-ids
                                            :pure (pure-p body-obj)))
              (ret-set (return-set body-obj))

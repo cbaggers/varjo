@@ -29,13 +29,47 @@
                  :context context
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
-                 :primitive-in primitive)))
+                 :primitive-in (%process-primitive-type kind primitive))))
         (when (member kind '(:tessellation-control :tessellation-evaluation))
           ;; {TODO} proper error
           (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
                   "Varjo: Tessellation stages require a GLSL version of at least 400"))
         (check-for-stage-specific-limitations r)
         r))))
+
+
+;;----------------------------------------------------------------------
+
+(defun %process-primitive-type (kind primitive &key (allow-null t))
+  (let ((primitive
+         (etypecase primitive
+           (null nil)
+           (primitive primitive)
+           ((or symbol list) (primitive-name-to-instance primitive)))))
+    (unless (and allow-null (null primitive))
+      (ecase kind
+        (:vertex primitive)
+
+        (:tessellation-control
+         (assert (typep primitive 'patches) ()
+                 'invalid-primitive-for-tessellation-stage
+                 :prim (type-of primitive))
+         primitive)
+
+        (:tessellation-evaluation
+         (assert (typep primitive 'patches) ()
+                 'invalid-primitive-for-tessellation-stage
+                 :prim (type-of primitive))
+         primitive)
+
+        (:geometry
+         (assert (typep primitive 'geometry-primitive) ()
+                 'invalid-primitive-for-geometry-stage
+                 :prim (type-of primitive))
+         primitive)
+
+        (:fragment nil)))))
+
 
 ;;----------------------------------------------------------------------
 
@@ -80,6 +114,14 @@
         (values (butlast qual-and-maybe-name)
                 glsl-name)
         qual-and-maybe-name)))
+
+(defun stage-obj-to-name (stage)
+  (etypecase stage
+    (vertex-stage :vertex)
+    (tessellation-control-stage :tessellation-control)
+    (tessellation-evaluation-stage :tessellation-evaluation)
+    (geometry-stage :geometry)
+    (fragment-stage :fragment)))
 
 (defun stage-kind-to-type (kind)
   (let ((map '((:vertex . vertex-stage)
