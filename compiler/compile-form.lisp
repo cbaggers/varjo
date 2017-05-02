@@ -16,9 +16,18 @@
                   ((and (listp code) (listp (first code)))
                    (error 'invalid-form-list :code code))
                   ((listp code) (compile-list-form code env))
-                  ((typep code 'code) code)
-                  ((typep code 'v-value) (%v-value->code code env))
+                  ((typep code 'compiled) code)
+                  ((typep code 'typed-glsl-name) (%typed-glsl-name->code code env))
                   (t (error 'cannot-compile :code code))))))))
+
+(defun %typed-glsl-name->code (v-val env)
+  (let ((type-set (make-type-set (v-type-of v-val))))
+    (make-compiled
+     :type-set type-set
+     :current-line (glsl-name v-val)
+     :node-tree (ast-node! :get-v-value (list (glsl-name v-val))
+                           type-set env env)
+     :pure t)))
 
 (defmethod compile-place (code env &key allow-unbound)
   (labels ((ensure-env (code-obj &optional new-env)

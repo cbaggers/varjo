@@ -26,8 +26,13 @@
          (base (v-multi-val-base env))
          (glsl-names (loop :for i :below (length forms) :collect
                         (postfix-glsl-index base i)))
-         (vals (loop :for o :in objs :for n :in glsl-names :collect
-                  (v-make-value (code-type o) env :glsl-name n)))
+
+         (vals (loop :for o :in objs
+                  :for n :in glsl-names
+                  :for q :in qualifier-lists
+                  :collect (make-typed-glsl-name
+                            (qualify-type (primary-type o) q)
+                            n)))
          (first-name (gensym))
          (result (compile-form
                   `(let ((,first-name ,(first objs)))
@@ -36,23 +41,24 @@
                           `(%assign ,v ,o))
                      ,first-name)
                   env))
+         (type-set (make-type-set* (cons (primary-type result) (rest vals))))
          (ast (ast-node! 'values
                          (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
                                  objs
                                  qualifier-lists)
-                         (code-type result) env env)))
-    (values (copy-code result
-                       :multi-vals (mapcar #'make-mval (rest vals)
-                                           (rest qualifier-lists))
-                       :node-tree ast)
+                         type-set env env)))
+    (values (copy-compiled
+             result
+             :type-set type-set
+             :node-tree ast)
             env)))
 
 (defun %values-void (env)
-  (let ((void (type-spec->type :void (flow-id!))))
-    (values (code! :type void
-                   :current-line nil
-                   :node-tree (ast-node! 'values nil void env env)
-                   :pure t)
+  (let ((void (make-type-set)))
+    (values (make-compiled :type-set void
+                           :current-line nil
+                           :node-tree (ast-node! 'values nil void env env)
+                           :pure t)
             env)))
 
 (defun extract-value-qualifiers (value-form)
@@ -83,9 +89,9 @@
           (let* ((final-env (fresh-environment e :multi-val-safe nil))
                  (ast (ast-node! 'varjo-lang:values-safe
                                  (list (node-tree c))
-                                 (code-type c)
+                                 (primary-type c)
                                  env
                                  final-env)))
-            (values (copy-code c :node-tree ast)
+            (values (copy-compiled c :node-tree ast)
                     final-env))))
       (compile-form form env )))

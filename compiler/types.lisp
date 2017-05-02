@@ -42,7 +42,8 @@
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
    (ctv :initform nil :initarg :ctv :accessor ctv)
-   (default-value :initarg :default-value)))
+   (default-value :initarg :default-value)
+   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)))
 
 (defmethod v-superclass ((type v-type))
   (with-slots (superclass) type
@@ -57,15 +58,22 @@
    "This function returns a new instance of the provided type with the exact
 same values in it's slots.
 
-It is different from (type-spec->type (type->type-spec type)) in that it handles
-compile/unrepresentable values and flow-ids correctly, which the type-spec trick
-doesnt"))
+It is different from (type-spec->type (type->type-spec type)) in that it
+handles compile/unrepresentable values and flow-ids correctly, which the
+type-spec trick doesnt"))
 
 (defmethod copy-type ((type v-type))
   (let* ((type-name (class-name (class-of type)))
-         (new-inst (make-instance type-name :flow-ids (flow-ids type))))
+         (new-inst (make-instance type-name
+                                  :flow-ids (flow-ids type)
+                                  :qualifiers (qualifiers type))))
     (setf (ctv new-inst) (ctv type))
     new-inst))
+
+(defmethod qualify-type ((type v-type) qualifiers)
+  (let ((type (copy-type type)))
+    (setf (slot-value type 'qualifiers) qualifiers)
+    type))
 
 (defmethod type->type-spec ((type v-type))
   (class-name (class-of type)))
@@ -82,14 +90,6 @@ doesnt"))
 
 (defmethod v-true-type ((object v-type))
   object)
-
-;;------------------------------------------------------------
-;; None
-
-(def-v-type-class v-none (v-type) ())
-
-(defun gen-none-type ()
-  (type-spec->type :none))
 
 ;;------------------------------------------------------------
 ;; Void
@@ -191,6 +191,9 @@ doesnt"))
 
 (defmethod copy-type ((type v-array))
   (make-instance 'v-array
+                 :ctv (ctv type)
+                 :flow-ids (flow-ids type)
+                 :qualifiers (qualifiers type)
                  :dimensions (v-dimensions type)
                  :element-type (v-element-type type)))
 
@@ -323,15 +326,15 @@ doesnt"))
   (with-slots (dimensions element-type) object
     (setf dimensions (listify dimensions))
     (unless (typep element-type 'v-type)
-      (setf element-type (type-spec->type element-type)))))
+      (setf element-type (type-spec->type element-type))))
 
-(defmethod v-element-type ((object v-block-array))
-  (let ((result (slot-value object 'element-type)))
-    ;; {TODO} dedicated error
-    (assert (typep result 'v-type) (object)
-            "The element-type of ~a was ~a which is not an instance of a type."
-            object result)
-    result))
+  (defmethod v-element-type ((object v-block-array))
+    (let ((result (slot-value object 'element-type)))
+      ;; {TODO} dedicated error
+      (assert (typep result 'v-type) (object)
+              "The element-type of ~a was ~a which is not an instance of a type."
+              object result)
+      result)))
 
 (defmethod type->type-spec ((type v-block-array))
   `(v-block-array ,(if (slot-boundp type 'block-name)
@@ -412,9 +415,9 @@ doesnt"))
   (:method (types)
     (labels ((inner (type)
                (if (typep type 'v-or)
-                   (mapcat #'inner (v-types type))
+                   (mappend #'inner (v-types type))
                    (list type))))
-      (remove-duplicates (mapcat #'inner types) :test #'v-type-eq))))
+      (remove-duplicates (mappend #'inner types) :test #'v-type-eq))))
 
 (defmethod print-object ((obj v-or) stream)
   (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
@@ -485,20 +488,39 @@ doesnt"))
   (destructuring-bind (arg-types return-type) args
     (make-instance
      'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
-     :return-spec (or (mapcar #'type-spec->type (uiop:ensure-list return-type))
-                      (list (type-spec->type :void)))
+     :return-spec (make-type-set*
+                   (mapcar #'type-spec->type
+                           (uiop:ensure-list return-type)))
      :flow-ids flow-id)))
+
+(defun %print-func-type-common (stream header-string argument-spec return-spec
+                                &optional name)
+  (labels ((extract (x)
+             (etypecase x
+               (v-type (type->type-spec x))
+               (typed-glsl-name (type->type-spec (v-type-of x)))
+               (ret-gen-superior-type :mutual-cast)
+               (ret-gen-nth-arg-type
+                (type->type-spec
+                 (elt argument-spec (arg-num argument-spec))))
+               (ret-gen-element-of-nth-arg-type
+                (type->type-spec
+                 (v-element-type
+                  (elt argument-spec (arg-num argument-spec))))))))
+    (format stream "#<~a~@[ ~s~] ~s -> ~s>"
+            header-string
+            name
+            (if (eq t argument-spec)
+                '(t*)
+                (mapcar #'type->type-spec argument-spec))
+            (if (vectorp return-spec)
+                (map 'list #'extract return-spec)
+                return-spec))))
 
 (defmethod print-object ((object v-function-type) stream)
   (with-slots (name argument-spec return-spec) object
-    (format stream "#<V-FUNCTION-TYPE ~s -> ~s>"
-            (if (eq t argument-spec)
-                '(t*)
-                (mapcar #'type-of argument-spec))
-            (typecase (first return-spec)
-              (function t)
-              (v-type (type-of (first return-spec)))
-              (otherwise return-spec)))))
+    (%print-func-type-common
+     stream "V-FUNCTION-TYPE" argument-spec return-spec)))
 
 (defmethod copy-type ((type v-function-type))
   (let* ((new-inst (call-next-method)))
@@ -514,11 +536,11 @@ doesnt"))
 (defmethod type->type-spec ((type v-function-type))
   (with-slots (argument-spec return-spec) type
     ;; {TODO} remove this, done now
-    (assert (listp return-spec))
+    (assert (vectorp return-spec))
     (let* ((in (mapcar #'type->type-spec argument-spec))
            (out (if (= (length return-spec) 1)
-                    (type->type-spec (first return-spec))
-                    (mapcar #'type->type-spec return-spec))))
+                    (type->type-spec (elt return-spec 0))
+                    (map 'list #'type->type-spec return-spec))))
       `(function ,in ,out))))
 
 ;;------------------------------------------------------------
@@ -698,7 +720,6 @@ doesnt"))
 (defmethod v-casts-to-p (from-type to-type env)
   (not (null (v-casts-to from-type to-type env))))
 
-;;[TODO] vtypep here?
 (defmethod v-casts-to ((from-type v-type) (to-type v-type) env)
   (if (v-typep from-type to-type)
       (strip-flow-id from-type)
@@ -767,3 +788,71 @@ doesnt"))
 
 (defun find-alternative-types-for-spec (type-spec)
   (find-similarly-named-symbol type-spec *registered-types*))
+
+;;------------------------------------------------------------
+
+(defun make-type-set* (members)
+  (when (and (= (length members) 1)
+             (not (typep (first members) 'v-stemcell)))
+    (assert (not (v-typep (first members) :void))))
+  (apply #'vector members))
+
+(defun make-type-set (&rest members)
+  (let ((subs (mappend λ(typecase _
+                          (list _)
+                          (vector (coerce _ 'list))
+                          (otherwise (list _)))
+                       members)))
+    (make-type-set* subs)))
+
+;;------------------------------------------------------------
+
+(defun valid-type-set-member-p (x)
+  (or (typep x 'v-type)
+      (typep x 'typed-glsl-name)))
+
+(defun valid-type-set-p (set)
+  ;; {TODO} replace with (every #'valid-type-set-member set)
+  (let ((set-list (coerce set 'list)))
+    (and (arrayp set)
+         (if (> (length set) 0)
+             (typep (first set-list) 'v-type)
+             t)
+         (every λ(typep _ 'typed-glsl-name) (rest set-list)))))
+
+(defun assert-valid-type-set (set &key (error-hint ""))
+  (assert (valid-type-set-p set)
+          (set) "Invalid ~a type-set: ~a" error-hint set))
+
+(defun type-set-to-type-list (set)
+  (let ((set-list (coerce set 'list)))
+    (cons (first set-list) (mapcar #'v-type-of (rest set-list)))))
+
+;;------------------------------------------------------------
+;; Typed Names (these probably need a better home)
+
+(defgeneric make-typed-glsl-name (type glsl-name)
+  (:method ((type v-type) (glsl-name string))
+    (make-instance 'typed-glsl-name
+                   :type type
+                   :glsl-name glsl-name)))
+
+(defgeneric make-typed-external-name (type glsl-name &optional qualifiers)
+  (:method ((type v-type) (glsl-name string) &optional qualifiers)
+    (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers))
+                            #'string<)))
+      (make-instance 'typed-external-name
+                     :type (qualify-type type qualifiers)
+                     :glsl-name glsl-name))))
+
+(defmethod flow-ids ((obj typed-glsl-name))
+  (flow-ids (v-type-of obj)))
+
+(defmethod flow-ids ((obj typed-external-name))
+  (flow-ids (v-type-of obj)))
+
+;;------------------------------------------------------------
+
+(defun v-voidp (x)
+  (or (and (vectorp x) (= (length x) 0))
+      (typep x 'v-void)))

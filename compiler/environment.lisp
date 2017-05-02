@@ -29,9 +29,9 @@
   ;; {TODO} we shouldnt have to remove-duplicates here
   ;;        find out why this is happening
   (remove-duplicates
-   (mapcat #'signatures
-           (hash-table-values
-            (slot-value (get-base-env e) 'compiled-functions)))
+   (mappend #'signatures
+            (hash-table-values
+             (slot-value (get-base-env e) 'compiled-functions)))
    :test #'equal))
 
 (defmethod used-external-functions ((e environment))
@@ -240,8 +240,8 @@
   (assert (typep new-parent 'environment))
   (make-instance 'environment
                  :symbol-bindings (if symbol-bindings-set
-                                symbol-bindings
-                                (v-symbol-bindings env))
+                                      symbol-bindings
+                                      (v-symbol-bindings env))
                  :form-bindings (v-form-bindings env)
                  :macros (v-macros env)
                  :context (copy-list (v-context env))
@@ -322,7 +322,8 @@ For example calling env-prune on this environment..
                    (remove-duplicates
                     (let ((bindings (mapcar #'first (v-symbol-bindings e))))
                       (append (if variables-only
-                                  (remove-if λ(typep _ 'v-symbol-macro) bindings)
+                                  (remove-if λ(typep _ 'v-symbol-macro)
+                                             bindings)
                                   bindings)
                               accum))
                     :test #'eq
@@ -541,7 +542,9 @@ For example calling env-prune on this environment..
     (cond (s (if respect-scope-rules
                  (values (apply-scope-rules symbol s env) env)
                  (values s env)))
-          (t (get-symbol-binding symbol respect-scope-rules (v-parent-env env))))))
+          (t (get-symbol-binding symbol
+                                 respect-scope-rules
+                                 (v-parent-env env))))))
 
 (defmethod v-symbol-bindings ((env (eql :-genv-)))
   nil)

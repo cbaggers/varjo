@@ -1,5 +1,9 @@
-* in make-user-function-obj & make-function-obj assert that types are objects
-  dont allow type-specs
+* check which places actually need primary-type
+
+* enforce type . named-types layout to type-sets
+  assert type is never :void
+
+* unify type & multi-vals in code objects
 
 * make-user-function-obj in make-function.lisp has a daft way of storing the
   return types, we should make it follow the return-set approach. Currently
@@ -20,7 +24,7 @@
 * add-function to global should remove functiosn that are totally blocked, so match
   on (cons func-name (v-args func)) as only the newsest one will be selected and it slows
   down processing
-* merge-obs needs a new name
+* merge-compiled needs a new name
 * Write tour guide
 
 * read up on setting variables as invariant

@@ -9,7 +9,7 @@
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
-    (let ((always-true (or (not (v-typep (code-type test-obj) 'v-bool))
+    (let ((always-true (or (not (v-typep (primary-type test-obj) 'v-bool))
                            (eq test-form t)))
           (always-false (eq test-form nil))
           (has-else (not (or (null else-form) (equal else-form '(values)))))
@@ -32,25 +32,28 @@
              (final-env
               (apply #'env-merge-history
                      (env-prune* (env-depth test-env) then-env else-env)))
-             (result-type (gen-or-type (list (code-type then-obj)
-                                             (code-type else-obj))))
+             (result-type (gen-or-type (list (primary-type then-obj)
+                                             (primary-type else-obj))))
+             (type-set (if (v-voidp result-type)
+                           (make-type-set)
+                           (make-type-set result-type)))
              (node-tree (ast-node! 'if
                                    (mapcar #'node-tree
                                            (list test-obj then-obj else-obj))
-                                   result-type
+                                   type-set
                                    starting-env final-env)))
         (vbind (block-string current-line-string)
             (gen-string-for-if-form test-obj then-obj else-obj result-type
                                     has-else)
-          (values (merge-obs arg-objs
-                             :type result-type
-                             :current-line current-line-string
-                             :to-block (list block-string)
-                             :node-tree node-tree)
+          (values (merge-compiled arg-objs
+                                  :type-set type-set
+                                  :current-line current-line-string
+                                  :to-block (list block-string)
+                                  :node-tree node-tree)
                   final-env))))))
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
-  (let* ((will-assign (and (not (typep result-type 'v-void))
+  (let* ((will-assign (and (not (v-voidp result-type))
                            (not (typep result-type 'v-or))))
          (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp"))))
          (then-string (gen-string-for-if-block then-obj tmp-var))
@@ -115,25 +118,25 @@
                                (mapcar #'second clause-pairs))))
               (reduce #'env-merge-history
                       (rest envs) :initial-value (first envs)))))
-      (if (and (or (v-typep (code-type test-obj) 'v-uint)
-                   (v-typep (code-type test-obj) 'v-int))
+      (if (and (or (v-typep (primary-type test-obj) 'v-uint)
+                   (v-typep (primary-type test-obj) 'v-int))
                (loop :for key :in keys :always
                   (or (eq key 'default) (integerp key))))
-          (let ((type (type-spec->type :void (flow-id!))))
-            (values (merge-obs clause-objs
-                               :type type
-                               :current-line nil
-                               :to-block (list (gen-switch-string test-obj keys
-                                                                  clause-objs))
-                               :node-tree (ast-node!
-                                           'switch
-                                           (cons (node-tree test-obj)
-
-                                                 (mapcar λ`(,(first _)
-                                                             ,(node-tree _1))
-                                                         clauses
-                                                         clause-objs))
-                                           type env final-env))
+          (let* ((type-set (make-type-set)))
+            (values (merge-compiled
+                     clause-objs
+                     :type-set type-set
+                     :current-line nil
+                     :to-block (list (gen-switch-string test-obj keys
+                                                        clause-objs))
+                     :node-tree (ast-node!
+                                 'switch
+                                 (cons (node-tree test-obj)
+                                       (mapcar λ`(,(first _)
+                                                   ,(node-tree _1))
+                                               clauses
+                                               clause-objs))
+                                 type-set env final-env))
                     final-env))
           (error 'switch-type-error :test-obj test-obj :keys keys)))))
 

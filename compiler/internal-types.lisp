@@ -16,20 +16,27 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass code ()
-  ((type :initarg :type :initform nil :reader code-type)
+(defclass compiled ()
+  ((type-set :initarg :type-set :reader type-set)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)
    (emit-set :initarg :emit-set :initform nil :reader emit-set)
    (used-types :initarg :used-types :initform nil :reader used-types)
-   (multi-vals :initarg :multi-vals :initform nil :reader multi-vals)
    (stem-cells :initarg :stemcells :initform nil :reader stemcells)
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
    (pure :initarg :pure :initform nil :reader pure-p)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
    (node-tree :initarg :node-tree :initform nil :reader node-tree)))
+
+(defgeneric primary-type (compiled)
+  (:method ((compiled compiled))
+    (primary-type (slot-value compiled 'type-set)))
+  (:method ((set vector))
+    (if (emptyp set)
+        (type-spec->type :void)
+        (elt set 0))))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 
@@ -43,7 +50,7 @@
    (input-variable-glsl :initarg :input-variable-glsl
                         :accessor input-variable-glsl)
    (output-variable-glsl :initarg :output-variable-glsl
-                        :accessor output-variable-glsl)
+                         :accessor output-variable-glsl)
    (out-set :initarg :out-set :accessor out-set)
    (raw-out-set :initarg :raw-out-set :accessor raw-out-set)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
@@ -135,7 +142,8 @@
   ((glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
 
 (defclass implicit-uniform-variable (uniform-variable)
-  ((cpu-side-transform :initarg :cpu-side-transform :reader cpu-side-transform)))
+  ((cpu-side-transform :initarg :cpu-side-transform
+                       :reader cpu-side-transform)))
 
 (defclass output-variable (shader-variable)
   ((location :initarg :location :reader location)))
@@ -189,9 +197,6 @@
    (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
 
 ;;----------------------------------------------------------------------
-
-(defclass multi-return-flow-id ()
-  ((m-value-ids :initform nil :initarg :m-value-ids :reader m-value-ids)))
 
 (defclass flow-identifier ()
   ((ids :initform nil :initarg :ids :reader ids)))
@@ -293,26 +298,13 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass mval ()
-  ((value :initarg :value :reader multi-val-value)
-   (qualifiers :initarg :qualifiers :reader multi-val-qualifiers)))
-
-(defclass return-val ()
+(defclass typed-glsl-name ()
   ((type :initarg :type :reader v-type-of)
-   (qualifiers :initarg :qualifiers :reader qualifiers)))
+   (glsl-name :initarg :glsl-name :reader glsl-name)))
 
-(defclass named-return-val (return-val)
-  ((glsl-name :initarg :glsl-name :reader glsl-name)))
-
-(defclass external-return-val (return-val)
-  ((out-name :initarg :out-name :reader out-name)))
-
-(defclass emit-val ()
+(defclass typed-external-name ()
   ((type :initarg :type :reader v-type-of)
-   (qualifiers :initarg :qualifiers :reader qualifiers)))
-
-(defclass named-emit-val (emit-val)
-  ((glsl-name :initarg :glsl-name :reader glsl-name)))
+   (glsl-name :initarg :glsl-name :reader glsl-name)))
 
 ;;----------------------------------------------------------------------
 
@@ -414,3 +406,63 @@
         (make-instance symb))))
 
 ;;-------------------------------------------------------------------------
+
+(defclass v-function ()
+  ((versions :initform nil :initarg :versions :accessor v-versions)
+   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
+   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
+   (glsl-name :initarg :glsl-name :accessor glsl-name)
+   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
+   (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
+   (name :initform nil :initarg :name :reader name)
+   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
+   (in-out-args :initform nil :initarg :in-out-args :reader in-out-args)
+   ;; as of now the flow-ids of the return are never related to in-arg-flow-ids
+   ;; in v-function. We have it here purely to support multiple returns in spec
+   ;; functions (when we get around to supporting those)
+   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
+                                     :primary-type :v-function)
+                    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
+   (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
+                              :primary-type :v-function)
+             :initarg :flow-ids :reader flow-ids)
+   (emit-set :initform nil :initarg :emit-set :reader emit-set)
+   (pure :initform nil :initarg :pure :reader pure-p)))
+
+(defmethod functions ((fn v-function))
+  (list fn))
+
+;;------------------------------------------------------------
+
+(defclass v-user-function (v-function)
+  ((captured-vars :initform nil :initarg :captured-vars :reader captured-vars)
+   (code :initform nil :initarg :code :reader v-code)))
+
+;;------------------------------------------------------------
+
+(defclass return-type-generator () ())
+
+(defclass ret-gen-superior-type (return-type-generator) ())
+(defclass ret-gen-nth-arg-type (return-type-generator)
+  ((arg-num :initform (error "ret-gen-nth-arg-type - arg-num must be provided")
+            :initarg :arg-num
+            :reader arg-num)))
+(defclass ret-gen-element-of-nth-arg-type (return-type-generator)
+  ((arg-num :initform (error "ret-gen-nth-arg-type - arg-num must be provided")
+            :initarg :arg-num
+            :reader arg-num)))
+
+(defmethod make-load-form ((obj ret-gen-superior-type)
+                           &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'ret-gen-superior-type))
+
+(defmethod make-load-form ((obj ret-gen-nth-arg-type)
+                           &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'ret-gen-nth-arg-type :arg-num ,(arg-num obj)))
+
+(defmethod make-load-form ((obj ret-gen-element-of-nth-arg-type)
+                           &optional environment)
+  (declare (ignore environment))
+  `(make-instance 'ret-gen-element-of-nth-arg-type :arg-num ,(arg-num obj)))

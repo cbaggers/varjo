@@ -117,10 +117,10 @@
       (and
        ;; needs to at least have name and type
        (>= (length arg) 2)
-       ;; of the rest of the list it must be keyword qualifiers and optionally a
-       ;; string at the end. The string is a declaration of what the name of the
-       ;; var will be in glsl. This feature is intended for use only by the compiler
-       ;; but I see not reason to lock this away.
+       ;; of the rest of the list it must be keyword qualifiers and optionally
+       ;; a string at the end. The string is a declaration of what the name of
+       ;; the var will be in glsl. This feature is intended for use only by the
+       ;; compiler but I see not reason to lock this away.
        (let* ((qualifiers (subseq arg 2))
               (qualifiers (if (stringp (last1 qualifiers))
                               (butlast qualifiers)

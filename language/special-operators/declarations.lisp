@@ -24,20 +24,20 @@
   (compile-declares declarations env)
   ;; This ↓↓ make code objects for the decls and splices them in
   (let* ((decls (loop :for d :in declarations :collect
-                   (copy-code
+                   (copy-compiled
                     (compile-form '(values) env)
                     :node-tree (make-ast-node-for-declaration d env)))))
     (vbind (o e) (compile-form `(progn ,@decls ,@body) env)
       (values
        (if decls
-           (copy-code o :node-tree (copy-ast-node (node-tree o)
-                                                  :kind 'locally))
+           (copy-compiled o :node-tree (copy-ast-node (node-tree o)
+                                                      :kind 'locally))
            o)
        e))))
 
 (defun make-ast-node-for-declaration (declaration env)
   (ast-node! :code-section declaration
-             (gen-none-type)
+             (make-type-set)
              env env))
 
 ;;------------------------------------------------------------
@@ -47,16 +47,16 @@
   :args-valid t
   :return
   (let* ((compiled (compile-form form env))
-         (obj (if (stemcellp (code-type compiled))
+         (obj (if (stemcellp (primary-type compiled))
                   (add-type-to-stemcell-code compiled type-name)
-                  (if (v-typep (code-type compiled)
+                  (if (v-typep (primary-type compiled)
                                (type-spec->type type-name))
                       compiled ;{TODO} proper error here
                       (error "Incorrect declaration that ~a was of type ~a"
                              compiled type-name)))))
     (values
-     (copy-code
+     (copy-compiled
       obj
       :node-tree (ast-node! 'the (list type-name (node-tree compiled))
-                            (code-type compiled) env env))
+                            (type-set compiled) env env))
      env)))

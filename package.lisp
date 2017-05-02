@@ -174,6 +174,8 @@
            :emit-not-in-geometry-stage
            :inline-glsl-vertex-stage-not-supported
            :clashes-found-between-input-and-output-names
+           :user-func-invalid-x
+           :invalid-inline-glsl-stage-arg-layout
 
            ;; restarts
            :setq-supply-alternate-type
@@ -236,7 +238,6 @@
            :v-type
            :v-stemcell
            :v-array
-           :v-none
            :v-function
            :v-function-type
            :v-user-function
@@ -331,6 +332,7 @@
            ;;definitions
            :v-defstruct
            :v-defun
+           :v-def-glsl-template-fun
            :v-defmacro
            :v-define-compiler-macro
            :def-metadata-infer

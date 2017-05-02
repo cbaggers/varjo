@@ -3,36 +3,6 @@
 
 ;;------------------------------------------------------------
 
-(defclass v-function ()
-  ((versions :initform nil :initarg :versions :accessor v-versions)
-   (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
-   (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (glsl-name :initarg :glsl-name :accessor glsl-name)
-   (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)
-   (v-place-index :initform nil :initarg :v-place-index :reader v-place-index)
-   (name :initform nil :initarg :name :reader name)
-   (implicit-args :initform nil :initarg :implicit-args :reader implicit-args)
-   (in-out-args :initform nil :initarg :in-out-args :reader in-out-args)
-   (in-arg-flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-                                     :code-type :v-function)
-                    :initarg :in-arg-flow-ids :reader in-arg-flow-ids)
-   (flow-ids :initform (error 'flow-ids-mandatory :for :v-function
-                              :code-type :v-function)
-             :initarg :flow-ids :reader flow-ids)
-   (emit-set :initform nil :initarg :emit-set :reader emit-set)
-   (pure :initform nil :initarg :pure :reader pure-p)))
-
-(defmethod functions ((fn v-function))
-  (list fn))
-
-;;------------------------------------------------------------
-
-(def-v-type-class v-user-function (v-function)
-  ((captured-vars :initform nil :initarg :captured-vars :reader captured-vars)
-   (code :initform nil :initarg :code :reader v-code)))
-
-;;------------------------------------------------------------
-
 (defmethod functions ((fn v-user-function))
   (list fn))
 
@@ -58,12 +28,14 @@
 ;;------------------------------------------------------------
 
 (defgeneric function-identifier (func)
+  ;; account for this
   (:method ((func v-function))
     (cons (name func) (mapcar #'type->type-spec (v-argument-spec func)))))
 
 (defgeneric function-identifier-with-return (func)
+  ;; account for this
   (:method ((func v-function))
-    (let* ((returns (mapcar #'type->type-spec (v-return-spec func)))
+    (let* ((returns (map 'list #'type->type-spec (v-return-spec func)))
            (returns (if (= (length returns) 1)
                         (first returns)
                         returns)))
@@ -74,7 +46,7 @@
 
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
-    (assert (listp return-spec))
+    (assert (vectorp return-spec))
     (make-instance 'v-function-type
                    :ctv func
                    :arg-spec argument-spec
@@ -88,38 +60,32 @@
 
 (defmethod print-object ((object v-function) stream)
   (with-slots (name argument-spec return-spec) object
-    (format stream "#<V-FUNCTION ~s ~s -> ~s>"
-            name
-            (if (eq t argument-spec)
-                '(t*)
-                (mapcar #'type-of argument-spec))
-            (typecase (first return-spec)
-              (function t)
-              (v-type (type-of (first return-spec)))
-              (otherwise return-spec)))))
+    (%print-func-type-common
+     stream "V-FUNCTION-TYPE" argument-spec return-spec name)))
 
 ;;------------------------------------------------------------
 
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
                             in-out-args flow-ids in-arg-flow-ids pure)
+  (assert (valid-func-return-spec-p return-spec)
+          () 'user-func-invalid-x
+          :kind 'returns
+          :name name
+          :args return-spec)
+  (when (listp arg-spec)
+    (assert (every (lambda (x)
+                     (or (typep x 'v-type)
+                         (functionp x)))
+                   arg-spec)
+            () 'user-func-invalid-x
+            :kind 'args
+            :name name
+            :args arg-spec))
   (make-instance 'v-function
                  :glsl-string transform
-                 :arg-spec (if (listp arg-spec)
-                               (loop :for spec :in arg-spec :collect
-                                  (if (typep spec 'v-type)
-                                      spec
-                                      (or (try-type-spec->type
-                                           (resolve-name-from-alternative spec)
-                                           nil)
-                                          (error "BUG: NEEDS A REAL ERROR HERE"))))
-                               arg-spec)
-                 :return-spec
-                 (mapcar (lambda (rspec)
-                           (if (type-specp rspec)
-                               (type-spec->type rspec)
-                               rspec))
-                         return-spec)
+                 :arg-spec arg-spec
+                 :return-spec return-spec
                  :versions versions :v-place-index v-place-index
                  :glsl-name glsl-name
                  :name name
@@ -133,18 +99,16 @@
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
                                  code captured-vars pure emit-set)
+  (assert (and (vectorp return-spec)
+               (every #'valid-type-set-member-p return-spec))
+          () 'user-func-invalid-x :kind :returns :name name :args arg-spec)
+  (when (listp arg-spec)
+    (assert (every (lambda (x) (typep x 'v-type)) arg-spec)
+            () 'user-func-invalid-x :args name arg-spec))
   (make-instance 'v-user-function
                  :glsl-string transform
-                 :arg-spec (if (listp arg-spec)
-                               (loop :for spec :in arg-spec :collect
-                                  (type-spec->type spec))
-                               arg-spec)
-                 :return-spec
-                 (mapcar (lambda (rspec)
-                           (if (type-specp rspec)
-                               (type-spec->type rspec)
-                               rspec))
-                         return-spec)
+                 :arg-spec arg-spec
+                 :return-spec return-spec
                  :versions versions :v-place-index v-place-index
                  :glsl-name glsl-name
                  :name name
@@ -164,14 +128,13 @@
 
 (defun make-dummy-function-from-type (func-type)
   (let ((arg-spec (v-argument-spec func-type))
-        (return-spec (v-return-spec func-type))
         (glsl-name (gen-dummy-func-glsl-name func-type)))
     (make-instance
      'v-function
      :glsl-string (format nil "~a(~{~a~})" glsl-name
                           (loop :for nil :in arg-spec :collect "~a"))
      :arg-spec arg-spec
-     :return-spec return-spec
+     :return-spec (v-return-spec func-type)
      :versions *supported-versions*
      :v-place-index nil
      :glsl-name glsl-name
@@ -283,7 +246,8 @@
              (functions (functions func-set))
              (constr (first (remove-if λ(> (length (v-argument-spec _)) 0)
                                        functions))))
-        (when (v-type-eq (first (v-return-spec constr)) src-type)
+
+        (when (v-type-eq (primary-type (v-return-spec constr)) src-type)
           (function-identifier-with-return
            (shadow-function constr src-type alt-type
                             :new-name alt-type-name

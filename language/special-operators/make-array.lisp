@@ -30,8 +30,8 @@
                   (dimensions initial-contents) 'make-array-conflicting-lengths
                   :dims dimensions :initial-contents initial-contents))
         (let* ((element-type (type-spec->type (if (keywordp element-type)
-                                               element-type
-                                               (second element-type))))
+                                                  element-type
+                                                  (second element-type))))
                (len dimensions)
                (initial-contents
                 (or initial-contents
@@ -43,21 +43,22 @@
                            :initial-contents initial-contents
                            :element-type (type->type-spec element-type))))
                (elem-objs (mapcar λ(compile-literal _ env) initial-contents))
-               (types (mapcar #'v-type-of elem-objs))
+               (types (mapcar #'primary-type elem-objs))
                (array-type (v-array-type-of element-type len (flow-id!))))
           (assert (every λ(v-casts-to-p _ element-type env) types) ()
                   'make-array-cant-cast-args
                   :element-type element-type
                   :initial-contents initial-contents)
-          (let ((glsl (gen-array-literal-string elem-objs element-type env))
-                (ast (ast-node! :code-section (cons 'make-array args)
-                                (gen-none-type) env env)))
+          (let* ((glsl (gen-array-literal-string elem-objs element-type env))
+                 (type-set (make-type-set array-type))
+                 (ast (ast-node! :code-section (cons 'make-array args)
+                                 type-set env env)))
             (values
-             (code! :type array-type
-                    :current-line glsl
-                    :used-types (list element-type)
-                    :node-tree ast
-                    :pure t)
+             (make-compiled :type-set type-set
+                            :current-line glsl
+                            :used-types (list element-type)
+                            :node-tree ast
+                            :pure t)
              env)))))))
 
 (v-defspecial vector (&rest elements)
@@ -65,15 +66,17 @@
   :return
   (vbind (objs) (mapcar λ(try-compile-arg _ env nil) elements)
     (let* ((len (length elements))
-           (types (mapcar #'v-type-of objs))
+           (types (mapcar #'primary-type objs))
            (element-type (apply #'find-mutual-cast-type types))
            (array-type (v-array-type-of element-type len (flow-id!)))
            (glsl (gen-array-literal-string objs element-type env))
-           (ast (ast-node! 'vector (mapcar #'node-tree objs) array-type
+           (type-set (make-type-set array-type))
+           (ast (ast-node! 'vector (mapcar #'node-tree objs)
+                           (make-type-set array-type)
                            env env)))
       (values
-       (merge-obs objs
-                  :type array-type
-                  :current-line glsl
-                  :node-tree ast)
+       (merge-compiled objs
+                       :type-set type-set
+                       :current-line glsl
+                       :node-tree ast)
        env))))

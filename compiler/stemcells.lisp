@@ -11,14 +11,14 @@
        (boundp symb)))
 
 (defun add-type-to-stemcell-code (code-obj type-name)
-  (assert (stemcellp (code-type code-obj)))
+  (assert (stemcellp (primary-type code-obj)))
   (let ((type (type-spec->type type-name (flow-ids code-obj)))
         (stemcells (stemcells code-obj)))
     (assert (= 1 (length stemcells)))
-    (copy-code
+    (copy-compiled
      code-obj
      :current-line (unless (ephemeral-p type) (current-line code-obj))
-     :type type
+     :type-set (make-type-set type)
      :stemcells (with-slots (name string-name flow-id cpu-side-transform)
                     (first stemcells)
                   (list (stemcell! name string-name type-name flow-id
@@ -39,13 +39,14 @@
   (let* ((string-name (string (safe-glsl-name-string symbol)))
          (original-name symbol)
          (flow-id (get-flow-id-for-stem-cell original-name env))
-         (type (type-spec->type 'v-stemcell flow-id)))
-    (code!
-     :type type
+         (type (type-spec->type 'v-stemcell flow-id))
+         (type-set (make-type-set type)))
+    (make-compiled
+     :type-set type-set
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
                               flow-id cpu-side-transform))
-     :node-tree (ast-node! :get-stemcell symbol type env env))))
+     :node-tree (ast-node! :get-stemcell symbol type-set env env))))
 
 (defun inject-implicit-uniform (symbol type-spec env
                                 &optional cpu-side-transform)
@@ -57,7 +58,7 @@
                         (list symbol type-spec cpu-side-transform)
                         (type-spec->type type-spec)
                         env env)))
-    (copy-code code :node-tree ast)))
+    (copy-compiled code :node-tree ast)))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

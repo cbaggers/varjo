@@ -40,7 +40,7 @@
                 (%main-return code-obj implicit new-env)
                 (%regular-return code-obj implicit)))
            (ast (ast-node! 'return (node-tree code-obj)
-                           (code-type result)
+                           (make-type-set)
                            env env))
            (ret-set (or (return-set result)
                         (error 'nil-return-set
@@ -49,39 +49,28 @@
                                                'return)
                                            form)
                                :possible-set (return-set code-obj)))))
-      (values (copy-code result :node-tree ast :return-set ret-set)
+      (values (copy-compiled result
+                             :type-set (make-type-set)
+                             :node-tree ast
+                             :return-set ret-set)
               env))))
 
 ;; Used when this is a labels (or otherwise local) function
 (defun %regular-return (code-obj implicit)
-  (let* ((void (type-spec->type :void))
-         (flow-result
-          (if (multi-vals code-obj)
-              (m-flow-id! (cons (flow-ids code-obj)
-                                (mapcar λ(flow-ids (multi-val-value _))
-                                        (multi-vals code-obj))))
-              (flow-ids code-obj)))
-         (suppress-return (or (v-typep (code-type code-obj) 'v-void)
-                              (v-typep (code-type code-obj)
-                                       'v-ephemeral-type)))
-         (ret-set (make-return-set-from-code-obj code-obj)))
+  (let* ((suppress-return (or (v-voidp (primary-type code-obj))
+                              (v-typep (primary-type code-obj)
+                                       :ephemeral-type)))
+         (ret-set (if (and implicit (v-voidp (primary-type code-obj)))
+                      (or (return-set code-obj)
+                          (make-type-set))
+                      (type-set code-obj))))
     ;;
-    (when (and implicit (v-typep (code-type code-obj) void))
-      (setf ret-set (or (return-set code-obj) (make-return-set)))
-      (setf flow-result
-            (case= (length ret-set)
-              (0 (flow-ids code-obj))
-              (1 (flow-ids (v-type-of (elt ret-set 0))))
-              (otherwise (m-flow-id!
-                          (map 'list λ(flow-ids (v-type-of _)) ret-set))))))
-    ;;
-    (copy-code
+    (copy-compiled
      code-obj
-     :type (type-spec->type 'v-void flow-result)
+     :type-set (make-type-set)
      :current-line (if suppress-return
                        (current-line code-obj)
                        (format nil "return ~a" (current-line code-obj)))
-     :multi-vals nil
      :place-tree nil
      :return-set ret-set)))
 
@@ -90,21 +79,19 @@
 (defun %main-return (code-obj implicit env)
   ;; If you make changes here, look at %emit to see if it needs
   ;; similar changes
-  (let ((type (v-type-of code-obj))
-        (void (type-spec->type :void)))
+  (let ((type (primary-type code-obj)))
     (cond
-      ((and implicit (v-typep type void))
-       (values (copy-code code-obj
-                          :return-set (or (return-set code-obj)
-                                          (make-return-set))
-                          :pure nil)
+      ((and implicit (v-voidp type))
+       (values (copy-compiled
+                code-obj
+                :return-set (or (return-set code-obj) (make-type-set))
+                :pure nil)
                env))
-      ((multi-vals code-obj)
-       (let* ((mvals (multi-vals code-obj))
-              (v-vals (mapcar #'multi-val-value mvals))
-              (types (mapcar #'v-type-of v-vals))
-              (glsl-lines (mapcar #'glsl-name v-vals)))
-         (copy-code
+      ((> (length (type-set code-obj)) 1)
+       (let* ((mvals (rest (coerce (type-set code-obj) 'list)))
+              (types (mapcar #'v-type-of mvals))
+              (glsl-lines (mapcar #'glsl-name mvals)))
+         (copy-compiled
           (merge-progn
            (with-fresh-env-scope (fresh-env env)
              (env-> (p-env fresh-env)
@@ -121,12 +108,12 @@
                              p-env)
                (compile-form '(glsl-expr "return" :void) p-env)))
            env)
-          :return-set (make-return-set-from-code-obj code-obj))))
+          :return-set (type-set code-obj))))
       (t (let ((ret-set
                 (if (stage-where-first-return-is-position-p (stage env))
-                    (make-return-set)
-                    (make-return-set (make-return-val type)))))
-           (copy-code
+                    (make-type-set)
+                    (make-type-set type))))
+           (copy-compiled
             (with-fresh-env-scope (fresh-env env)
               (compile-form `(progn
                                ,(%default-out-for-stage code-obj fresh-env)
@@ -141,9 +128,9 @@
 (defun %default-out-for-stage (code-obj env)
   (let ((stage (stage env)))
     (if (stage-where-first-return-is-position-p (stage env))
-        (if (v-type-eq (v-type-of code-obj) (type-spec->type :vec4))
+        (if (v-type-eq (primary-type code-obj) (type-spec->type :vec4))
             `(setq varjo-lang::gl-position ,code-obj)
             (error 'vertex-stage-primary-type-mismatch
-                   :prim-type (v-type-of code-obj)))
+                   :prim-type (primary-type code-obj)))
         `(glsl-expr ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
                     :void ,code-obj))))

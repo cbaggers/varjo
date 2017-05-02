@@ -214,33 +214,32 @@
     nil))
 
 (defun infer-meta (code-obj env)
-  (assert (typep code-obj 'code))
+  (assert (typep code-obj 'compiled))
   (assert (typep env 'environment))
-  (let* ((type (code-type code-obj))
-         (flow-id (flow-ids type))
-         (flow-ids (etypecase flow-id
-                     (multi-return-flow-id (m-value-ids flow-id))
-                     (flow-identifier (list flow-id))))
-         (ext-env (make-instance 'extended-environment :env env)))
-    (loop :for flow-id :in flow-ids :do
-       (when (singular-flow-id-p flow-id)
-         (loop :for kind :in (meta-kinds-to-infer type) :do
-            (unless (metadata-for-flow-id kind flow-id env)
-              (let ((meta-args (multiple-value-list
-                                (infer-meta-by-type type kind ext-env))))
-                (unless (or (null meta-args)
-                            (equal meta-args '(nil)))
-                  (let ((meta (apply #'make-instance kind meta-args)))
-                    (setf (metadata-for-flow-id flow-id env) meta)))))))))
+  (unless (emptyp (type-set code-obj))
+    (let* ((flow-ids (map 'list #'flow-ids (type-set-to-type-list
+                                            (type-set code-obj))))
+           (ext-env (make-instance 'extended-environment :env env))
+           (type (primary-type code-obj)))
+      (loop :for flow-id :in flow-ids :do
+         (when (singular-flow-id-p flow-id)
+           (loop :for kind :in (meta-kinds-to-infer type) :do
+              (unless (metadata-for-flow-id kind flow-id env)
+                (let ((meta-args (multiple-value-list
+                                  (infer-meta-by-type type kind ext-env))))
+                  (unless (or (null meta-args)
+                              (equal meta-args '(nil)))
+                    (let ((meta (apply #'make-instance kind meta-args)))
+                      (setf (metadata-for-flow-id flow-id env) meta))))))))))
   code-obj)
 
 (defmacro def-metadata-infer (varjo-type metadata-kind env-var &body body)
   (assert (symbolp varjo-type))
   (assert (symbolp metadata-kind))
   (assert (subtypep metadata-kind 'standard-value-metadata))
-  (let ((varjo-type (type->type-spec (type-spec->type varjo-type))))
-    (with-gensyms (type kind)
-      `(defmethod infer-meta-by-type ((,type ,varjo-type)
-                                      (,kind (eql ',metadata-kind))
-                                      ,env-var)
-         ,@body))))
+  (assert (type-specp varjo-type))
+  (with-gensyms (type kind)
+    `(defmethod infer-meta-by-type ((,type ,varjo-type)
+                                    (,kind (eql ',metadata-kind))
+                                    ,env-var)
+       ,@body)))

@@ -27,18 +27,27 @@
          (type-obj (if (typep type 'v-type)
                        type
                        (type-spec->type type (flow-id!))))
+         (type-set (if (v-voidp type-obj)
+                       (make-type-set)
+                       (make-type-set type-obj)))
          (flow-id (flow-ids type-obj))
          (glsl (apply #'format (append (list nil current-line)
                                        arg-lines))))
     (assert flow-id)
-    (code! :type type-obj
-           :current-line glsl
-           :used-types (list type-obj)
-           :node-tree (ast-node! 'glsl-string nil type-obj nil nil)
-           :pure nil)))
+    (make-compiled
+     :type-set type-set
+     :current-line glsl
+     :used-types (list type-obj)
+     :node-tree (ast-node! '%glsl-expr
+                           (list current-line type)
+                           type-set
+                           nil nil)
+     :pure nil)))
 
 (defun glsl-let (name-symbol name-string type value-form env)
-  (let ((type-spec (if (typep type 'v-type) (type->type-spec type) type)))
+  (let ((type-spec (if (typep type 'v-type)
+                       (type->type-spec type)
+                       type)))
     (compile-let name-symbol type-spec value-form env name-string)))
 
 

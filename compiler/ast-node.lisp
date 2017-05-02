@@ -16,10 +16,8 @@
       (t (eq kind actual-kind)))))
 
 (defmethod ast-typep (node type)
-  (let ((type (if (typep type 'v-type)
-                  type
-                  (type-spec->type type))))
-    (v-typep (ast-return-type node) type)))
+  (assert (typep type 'v-type))
+  (v-typep (ast-return-type node) type))
 
 ;;----------------------------------------------------------------------
 
@@ -105,21 +103,19 @@ context is implicit"))
                      (error "Could not find origin for ~s" raw-id))))
 
              (f-origin (val-id fcall-node)
-               (let* ((func (ast-kind fcall-node))
-                      (flow-result (flow-ids func)))
-                 (if (m-flow-id-p flow-result)
+               (let* ((func (ast-kind fcall-node)))
+                 (if (> (length (ast-return-type func)) 1)
                      (let ((return-pos (slot-value val-id 'return-pos)))
-                       (mapcar λ(or (get-seen (slot-value _ 'val))
-                                    fcall-node)
-                               (ids (nth return-pos
-                                         (m-value-ids flow-result)))))
+                       (mapcar λ(or (get-seen (slot-value _ 'val)) fcall-node)
+                               (ids (flow-ids
+                                     (nth return-pos
+                                          (ast-return-type func))))))
                      (progn
-                       (assert flow-result (func)
+                       (assert (flow-ids func) (func)
                                "trying to process flow-ids of ~a but found nil"
                                func)
-                       (mapcar λ(or (get-seen (slot-value _ 'val))
-                                    fcall-node)
-                               (ids flow-result))))))
+                       (mapcar λ(or (get-seen (slot-value _ 'val)) fcall-node)
+                               (ids (flow-ids func)))))))
 
              (per-id (val-id node)
                (let ((raw (slot-value val-id 'val)))
@@ -140,17 +136,15 @@ context is implicit"))
          (null (ast-val-origin node)))))))
 
 
-(defun ast-node! (kind args return-type starting-env ending-env)
+(defun ast-node! (kind args return-type-set starting-env ending-env)
   (assert (if (keywordp kind)
               (member kind *ast-node-kinds*)
               t))
-  (assert (or (null return-type)
-              (typep return-type 'v-type)))
-
+  (assert-valid-type-set return-type-set :error-hint "ast-node")
   (make-instance 'ast-node
                  :kind kind
                  :args (listify args)
-                 :return-type return-type
+                 :return-type return-type-set
                  :starting-env starting-env
                  :ending-env ending-env))
 
@@ -158,20 +152,21 @@ context is implicit"))
                       &key
                         (kind nil set-kind)
                         (args nil set-args)
-                        (return-type nil set-return-type)
+                        (return-type-set nil set-return-type)
                         (flow-id-origin nil set-fio)
                         (val-origin nil set-vo)
                         (starting-env nil set-starting-env)
                         (ending-env nil set-ending-env)
                         (parent nil set-parent))
-  (let ((return-type (if set-return-type return-type (ast-return-type node))))
-    (assert (or (null return-type)
-                (typep return-type 'v-type)))
+  (let ((return-type-set (if set-return-type
+                             return-type-set
+                             (ast-return-type node))))
+    (assert-valid-type-set return-type-set)
     (make-instance
      'ast-node
      :kind (if set-kind kind (ast-kind node))
      :args (if set-args args (ast-args node))
-     :return-type return-type
+     :return-type return-type-set
      :starting-env (if set-starting-env starting-env (ast-starting-env node))
      :ending-env (if set-ending-env ending-env (ast-ending-env node))
      :parent (if set-parent parent (ast-parent node))
@@ -191,7 +186,7 @@ context is implicit"))
                    (list (mapcar λ(walk-node _ :parent parent) ast))
                    (t ast)))))
     (typecase from-node
-      (code (walk-node (node-tree from-node) :parent nil))
+      (compiled (walk-node (node-tree from-node) :parent nil))
       (compiled-stage (walk-node (ast from-node) :parent nil))
       (ast-node (walk-node from-node :parent nil))
       (t (error "object with the invalid type ~s passed to ast->code"

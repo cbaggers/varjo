@@ -45,56 +45,52 @@
          ;; current-line
          (code-obj (compile-form form new-env))
          (result (%emit code-obj new-env))
-         (ast (ast-node! 'emit (node-tree code-obj)
-                         (code-type result)
-                         env env))
          (emit-set (or (emit-set result)
                        (error 'nil-emit-set
                               :form (list 'emit form)
-                              :possible-set (emit-set code-obj)))))
+                              :possible-set (emit-set code-obj))))
+         (ast (ast-node! 'emit-data
+                         (node-tree code-obj)
+                         (type-set result)
+                         env env)))
     ;;0
-    (values (copy-code result :node-tree ast :emit-set emit-set)
+    (values (copy-compiled result :node-tree ast :emit-set emit-set)
             env)))
 
-;; Used when this is the main stage function
 (defun %emit (code-obj env)
   ;; If you make changes here, look at %main-return to see if it needs
   ;; similar changes
-  (let ((type (v-type-of code-obj)))
-    (assert (not (v-typep type (type-spec->type :void))) ()
-            "Varjo: emit-data cannot emit void")
-    (cond
-      ((multi-vals code-obj)
-       (let* ((mvals (multi-vals code-obj))
-              (v-vals (mapcar #'multi-val-value mvals))
-              (types (mapcar #'v-type-of v-vals))
-              (glsl-lines (mapcar #'glsl-name v-vals)))
-         (copy-code
-          (merge-progn
-           (with-fresh-env-scope (fresh-env env)
-             (env-> (p-env fresh-env)
-               (merge-multi-env-progn
-                (%mapcar-multi-env-progn
-                 (lambda (p-env type gname)
-                   (compile-let (gensym) (type->type-spec type)
-                                nil p-env gname))
-                 p-env types glsl-lines))
-               ;; We compile these ↓↓, however we dont include them in the ast
-               (compile-form (%default-out-for-stage code-obj p-env)
-                             p-env)
-               (compile-form (mvals->out-form code-obj p-env)
-                             p-env)))
-           env)
-          :emit-set (make-emit-set-from-code-obj code-obj))))
-      (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
-                             (make-emit-set)
-                             (make-emit-set (make-emit-val type)))))
-           (copy-code
-            (with-fresh-env-scope (fresh-env env)
-              (compile-form (%default-out-for-stage code-obj fresh-env)
-                            fresh-env))
-            :emit-set emit-set
-            :pure nil))))))
+  (cond
+    ((> (length (type-set code-obj)) 1)
+     (let* ((v-vals (rest (coerce (type-set code-obj) 'list)))
+            (types (mapcar #'v-type-of v-vals))
+            (glsl-lines (mapcar #'glsl-name v-vals)))
+       (copy-compiled
+        (merge-progn
+         (with-fresh-env-scope (fresh-env env)
+           (env-> (p-env fresh-env)
+             (merge-multi-env-progn
+              (%mapcar-multi-env-progn
+               (lambda (p-env type gname)
+                 (compile-let (gensym) (type->type-spec type)
+                              nil p-env gname))
+               p-env types glsl-lines))
+             ;; We compile these ↓↓, however we dont include them in the ast
+             (compile-form (%default-out-for-stage code-obj p-env)
+                           p-env)
+             (compile-form (mvals->out-form code-obj p-env)
+                           p-env)))
+         env)
+        :emit-set (type-set code-obj))))
+    (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
+                           (make-type-set)
+                           (type-set code-obj))))
+         (copy-compiled
+          (with-fresh-env-scope (fresh-env env)
+            (compile-form (%default-out-for-stage code-obj fresh-env)
+                          fresh-env))
+          :emit-set emit-set
+          :pure nil)))))
 
 ;;------------------------------------------------------------
 

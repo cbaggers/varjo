@@ -10,13 +10,12 @@
   (let* ((base (lisp-name->glsl-name 'mvb env))
          (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
-      (unless (= (length vars) (+ 1 (length (multi-vals value-obj))))
-        (error 'multi-val-bind-mismatch :val-form value-form :bindings vars
-               :values (cons (v-type-of value-obj)
-                             (mapcar #'v-type-of (multi-vals value-obj)))))
-      (let* ((mvals (multi-vals value-obj))
-             (v-vals (mapcar #'multi-val-value mvals))
-             (types (cons (code-type value-obj) (mapcar #'v-type-of v-vals))))
+      (unless (= (length vars) (length (type-set value-obj)))
+        (error 'multi-val-bind-mismatch
+               :val-form value-form
+               :bindings vars
+               :return-set (type-set value-obj)))
+      (let ((types (type-set-to-type-list (type-set value-obj))))
         (vbind ((m-objs s-obj b-objs) final-env)
             (with-fresh-env-scope (fresh-env env)
               (env-> (p-env fresh-env)
@@ -31,11 +30,11 @@
                  (merged (merge-progn `(,m-obj ,s-obj ,@b-objs)
                                       env final-env)))
             (values
-             (copy-code
+             (copy-compiled
               merged
               :node-tree (ast-node! 'multiple-value-bind
                                     `(,vars ,(node-tree value-obj)
                                             ,@(mapcar #'node-tree b-objs))
-                                    (code-type merged)
+                                    (make-type-set (primary-type merged))
                                     env final-env))
              final-env)))))))

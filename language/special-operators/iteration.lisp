@@ -10,18 +10,18 @@
   (vbind (test-obj test-env) (compile-form test env)
     (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body)
                                                              test-env)
-      (if (v-typep (code-type test-obj) 'v-bool)
-          (let ((type (type-spec->type :void (flow-id!))))
-            (values (merge-obs (list body-obj test-obj)
-                               :type type
-                               :current-line nil
-                               :to-block (list (gen-while-string
-                                                test-obj (end-line body-obj)))
-                               :node-tree (ast-node!
-                                           'while (mapcar #'node-tree
-                                                          (list test-obj
-                                                                body-obj))
-                                           type env final-env))
+      (if (v-typep (primary-type test-obj) 'v-bool)
+          (let ((type-set (make-type-set)))
+            (values (merge-compiled
+                     (list body-obj test-obj)
+                     :type-set type-set
+                     :current-line nil
+                     :to-block (list (gen-while-string
+                                      test-obj (end-line body-obj)))
+                     :node-tree (ast-node!
+                                 'while (mapcar #'node-tree
+                                                (list test-obj body-obj))
+                                 type-set env final-env))
                     final-env))
           (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
@@ -45,18 +45,21 @@
                (decl-obj (compile-form (second var-form) new-env))
                (condition-obj (compile-form condition new-env))
                (update-obj (compile-form update new-env)))
-          (unless (or (v-typep (code-type decl-obj) 'v-uint)
-                      (v-typep (code-type decl-obj) 'v-int)
-                      (v-typep (code-type decl-obj) 'v-float))
+          (unless (or (v-typep (primary-type decl-obj) 'v-uint)
+                      (v-typep (primary-type decl-obj) 'v-int)
+                      (v-typep (primary-type decl-obj) 'v-float))
             (error 'invalid-for-loop-type :decl-obj decl-obj))
-          (vbind (body-obj final-env) (search-for-flow-id-fixpoint `(progn ,@body) new-env)
-            (if (and (null (to-block condition-obj)) (null (to-block update-obj)))
+          (vbind (body-obj final-env)
+              (search-for-flow-id-fixpoint `(progn ,@body) new-env)
+            (if (and (null (to-block condition-obj))
+                     (null (to-block update-obj)))
                 (let ((loop-str (gen-for-loop-string
                                  var-string condition-obj update-obj
                                  (end-line body-obj)))
-                      (void (type-spec->type :void (flow-id!))))
-                  (values (copy-code
-                           body-obj :type void
+                      (type-set (make-type-set)))
+                  (values (copy-compiled
+                           body-obj
+                           :type-set type-set
                            :current-line nil
                            :to-block (list loop-str)
                            :node-tree (ast-node!
@@ -65,8 +68,7 @@
                                                           (list condition-obj
                                                                 update-obj
                                                                 body-obj)))
-                                       void env final-env)
-                           :multi-vals nil
+                                       type-set env final-env)
                            :place-tree nil)
                           final-env))
                 (error 'for-loop-simple-expression)))))))
@@ -162,8 +164,10 @@
      ;; values from the outer scope we stop (as information
      ;; has stopped flowing into the loop, there is nothing
      ;; else to glean)
-     (let* ((starting-flow-ids (mapcar λ(flow-ids (get-symbol-binding _ nil starting-env))
-                                       variables-changed))
-            (starting-super-id (reduce #'flow-id! starting-flow-ids)))
+     (let* ((starting-flow-ids
+             (mapcar λ(flow-ids (get-symbol-binding _ nil starting-env))
+                     variables-changed))
+            (starting-super-id
+             (reduce #'flow-id! starting-flow-ids)))
        (not (some λ(id~= _ starting-super-id)
                   (mapcar #'cdr new-flow-ids)))))))

@@ -10,25 +10,53 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defmacro v-defun (name args &body body)
+;; (defmacro v-defun (name args &body body)
+;;   (destructuring-bind (in-args uniforms context)
+;;       (split-arguments args '(&uniform &context))
+;;     (declare (ignore context))
+;;     `(progn
+;;        (varjo:add-external-function ',name ',in-args ',uniforms ',body)
+;;        ',name)))
+
+(defmacro v-def-glsl-template-fun (name args transform arg-types return-spec
+                                   &key v-place-index glsl-name)
   (destructuring-bind (in-args uniforms context)
       (split-arguments args '(&uniform &context))
     (declare (ignore in-args))
     (when uniforms (error 'uniform-in-sfunc :func-name name))
-    (let* ((template (first body)))
-      (unless (or (stringp template) (null template))
-        (error 'invalid-v-defun-template :func-name name :template template))
-      (destructuring-bind (transform arg-types return-spec
-                                     &key v-place-index glsl-name) body
-        `(progn (add-form-binding
-                 (make-function-obj
-                  ',name ,transform ',context ',arg-types '(,return-spec)
-                  :v-place-index ',v-place-index :glsl-name ',glsl-name
-                  :flow-ids (%gl-flow-id!)
-                  :in-arg-flow-ids
-                  ,(cons 'list (n-of '(%gl-flow-id!) (length args))))
-                 *global-env*)
-                ',name)))))
+    (unless (or (stringp transform) (null transform))
+      (error 'invalid-v-defun-template :func-name name :template transform))
+    (let ((arg-types (if (listp arg-types)
+                         (mapcar #'type-spec->type arg-types)
+                         arg-types)))
+      `(progn (add-form-binding
+               (make-function-obj
+                ',name ,transform ',context ',arg-types
+                ,(make-template-return-spec-generator return-spec)
+                :v-place-index ',v-place-index :glsl-name ',glsl-name
+                :flow-ids (%gl-flow-id!)
+                :in-arg-flow-ids
+                (list ,@(n-of '(%gl-flow-id!) (length args))))
+               *global-env*)
+              ',name))))
+
+(defun element-spec-p (spec)
+  (and (listp spec) (eq (first spec) :element)))
+
+(defun make-template-return-spec-generator (x)
+  (cond
+    ((or (eq x :void) (eq x 'v-void)) (make-type-set))
+    ((functionp x) x)
+    ((null x) (vector (make-instance 'ret-gen-superior-type)))
+    ((numberp x) (vector (make-instance 'ret-gen-nth-arg-type
+                                        :arg-num x)))
+    ((element-spec-p x) (vector (make-instance 'ret-gen-element-of-nth-arg-type
+                                               :arg-num (second x))))
+    ((typep x 'v-type) (make-type-set x))
+    ((type-specp x) (make-type-set (type-spec->type x)))
+    ;; {TODO} proper error
+    (t (error "Varjo: Invalid return-type specifier in template-function ~a"
+              x))))
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
@@ -51,7 +79,8 @@
                 (declare (ignorable ,env ,@arg-names))
                 ,return)
               (add-form-binding
-               (make-function-obj ',name :special ',context t (list #',func-name)
+               (make-function-obj ',name :special ',context t
+                                  #',func-name
                                   :v-place-index ',v-place-index)
                *global-env*)
               ',name))
@@ -61,7 +90,9 @@
                   ,return)
                 (add-form-binding
                  (make-function-obj ',name :special ',context
-                                    ',(mapcar #'second args) (list #',func-name)
+                                    ',(mapcar λ(type-spec->type (second _))
+                                              args)
+                                    #',func-name
                                     :v-place-index ',v-place-index)
                  *global-env*)
                 ',name)))))))
@@ -82,16 +113,16 @@
                 :spec arg-spec)))))
 
 (defun cast-code (src-obj cast-to-type env)
-  (cast-code-inner (code-type src-obj) src-obj cast-to-type env))
+  (cast-code-inner (primary-type src-obj) src-obj cast-to-type env))
 
 (defmethod cast-code-inner (varjo-type src-obj cast-to-type env)
   (declare (ignore varjo-type env))
-  (let* ((src-type (code-type src-obj))
+  (let* ((src-type (primary-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
-        (copy-code src-obj :type dest-type)
-        (copy-code src-obj :current-line (cast-string cast-to-type src-obj)
-                   :type dest-type))))
+        (copy-compiled src-obj :type-set (make-type-set dest-type))
+        (copy-compiled src-obj :current-line (cast-string cast-to-type src-obj)
+                       :type-set (make-type-set dest-type)))))
 
 (defmethod cast-code-inner
     (varjo-type src-obj (cast-to-type v-function-type) env)
@@ -102,12 +133,12 @@
                    :return-spec (v-return-spec cast-to-type)
                    :ctv (ctv (v-type-of src-obj))
                    :flow-ids (flow-ids src-obj))))
-    (if (v-type-eq (code-type src-obj) new-type)
-        (copy-code src-obj :type new-type)
-        (copy-code
+    (if (v-type-eq (primary-type src-obj) new-type)
+        (copy-compiled src-obj :type-set (make-type-set new-type))
+        (copy-compiled
          src-obj
          :current-line (cast-string new-type src-obj)
-         :type new-type))))
+         :type-set (make-type-set new-type)))))
 
 ;; {TODO} proper error
 (defmethod cast-code-inner
@@ -115,10 +146,23 @@
   (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type env))
                               (v-types varjo-type))))
     (if funcs
-        (copy-code src-obj :type (gen-any-one-of-type funcs))
+        (copy-compiled src-obj
+                       :type-set (make-type-set (gen-any-one-of-type funcs)))
         (error "Varjo: compiler bug: Had already decided it was possible to cast ~a to ~a
 however failed to do so when asked."
                src-obj cast-to-type))))
+
+(defmethod cast-code-inner ((varjo-type v-any-one-of)
+                            src-obj
+                            (cast-to-type v-any-one-of)
+                            env)
+  ;; in cases where v-casts-to has been used to calculate a new
+  ;; v-any-one-of type then the type has the flow-ids of the ctvs
+  ;; this means we don't want to use the flow-ids in the src-obj
+  (declare (ignore varjo-type env))
+  (assert (flow-ids cast-to-type))
+  (let* ((dest-type cast-to-type))
+    (copy-compiled src-obj :type-set (make-type-set dest-type))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env
@@ -137,7 +181,9 @@ however failed to do so when asked."
                    most-positive-fixnum)))
       ;;
       (when (eql (length arg-types) (length spec-types))
-        (let* ((perfect-matches (mapcar λ(v-typep _ _1 env) arg-types spec-types))
+        (let* ((perfect-matches (mapcar λ(v-typep _ _1 env)
+                                        arg-types
+                                        spec-types))
                (score (- (length arg-types)
                          (length (remove nil perfect-matches)))))
 
@@ -147,7 +193,7 @@ however failed to do so when asked."
                 (make-instance
                  'func-match
                  :func func
-                 :arguments (mapcar #'copy-code arg-objs)
+                 :arguments (mapcar #'copy-compiled arg-objs)
                  :score score
                  :secondary-score secondary-score))
               (when allow-casting
@@ -166,7 +212,7 @@ however failed to do so when asked."
                        :secondary-score secondary-score)))))))))))
 
 (defun match-function-to-args (args-code compiled-args env candidate)
-  (let* ((arg-types (mapcar #'code-type compiled-args))
+  (let* ((arg-types (mapcar #'primary-type compiled-args))
          (any-errors (some #'v-errorp arg-types)))
     (if (v-special-functionp candidate)
         (special-arg-matchp candidate args-code compiled-args arg-types
@@ -191,9 +237,10 @@ however failed to do so when asked."
     (handler-case (compile-form arg env)
       (varjo-error (e)
         (if wrap-errors-p
-            (make-code-obj
-             (make-instance 'v-error :payload e) ""
-             :node-tree (ast-node! :error nil (gen-none-type)
+            (make-compiled
+             :type-set (make-type-set (make-instance 'v-error :payload e))
+             :current-line ""
+             :node-tree (ast-node! :error nil (make-type-set)
                                    env env))
             (error e))))))
 
@@ -218,7 +265,7 @@ however failed to do so when asked."
         (progn
           (assert (every λ(numberp (score _)) matches))
           matches)
-        (func-find-failure func-name (mapcar #'code-type compiled-args)))))
+        (func-find-failure func-name (mapcar #'primary-type compiled-args)))))
 
 (defun find-function-in-set-for-args (func-set args-code env &optional name)
   "Find the function that best matches the name and arg spec given
@@ -229,7 +276,7 @@ however failed to do so when asked."
   (labels ((check-for-stemcell-issue (matches func-name)
              (when (and (> (length matches) 1)
                         (some (lambda (x)
-                                (some (lambda (x) (stemcellp (code-type x)))
+                                (some (lambda (x) (stemcellp (primary-type x)))
                                       (arguments x)))
                               matches))
                (error 'multi-func-stemcells :func-name func-name)))
@@ -276,29 +323,62 @@ however failed to do so when asked."
                                                         :types arg-types))
                     :arguments nil)))))
 
-(defun resolve-func-type (func args env)
-  "nil - superior type
-   number - type of nth arg
-   function - call the function
-   (:element n) - element type of nth arg
-   list - type spec"
-  (declare (ignore env))
-  (let* ((spec (first (v-return-spec func)))
-         (arg-types (mapcar #'code-type args))
-         (result
-          (cond ((null spec)
-                 (or (apply #'find-mutual-cast-type arg-types)
-                     (error 'unable-to-resolve-func-type
-                            :func-name (name func) :args args)))
-                ((typep spec 'v-type) spec)
-                ((numberp spec) (nth spec arg-types))
-                ((functionp spec) (apply spec args))
-                ((and (listp spec) (eq (first spec) :element))
-                 (v-element-type (nth (second spec) arg-types)))
-                ((or (symbolp spec) (listp spec)) (type-spec->type spec))
-                (t (error 'invalid-function-return-spec :func func :spec spec)))))
-    (assert (typep result 'v-type))
-    result))
+(defun valid-return-spec-member-p (x)
+  (or (typep x 'return-type-generator)
+      (valid-type-set-member-p x)))
+
+(defun valid-func-return-spec-p (spec)
+  (or (functionp spec)
+      (every #'valid-return-spec-member-p spec)))
+
+(defun resolve-func-set (func compiled-args)
+  (let* ((arg-types (map 'list #'primary-type compiled-args))
+         (new-flow-ids (funcall
+                        (if (multi-return-function-p func)
+                            #'calc-mfunction-return-ids-given-args
+                            #'calc-regular-function-return-ids-given-args)
+                        func compiled-args)))
+    (labels ((force-flow-id (type flow-id)
+               ;; This is one of the few cases where we want to set a flow id
+               ;; regardless of the current state
+               (if (flow-ids type)
+                   (replace-flow-id type flow-id)
+                   (set-flow-id type flow-id)))
+
+             (resolve-return-type (spec new-flow-id)
+               (typecase spec
+                 (v-type
+                  (force-flow-id spec new-flow-id))
+
+                 (ret-gen-superior-type
+                  (or (force-flow-id (apply #'find-mutual-cast-type arg-types)
+                                     new-flow-id)
+                      (error 'unable-to-resolve-func-type
+                             :func-name (name func) :args compiled-args)))
+
+                 (ret-gen-nth-arg-type
+                  (force-flow-id (nth (arg-num spec) arg-types)
+                                 new-flow-id))
+
+                 (ret-gen-element-of-nth-arg-type
+                  (force-flow-id (v-element-type (nth (arg-num spec)
+                                                      arg-types))
+                                 new-flow-id))
+
+                 (typed-glsl-name
+                  (make-typed-glsl-name
+                   (force-flow-id
+                    (resolve-return-type (v-type-of spec) new-flow-id)
+                    new-flow-id)
+                   (glsl-name spec)))
+
+                 (t (error 'invalid-function-return-spec
+                           :func func
+                           :spec spec)))))
+
+      (make-type-set* (map 'list #'resolve-return-type
+                           (v-return-spec func)
+                           new-flow-ids)))))
 
 ;;------------------------------------------------------------
 

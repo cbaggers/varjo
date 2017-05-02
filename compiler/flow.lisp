@@ -12,9 +12,6 @@
 ;;----------------------------------------------------------------------
 ;; internals
 
-(defun m-flow-id-p (id)
-  (typep id 'multi-return-flow-id))
-
 (defun flow-id-p (id)
   (typep id 'flow-identifier))
 
@@ -86,10 +83,7 @@
 ;; construction
 
 (defun m-flow-id! (flow-ids)
-  (assert (and (listp flow-ids)
-               (every #'flow-id-p flow-ids)))
-  (make-instance 'multi-return-flow-id
-                 :m-value-ids flow-ids))
+  (error "titsicles ~a" flow-ids))
 
 (defun flow-id! (&rest ids)
   (labels ((key (_) (slot-value _ 'val))
@@ -97,14 +91,14 @@
              (etypecase thing
                (null nil)
                (flow-identifier thing)
-               (code (flow-ids thing))
+               (compiled (flow-ids thing))
                (v-type (flow-ids thing)))))
     (let ((ids (remove nil (mapcar #'extract-id ids))))
       (if (null ids)
           (make-instance 'flow-identifier :ids (list (funcall flow-gen-func)))
           (make-instance 'flow-identifier
                          :ids (sort (copy-list (remove-duplicates
-                                                (mapcat #'ids ids)
+                                                (mappend #'ids ids)
                                                 :key #'key))
                                     #'< :key #'key))))))
 
@@ -118,12 +112,20 @@
   (make-instance 'flow-identifier :ids (list (%gen-flow-gl-id))))
 
 (defun type-doesnt-need-flow-id (type)
-  (when (or (eq type 'v-none)
-            (eq type :void)
-            (eq type :none))
+  (when (eq type :void)
     (error "deprecated behaviour bug ~a" type))
-  (or (typep type 'v-error)
-      (typep type 'v-none)))
+  (typep type 'v-error))
+
+(defun function-return-spec-doesnt-need-flow-ids (spec)
+  (assert (or (functionp spec)
+              (typep spec 'return-type-generator)
+              (<= (length spec) 1)))
+  (and (vectorp spec)
+       (or (= (length spec) 0)
+           (typep (elt spec 0) 'v-error))))
+
+(defun set-doesnt-need-flow-ids (set)
+  (or (= (length set) 0) (typep (elt set 0) 'v-error)))
 
 
 ;;----------------------------------------------------------------------
@@ -177,15 +179,17 @@
 ;;----------------------------------------------------------------------
 ;; Helpers
 
-(defmethod flow-ids ((obj code))
-  (flow-ids (code-type obj)))
+(defmethod flow-ids ((obj compiled))
+  (flow-ids (primary-type obj)))
 
 (defmethod flow-ids ((obj v-value))
   (flow-ids (v-type-of obj)))
 
 (defmethod flow-ids ((obj ast-node))
-  (flow-ids (ast-return-type obj)))
+  ;; {TODO} why only check 1 return
+  (flow-ids (primary-type (ast-return-type obj))))
 
 (defgeneric strip-flow-id (obj)
+  ;; need to address this one
   (:method ((obj v-type))
     (type-spec->type (type->type-spec obj))))

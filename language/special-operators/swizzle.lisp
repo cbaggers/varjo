@@ -9,17 +9,17 @@
   :args-valid t
   :return
   (let ((vec-obj (compile-form vec-form env)))
-    (unless (v-typep (v-type-of vec-obj) 'v-vector)
-      (let ((type (v-true-type (v-type-of vec-obj))))
+    (unless (v-typep (primary-type vec-obj) 'v-vector)
+      (let ((type (v-true-type (primary-type vec-obj))))
         (error 'cannot-swizzle-this-type :vtype (type->type-spec type)
                :is-struct (typep type 'v-struct))))
     (let* ((allowed (subseq (list #\x #\y #\z #\w) 0
-                            (first (v-dimensions (code-type vec-obj)))))
+                            (first (v-dimensions (primary-type vec-obj)))))
            (comp-string (if (keywordp components)
                             (string-downcase (symbol-name components))
                             (error 'swizzle-keyword :item components)))
            (new-len (length comp-string))
-           (vec-type (code-type vec-obj))
+           (vec-type (primary-type vec-obj))
            (element-type (v-element-type vec-type)))
       (if (and (>= new-len 1) (<= new-len 4)
                (v-typep vec-type 'v-vector)
@@ -29,15 +29,17 @@
                  (r-type (set-flow-id (if (= new-len 1)
                                           element-type
                                           (vec-of element-type new-len))
-                                      flow-id)))
+                                      flow-id))
+                 (type-set (make-type-set r-type)))
             (values
-             (copy-code vec-obj :type r-type
-                        :current-line (gen-swizzle-string vec-obj comp-string)
-                        :node-tree (ast-node! 'swizzle
-                                              `(,(node-tree vec-obj) ,components)
-                                              r-type env env)
-                        :multi-vals nil
-                        :place-tree nil)
+             (copy-compiled
+              vec-obj
+              :type-set type-set
+              :current-line (gen-swizzle-string vec-obj comp-string)
+              :node-tree (ast-node! 'swizzle
+                                    `(,(node-tree vec-obj) ,components)
+                                    type-set env env)
+              :place-tree nil)
              env))
           (error "swizzle form invalid")))))
 

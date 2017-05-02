@@ -37,10 +37,11 @@
                               bindings
                               val-ast-nodes)
                       (node-tree body-obj)))
-               (ast (ast-node! 'let ast-args (code-type merged)
+               (ast (ast-node! 'let ast-args
+                               (type-set merged)
                                env final-env)))
           (values
-           (copy-code merged :node-tree ast)
+           (copy-compiled merged :node-tree ast)
            final-env))))))
 
 (v-defmacro let* (bindings &rest body)

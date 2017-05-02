@@ -62,7 +62,7 @@
             (v-glsl-string type)
             (string name)
             (gen-arg-string args out-args)
-            (mapcat #'indent (remove "" (to-block body-obj) :test #'equal))
+            (mappend #'indent (remove "" (to-block body-obj) :test #'equal))
             (when (current-line body-obj)
               (indent (current-line (end-line body-obj)))))))
 
@@ -89,11 +89,12 @@
   (format nil "~{~a~%~}while (~a) {~{~%~a~}~%}"
           (to-block test-obj)
           (current-line test-obj)
-          (append (remove-empty (mapcat #'indent (to-block body-obj)))
+          (append (remove-empty (mappend #'indent (to-block body-obj)))
                   (indent (current-line body-obj)))))
 
 (defun gen-swizzle-string (vec-obj components-string)
-  (format nil "~a.~a" (current-line vec-obj) (string-downcase components-string)))
+  (format nil "~a.~a" (current-line vec-obj)
+          (string-downcase components-string)))
 
 (defun remove-empty (list)
   (labels ((empty-p (x)
@@ -109,7 +110,7 @@
             var-string
             (current-line condition-obj)
             (current-line update-obj)
-            (remove-empty (mapcat #'indent prog-strs))
+            (remove-empty (mappend #'indent prog-strs))
             (remove-empty (when (current-line body-obj)
                             (indent (current-line body-obj)))))))
 
@@ -123,7 +124,7 @@
              (if (eq key default-symb)
                  (error "Varjo Bug: switch default not implemented") ;; {TODO}
                  (list key
-                       (append (mapcat #'indent (to-block obj))
+                       (append (mappend #'indent (to-block obj))
                                (indent (current-line (end-line obj))))))
              :into result
              :finally (return (append result default-clause)))))
@@ -136,35 +137,34 @@
   (%qualify obj qualifiers))
 
 (defun %qualify (obj qualifiers)
-  (copy-code obj :current-line (format nil "~(~{~a ~}~)~a"
-                                       (string-downcase (string qualifiers))
-                                       (current-line obj))
-             :multi-vals nil
-             :place-tree nil))
+  (copy-compiled obj :current-line (format nil "~(~{~a ~}~)~a"
+                                           (string-downcase (string qualifiers))
+                                           (current-line obj))
+                 :place-tree nil))
 
-(defun prefix-type-to-string (type line-string &optional qualifiers storage-qual)
+(defun prefix-type-to-string (type line-string
+                              &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-type) (format nil "~a ~a"
                                                    (v-glsl-string type)
                                                    line-string))
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
         (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a"
-                (loop :for q :in qualifiers :collect (string-downcase (string q)))
+                (loop :for q :in qualifiers :collect
+                   (string-downcase (string q)))
                 storage-qual
                 line)
         (format nil "~@[~(~a ~)~]~a" storage-qual line))))
 
 (defun prefix-type-declaration (code-obj &optional qualifiers storage-qual)
-  (prefix-type-to-string (code-type code-obj) (current-line code-obj) qualifiers
+  (prefix-type-to-string (primary-type code-obj)
+                         (current-line code-obj)
+                         qualifiers
                          storage-qual))
 
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)
-  (when (typep type 'v-none)
-    (error 'none-type-in-out-vars :glsl-name glsl-name))
-
   (format nil "~@[layout(location = ~a) ~] ~a;" layout
-          (prefix-type-to-string type glsl-name
-                                 (append qualifiers '("out")))))
+          (prefix-type-to-string type glsl-name (append qualifiers '("out")))))
 
 (defun gen-in-var-string (glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~] ~a;" layout
@@ -301,7 +301,7 @@
 
 (defun indent-for-block (line/s)
   (format nil "~@[~%~{~a~^~%~}~]"
-          (remove-empty (mapcat #'indent (listify line/s)))))
+          (remove-empty (mappend #'indent (listify line/s)))))
 
 ;;----------------------------------------------------------------------
 
@@ -315,7 +315,7 @@
 
 (defun gen-array-literal-string (elements element-type env)
   (labels ((cast (x)
-             (if (v-type-eq (code-type x) element-type)
+             (if (v-type-eq (primary-type x) element-type)
                  x
                  (cast-code x element-type env))))
     (let ((elements (mapcar #'cast elements)))

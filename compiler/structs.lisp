@@ -19,26 +19,34 @@
     (let ((name-string (safe-glsl-name-string name))
           (class-name (or shadowing name))
           (true-type-name (true-type-name name))
-          (fake-type-name (fake-type-name name)))
+          (fake-type-name (fake-type-name name))
+          (slots-with-types
+           (mapcar (lambda (slot)
+                     (dbind (name type . rest) slot
+                       `(,name
+                         ,(type-spec->type type)
+                         ,@rest)))
+                   slots)))
       `(progn
-         (def-v-type-class ,class-name (v-user-struct)
-           ((glsl-string :initform ,name-string :initarg :glsl-string
-                         :reader v-glsl-string)
-            (signature :initform ,(format nil "struct ~a {~%~{~a~%~}};"
-                                          name-string
-                                          (mapcar #'gen-slot-string slots))
-                       :initarg :signature :accessor v-signature)
-            (slots :initform ',slots :reader v-slots)))
+         (eval-when (:compile-toplevel :load-toplevel :execute)
+           (def-v-type-class ,class-name (v-user-struct)
+             ((glsl-string :initform ,name-string :initarg :glsl-string
+                           :reader v-glsl-string)
+              (signature :initform ,(gen-struct-sig name-string
+                                                    slots-with-types)
+                         :initarg :signature :accessor v-signature)
+              (slots :initform ',slots-with-types :reader v-slots)))
+           (def-v-type-class ,true-type-name (,class-name) ())
+           (def-v-type-class ,fake-type-name (,class-name)
+             ((signature :initform ""))))
          ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod v-true-type ((object ,class-name))
            (make-instance ',true-type-name :flow-ids (flow-ids object)))
          (defmethod v-fake-type ((object ,class-name))
            (make-instance ',fake-type-name :flow-ids (flow-ids object)))
-         (def-v-type-class ,true-type-name (,class-name) ())
-         (def-v-type-class ,fake-type-name (,class-name) ((signature :initform "")))
          (defmethod type->type-spec ((type ,true-type-name))
            ',name)
-         (v-defun ,(symb 'make- (or constructor name))
+         (v-def-glsl-template-fun ,(symb 'make- (or constructor name))
              ,(append (loop :for slot :in slots :collect (first slot))
                       (when context `(&context ,@context)))
            ,(format nil "~a(~{~a~^,~^ ~})" name-string
@@ -48,34 +56,33 @@
          ,@(make-struct-accessors name true-type-name context slots)
          ',name))))
 
-(defmethod post-initialise ((object v-struct))
-  (with-slots (slots) object
-    (setf slots (mapcar (lambda (slot)
-                          `(,(first slot)
-                             ,(type-spec->type (second slot))
-                             ,@(cddr slot)))
-                        slots))))
-
 (defun make-struct-accessors (name true-type-name context slots)
   (loop :for (slot-name slot-type . acc) :in slots :collect
      (let ((accessor (if (eq :accessor (first acc)) (second acc)
                          (symb name '- slot-name))))
-       `(v-defun ,accessor (,(symb name '-ob) ,@(when context `(&context ,@context)))
+       `(v-def-glsl-template-fun ,accessor (,(symb name '-ob)
+                             ,@(when context `(&context ,@context)))
           ,(concatenate 'string "~a." (safe-glsl-name-string
                                        (or accessor slot-name)))
-          (,true-type-name) ,slot-type :v-place-index 0))))
+          (,true-type-name)
+          ,slot-type
+          :v-place-index 0))))
+
+(defun gen-struct-sig (name-string slots-with-types)
+  (format nil "struct ~a {~%~{~a~%~}};"
+          name-string
+          (mapcar #'gen-slot-string slots-with-types)))
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
-    (let ((name (or accessor slot-name))
-          (type-obj (type-spec->type slot-type)))
-      (if (typep type-obj 'v-array)
+    (let ((name (or accessor slot-name)))
+      (if (typep slot-type 'v-array)
           (format nil "    ~a ~a[~a];"
-                  (v-glsl-string (v-element-type type-obj))
+                  (v-glsl-string (v-element-type slot-type))
                   (safe-glsl-name-string name)
-                  (v-dimensions type-obj))
+                  (v-dimensions slot-type))
           (format nil "    ~a ~a;"
-                  (v-glsl-string type-obj)
+                  (v-glsl-string slot-type)
                   (safe-glsl-name-string name))))))
 
 
@@ -97,7 +104,7 @@
                               fake-slot-name
                               nil ;; {TODO} Must be context
                               (list fake-struct)
-                              (list slot-type)
+                              (make-type-set slot-type)
                               :v-place-index nil
                               :pure t)
        :into funcs
@@ -128,6 +135,9 @@
          (struct (set-flow-id (v-fake-type type) (flow-id!)))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
+         (fake-type-obj (try-type-spec->type
+                         (resolve-name-from-alternative fake-type)
+                         nil))
          (new-uniform-args
           (loop :for (slot-name slot-type . acc) :in slots
              :for fake-slot-name = (fake-slot-name uniform-name slot-name)
@@ -139,8 +149,10 @@
                   (make-function-obj accessor
                                      fake-slot-name
                                      nil ;; {TODO} Must be context
-                                     (list fake-type)
-                                     (list slot-type) :v-place-index nil
+                                     (list fake-type-obj)
+                                     (make-type-set
+                                      (type-spec->type slot-type))
+                                     :v-place-index nil
                                      :pure t)
                   env)
              :collect (make-instance

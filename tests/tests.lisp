@@ -55,6 +55,7 @@
            (version (varjo::get-version-from-context-list
                      (context compile-result)))
            (stemcells (stemcells-allowed compile-result))
+           (primitive-in (primitive-in compile-result))
            (recomp (first (v-compile
                            (mapcar #'varjo::to-arg-form
                                    (varjo::uniform-variables compile-result))
@@ -63,7 +64,8 @@
                            `(,(mapcar #'varjo::to-arg-form
                                       (varjo::input-variables compile-result))
                               ,@code)
-                           :allow-stemcells stemcells)))
+                           :allow-stemcells stemcells
+                           :draw-mode primitive-in)))
            (recomp-code (ast->code recomp)))
       (or (values (equal code recomp-code) depth)
           (when (< depth max-depth)
@@ -140,6 +142,7 @@
 (5am:def-suite stemcell-tests :in test-all)
 (5am:def-suite qualifier-tests :in test-all)
 (5am:def-suite assignment-tests :in test-all)
+(5am:def-suite inline-glsl-tests :in test-all)
 (5am:def-suite flow-control-tests :in test-all)
 (5am:def-suite symbol-macro-tests :in test-all)
 (5am:def-suite regular-macro-tests :in test-all)

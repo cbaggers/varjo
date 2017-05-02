@@ -49,8 +49,9 @@
                                   (env environment))
   (declare (ignore stage env))
   ;; {TODO} Proper error
-  (error "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
-         (name input-variable) var-type))
+  (error
+   "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
+   (name input-variable) var-type))
 
 (defun should-make-an-ephermal-block-p (stage)
   (with-slots (previous-stage) stage
@@ -134,7 +135,7 @@
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-symbol-binding
      name (v-make-value true-type env :glsl-name glsl-name
-                                 :function-scope 0 :read-only t)
+                        :function-scope 0 :read-only t)
      env)
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
       (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
@@ -485,7 +486,7 @@
 
 (defgeneric gen-stage-locations (stage out-set)
   (:method ((stage fragment-stage) out-set)
-    (let ((out-types (map 'list #'v-type-of out-set)))
+    (let ((out-types (type-set-to-type-list out-set)))
       (calc-locations out-types)))
   (:method (stage out-set)
     (n-of nil (length out-set))))
@@ -494,29 +495,35 @@
   (loop :for out-val :across out-set
      :for location :in locations
      :for i :from 0
-     :for glsl-name := (if (typep out-val 'external-return-val)
-                           (out-name out-val)
+     :for glsl-name := (if (typep out-val 'typed-external-name)
+                           (glsl-name out-val)
                            (nth-return-name i stage))
+     :for type := (if (typep out-val 'v-type)
+                      out-val
+                      (v-type-of out-val))
 
      :collect (gen-out-var-string glsl-name
-                                  (v-type-of out-val)
-                                  (qualifiers out-val)
+                                  type
+                                  (qualifiers type)
                                   location)))
 
 (defun gen-out-vars (stage out-set locations)
   (loop :for out-val :across out-set
      :for location :in locations
      :for i :from 0
-     :for glsl-name := (if (typep out-val 'external-return-val)
-                           (out-name out-val)
+     :for glsl-name := (if (typep out-val 'typed-external-name)
+                           (glsl-name out-val)
                            (nth-return-name i stage))
+     :for type := (if (typep out-val 'v-type)
+                      out-val
+                      (v-type-of out-val))
 
      :collect (make-instance
                'output-variable
                :name (make-symbol glsl-name)
                :glsl-name glsl-name
-               :type (v-type-of out-val)
-               :qualifiers (qualifiers out-val)
+               :type type
+               :qualifiers (qualifiers type)
                :location location)))
 
 (defgeneric gen-stage-out-interface-block (stage post-proc-obj locations)
@@ -546,11 +553,17 @@
                 (rest glsl-decls)
                 glsl-decls)
             :instance-name *out-block-name*
-            :length (first (v-dimensions (v-type-of (elt out-set 0))))))))))
+            :length (let* ((type (elt out-set 0))
+                           (type (if (typep type 'v-type)
+                                     type
+                                     (v-type-of type))))
+                      (first (v-dimensions type)))))))))
 
   (:method ((stage fragment-stage) post-proc-obj locations)
     (with-slots (out-set) post-proc-obj
       (gen-out-glsl-decls stage out-set locations))))
+
+;;----------------------------------------------------------------------
 
 (defun gen-out-var-strings (post-proc-obj)
   (with-slots (stage out-set) post-proc-obj
@@ -590,13 +603,13 @@
                                                            qualifiers))))
                  final-strings))
          (when (and (v-typep type-obj 'v-user-struct)
-                    (not (find type-obj structs :key #'type->type-spec
-                               :test #'v-type-eq)))
+                    (not (find type-obj structs :test #'v-type-eq)))
            (push type-obj structs)))
 
       (loop :for s :in (stemcells post-proc-obj) :do
          (with-slots (name string-name type cpu-side-transform) s
-           (when (eq type :|unknown-type|) (error 'symbol-unidentified :sym name))
+           (when (eq type :|unknown-type|)
+             (error 'symbol-unidentified :sym name))
            (let ((type-obj (type-spec->type type)))
              (push (make-instance
                     'implicit-uniform-variable
@@ -612,9 +625,7 @@
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
-                        (not (find type-obj structs
-                                   :key #'type->type-spec
-                                   :test #'v-type-eq)))
+                        (not (find type-obj structs :test #'v-type-eq)))
                (push type-obj structs)))))
       ;;
       (setf (used-user-structs post-proc-obj) structs)

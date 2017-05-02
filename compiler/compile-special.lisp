@@ -5,7 +5,7 @@
 
 (defun compile-special-function (func args env)
   (multiple-value-bind (code-obj new-env)
-      (apply (first (v-return-spec func)) (cons env args))
+      (apply (v-return-spec func) (cons env args))
     (values code-obj new-env)))
 
 ;;----------------------------------------------------------------------
@@ -44,15 +44,16 @@
 (defun %merge-progn (code-objs starting-env final-env)
   (if (= 1 (length code-objs))
       (first code-objs)
-      (let* ((last-obj (last1 (remove nil code-objs))))
-        (merge-obs code-objs
-                   :type (code-type last-obj)
-                   :current-line (current-line last-obj)
-                   :to-block (merge-lines-into-block-list code-objs)
-                   :multi-vals (multi-vals (last1 code-objs))
-                   :node-tree (ast-node! 'progn (mapcar #'node-tree code-objs)
-                                         (code-type last-obj)
-                                         starting-env final-env)))))
+      (let* ((last-obj (last1 (remove nil code-objs)))
+             (type-set (type-set (last1 code-objs))))
+        (merge-compiled code-objs
+                        :type-set type-set
+                        :current-line (current-line last-obj)
+                        :to-block (merge-lines-into-block-list code-objs)
+                        :node-tree (ast-node! 'progn
+                                              (mapcar #'node-tree code-objs)
+                                              type-set
+                                              starting-env final-env)))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)
   (let ((co (gensym "code-objs"))
@@ -91,13 +92,15 @@
       (values code-objs merged-env))))
 
 (defun %merge-multi-env-progn (code-objs)
-  (merge-obs code-objs
-             :type (gen-none-type)
-             :current-line nil
-             :to-block (append (mapcat #'to-block code-objs)
-                               (mapcar (lambda (_) (current-line (end-line _)))
-                                       code-objs))
-             :node-tree :ignored))
+  (let ((type-set (make-type-set)))
+    (merge-compiled
+     code-objs
+     :type-set type-set
+     :current-line nil
+     :to-block (append (mappend #'to-block code-objs)
+                       (mapcar (lambda (_) (current-line (end-line _)))
+                               code-objs))
+     :node-tree :ignored)))
 
 (defmacro merge-multi-env-progn (code-objs)
   (let ((co (gensym "code-objs"))
@@ -119,16 +122,16 @@
          (type (if new-value
                    (progn
                      (assert (flow-ids new-value))
-                     (replace-flow-id (code-type code-obj)
+                     (replace-flow-id (primary-type code-obj)
                                       (flow-ids new-value)))
-                   (code-type code-obj))))
-    (copy-code code-obj
-               :type type
-               :current-line current-line
-               :to-block to-block
-               :node-tree :ignored
-               :multi-vals nil
-               :place-tree nil)))
+                   (primary-type code-obj)))
+         (type-set (make-type-set type)))
+    (copy-compiled code-obj
+                   :type-set type-set
+                   :current-line current-line
+                   :to-block to-block
+                   :node-tree :ignored
+                   :place-tree nil)))
 
 ;;----------------------------------------------------------------------
 
@@ -148,55 +151,56 @@
     (let* ((let-obj
             (cond
               ;; handle unrepresentable values
-              ((and value-obj (ephemeral-p (v-type-of value-obj)))
+              ((and value-obj (ephemeral-p (primary-type value-obj)))
                value-obj)
               ;;
               (value-obj
                (typify-code
-                (make-code-obj (or type-obj (code-type value-obj))
-                               glsl-name
-                               :node-tree :ignored)
+                (make-compiled
+                 :type-set (make-type-set
+                            (or type-obj (primary-type value-obj)))
+                 :current-line glsl-name
+                 :node-tree :ignored)
                 value-obj))
               ;;
               (t (typify-code
-                  (make-code-obj type-obj
-                                 glsl-name
+                  (make-compiled :type-set (make-type-set type-obj)
+                                 :current-line glsl-name
                                  :node-tree :ignored)))))
            (to-block
             (cons-end (current-line (end-line let-obj))
                       (to-block let-obj))))
       (values
-       (copy-code let-obj
-                  :type (gen-none-type)
-                  :current-line nil
-                  :to-block to-block
-                  :multi-vals nil
-                  :place-tree nil
-                  :node-tree (if value-form
-                                 (node-tree value-obj)
-                                 :ignored)
-                  :stemcells (append (and let-obj (stemcells let-obj))
-                                     (and value-obj (stemcells value-obj)))
-                  :pure (if value-obj (pure-p value-obj) t))
+       (copy-compiled let-obj
+                      :type-set (make-type-set)
+                      :current-line nil
+                      :to-block to-block
+                      :place-tree nil
+                      :node-tree (if value-form
+                                     (node-tree value-obj)
+                                     :ignored)
+                      :stemcells (append (and let-obj (stemcells let-obj))
+                                         (and value-obj (stemcells value-obj)))
+                      :pure (if value-obj (pure-p value-obj) t))
        (add-symbol-binding
         name
         (if (and (not value-obj) (not assume-bound))
-            (v-make-uninitialized (or type-obj (code-type value-obj)) env
+            (v-make-uninitialized (or type-obj (primary-type value-obj)) env
                                   :glsl-name glsl-name)
-            (v-make-value (or type-obj (code-type value-obj))
+            (v-make-value (or type-obj (primary-type value-obj))
                           env
                           :glsl-name glsl-name))
         env)))))
 
 (defun %validate-var-types (var-name type code-obj)
-  (when (and code-obj (typep (code-type code-obj) 'v-stemcell))
+  (when (and code-obj (typep (primary-type code-obj) 'v-stemcell))
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
            (string-downcase var-name) (current-line code-obj)))
   (when (and (null type) (null code-obj))
     (error "Could not establish the type of the variable: ~s" var-name))
-  (when (and code-obj type (not (v-type-eq (code-type code-obj) type)))
+  (when (and code-obj type (not (v-type-eq (primary-type code-obj) type)))
     (error "Type specified does not match the type of the form~%~s~%~s"
-           (code-type code-obj) type))
+           (primary-type code-obj) type))
   t)
 
 ;;----------------------------------------------------------------------

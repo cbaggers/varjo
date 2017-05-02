@@ -20,11 +20,10 @@
         ;; (assert (= (length (emit-set maybe-def-code)) 0))
         (assert (null (current-line maybe-def-code)))
         (assert (null (flow-ids maybe-def-code)))
-        (assert (null (multi-vals maybe-def-code)))
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
         (assert (null (to-block maybe-def-code)))
-        (assert (typep (code-type maybe-def-code) 'v-none)))
+        (assert (emptyp (type-set maybe-def-code))))
       (values compiled-func maybe-def-code))))
 
 (defun build-function (name args body allowed-implicit-args env)
@@ -38,10 +37,16 @@
            :arg-specs (remove-if #'function-raw-arg-validp args)))
   ;;
   ;; Parse the types
-  (let ((arg-types (mapcar λ(type-spec->type (second _)) args)))
+  (let* ((arg-types (mapcar λ(type-spec->type (second _)) args))
+         (args-with-types (mapcar λ(dbind (name nil . rest) _
+                                     `(,name ,_1 ,@rest))
+                                  args
+                                  arg-types)))
     (if (some λ(typep _ 'v-unrepresentable-value) arg-types)
-        (make-new-function-with-unreps name args body allowed-implicit-args env)
-        (make-regular-function name args body allowed-implicit-args env))))
+        (make-new-function-with-unreps
+         name args body allowed-implicit-args env)
+        (make-regular-function
+         name args-with-types body allowed-implicit-args env))))
 
 
 (defun make-regular-function (name args body allowed-implicit-args env)
@@ -59,11 +64,11 @@
                       (reduce
                        (lambda (func-env tripple)
                          (dbind (arg glsl-name flow-ids) tripple
-                           (dbind (name type-spec) arg
+                           (dbind (name type) arg
                              (add-symbol-binding
                               name
                               (v-make-value
-                               (type-spec->type type-spec flow-ids)
+                               (set-flow-id type flow-ids)
                                func-env
                                :glsl-name glsl-name)
                               func-env))))
@@ -78,18 +83,17 @@
                                                   (out-of-scope-args body-obj))
                                                  func-env))
            (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
-           (return-set (map 'list #'identity (return-set body-obj)))
+           (return-set (coerce (return-set body-obj) 'list))
            (emit-set (emit-set body-obj))
-           (primary-type (or (when return-set (v-type-of (first return-set)))
-                             (type-spec->type :void)))
            (multi-return-vars (when return-set (rest return-set)))
-           (type (if mainp (type-spec->type 'v-void) primary-type)))
-      (when (v-typep type (gen-none-type))
-        (error 'function-with-no-return-type :func-name name))
+           (type (if mainp
+                     (type-spec->type 'v-void)
+                     (or (when return-set (first return-set))
+                         (type-spec->type :void)))))
       (let* ((arg-pairs (unless mainp
                           (loop :for (nil type) :in args
                              :for name :in arg-glsl-names :collect
-                             `(,(v-glsl-string (type-spec->type type)) ,name))))
+                             `(,(v-glsl-string type) ,name))))
              (out-arg-pairs (unless mainp
                               (loop :for mval :in multi-return-vars
                                  :for i :from 1
@@ -110,7 +114,7 @@
              (strip-glsl
               (and (not mainp)
                    (pure-p body-obj)
-                   (or (v-typep type 'v-void) (ephemeral-p type))
+                   (or (v-voidp type) (ephemeral-p type))
                    (null multi-return-vars)))
              (sigs (unless (or mainp strip-glsl)
                      (list (gen-function-signature glsl-name arg-pairs
@@ -124,6 +128,7 @@
                                out-arg-pairs
                                return-for-glsl body-obj
                                implicit-args in-out-args)))
+             (arg-types (mapcar #'second args))
              (func (make-user-function-obj name
                                            (unless strip-glsl
                                              (gen-function-transform
@@ -131,8 +136,8 @@
                                               multi-return-vars
                                               implicit-args))
                                            nil ;;{TODO} should be context
-                                           (mapcar #'second args)
-                                           (cons type multi-return-vars)
+                                           arg-types
+                                           (return-set body-obj)
                                            :glsl-name glsl-name
                                            :implicit-args implicit-args
                                            :in-out-args in-out-args
@@ -141,15 +146,14 @@
                                            :pure (pure-p body-obj)))
              (ret-set (return-set body-obj))
              (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
-             (code-obj (copy-code body-obj
-                                  :type (gen-none-type)
-                                  :current-line nil
-                                  :to-block nil
-                                  :return-set nil
-                                  :emit-set emit-set
-                                  :multi-vals nil
-                                  :place-tree nil
-                                  :out-of-scope-args implicit-args))
+             (code-obj (copy-compiled body-obj
+                                      :type-set (make-type-set)
+                                      :current-line nil
+                                      :to-block nil
+                                      :return-set nil
+                                      :emit-set emit-set
+                                      :place-tree nil
+                                      :out-of-scope-args implicit-args))
              (ast (to-top-level-ast-node body-obj declarations body-env)))
         (values (make-instance 'compiled-function-result
                                :function-obj func
@@ -186,7 +190,8 @@
            (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
                                         all-vars))
            (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
-           (func (make-user-function-obj name nil nil (mapcar #'second args) nil
+           (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
+           (func (make-user-function-obj name nil nil arg-types #()
                                          :code (list args body)
                                          :captured-vars visible-var-pairs))
            (ast-body (if (= 1 (length body))
@@ -194,7 +199,7 @@
                          `(progn ,@body)))
            (ast (ast-node! :code-section
                            ast-body
-                           (gen-none-type)
+                           (make-type-set)
                            func-env func-env)))
       (values (make-instance 'compiled-function-result
                              :function-obj func
@@ -205,13 +210,13 @@
                              :stemcells nil
                              :return-set nil
                              :emit-set nil)
-              (code! :type (gen-none-type)
-                     :current-line nil
-                     :place-tree nil
-                     :node-tree (ast-node! :code-section
-                                           ast-body
-                                           (gen-none-type)
-                                           func-env func-env))))))
+              (make-compiled :type-set (make-type-set)
+                             :current-line nil
+                             :place-tree nil
+                             :node-tree (ast-node! :code-section
+                                                   ast-body
+                                                   (make-type-set)
+                                                   func-env func-env))))))
 
 (defun capture-var (name env)
   (let ((val (get-symbol-binding name t env)))
