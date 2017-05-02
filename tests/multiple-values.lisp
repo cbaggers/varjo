@@ -53,3 +53,18 @@
    (compile-vert () :450 nil
      (multiple-value-bind (x y) (values 1 2)
        (v! 0 0 0 0)))))
+
+
+;; (varjo.tests::compile-vert () :450 nil
+;;   (labels ((foo ()
+;;              (return (progn (values 1 2 3)))))
+;;     (multiple-value-bind (a b c) (foo)
+;;       (v! a b c 0))))
+
+;; (varjo.tests::compile-vert () :450 nil
+;;   (labels ((foo ((x :bool))
+;;              (if x
+;;                  (values 1 2 3)
+;;                  (values 1 2 3))))
+;;     (multiple-value-bind (a b c) (foo t)
+;;       (v! a b c 0))))
