@@ -232,7 +232,7 @@ type-of new-value: ~a"
 Bindings: ~a
 Value Form: ~a
 Returned Values: ~a"
-  bindings val-form (mapcar #'type->type-spec values))
+  bindings val-form (map 'list #'type->type-spec return-set))
 
 (deferror merge-env-func-scope-mismatch () (env-a env-b)
     "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
