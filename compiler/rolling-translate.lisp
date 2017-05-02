@@ -255,7 +255,7 @@
             (next fragment-stage)
             (stage stage)
             primitive)
-    (declare (ignore last next))
+    (declare (ignore last next primitive))
     (rest (output-variables stage)))
 
   (:method ((last vertex-stage)

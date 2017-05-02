@@ -279,7 +279,7 @@
        raw-out-set)))
 
   (:method (stage raw-out-set primitive-out)
-    (declare (ignore stage))
+    (declare (ignore stage primitive-out))
     raw-out-set))
 
 (defun make-out-set (post-proc-obj)
@@ -489,6 +489,7 @@
     (let ((out-types (type-set-to-type-list out-set)))
       (calc-locations out-types)))
   (:method (stage out-set)
+    (declare (ignore stage))
     (n-of nil (length out-set))))
 
 (defun gen-out-glsl-decls (stage out-set locations)
