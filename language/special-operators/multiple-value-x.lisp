@@ -11,7 +11,9 @@
          (new-env (fresh-environment env :multi-val-base base)))
     (let ((value-obj (compile-form value-form new-env)))
       (unless (= (length vars) (+ 1 (length (multi-vals value-obj))))
-        (error 'multi-val-bind-mismatch :val-form value-form :bindings vars))
+        (error 'multi-val-bind-mismatch :val-form value-form :bindings vars
+               :values (cons (v-type-of value-obj)
+                             (mapcar #'v-type-of (multi-vals value-obj)))))
       (let* ((mvals (multi-vals value-obj))
              (v-vals (mapcar #'multi-val-value mvals))
              (types (cons (code-type value-obj) (mapcar #'v-type-of v-vals))))

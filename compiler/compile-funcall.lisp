@@ -274,8 +274,8 @@
     (unless type (error 'unable-to-resolve-func-type :func-name func-name
                         :args args))
     (let* ((has-base (not (null (v-multi-val-base env))))
-           (m-r-base (or (v-multi-val-base env)
-                         (lisp-name->glsl-name 'nc env)))
+           (m-r-base (or (v-multi-val-base env) ;; when we are in a mval scope
+                         (lisp-name->glsl-name 'nc env))) ;; when we arent
            (mvals (rest (v-return-spec func)))
            (start-index 1)
            (m-r-names (loop :for i :from start-index
