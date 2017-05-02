@@ -57,12 +57,11 @@
     (values (copy-compiled result :node-tree ast :emit-set emit-set)
             env)))
 
-;; Used when this is the main stage function
 (defun %emit (code-obj env)
   ;; If you make changes here, look at %main-return to see if it needs
   ;; similar changes
   (cond
-    ((> (length (emit-set code-obj)) 1)
+    ((> (length (type-set code-obj)) 1)
      (let* ((v-vals (rest (coerce (type-set code-obj) 'list)))
             (types (mapcar #'v-type-of v-vals))
             (glsl-lines (mapcar #'glsl-name v-vals)))
