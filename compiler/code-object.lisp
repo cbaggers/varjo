@@ -7,7 +7,6 @@
                         place-tree node-tree)
   (assert-flow-id-singularity (flow-ids (primary-type type-set)))
   (unless (or (every #'flow-ids type-set) (set-doesnt-need-flow-ids type-set))
-    (break "hii")
     (error 'flow-ids-mandatory :for "compiled object"
            :primary-type (map 'vector #'type->type-spec type-set)))
   (unless set-type-set

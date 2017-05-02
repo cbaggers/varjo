@@ -60,30 +60,8 @@
 
 (defmethod print-object ((object v-function) stream)
   (with-slots (name argument-spec return-spec) object
-    (format stream "#<V-FUNCTION ~s ~s -> ~s>"
-            name
-            (if (eq t argument-spec)
-                '(t*)
-                (mapcar #'type->type-spec argument-spec))
-            (let ((return-spec (if (vectorp return-spec)
-                                   (type-set-to-type-list return-spec)
-                                   return-spec)))
-              (typecase return-spec
-                (function t)
-                (vector
-                 (let ((ret-types (type-set-to-type-list return-spec)))
-                   (if (= (length ret-types) 1)
-                       (type->type-spec (first ret-types))
-                       ret-types)))
-                (ret-gen-superior-type :mutual-cast)
-                (ret-gen-nth-arg-type
-                 (type->type-spec
-                  (elt argument-spec (arg-num return-spec))))
-                (ret-gen-element-of-nth-arg-type
-                 (type->type-spec
-                  (v-element-type
-                   (elt argument-spec (arg-num return-spec)))))
-                (otherwise return-spec))))))
+    (%print-func-type-common
+     stream "V-FUNCTION-TYPE" argument-spec return-spec name)))
 
 ;;------------------------------------------------------------
 

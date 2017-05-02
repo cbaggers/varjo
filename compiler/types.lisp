@@ -493,17 +493,34 @@ type-spec trick doesnt"))
                            (uiop:ensure-list return-type)))
      :flow-ids flow-id)))
 
-(defmethod print-object ((object v-function-type) stream)
-  (with-slots (name argument-spec return-spec) object
-    (format stream "#<V-FUNCTION-TYPE ~s -> ~s>"
+(defun %print-func-type-common (stream header-string argument-spec return-spec
+                                &optional name)
+  (labels ((extract (x)
+             (etypecase x
+               (v-type (type->type-spec x))
+               (typed-glsl-name (type->type-spec (v-type-of x)))
+               (ret-gen-superior-type :mutual-cast)
+               (ret-gen-nth-arg-type
+                (type->type-spec
+                 (elt argument-spec (arg-num argument-spec))))
+               (ret-gen-element-of-nth-arg-type
+                (type->type-spec
+                 (v-element-type
+                  (elt argument-spec (arg-num argument-spec))))))))
+    (format stream "#<~a~@[ ~s~] ~s -> ~s>"
+            header-string
+            name
             (if (eq t argument-spec)
                 '(t*)
-                (mapcar #'type-of argument-spec))
-            (let ((return-spec (type-set-to-type-list return-spec)))
-              (typecase (first return-spec)
-                (function t)
-                (v-type (type-of (first return-spec)))
-                (otherwise return-spec))))))
+                (mapcar #'type->type-spec argument-spec))
+            (if (vectorp return-spec)
+                (map 'list #'extract return-spec)
+                return-spec))))
+
+(defmethod print-object ((object v-function-type) stream)
+  (with-slots (name argument-spec return-spec) object
+    (%print-func-type-common
+     stream "V-FUNCTION-TYPE" argument-spec return-spec)))
 
 (defmethod copy-type ((type v-function-type))
   (let* ((new-inst (call-next-method)))
