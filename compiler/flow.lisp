@@ -193,8 +193,3 @@
   ;; need to address this one
   (:method ((obj v-type))
     (type-spec->type (type->type-spec obj))))
-
-(defmethod flow-ids ((obj vector))
-  (warn "flow-ids hack")
-  (unless (emptyp obj)
-    (flow-ids (elt obj 0))))
