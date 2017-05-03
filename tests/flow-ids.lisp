@@ -33,8 +33,28 @@
                                   (foo ,c0))
                                e0))))))
 
-;; (def-dbind-test flow-id-4 (:suite flow-id-tests) (c0 c1)
-;;     (is-true (varjo::id= (flow-ids c0) (flow-ids c1)))
-;;   (flow-id-scope
-;;     (let ((env (make-env :vertex nil '((x :mat4)))))
-;;       (compile-form 'x env))))
+(def-dbind-test flow-id-4 (:suite flow-id-tests) (c0 c1)
+    (is-true (varjo::id= (flow-ids c0) (flow-ids c1)))
+  (flow-id-scope
+    (let ((env (make-env :vertex nil '((x :mat4)))))
+      (list (second (find 'x (varjo::v-uniforms env) :key #'first))
+            (compile-form 'x env)))))
+
+(def-dbind-test flow-id-5 (:suite flow-id-tests) (c0 c1)
+    (is-true (varjo::id= (flow-ids c0) (flow-ids c1)))
+  (flow-id-scope
+    (let ((env (make-env :vertex nil '((x :mat4)))))
+      (list (second (find 'x (varjo::v-uniforms env) :key #'first))
+            (compile-form '(let ((y x))
+                            y)
+                          env)))))
+
+(def-dbind-test flow-id-6 (:suite flow-id-tests) (c0 c1)
+    (is-true (varjo::id= (flow-ids c0) (flow-ids c1)))
+  (flow-id-scope
+    (let ((env (make-env :vertex nil '((x :mat4)))))
+      (list (second (find 'x (varjo::v-uniforms env) :key #'first))
+            (compile-form '(labels ((foo ((a :mat4)) a))
+                            (let ((y (foo x)))
+                              y))
+                          env)))))
