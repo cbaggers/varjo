@@ -61,7 +61,7 @@
   ;; If you make changes here, look at %main-return to see if it needs
   ;; similar changes
   (cond
-    ((> (length (print (type-set code-obj))) 1)
+    ((> (length (type-set code-obj)) 1)
      (let* ((types (rest (coerce (type-set code-obj) 'list)))
             (base (v-multi-val-base env))
             (glsl-lines (loop :for i :below (length types) :collect
