@@ -217,8 +217,7 @@
   (assert (typep code-obj 'compiled))
   (assert (typep env 'environment))
   (unless (emptyp (type-set code-obj))
-    (let* ((flow-ids (map 'list #'flow-ids (type-set-to-type-list
-                                            (type-set code-obj))))
+    (let* ((flow-ids (map 'list #'flow-ids (type-set code-obj)))
            (ext-env (make-instance 'extended-environment :env env))
            (type (primary-type code-obj)))
       (loop :for flow-id :in flow-ids :do
@@ -238,8 +237,15 @@
   (assert (symbolp metadata-kind))
   (assert (subtypep metadata-kind 'standard-value-metadata))
   (assert (type-specp varjo-type))
-  (with-gensyms (type kind)
-    `(defmethod infer-meta-by-type ((,type ,varjo-type)
-                                    (,kind (eql ',metadata-kind))
-                                    ,env-var)
-       ,@body)))
+  ;; The conversion below this comment may look redundent but its important
+  ;; it is a lazy way of getting the true type of varjo-type. This is required
+  ;; as we then specialize infer-meta-by-type on it. If this is left out you
+  ;; won't always get and error but for certain types your metadata will fail
+  ;; to infer.
+  ;;                        ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+  (let ((varjo-type (type->type-spec (type-spec->type varjo-type))))
+    (with-gensyms (type kind)
+      `(defmethod infer-meta-by-type ((,type ,varjo-type)
+                                      (,kind (eql ',metadata-kind))
+                                      ,env-var)
+         ,@body))))
