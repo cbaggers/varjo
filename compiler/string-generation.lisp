@@ -66,8 +66,10 @@
             (when (current-line body-obj)
               (indent (current-line (end-line body-obj)))))))
 
-(defun gen-assignment-string (place val)
-  (format nil "~a = ~a" (current-line place) (current-line val)))
+(defun gen-bin-op-string (op-symbol place val)
+  (assert (symbolp op-symbol))
+  ;; {TODO} what logic do we want here?
+  (format nil "~a ~a ~a" (current-line place) op-symbol (current-line val)))
 
 (defun %gen-assignment-string (lhs rhs)
   (format nil "~a = ~a" lhs rhs))

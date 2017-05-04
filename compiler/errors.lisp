@@ -107,24 +107,28 @@
   (mapcar (lambda (x) (map 'list #'type->type-spec x))
           sets))
 
-(deferror non-place-assign () (place val)
-    "You cannot setf this: ~a ~%This was attempted as follows ~a"
+(deferror non-place-assign () (glsl-op place val)
+    "You cannot assign this: ~a ~%This was attempted as follows ~a"
   (current-line place)
-  (gen-assignment-string place val))
+  (gen-bin-op-string glsl-op place val))
 
 (deferror setq-readonly () (var-name code)
     "You cannot setq ~a as it is readonly ~%This was attempted as follows ~a"
   var-name
   code)
 
-(deferror setf-readonly () (var-name)
-    "setf failed as ~a is readonly"
+(deferror assigning-to-readonly () (var-name)
+    "Assignment failed as ~a is readonly"
   var-name)
 
-(deferror setf-type-match (:error-type varjo-critical-error)
-    (code-obj-a code-obj-b)
-    "Currently varjo cannot handle changing the type through a setf due to the static nature of glsl.~%place: ~a  value: ~a"
-  (primary-type code-obj-a) (primary-type code-obj-b))
+(deferror assignment-type-match (:error-type varjo-critical-error)
+    (op code-obj-a code-obj-b)
+    "Currently varjo cannot handle changing the type through an assignment due
+to the static nature of glsl.
+operation: ~a
+place: ~a
+value: ~a"
+  op (primary-type code-obj-a) (primary-type code-obj-b))
 
 (deferror setq-type-match (:error-type varjo-critical-error)
     (var-name old-value new-value)
@@ -305,7 +309,8 @@ e.g. (~a :vec3)"
     "The result of the test must be a bool.~%~s" (primary-type test-obj))
 
 (deferror cross-scope-mutate (:error-type varjo-critical-error) (var-name code)
-    "It is illegal to setf or setq variables from outside the function's own scope~%
+    "It is illegal to assign to variables from outside the function's own scope
+
 Tried to mutate ~s
 ~s"
   var-name code)

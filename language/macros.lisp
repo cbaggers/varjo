@@ -10,10 +10,6 @@
        ,@(when (rest clauses)
                `((cond ,@(rest clauses))))))
 
-(v-defmacro incf (place &optional (delta 1))
-  `(progn (setf ,place (+ ,place ,delta))
-          ,place))
-
 (v-defmacro + (&rest numbers)
   (case= (length numbers)
     (0 0)

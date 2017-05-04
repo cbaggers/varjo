@@ -56,7 +56,7 @@
           (let ((v (v! 0 0 0 0)))
             (symbol-macrolet ((x (x v)))
               (let ((y 0s0))
-                (setf-1 x 10s0)
+                (setf x 10s0)
                 (setf y 10s0))
               (v! x x x x)))))
        '((let ((v (v! 0 0 0 0)))

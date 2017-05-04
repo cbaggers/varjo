@@ -6,26 +6,38 @@
 
 ;;{TODO} make it handle multiple assignements like cl version
 (v-defmacro setf (&rest args)
-  (labels ((make-set-form (p v) `(setf-1 ,p ,v)))
-    (let ((pairs (group args 2)))
-      (if (= (length pairs) 1)
-          (make-set-form (first (first pairs)) (second (first pairs)))
-          `(progn
-             ,@(loop :for (p v) :in pairs :collect (make-set-form p v)))))))
+  (let ((pairs (group args 2)))
+    (if (= (length pairs) 1)
+        `(%modify-place setf = ,@(first pairs))
+        `(progn
+           ,@(mapcar λ`(%modify-place setf = ,@_) pairs)))))
 
-(v-defspecial setf-1 (place val)
+(v-defmacro incf (place val)
+  :args-valid t
+  :return
+  `(%modify-place incf += ,place ,val))
+
+(v-defmacro decf (place val)
+  :args-valid t
+  :return
+  `(%modify-place decf -= ,place ,val))
+
+(v-defspecial %modify-place (lisp-op-name glsl-op-symbol place val)
   :args-valid t
   :return
   (multiple-value-bind (place env-0) (compile-place place env :allow-unbound t)
     (multiple-value-bind (val env) (compile-form val env-0)
+      (assert (member lisp-op-name '(setf incf decf)))
       (cond
         ((not (place-tree place))
-         (error 'non-place-assign :place place :val val))
+         (error 'non-place-assign :glsl-op glsl-op-symbol
+                :place place :val val))
         ((not (v-type-eq (primary-type place) (primary-type val)))
-         (error 'setf-type-match :code-obj-a place :code-obj-b val))
+         (error 'assignment-type-match :op lisp-op-name
+                :code-obj-a place :code-obj-b val))
         (t (destructuring-bind (name value) (last1 (place-tree place))
              (when (v-read-only value)
-               (error 'setf-readonly :var-name name))
+               (error 'assigning-to-readonly :var-name name))
              (unless (or (= (v-function-scope env) (v-function-scope value))
                          (= (v-function-scope value) 0))
                (error 'cross-scope-mutate :var-name name
@@ -34,12 +46,13 @@
                (assert (eq old-val value))
                (let ((final-env (replace-flow-ids name old-val (flow-ids val)
                                                   old-env env))
-                     (type-set (make-type-set (primary-type val))))
+                     (type-set (make-type-set (primary-type val)))
+                     (cline (gen-bin-op-string glsl-op-symbol place val)))
                  (values (merge-compiled
                           (list place val)
                           :type-set type-set
-                          :current-line (gen-assignment-string place val)
-                          :node-tree (ast-node! 'setf
+                          :current-line cline
+                          :node-tree (ast-node! lisp-op-name
                                                 (list (node-tree place)
                                                       (node-tree val))
                                                 type-set

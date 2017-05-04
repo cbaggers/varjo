@@ -16,7 +16,6 @@
   (:export
 
    ;; special functions
-   :setf-1
    :return
    :labels-no-implicit
    :%out
@@ -89,8 +88,8 @@
            :emit-type-mismatch
            :non-place-assign
            :setq-readonly
-           :setf-readonly
-           :setf-type-match
+           :assigning-to-readonly
+           :assignment-type-match
            :setq-type-match
            :cannot-not-shadow-core
            :out-var-name-taken

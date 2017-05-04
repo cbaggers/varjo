@@ -32,7 +32,7 @@
 (defparameter *unshadowable-names* '(;; special
                                      and flet for function glsl-expr if labels
                                      labels-no-implicit let multiple-value-bind
-                                     or progn setf-1 setq switch swizzle
+                                     or progn setq switch swizzle
                                      symbol-macrolet-1 the values
                                      varjo-lang:values-safe while
                                      ;; macros
