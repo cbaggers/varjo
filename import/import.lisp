@@ -346,7 +346,7 @@ void main() {
 (defun import-swizzlable-form (primary)
   (typecase primary
     (string (import-var-identifier primary))
-    (t (error "not implemented"))))
+    (t (import-form primary))))
 
 (defun import-array (primary args)
   (declare (ignore primary args))
