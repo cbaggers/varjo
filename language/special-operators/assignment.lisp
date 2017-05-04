@@ -22,6 +22,16 @@
   :return
   `(%modify-place decf -= ,place ,val))
 
+(v-defmacro multf (place val)
+  :args-valid t
+  :return
+  `(%modify-place multf *= ,place ,val))
+
+(v-defmacro divf (place val)
+  :args-valid t
+  :return
+  `(%modify-place divf /= ,place ,val))
+
 (v-defspecial %modify-place (lisp-op-name glsl-op-symbol place val)
   :args-valid t
   :return

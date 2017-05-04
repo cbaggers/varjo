@@ -32,6 +32,8 @@
    :tessellate-to
    :emit-data
    :emit
+   :multf
+   :divf
 
    ;; bitwise operators
    :>>

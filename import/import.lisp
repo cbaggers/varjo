@@ -67,7 +67,36 @@ void main() {
               "Does not appear to contain a glsl function~%~s"
               (first forms))
       `(:defun-g ,name ,args
-         ,@body))))
+         ,@(mapcar #'code-cleaner body)))))
+
+(defun code-cleaner (form)
+  (match form
+    ((guard x (constantp x)) x)
+    ((guard x (symbolp x)) x)
+    (`(let ,@a) (code-cleaner `(let* ,@a)))
+    (`(let* (,@a) (let* (,@b) ,@c))
+      (code-cleaner `(let* (,@a ,@b) ,@c)))
+    (`(let* (,@a) (let (,@b) ,@c))
+      (code-cleaner `(let* (,@a ,@b) ,@c)))
+    (`(let* ,a (progn ,@b) ,@c)
+      (code-cleaner `(let* ,a ,@b ,@c)))
+    (`(let* ,a ,b (progn ,@c) ,@d)
+      (code-cleaner `(let* ,a ,b ,@c ,@d)))
+    (`(let* ,a ,b ,c (progn ,@d) ,@e)
+      (code-cleaner `(let* ,a ,b ,c ,@d ,@e)))
+    (`(let* ,a ,b ,c ,d (progn ,@e) ,@f)
+      (code-cleaner `(let* ,a ,b ,c ,d ,@e ,@f)))
+    (`(progn (progn ,@a) ,@b)
+      (code-cleaner
+       `(progn
+          ,@(mapcar #'code-cleaner a)
+          ,@(mapcar #'code-cleaner b))))
+    (`(progn ,a (progn ,@b) ,@c)
+      (code-cleaner `(progn ,a ,@b ,@c)))
+    (`(progn ,a ,b (progn ,@c) ,@d)
+      (code-cleaner `(progn ,a ,b ,@c ,@d)))
+    (`(progn ,a) (code-cleaner a))
+    (`(,@a) (mapcar #'code-cleaner a))))
 
 (defun post-process (forms)
   (labels ((func (x) (match x (`(%label ,@rest) rest))))
@@ -127,12 +156,16 @@ void main() {
 (defun import-compound-statement (form)
   (assert-match `(compound-statement ,@statements) form
     (reduce #'import-statement (reverse statements)
-            :initial-value nil)))
+              :initial-value nil)))
 
 (defun import-statement (accum form)
   (match form
     (`(variable-declaration ,@decl) (import-variable-declaration decl accum))
-    (_ (import-form form))))
+    (_ (if accum
+           `(progn
+              ,(import-form form)
+              ,accum)
+           (import-form form)))))
 
 (defun import-variable-declaration (form body-form)
   (assert-match `(,type-qualifier ,type-specifier ,@initializers) form
@@ -168,9 +201,22 @@ void main() {
          (_ `(:unknown-expression ,form))))))
 
 (defun import-assignment (form)
-  (assert-match `(,id := ,expr) form
-    `(setf ,(import-var-identifier id)
-           ,(import-form expr))))
+  (ematch form
+    (`(,id := ,expr)
+      `(setf ,(import-var-identifier id)
+             ,(import-form expr)))
+    (`(,id :+= ,expr)
+      `(incf ,(import-var-identifier id)
+             ,(import-form expr)))
+    (`(,id :-= ,expr)
+      `(decf ,(import-var-identifier id)
+             ,(import-form expr)))
+    (`(,id :*= ,expr)
+      `(varjo::multf ,(import-var-identifier id)
+             ,(import-form expr)))
+    (`(,id :/= ,expr)
+      `(varjo::divf ,(import-var-identifier id)
+             ,(import-form expr)))))
 
 (defun import-type-specifier (specifier-form)
   (assert-match `(type-specifier ,type) specifier-form
@@ -293,8 +339,9 @@ void main() {
     (t (error "not implemented"))))
 
 (defun import-swizzle (primary swizzle)
-  `(s~ ,(import-swizzlable-form primary)
-       ,(intern (string-upcase swizzle) :keyword)))
+  `(varjo-lang::s~
+    ,(import-swizzlable-form primary)
+    ,(intern (string-upcase swizzle) :keyword)))
 
 (defun import-swizzlable-form (primary)
   (typecase primary
