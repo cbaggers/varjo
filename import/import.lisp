@@ -9,31 +9,6 @@
          (error "Match Assertion Failure:~%~%Pattern: ~s~%Form: ~s"
                 ',pattern ,form)))))
 
-(defvar *test-glsl*
-  "#version 450
-
-int FOO(int X);
-
-int FOO(int X) {
-    return (X * 10);
-}
-
-void main() {
-    int A = 10;
-    int B = FOO(A);
-    gl_Position = vec4(float(A),float(B),float(0),float(1));
-}")
-
-(defvar *func-glsl*
-  "void SGPP_hash_2D( vec2 gridcell, out vec4 hash_0, out vec4 hash_1 )	//	generates 2 random numbers for each of the 4 cell corners
-{
-    //    gridcell is assumed to be an integer coordinate
-    vec4 hash_coord = SGPP_coord_prepare( vec4( gridcell.xy, gridcell.xy + 1.0 ) );
-    hash_0 = SGPP_permute( SGPP_permute( hash_coord.xzxz ) + hash_coord.yyww );
-    hash_1 = SGPP_resolve( SGPP_permute( hash_0 ) );
-    hash_0 = SGPP_resolve( hash_0 );
-}")
-
 (defun val-p (x)
   (not (eq x 'no-value)))
 
@@ -66,8 +41,16 @@ void main() {
       (assert (eq label '%label) ()
               "Does not appear to contain a glsl function~%~s"
               (first forms))
-      `(:defun-g ,name ,args
-         ,@(mapcar #'code-cleaner body)))))
+      (let* ((outs (remove-if-not λ(find :out _) args))
+             (outs (mapcar λ(subseq _ 0 2) outs))
+             (args (remove-if λ(find :out _) args))
+             (body (mapcar #'code-cleaner body)))
+        (if outs
+            `(:defun-g ,name ,args
+               (let ,(mapcar #'list outs)
+                 ,@body
+                 (values ,@(mapcar #'first outs))))
+            `(:defun-g ,name ,args ,@body))))))
 
 (defun code-cleaner (form)
   (match form
@@ -189,6 +172,8 @@ void main() {
     ((bin-op-form-p form) (import-binary-operator form))
     ;; other
     (t (match form
+         ((guard x (stringp x))
+          (import-var-identifier x))
          (`(return ,form)
            ;;`(varjo::%return ,(import-form form))
            (import-form form)) ;; {TODO} hack
@@ -203,20 +188,15 @@ void main() {
 (defun import-assignment (form)
   (ematch form
     (`(,id := ,expr)
-      `(setf ,(import-var-identifier id)
-             ,(import-form expr)))
+      `(setf ,(import-form id) ,(import-form expr)))
     (`(,id :+= ,expr)
-      `(incf ,(import-var-identifier id)
-             ,(import-form expr)))
+      `(incf ,(import-form id) ,(import-form expr)))
     (`(,id :-= ,expr)
-      `(decf ,(import-var-identifier id)
-             ,(import-form expr)))
+      `(decf ,(import-form id) ,(import-form expr)))
     (`(,id :*= ,expr)
-      `(varjo::multf ,(import-var-identifier id)
-             ,(import-form expr)))
+      `(varjo::multf ,(import-form id) ,(import-form expr)))
     (`(,id :/= ,expr)
-      `(varjo::divf ,(import-var-identifier id)
-             ,(import-form expr)))))
+      `(varjo::divf ,(import-form id) ,(import-form expr)))))
 
 (defun import-type-specifier (specifier-form)
   (assert-match `(type-specifier ,type) specifier-form
@@ -238,8 +218,9 @@ void main() {
     (`((type-qualifier ,qualifier)
        (type-specifier, type)
        ,name)
-      (list name type qualifier)
-      (skip arg))))
+      (list (import-var-identifier name)
+            (import-type type)
+            qualifier))))
 
 (defun import-function-identifier (id)
   (let ((name (varjo::parse-gl-func-name id)))
