@@ -3,4 +3,5 @@
           :alexandria :glsl-toolkit)
   (:import-from :varjo
                 :dbind)
-  (:export :import-stage))
+  (:export :import-stage
+           :import-glsl-function))

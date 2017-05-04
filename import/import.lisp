@@ -6,7 +6,8 @@
     `(let ((,form ,arg))
        (optima.extra:if-match ,pattern ,form
          (progn ,@body)
-         (error "Match Assertion Failure:~%~s~%~s" ',pattern ,form)))))
+         (error "Match Assertion Failure:~%~%Pattern: ~s~%Form: ~s"
+                ',pattern ,form)))))
 
 (defvar *test-glsl*
   "#version 450
@@ -23,6 +24,16 @@ void main() {
     gl_Position = vec4(float(A),float(B),float(0),float(1));
 }")
 
+(defvar *func-glsl*
+  "void SGPP_hash_2D( vec2 gridcell, out vec4 hash_0, out vec4 hash_1 )	//	generates 2 random numbers for each of the 4 cell corners
+{
+    //    gridcell is assumed to be an integer coordinate
+    vec4 hash_coord = SGPP_coord_prepare( vec4( gridcell.xy, gridcell.xy + 1.0 ) );
+    hash_0 = SGPP_permute( SGPP_permute( hash_coord.xzxz ) + hash_coord.yyww );
+    hash_1 = SGPP_resolve( SGPP_permute( hash_0 ) );
+    hash_0 = SGPP_resolve( hash_0 );
+}")
+
 (defun val-p (x)
   (not (eq x 'no-value)))
 
@@ -37,6 +48,27 @@ void main() {
       (_ (error "Varjo.Import: This does not appear to be a shader:~%~s"
                 glsl)))))
 
+(defun import-glsl-function (function-glsl)
+  (let* ((glsl function-glsl)
+         (ast (parse glsl)))
+    (match ast
+      ;;
+      (`(shader ,@body)
+        (post-process-func (mapcar #'import-shader-body-element body)))
+      ;;
+      (_ (error "Varjo.Import: This does not appear to be a shader:~%~s"
+                glsl)))))
+
+(defun post-process-func (forms)
+  (let* ((forms (remove nil forms)))
+    ;; {TODO} the non func forms
+    (dbind ((label name args &body body)) forms
+      (assert (eq label '%label) ()
+              "Does not appear to contain a glsl function~%~s"
+              (first forms))
+      `(:defun-g ,name ,args
+         ,@body))))
+
 (defun post-process (forms)
   (labels ((func (x) (match x (`(%label ,@rest) rest))))
     (let* ((forms (remove nil forms))
@@ -50,7 +82,7 @@ void main() {
         (values
          `(labels ,funcs
             ,@main-body
-			(values))
+            (values))
          '(:uniforms-placeholder)
          version)))))
 
@@ -142,12 +174,26 @@ void main() {
 
 (defun import-type-specifier (specifier-form)
   (assert-match `(type-specifier ,type) specifier-form
-    type))
+    (import-type type)))
+
+(defun import-type (type)
+  type)
+
+(defun skip (x)
+  (format t "Skipped: ~a~%" x)
+  '<SKIPPED>)
 
 (defun import-function-arg (arg)
-  (assert-match `(,type-specifier ,name) arg
-    (list (import-var-identifier name)
-          (import-type-specifier type-specifier))))
+  (ematch arg
+    (`((type-specifier ,type) ,name)
+      (list (import-var-identifier name)
+            (import-type type)))
+
+    (`((type-qualifier ,qualifier)
+       (type-specifier, type)
+       ,name)
+      (list name type qualifier)
+      (skip arg))))
 
 (defun import-function-identifier (id)
   (let ((name (varjo::parse-gl-func-name id)))
@@ -219,9 +265,41 @@ void main() {
   (nth (position kwd *glsl-keyword-symbols*)
        *glsl-keywords*))
 
+(defun swizzle-p (str)
+  (labels ((comp (set c) (find c set)))
+    (let ((len (length str)))
+      (and (> len 1)
+           (<= len 4)
+           (or (every λ(comp "xyzw" _) str)
+               (every λ(comp "rgba" _) str)
+               (every λ(comp "stpq" _) str))
+           str))))
+
 (defun import-field (primary args)
-  (declare (ignore primary args))
-  (error "not implemented"))
+  (match args
+    ((guard `(,field-name) (swizzle-p field-name))
+     (import-swizzle primary field-name))
+    (`(,field-name)
+      (import-field-access primary field-name))
+    (_ (error "not implemented"))))
+
+(defun import-field-access (primary field-name)
+  `(,(import-function-identifier field-name)
+     ,(import-place primary)))
+
+(defun import-place (primary)
+  (typecase primary
+    (string (import-var-identifier primary))
+    (t (error "not implemented"))))
+
+(defun import-swizzle (primary swizzle)
+  `(s~ ,(import-swizzlable-form primary)
+       ,(intern (string-upcase swizzle) :keyword)))
+
+(defun import-swizzlable-form (primary)
+  (typecase primary
+    (string (import-var-identifier primary))
+    (t (error "not implemented"))))
 
 (defun import-array (primary args)
   (declare (ignore primary args))
