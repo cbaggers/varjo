@@ -26,6 +26,7 @@
                (:file "tests/compiler-macros")
                (:file "tests/regular-macros")
                (:file "tests/name-shadowing")
+               (:file "tests/let-tests")
                (:file "tests/qualifier-tests")
                (:file "tests/uninitialized-value-tests")
                (:file "tests/metadata")))

@@ -174,6 +174,7 @@
 
 (5am:def-suite test-all)
 
+(5am:def-suite let-tests :in test-all)
 (5am:def-suite void-tests :in test-all)
 (5am:def-suite array-tests :in test-all)
 (5am:def-suite build-tests :in test-all)
