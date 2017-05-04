@@ -37,7 +37,7 @@
   :return
   (multiple-value-bind (place env-0) (compile-place place env :allow-unbound t)
     (multiple-value-bind (val env) (compile-form val env-0)
-      (assert (member lisp-op-name '(setf incf decf)))
+      (assert (member lisp-op-name '(setf incf decf multf divf)))
       (cond
         ((not (place-tree place))
          (error 'non-place-assign :glsl-op glsl-op-symbol
