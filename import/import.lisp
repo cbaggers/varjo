@@ -285,16 +285,18 @@ void main() {
        (not (null (find (first form) *binary-op-lookup* :key #'first)))))
 
 (defun dispatch-reference (primary modifiers)
-  (assert (= (length modifiers) 1) ()
-          "Oh so THIS is when we have multiple modifiers")
-  (let ((modifier (first modifiers))
-        (table `((call-modifier . ,#'import-call)
-                 (field-modifier . ,#'import-field)
-                 (array-modifier . ,#'import-array)
-                 (increment-modifier . ,#'import-increment)
-                 (decrement-modifier . ,#'import-decrement))))
-    (dbind (kind . args) modifier
-      (funcall (varjo::assocr kind table) primary args))))
+  (if (> (length modifiers) 1)
+      (import-form `(modified-reference
+                     (modified-reference ,primary ,@(butlast modifiers))
+                     ,(car (last modifiers))))
+      (let ((modifier (first modifiers))
+            (table `((call-modifier . ,#'import-call)
+                     (field-modifier . ,#'import-field)
+                     (array-modifier . ,#'import-array)
+                     (increment-modifier . ,#'import-increment)
+                     (decrement-modifier . ,#'import-decrement))))
+        (dbind (kind . args) modifier
+          (funcall (varjo::assocr kind table) primary args)))))
 
 (defun import-call (primary args)
   (let ((primary
