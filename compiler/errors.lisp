@@ -657,12 +657,12 @@ only valid to return nil or a piece of metadata of the correct type."
 the time, please report this on github."
   vtype)
 
-(deferror cannot-swizzle-this-type () (vtype is-struct)
+(deferror cannot-swizzle-this-type () (vtype)
     "Was asked to swizzle a value with the type ~a
 
 However is not a type that can be swizzled. ~a"
-  vtype
-  (if is-struct
+  (type->type-spec (v-true-type vtype))
+  (if (typep vtype 'v-struct)
       "Perhaps you meant one of this struct's slots?"
       ""))
 
