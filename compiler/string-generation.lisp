@@ -58,7 +58,7 @@
   (let ((args (append (mapcar λ(cons nil _) args)
                       (gen-implicit-arg-tripples implicit-args)
                       (gen-in-out-arg-tripples in-out-args))))
-    (format nil "~a ~a(~a) {~%~{~a~%~}~{~a~%~}}~%"
+    (format nil "~a ~a(~a)~%{~%~{~a~%~}~{~a~%~}}~%"
             (v-glsl-string type)
             (string name)
             (gen-arg-string args out-args)
