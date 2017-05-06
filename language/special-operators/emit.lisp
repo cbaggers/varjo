@@ -29,69 +29,40 @@
 ;;------------------------------------------------------------
 ;; emit
 
-(defvar *emit-base-name* 'emit)
-
 (v-defspecial emit-data (&optional (form '(values)))
   :args-valid t
-  :context :geometry
   :return
-  (let* ((emit-base-glsl (lisp-name->glsl-name *emit-base-name* env))
-         (new-env (fresh-environment env :multi-val-base emit-base-glsl))
-         ;; we create an environment with the signal to let any 'values' forms
-         ;; down the tree know they will be caught and what their name prefix
-         ;; should be.
-         ;; We then compile the form using the augmented environment, the
-         ;; values statements will expand and flow back as 'multi-vals' and the
-         ;; current-line
-         (code-obj (compile-form form new-env))
-         (result (%emit code-obj new-env))
-         (emit-set (or (emit-set result)
-                       (error 'nil-emit-set
-                              :form (list 'emit form)
-                              :possible-set (emit-set code-obj))))
-         (ast (ast-node! 'emit-data
-                         (node-tree code-obj)
-                         (type-set result)
-                         env env)))
-    ;;0
-    (values (copy-compiled result :node-tree ast :emit-set emit-set)
-            env)))
-
-(defun %emit (code-obj env)
-  ;; If you make changes here, look at %main-return to see if it needs
-  ;; similar changes
-  (cond
-    ((> (length (type-set code-obj)) 1)
-     (let* ((types (rest (coerce (type-set code-obj) 'list)))
-            (base (v-multi-val-base env))
-            (glsl-lines (loop :for i :below (length types) :collect
-                           (postfix-glsl-index base (1+ i)))))
-       (copy-compiled
-        (merge-progn
-         (with-fresh-env-scope (fresh-env env)
-           (env-> (p-env fresh-env)
-             (merge-multi-env-progn
-              (%mapcar-multi-env-progn
-               (lambda (p-env type gname)
-                 (compile-let (gensym) (type->type-spec type)
-                              nil p-env gname))
-               p-env types glsl-lines))
-             ;; We compile these ↓↓, however we dont include them in the ast
-             (compile-form (%default-out-for-stage code-obj p-env)
-                           p-env)
-             (compile-form (mvals->out-form code-obj base p-env)
-                           p-env)))
-         env)
-        :emit-set (type-set code-obj))))
-    (t (let ((emit-set (if (typep (stage env) 'vertex-stage)
-                           (make-type-set)
-                           (type-set code-obj))))
-         (copy-compiled
-          (with-fresh-env-scope (fresh-env env)
-            (compile-form (%default-out-for-stage code-obj fresh-env)
-                          fresh-env))
-          :emit-set emit-set
-          :pure nil)))))
+  (let ((new-env (fresh-environment
+                  env :multi-val-base *emit-var-name-base*)))
+    ;; we create an environment with the signal to let any 'values' forms
+    ;; down the tree know they will be caught and what their name prefix should
+    ;; be.
+    ;; We then compile the form using the augmented environment, the values
+    ;; statements will expand and flow back as 'multi-vals' and the
+    ;; current-line
+    ;;
+    ;; now there are two styles of return:
+    ;; - The first is for a regular function, in which multivals become
+    ;;   out-arguments and the current-line is returned
+    ;; - The second is for a shader stage in which the multi-vars become
+    ;;   output-variables and the current line is handled in a 'context'
+    ;;   specific way.
+    ;;
+    ;; If you make changes here, look at #'emit to see if it needs
+    ;; similar changes
+    (vbind (code-obj final-env) (compile-form form new-env)
+      (if (emit-set code-obj)
+          (let ((ast (ast-node! 'emit-data
+                                (node-tree code-obj)
+                                (make-type-set)
+                                env env)))
+            (values (copy-compiled code-obj
+                                   :type-set (make-type-set)
+                                   :node-tree ast)
+                    final-env))
+          (%values-for-emit (list code-obj)
+                            (list (extract-value-qualifiers code-obj))
+                            final-env)))))
 
 ;;------------------------------------------------------------
 

@@ -13,6 +13,7 @@
   :return
   (let* ((base (v-multi-val-base env))
          (for-return (equal base *return-var-name-base*))
+         (for-emit (equal base *emit-var-name-base*))
          ;;
          (new-env (fresh-environment env :multi-val-base nil))
          (qualifier-lists (mapcar #'extract-value-qualifiers values))
@@ -21,6 +22,7 @@
     (if values
         (cond
           (for-return (%values-for-return objs qualifier-lists env))
+          (for-emit (%values-for-emit objs qualifier-lists env))
           (base (%values forms objs qualifier-lists env))
           (t (compile-form `(prog1 ,@values) env)))
         (%values-void for-return env))))
@@ -52,6 +54,45 @@
     (values (copy-compiled
              result
              :type-set type-set
+             :node-tree ast)
+            env)))
+
+
+(defun %values-for-emit (objs qualifier-lists env)
+  (let* (;;
+         (new-env (fresh-environment env :multi-val-base nil))
+
+         ;;
+         (assign-forms (mapcar λ(gen-assignement-form-for-return new-env _ _1)
+                               (iota (length objs))
+                               objs))
+         ;;
+         (first-name (gensym))
+         (result (cond
+                   ((v-voidp (first objs))
+                    (compile-form `(progn ,@assign-forms) env))
+                   ((> (length objs) 1)
+                    (compile-form
+                     `(let ((,first-name ,(first assign-forms)))
+                        ,@(rest assign-forms)
+                        ,first-name)
+                     env))
+                   (t (first objs))))
+         ;;
+         (qualified-types (loop :for o :in objs
+                             :for q :in qualifier-lists
+                             :collect (qualify-type (primary-type o) q)))
+         (type-set (make-type-set* qualified-types))
+         ;;
+         (ast (ast-node! 'values
+                         (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
+                                 objs
+                                 qualifier-lists)
+                         type-set env env)))
+    (values (copy-compiled
+             result
+             :type-set type-set
+             :emit-set type-set
              :node-tree ast)
             env)))
 

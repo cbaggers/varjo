@@ -37,15 +37,4 @@
             (substitute #\_ #\- (symbol-name (type-of stage)))
             n)))
 
-(defun mvals->out-form (code-object base env)
-  (let ((mvals (rest (coerce (type-set code-object) 'list)))
-        (stage (stage env)))
-    `(progn
-       ,@(loop :for mval :in mvals :for i :from 1 :collect
-            (with-slots (value qualifiers) mval
-              `(glsl-expr ,(format nil "~a = ~a"
-                                   (nth-return-name i stage t)
-                                   (postfix-glsl-index base i))
-                          :void))))))
-
 ;;------------------------------------------------------------
