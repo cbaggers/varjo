@@ -36,10 +36,9 @@
          (glsl (apply #'format (append (list nil current-line)
                                        arg-lines))))
     (assert flow-id)
-    (make-compiled
+    (merge-compiled objs
      :type-set type-set
      :current-line glsl
-     :used-types (list type-obj)
      :node-tree (ast-node! 'glsl-expr
                            (list current-line type)
                            type-set
