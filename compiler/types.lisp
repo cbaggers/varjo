@@ -501,11 +501,11 @@ type-spec trick doesnt"))
                (ret-gen-superior-type :mutual-cast)
                (ret-gen-nth-arg-type
                 (type->type-spec
-                 (elt argument-spec (arg-num argument-spec))))
+                 (elt argument-spec (arg-num x))))
                (ret-gen-element-of-nth-arg-type
                 (type->type-spec
                  (v-element-type
-                  (elt argument-spec (arg-num argument-spec))))))))
+                  (elt argument-spec (arg-num x))))))))
     (format stream "#<~a~@[ ~s~] ~s -> ~s>"
             header-string
             name
