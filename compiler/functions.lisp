@@ -70,13 +70,14 @@
                                    (when rest (cons '&rest rest))
                                    (when rest (cons '&optional optional)))))
           (func-name (symb :vs- name))
-          (env (symb :env)))
+          (env (symb :env))
+          (this (symb :this)))
       (destructuring-bind (&key context v-place-index args-valid return) body
         (cond
           ((eq args-valid t)
            `(progn
-              (defun ,func-name ,(cons env args)
-                (declare (ignorable ,env ,@arg-names))
+              (defun ,func-name ,(append (list env this) args)
+                (declare (ignorable ,env ,this ,@arg-names))
                 ,return)
               (add-form-binding
                (make-function-obj ',name :special ',context t
@@ -85,8 +86,9 @@
                *global-env*)
               ',name))
           (t `(progn
-                (defun ,func-name ,(cons env (mapcar #'first args))
-                  (declare (ignorable ,env ,@arg-names))
+                (defun ,func-name ,(append (list env this)
+                                           (mapcar #'first args))
+                  (declare (ignorable ,env ,this ,@arg-names))
                   ,return)
                 (add-form-binding
                  (make-function-obj ',name :special ',context

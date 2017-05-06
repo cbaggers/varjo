@@ -86,7 +86,8 @@
                  :glsl-string transform
                  :arg-spec arg-spec
                  :return-spec return-spec
-                 :versions versions :v-place-index v-place-index
+                 :versions versions
+                 :v-place-index v-place-index
                  :glsl-name glsl-name
                  :name name
                  :implicit-args implicit-args

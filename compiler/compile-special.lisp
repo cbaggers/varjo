@@ -5,7 +5,7 @@
 
 (defun compile-special-function (func args env)
   (multiple-value-bind (code-obj new-env)
-      (apply (v-return-spec func) (cons env args))
+      (apply (v-return-spec func) env func args)
     (values code-obj new-env)))
 
 ;;----------------------------------------------------------------------

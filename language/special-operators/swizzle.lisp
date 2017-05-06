@@ -8,6 +8,7 @@
 
 (v-defspecial swizzle (vec-form components)
   :args-valid t
+  :v-place-index 0
   :return
   (let* ((vec-obj (compile-form vec-form env))
          (vec-type (primary-type vec-obj))
@@ -27,7 +28,7 @@
       :node-tree (ast-node! 'swizzle
                             `(,(node-tree vec-obj) ,components)
                             type-set env env)
-      :place-tree nil)
+      :place-tree (calc-place-tree this (list vec-obj)))
      env)))
 
 (defun extract-swizzle-string (vec-type components)
