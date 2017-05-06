@@ -838,9 +838,13 @@ type-spec trick doesnt"))
 
 ;;------------------------------------------------------------
 
-(defun v-voidp (x)
-  (or (and (vectorp x) (= (length x) 0))
-      (typep x 'v-void)))
+(defgeneric v-voidp (x)
+  (:method ((x compiled))
+    (v-voidp (type-set x)))
+  (:method ((x v-type))
+    (typep x 'v-void))
+  (:method ((x vector))
+    (= (length x) 0)))
 
 (defgeneric swizzlable-p (x)
   (:method ((x compiled))

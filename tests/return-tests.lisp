@@ -45,8 +45,7 @@
 (5am:def-test return-5 (:suite return-tests)
   (glsl-contains-n-p 1 "out vec4"
     (varjo.tests::compile-frag () :450 t
-      (return (v! 1 2 3 4))
-      (values))))
+      (return (v! 1 2 3 4)))))
 
 (5am:def-test return-6 (:suite return-tests)
   (glsl-contains-n-p 1 "out vec4"
@@ -93,17 +92,4 @@
     (varjo.tests::compile-frag () :450 t
       (labels ((gen-line ()
                  (return (values 1 2 3))))
-        (gen-line)
-        (values)))))
-
-(5am:def-test return-11 (:suite return-tests)
-  (glsl-contains-all-p  ("\\(out int return_1, out int return_2\\);"
-                         "return_1 = "
-                         "return_2 = "
-                         "return g_")
-    (varjo.tests::compile-frag () :450 t
-      (labels ((gen-line ()
-                 (return (values 1 2 3))
-                 (values)))
-        (gen-line)
-        (values)))))
+        (gen-line)))))

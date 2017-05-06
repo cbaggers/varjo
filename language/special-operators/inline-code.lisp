@@ -6,10 +6,12 @@
 
 (v-defmacro glsl-expr (glsl-string type-spec &rest args)
   (if args
-      (let ((gs (loop :for i :below (length args) :collect
-                   (gensym (format nil "GEXPR~a" i)))))
-        `(let ,(mapcar #'list gs args)
-           (%glsl-expr ,glsl-string ,type-spec ,@gs)))
+      (if (and (every λ(typep _ 'compiled) args) (not (some #'to-block args)))
+          `(%glsl-expr ,glsl-string ,type-spec ,@args)
+          (let ((gs (loop :for i :below (length args) :collect
+                       (gensym (format nil "GEXPR~a" i)))))
+            `(let ,(mapcar #'list gs args)
+               (%glsl-expr ,glsl-string ,type-spec ,@gs))))
       `(%glsl-expr ,glsl-string ,type-spec)))
 
 (v-defspecial %glsl-expr (glsl-string type-spec &rest args)
@@ -38,7 +40,7 @@
      :type-set type-set
      :current-line glsl
      :used-types (list type-obj)
-     :node-tree (ast-node! '%glsl-expr
+     :node-tree (ast-node! 'glsl-expr
                            (list current-line type)
                            type-set
                            nil nil)

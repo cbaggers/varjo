@@ -6,10 +6,13 @@
        (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
        (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
 
+(defun type-sets-equal (set-a set-b)
+  (and (= (length set-a) (length set-b))
+       (every #'qualified-eql set-a set-b)))
+
 (defun merge-return-sets (sets)
   (labels ((%merge-return-sets (set-a set-b)
-             (assert (and (= (length set-a) (length set-b))
-                          (every #'qualified-eql set-a set-b))
+             (assert (type-sets-equal set-a set-b)
                      () 'return-type-mismatch
                      :sets (list set-a set-b))
              set-a))
@@ -44,10 +47,5 @@
                                    (nth-return-name i stage t)
                                    (postfix-glsl-index base i))
                           :void))))))
-
-;; (defun out-qualifier-p (x env)
-;;   (declare (ignore env))
-;;   ;; {TODO} make this work properly
-;;   (find x '(:smooth :flat :noperspective)))
 
 ;;------------------------------------------------------------

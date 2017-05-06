@@ -879,6 +879,16 @@ to a glsl-stage is (\"string-name-of-arg\" arg-type ,@keyword-qualifiers)
 Problematic arg was: ~a"
   arg)
 
+(defbug return-set-mismatch () (form)
+    "Type & Return sets don't match
+
+Our apologies for this mistake. If you have the time please raise an issue at
+https://github.com/cbaggers/varjo/issues including the code that triggered this
+issue.
+
+Problematic Definition:
+~s" form)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

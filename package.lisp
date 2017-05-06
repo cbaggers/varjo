@@ -176,6 +176,7 @@
            :clashes-found-between-input-and-output-names
            :user-func-invalid-x
            :invalid-inline-glsl-stage-arg-layout
+           :return-set-mismatch
 
            ;; restarts
            :setq-supply-alternate-type
