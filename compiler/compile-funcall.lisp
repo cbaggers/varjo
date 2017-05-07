@@ -58,7 +58,7 @@
                                            &optional name code)
   (let ((func-name (or name (%func-name-from-set func-set))))
     (dbind (func args) (find-function-in-set-for-args
-                        func-set args-code env func-name)
+                        func-set args-code env func-name code)
       (typecase func
         (v-function (compile-function-call func args env))
         (external-function (compile-external-function-call func args env))

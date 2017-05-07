@@ -93,9 +93,12 @@
 (deferror could-not-find-any (:error-type varjo-critical-error) (name)
     "No function, macro or compiler-macro called '~a' could be found in this environment" name)
 
-(deferror no-valid-function () (name types)
-    "There is no applicable method for the glsl function '~s'~%when called with argument types:~%~s "
-  name (mapcar #'type->type-spec types))
+(deferror no-valid-function () (name types form)
+    "There is no applicable method for the glsl function '~s'~%when called with argument types:
+~s
+
+~@[Form: ~a~]"
+  name (mapcar #'type->type-spec types) form)
 
 (deferror return-type-mismatch () (sets)
     "Some of the return statements return different types:~{~%~a~}"

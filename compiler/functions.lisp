@@ -254,7 +254,7 @@ however failed to do so when asked."
   (not (and (v-special-functionp func)
             (eq (v-argument-spec func) t))))
 
-(defun find-functions-in-set-for-args (func-set args-code env &optional name)
+(defun find-functions-in-set-for-args (func-set args-code env &optional name code)
   (let* ((func-name (or name (%func-name-from-set func-set)))
          (candidates (functions func-set))
          (compiled-args (when (some #'func-need-arguments-compiledp candidates)
@@ -267,14 +267,17 @@ however failed to do so when asked."
         (progn
           (assert (every λ(numberp (score _)) matches))
           matches)
-        (func-find-failure func-name (mapcar #'primary-type compiled-args)))))
+        (func-find-failure func-name
+                           code
+                           (mapcar #'primary-type compiled-args)))))
 
-(defun find-function-in-set-for-args (func-set args-code env &optional name)
+(defun find-function-in-set-for-args (func-set args-code env &optional name code)
   "Find the function that best matches the name and arg spec given
    the current environment. This process simply involves finding the
    functions and then sorting them by their appropriateness score,
    the lower the better. We then take the first one and return that
    as the function to use."
+  ;; optional code is used for errors
   (labels ((check-for-stemcell-issue (matches func-name)
              (when (and (> (length matches) 1)
                         (some (lambda (x)
@@ -292,7 +295,7 @@ however failed to do so when asked."
     (let* ((func-name (or name (%func-name-from-set func-set)))
            (matches (find-functions-in-set-for-args
                      func-set
-                     args-code env))
+                     args-code env nil code))
            (function (if (= (length matches) 1)
                          (first matches)
                          (progn
@@ -308,7 +311,7 @@ however failed to do so when asked."
         names)))
 
 ;; if there were no candidates then pass errors back
-(defun func-find-failure (func-name arg-types)
+(defun func-find-failure (func-name form arg-types)
   (assert func-name)
   (loop :for arg-type :in arg-types
      :if (typep arg-type 'v-error)
@@ -322,7 +325,8 @@ however failed to do so when asked."
                     :func (make-instance 'v-error :payload
                                          (make-instance 'no-valid-function
                                                         :name func-name
-                                                        :types arg-types))
+                                                        :types arg-types
+                                                        :form form))
                     :arguments nil)))))
 
 (defun valid-return-spec-member-p (x)
