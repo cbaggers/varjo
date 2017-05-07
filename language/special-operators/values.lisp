@@ -98,8 +98,8 @@
 
 (defun %values-for-return (objs qualifier-lists env)
   (let* (;;
+         (is-main-p (not (null (member :main (v-context env)))))
          (new-env (fresh-environment env :multi-val-base nil))
-
          ;;
          (assign-forms (mapcar λ(gen-assignement-form-for-return new-env _ _1)
                                (iota (length objs))
@@ -115,16 +115,24 @@
                      env))
                    ((> (length objs) 1)
                     (compile-form
-                     `(let ((,first-name ,(first assign-forms)))
-                        ,@(rest assign-forms)
-                        (%glsl-expr "return ~a"
-                                    ,(primary-type (first objs))
-                                    ,first-name))
+                     (if is-main-p
+                         `(progn
+                            ,@assign-forms
+                            (%glsl-expr "return" :void))
+                         `(let ((,first-name ,(first assign-forms)))
+                            ,@(rest assign-forms)
+                            (%glsl-expr "return ~a"
+                                        ,(primary-type (first objs))
+                                        ,first-name)))
                      env))
                    (t (compile-form
-                       `(%glsl-expr "return ~a"
-                                    ,(primary-type (first objs))
-                                    ,(first assign-forms))
+                       (if is-main-p
+                           `(progn
+                              ,(first assign-forms)
+                              (%glsl-expr "return" :void))
+                           `(%glsl-expr "return ~a"
+                                        ,(primary-type (first objs))
+                                        ,(first assign-forms)))
                        env))))
          ;;
          (qualified-types (loop :for o :in objs
