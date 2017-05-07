@@ -503,15 +503,16 @@
 
   (:method (stage post-proc-obj locations)
     (with-slots (out-set) post-proc-obj
-      (let ((glsl-decls (gen-out-glsl-decls stage out-set locations)))
+      (let* ((glsl-decls (gen-out-glsl-decls stage out-set locations))
+             (glsl-decls (if (stage-where-first-return-is-position-p stage)
+                             (rest glsl-decls)
+                             glsl-decls)))
         (when glsl-decls
           (list
            (write-interface-block
             :out
             (out-block-name-for stage)
-            (if (stage-where-first-return-is-position-p stage)
-                (rest glsl-decls)
-                glsl-decls)
+            glsl-decls
             :instance-name *out-block-name*))))))
 
   (:method ((stage tessellation-control-stage) post-proc-obj locations)
