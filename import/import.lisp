@@ -152,19 +152,29 @@
 
 (defun import-variable-declaration (form body-form)
   (assert-match `(,type-qualifier ,type-specifier ,@initializers) form
-    (let ((qualifier type-qualifier)
-          (type (import-type-specifier type-specifier))
-          (initializers (mapcar #'import-initializer
-                                (varjo::group initializers 3))))
-      (declare (ignore qualifier type))
+    (let* ((qualifier type-qualifier)
+           (type (import-type-specifier type-specifier))
+           (initializers (mapcar #'import-initializer
+                                 (varjo::group initializers 3)))
+           (initializers (mapcar λ(if (symbolp _)
+                                      `((,_ ,type))
+                                      _)
+                                 initializers)))
+      (declare (ignore qualifier))
       `(let ,initializers
          ,body-form))))
 
 (defun import-initializer (initializer)
-  (assert-match `(,id ,array-specifier ,form) initializer
-    array-specifier ;; {TODO} hack
-    (list (import-var-identifier id)
-          (import-form form))))
+  (ematch initializer
+    (`(,id ,array-specifier ,form)
+      array-specifier ;; {TODO} HACK!
+      (list (import-var-identifier id)
+            (import-form form)))
+    (`(,id no-value)
+      (import-var-identifier id))
+    (`(,id ,form)
+      (list (import-var-identifier id)
+            (import-form form)))))
 
 (defun import-form (form)
   (cond
