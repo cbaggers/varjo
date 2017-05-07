@@ -193,7 +193,7 @@
            (dispatch-reference primary modifiers))
          (`(conditional (,op ,left ,right) ,then ,else)
            (import-conditional op left right then else))
-         (`(negation ,expr) `(- ,expr))
+         (`(negation ,expr) `(- ,(import-form expr)))
          ((type number) form)
          (_ (error "unknown expression:~%~a" form))))))
 
