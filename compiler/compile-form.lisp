@@ -35,7 +35,8 @@
 
 (defmethod compile-literal (code env &key (errorp t))
   (multiple-value-bind (code-obj new-env)
-      (cond ((or (null code) (eq t code)) (compile-bool code env))
+      (cond ((stringp code) (compile-string-literal code env))
+            ((or (null code) (eq t code)) (compile-bool code env))
             ((numberp code) (compile-number code env))
             ((arrayp code) (compile-array-literal code env))
             (t :invalid))

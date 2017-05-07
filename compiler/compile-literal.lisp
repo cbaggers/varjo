@@ -51,3 +51,12 @@
                    :used-types (list element-type)
                    :node-tree ast
                    :pure t)))
+
+(defun compile-string-literal (str env)
+  (let ((is (or (handler-case (parse-integer str)
+                  (error () nil))
+                (handler-case (parse-float:parse-float str)
+                  (error () nil)))))
+    (etypecase is
+      (integer (compile-form is env))
+      (float (compile-form `(glsl-expr ,str :float) env)))))
