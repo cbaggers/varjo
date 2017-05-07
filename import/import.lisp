@@ -110,14 +110,14 @@
     (`(function-definition ,prototype ,body)
       (import-function prototype body))
     ;;
-    (_ `(:unknown-shader-body-element ,body))))
+    (_ (error "unknown-shader-body-element~%~a" body))))
 
 (defun import-directive (directive-string)
   (dbind (kind . args) (split-sequence:split-sequence #\space directive-string)
     (cond
       ((string= kind "#version")
        `(:version ,(intern (first args) :keyword)))
-      (t `(:unknown-directive ,kind ,args)))))
+      (t (error "unknown-directive ~a ~a" kind args)))))
 
 (defun import-function (prototype body)
   (let ((form (import-compound-statement body)))
@@ -181,9 +181,38 @@
          (`(assignment ,@form) (import-assignment form))
          (`(modified-reference ,primary ,@modifiers)
            (dispatch-reference primary modifiers))
-         ((type string) (import-var-identifier form))
+         (`(conditional (,op ,left ,right) ,then ,else)
+           (import-conditional op left right then else))
+         (`(negation ,expr) `(- ,expr))
          ((type number) form)
-         (_ `(:unknown-expression ,form))))))
+         (_ (error "unknown expression:~%~a" form))))))
+
+(defparameter *ops*
+  '((multiplication . *)
+    (division . /)
+    (modulus . mod)
+    (addition . +)
+    (subtraction . -)
+    ;; (left-shift . (ash _ 1))
+    ;; (right-shift . (ash _ -1))
+    (less-than . <)
+    (greater-than . >)
+    (less-equal-than . <=)
+    (greater-equal-than . >=)
+    (equal . =)
+    (not-equal . /=)
+    ;; (bitwise-and)
+    ;; (exclusive-or)
+    ;; (inclusive-or)
+    ;; (logical-and)
+    ;; (logical-xor)
+    ;; (logical-or)
+    ))
+
+(defun import-conditional (op left right then else)
+  `(if (,(cdr (assoc op *ops*)) ,(import-form left) ,(import-form right))
+       ,(import-form then)
+       ,(import-form else)))
 
 (defun import-assignment (form)
   (ematch form
