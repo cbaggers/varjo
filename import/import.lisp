@@ -47,9 +47,10 @@
              (body (mapcar #'code-cleaner body)))
         (if outs
             `(:defun-g ,name ,args
-               (let ,(mapcar #'list outs)
-                 ,@body
-                 (values ,@(mapcar #'first outs))))
+               ,(code-cleaner
+                 `(let* ,(mapcar #'list outs)
+                    ,@body
+                    (values ,@(mapcar #'first outs)))))
             `(:defun-g ,name ,args ,@body))))))
 
 (defun code-cleaner (form)
@@ -57,8 +58,8 @@
     ((guard x (constantp x)) x)
     ((guard x (symbolp x)) x)
     (`(let ,@a) (code-cleaner `(let* ,@a)))
-    (`(let* (,@a) (let* (,@b) ,@c))
-      (code-cleaner `(let* (,@a ,@b) ,@c)))
+    (`(let* (,@a) (let* (,@b) ,@c) ,@d)
+      (code-cleaner `(let* (,@a ,@b) ,@c ,@d)))
     (`(let* (,@a) (let (,@b) ,@c))
       (code-cleaner `(let* (,@a ,@b) ,@c)))
     (`(let* ,a (progn ,@b) ,@c)
