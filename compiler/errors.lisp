@@ -824,7 +824,7 @@ the vertex itself.
 Like #'return, #'emit-data can handle multiple values.
 
 Found the following return values from the main stage function:~{~%~a~}"
-  (mapcar #'type->type-spec return-set))
+  (map 'list #'type->type-spec return-set))
 
 (deferror emit-not-in-geometry-stage () (stage emit-set)
     "emit, emit-data & friends are only valid in geometry stages, found it's
