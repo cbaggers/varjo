@@ -18,10 +18,11 @@
                     :type (type-spec->type type-spec)
                     :qualifiers qualifiers)))))
       (let* ((context (process-context context))
+             (stage-type (if kind
+                             (stage-kind-to-type kind)
+                             'stage))
              (r (make-instance
-                 (if kind
-                     (stage-kind-to-type kind)
-                     'stage)
+                 stage-type
                  :input-variables (mapcar λ(make-var 'input-variable _)
                                           in-args)
                  :uniform-variables (mapcar λ(make-var 'uniform-variable _)
@@ -29,7 +30,8 @@
                  :context context
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
-                 :primitive-in (%process-primitive-type kind primitive))))
+                 :primitive-in (%process-primitive-type stage-type
+                                                        primitive))))
         (when (member kind '(:tessellation-control :tessellation-evaluation))
           ;; {TODO} proper error
           (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
@@ -40,35 +42,36 @@
 
 ;;----------------------------------------------------------------------
 
-(defun %process-primitive-type (kind primitive &key (allow-null t))
+(defun %process-primitive-type (stage-type primitive &key (allow-null t))
+  (assert (find stage-type *stage-type-names*))
   (let ((primitive
          (etypecase primitive
            (null nil)
            (primitive primitive)
            ((or symbol list) (primitive-name-to-instance primitive)))))
     (unless (and allow-null (null primitive))
-      (ecase kind
-        (:vertex primitive)
+      (ecase stage-type
+        (vertex-stage primitive)
 
-        (:tessellation-control
+        (tessellation-control-stage
          (assert (typep primitive 'patches) ()
                  'invalid-primitive-for-tessellation-stage
                  :prim (type-of primitive))
          primitive)
 
-        (:tessellation-evaluation
+        (tessellation-evaluation-stage
          (assert (typep primitive 'patches) ()
                  'invalid-primitive-for-tessellation-stage
                  :prim (type-of primitive))
          primitive)
 
-        (:geometry
+        (geometry-stage
          (assert (typep primitive 'geometry-primitive) ()
                  'invalid-primitive-for-geometry-stage
                  :prim (type-of primitive))
          primitive)
 
-        (:fragment nil)))))
+        (fragment-stage nil)))))
 
 
 ;;----------------------------------------------------------------------
@@ -81,9 +84,10 @@
               (lisp-code nil lc-set)
               (previous-stage nil ps-set)
               (stemcells-allowed nil sa-set)
-              (primitive-in nil p-set))
+              (primitive-in nil p-set)
+              stage-type)
     (make-instance
-     (type-of stage)
+     (or stage-type (type-of stage))
      :input-variables (if iv-set
                           input-variables
                           (input-variables stage))
@@ -130,6 +134,7 @@
                (:geometry . geometry-stage)
                (:fragment . fragment-stage))))
     (or (assocr kind map)
+        (when (subtypep kind 'stage) kind)
         (error 'invalid-stage-kind :kind kind))))
 
 (defun compiled-stage-type-for (stage)

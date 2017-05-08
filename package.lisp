@@ -423,8 +423,9 @@
            :make-stage
            :translate
            :rolling-translate
-           :test-translate
-           :test-translate-raising
+           :test-translate-stage
+           :test-translate-function
+           :test-translate-function-split-details
            :split-arguments
            :*stage-names*
            :v-compile

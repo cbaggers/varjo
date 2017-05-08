@@ -34,7 +34,7 @@
 (defun process-primitive-type (stage env)
   ;;
   (setf (primitive-in stage)
-        (%process-primitive-type (stage-obj-to-name stage)
+        (%process-primitive-type (type-of stage)
                                  (primitive-in stage)
                                  :allow-null nil))
   (values stage env))
