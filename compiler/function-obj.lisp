@@ -61,7 +61,7 @@
 (defmethod print-object ((object v-function) stream)
   (with-slots (name argument-spec return-spec) object
     (%print-func-type-common
-     stream "V-FUNCTION-TYPE" argument-spec return-spec name)))
+     stream "V-FUNCTION" argument-spec return-spec name)))
 
 ;;------------------------------------------------------------
 
