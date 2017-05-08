@@ -49,7 +49,7 @@
                             (to-block obj))))
             (assert (eq final-env (ast-ending-env ast)))
             (merge-compiled (list func-code-obj obj)
-                            :type-set (make-type-set (primary-type obj))
+                            :type-set (type-set obj)
                             :current-line (current-line obj)
                             :to-block (remove nil to-block)
                             :node-tree funcall-ast)))))))
