@@ -415,13 +415,14 @@
     (let* ((expanded-vars (expanded-input-variables env))
            (emphem-block-p (should-make-an-ephermal-block-p stage))
            (instance-name *in-block-name*)
-           (block-arr-length (if (typep stage 'tessellation-stage)
-                                 "gl_MaxPatchVertices"
-                                 (when emphem-block-p
-                                   (first
-                                    (v-dimensions
-                                     (v-type-of
-                                      (first expanded-vars)))))))
+           (block-arr-length (when expanded-vars
+                               (if (typep stage 'tessellation-stage)
+                                   "gl_MaxPatchVertices"
+                                   (when emphem-block-p
+                                     (first
+                                      (v-dimensions
+                                       (v-type-of
+                                        (first expanded-vars))))))))
            (locations (if (typep (stage post-proc-obj) 'vertex-stage)
                           (calc-locations (mapcar #'v-type-of expanded-vars))
                           (n-of nil (length expanded-vars))))

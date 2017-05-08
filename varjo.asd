@@ -74,6 +74,7 @@
                (:file "compiler/translate")
                (:file "compiler/glsl-stage")
                (:file "compiler/rolling-translate")
+               (:file "compiler/test-compile")
                (:file "compiler/front-end")
                (:file "compiler/environment/public-api")
                (:file "language/rtg-math-equivalents")))

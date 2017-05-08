@@ -208,7 +208,8 @@
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
     (format
-     nil "#version ~a~%~{~%~{~a~%~}~}"
+     nil "// ~a~%#version ~a~%~{~%~{~a~%~}~}"
+     (string-downcase (type-of (stage env)))
      (get-version-from-context env)
      (remove nil
              (list (used-user-structs post-proc-obj)
