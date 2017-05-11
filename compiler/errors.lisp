@@ -94,11 +94,15 @@
     "No function, macro or compiler-macro called '~a' could be found in this environment" name)
 
 (deferror no-valid-function () (name types form)
-    "There is no applicable method for the glsl function '~s'~%when called with argument types:
-~s
+    "There is no applicable method for the glsl function '~s'
+when called with ~a
 
 ~@[Form: ~a~]"
-  name (mapcar #'type->type-spec types) form)
+  name
+  (if types
+      (format nil "argument types:~%~s" (mapcar #'type->type-spec types))
+      "no arguments.")
+  form)
 
 (deferror return-type-mismatch () (sets)
     "Some of the return statements return different types:~{~%~a~}"
