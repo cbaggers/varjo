@@ -532,14 +532,21 @@ type-spec trick doesnt"))
        (ctv type)
        (implicit-args (ctv type))))
 
+(defmethod type->type-spec ((type return-type-generator))
+  type)
+
 (defmethod type->type-spec ((type v-function-type))
   (with-slots (argument-spec return-spec) type
     ;; {TODO} remove this, done now
-    (assert (vectorp return-spec))
-    (let* ((in (mapcar #'type->type-spec argument-spec))
-           (out (if (= (length return-spec) 1)
-                    (type->type-spec (elt return-spec 0))
-                    (map 'list #'type->type-spec return-spec))))
+    (assert (valid-func-return-spec-p return-spec))
+    (let* ((in (if (eq argument-spec t)
+                   argument-spec ;; happens in special ops
+                   (mapcar #'type->type-spec argument-spec)))
+           (out (cond
+                  ((functionp return-spec) return-spec)
+                  ((= (length return-spec) 1)
+                   (type->type-spec (elt return-spec 0)))
+                  (t (map 'list #'type->type-spec return-spec)))))
       `(function ,in ,out))))
 
 ;;------------------------------------------------------------
@@ -645,6 +652,26 @@ type-spec trick doesnt"))
 (defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
   (declare (ignore env))
   (v-type-eq a (type-spec->type b)))
+
+;; Function-Type <-> Function-Type
+;;
+
+;; (defmethod v-type-eq ((a v-function-type) (b v-function-type)
+;;                       &optional (env *global-env*))
+;;   (declare (ignore env))
+;;   (if (or (ctv a) (ctv b))
+;;       (eq (ctv a) (ctv b))
+;;       (equal (type->type-spec a) (type->type-spec b))))
+
+;; (defmethod v-type-eq ((a v-function-type) (b v-type)
+;;                       &optional (env *global-env*))
+;;   (declare (ignore a b env))
+;;   nil)
+
+;; (defmethod v-type-eq ((a v-type) (b v-function-type)
+;;                       &optional (env *global-env*))
+;;   (declare (ignore a b env))
+;;   nil)
 
 ;;------------------------------------------------------------
 ;; Type predicate
@@ -821,6 +848,16 @@ type-spec trick doesnt"))
 
 (defun type-set-to-type-list (set)
   (coerce set 'list))
+
+;;------------------------------------------------------------
+
+(defun valid-return-spec-member-p (x)
+  (or (typep x 'return-type-generator)
+      (valid-type-set-member-p x)))
+
+(defun valid-func-return-spec-p (spec)
+  (or (functionp spec)
+      (every #'valid-return-spec-member-p spec)))
 
 ;;------------------------------------------------------------
 ;; Typed Names (these probably need a better home)

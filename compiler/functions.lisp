@@ -8,6 +8,9 @@
 (defmethod v-special-functionp ((func v-function))
   (eq :special (v-glsl-string func)))
 
+(defmethod v-special-functionp ((func v-function-set))
+  (some #'v-special-functionp (functions func)))
+
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ;; (defmacro v-defun (name args &body body)
@@ -328,14 +331,6 @@ however failed to do so when asked."
                                                         :types arg-types
                                                         :form form))
                     :arguments nil)))))
-
-(defun valid-return-spec-member-p (x)
-  (or (typep x 'return-type-generator)
-      (valid-type-set-member-p x)))
-
-(defun valid-func-return-spec-p (spec)
-  (or (functionp spec)
-      (every #'valid-return-spec-member-p spec)))
 
 (defun resolve-func-set (func compiled-args)
   (let* ((arg-types (map 'list #'primary-type compiled-args))

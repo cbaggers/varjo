@@ -46,7 +46,11 @@
 
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
-    (assert (vectorp return-spec))
+    (assert (valid-func-return-spec-p return-spec)
+            () 'user-func-invalid-x
+            :kind 'returns
+            :name (name func)
+            :args return-spec)
     (make-instance 'v-function-type
                    :ctv func
                    :arg-spec argument-spec

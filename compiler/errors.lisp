@@ -892,6 +892,10 @@ issue.
 Problematic Definition:
 ~s" form)
 
+(deferror funcall-of-special-operator () (code)
+    "Cannot FUNCALL ~a as it is a special operator"
+  code)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

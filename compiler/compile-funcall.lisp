@@ -34,6 +34,8 @@
     (vbind (func-code-obj f-env) (compile-form func-form env)
       (declare (ignore f-env)) ;;{TODO} is this ok?
       (let ((func (get-actual-function func-code-obj code)))
+        (assert (not (v-special-functionp func)) ()
+                'funcall-of-special-operator :code func-form)
         (vbind (obj final-env)
             (compile-call-with-set-of-functions func arg-forms env nil code)
           (let* ((ast (node-tree obj))

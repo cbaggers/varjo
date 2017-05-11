@@ -177,6 +177,7 @@
            :user-func-invalid-x
            :invalid-inline-glsl-stage-arg-layout
            :return-set-mismatch
+           :funcall-of-special-operator
 
            ;; restarts
            :setq-supply-alternate-type
