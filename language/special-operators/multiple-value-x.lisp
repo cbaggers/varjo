@@ -47,9 +47,11 @@
   :args-valid t
   :return
   (vbind (func-obj fenv) (compile-form function env)
-    (warn "before shipping this make all those extra tests works")
+    ;; We want a seperate base for each form to avoid var naming clashes
     (let ((bases (loop :for nil :in value-forms :collect
                     (lisp-name->glsl-name 'mvb fenv))))
+      ;; we compile the forms in a way that passes along the env (as in progn)
+      ;; but returns all the compiled objs as a list
       (vbind (value-objs v-env)
           (mapcar-progn (lambda (env form base)
                           (compile-form form (fresh-environment
@@ -57,25 +59,37 @@
                         fenv
                         value-forms
                         bases)
+        ;; We then want to make let forms for the multiple returns and then
+        ;; assignments which store the primary returns of the value-objs
         (let* ((types-grouped (mapcar #'type-set-to-type-list
                                       (mapcar #'type-set value-objs)))
-               (types (flatten (types-grouped)))
-               (names (loop :for nil :in types :collect (gensym)))
-               (glsl-names (loop :for b :in bases :append
-                              (loop :for x :in ))))
+               (names-grouped (loop :for g :in types-grouped :collect
+                                 (loop :for nil :in g :collect (gensym))))
+               (assign-names (mapcar #'first names-grouped))
+               (types (flatten types-grouped))
+               (names (flatten names-grouped))
+               (glsl-names (loop :for b :in bases
+                              :for tg :in types-grouped :append
+                              (loop :for i :below (length tg)
+                                 :collect (postfix-glsl-index b i)))))
+          ;; here we compile the lets and..
           (vbind ((m-objs s-obj b-obj) final-env)
               (with-fresh-env-scope (fresh-env fenv)
                 (env-> (p-env fresh-env)
                   (%mapcar-multi-env-progn
-                   (lambda (env type name i)
+                   (lambda (env type name glsl-name)
                      (compile-let name (type->type-spec type) nil env
-                                  (postfix-glsl-index (first bases) i)))
-                   p-env types names (iota (length types)))
-                  (compile-form `(progn ,@(loop :for n :in names
+                                  glsl-name))
+                   p-env types names glsl-names)
+                  ;; ..the assignments..
+                  (compile-form `(progn ,@(loop :for n :in assign-names
                                              :for v :in value-objs
                                              :collect `(setq ,n ,v)))
                                 p-env)
+                  ;; ..and finally the call the the function passed into
+                  ;; multiple-value-call in the first place
                   (compile-form `(funcall ,function ,@names) p-env)))
+            ;; The rest is fairly standard
             (let* ((m-obj (%merge-multi-env-progn m-objs))
                    (merged (merge-progn `(,m-obj ,s-obj ,b-obj)
                                         env final-env)))
@@ -83,8 +97,8 @@
                (copy-compiled
                 merged
                 :node-tree (ast-node! 'multiple-value-bind
-                                      `(,(node-tree func-obj)
-                                         (node-tree b-obj))
+                                      (cons (node-tree func-obj)
+                                            (mapcar #'node-tree value-objs))
                                       (make-type-set (primary-type merged))
                                       env final-env))
                final-env))))))))

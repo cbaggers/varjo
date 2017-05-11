@@ -33,6 +33,7 @@
   "Mapcar over the lists but pass the env as the first arg to the function
    on each call. If you return a new env it will be used for the remaining
    calls."
+  (warn "rename mapcar-progn and friends")
   (values (apply #'mapcar
                  (lambda (&rest args)
                    (vbind (code-obj new-env) (apply func (cons env args))
