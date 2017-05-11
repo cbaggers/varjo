@@ -3,6 +3,9 @@
 
 ;;------------------------------------------------------------
 ;; Values
+;;
+;; Values is a special form in Varjo, not a function. I don't plan to change
+;; this.
 
 ;; type & multi-vals are set by values.
 ;; 'return' turns those into a return-set.

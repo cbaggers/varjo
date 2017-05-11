@@ -1,3 +1,6 @@
+* make into functions:
+  aref, make-array, vector, uint
+
 * check which places actually need primary-type
 
 * enforce type . named-types layout to type-sets
