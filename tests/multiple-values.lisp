@@ -54,6 +54,25 @@
      (multiple-value-bind (x y) (values 1 2)
        (v! 0 0 0 0)))))
 
+(5am:def-test values-8 (:suite multiple-value-return-tests)
+  (glsl-contains-p "gl_Position = TEST\\(1,v_out._VERTEX_STAGE_OUT_1\\)"
+   (varjo.tests::compile-vert () :450 nil
+     (labels ((test ((x :int)) (values (v! 0 0 0 0) 2)))
+       (test 1)))))
+
+(5am:def-test values-9 (:suite multiple-value-return-tests)
+  (glsl-contains-p "_FRAGMENT_STAGE_OUT_0 = TEST\\(1,_FRAGMENT_STAGE_OUT_1\\)"
+   (varjo.tests::compile-frag () :450 nil
+     (labels ((test ((x :int)) (values (v! 0 0 0 0) 2)))
+       (test 1)))))
+
+(5am:def-test values-10 (:suite multiple-value-return-tests)
+  (glsl-contains-p "int NC_1;"
+   (compile-vert () :450 nil
+     (labels ((test ((x :int)) (values x 2)))
+       (v! 0 (test 1))
+       (v! 0 0 0 0)))))
+
 
 ;; (varjo.tests::compile-vert () :450 nil
 ;;   (labels ((foo ()
