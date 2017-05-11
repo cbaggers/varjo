@@ -73,48 +73,70 @@
         (v! 0 (test 1))
         (v! 0 0 0 0)))))
 
+(5am:def-test values-11 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 nil
+     (labels ((foo ()
+                (return (progn (values 1 2 3)))))
+       (multiple-value-bind (a b c) (foo)
+         (v! a b c 0))))))
 
-;; (varjo.tests::compile-vert () :450 nil
-;;   (labels ((foo ()
-;;              (return (progn (values 1 2 3)))))
-;;     (multiple-value-bind (a b c) (foo)
-;;       (v! a b c 0))))
+(5am:def-test values-12 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 nil
+     (labels ((foo ((x :bool))
+                (if x
+                    (values 1 2 3)
+                    (values 1 2 3))))
+       (multiple-value-bind (a b c) (foo t)
+         (v! a b c 0))))))
 
-;; (varjo.tests::compile-vert () :450 nil
-;;   (labels ((foo ((x :bool))
-;;              (if x
-;;                  (values 1 2 3)
-;;                  (values 1 2 3))))
-;;     (multiple-value-bind (a b c) (foo t)
-;;       (v! a b c 0))))
+(5am:def-test values-13 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-frag () :450 nil
+     (labels ((foo ((x :float))
+                (values x x)))
+       (multiple-value-call #'v! (foo 10) (foo 20))))))
 
+(5am:def-test values-14 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 nil
+            (labels ((foo ((x :float))
+                       (let ((sq (* x x)))
+                         (values (v2! sq)
+                                 (v2! (* sq x))))))
+              (multiple-value-call #'%+ (foo 10))
+              (v! 0 0 0 0)))))
+
+(5am:def-test values-15 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 nil
+            (labels ((foo ((x :float))
+                       (values x x)))
+              (multiple-value-call #'v! (foo 10) )
+              (v! 0 0 0 0)))))
+
+;; These are not valid until #'vector is a function
 
 ;; (glsl-code
-;; 		  (varjo.tests::compile-vert () :450 nil
-;; 			(labels ((foo ((x :float))
-;; 					   (values x x)))
-;; 			  (multiple-value-call #'vector (foo 10))
-;; 			  (v! 0 0 0 0))))
-
+;;           (varjo.tests::compile-vert () :450 nil
+;;             (funcall #'vector 10 20)
+;;             (v! 0 0 0 0)))
 ;; (glsl-code
-;; 		  (varjo.tests::compile-vert () :450 nil
-;; 			(labels ((foo ((x :float))
-;; 					   (values x x)))
-;; 			  (multiple-value-call #'vector (foo 10) (foo 10))
-;; 			  (v! 0 0 0 0))))
-
+;;           (varjo.tests::compile-vert () :450 nil
+;;             (labels ((foo ((x :float))
+;;                        (values x x)))
+;;               (multiple-value-call #'vector (foo 10))
+;;               (v! 0 0 0 0))))
 ;; (glsl-code
-;; 		  (varjo.tests::compile-vert () :450 nil
-;; 			(labels ((foo ((x :float))
-;; 					   (let ((sq (* x x)))
-;; 						 (values (v2! sq)
-;; 								 (v2! (* sq x))))))
-;; 			  (multiple-value-call #'%+ (foo 10))
-;; 			  (v! 0 0 0 0))))
-
+;;           (varjo.tests::compile-vert () :450 nil
+;;             (labels ((foo ((x :float))
+;;                        (values x x)))
+;;               (multiple-value-call #'vector (foo 10) (foo 10))
+;;               (v! 0 0 0 0))))
 ;; (glsl-code
-;; 		  (varjo.tests::compile-vert () :450 nil
-;; 			(labels ((foo ((x :float))
-;; 					   (values x x)))
-;; 			  (multiple-value-call #'vector (foo 10) )
-;; 			  (v! 0 0 0 0))))
+;;           (varjo.tests::compile-vert () :450 nil
+;;             (labels ((foo ((x :float))
+;;                        (values x x)))
+;;               (multiple-value-call #'vector (foo 10) )
+;;               (v! 0 0 0 0))))
