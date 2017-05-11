@@ -10,7 +10,7 @@
   (vbind ((func-def-objs body-obj) e)
       (with-fresh-env-scope (fresh-env env)
         (env-> (p-env fresh-env)
-          (mapcar-progn
+          (compile-forms-propagating-env-returning-list-of-compiled
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code) (build-function name args body t env)
@@ -41,7 +41,7 @@
   (vbind ((func-def-objs body-obj) e)
       (with-fresh-env-scope (fresh-env env)
         (env-> (p-env fresh-env)
-          (%mapcar-multi-env-progn
+          (compile-forms-not-propagating-env-returning-list-of-compiled
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code) (build-function name args body t env)
@@ -70,12 +70,14 @@
       (with-fresh-env-scope (fresh-env env)
         ;;
         (env-> (p-env fresh-env)
-          (mapcar-progn (lambda (env d)
-                          (dbind (name args &rest body) d
-                            (vbind (fn code)
-                                (build-function name args body exceptions env)
-                              (values code (add-form-binding fn env)))))
-                        p-env definitions)
+          (compile-forms-propagating-env-returning-list-of-compiled
+           (lambda (env d)
+             (dbind (name args &rest body) d
+               (vbind (fn code)
+                   (build-function name args body exceptions env)
+                 (values code (add-form-binding fn env)))))
+           p-env
+           definitions)
           (compile-form `(progn ,@body) p-env)))
     ;;
     (let* ((merged (merge-progn

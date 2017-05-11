@@ -19,7 +19,7 @@
         (vbind ((m-objs s-obj b-objs) final-env)
             (with-fresh-env-scope (fresh-env env)
               (env-> (p-env fresh-env)
-                (%mapcar-multi-env-progn
+                (compile-forms-not-propagating-env-returning-list-of-compiled
                  (lambda (env type name i)
                    (compile-let name (type->type-spec type) nil env
                                 (postfix-glsl-index base i)))
@@ -53,12 +53,13 @@
       ;; we compile the forms in a way that passes along the env (as in progn)
       ;; but returns all the compiled objs as a list
       (vbind (value-objs v-env)
-          (mapcar-progn (lambda (env form base)
-                          (compile-form form (fresh-environment
-                                              env :multi-val-base base)))
-                        fenv
-                        value-forms
-                        bases)
+          (compile-forms-propagating-env-returning-list-of-compiled
+           (lambda (env form base)
+             (compile-form form (fresh-environment
+                                 env :multi-val-base base)))
+           fenv
+           value-forms
+           bases)
         ;; We then want to make let forms for the multiple returns and then
         ;; assignments which store the primary returns of the value-objs
         (let* ((types-grouped (mapcar #'type-set-to-type-list
@@ -76,7 +77,7 @@
           (vbind ((m-objs s-obj b-obj) final-env)
               (with-fresh-env-scope (fresh-env fenv)
                 (env-> (p-env fresh-env)
-                  (%mapcar-multi-env-progn
+                  (compile-forms-not-propagating-env-returning-list-of-compiled
                    (lambda (env type name glsl-name)
                      (compile-let name (type->type-spec type) nil env
                                   glsl-name))

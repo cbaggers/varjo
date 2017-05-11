@@ -29,11 +29,10 @@
                  (list code-obj)))))
         (values body-objs env))))
 
-(defun mapcar-progn (func env list &rest more-lists)
-  "Mapcar over the lists but pass the env as the first arg to the function
-   on each call. If you return a new env it will be used for the remaining
-   calls."
-  (warn "rename mapcar-progn and friends")
+(defun compile-forms-propagating-env-returning-list-of-compiled
+    (func env list &rest more-lists)
+  "Compile each form passing the env from the previous into the next.
+   return the compiled code objects as a list along with the final env"
   (values (apply #'mapcar
                  (lambda (&rest args)
                    (vbind (code-obj new-env) (apply func (cons env args))
@@ -72,11 +71,11 @@
 
 ;;----------------------------------------------------------------------
 
-(defun %mapcar-multi-env-progn (func env list &rest more-lists)
-  "%multi-env-progn functions runs each form one after the other (just
-   like progn) however, unlike progn, each form is evaluated with the
-   original environment this means that bindings in one won't be visable
-   in another.
+(defun compile-forms-not-propagating-env-returning-list-of-compiled
+    (func env list &rest more-lists)
+  "This compiled each form one after the other (just like progn) however,
+   unlike progn, each form is evaluated with the original environment this
+   means that bindings in one won't be visable in another.
    Finally the resulting environement is merged.
 
    This gives us the behaviour from the binding expressions portion of

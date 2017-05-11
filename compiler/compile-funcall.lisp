@@ -269,7 +269,7 @@
                (with-fresh-env-scope (fresh-env env)
                  (env-> (p-env fresh-env)
                    (merge-multi-env-progn
-                    (%mapcar-multi-env-progn
+                    (compile-forms-not-propagating-env-returning-list-of-compiled
                      (lambda (env binding gname)
                        (with-v-let-spec binding
                          (compile-let name type-spec nil env gname)))
