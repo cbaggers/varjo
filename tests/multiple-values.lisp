@@ -116,6 +116,17 @@
               (multiple-value-call #'v! (foo 10) )
               (v! 0 0 0 0)))))
 
+(5am:def-test values-16 (:suite multiple-value-return-tests)
+  (glsl-contains-all-p ("gl_Position = TEST\\(1,v_out._VERTEX_STAGE_OUT_1\\)"
+                        "TEST\\(int X, out vec2 return_1\\)"
+                        "return_1 = MVB_1")
+    (varjo.tests::compile-vert () :450 nil
+      (labels ((test ((x :int))
+                 (multiple-value-prog1 (values (v! 0 0 0 0) (v! 1 1))
+                   10001)))
+        (test 1)))))
+
+
 ;; These are not valid until #'vector is a function
 
 ;; (glsl-code

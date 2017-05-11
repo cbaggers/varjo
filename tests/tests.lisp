@@ -124,7 +124,20 @@
               ,@(loop :for g :in gvars :for r :in regexes :collect
                    `(,g (cl-ppcre:all-matches-as-strings
                          ,r (glsl-code ,compiled)))))
-         (is (and (or (every (lambda (x) (= 1 (length x)))
+         (is (and (or (and ,@gvars)
+                      (map nil #'print (list ,@gvars)))
+                  (not (glsl-contains-invalid ,compiled))
+                  (not (glsl-contains-nil ,compiled))))))))
+
+(defmacro glsl-contains-1-of-all-p ((&rest regexes) &body form)
+  (assert (= 1 (length form)))
+  (let ((gvars (loop :for i :below (length regexes) :collect (gensym))))
+    (alexandria:with-gensyms (compiled)
+      `(let* ((,compiled ,(first form))
+              ,@(loop :for g :in gvars :for r :in regexes :collect
+                   `(,g (cl-ppcre:all-matches-as-strings
+                         ,r (glsl-code ,compiled)))))
+         (is (and (or (every (lambda (x) (= (length x) 1))
                              (list ,@gvars))
                       (map nil #'print (list ,@gvars)))
                   (not (glsl-contains-invalid ,compiled))

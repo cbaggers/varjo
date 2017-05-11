@@ -74,10 +74,10 @@
         (values)))))
 
 (5am:def-test return-10 (:suite return-tests)
-  (glsl-contains-all-p  ("\\(out int return_1, out int return_2\\);"
-                         "return_1 = "
-                         "return_2 = "
-                         "return g_")
+  (glsl-contains-1-of-all-p ("\\(out int return_1, out int return_2\\);"
+                             "return_1 = "
+                             "return_2 = "
+                             "return g_")
     (varjo.tests::compile-frag () :450 t
       (labels ((gen-line ()
                  (values 1 2 3)))
@@ -85,10 +85,10 @@
         (values)))))
 
 (5am:def-test return-11 (:suite return-tests)
-  (glsl-contains-all-p  ("\\(out int return_1, out int return_2\\);"
-                         "return_1 = "
-                         "return_2 = "
-                         "return g_")
+  (glsl-contains-1-of-all-p  ("\\(out int return_1, out int return_2\\);"
+                              "return_1 = "
+                              "return_2 = "
+                              "return g_")
     (varjo.tests::compile-frag () :450 t
       (labels ((gen-line ()
                  (return (values 1 2 3))))

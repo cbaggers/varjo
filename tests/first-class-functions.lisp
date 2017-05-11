@@ -154,8 +154,8 @@
      (v! 0 0 0 0))))
 
 (5am:def-test f-c-func-16 (:suite first-class-func-tests)
-  (glsl-contains-all-p  ("void FN\\(int X1\\);"
-                         "float LMBDA\\(float X0\\);")
+  (glsl-contains-1-of-all-p  ("void FN\\(int X1\\);"
+                              "float LMBDA\\(float X0\\);")
    (compile-vert ((a :int)) :450 nil
      (let ((x 1))
        (labels ((fn ((thr (function (:float) :float)) (x :int))
