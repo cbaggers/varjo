@@ -238,10 +238,14 @@
 
 (defun compile-multi-return-function-call (func args env)
   (let* ((type-set (resolve-func-set func args))
+         (for-return (equal (v-multi-val-base env) *return-var-name-base*))
+         (for-main (not (null (member :main (v-context env)))))
          (m-r-base (or (v-multi-val-base env)
                        (lisp-name->glsl-name 'nc env)))
-         (m-r-names (loop :for i :from 1 :below (length type-set)
-                       :collect (postfix-glsl-index m-r-base i)))
+         (m-r-names (loop :for i :from 1 :below (length type-set) :collect
+                       (if (and for-return for-main)
+                           (nth-return-name i (stage env) t)
+                           (postfix-glsl-index m-r-base i))))
          (type-set type-set)
          (o (merge-compiled
              args
@@ -256,9 +260,9 @@
                       (let ((mval (aref type-set i)))
                         `((,(gensym "NC")
                             ,(type->type-spec mval))))))
-         (final
+         (call-obj
           ;; when (v-multi-val-base env) is not null then a return or mvbind
-          ;; has already written the lets for the vars
+          ;; has already written the lets for the vars.
           (if (v-multi-val-base env)
               o
               (merge-progn
@@ -271,13 +275,44 @@
                          (compile-let name type-spec nil env gname)))
                      p-env bindings m-r-names))
                    (compile-form o p-env)))
-               env env))))
-    (values (copy-compiled final
-                           :node-tree (ast-node! (name func)
-                                                 (mapcar #'node-tree args)
-                                                 type-set
-                                                 env env))
-            env)))
+               env env)))
+         (ast (ast-node! (name func)
+                         (mapcar #'node-tree args)
+                         type-set
+                         env env)))
+    (if for-return
+        (%values-for-tail-call call-obj ast env)
+        (values (copy-compiled call-obj :node-tree ast)
+                env))))
+
+(defun %values-for-tail-call (call-obj ast env)
+  (let* ((stage (stage env))
+         (is-main-p (not (null (member :main (v-context env)))))
+         (first-is-pos (stage-where-first-return-is-position-p stage)))
+    (when (and is-main-p first-is-pos)
+      (assert (v-type-eq (primary-type call-obj) (type-spec->type :vec4)) ()
+              'vertex-stage-primary-type-mismatch
+              :prim-type (primary-type call-obj)))
+    ;;
+    (let* ((result
+            (compile-form
+             (if is-main-p
+                 `(progn
+                    ,(if first-is-pos
+                         `(setq varjo-lang::gl-position ,call-obj)
+                         `(glsl-expr
+                           ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
+                           ,(primary-type call-obj) ,call-obj))
+                    (%glsl-expr "return" :void))
+                 `(%glsl-expr "return ~a" ,(primary-type call-obj)
+                              ,call-obj))
+             env)))
+      (values (copy-compiled
+               result
+               :type-set (type-set call-obj)
+               :return-set (type-set call-obj)
+               :node-tree ast)
+              env))))
 
 ;;----------------------------------------------------------------------
 
