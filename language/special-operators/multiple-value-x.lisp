@@ -103,3 +103,48 @@
                                       (make-type-set (primary-type merged))
                                       env final-env))
                final-env))))))))
+
+;;------------------------------------------------------------
+;; Prog1
+
+(v-defspecial multiple-value-prog1 (values-form &rest body)
+  ;; {TODO} extend to multiple forms
+  :args-valid t
+  :return
+  (let* ((base (lisp-name->glsl-name 'mvb env))
+         (new-env (fresh-environment env :multi-val-base base)))
+    (vbind (value-obj v-env) (compile-form values-form new-env)
+      ;; We then want to make let forms for the multiple returns and then
+      ;; assignments which store the primary returns of the value-objs
+      (let* ((types (type-set-to-type-list (type-set value-obj)))
+             (names (loop :for nil :in types :collect (gensym)))
+             (glsl-names (loop :for i :below (length types)
+                            :collect (postfix-glsl-index base i))))
+        ;; here we compile the lets and..
+        (vbind ((m-objs s-obj b-objs r-obj) final-env)
+            (with-fresh-env-scope (fresh-env env)
+              (env-> (p-env fresh-env)
+                (compile-forms-not-propagating-env-returning-list-of-compiled
+                 (lambda (env type name glsl-name)
+                   (compile-let name (type->type-spec type) nil env
+                                glsl-name))
+                 p-env types names glsl-names)
+                ;; ..the assignments..
+                (compile-form `(setq ,(first names) ,value-obj) p-env)
+                ;; .. the body..
+                (compile-progn body p-env)
+                ;; and the multi-return
+                (compile-form `(values ,@names) p-env)))
+          ;; The rest is fairly standard
+          (let* ((m-obj (%merge-multi-env-progn m-objs))
+                 (merged (merge-progn `(,m-obj ,s-obj ,@b-objs ,r-obj)
+                                      env final-env)))
+            (values
+             (copy-compiled
+              merged
+              :node-tree (ast-node! 'multiple-value-bind
+                                    (cons (node-tree value-obj)
+                                          (mapcar #'node-tree b-objs))
+                                    (make-type-set (primary-type merged))
+                                    env final-env))
+             final-env)))))))
