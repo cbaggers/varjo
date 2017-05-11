@@ -87,3 +87,34 @@
 ;;                  (values 1 2 3))))
 ;;     (multiple-value-bind (a b c) (foo t)
 ;;       (v! a b c 0))))
+
+
+;; (glsl-code
+;; 		  (varjo.tests::compile-vert () :450 nil
+;; 			(labels ((foo ((x :float))
+;; 					   (values x x)))
+;; 			  (multiple-value-call #'vector (foo 10))
+;; 			  (v! 0 0 0 0))))
+
+;; (glsl-code
+;; 		  (varjo.tests::compile-vert () :450 nil
+;; 			(labels ((foo ((x :float))
+;; 					   (values x x)))
+;; 			  (multiple-value-call #'vector (foo 10) (foo 10))
+;; 			  (v! 0 0 0 0))))
+
+;; (glsl-code
+;; 		  (varjo.tests::compile-vert () :450 nil
+;; 			(labels ((foo ((x :float))
+;; 					   (let ((sq (* x x)))
+;; 						 (values (v2! sq)
+;; 								 (v2! (* sq x))))))
+;; 			  (multiple-value-call #'%+ (foo 10))
+;; 			  (v! 0 0 0 0))))
+
+;; (glsl-code
+;; 		  (varjo.tests::compile-vert () :450 nil
+;; 			(labels ((foo ((x :float))
+;; 					   (values x x)))
+;; 			  (multiple-value-call #'vector (foo 10) )
+;; 			  (v! 0 0 0 0))))
