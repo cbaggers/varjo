@@ -1,5 +1,4 @@
 ;;;; package.lisp
-
 (uiop:define-package #:varjo-lang
     (:use #:cl #:rtg-math.base-maths)
   (:import-from :rtg-math :v! :m! :s~ :radians :degrees)
@@ -178,6 +177,8 @@
            :invalid-inline-glsl-stage-arg-layout
            :return-set-mismatch
            :funcall-of-special-operator
+           :slot-value-on-non-struct
+           :slot-not-found
 
            ;; restarts
            :setq-supply-alternate-type

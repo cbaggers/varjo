@@ -67,6 +67,7 @@
                (:file "language/special-operators/make-array")
                (:file "language/special-operators/aref")
                (:file "language/special-operators/emit")
+               (:file "language/special-operators/slots")
                ;;
                (:file "language/functions")
                (:file "language/bitwise-operators")

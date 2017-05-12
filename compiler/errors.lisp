@@ -900,6 +900,16 @@ Problematic Definition:
     "Cannot FUNCALL ~a as it is a special operator"
   code)
 
+(deferror slot-value-on-non-struct () (type slot-name)
+    "Was asked to access the slot ~a on ~a, however this is not a struct"
+  slot-name
+  (type->type-spec type))
+
+(deferror slot-not-found () (type slot-name)
+    "Could not find a slot named ~a on struct of type ~a"
+  slot-name
+  (type->type-spec type))
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

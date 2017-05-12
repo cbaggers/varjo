@@ -16,26 +16,44 @@
 ;;       con: shadowing.. add-function for global doesnt check.
 (defmacro v-defstruct (name context &body slots)
   (destructuring-bind (name &key shadowing constructor) (listify name)
-    (let ((name-string (safe-glsl-name-string name))
-          (class-name (or shadowing name))
-          (true-type-name (true-type-name name))
-          (fake-type-name (fake-type-name name))
-          (slots-with-types
-           (mapcar (lambda (slot)
-                     (dbind (name type . rest) slot
-                       `(,name
-                         ,(type-spec->type type)
-                         ,@rest)))
-                   slots)))
+    (let* ((name-string (safe-glsl-name-string name))
+           (class-name (or shadowing name))
+           (true-type-name (true-type-name name))
+           (fake-type-name (fake-type-name name))
+           (slots-with-types
+            (mapcar (lambda (slot)
+                      (dbind (name type . rest) slot
+                        `(,name
+                          ,(type-spec->type type)
+                          ,@rest)))
+                    slots))
+           (slot-transforms
+            (mapcar (lambda (x)
+                      (dbind (slot-name slot-type . acc) x
+                        (let* ((accessor (if (eq :accessor (first acc))
+                                             (second acc)
+                                             (symb name '- slot-name)))
+                               (transform
+                                (format nil "~~a.~a"
+                                        (safe-glsl-name-string
+                                         (or accessor slot-name)))))
+                          (list slot-name slot-type accessor transform))))
+                    slots))
+           (slot-transforms-type-obj
+            (mapcar (lambda (x)
+                      (dbind (name type acc tran) x
+                        (list name (type-spec->type type) acc tran)))
+                    slot-transforms)))
       `(progn
          (eval-when (:compile-toplevel :load-toplevel :execute)
            (def-v-type-class ,class-name (v-user-struct)
              ((glsl-string :initform ,name-string :initarg :glsl-string
                            :reader v-glsl-string)
-              (signature :initform ,(gen-struct-sig name-string
-                                                    slots-with-types)
+              (signature :initform ,(gen-struct-sig
+                                     name-string slots-with-types)
                          :initarg :signature :accessor v-signature)
-              (slots :initform ',slots-with-types :reader v-slots)))
+              (slots :initform ',slot-transforms-type-obj
+                     :reader v-slots)))
            (def-v-type-class ,true-type-name (,class-name) ())
            (def-v-type-class ,fake-type-name (,class-name)
              ((signature :initform ""))))
@@ -47,26 +65,24 @@
          (defmethod type->type-spec ((type ,true-type-name))
            ',name)
          (v-def-glsl-template-fun ,(symb 'make- (or constructor name))
-             ,(append (loop :for slot :in slots :collect (first slot))
-                      (when context `(&context ,@context)))
-           ,(format nil "~a(~{~a~^,~^ ~})" name-string
-                    (n-of "~a" (length slots)))
-           ,(loop :for slot :in slots :collect (second slot))
-           ,true-type-name :v-place-index nil)
-         ,@(make-struct-accessors name true-type-name context slots)
+                                  ,(append (loop :for slot :in slots :collect (first slot))
+                                           (when context `(&context ,@context)))
+                                  ,(format nil "~a(~{~a~^,~^ ~})" name-string
+                                           (n-of "~a" (length slots)))
+                                  ,(loop :for slot :in slots :collect (second slot))
+                                  ,true-type-name :v-place-index nil)
+         ,@(make-struct-accessors name true-type-name context slot-transforms)
          ',name))))
 
-(defun make-struct-accessors (name true-type-name context slots)
-  (loop :for (slot-name slot-type . acc) :in slots :collect
-     (let ((accessor (if (eq :accessor (first acc)) (second acc)
-                         (symb name '- slot-name))))
-       `(v-def-glsl-template-fun ,accessor (,(symb name '-ob)
-                             ,@(when context `(&context ,@context)))
-          ,(concatenate 'string "~a." (safe-glsl-name-string
-                                       (or accessor slot-name)))
-          (,true-type-name)
-          ,slot-type
-          :v-place-index 0))))
+(defun make-struct-accessors (name true-type-name context transforms)
+  (loop :for (nil slot-type accessor slot-transform) :in transforms :collect
+     `(v-def-glsl-template-fun
+       ,accessor
+       (,(symb name '-ob) ,@(when context `(&context ,@context)))
+       ,slot-transform
+       (,true-type-name)
+       ,slot-type
+       :v-place-index 0)))
 
 (defun gen-struct-sig (name-string slots-with-types)
   (format nil "struct ~a {~%~{~a~%~}};"
@@ -94,19 +110,16 @@
   (let* ((glsl-name (glsl-name input-variable))
          (fake-struct (set-flow-id (v-fake-type var-type) (flow-id!))))
     ;;
-    (loop :for (slot-name slot-type . acc) :in (v-slots var-type)
+    (loop :for (slot-name slot-type accessor) :in (v-slots var-type)
        :for fake-slot-name = (fake-slot-name glsl-name slot-name)
-       :for accessor = (dbind (&key accessor) acc
-                         (or accessor
-                             (symb (type->type-spec var-type) '- slot-name)))
 
        :collect (make-function-obj accessor
-                              fake-slot-name
-                              nil ;; {TODO} Must be context
-                              (list fake-struct)
-                              (make-type-set slot-type)
-                              :v-place-index nil
-                              :pure t)
+                                   fake-slot-name
+                                   nil ;; {TODO} Must be context
+                                   (list fake-struct)
+                                   (make-type-set slot-type)
+                                   :v-place-index nil
+                                   :pure t)
        :into funcs
 
        :collect (make-instance
@@ -139,11 +152,8 @@
                          (resolve-name-from-alternative fake-type)
                          nil))
          (new-uniform-args
-          (loop :for (slot-name slot-type . acc) :in slots
+          (loop :for (slot-name slot-type accessor) :in slots
              :for fake-slot-name = (fake-slot-name uniform-name slot-name)
-             :for accessor = (if (eq :accessor (first acc))
-                                 (second acc)
-                                 (symb (type->type-spec type) '- slot-name))
              :do (%add-function
                   accessor
                   (make-function-obj accessor
