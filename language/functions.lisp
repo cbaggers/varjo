@@ -1,6 +1,7 @@
 (in-package :varjo)
 
 (v-def-glsl-template-fun break () "break" () v-void)
+(v-def-glsl-template-fun continue () "continue" () v-void)
 
 (v-def-glsl-template-fun int (x) "~a" (v-int) v-int)
 (v-def-glsl-template-fun uint (x) "~a" (v-uint) v-uint)
