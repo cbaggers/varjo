@@ -12,22 +12,22 @@
         `(progn
            ,@(mapcar λ`(%modify-place setf = ,@_) pairs)))))
 
-(v-defmacro incf (place val)
+(v-defmacro incf (place &optional (val 1))
   :args-valid t
   :return
   `(%modify-place incf += ,place ,val))
 
-(v-defmacro decf (place val)
+(v-defmacro decf (place &optional (val 1))
   :args-valid t
   :return
   `(%modify-place decf -= ,place ,val))
 
-(v-defmacro multf (place val)
+(v-defmacro multf (place &optional (val 1))
   :args-valid t
   :return
   `(%modify-place multf *= ,place ,val))
 
-(v-defmacro divf (place val)
+(v-defmacro divf (place &optional (val 1))
   :args-valid t
   :return
   `(%modify-place divf /= ,place ,val))
