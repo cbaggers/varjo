@@ -3,6 +3,8 @@
 (v-def-glsl-template-fun break () "break" () v-void)
 (v-def-glsl-template-fun continue () "continue" () v-void)
 
+(v-def-glsl-template-fun identity (x) "(~a)" (v-type) 0)
+
 (v-def-glsl-template-fun int (x) "~a" (v-int) v-int)
 (v-def-glsl-template-fun uint (x) "~a" (v-uint) v-uint)
 (v-def-glsl-template-fun bool (x) "~a" (v-bool) v-bool)
