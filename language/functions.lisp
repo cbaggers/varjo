@@ -37,6 +37,7 @@
 (v-def-glsl-template-fun %equal (a b) "(~a == ~a)" (v-number v-number) v-bool)
 (v-def-glsl-template-fun %eql (a b) "(~a == ~a)" (v-number v-number) v-bool)
 (v-def-glsl-template-fun %= (a b) "(~a == ~a)" (v-number v-number) v-bool)
+(v-def-glsl-template-fun %/= (a b) "(~a != ~a)" (v-number v-number) v-bool)
 
 (v-def-glsl-template-fun ++ (a) "(++ ~a)" (v-number) nil)
 (v-def-glsl-template-fun -- (a) "(-- ~a)" (v-number) nil)
