@@ -273,14 +273,14 @@
 
 (defun import-function-identifier (id)
   (let ((name (varjo::parse-gl-func-name id)))
-    (or (find-symbol name :varjo-lang)
+    (or (find-symbol name :varjo)
         (intern name))))
 
 (defun import-var-identifier (id)
   (let ((name (if (uiop:string-prefix-p "gl_" id)
                   (varjo::parse-gl-var-name id)
                   (varjo::%parse id))))
-    (or (find-symbol name :varjo-lang)
+    (or (find-symbol name :varjo)
         (intern name))))
 
 (defvar *binary-op-lookup*
@@ -371,9 +371,8 @@
     (t (error "not implemented"))))
 
 (defun import-swizzle (primary swizzle)
-  `(varjo-lang::s~
-    ,(import-swizzlable-form primary)
-    ,(intern (string-upcase swizzle) :keyword)))
+  `(varjo:s~ ,(import-swizzlable-form primary)
+             ,(intern (string-upcase swizzle) :keyword)))
 
 (defun import-swizzlable-form (primary)
   (typecase primary
