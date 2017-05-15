@@ -284,7 +284,8 @@
           block-name))
 
 (defun gen-interface-block-slot-string (slot)
-  (destructuring-bind (slot-name slot-type accessor) slot
+  (destructuring-bind (slot-name slot-type accessor transform-string) slot
+    (declare (ignore transform-string))
     (let ((name (or accessor slot-name))
           (type-obj slot-type))
       (format nil "    ~{~a ~}~a"
