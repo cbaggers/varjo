@@ -61,7 +61,7 @@
 (defgeneric (setf compiled-functions) (val e key))
 (defgeneric all-cached-compiled-functions (e))
 (defgeneric map-environments (func e))
-(defgeneric build-external-function (func env))
+(defgeneric build-external-function (func calling-env env))
 (defgeneric find-form-binding-by-literal (name env))
 (defgeneric cast-code-inner (varjo-type src-obj cast-to-type env))
 (defgeneric to-arg-form (uniform))

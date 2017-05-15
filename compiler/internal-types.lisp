@@ -169,7 +169,9 @@
     :initform 0 :initarg :function-scope :reader v-function-scope)
    (allowed-outer-vars
     :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)
-   (local-metadata :initform (make-hash-table :test #'eql))))
+   (local-metadata :initform (make-hash-table :test #'eql))
+   (ext-func-compile-chain :initform nil :initarg :ext-func-compile-chain
+                            :reader ext-func-compile-chain)))
 
 
 (defclass base-environment (environment)

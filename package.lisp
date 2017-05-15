@@ -179,6 +179,7 @@
            :funcall-of-special-operator
            :slot-value-on-non-struct
            :slot-not-found
+           :recursive-function-call-detected
 
            ;; restarts
            :setq-supply-alternate-type

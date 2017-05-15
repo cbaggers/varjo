@@ -4,10 +4,15 @@
 ;;============================================================
 ;; The mess of creation
 
-(defmethod build-external-function ((func external-function) env)
+(defmethod build-external-function ((func external-function) calling-env env)
+  ;; If our external-function is in the list then we have recurred
+  (assert (not (find func (ext-func-compile-chain calling-env))) ()
+          'recursive-function-call-detected
+          :func (format-external-func-for-error func))
   (with-slots (name in-args uniforms code glsl-versions) func
     (vbind (compiled-func maybe-def-code)
-        (build-function name
+        (build-function (cons func (ext-func-compile-chain calling-env))
+                        name
                         (append in-args
                                 (when uniforms `(&uniform ,@uniforms)))
                         code
@@ -26,7 +31,7 @@
         (assert (emptyp (type-set maybe-def-code))))
       (values compiled-func maybe-def-code))))
 
-(defun build-function (name args body allowed-implicit-args env)
+(defun build-function (func-id name args body allowed-implicit-args env)
   ;;
   ;; Check that the args are correctly formatted, we could just let
   ;; type-spec->type take care of this, however this way we get to
@@ -43,17 +48,18 @@
                                      `(,name ,_1 ,@rest))
                                   args
                                   arg-types)))
+
     (if (some λ(typep _ 'v-unrepresentable-value) arg-types)
         (make-new-function-with-unreps
-         name args body allowed-implicit-args env)
+         func-id name args body allowed-implicit-args env)
         (make-regular-function
-         name args-with-types body allowed-implicit-args env))))
+         func-id name args-with-types body allowed-implicit-args env))))
 
 
-(defun make-regular-function (name args body allowed-implicit-args env)
+(defun make-regular-function (func-id name args body allowed-implicit-args env)
   (vbind (body declarations) (extract-declares body)
     (let* ((mainp (eq name :main))
-           (func-env (make-func-env env mainp allowed-implicit-args))
+           (func-env (make-func-env env func-id mainp allowed-implicit-args))
            (in-arg-flow-ids (mapcar (lambda (_)
                                       (declare (ignore _))
                                       (flow-id!))
@@ -183,11 +189,11 @@
                    (ast-return-type (last1 ast-args))
                    env env))))
 
-(defun make-new-function-with-unreps (name args body allowed-implicit-args
-                                      env)
+(defun make-new-function-with-unreps (func-id name args body
+                                      allowed-implicit-args env)
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))
-    (let* ((func-env (make-func-env env mainp allowed-implicit-args))
+    (let* ((func-env (make-func-env env func-id mainp allowed-implicit-args))
            (all-vars (env-binding-names env :stop-at-base t
                                         :variables-only t))
            (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
@@ -254,10 +260,12 @@
         (when result
           (error 'illegal-implicit-args :func-name name)))))
 
-(defun make-func-env (env mainp allowed-implicit-args)
+(defun make-func-env (env func-id mainp allowed-implicit-args)
   (if mainp
       (fresh-environment env :function-scope (1+ (v-function-scope env))
                          :context (cons :main (v-context env))
-                         :allowed-outer-vars allowed-implicit-args)
+                         :allowed-outer-vars allowed-implicit-args
+                         :ext-func-compile-chain func-id)
       (fresh-environment env :function-scope (1+ (v-function-scope env))
-                         :allowed-outer-vars allowed-implicit-args)))
+                         :allowed-outer-vars allowed-implicit-args
+                         :ext-func-compile-chain func-id)))

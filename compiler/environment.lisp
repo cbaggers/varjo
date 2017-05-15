@@ -185,14 +185,16 @@
                  :context (remove :main (copy-list (v-context env)))
                  :function-scope (v-function-scope env)
                  :parent-env (v-parent-env env)
-                 :allowed-outer-vars (v-allowed-outer-vars env)))
+                 :allowed-outer-vars (v-allowed-outer-vars env)
+                 :ext-func-compile-chain (ext-func-compile-chain env)))
 
 (defun fresh-environment (env &key context function-scope
                                 form-bindings macros
                                 symbol-bindings
                                 (multi-val-base nil set-mvb)
                                 multi-val-safe
-                                (allowed-outer-vars nil set-aov))
+                                (allowed-outer-vars nil set-aov)
+                                (ext-func-compile-chain nil set-fbc))
   (assert (typep env 'environment))
   (make-instance 'environment
                  :symbol-bindings symbol-bindings
@@ -207,7 +209,10 @@
                  :parent-env env
                  :allowed-outer-vars (if set-aov
                                          allowed-outer-vars
-                                         (v-allowed-outer-vars env))))
+                                         (v-allowed-outer-vars env))
+                 :ext-func-compile-chain (if set-fbc
+                                              ext-func-compile-chain
+                                              (ext-func-compile-chain env))))
 
 (defmacro with-fresh-env-scope ((name starting-env
                                       &key context function-scope
@@ -248,7 +253,8 @@
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
                  :parent-env new-parent
-                 :allowed-outer-vars (v-allowed-outer-vars env)))
+                 :allowed-outer-vars (v-allowed-outer-vars env)
+                 :ext-func-compile-chain (ext-func-compile-chain env)))
 
 (defun env-depth (env)
   (labels ((dist (e &optional (accum 0))

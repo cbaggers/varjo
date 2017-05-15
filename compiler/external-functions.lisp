@@ -59,3 +59,7 @@
 
 (defmethod v-argument-spec ((func external-function))
   (mapcar λ(type-spec->type (second _)) (in-args func)))
+
+(defun format-external-func-for-error (func)
+  `(,(name func) ,@(in-args func)
+     ,@(when (uniforms func) (cons '&uniforms (uniforms func)))))

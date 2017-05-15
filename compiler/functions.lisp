@@ -13,13 +13,13 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-;; (defmacro v-defun (name args &body body)
-;;   (destructuring-bind (in-args uniforms context)
-;;       (split-arguments args '(&uniform &context))
-;;     (declare (ignore context))
-;;     `(progn
-;;        (varjo:add-external-function ',name ',in-args ',uniforms ',body)
-;;        ',name)))
+(defmacro v-defun (name args &body body)
+  (destructuring-bind (in-args uniforms context)
+      (split-arguments args '(&uniform &context))
+    (declare (ignore context))
+    `(progn
+       (varjo:add-external-function ',name ',in-args ',uniforms ',body)
+       ',name)))
 
 (defmacro v-def-glsl-template-fun (name args transform arg-types return-spec
                                    &key v-place-index glsl-name)

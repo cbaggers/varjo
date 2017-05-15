@@ -910,6 +910,12 @@ Problematic Definition:
   slot-name
   (type->type-spec type))
 
+(deferror recursive-function-call-detected () (func)
+    "Recursive function call detected however recursion (both direct and
+indirect) is disallowed by GLSL.
+
+Problematic function: ~s" func)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

@@ -164,7 +164,7 @@
   ;;
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
-                            (build-external-function func base-env))))
+                            (build-external-function func env base-env))))
     (setf (compiled-functions base-env func) compiled-func)
     ;;
     (let* ((func (function-obj compiled-func))
@@ -192,7 +192,7 @@
   ;; functions.
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
-                            (build-external-function func base-env))))
+                            (build-external-function func env base-env))))
     (setf (compiled-functions base-env func) compiled-func)
     (compile-function-call (function-obj compiled-func)
                            args

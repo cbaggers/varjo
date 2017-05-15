@@ -13,7 +13,7 @@
           (compile-forms-propagating-env-returning-list-of-compiled
            (lambda (env d)
              (dbind (name args &rest body) d
-               (vbind (fn code) (build-function name args body t env)
+               (vbind (fn code) (build-function nil name args body t env)
                  (values code (add-form-binding fn env)))))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
@@ -44,7 +44,7 @@
           (compile-forms-not-propagating-env-returning-list-of-compiled
            (lambda (env d)
              (dbind (name args &rest body) d
-               (vbind (fn code) (build-function name args body t env)
+               (vbind (fn code) (build-function nil name args body t env)
                  (values code (add-form-binding fn env)))))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
@@ -74,7 +74,7 @@
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code)
-                   (build-function name args body exceptions env)
+                   (build-function nil name args body exceptions env)
                  (values code (add-form-binding fn env)))))
            p-env
            definitions)
