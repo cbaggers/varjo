@@ -916,6 +916,17 @@ indirect) is disallowed by GLSL.
 
 Problematic function: ~s" func)
 
+(deferror probable-recursion () (name func)
+    "Compile progress looks suspiciously like ~a is recursive.
+Recursion (both direct and indirect) is disallowed by GLSL.
+
+func: ~s
+
+The current check for this in Varjo is currently very weak if you have received
+this error and do not think you have recursion in your code please raise an
+issue at https://github.com/cbaggers/varjo/issues including the code that
+triggered this error." name func)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

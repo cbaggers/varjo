@@ -55,11 +55,29 @@
         (make-regular-function
          func-id name args-with-types body allowed-implicit-args env))))
 
+(defun likely-recursion-p (env)
+  (labels ((ieql (a b)
+             (cond
+               ((and (listp a) (listp b))
+                (loop :for a0 :in a :for b0 :in b :always
+                   (ieql a0 b0)))
+               ((and (typep a 'v-type) (typep b 'v-type))
+                (v-type-eq a b))
+               (t (equal a b)))))
+    (let* ((chain (ext-func-compile-chain env))
+           (key (first chain))
+           (depth (or (position-if-not λ(ieql key _) chain) 0)))
+      (> depth 15))))
 
 (defun make-regular-function (func-id name args body allowed-implicit-args env)
+  (assert (not (likely-recursion-p env)) ()
+          'probable-recursion :name name
+          :func `(,name ,@(mapcar λ(type->type-spec (second _)) args)))
   (vbind (body declarations) (extract-declares body)
-    (let* ((mainp (eq name :main))
-           (func-env (make-func-env env func-id mainp allowed-implicit-args))
+    (let* ((func-id (or func-id (list name args body allowed-implicit-args)))
+           (func-chain (cons func-id (ext-func-compile-chain env)))
+           (mainp (eq name :main))
+           (func-env (make-func-env env func-chain mainp allowed-implicit-args))
            (in-arg-flow-ids (mapcar (lambda (_)
                                       (declare (ignore _))
                                       (flow-id!))

@@ -180,6 +180,7 @@
            :slot-value-on-non-struct
            :slot-not-found
            :recursive-function-call-detected
+           :probable-recursion
 
            ;; restarts
            :setq-supply-alternate-type
