@@ -654,10 +654,13 @@ Metadata already present: ~a"
 only valid to return nil or a piece of metadata of the correct type."
   expected found)
 
-(deferror multiple-external-func-match () (matches)
-    "Multiple externally defined functions found matching the identifier:
+(deferror multiple-external-func-match () (name matches)
+    "Multiple externally defined functions found matching the
+identifier ~a:
+
+Matches:
 ~{~s~^~%~}"
-  matches)
+  name matches)
 
 (defbug doesnt-have-dimensions () (vtype)
     "Compiler bug: Attempted to find the dimensions of ~a. If you have

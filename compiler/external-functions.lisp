@@ -61,5 +61,9 @@
   (mapcar λ(type-spec->type (second _)) (in-args func)))
 
 (defun format-external-func-for-error (func)
-  `(,(name func) ,@(in-args func)
-     ,@(when (uniforms func) (cons '&uniforms (uniforms func)))))
+  `(,(name func) ,@(mapcar #'second (in-args func))
+     ,@(when (uniforms func)
+             (mapcar #'second (cons '&uniforms (uniforms func))))))
+
+(defun external-function-p (f)
+  (typep f 'external-function))

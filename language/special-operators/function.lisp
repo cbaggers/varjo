@@ -19,17 +19,31 @@
 
 (defun %function-for-func-sets (func-name-form func-set env)
   (let* ((functions (functions func-set))
-         (len (length functions))
-         (has-external (some λ(typep _ 'external-function) functions)))
+         (external-count (count-if #'external-function-p functions)))
     (cond
-      ((and has-external (= len 1))
+      ;; if there isnt a local function, external functions win
+      ((and (= external-count 1)
+            (not (find-if #'user-function-p functions)))
        (%function-for-external-funcs (first functions) func-name-form env))
-      (has-external (error 'multiple-external-func-match :matches functions))
-      (t (let* ((type (v-type-of func-set))
+      ;;
+      ;; If theres more than one external then something is messed up
+      ((> external-count 1)
+       (error 'multiple-external-func-match
+              :name func-name-form
+              :matches (mapcar λ(typecase _
+                                  (external-function
+                                   (format-external-func-for-error _))
+                                  (t _))
+                               functions)))
+      ;;
+      ;; Otherwise there is a local or spec function so ditch the externals
+      ;; and carry on
+      (t (let* ((functions (remove-if #'external-function-p functions))
+                (type (v-type-of (make-function-set functions)))
                 (type-set (make-type-set type)))
            (when (or (some #'implicit-args functions)
                      (and (some #'captured-vars functions)))
-             (error 'closures-not-supported :func func-name-form))
+            (error 'closures-not-supported :func func-name-form))
            (values
             (make-compiled :type-set type-set
                            :current-line nil
