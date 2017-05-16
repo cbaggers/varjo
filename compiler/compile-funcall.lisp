@@ -220,7 +220,8 @@
 
 (defun compile-regular-function-call (func args env)
   (let ((type-set (make-type-set (resolve-func-set func args)
-                                 (handle-regular-function-mvals args))))
+                                 (when (v-multi-val-safe env)
+                                   (handle-regular-function-mvals args)))))
     (values (merge-compiled
              args
              :type-set type-set
