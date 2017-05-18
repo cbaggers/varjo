@@ -182,7 +182,7 @@
                 (typep primitive 'geometry-primitive)))
     (make-instance
      (typecase primitive
-       (points :points)
+       (points 'points)
        ((or lines line-loop line-strip) 'lines)
        ((or lines-adjacency line-strip-adjacency) 'lines-adjacency)
        ((or triangles triangle-fan triangle-strip) 'triangles)
