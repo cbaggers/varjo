@@ -74,13 +74,13 @@
          (result (cond
                    ((v-voidp (first objs))
                     (compile-form `(progn ,@assign-forms) env))
-                   ((> (length objs) 1)
+                   (objs
                     (compile-form
                      `(let ((,first-name ,(first assign-forms)))
                         ,@(rest assign-forms)
                         ,first-name)
                      env))
-                   (t (first objs))))
+                   (t (error "Varjo: Invalid values form inside emit (values)"))))
          ;;
          (qualified-types (loop :for o :in objs
                              :for q :in qualifier-lists
