@@ -13,8 +13,8 @@
              (assert (and (= (length set-a) (length set-b))
                           (every #'emit-val-eql set-a set-b))
                      () 'emit-type-mismatch
-                     :sets (list (map 'list #'type->type-spec set-a)
-                                 (map 'list #'type->type-spec set-b)))
+                     :sets (list set-a
+                                 set-b))
              set-a))
     (let* ((sets (remove nil sets)))
       (reduce #'%merge-emit-sets (rest sets)
