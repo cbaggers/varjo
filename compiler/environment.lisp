@@ -421,7 +421,7 @@ For example calling env-prune on this environment..
   (get-version-from-context (v-context env)))
 
 (defun get-primitive-type-from-context (context)
-  (or (find-if λ(or (member _ *supported-draw-modes*)
+  (or (find-if λ(or (member _ *draw-modes*)
                     (and (listp _)
                          (string= (first _) "PATCH")
                          (integerp (second _))))

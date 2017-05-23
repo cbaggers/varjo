@@ -22,13 +22,6 @@
     geometry-stage
     fragment-stage))
 
-(defparameter *supported-draw-modes*
-  '(:points
-    :lines :line-loop :line-strip :lines-adjacency :line-strip-adjacency
-    :triangles :triangle-strip :triangle-fan :triangles-adjacency
-    :triangle-strip-adjacency
-    :patches))
-
 (defparameter *unshadowable-names* '(;; special
                                      and flet for function glsl-expr if labels
                                      labels-no-implicit let multiple-value-bind
@@ -40,10 +33,6 @@
                                      when))
 
 (defparameter *default-version* :450)
-
-(defparameter *valid-contents-symbols*
-  (append (copy-list *supported-versions*)
-          (copy-list *supported-draw-modes*)))
 
 
 (defparameter *ast-node-kinds*
@@ -88,3 +77,7 @@
 (defvar *out-block-name* "v_out")
 (defvar *emit-var-name-base* "emit")
 (defvar *return-var-name-base* "return")
+
+(defparameter *valid-contents-symbols*
+  (append (copy-list *supported-versions*)
+          (copy-list *draw-modes*)))
