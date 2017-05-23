@@ -138,7 +138,7 @@
 (v-def-glsl-template-fun %/ (a b) "(~a / ~a)" (v-dvec4 v-dvec4) 0)
 
 (v-def-glsl-template-fun v! (v) "~a" (v-vec2) v-vec2)
-(v-def-glsl-template-fun v! (v) "~a" (v-vec2) v-vec3)
+(v-def-glsl-template-fun v! (v) "~a" (v-vec3) v-vec3)
 (v-def-glsl-template-fun v! (v) "~a" (v-vec4) v-vec4)
 (v-def-glsl-template-fun v! (x y) "vec3(~a,~a)" (v-float v-vec2) v-vec3)
 (v-def-glsl-template-fun v! (x y) "vec3(~a,~a)" (v-vec2 v-float) v-vec3)
