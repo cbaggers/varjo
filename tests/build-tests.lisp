@@ -181,7 +181,66 @@
            ((a :int) 2))
        (v! 0 0 0 0)))))
 
-(5am:def-test build-20 (:suite build-tests)
+(5am:def-test build-19 (:suite build-tests)
+  (signals varjo-conditions::couldnt-convert-primitive-for-geometry-stage
+    (v-compile
+     '((tess-level-inner :float) (tess-level-outer :float)
+       (projection :mat4) (model->clip :mat4) (normal-mat :mat3)
+       (light-position :vec3) (diffuse-material :vec3) (ambient-material :vec3))
+     :450
+     :draw-mode :dynamic
+
+     :vertex
+     '(((position :vec4)) position)
+
+     :geometry
+     '(() (v! 0 0 0 0))
+
+     :fragment
+     '(() (v! 0 0 0 0)))))
+
+(5am:def-test build-21 (:suite build-tests)
+  (finishes-p
+   (v-compile
+    '((tess-level-inner :float) (tess-level-outer :float)
+      (projection :mat4) (model->clip :mat4) (normal-mat :mat3)
+      (light-position :vec3) (diffuse-material :vec3) (ambient-material :vec3))
+    :450
+    :draw-mode :dynamic
+
+    :vertex
+    '(((position :vec4))
+      (values position
+       (s~ position :xyz)
+       (v! 0 0 0)
+       (v! 0 0 0)
+       (v! 0 0 0)))
+
+    :fragment
+    '(((patch-distance :vec3) (facet-normal :vec3) (tri-distance :vec3))
+      (labels ((amplify ((d :float) (scale :float) (offset :float))
+                 (let* ((d (+ (* scale d) offset))
+                        (d (clamp d 0 1)))
+                   (- 1 (expt (* d d -2) 2)))))
+        (let* ((light-position (v! 0 1 0))
+               (diffuse-material (v! 1 0 0))
+               (ambient-material (v! 0.2 0.2 0.2))
+               ;;
+               (n (normalize facet-normal))
+               (l light-position)
+               (df (abs (dot n l)))
+               (color (+ ambient-material (* df diffuse-material)))
+               (d1 (min (min (x tri-distance) (y tri-distance))
+                        (z tri-distance)))
+               (d2 (min (min (x patch-distance) (y patch-distance))
+                        (z patch-distance)))
+               (color (* (+ ambient-material (* df diffuse-material))
+                         (amplify d1 40 -0.5)
+                         (amplify d2 50 -0.5))))
+          (v! color 1)))))))
+
+
+(5am:def-test build-22 (:suite build-tests)
   (finishes-p
    (v-compile
     '((tess-level-inner :float) (tess-level-outer :float)
@@ -270,7 +329,7 @@
                          (amplify d2 50 -0.5))))
           (v! color 1)))))))
 
-(5am:def-test build-21 (:suite build-tests)
+(5am:def-test build-23 (:suite build-tests)
   (finishes-p
    (varjo.tests::compile-vert () :450 nil
      (uint 32)

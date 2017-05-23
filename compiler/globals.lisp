@@ -66,7 +66,8 @@
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
 (defparameter *draw-modes*
-  '(:points
+  '(:dynamic
+    :points
     :lines
     :line-loop
     :line-strip

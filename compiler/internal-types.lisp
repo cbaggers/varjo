@@ -320,6 +320,8 @@
 (defclass tessellation-in-primitive (primitive) ())
 (defclass tessellation-out-primitive (primitive) ())
 
+(defclass dynamic (draw-mode) ())
+
 (defclass points (draw-mode geometry-primitive tessellation-out-primitive)
   ((lisp-name :initform :points :reader lisp-name)
    (vertex-count :initform 1 :reader vertex-count)
