@@ -25,7 +25,7 @@
        ',name)))
 
 (defmacro v-def-glsl-template-fun (name args transform arg-types return-spec
-                                   &key v-place-index glsl-name)
+                                   &key v-place-index glsl-name pure)
   (destructuring-bind (in-args uniforms context)
       (split-arguments args '(&uniform &context))
     (declare (ignore in-args))
@@ -42,7 +42,8 @@
                 :v-place-index ',v-place-index :glsl-name ',glsl-name
                 :flow-ids (%gl-flow-id!)
                 :in-arg-flow-ids
-                (list ,@(n-of '(%gl-flow-id!) (length args))))
+                (list ,@(n-of '(%gl-flow-id!) (length args)))
+                :pure ,pure)
                *global-env*)
               ',name))))
 
