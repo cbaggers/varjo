@@ -20,3 +20,11 @@ Subset of common lisp. Including:
 - Type checking in and across shader stages
 - Rolling translate, where out vars from one stage can be automatically fed into the next
 - Easy to extend (API still in progress)
+
+### Installing
+
+Run `(ql:quickload :varjo)` at your REPL.
+
+### Cloning
+
+Whist it is recommended to get Varjo from quicklisp, if you clone please note that `master` is not the stable branch. Please use `release-quicklisp` for the stable code that will be in the next Varjo release.
