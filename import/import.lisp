@@ -194,7 +194,13 @@
            (dispatch-reference primary modifiers))
          (`(conditional (,op ,left ,right) ,then ,else)
            (import-conditional op left right then else))
+         (`(conditional (,op ,left ,right) ,then)
+           (import-conditional op left right then nil))
          (`(negation ,expr) `(- ,(import-form expr)))
+         (`(selection-statement ,@rest)
+           (import-form `(conditional ,@rest)))
+         (`(compound-statement ,@_)
+           (import-compound-statement form))
          ((type number) form)
          (_ (error "unknown expression:~%~a" form))))))
 
@@ -221,9 +227,12 @@
     ))
 
 (defun import-conditional (op left right then else)
-  `(if (,(cdr (assoc op *ops*)) ,(import-form left) ,(import-form right))
-       ,(import-form then)
-       ,(import-form else)))
+  (if else
+      `(if (,(cdr (assoc op *ops*)) ,(import-form left) ,(import-form right))
+           ,(import-form then)
+           ,(import-form else))
+      `(when (,(cdr (assoc op *ops*)) ,(import-form left) ,(import-form right))
+         ,(import-form then))))
 
 (defun import-assignment (form)
   (ematch form
