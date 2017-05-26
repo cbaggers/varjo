@@ -930,6 +930,12 @@ this error and do not think you have recursion in your code please raise an
 issue at https://github.com/cbaggers/varjo/issues including the code that
 triggered this error." name func)
 
+(deferror invalid-function-arg-format () (name arg)
+    "The argument form ~a in the function ~a is invalid.
+
+Expected (arg-name arg-type)"
+  arg name)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

@@ -89,9 +89,15 @@
                       (reduce
                        (lambda (func-env tripple)
                          (dbind (arg glsl-name flow-ids) tripple
-                           (dbind (name type) arg
+                           (dbind (arg-name type . invalid) arg
+                             (assert (not invalid) ()
+                                     'invalid-function-arg-format
+                                     :arg `(,arg-name
+                                            ,(type->type-spec type)
+                                            ,@invalid)
+                                     :name name)
                              (add-symbol-binding
-                              name
+                              arg-name
                               (v-make-value
                                (set-flow-id type flow-ids)
                                func-env

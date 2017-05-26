@@ -181,6 +181,7 @@
            :slot-not-found
            :recursive-function-call-detected
            :probable-recursion
+           :invalid-function-arg-format
 
            ;; restarts
            :setq-supply-alternate-type
