@@ -35,17 +35,18 @@
 (v-defspecial %modify-place (lisp-op-name glsl-op-symbol place val)
   :args-valid t
   :return
-  (multiple-value-bind (place env-0) (compile-place place env :allow-unbound t)
-    (multiple-value-bind (val env) (compile-form val env-0)
+  (multiple-value-bind (place-obj env-0) (compile-place place env :allow-unbound t)
+    (multiple-value-bind (val-obj env) (compile-form val env-0)
       (assert (member lisp-op-name '(setf incf decf multf divf)))
       (cond
-        ((not (place-tree place))
+        ((not (place-tree place-obj))
          (error 'non-place-assign :glsl-op glsl-op-symbol
-                :place place :val val))
-        ((not (v-type-eq (primary-type place) (primary-type val)))
+                :place place-obj :val val-obj))
+        ((not (v-type-eq (primary-type place-obj) (primary-type val-obj)))
          (error 'assignment-type-match :op lisp-op-name
-                :code-obj-a place :code-obj-b val))
-        (t (destructuring-bind (name value) (last1 (place-tree place))
+                :code-obj-a place-obj :code-obj-b val-obj
+                :form `(,lisp-op-name ,place ,val)))
+        (t (destructuring-bind (name value) (last1 (place-tree place-obj))
              (when (v-read-only value)
                (error 'assigning-to-readonly :var-name name))
              (unless (or (= (v-function-scope env) (v-function-scope value))
@@ -54,17 +55,18 @@
                       :code (format nil "(setf (... ~s) ...)" name)))
              (vbind (old-val old-env) (get-symbol-binding name nil env)
                (assert (eq old-val value))
-               (let ((final-env (replace-flow-ids name old-val (flow-ids val)
-                                                  old-env env))
-                     (type-set (make-type-set (primary-type val)))
-                     (cline (gen-bin-op-string glsl-op-symbol place val)))
+               (let ((final-env (replace-flow-ids
+                                 name old-val (flow-ids val-obj) old-env env))
+                     (type-set (make-type-set (primary-type val-obj)))
+                     (cline (gen-bin-op-string
+                             glsl-op-symbol place-obj val-obj)))
                  (values (merge-compiled
-                          (list place val)
+                          (list place-obj val-obj)
                           :type-set type-set
                           :current-line cline
                           :node-tree (ast-node! lisp-op-name
-                                                (list (node-tree place)
-                                                      (node-tree val))
+                                                (list (node-tree place-obj)
+                                                      (node-tree val-obj))
                                                 type-set
                                                 env
                                                 final-env)

@@ -129,13 +129,15 @@ when called with ~a
   var-name)
 
 (deferror assignment-type-match (:error-type varjo-critical-error)
-    (op code-obj-a code-obj-b)
+    (op code-obj-a code-obj-b form)
     "Currently varjo cannot handle changing the type through an assignment due
 to the static nature of glsl.
 operation: ~a
 place: ~a
-value: ~a"
-  op (primary-type code-obj-a) (primary-type code-obj-b))
+value: ~a
+
+Problematic form: ~s"
+  op (primary-type code-obj-a) (primary-type code-obj-b) form)
 
 (deferror setq-type-match (:error-type varjo-critical-error)
     (var-name old-value new-value)
