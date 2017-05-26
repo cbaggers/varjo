@@ -79,7 +79,8 @@
                         (gen-string-for-if-block else-obj tmp-var))))
     (values
      (when (or then-string else-string)
-       (format nil "~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
+       (format nil "~{~a~%~}~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
+               (to-block test-obj)
                (when tmp-var
                  (prefix-type-to-string result-type (end-line-str tmp-var)))
                (current-line test-obj)
