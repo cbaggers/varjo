@@ -43,14 +43,32 @@
                                    type-set
                                    starting-env final-env)))
         (vbind (block-string current-line-string)
-            (gen-string-for-if-form test-obj then-obj else-obj result-type
-                                    has-else)
+            (if (and has-else
+                     (not (to-block test-obj))
+                     (not (to-block then-obj))
+                     (not (to-block else-obj))
+                     (pure-p test-obj)
+                     (pure-p then-obj)
+                     (pure-p else-obj)
+                     (= (length (type-set then-obj)) 1)
+                     (= (length (type-set else-obj)) 1)
+                     (v-type-eq (primary-type then-obj)
+                                (primary-type else-obj)))
+                (gen-string-for-ternary-form test-obj then-obj else-obj)
+                (gen-string-for-if-form test-obj then-obj else-obj result-type
+                                        has-else))
           (values (merge-compiled arg-objs
                                   :type-set type-set
                                   :current-line current-line-string
                                   :to-block (list block-string)
                                   :node-tree node-tree)
                   final-env))))))
+
+(defun gen-string-for-ternary-form (test-obj then-obj else-obj)
+  (values nil (format nil "~a ? ~a : ~a"
+                      (current-line test-obj)
+                      (current-line then-obj)
+                      (current-line else-obj))))
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
   (let* ((will-assign (and (not (v-voidp result-type))
