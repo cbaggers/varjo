@@ -17,12 +17,21 @@
                             (alpha-char-p (elt name 0))))
 
               "_")
-            (map 'list (lambda (_)
-                         (if (find _ +ascii-alpha-num+) _
-                             (if (char= _ #\-)
-                                 #\_
-                                 (char-name-or-code-str _))))
-                 name))))
+            (map 'list #'replace-char-in-name
+                 (replace-substrings-in-name name)))))
+
+(defun replace-substrings-in-name (name)
+  (let ((pairs '(("->" . "-TO-"))))
+    (labels ((swap (name pair)
+               (dbind (match . new) pair
+                 (ppcre:regex-replace match name new))))
+      (reduce #'swap pairs :initial-value name))))
+
+(defun replace-char-in-name (c)
+  (if (find c +ascii-alpha-num+) c
+      (if (char= c #\-)
+          #\_
+          (char-name-or-code-str c))))
 
 (defun char-name-or-code-str (char)
   (cond
