@@ -20,11 +20,13 @@
         ;;
         (always-false (compile-form `(progn ,test-obj ,else-form) test-env))
         ;;
-        (t (compile-the-regular-form-of-if test-obj test-env then-form else-form
-                                           has-else env))))))
+        (t (compile-the-regular-form-of-if test-form test-obj test-env
+                                           then-form else-form has-else
+                                           env))))))
 
-(defun compile-the-regular-form-of-if (test-obj test-env then-form else-form
-                                       has-else starting-env)
+(defun compile-the-regular-form-of-if (test-form test-obj test-env
+                                       then-form else-form has-else
+                                       starting-env)
   (multiple-value-bind (then-obj then-env) (compile-form then-form test-env)
     (multiple-value-bind (else-obj else-env) (compile-form else-form test-env)
       ;;
@@ -53,7 +55,11 @@
                      (= (length (type-set then-obj)) 1)
                      (= (length (type-set else-obj)) 1)
                      (v-type-eq (primary-type then-obj)
-                                (primary-type else-obj)))
+                                (primary-type else-obj))
+                     (satifies-ternary-style-restrictions-p
+                      test-form test-obj
+                      then-form then-obj
+                      else-form else-obj))
                 (gen-string-for-ternary-form test-obj then-obj else-obj)
                 (gen-string-for-if-form test-obj then-obj else-obj result-type
                                         has-else))
@@ -63,6 +69,17 @@
                                   :to-block (list block-string)
                                   :node-tree node-tree)
                   final-env))))))
+
+(defun satifies-ternary-style-restrictions-p (test-form test-obj
+                                              then-form then-obj
+                                              else-form else-obj)
+  (declare (ignorable test-form test-obj
+                      then-form then-obj
+                      else-form else-obj))
+  (< (+ (length (current-line test-obj))
+        (length (current-line then-obj))
+        (length (current-line else-obj)))
+     100))
 
 (defun gen-string-for-ternary-form (test-obj then-obj else-obj)
   (values nil (format nil "~a ? ~a : ~a"
