@@ -182,6 +182,7 @@
            :recursive-function-call-detected
            :probable-recursion
            :invalid-function-arg-format
+           :underspecified-patch-primitive
 
            ;; restarts
            :setq-supply-alternate-type

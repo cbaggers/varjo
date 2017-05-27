@@ -938,6 +938,12 @@ triggered this error." name func)
 Expected (arg-name arg-type)"
   arg name)
 
+(deferror underspecified-patch-primitive () ()
+    "Whilst 'patches' are a valid form of primitive, the way they are defined
+in Varjo is (:patch *) where '*' is the number of vertices in the patch.
+
+For example: (:patch 2) (:patch 3) (:patch 4)")
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package
