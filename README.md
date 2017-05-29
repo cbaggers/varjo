@@ -4,6 +4,8 @@ Varjo is a Lisp to GLSL compiler.
 
 Varjo has no OpenGL dependency as is designed to be integrated into other projects, see CEPL for an example.
 
+Vari is the dialect of lisp Varjo compiles. It aims to be as close to Common Lisp as possible, but naturally it is statically typed so there are differences.
+
 #### Features
 
 Subset of common lisp. Including:
@@ -28,3 +30,8 @@ Run `(ql:quickload :varjo)` at your REPL.
 ### Cloning
 
 Whist it is recommended to get Varjo from quicklisp, if you clone please note that `master` is not the stable branch. Please use `release-quicklisp` for the stable code that will be in the next Varjo release.
+
+#### Name Origins
+
+- Varjo is 'shadow' in Finnish
+- Vari is 'shadow' in Estonian
