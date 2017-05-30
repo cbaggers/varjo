@@ -261,6 +261,7 @@
            :v-double
            :v-container
            :v-matrix
+           :v-dmatrix
            :v-mat2
            :v-mat3
            :v-mat4
