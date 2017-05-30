@@ -327,15 +327,15 @@ type-spec trick doesnt"))
   (with-slots (dimensions element-type) object
     (setf dimensions (listify dimensions))
     (unless (typep element-type 'v-type)
-      (setf element-type (type-spec->type element-type))))
+      (setf element-type (type-spec->type element-type)))))
 
-  (defmethod v-element-type ((object v-block-array))
-    (let ((result (slot-value object 'element-type)))
-      ;; {TODO} dedicated error
-      (assert (typep result 'v-type) (object)
-              "The element-type of ~a was ~a which is not an instance of a type."
-              object result)
-      result)))
+(defmethod v-element-type ((object v-block-array))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
 
 (defmethod type->type-spec ((type v-block-array))
   `(v-block-array ,(if (slot-boundp type 'block-name)
