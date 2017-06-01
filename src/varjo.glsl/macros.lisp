@@ -1,4 +1,4 @@
-(in-package :varjo.glsl)
+(in-package :vari.glsl)
 
 (v-defmacro + (&rest numbers)
   (case= (length numbers)

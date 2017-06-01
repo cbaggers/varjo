@@ -1,4 +1,4 @@
-(in-package :varjo.glsl)
+(in-package :vari.glsl)
 (in-readtable fn:fn-reader)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -14,7 +14,7 @@
                                    &allow-other-keys) _
                          (declare (ignore versions))
                          (let* ((lisp-name (intern (parse-gl-var-name name)
-                                                   :varjo.glsl))
+                                                   :vari.glsl))
                                 (lisp-type (parse-gl-type-name type)))
                            `(,stage ,lisp-name ,name ,lisp-type ,place-p)))
                       (append *definitions-missing-from-glsl-spec*
@@ -29,5 +29,5 @@
                                            vars :key #'first))))
                    (cons t *stage-names*)
                    (cons t *stage-type-names*)))
-       (export ',(mapcar #'second vars) :varjo.glsl))))
+       (export ',(mapcar #'second vars) :vari.glsl))))
 (populate-vars)

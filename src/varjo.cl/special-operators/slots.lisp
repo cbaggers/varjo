@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 (in-readtable :fn.reader)
 
 (v-defspecial slot-value (form slot-name)

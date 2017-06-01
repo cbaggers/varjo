@@ -1,4 +1,4 @@
-(in-package :varjo.glsl)
+(in-package :vari.glsl)
 (in-readtable fn:fn-reader)
 
 (defmacro populate-functions ()
@@ -9,7 +9,7 @@
               func-spec
             (let* ((parsed-name (parse-gl-func-name name))
                    (lisp-name (or (find-symbol parsed-name :cl)
-                                  (intern parsed-name :varjo.glsl)))
+                                  (intern parsed-name :vari.glsl)))
                    (arg-types (mapcar #'second args))
                    (lisp-arg-types (mapcar λ(type-spec->type
                                              (parse-gl-type-name _))
@@ -37,6 +37,6 @@
                                            ,(length args))
                     :pure ,pure)
                    varjo.internals::*global-env*)
-                  (export ',lisp-name :varjo.glsl))))))))
+                  (export ',lisp-name :vari.glsl))))))))
 
 (populate-functions)

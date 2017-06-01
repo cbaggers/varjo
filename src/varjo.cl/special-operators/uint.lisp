@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 
 (v-def-glsl-template-fun %uint (x) "uint(~a)" (v-bool) v-uint)
 (v-def-glsl-template-fun %uint (x) "uint(~a)" (v-float)  v-uint)

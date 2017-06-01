@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 (in-readtable :fn.reader)
 
 (v-def-glsl-template-fun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)

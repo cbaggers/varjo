@@ -25,7 +25,7 @@
    :split-arguments
    :symb))
 
-(uiop:define-package #:varjo.types
+(uiop:define-package #:vari.types
     (:use #:cl #:varjo.utils #:alexandria #:named-readtables)
   (:export :v-type
            :v-stemcell
@@ -304,7 +304,7 @@
            :allow-call-function-signature))
 
 (uiop:define-package #:varjo.internals
-    (:use #:cl #:varjo.utils #:varjo.types #:split-sequence
+    (:use #:cl #:varjo.utils #:vari.types #:split-sequence
           #:alexandria
           #:cl-ppcre #:named-readtables #:varjo-conditions)
   (:export
@@ -347,6 +347,11 @@
    :make-type-set
    ;;
    ;; -to sort-
+   :pure-p
+   :format-external-func-for-error
+   :user-function-p
+   :external-function-p
+   :make-function-set
    :%gen-assignment-string
    :%merge-multi-env-progn
    :%values-for-return
@@ -514,12 +519,12 @@
    ;;
    :make-type-set))
 
-(uiop:define-package #:varjo.glsl
-    (:use #:cl #:varjo.utils #:varjo.internals #:varjo.types
+(uiop:define-package #:vari.glsl
+    (:use #:cl #:varjo.utils #:varjo.internals #:vari.types
           #:named-readtables #:glsl-symbols)
   (:import-from :varjo.internals
                 :def-v-type-class)
-  (:reexport :varjo.types)
+  (:reexport :vari.types)
   (:export
    ;; bitwise operators
    :>>
@@ -760,8 +765,8 @@
    :gl-work-group-id
    :gl-work-group-size))
 
-(uiop:define-package #:varjo.cl
-    (:use #:cl #:varjo.utils #:varjo.glsl #:varjo.internals
+(uiop:define-package #:vari.cl
+    (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals
           #:named-readtables)
   (:import-from :alexandria
                 :ensure-list
@@ -769,7 +774,7 @@
                 :iota)
   (:import-from :varjo.internals
                 :def-v-type-class)
-  (:reexport :varjo.types :varjo.glsl)
+  (:reexport :vari.types :vari.glsl)
   (:export
 
    ;; special functions
@@ -791,7 +796,11 @@
    :divf
    :s~))
 
+(uiop:define-package #:vari
+    (:use #:vari.types #:vari.glsl #:vari.cl)
+  (:reexport :vari.types :vari.glsl :vari.cl))
+
 (uiop:define-package #:varjo
-    (:use #:cl #:varjo.utils #:varjo.types #:varjo.api
+    (:use #:cl #:varjo.utils #:vari.types #:varjo.api
           #:alexandria #:named-readtables)
-  (:reexport :varjo.types :varjo.api))
+  (:reexport :vari.types :varjo.api))

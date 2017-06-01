@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 
 (v-defmacro lambda (args &body body)
   `(labels ((lmbda ,args ,@body))

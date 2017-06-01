@@ -1,4 +1,4 @@
-(in-package :varjo.glsl)
+(in-package :vari.glsl)
 (in-readtable fn:fn-reader)
 
 (defparameter *glsl-type->varjo-type*

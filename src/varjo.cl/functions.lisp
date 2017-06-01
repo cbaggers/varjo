@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 
 (v-def-glsl-template-fun not (a) "!~a" (v-bool) v-bool)
 (v-def-glsl-template-fun not (a) "false" (v-type) v-bool)

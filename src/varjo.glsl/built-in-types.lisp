@@ -1,4 +1,4 @@
-(in-package :varjo.glsl)
+(in-package :vari.glsl)
 
 ;; Currently glsl-spec doesnt contain info on the built-in types, therefore we
 ;; add them manually here.

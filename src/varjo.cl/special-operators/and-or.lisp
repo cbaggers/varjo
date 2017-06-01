@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 (in-readtable fn:fn-reader)
 
 ;;------------------------------------------------------------

@@ -30,9 +30,9 @@
 ;; Converting specs into types
 
 (defun try-type-spec->type (spec flow-id)
-  (let ((spec (cond ((keywordp spec) (p-symb 'varjo.types 'v- spec))
+  (let ((spec (cond ((keywordp spec) (p-symb 'vari.types 'v- spec))
                     ((and (listp spec) (keywordp (first spec)))
-                     (cons (p-symb 'varjo.types 'v- (first spec)) (rest spec)))
+                     (cons (p-symb 'vari.types 'v- (first spec)) (rest spec)))
                     (t spec))))
     (cond ((null spec) nil)
           ;;

@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 
 (v-def-glsl-template-fun << (x y) "(~a << ~a)" (v-uint v-uint) v-uint :pure t)
 (v-def-glsl-template-fun << (x y) "(~a << ~a)" (v-int v-int) v-int :pure t)

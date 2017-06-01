@@ -1,4 +1,4 @@
-(in-package :varjo.cl)
+(in-package :vari.cl)
 (in-readtable fn:fn-reader)
 
 ;;------------------------------------------------------------
@@ -162,7 +162,7 @@
         (if (and (stage-where-first-return-is-position-p stage)
                  (= index 0))
             (if (v-type-eq (primary-type code-obj) (type-spec->type :vec4))
-                `(setq varjo.glsl::gl-position ,code-obj)
+                `(setq vari.glsl::gl-position ,code-obj)
                 (error 'vertex-stage-primary-type-mismatch
                        :prim-type (primary-type code-obj)))
             `(glsl-expr

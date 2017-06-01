@@ -2,7 +2,7 @@
 (in-readtable :fn.reader)
 
 ;;------------------------------------------------------------
-;; Macro for defining varjo types
+;; Macro for defining vari.types
 
 ;; {TODO} proper errors
 (defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
