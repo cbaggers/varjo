@@ -6,7 +6,7 @@
   :license "BSD 2 Clause"
   :encoding :utf-8
   :serial t
-  :depends-on (#:varjo #:fiveam)
+  :depends-on (#:varjo #:fiveam #:rtg-math.vari)
   :components ((:file "tests/package")
                (:file "tests/tests")
                (:file "tests/build-tests")

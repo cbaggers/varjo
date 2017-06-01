@@ -791,7 +791,7 @@
    :divf
    :s~))
 
-(uiop:define-package #:varjo.core
+(uiop:define-package #:varjo
     (:use #:cl #:varjo.utils #:varjo.types #:varjo.api
           #:alexandria #:named-readtables)
   (:reexport :varjo.types :varjo.api))

@@ -26,7 +26,7 @@
 (defgeneric ast-typep (node type))
 (defgeneric binding-in-higher-scope-p (binding env))
 (defgeneric block-name-string (block-name))
-(defgeneric build-external-function (func env))
+(defgeneric build-external-function (func env base-env))
 (defgeneric cast-code-inner (varjo-type src-obj cast-to-type env))
 (defgeneric compile-form (code env))
 (defgeneric compile-literal (code env &key errorp))
