@@ -4,8 +4,6 @@
 ;;------------------------------------------------------------
 ;; Swizzle
 
-(v-defmacro s~ (&rest args) `(swizzle ,@args))
-
 (v-defspecial swizzle (vec-form components)
   :args-valid t
   :v-place-index 0

@@ -334,6 +334,7 @@
    :type->type-spec
    :type-spec->type
    :v-type-eq
+   :core-typep
    :v-typep
    :v-casts-to-p
    :v-casts-to
@@ -346,9 +347,60 @@
    ;;
    :make-type-set
    ;;
+   ;; stages
+   :vertex-stage
+   :tessellation-control-stage
+   :tessellation-evaluation-stage
+   :geometry-stage
+   :fragment-stage
+   :get-stage-kind-from-context
+   ;;
+   ;; primitives, draw-modes, etc
+   :dynamic
+   :line-loop
+   :line-strip
+   :line-strip-adjacency
+   :lines
+   :lines-adjacency
+   :patches
+   :points
+   :quads
+   :triangle-fan
+   :triangle-strip
+   :triangle-strip-adjacency
+   :triangles
+   :triangles-adjacency
+   :primitive-name-to-instance
+   ;;
    ;; -to sort-
+   :glsl-to-compile-result
+   :stemcells-allowed
+   :context
+   :lisp-code
+   :with-v-arg
+   :make-stage
+   :primitive-in
+   :primitive-out
+   :translate
+   :output-variables
+   :cpu-side-transform
+   :rolling-translate
+   :delete-external-function
+   :get-primitive-type-from-context
+   :input-variables
+   :implicit-uniforms
+   :name
+   :in-args
+   :to-arg-form
+   :uniform-variables
+   :used-external-functions
+   :glsl-code
    :pure-p
+   :compiled-stage
+   :with-stemcell-infer-hook
+   :with-constant-inject-hook
    :format-external-func-for-error
+   :test-translate-function-split-details
    :user-function-p
    :external-function-p
    :make-function-set
@@ -421,6 +473,8 @@
    :implicit-args
    :indent-for-block
    :inject-implicit-uniform
+   :lisp-name
+   :vertex-count
    :lisp-name->glsl-name
    :make-ast-node-for-declaration
    :make-compiled
@@ -481,6 +535,7 @@
 (uiop:define-package #:varjo.api
     (:use #:cl #:varjo.utils #:varjo.internals #:alexandria #:named-readtables)
   (:export
+   ;;
    ;; globals
    :*ast-node-kinds*
    :*default-version*
@@ -491,18 +546,43 @@
    :*supported-versions*
    :*valid-contents-symbols*
    ;;
+   ;; stages
+   :vertex-stage
+   :tessellation-control-stage
+   :tessellation-evaluation-stage
+   :geometry-stage
+   :fragment-stage
+   ;;
+   ;; primitives, draw-modes, etc
+   :dynamic
+   :line-loop
+   :line-strip
+   :line-strip-adjacency
+   :lines
+   :lines-adjacency
+   :patches
+   :points
+   :quads
+   :triangle-fan
+   :triangle-strip
+   :triangle-strip-adjacency
+   :triangles
+   :triangles-adjacency
+   :vertex-count
+   ;;
+   ;; functions/macros
    :v-defun
    :v-def-glsl-template-fun
+   :add-equivalent-name
    :v-defmacro
    :v-define-compiler-macro
    :v-defstruct
-   :v-deftype
-   :def-metadata-infer
-   :def-metadata-kind
-   :def-shadow-type-constructor
    :add-external-function
-   :add-equivalent-name
+   :delete-external-function
    ;;
+   ;; types
+   :v-deftype
+   :def-shadow-type-constructor
    :type-specp
    :type->type-spec
    :type-spec->type
@@ -512,12 +592,64 @@
    :v-casts-to
    :find-mutual-cast-type
    :v-special-functionp
+   :v-element-type
    :v-errorp
    :add-alternate-type-name
    :resolve-name-from-alternative
    :ephemeral-p
+   :core-typep
+   :make-type-set
+   :def-metadata-infer
+   :def-metadata-kind
+   :v-dimensions
    ;;
-   :make-type-set))
+   ;; environment
+   :add-lisp-form-as-uniform
+   :all-bound-symbols
+   :all-symbol-binding-names
+   :argument-is-uniform-p
+   :argument-type
+   :argument-uniform-name
+   :metadata-for-argument
+   :metadata-for-variable
+   :variable-in-scope-p
+   :variable-is-uniform-p
+   :variable-type
+   :variable-uniform-name
+   :variables-in-scope
+   ;;
+   ;; stages
+   :make-stage
+   :lisp-code
+   :input-variables
+   :uniform-variables
+   :context
+   :stemcells-allowed
+   :primitive-in
+   ;;
+   ;; compilation
+   :translate
+   :rolling-translate
+   ;;
+   ;; test compilation
+   :test-translate-function-split-details
+   ;;
+   ;; compiled stages
+   :compiled-stage
+   :glsl-code
+   :output-variables
+   :implicit-uniforms
+   :used-external-functions
+   :primitive-out
+   ;;
+   ;; hooks
+   :with-stemcell-infer-hook
+   :with-constant-inject-hook
+   ;;
+   ;; to sort
+   :name
+   :lisp-name
+   ))
 
 (uiop:define-package #:vari.glsl
     (:use #:cl #:varjo.utils #:varjo.internals #:vari.types
@@ -525,6 +657,7 @@
   (:import-from :varjo.internals
                 :def-v-type-class)
   (:reexport :vari.types)
+  (:reexport :glsl-symbols)
   (:export
    ;; bitwise operators
    :>>
@@ -543,227 +676,7 @@
    ;; struct slot names
    :near
    :far
-   :diff
-
-   ;; spec functions
-   :emit-stream-vertex
-   :emit-vertex
-   :end-primitive
-   :end-stream-primitive
-   :abs
-   :acos
-   :acosh
-   :all
-   :any
-   :asin
-   :asinh
-   :atan
-   :atanh
-   :atomic-counter
-   :atomic-counter-decrement
-   :atomic-counter-increment
-   :barrier
-   :bit-count
-   :bitfield-extract
-   :bitfield-insert
-   :bitfield-reverse
-   :ceil
-   :clamp
-   :cos
-   :cosh
-   :cross
-   :d-fdx
-   :d-fdx-coarse
-   :d-fdx-fine
-   :d-fdy
-   :d-fdy-coarse
-   :d-fdy-fine
-   :degrees
-   :determinant
-   :distance
-   :dot
-   :equal
-   :exp
-   :exp2
-   :faceforward
-   :find-lsb
-   :find-msb
-   :float-bits-to-int
-   :float-bits-to-uint
-   :floor
-   :fma
-   :fract
-   :fwidth
-   :fwidth-coarse
-   :fwidth-fine
-   :greater-than
-   :greater-than-equal
-   :group-memory-barrier
-   :image-atomic-add
-   :image-atomic-and
-   :image-atomic-comp-swap
-   :image-atomic-exchange
-   :image-atomic-max
-   :image-atomic-min
-   :image-atomic-or
-   :image-atomic-xor
-   :image-load
-   :image-samples
-   :image-size
-   :image-store
-   :int-bits-to-float
-   :interpolate-at-centroid
-   :interpolate-at-offset
-   :interpolate-at-sample
-   :inverse
-   :inversesqrt
-   :isinf
-   :isnan
-   :ldexp
-   :length
-   :less-than
-   :less-than-equal
-   :log
-   :log2
-   :matrix-comp-mult
-   :max
-   :memory-barrier
-   :memory-barrier-atomic-counter
-   :memory-barrier-buffer
-   :memory-barrier-image
-   :memory-barrier-shared
-   :min
-   :mix
-   :mod
-   :noise1
-   :noise2
-   :noise3
-   :noise4
-   :normalize
-   :not
-   :not-equal
-   :outer-product
-   :pack-double2x32
-   :pack-half2x16
-   :pack-snorm2x16
-   :pack-snorm4x8
-   :pack-unorm2x16
-   :pack-unorm4x8
-   :pow
-   :radians
-   :reflect
-   :refract
-   :round
-   :round-even
-   :sign
-   :sin
-   :sinh
-   :smoothstep
-   :sqrt
-   :step
-   :tan
-   :tanh
-   :texel-fetch
-   :texel-fetch-offset
-   :texture
-   :texture-gather
-   :texture-gather-offset
-   :texture-gather-offsets
-   :texture-grad
-   :texture-grad-offset
-   :texture-lod
-   :texture-lod-offset
-   :texture-offset
-   :texture-proj
-   :texture-proj-grad
-   :texture-proj-grad-offset
-   :texture-proj-lod
-   :texture-proj-lod-offset
-   :texture-proj-offset
-   :texture-query-levels
-   :texture-query-lod
-   :texture-samples
-   :texture-size
-   :transpose
-   :trunc
-   :uint-bits-to-float
-   :unpack-double2x32
-   :unpack-half2x16
-   :unpack-snorm2x16
-   :unpack-snorm4x8
-   :unpack-unorm2x16
-   :unpack-unorm4x8
-
-   ;; spec variables
-   :gl-back-color
-   :gl-back-secondary-color
-   :gl-clip-distance
-   :gl-clip-vertex
-   :gl-color
-   :gl-depth-range
-   :gl-fog-coord
-   :gl-fog-frag-coord
-   :gl-frag-coord
-   :gl-frag-data
-   :gl-frag-depth
-   :gl-front-color
-   :gl-front-facing
-   :gl-front-secondary-color
-   :gl-global-invocation-id
-   :gl-helper-invocation
-   :gl-in
-   :gl-instance-id
-   :gl-invocation-id
-   :gl-layer
-   :gl-local-invocation-id
-   :gl-local-invocation-index
-   :gl-max-clip-distances
-   :gl-max-clip-planes
-   :gl-max-combined-texture-image-units
-   :gl-max-draw-buffers
-   :gl-max-fragment-uniform-components
-   :gl-max-geometry-output-vertices
-   :gl-max-geometry-texture-image-units
-   :gl-max-geometry-total-output-components
-   :gl-max-geometry-uniform-components
-   :gl-max-geometry-varying-components
-   :gl-max-texture-coords
-   :gl-max-texture-image-units
-   :gl-max-texture-units
-   :gl-max-varying-floats
-   :gl-max-vertex-attribs
-   :gl-max-vertex-texture-image-units
-   :gl-max-vertex-uniform-components
-   :gl-multi-tex-coord0
-   :gl-multi-tex-coord1
-   :gl-multi-tex-coord2
-   :gl-multi-tex-coord3
-   :gl-multi-tex-coord4
-   :gl-multi-tex-coord5
-   :gl-multi-tex-coord6
-   :gl-multi-tex-coord7
-   :gl-normal
-   :gl-num-samples
-   :gl-num-work-groups
-   :gl-patch-vertices-in
-   :gl-point-coord
-   :gl-point-size
-   :gl-position
-   :gl-primitive-id
-   :gl-primitive-idin
-   :gl-sample-id
-   :gl-sample-mask
-   :gl-sample-mask-in
-   :gl-sample-position
-   :gl-secondary-color
-   :gl-tess-coord
-   :gl-tess-level-inner
-   :gl-tess-level-outer
-   :gl-vertex
-   :gl-vertex-id
-   :gl-viewport-index
-   :gl-work-group-id
-   :gl-work-group-size))
+   :diff))
 
 (uiop:define-package #:vari.cl
     (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals
@@ -793,8 +706,7 @@
    :emit-data
    :emit
    :multf
-   :divf
-   :s~))
+   :divf))
 
 (uiop:define-package #:vari
     (:use #:vari.types #:vari.glsl #:vari.cl)
