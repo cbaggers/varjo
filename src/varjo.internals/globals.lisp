@@ -1,28 +1,28 @@
 (in-package :varjo.internals)
 (in-readtable fn:fn-reader)
 
-(defparameter *global-env* :-genv-)
-(defparameter *global-env-form-bindings* (make-hash-table))
-(defparameter *global-env-symbol-bindings* (make-hash-table))
-(defparameter *global-env-compiler-macros* (make-hash-table))
+(defvar *global-env* :-genv-)
+(defvar *global-env-form-bindings* (make-hash-table))
+(defvar *global-env-symbol-bindings* (make-hash-table))
+(defvar *global-env-compiler-macros* (make-hash-table))
 
-(defparameter *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
+(defvar *supported-versions* '(:330 :400 :410 :420 :430 :440 :450))
 
-(defparameter *stage-names*
+(defvar *stage-names*
   '(:vertex
     :tessellation-control
     :tessellation-evaluation
     :geometry
     :fragment))
 
-(defparameter *stage-type-names*
+(defvar *stage-type-names*
   '(vertex-stage
     tessellation-control-stage
     tessellation-evaluation-stage
     geometry-stage
     fragment-stage))
 
-(defparameter *unshadowable-names* '(;; special
+(defvar *unshadowable-names* '(;; special
                                      and flet for function glsl-expr if labels
                                      labels-no-implicit let multiple-value-bind
                                      or progn setq switch swizzle
@@ -32,19 +32,19 @@
                                      let* prog1 setf symbol-macrolet s~ unless
                                      when))
 
-(defparameter *default-version* :450)
+(defvar *default-version* :450)
 
 
-(defparameter *ast-node-kinds*
+(defvar *ast-node-kinds*
   '(:function-top-level :get :get-stemcell :get-v-value :literal :error :none
     :code-section :funcall :break))
 
-(defparameter *stemcell-infer-hook*
+(defvar *stemcell-infer-hook*
   (lambda (name)
     (declare (ignore name))
     nil))
 
-(defparameter *constant-inject-hook*
+(defvar *constant-inject-hook*
   (lambda (name)
     (declare (ignore name))
     nil))
@@ -54,7 +54,7 @@
 (defvar +ascii-alpha-num+
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
-(defparameter *draw-modes*
+(defvar *draw-modes*
   '(:dynamic
     :points
     :lines
@@ -70,14 +70,14 @@
     :quads
     :patches))
 
-(defparameter *glsl-variables* nil)
+(defvar *glsl-variables* nil)
 
-(defparameter *fallback-block-name* :in_block)
+(defvar *fallback-block-name* :in_block)
 (defvar *in-block-name* "v_in")
 (defvar *out-block-name* "v_out")
 (defvar *emit-var-name-base* "emit")
 (defvar *return-var-name-base* "return")
 
-(defparameter *valid-contents-symbols*
+(defvar *valid-contents-symbols*
   (append (copy-list *supported-versions*)
           (copy-list *draw-modes*)))

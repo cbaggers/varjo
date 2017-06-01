@@ -3,7 +3,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defparameter *external-functions*
+(defvar *external-functions*
   (make-hash-table))
 
 (defmethod get-external-function-by-name (name env)
