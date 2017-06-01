@@ -23,7 +23,12 @@
    :p-symb
    :positions-if
    :split-arguments
-   :symb))
+   :symb
+   :a-get
+   :a-get1
+   :a-add
+   :a-set
+   :a-remove-all))
 
 (uiop:define-package #:vari.types
     (:use #:cl #:varjo.utils #:alexandria #:named-readtables)
@@ -423,6 +428,7 @@
    :captured-vars
    :cast-for-array-literal
    :checkpoint-flow-ids
+   :replace-flow-ids
    :compile-declares
    :compile-external-func-returning-ref
    :compile-form

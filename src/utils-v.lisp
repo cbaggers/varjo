@@ -251,3 +251,27 @@ are supported in this context are: ~s"
             (or (string= sn x)
                 (> (vas-string-metrics:jaro-winkler-distance sn x) 0.9))))
         candidates-list)))))
+
+;;-------------------------------------------------------------------------
+
+(defun a-get (name list)
+  (assocr name list))
+
+(defun a-get1 (name list)
+  (first (assocr name list)))
+
+(defmacro a-add (name value list-place)
+  `(acons ,name
+          (cons ,value (assocr ,name ,list-place))
+          ,list-place))
+
+
+(defmacro a-set (name value list-place)
+  (let ((g-list-place (gensym "list-place")))
+    `(let ((,g-list-place (remove ,name ,list-place :key #'first)))
+       (acons ,name (list ,value) ,g-list-place))))
+
+(defmacro a-remove-all (name list-place)
+  `(remove ,name ,list-place :key #'first))
+
+;;-------------------------------------------------------------------------

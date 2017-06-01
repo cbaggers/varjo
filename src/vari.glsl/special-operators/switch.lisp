@@ -1,4 +1,5 @@
 (in-package :vari.glsl)
+(in-readtable fn:fn-reader)
 
 ;;------------------------------------------------------------
 ;; Switch

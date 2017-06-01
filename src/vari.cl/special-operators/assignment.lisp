@@ -123,25 +123,4 @@
     (setq-supply-alternate-type (replacement-type-spec)
       (type-spec->type replacement-type-spec (flow-ids new-val)))))
 
-(defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
-  (assert (typep old-val 'v-value))
-  (labels ((walk-envs (n)
-             (if (eq n old-env)
-                 (env-replace-parent
-                  n
-                  (v-parent-env n)
-                  :symbol-bindings
-                  (a-add old-var-name
-                         (v-make-value
-                          (replace-flow-id (v-type-of old-val) flow-ids)
-                          n
-                          :read-only (v-read-only old-val)
-                          :function-scope (v-function-scope old-val)
-                          :glsl-name (glsl-name old-val))
-                         (copy-list (v-symbol-bindings n))))
-                 (env-replace-parent n (walk-envs (v-parent-env n))))))
-    (if (or (eq old-env *global-env*) (typep old-env 'base-environment))
-        env
-        (walk-envs env))))
-
 ;;------------------------------------------------------------
