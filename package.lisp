@@ -412,6 +412,8 @@
    :%gen-assignment-string
    :%merge-multi-env-progn
    :%values-for-return
+   :implicit-return
+   :%synthesize
    :%values-for-return
    :*emit-var-name-base*
    :*global-env*
@@ -688,7 +690,29 @@
    :switch
    :for
    :while
-   ))
+
+   ;; vector constructors {TODO} move to glsl-spec
+   :vec3
+   :vec4
+   :vec2
+   :bvec3
+   :bvec4
+   :bvec2
+   :ivec2
+   :ivec3
+   :ivec4
+   :uvec3
+   :uvec4
+   :uvec2
+   :dvec3
+   :dvec4
+   :dvec2
+   :dvec4
+
+   ;; matrix constructors {TODO} move to glsl-spec
+   :mat2
+   :mat3
+   :mat4))
 
 (uiop:define-package #:vari.cl
     (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals

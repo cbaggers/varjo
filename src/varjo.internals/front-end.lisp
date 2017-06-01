@@ -22,11 +22,11 @@ Example:
 
     (v-compile '((a :float)) :330
                :vertex '(((pos :vec3))
-                         (values (v! pos 1.0) a))
+                         (values (vec4 pos 1.0) a))
                :fragment '(((hmm :float))
                            (labels ((fun ((x :float))
                                       (* x x)))
-                             (v! 1.0 1.0 hmm (fun a)))))
+                             (vec4 1.0 1.0 hmm (fun a)))))
 "
   (assert (or vertex tessellation-control tessellation-evaluation
               geometry fragment))

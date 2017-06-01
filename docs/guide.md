@@ -34,17 +34,17 @@ Here is an example of a call to `#'v-compile`:
 
     (v-compile '((a :float)) :330
                :vertex '(((pos :vec3))
-                         (values (v! pos 1.0) a))
+                         (values (vec4 pos 1.0) a))
                :fragment '(((hmm :float))
                            (labels ((fun ((x :float))
                                       (* x x)))
-                             (v! 1.0 1.0 hmm (fun a)))))
+                             (vec4 1.0 1.0 hmm (fun a)))))
 
 In the above code:
 - `((a :float))` is the uniform argument. In this case, a single uniform variable named `a` with the type `:float` is specified;
 - `:330` is the GLSL version we are compiling for;
 - `((pos :vec3))` is the `in` argument list for the vertex stage. In this case, the vertex stage has one argument named `pos` with a type of `:vec3`;
-- `(values (v! pos 1.0) a)` is the lisp code for the `vertex` stage. Note that as we have specified both the `vertex` & `fragment` stages, Varjo is able to check the multiple;
+- `(values (vec4 pos 1.0) a)` is the lisp code for the `vertex` stage. Note that as we have specified both the `vertex` & `fragment` stages, Varjo is able to check the multiple;
 
 ## Varjo CL Subset
 
