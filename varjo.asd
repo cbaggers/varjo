@@ -61,6 +61,8 @@
                (:file "src/vari.glsl/functions-from-spec")
                (:file "src/vari.glsl/built-in-types")
                (:file "src/vari.glsl/bitwise-operators")
+               (:file "src/vari.glsl/special-operators/iteration")
+               (:file "src/vari.glsl/special-operators/switch")
                ;;
                (:file "src/vari.cl/macros")
                (:file "src/vari.cl/functions")
@@ -77,7 +79,6 @@
                (:file "src/vari.cl/special-operators/multiple-value-x")
                (:file "src/vari.cl/special-operators/local-functions")
                (:file "src/vari.cl/special-operators/function")
-               (:file "src/vari.cl/special-operators/iteration")
                (:file "src/vari.cl/special-operators/macros")
                (:file "src/vari.cl/special-operators/swizzle")
                (:file "src/vari.cl/special-operators/inline-code")

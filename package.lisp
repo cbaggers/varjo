@@ -676,7 +676,13 @@
    ;; struct slot names
    :near
    :far
-   :diff))
+   :diff
+
+   ;; special operators
+   :switch
+   :for
+   :while
+   ))
 
 (uiop:define-package #:vari.cl
     (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals
@@ -689,13 +695,8 @@
                 :def-v-type-class)
   (:reexport :vari.types :vari.glsl)
   (:export
-
    ;; special functions
-   :return
    :labels-no-implicit
-   :switch
-   :for
-   :while
    :swizzle
    :%break
    :%peek
