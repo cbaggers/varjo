@@ -18,7 +18,7 @@
 (defun gen-dummy-out-for-stage-type (stage-type)
   (case stage-type
     (geometry-stage '(values))
-    (otherwise '(vec4 1 2 3 4))))
+    (otherwise '(vari.glsl:vec4 1 2 3 4))))
 
 (defun gen-dummy-call (name args)
   `(,name ,@(mapcar λ`(%synthesize ,(second _)) args)))
