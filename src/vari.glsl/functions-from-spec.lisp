@@ -1,7 +1,7 @@
 (in-package :vari.glsl)
 (in-readtable fn:fn-reader)
 
-(defmacro populate-functions ()
+(defun populate-functions ()
   (loop :for func-spec :in glsl-spec:*functions* :do
      (destructuring-bind (&key name return args versions pure
                                &allow-other-keys)
