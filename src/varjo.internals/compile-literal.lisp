@@ -60,4 +60,4 @@
                   (error () nil)))))
     (etypecase is
       (integer (compile-form is env))
-      (float (compile-form `(glsl-expr ,str :float) env)))))
+      (float (compile-form `(vari.cl:glsl-expr ,str :float) env)))))

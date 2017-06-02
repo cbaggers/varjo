@@ -737,7 +737,15 @@
    :emit-data
    :emit
    :multf
-   :divf))
+   :divf
+   :v-defun
+   :v-def-glsl-template-fun
+   :v-defmacro
+   :v-define-compiler-macro
+   :v-defstruct
+   :v-deftype
+   :def-metadata-infer
+   :def-metadata-kind))
 
 (uiop:define-package #:vari
     (:use #:vari.types #:vari.glsl #:vari.cl)

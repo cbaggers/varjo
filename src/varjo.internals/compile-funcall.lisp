@@ -145,9 +145,10 @@
                (func-name (name func)))
           (compile-form
            `(let ,hard-coded
-              (labels-no-implicit ((,func-name ,trimmed-args ,@body-code))
-                                  ,allowed
-                                  (,func-name ,@(remove-if #'unrep-p args))))
+              (vari.cl:labels-no-implicit
+               ((,func-name ,trimmed-args ,@body-code))
+               ,allowed
+               (,func-name ,@(remove-if #'unrep-p args))))
            env))))))
 
 (defun compile-external-func-returning-ref (func func-name-form env)

@@ -23,14 +23,32 @@
     fragment-stage))
 
 (defvar *unshadowable-names* '(;; special
-                                     and flet for function glsl-expr if labels
-                                     labels-no-implicit let multiple-value-bind
-                                     or progn setq switch swizzle
-                                     symbol-macrolet-1 the values
-                                     values-safe while
-                                     ;; macros
-                                     let* prog1 setf symbol-macrolet s~ unless
-                                     when))
+                               and
+                               flet
+                               for
+                               function
+                               vari.cl:glsl-expr
+                               if
+                               labels
+                               vari.cl:labels-no-implicit
+                               let
+                               multiple-value-bind
+                               or
+                               progn
+                               setq
+                               vari.glsl:switch
+                               vari.cl:swizzle
+                               the
+                               values
+                               varjo.internals:values-safe
+                               vari.glsl:while
+                               ;; macros
+                               let*
+                               prog1
+                               setf
+                               symbol-macrolet
+                               unless
+                               when))
 
 (defvar *default-version* :450)
 
