@@ -4,21 +4,21 @@
 ;; Helper macros
 
 (defmacro compile-vert (args version allow-stemcells &body body)
-  (destructuring-bind (in-args uniforms) (split-arguments args '(&uniform))
+  (destructuring-bind (in-args uniforms) (varjo.internals::split-arguments args '(&uniform))
     `(first
       (v-compile ',uniforms ,version
                  :vertex '(,in-args ,@body)
                  :allow-stemcells ,allow-stemcells))))
 
 (defmacro compile-frag (args version allow-stemcells &body body)
-  (destructuring-bind (in-args uniforms) (split-arguments args '(&uniform))
+  (destructuring-bind (in-args uniforms) (varjo.internals::split-arguments args '(&uniform))
     `(first
       (v-compile ',uniforms ,version
                  :fragment '(,in-args ,@body)
                  :allow-stemcells ,allow-stemcells))))
 
 (defmacro compile-geom (args version allow-stemcells &body body)
-  (destructuring-bind (in-args uniforms) (split-arguments args '(&uniform))
+  (destructuring-bind (in-args uniforms) (varjo.internals::split-arguments args '(&uniform))
     `(first
       (v-compile ',uniforms ,version
                  :geometry '(,in-args ,@body)
@@ -52,16 +52,16 @@
                (elt varjo::*stage-names*
                     (position type-name varjo::*stage-type-names*)))))
     (let* ((code (ast->code compile-result))
-           (version (varjo::get-version-from-context-list
+           (version (varjo.internals::get-version-from-context-list
                      (context compile-result)))
            (stemcells (stemcells-allowed compile-result))
            (primitive-in (primitive-in compile-result))
            (recomp (first (v-compile
-                           (mapcar #'varjo::to-arg-form
+                           (mapcar #'varjo.internals:to-arg-form
                                    (varjo::uniform-variables compile-result))
                            version
-                           (stage->name (starting-stage compile-result))
-                           `(,(mapcar #'varjo::to-arg-form
+                           (stage->name (varjo.internals::starting-stage compile-result))
+                           `(,(mapcar #'varjo.internals:to-arg-form
                                       (varjo::input-variables compile-result))
                               ,@code)
                            :allow-stemcells stemcells
@@ -174,12 +174,12 @@
 (defun make-env (stage-kind
                  &optional in-args uniforms (version :450) allow-stemcells)
   (let* ((stage (make-stage stage-kind in-args uniforms (list version) allow-stemcells))
-         (env (varjo::%make-base-environment stage)))
+         (env (varjo.internals::%make-base-environment stage)))
     (varjo::pipe-> (stage env)
-      #'varjo::process-primitive-type
-      #'varjo::add-context-glsl-vars
-      #'varjo::expand-input-variables
-      #'varjo::process-uniforms
+      #'varjo.internals::process-primitive-type
+      #'varjo.internals::add-context-glsl-vars
+      #'varjo.internals::expand-input-variables
+      #'varjo.internals::process-uniforms
       #'(lambda (stage env)
           (values env stage)))))
 

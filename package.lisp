@@ -378,6 +378,8 @@
    :primitive-name-to-instance
    ;;
    ;; -to sort-
+   :v-compile
+   :ast->code
    :glsl-to-compile-result
    :stemcells-allowed
    :context
@@ -638,6 +640,7 @@
    ;; compilation
    :translate
    :rolling-translate
+   :v-compile
    ;;
    ;; test compilation
    :test-translate-function-split-details
@@ -649,6 +652,7 @@
    :implicit-uniforms
    :used-external-functions
    :primitive-out
+   :ast->code
    ;;
    ;; hooks
    :with-stemcell-infer-hook
@@ -656,12 +660,11 @@
    ;;
    ;; to sort
    :name
-   :lisp-name
-   ))
+   :lisp-name))
 
 (uiop:define-package #:vari.glsl
     (:use #:cl #:varjo.utils #:varjo.internals #:vari.types
-          #:named-readtables #:glsl-symbols)
+          #:named-readtables #:glsl-symbols #:varjo-conditions)
   (:import-from :varjo.internals
                 :def-v-type-class)
   (:reexport :vari.types)
@@ -716,7 +719,7 @@
 
 (uiop:define-package #:vari.cl
     (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals
-          #:named-readtables)
+          #:named-readtables #:varjo-conditions)
   (:import-from :alexandria
                 :ensure-list
                 :flatten
