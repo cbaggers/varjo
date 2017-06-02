@@ -256,7 +256,7 @@
 
     :tessellation-control
     '(((position (:vec3 3)))
-      (declare (varjo::output-patch :vertices 3))
+      (declare (output-patch :vertices 3))
       (let ((tess-level-inner 5f0)
             (tess-level-outer 5f0))
         (when (= gl-invocation-id 0)

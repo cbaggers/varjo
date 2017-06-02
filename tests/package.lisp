@@ -1,5 +1,5 @@
 (uiop:define-package #:varjo.tests
-    (:use #:cl #:varjo #:rtg-math #:rtg-math.base-maths #:fiveam)
+    (:use #:cl #:varjo #:vari #:rtg-math #:rtg-math.base-maths #:fiveam)
   (:import-from :varjo :vbind)
   (:export :test-all
            :void-tests

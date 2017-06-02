@@ -26,9 +26,9 @@
 (defun gen-dummy-declarations-for-stage (stage-type)
   (case stage-type
     (tessellation-control-stage
-     `((declare (output-patch :vertices 32))))
+     `((declare (vari.cl:output-patch :vertices 32))))
     (geometry-stage
-     `((declare (output-primitive :kind :triangle-strip :max-vertices 3))))))
+     `((declare (vari.cl:output-primitive :kind :triangle-strip :max-vertices 3))))))
 
 ;;----------------------------------------------------------------------
 

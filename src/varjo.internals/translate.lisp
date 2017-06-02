@@ -186,7 +186,7 @@
     (typecase stage
 
       (geometry-stage
-       (let* ((tl (find 'output-primitive main-metadata :key #'type-of)))
+       (let* ((tl (find 'vari.cl:output-primitive main-metadata :key #'type-of)))
          ;; {TODO} proper error
          (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
@@ -195,7 +195,7 @@
                (primitive-name-to-instance (slot-value tl 'kind)))))
 
       (tessellation-control-stage
-       (let* ((tl (find 'output-patch main-metadata :key #'type-of)))
+       (let* ((tl (find 'vari.cl:output-patch main-metadata :key #'type-of)))
          ;; {TODO} proper error
          (assert tl () "Varjo: The function used as a tessellation control stage must have a top level output-primitive declaration")
          (setf (out-declarations post-proc-obj)

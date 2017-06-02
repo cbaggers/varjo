@@ -304,9 +304,9 @@
                          `(glsl-expr
                            ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
                            ,(primary-type call-obj) ,call-obj))
-                    (%glsl-expr "return" :void))
-                 `(%glsl-expr "return ~a" ,(primary-type call-obj)
-                              ,call-obj))
+                    (vari.cl::%glsl-expr "return" :void))
+                 `(vari.cl::%glsl-expr "return ~a" ,(primary-type call-obj)
+                                       ,call-obj))
              env)))
       (values (copy-compiled
                result
