@@ -3,12 +3,12 @@
 
 (defun populate-functions ()
   (loop :for func-spec :in glsl-spec:*functions* :do
-     (destructuring-bind (&key name return args versions pure
+     (destructuring-bind (&key lisp-name name return args versions pure
                                &allow-other-keys)
          func-spec
-       (let* ((parsed-name (parse-gl-func-name name))
-              (lisp-name (or (find-symbol parsed-name :cl)
-                             (intern parsed-name :vari.glsl)))
+       (assert lisp-name)
+       (let* ((lisp-name (or (find-symbol lisp-name :cl)
+                             (intern lisp-name :vari.glsl)))
               (arg-types (mapcar #'second args))
               (lisp-arg-types (mapcar λ(type-spec->type
                                         (parse-gl-type-name _))

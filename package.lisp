@@ -328,6 +328,7 @@
            :*supported-draw-modes*
            :*supported-versions*
            :*valid-contents-symbols*
+           :%uniform-name
            :a-add
            :add-alternate-type-name
            :add-equivalent-name
@@ -351,6 +352,7 @@
            :ast-starting-env
            :ast-val-origin
            :base-environment
+           :binding-accesible-p
            :block-name
            :build-function
            :calc-place-tree
@@ -358,6 +360,7 @@
            :cast-for-array-literal
            :checkpoint-flow-ids
            :code
+           :combine-metadata
            :compile-declares
            :compile-external-func-returning-ref
            :compile-form
@@ -370,6 +373,7 @@
            :compile-progn
            :compiled
            :compiled-stage
+           :compiler-macro-expansion-environment
            :context
            :copy-ast-node
            :copy-compiled
@@ -399,10 +403,12 @@
            :external-function-p
            :extract-declares
            :extract-value-qualifiers
+           :extended-environment
            :find-env-bindings
            :find-form-binding-by-literal
            :find-mutual-cast-type
            :flow-id!
+           :flow-identifier
            :flow-ids
            :flow-id-scope
            :format-external-func-for-error
@@ -427,6 +433,7 @@
            :geometry-stage
            :get-primitive-type-from-context
            :get-stage-kind-from-context
+           :get-stemcell-name-for-flow-id
            :get-symbol-binding
            :glsl-code
            :glsl-name
@@ -456,6 +463,7 @@
            :lisp-name
            :lisp-name->glsl-name
            :location
+           :macro-expansion-environment
            :main-metadata
            :make-ast-node-for-declaration
            :make-compiled
@@ -469,6 +477,7 @@
            :merge-compiled
            :merge-multi-env-progn
            :merge-progn
+           :metadata-for-flow-id
            :name
            :node-tree
            :nth-return-name
@@ -662,6 +671,7 @@
    :make-type-set
    :def-metadata-infer
    :def-metadata-kind
+   :combine-metadata
    :v-dimensions
    ;;
    ;; environment

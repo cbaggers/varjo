@@ -1,4 +1,4 @@
-(in-package :varjo.internals)
+(in-package :varjo.api)
 (in-readtable fn:fn-reader)
 
 ;;
@@ -7,6 +7,21 @@
 ;; In macros we have access to the environment, we should have safe ways to
 ;; interact with that environment.
 ;;
+
+;;-------------------------------------------------------------------------
+
+(defgeneric add-lisp-form-as-uniform (form type-spec env &optional name))
+(defgeneric all-bound-symbols (env))
+(defgeneric argument-is-uniform-p (name env))
+(defgeneric argument-type (name env))
+(defgeneric argument-uniform-name (name env))
+(defgeneric metadata-for-argument (name metadata-key env))
+(defgeneric metadata-for-variable (name metadata-key env))
+(defgeneric variable-in-scope-p (name env))
+(defgeneric variable-is-uniform-p (name env))
+(defgeneric variable-type (name env))
+(defgeneric variable-uniform-name (name env))
+(defgeneric variables-in-scope (env))
 
 ;;-------------------------------------------------------------------------
 ;; Symbol Bindings

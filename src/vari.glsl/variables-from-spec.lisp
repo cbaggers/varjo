@@ -10,11 +10,11 @@
 
 (defmacro populate-vars ()
   (let ((vars (mapcar λ(destructuring-bind
-                             (&key name type place-p versions (stage t)
-                                   &allow-other-keys) _
+                             (&key lisp-name name type place-p versions
+                                   (stage t) &allow-other-keys) _
                          (declare (ignore versions))
-                         (let* ((lisp-name (intern (parse-gl-var-name name)
-                                                   :vari.glsl))
+                         (assert lisp-name)
+                         (let* ((lisp-name (intern lisp-name :vari.glsl))
                                 (lisp-type (parse-gl-type-name type)))
                            `(,stage ,lisp-name ,name ,lisp-type ,place-p)))
                       (append *definitions-missing-from-glsl-spec*
@@ -30,4 +30,5 @@
                    (cons t *stage-names*)
                    (cons t *stage-type-names*)))
        (export ',(mapcar #'second vars) :vari.glsl))))
+
 (populate-vars)

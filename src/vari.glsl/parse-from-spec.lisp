@@ -150,12 +150,6 @@
                            (string-upcase char))
                      (setf frist nil))))))))
 
-(defun parse-gl-func-name (name)
-  (%parse name))
-
-(defun parse-gl-var-name (name)
-  (%parse name 3 "GL-"))
-
 (defun parse-gl-type-name (name)
   (assert (stringp name))
   (cond
