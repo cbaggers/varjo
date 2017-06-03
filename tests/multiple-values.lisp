@@ -105,7 +105,7 @@
                        (let ((sq (* x x)))
                          (values (v2! sq)
                                  (v2! (* sq x))))))
-              (multiple-value-call #'%+ (foo 10))
+              (multiple-value-call #'vari.glsl::%+ (foo 10))
               (v! 0 0 0 0)))))
 
 (5am:def-test values-15 (:suite multiple-value-return-tests)

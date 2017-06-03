@@ -180,28 +180,28 @@
   (format nil "layout (~a) in;" (glsl-string primitive)))
 
 (defun gen-geom-output-primitive-string (metadata)
-  (with-slots (kind max-vertices) metadata
+  (with-slots (vari.cl:kind vari.cl:max-vertices) metadata
     (format nil "layout (~a, max_vertices = ~a) out;"
-            (glsl-string (primitive-name-to-instance kind))
-            max-vertices)))
+            (glsl-string (primitive-name-to-instance vari.cl:kind))
+            vari.cl:max-vertices)))
 
 (defun gen-tess-con-output-primitive-string (metadata)
-  (with-slots (vertices) metadata
-    (format nil "layout (vertices = ~a) out;" vertices)))
+  (with-slots (vari.cl:vertices) metadata
+    (format nil "layout (vertices = ~a) out;" vari.cl:vertices)))
 
 (defun gen-tess-eval-output-primitive-string (metadata)
-  (with-slots (primitive spacing order) metadata
-    (let ((primitive (primitive-name-to-instance primitive)))
+  (with-slots (vari.cl:primitive vari.cl:spacing vari.cl:order) metadata
+    (let ((primitive (primitive-name-to-instance vari.cl:primitive)))
       (format nil "layout (~a, ~a, ~a) in;"
               (glsl-string primitive)
-              (ecase spacing
+              (ecase vari.cl:spacing
                 (:equal "equal_spacing")
                 (:equal-spacing "equal_spacing")
                 (:fractional-even "fractional_even_spacing")
                 (:fractional-even-spacing "fractional_even_spacing")
                 (:fractional-odd "fractional_odd_spacing")
                 (:fractional-odd-spacing "fractional_odd_spacing"))
-              (ecase order
+              (ecase vari.cl:order
                 (:cw "cw")
                 (:ccw "ccw"))))))
 
@@ -318,7 +318,7 @@
 ;;----------------------------------------------------------------------
 
 (defun gen-array-literal-string (elements element-type)
-  (assert (every λ(v-type-eq element-type (v-type-of _)) elements))
+  (assert (every λ(v-type-eq element-type (primary-type _)) elements))
   (format nil "~a[~a](~{~a~^, ~})"
           (v-glsl-string element-type) (length elements)
           (mapcar #'current-line elements)))

@@ -8,7 +8,7 @@
 
 (5am:def-test inline-glsl-1 (:suite inline-glsl-tests)
   (finishes
-    (varjo::glsl-to-compile-result
+    (varjo.internals:glsl-to-compile-result
      :fragment
      '(("color_in" :vec4))
      nil

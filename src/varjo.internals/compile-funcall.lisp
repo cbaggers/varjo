@@ -301,7 +301,7 @@
                  `(progn
                     ,(if first-is-pos
                          `(setq vari.glsl:gl-position ,call-obj)
-                         `(glsl-expr
+                         `(vari.cl::glsl-expr
                            ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
                            ,(primary-type call-obj) ,call-obj))
                     (vari.cl::%glsl-expr "return" :void))

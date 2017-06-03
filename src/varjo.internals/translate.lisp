@@ -192,7 +192,7 @@
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
-               (primitive-name-to-instance (slot-value tl 'kind)))))
+               (primitive-name-to-instance (slot-value tl 'vari.cl:kind)))))
 
       (tessellation-control-stage
        (let* ((tl (find 'vari.cl:output-patch main-metadata :key #'type-of)))
@@ -202,12 +202,12 @@
                (list (gen-tess-con-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
                (primitive-name-to-instance
-                (list :patch (slot-value tl 'vertices))))))
+                (list :patch (slot-value tl 'vari.cl:vertices))))))
 
       (tessellation-evaluation-stage
        ;; need to generate something that the geom shader could accept
        ;; (frag shader doesnt care so no need to think about it)
-       (let* ((tl (find 'tessellate-to main-metadata :key #'type-of)))
+       (let* ((tl (find 'vari.cl:tessellate-to main-metadata :key #'type-of)))
          (if tl
              (with-slots (primitive) tl
                (let ((primitive (primitive-name-to-instance

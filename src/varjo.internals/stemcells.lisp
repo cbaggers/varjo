@@ -54,7 +54,7 @@
   (let ((code (add-type-to-stemcell-code
                (make-stem-cell symbol env cpu-side-transform)
                type-spec))
-        (ast (ast-node! 'lisp-code-as-uniform
+        (ast (ast-node! 'vari.cl:lisp-code-as-uniform
                         (list symbol type-spec cpu-side-transform)
                         (make-type-set (type-spec->type type-spec))
                         env env)))

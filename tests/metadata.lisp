@@ -23,7 +23,7 @@
    (compile-vert () :450 t
      ;; this is to text #'inject-implicit-uniform which is used
      ;; by the metadata api
-     (varjo::lisp-code-as-uniform foo :int 10)
+     (lisp-code-as-uniform foo :int 10)
      (v! 0 0 0 1))))
 
 (def-vbind-test metadata-1 (:suite metadata-tests) (meta)
@@ -31,8 +31,9 @@
   (flow-id-scope
     (let ((env (make-env :vertex nil '((x some-ephem)))))
       (vbind (c e)
-          (compile-form '(let ((y x))
-                          (declare (some-meta (:val 10) y))
-                          y)
-                        env)
-        (varjo::metadata-for-flow-id 'some-meta (flow-ids c) e)))))
+          (compile-form
+           '(let ((y x))
+             (declare (some-meta (:val 10) y))
+             y)
+           env)
+        (metadata-for-flow-id 'some-meta (flow-ids c) e)))))

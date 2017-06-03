@@ -1,6 +1,13 @@
 (uiop:define-package #:varjo.tests
     (:use #:cl #:varjo #:vari #:rtg-math #:rtg-math.base-maths #:fiveam)
   (:import-from :varjo :vbind)
+  (:import-from :varjo.internals
+                :id=
+                :compile-form
+                :flow-ids
+                :flow-id-scope
+                :metadata-for-flow-id
+                :v-uniforms)
   (:export :test-all
            :void-tests
            :array-tests
