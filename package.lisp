@@ -338,6 +338,7 @@
            :add-type-to-stemcell-code
            :all-functions
            :allows-stemcellsp
+           :args
            :arg-num
            :arguments
            :ast
@@ -478,6 +479,7 @@
            :merge-multi-env-progn
            :merge-progn
            :metadata-for-flow-id
+           :macro-obj
            :name
            :node-tree
            :nth-return-name
