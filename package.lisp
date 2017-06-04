@@ -374,6 +374,11 @@
            :compile-progn
            :compiled
            :compiled-stage
+           :compiled-vertex-stage
+           :compiled-tessellation-control-stage
+           :compiled-tessellation-evaluation-stage
+           :compiled-geometry-stage
+           :compiled-fragment-stage
            :compiler-macro-expansion-environment
            :context
            :copy-ast-node
@@ -710,6 +715,11 @@
    ;;
    ;; compiled stages
    :compiled-stage
+   :compiled-vertex-stage
+   :compiled-tessellation-control-stage
+   :compiled-tessellation-evaluation-stage
+   :compiled-geometry-stage
+   :compiled-fragment-stage
    :glsl-code
    :output-variables
    :implicit-uniforms
