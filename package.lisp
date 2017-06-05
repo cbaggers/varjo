@@ -739,7 +739,7 @@
     (:use #:cl #:varjo.utils #:varjo.internals #:vari.types
           #:named-readtables #:glsl-symbols #:varjo-conditions)
   (:import-from :varjo.internals
-                :def-v-type-class)
+                :v-deftype-internal)
   (:reexport :vari.types)
   (:reexport :glsl-symbols)
   (:export
@@ -801,7 +801,7 @@
                 :flatten
                 :iota)
   (:import-from :varjo.internals
-                :def-v-type-class)
+                :v-deftype-internal)
   (:reexport :vari.types :vari.glsl)
   (:export
    ;; special functions
