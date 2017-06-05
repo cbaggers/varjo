@@ -10,7 +10,7 @@
     (if ephemeral
         `(progn
            (eval-when (:compile-toplevel :load-toplevel :execute)
-             (def-v-type-class ,name (v-ephemeral-type) ()))
+             (v-deftype-internal ,name (v-ephemeral-type) ()))
            (v-def-glsl-template-fun ,name () nil () ,name)
            (defmethod meta-kinds-to-infer ((varjo-type ,name))
              (declare (ignore varjo-type))
@@ -18,7 +18,7 @@
            ',name)
         (let ((shadowed-type (type-spec->type type-form)))
           `(progn
-             (def-v-type-class ,name (v-shadow-type)
+             (v-deftype-internal ,name (v-shadow-type)
               ((shadowed-type :initform ,shadowed-type)
                (glsl-string :initform ,(v-glsl-string shadowed-type))))
              (defmethod meta-kinds-to-infer ((varjo-type ,name))

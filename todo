@@ -16,7 +16,7 @@
 
 ------------------------------------------------------------
 
-* why use def-v-type-class for v-user-function? Switch to defclass?
+* why use v-deftype-internal for v-user-function? Switch to defclass?
 
 * low-hanging-fruit: unify labels/flet/labels-no-implicit implementations
 
