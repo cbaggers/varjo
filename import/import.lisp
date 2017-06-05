@@ -1,6 +1,32 @@
 (in-package :varjo.import)
 (in-readtable :varjo.import.readtable)
 
+;;----------------------------------------------------------------------
+
+(defun %parse (name &optional (start-at 0) (prefix ""))
+  (with-input-from-string (seq name :start start-at)
+    (let (last-case
+          case-changed
+          (frist t))
+      (labels ((readc (seq)
+                 (let ((r (read-char seq nil :eos)))
+                   (unless (eq r :eos)
+                     (setf case-changed (and (not last-case)
+                                             (upper-case-p r))
+                           last-case (upper-case-p r)))
+                   r)))
+        (format nil "~a~{~a~}"
+                prefix
+                (loop :for char = (readc seq)
+                   :while (not (eq char :eos)) :collect
+                   (prog1
+                       (if (and case-changed (not frist))
+                           (format nil "-~a" (string-upcase char))
+                           (string-upcase char))
+                     (setf frist nil))))))))
+
+;;----------------------------------------------------------------------
+
 (defmacro assert-match (pattern arg &body body)
   (with-gensyms (form)
     `(let ((,form ,arg))
@@ -272,14 +298,14 @@
             qualifier))))
 
 (defun import-function-identifier (id)
-  (let ((name (varjo::parse-gl-func-name id)))
+  (let ((name (%parse id)))
     (or (find-symbol name :varjo)
         (intern name))))
 
 (defun import-var-identifier (id)
   (let ((name (if (uiop:string-prefix-p "gl_" id)
-                  (varjo::parse-gl-var-name id)
-                  (varjo::%parse id))))
+                  (%parse id 3 "GL-")
+                  (%parse id))))
     (or (find-symbol name :varjo)
         (intern name))))
 
@@ -371,7 +397,7 @@
     (t (error "not implemented"))))
 
 (defun import-swizzle (primary swizzle)
-  `(varjo:s~ ,(import-swizzlable-form primary)
+  `(s~ ,(import-swizzlable-form primary)
              ,(intern (string-upcase swizzle) :keyword)))
 
 (defun import-swizzlable-form (primary)
