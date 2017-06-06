@@ -182,7 +182,7 @@
 
 (defmethod v-glsl-size ((type v-array))
   (* (apply #'* (v-dimensions type))
-     (slot-value (v-element-type type) 'glsl-size)))
+     (v-glsl-size (v-element-type type))))
 
 (defmethod post-initialise ((object v-array))
   (labels ((valid-size-p (l)
