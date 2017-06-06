@@ -82,7 +82,7 @@
      100))
 
 (defun gen-string-for-ternary-form (test-obj then-obj else-obj)
-  (values nil (format nil "~a ? ~a : ~a"
+  (values nil (format nil "(~a ? ~a : ~a)"
                       (current-line test-obj)
                       (current-line then-obj)
                       (current-line else-obj))))
