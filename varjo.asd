@@ -54,7 +54,6 @@
                (:file "src/varjo.internals/compile-funcall")
                (:file "src/varjo.internals/compile-form")
                ;;
-               (:file "src/vari.glsl/macros")
                (:file "src/vari.glsl/functions")
                (:file "src/vari.glsl/parse-from-spec")
                (:file "src/vari.glsl/variables-from-spec")

@@ -383,10 +383,6 @@ messages." funcall-form)
     "We do not currently support &optional args in compiler macros: ~a"
   name)
 
-(deferror rest-in-cmacro () (name)
-    "We do not currently support &rest args in compiler macros: ~a"
-  name)
-
 (deferror key-in-cmacro () (name)
     "We do not currently support &key args in compiler macros: ~a"
   name)

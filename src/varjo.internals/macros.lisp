@@ -37,13 +37,13 @@
 (defmacro v-define-compiler-macro (name lambda-list &body body)
   (labels ((namedp (name x)
              (when (symbolp x)
-               (string= name x))))
+               (string= name x)))
+           (maybe-nth (n x)
+             (if (listp x) (nth n x) x)))
     (when (find-if λ(namedp :&uniforms _) lambda-list)
       (error 'uniform-in-cmacro :name name))
     (when (find-if λ(namedp :&optional _) lambda-list)
       (error 'optional-in-cmacro :name name))
-    (when (find-if λ(namedp :&rest _) lambda-list)
-      (error 'rest-in-cmacro :func-name name))
     (when (find-if λ(namedp :&key _) lambda-list)
       (error 'key-in-cmacro :func-name name))
     ;;
@@ -51,8 +51,8 @@
       (vbind (func-code context) (gen-macro-function-code name llist body)
         (let* ((args (nth-value 1 (extract-arg-pair lambda-list :&whole)))
                (args (nth-value 1 (extract-arg-pair args :&environment)))
-               (arg-names (mapcar #'first args))
-               (arg-types (mapcar λ(type-spec->type (second _)) args)))
+               (arg-names (mapcar λ(maybe-nth 0 _) args))
+               (arg-types (mapcar λ(arg-form->type (maybe-nth 1 _)) args)))
           `(progn
              (add-compiler-macro
               (make-compiler-macro ',name ,func-code ',arg-names ',arg-types
@@ -69,19 +69,27 @@
                  :macro-function macro-function))
 
 (defun find-compiler-macro-for-func (func env)
-  (unless (v-special-functionp func)
-    (let* ((name (name func))
-           (func-spec (v-argument-spec func))
-           (candidates (get-compiler-macro name env)))
-      (when candidates
-        (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil env
-                                                  :allow-casting nil)
-                               candidates))
-               (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
-               (sorted (sort trimmed #'< :key #'secondary-score))
-               (winner (first sorted)))
-          (when winner
-            (func winner)))))))
+  (labels ((&rest-pos (s) (position-if #'&rest-p s)))
+    (unless (v-special-functionp func)
+      (let* ((name (name func))
+             (func-spec (v-argument-spec func))
+             (rest-pos (&rest-pos func-spec))
+             (candidates (get-compiler-macro name env))
+             (candidates (if rest-pos
+                             (remove-if-not λ(= (&rest-pos (v-argument-spec _))
+                                                rest-pos)
+                                            candidates)
+                             candidates))
+             (func-spec (remove-if #'&rest-p func-spec)))
+        (when candidates
+          (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil env
+                                                    :allow-casting nil)
+                                 candidates))
+                 (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
+                 (sorted (sort trimmed #'< :key #'secondary-score))
+                 (winner (first sorted)))
+            (when winner
+              (func winner))))))))
 
 ;;------------------------------------------------------------
 ;; Helpers
