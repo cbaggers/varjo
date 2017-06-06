@@ -736,6 +736,7 @@
    :glsl-name
    :v-type-of
    :location
+   :glsl-size
    ;;
    ;; hooks
    :with-stemcell-infer-hook
