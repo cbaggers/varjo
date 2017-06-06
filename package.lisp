@@ -579,6 +579,7 @@
            :v-function
            :v-function-scope
            :v-function-set
+           :v-glsl-size
            :v-glsl-string
            :v-macro-function
            :v-macros
@@ -736,7 +737,7 @@
    :glsl-name
    :v-type-of
    :location
-   :glsl-size
+   :v-glsl-size
    ;;
    ;; hooks
    :with-stemcell-infer-hook
