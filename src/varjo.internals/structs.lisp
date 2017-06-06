@@ -74,6 +74,9 @@
          ,@(make-struct-accessors name true-type-name context slot-transforms)
          ',name))))
 
+(defmethod v-glsl-size ((type v-user-struct))
+  (reduce #'+ (mapcar #'v-glsl-size (mapcar #'second (v-slots type)))))
+
 (defun make-struct-accessors (name true-type-name context transforms)
   (loop :for (nil slot-type accessor slot-transform) :in transforms :collect
      `(v-def-glsl-template-fun
