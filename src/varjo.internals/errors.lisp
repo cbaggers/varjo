@@ -893,6 +893,47 @@ For example: (:patch 2) (:patch 3) (:patch 4)")
 Full Declaration: ~s"
   (first decl) (find-alternative-declaration-kinds (first decl)) decl)
 
+(deferror v-def-template-arg-mismatch () (args types)
+    "v-def-template-arg-mismatch found a mismatch between
+~s
+and
+~s"
+  args types)
+
+(deferror illegal-&rest-in-args () (func-name arg-specs)
+    "Illegal &rest found in function definition for ~a
+
+TLDR: This is not allowed in Vari functions.
+
+Arguments: ~a
+
+&rest is tricky for Vari as glsl does not support lists so we cannot
+provide the same interface as in CL. Even if we could (or were to use
+arrays) it would make for very poorly performing glsl.
+
+The places where &rest can be used are:
+
+- Macros: as there we use the host lisp and thus have lists
+
+- glsl-template-functions: Where we can use ~~{...~~} in the format string"
+  func-name arg-specs)
+
+(deferror cannot-take-reference-to-&rest-func () (func-name)
+    "Cannot take reference to ~a
+
+Functions containing &rest can be taken as values but you must specify the
+precise definition of the function.
+
+For example, for a function FOO with args (:int &rest :int) you can do this:
+
+    (let ((fn0 #'(foo :int))
+          (fn1 #'(foo :int :int))
+          (fn2 #'(foo :int :int :int))
+      (+ (funcall fn0 0)
+         (funcall fn1 1 2)
+         (funcall fn2 1 2 3))
+" func-name)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

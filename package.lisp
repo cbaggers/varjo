@@ -303,6 +303,9 @@
            :funcall-of-special-operator
            :slot-value-on-non-struct
            :slot-not-found
+           :v-def-template-arg-mismatch
+           :cannot-take-reference-to-&rest-func
+           :illegal-&rest-in-args
 
            ;; restarts
            :setq-supply-alternate-type

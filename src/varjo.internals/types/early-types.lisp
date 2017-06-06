@@ -75,3 +75,8 @@ type-spec trick doesnt"))
 
 (defun v-errorp (obj)
   (typep obj 'v-error))
+
+;;------------------------------------------------------------
+
+(defun &rest-p (x)
+  (and (symbolp x) (string= x :&rest)))

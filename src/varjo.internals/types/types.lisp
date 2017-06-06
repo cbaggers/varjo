@@ -64,6 +64,16 @@
    (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
        (error 'unknown-type-spec :type-spec spec))))
 
+(defun arg-form->type-spec (arg-form)
+  (if (&rest-p arg-form)
+      arg-form
+      (type->type-spec arg-form)))
+
+(defun arg-form->type (arg-form)
+  (if (&rest-p arg-form)
+      arg-form
+      (type-spec->type arg-form)))
+
 ;; A probably too forgiving version of type-spec->type, it is a no-op
 ;; on v-types
 (defun as-v-type (thing)
@@ -466,7 +476,7 @@
 (defmethod v-make-type ((type v-function-type) flow-id &rest args)
   (destructuring-bind (arg-types return-type) args
     (make-instance
-     'v-function-type :arg-spec (mapcar #'type-spec->type arg-types)
+     'v-function-type :arg-spec (mapcar #'arg-form->type arg-types)
      :return-spec (make-type-set*
                    (mapcar #'type-spec->type
                            (uiop:ensure-list return-type)))
@@ -490,7 +500,7 @@
             name
             (if (eq t argument-spec)
                 '(t*)
-                (mapcar #'type->type-spec argument-spec))
+                (mapcar #'arg-form->type-spec argument-spec))
             (if (vectorp return-spec)
                 (map 'list #'extract return-spec)
                 return-spec))))
@@ -520,7 +530,7 @@
     (assert (valid-func-return-spec-p return-spec))
     (let* ((in (if (eq argument-spec t)
                    argument-spec ;; happens in special ops
-                   (mapcar #'type->type-spec argument-spec)))
+                   (mapcar #'arg-form->type-spec argument-spec)))
            (out (cond
                   ((functionp return-spec) return-spec)
                   ((= (length return-spec) 1)

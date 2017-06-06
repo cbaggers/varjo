@@ -334,3 +334,10 @@
    (varjo.tests::compile-vert () :450 nil
      (uint 32)
      (v! 0 0 0 0))))
+
+(5am:def-test build-24 (:suite first-class-func-tests)
+  (signals varjo-conditions:illegal-&rest-in-args
+    (compile-vert () :450 nil
+      (labels ((foo (&rest (x :int))
+                 x))
+        (v! (foo 10) 2 3 4)))))

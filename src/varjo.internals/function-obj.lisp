@@ -80,7 +80,8 @@
   (when (listp arg-spec)
     (assert (every (lambda (x)
                      (or (typep x 'v-type)
-                         (functionp x)))
+                         (functionp x)
+                         (&rest-p x)))
                    arg-spec)
             () 'user-func-invalid-x
             :kind 'args

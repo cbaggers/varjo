@@ -26,16 +26,23 @@
        (add-external-function ',name ',in-args ',uniforms ',body)
        ',name)))
 
+(defun template-args-valid (args rest types)
+  (let ((args (append args (when rest (cons '&rest rest)))))
+    (and (= (length args) (length types))
+         (eql (position-if #'&rest-p args)
+              (position-if #'&rest-p types)))))
+
 (defmacro v-def-glsl-template-fun (name args transform arg-types return-spec
                                    &key v-place-index glsl-name pure)
-  (destructuring-bind (in-args uniforms context)
-      (split-arguments args '(&uniform &context))
-    (declare (ignore in-args))
+  (destructuring-bind (in-args rest uniforms context)
+      (split-arguments args '(&rest &uniform &context))
+    (assert (template-args-valid in-args rest arg-types) (args arg-types)
+            'v-def-template-arg-mismatch :args args :types arg-types)
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (unless (or (stringp transform) (null transform))
       (error 'invalid-v-defun-template :func-name name :template transform))
     (let ((arg-types (if (listp arg-types)
-                         (mapcar #'type-spec->type arg-types)
+                         (mapcar #'arg-form->type arg-types)
                          arg-types)))
       `(progn (add-form-binding
                (make-function-obj
@@ -147,10 +154,23 @@ however failed to do so when asked."
   (let* ((dest-type cast-to-type))
     (copy-compiled src-obj :type-set (make-type-set dest-type))))
 
+(defun expand-argument-spec (func arg-types)
+  (let* ((spec (v-argument-spec func))
+         (rest-pos (position-if #'&rest-p spec)))
+    (if (and rest-pos (>= (length arg-types) rest-pos))
+        (let* ((rest (subseq spec (1+ rest-pos)))
+               (type (first rest))
+               (len (length (subseq arg-types rest-pos))))
+          ;;
+          (append (subseq spec 0 rest-pos)
+                  (loop :for i :below len :collect
+                     (copy-type type))))
+        spec)))
+
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs env
                          &key (allow-casting t))
-  (let ((spec-types (v-argument-spec func)))
+  (let ((spec-types (expand-argument-spec func arg-types)))
     (labels ((calc-secondary-score (types)
                ;; the lambda below sums all numbers or returns nil
                ;; if nil found
@@ -390,6 +410,8 @@ however failed to do so when asked."
   (destructuring-bind (name &rest arg-types) func-name
     (assert (not (eq name 'declare)) ()
             'treating-declare-as-func :decl func-name)
+    (assert (not (find-if #'&rest-p arg-types))
+            () 'cannot-take-reference-to-&rest-func :func-name func-name)
     (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
                              arg-types))
           (binding (get-form-binding name env)))
@@ -398,14 +420,42 @@ however failed to do so when asked."
         ;; When we have types we should try to match exactly
         (v-function-set
          (if arg-types
-             (or (find-if λ(exact-match-function-to-types arg-types env _)
-                          (functions binding))
+             (or (%post-process-found-literal-func
+                  (find-if λ(exact-match-function-to-types arg-types env _)
+                           (functions binding))
+                  arg-types)
                  (error 'could-not-find-function :name func-name))
              binding))
         ;; otherwise return the binding
         (v-regular-macro binding)
         ;;
         (null (error 'could-not-find-function :name func-name))))))
+
+(defun %post-process-found-literal-func (match arg-types)
+  (if (and match (find-if #'&rest-p (v-argument-spec match)))
+      (synthesize-exact-func-from-&rest-func match arg-types)
+      match))
+
+(defun synthesize-exact-func-from-&rest-func (match arg-types)
+  (labels ((rest-pos (func)
+             (position-if #'&rest-p (v-argument-spec func))))
+    (let* ((lines (loop :for nil :in arg-types :collect "~a"))
+           (rest-pos (rest-pos match))
+           (arg-glsl (append (subseq lines 0 rest-pos)
+                             (list (subseq lines rest-pos))))
+           (transform (apply #'format nil (v-glsl-string match) arg-glsl)))
+      (make-function-obj (name match)
+                         transform
+                         (v-versions match)
+                         arg-types
+                         (v-return-spec match)
+                         :v-place-index (v-place-index match)
+                         :glsl-name (glsl-name match)
+                         :implicit-args (implicit-args match)
+                         :in-out-args (in-out-args match)
+                         :flow-ids (flow-ids match)
+                         :in-arg-flow-ids (in-arg-flow-ids match)
+                         :pure (pure-p match)))))
 
 ;;----------------------------------------------------------------------
 
