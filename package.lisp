@@ -730,12 +730,18 @@
    :primitive-out
    :ast->code
    ;;
+   ;; compiled args
+   :name
+   :qualifiers
+   :glsl-name
+   :v-type-of
+   :location
+   ;;
    ;; hooks
    :with-stemcell-infer-hook
    :with-constant-inject-hook
    ;;
    ;; to sort
-   :name
    :lisp-name))
 
 (uiop:define-package #:vari.glsl
