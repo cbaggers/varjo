@@ -731,13 +731,14 @@
    :primitive-out
    :ast->code
    ;;
-   ;; compiled args
+   ;; compiled vars
    :name
    :qualifiers
    :glsl-name
    :v-type-of
    :location
    :v-glsl-size
+   :cpu-side-transform
    ;;
    ;; hooks
    :with-stemcell-infer-hook
