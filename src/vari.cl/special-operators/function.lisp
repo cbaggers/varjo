@@ -28,7 +28,7 @@
       ;;
       ;; If theres more than one external then something is messed up
       ((> external-count 1)
-       (error 'multiple-external-func-match
+       (error 'varjo.internals::multiple-external-func-match
               :name func-name-form
               :matches (mapcar λ(typecase _
                                   (external-function
