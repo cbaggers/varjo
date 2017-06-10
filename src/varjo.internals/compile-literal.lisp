@@ -54,10 +54,17 @@
                    :pure t)))
 
 (defun compile-string-literal (str env)
-  (let ((is (or (handler-case (parse-integer str)
-                  (error () nil))
-                (handler-case (parse-float:parse-float str)
-                  (error () nil)))))
+  (let* ((len-1 (1- (length str)))
+         (unsigned (char= #\u (aref str len-1)))
+         (str (if unsigned (subseq str 0 len-1) str))
+         (is (or (handler-case (parse-integer str)
+                   (error () nil))
+                 (handler-case (parse-float:parse-float str)
+                   (error () nil)))))
     (etypecase is
-      (integer (compile-form is env))
-      (float (compile-form `(vari.cl:glsl-expr ,str :float) env)))))
+      (integer (if unsigned
+                   (compile-form `(vari.cl:uint ,is) env)
+                   (compile-form is env)))
+      (float (if unsigned
+                 (error "Varjo: ~s is an invalid float literal" str)
+                 (compile-form `(vari.cl:glsl-expr ,str :float) env))))))
