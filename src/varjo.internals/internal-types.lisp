@@ -385,20 +385,28 @@
   `(make-instance 'patches :vertex-count ,(vertex-count prim)))
 
 (defun primitive-name-to-instance (name)
-  (cond
-    ((listp name)
-     (dbind (name . length) name
-       (assert (= (length length) 1))
-       (let ((length (first length)))
-         (assert (and (string= name "PATCH")
-                      (integerp length)
-                      (> length 1)))
-         (make-instance 'patches :vertex-count length))))
-    ((eq name :patches)
-     (error 'underspecified-patch-primitive))
-    (t (let ((symb (intern (symbol-name name) :varjo)))
-         (assert (subtypep symb 'primitive))
-         (make-instance symb)))))
+  (if (listp name)
+      (dbind (name length) name
+        (assert (and (string= name "PATCH")
+                     (integerp length)
+                     (> length 1)))
+        (make-instance 'patches :vertex-count length))
+      (ecase name
+        (:dynamic (make-instance 'dynamic))
+        (:points (make-instance 'points))
+        (:lines (make-instance 'lines))
+        (:iso-lines (make-instance 'iso-lines))
+        (:line-loop (make-instance 'line-loop))
+        (:line-strip (make-instance 'line-strip))
+        (:lines-adjacency (make-instance 'lines-adjacency))
+        (:line-strip-adjacency (make-instance 'line-strip-adjacency))
+        (:triangles (make-instance 'triangles))
+        (:triangle-fan (make-instance 'triangle-fan))
+        (:triangle-strip (make-instance 'triangle-strip))
+        (:triangles-adjacency (make-instance 'triangles-adjacency))
+        (:triangle-strip-adjacency (make-instance 'triangle-strip-adjacency))
+        (:quads (make-instance 'quads))
+        (:patches (error 'underspecified-patch-primitive)))))
 
 ;;-------------------------------------------------------------------------
 
