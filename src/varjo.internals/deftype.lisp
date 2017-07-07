@@ -4,6 +4,7 @@
 (defmacro v-deftype (name args type-form
                      &key valid-metadata-kinds)
   (let ((ephemeral (null type-form))
+        (class-name (v-type-name name))
         (valid-metadata-kinds (listify valid-metadata-kinds)))
     (assert (not args) () "args not supported yet")
     (assert (symbolp type-form) () "compound & array types not yet supported")
@@ -12,7 +13,7 @@
            (eval-when (:compile-toplevel :load-toplevel :execute)
              (def-v-type-class ,name (v-ephemeral-type) ()))
            (v-def-glsl-template-fun ,name () nil () ,name)
-           (defmethod meta-kinds-to-infer ((varjo-type ,name))
+           (defmethod meta-kinds-to-infer ((varjo-type ,class-name))
              (declare (ignore varjo-type))
              ',valid-metadata-kinds)
            ',name)
@@ -22,7 +23,7 @@
                (def-v-type-class ,name (v-shadow-type)
                  ((shadowed-type :initform ,shadowed-type)
                   (glsl-string :initform ,(v-glsl-string shadowed-type)))))
-             (defmethod meta-kinds-to-infer ((varjo-type ,name))
+             (defmethod meta-kinds-to-infer ((varjo-type ,class-name))
                (declare (ignore varjo-type))
                ',valid-metadata-kinds))))))
 

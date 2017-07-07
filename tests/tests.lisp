@@ -196,6 +196,7 @@
 (5am:def-suite flow-id-tests :in test-all)
 (5am:def-suite metadata-tests :in test-all)
 (5am:def-suite stemcell-tests :in test-all)
+(5am:def-suite ephemeral-tests :in test-all)
 (5am:def-suite qualifier-tests :in test-all)
 (5am:def-suite assignment-tests :in test-all)
 (5am:def-suite inline-glsl-tests :in test-all)

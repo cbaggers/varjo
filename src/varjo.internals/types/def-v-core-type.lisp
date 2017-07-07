@@ -15,21 +15,26 @@
             ()
             "Varjo: All types must specify one superclass, this will usually be v-type"))
   ;;
-  (let ((new-names (if (and (equal (package-name (symbol-package name)) "VARJO")
-                            (equal (subseq (symbol-name name) 2) "V-")
-                            (not (member name '(v-type))))
-                       `(append (list ,(kwd (subseq (symbol-name name) 2))
-                                      ',name)
-                                *registered-types*)
-                       `(cons ',name *registered-types*))))
+  (let ((direct-superclass (mapcar #'v-type-name direct-superclass))
+        (v-name (v-type-name name)))
+    (unless (find 'type->type-spec direct-slots :key #'first)
+      (push `(type->type-spec :initform ',name :accessor type->type-spec)
+            direct-slots))
+
+    ;; Register the type name and possibly the kwd equivalent
+    (pushnew name *registered-types*)
+    (when (and (equal (package-name (symbol-package name)) "VARJO")
+               (equal (subseq (symbol-name name) 2) "V-")
+               (not (member name '(v-type))))
+      (pushnew (kwd (subseq (symbol-name name) 2))  *registered-types*))
+
     `(progn
-       (defclass ,name ,direct-superclass
+       (defclass ,v-name ,direct-superclass
          ,(if (eq name 'v-type)
               direct-slots
               (cons `(superclass :initform ',(first direct-superclass))
                     direct-slots))
          ,@options)
-       (setf *registered-types* (remove-duplicates ,new-names))
        ',name)))
 
 ;;------------------------------------------------------------

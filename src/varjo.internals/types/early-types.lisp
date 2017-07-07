@@ -4,6 +4,8 @@
 ;;------------------------------------------------------------
 ;; Varjo's root type
 
+(declare-internal-type-name v-type)
+
 (def-v-type-class v-type ()
   ((core :initform nil :reader core-typep)
    (superclass :initform nil)
@@ -13,7 +15,11 @@
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
    (ctv :initform nil :initarg :ctv :accessor ctv)
    (default-value :initarg :default-value)
-   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)))
+   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
+   (type->type-spec :initform t :accessor type->type-spec)))
+
+(defmethod print-object ((obj v-type) stream)
+  (format stream "#<VARI ~a>" (slot-value obj 'type->type-spec)))
 
 ;;------------------------------------------------------------
 ;; Core type methods
@@ -40,9 +46,6 @@ type-spec trick doesnt"))
     (setf (slot-value type 'qualifiers) qualifiers)
     type))
 
-(defmethod type->type-spec ((type v-type))
-  (class-name (class-of type)))
-
 (defmethod make-load-form ((type v-type) &optional environment)
   (declare (ignore environment))
   `(type-spec->type ',(type->type-spec type)))
@@ -57,18 +60,23 @@ type-spec trick doesnt"))
   object)
 
 (defun vtype-existsp (type-name)
-  (etypecase type-name
-    (symbol
-     (and type-name
-          (find-class type-name nil)
-          (values (subtypep type-name 'v-type))))
-    (list (vtype-existsp (first type-name)))))
+  (labels ((test (x)
+             (and (find-class x nil)
+                  (subtypep x 'v-type))))
+    (etypecase type-name
+      (symbol
+       (and type-name
+            (or (test type-name)
+                (test (v-type-name type-name)))))
+      (list (vtype-existsp (first type-name))))))
 
 ;;------------------------------------------------------------
 ;; Compilation Error
 ;;
 ;; Attached to failed compilation objects when delaying errors
 ;; see functions.lisp for use
+
+(declare-internal-type-name v-error)
 
 (def-v-type-class v-error (v-type)
   ((payload :initform nil :initarg :payload :accessor v-payload)))

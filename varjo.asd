@@ -23,6 +23,7 @@
                (:file "src/varjo.internals/globals")
                (:file "src/varjo.internals/names")
                (:file "src/varjo.internals/internal-types")
+               (:file "src/varjo.internals/types/type-namespace")
                (:file "src/varjo.internals/types/def-v-core-type")
                (:file "src/varjo.internals/types/early-types")
                (:file "src/varjo.internals/flow")

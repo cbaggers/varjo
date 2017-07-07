@@ -7,9 +7,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (varjo:v-deftype some-ephem-g ()
                    :vec4
-                   :valid-metadata-kinds some-meta)
-
-  (varjo:add-alternate-type-name 'some-ephem 'some-ephem-g))
+                   :valid-metadata-kinds some-meta))
 
 (varjo:def-metadata-kind some-meta ()
   val)
@@ -29,7 +27,7 @@
 (def-vbind-test metadata-1 (:suite metadata-tests) (meta)
     (is-true (equal (val meta) 10))
   (flow-id-scope
-    (let ((env (make-env :vertex nil '((x some-ephem)))))
+    (let ((env (make-env :vertex nil '((x some-ephem-g)))))
       (vbind (c e)
           (compile-form
            '(let ((y x))

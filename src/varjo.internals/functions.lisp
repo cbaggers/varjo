@@ -44,17 +44,19 @@
     (let ((arg-types (if (listp arg-types)
                          (mapcar #'arg-form->type arg-types)
                          arg-types)))
-      `(progn (add-form-binding
-               (make-function-obj
-                ',name ,transform ',context ',arg-types
-                ,(make-template-return-spec-generator return-spec)
-                :v-place-index ',v-place-index :glsl-name ',glsl-name
-                :flow-ids (%gl-flow-id!)
-                :in-arg-flow-ids
-                (list ,@(n-of '(%gl-flow-id!) (length args)))
-                :pure ,pure)
-               *global-env*)
-              ',name))))
+      `(progn
+         (add-form-binding
+          (make-function-obj
+           ',name ,transform ',context ',arg-types
+           ,(make-template-return-spec-generator return-spec)
+           :v-place-index ',v-place-index
+           :glsl-name ',glsl-name
+           :flow-ids (%gl-flow-id!)
+           :in-arg-flow-ids (list ,@(n-of '(%gl-flow-id!)
+                                          (length args)))
+           :pure ,pure)
+          *global-env*)
+         ',name))))
 
 (defun element-spec-p (spec)
   (and (listp spec) (eq (first spec) :element)))

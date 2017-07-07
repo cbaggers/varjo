@@ -2,7 +2,7 @@
 (in-readtable :fn.reader)
 
 (defun gen-number-string (number type)
-  (typecase type
+  (v-type-type-case type
     (v-double (format nil "~flf" number))
     (v-float (format nil "~ff" number))
     (v-uint (format nil "~au" number))

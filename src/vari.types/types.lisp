@@ -731,7 +731,7 @@
 (defun vec-of (type len)
   (assert (and (>= len 2) (<= len 4)))
   (type-spec->type
-   (etypecase type
+   (v-type-type-case type
      (v-uint (nth (- len 2) '(:uvec2 :uvec3 :uvec4)))
      (v-int (nth (- len 2) '(:ivec2 :ivec3 :ivec4)))
      (v-float (nth (- len 2) '(:vec2 :vec3 :vec4)))

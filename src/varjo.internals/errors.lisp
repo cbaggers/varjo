@@ -578,6 +578,11 @@ however the type ~a is not a shadow type."
 Wanted one of the following types: ~s}"
   vtype wanted)
 
+(deferror fell-through-v-type-type-case () (vtype wanted)
+    "~a fell through V-ETYPE-type-CASE expression.
+Wanted one of the following types: ~s}"
+  vtype wanted)
+
 (deferror metadata-conflict () (metadata-kind flow-id new-meta old-meta)
     "~a metadata already found for flow-id ~a.~%Metadata cannot be redefined
 

@@ -30,6 +30,8 @@
    :a-set
    :a-remove-all))
 
+(uiop:define-package #:vari.types.namespace)
+
 (uiop:define-package #:vari.types
     (:use #:cl #:varjo.utils #:alexandria #:named-readtables)
   (:export :v-type
@@ -333,7 +335,6 @@
            :*valid-contents-symbols*
            :%uniform-name
            :a-add
-           :add-alternate-type-name
            :add-equivalent-name
            :add-external-function
            :add-form-binding
@@ -675,7 +676,6 @@
    :v-special-functionp
    :v-element-type
    :v-errorp
-   :add-alternate-type-name
    :resolve-name-from-alternative
    :ephemeral-p
    :core-typep
