@@ -600,6 +600,7 @@
            :v-type-eq
            :v-type-of
            :v-typep
+           :v-typetypep
            :v-uniforms
            :v-value
            :v-versions

@@ -89,7 +89,7 @@
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
   (let* ((will-assign (and (not (v-voidp result-type))
-                           (not (typep result-type 'v-or))))
+                           (not (v-typetypep result-type 'v-or))))
          (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp"))))
          (then-string (gen-string-for-if-block then-obj tmp-var))
          (else-string (when has-else

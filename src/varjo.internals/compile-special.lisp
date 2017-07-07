@@ -192,7 +192,7 @@
         env)))))
 
 (defun %validate-var-types (var-name type code-obj)
-  (when (and code-obj (typep (primary-type code-obj) 'v-stemcell))
+  (when (and code-obj (v-typetypep (primary-type code-obj) 'v-stemcell))
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
            (string-downcase var-name) (current-line code-obj)))
   (when (and (null type) (null code-obj))

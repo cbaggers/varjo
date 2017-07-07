@@ -76,7 +76,7 @@
 
 (5am:def-test array-12 (:suite array-tests)
   (finishes-p
-    (compile-vert () :450 nil
+   (compile-vert () :450 nil
       (let* ((j 1)
              (i (vector (* j 2) 2 3)))
         (v! (aref i 0) 0 0 0)))))

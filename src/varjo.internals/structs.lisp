@@ -92,7 +92,7 @@
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
     (let ((name (or accessor slot-name)))
-      (if (typep slot-type 'v-array)
+      (if (v-typetypep slot-type 'v-array)
           (format nil "    ~a ~a[~a];"
                   (v-glsl-string (v-element-type slot-type))
                   (safe-glsl-name-string name)

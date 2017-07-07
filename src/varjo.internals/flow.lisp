@@ -114,7 +114,7 @@
 (defun type-doesnt-need-flow-id (type)
   (when (eq type :void)
     (error "deprecated behaviour bug ~a" type))
-  (typep type 'v-error))
+  (v-typetypep type 'v-error))
 
 (defun function-return-spec-doesnt-need-flow-ids (spec)
   (assert (or (functionp spec)
@@ -125,7 +125,8 @@
            (typep (elt spec 0) 'v-error))))
 
 (defun set-doesnt-need-flow-ids (set)
-  (or (= (length set) 0) (typep (elt set 0) 'v-error)))
+  (or (= (length set) 0)
+      (v-typetypep (elt set 0) 'v-error)))
 
 
 ;;----------------------------------------------------------------------

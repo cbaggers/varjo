@@ -317,7 +317,7 @@ however failed to do so when asked."
 (defun func-find-failure (func-name form arg-types)
   (assert func-name)
   (loop :for arg-type :in arg-types
-     :if (typep arg-type 'v-error)
+     :if (v-typetypep arg-type 'v-error)
 
      :return `(,(make-instance 'func-match :score t :func arg-type
                                :arguments nil))

@@ -73,7 +73,7 @@
 
 (defun get-actual-function (func-code-obj code)
   (let ((primary-type (primary-type func-code-obj)))
-    (if (typep primary-type 'v-any-one-of)
+    (if (v-typetypep primary-type 'v-any-one-of)
         (make-function-set (mapcar #'ctv (v-types primary-type)))
         (let* ((func (ctv primary-type)))
           (restart-case (typecase func
@@ -112,7 +112,7 @@
 
               ;; funcs taking unrepresentable values as arguments
               ((and (typep func 'v-user-function)
-                    (some λ(typep _ 'v-unrepresentable-value)
+                    (some λ(v-typetypep _ 'v-unrepresentable-value)
                           (v-argument-spec func)))
                (compile-function-taking-unreps func args env))
 
@@ -128,7 +128,8 @@
 
 (defun compile-function-taking-unreps (func args env)
   (assert (v-code func))
-  (labels ((unrep-p (x) (typep (primary-type x) 'v-unrepresentable-value)))
+  (labels ((unrep-p (x) (v-typetypep (primary-type x)
+                                     'v-unrepresentable-value)))
     (dbind (args-code body-code) (v-code func)
       (dbind (trimmed-args hard-coded)
           (loop :for arg-code :in args-code :for arg :in args

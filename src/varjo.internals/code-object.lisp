@@ -170,7 +170,7 @@
    (mapcar (lambda (x)
              (destructuring-bind (_ slot-type &rest _1) x
                (declare (ignore _ _1))
-               (when (typep slot-type 'v-struct)
+               (when (v-typetypep slot-type 'v-struct)
                  (cons slot-type (walk-struct-dependencies slot-type)))))
            (v-slots type))))
 

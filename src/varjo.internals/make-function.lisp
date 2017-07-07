@@ -138,7 +138,7 @@
                                  :collect `(,type ,name))))
              (in-out-args
               ;; {TODO} handle multiple returns
-              (when (and (typep type 'v-function-type)
+              (when (and (v-typetypep type 'v-function-type)
                          (ctv type)
                          (implicit-args (ctv type)))
                 (let ((closure (ctv type)))

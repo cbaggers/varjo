@@ -615,7 +615,7 @@ the time, please report this on github."
 
 However is not a type that can be swizzled. ~a"
   (type->type-spec (v-true-type vtype))
-  (if (typep vtype 'v-struct)
+  (if (v-typetypep vtype 'v-struct)
       "Perhaps you meant one of this struct's slots?"
       ""))
 

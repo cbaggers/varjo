@@ -383,9 +383,9 @@
          (struct-types
           (remove nil
                   (loop :for type :in used-types
-                     :if (or (typep type 'v-struct)
-                             (and (typep type 'v-array)
-                                  (typep (v-element-type type) 'v-struct)))
+                     :if (or (v-typetypep type 'v-struct)
+                             (and (v-typetypep type 'v-array)
+                                  (v-typetypep (v-element-type type) 'v-struct)))
                      :collect type)))
          (result (order-structs-by-dependency struct-types)))
     result))

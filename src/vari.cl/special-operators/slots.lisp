@@ -6,7 +6,7 @@
   :return
   (vbind (v e) (compile-form form env)
     (let ((type (primary-type v)))
-      (assert (typep type 'v-struct) () 'slot-value-on-non-struct
+      (assert (v-typetypep type 'v-struct) () 'slot-value-on-non-struct
               :type type :slot-name slot-name)
       ;;
       ;; NAH, this bit wont work. Instead we need to add another field to

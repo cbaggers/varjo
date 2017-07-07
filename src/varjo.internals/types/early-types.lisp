@@ -82,7 +82,7 @@ type-spec trick doesnt"))
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 
 (defun v-errorp (obj)
-  (typep obj 'v-error))
+  (v-typetypep obj 'v-error))
 
 ;;------------------------------------------------------------
 

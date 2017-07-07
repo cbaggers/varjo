@@ -184,10 +184,10 @@
 (defmethod v-glsl-string ((object v-array))
   (labels ((dims (x)
              (append (v-dimensions x)
-                     (when (typep (v-element-type x) 'v-array)
+                     (when (v-typetypep (v-element-type x) 'v-array)
                        (dims (v-element-type x)))))
            (root-type (x)
-             (if (typep (v-element-type x) 'v-array)
+             (if (v-typetypep (v-element-type x) 'v-array)
                  (root-type (v-element-type x))
                  (v-element-type x))))
     ;;
@@ -223,7 +223,7 @@
 
 (defgeneric ephemeral-p (x)
   (:method ((x v-type))
-    (typep x 'v-ephemeral-type))
+    (v-typetypep x 'v-ephemeral-type))
   (:method (x)
     (ephemeral-p (v-type-of x))))
 
@@ -384,7 +384,7 @@
 (defgeneric reduce-types-for-or-type (types)
   (:method (types)
     (labels ((inner (type)
-               (if (typep type 'v-or)
+               (if (v-typetypep type 'v-or)
                    (mappend #'inner (v-types type))
                    (list type))))
       (remove-duplicates (mappend #'inner types) :test #'v-type-eq))))
@@ -515,7 +515,7 @@
     new-inst))
 
 (defun v-closure-p (type)
-  (and (typep type 'v-function-type)
+  (and (v-typetypep type 'v-function-type)
        (ctv type)
        (implicit-args (ctv type))))
 
@@ -586,6 +586,14 @@
 ;;------------------------------------------------------------
 ;; Type predicate
 
+(defun v-typetypep (v-type target-type)
+  (assert (typep v-type 'v-type))
+  (typep v-type target-type))
+
+(defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
+  (declare (ignore env))
+  (v-typetypep a (type-of b)))
+
 (defmethod v-typep ((a v-type) (b symbol) &optional (env *global-env*))
   (declare (ignore env))
   (v-typep a (type-spec->type b)))
@@ -593,10 +601,6 @@
 (defmethod v-typep ((a v-type) (b list) &optional (env *global-env*))
   (declare (ignore env))
   (v-typep a (type-spec->type b)))
-
-(defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
-  (declare (ignore env))
-  (typep a (type-of b)))
 
 (defmethod v-typep ((a null) b &optional (env *global-env*))
   (declare (ignore env a b))
@@ -637,7 +641,7 @@
            ,@(loop :for (type-name . body) :in cases :collect
                 (if (eq type-name 'otherwise)
                     `(t ,@body)
-                    `((typep ,type ',(v-type-name type-name)) ,@body))))))))
+                    `((v-typetypep ,type ',(v-type-name type-name)) ,@body))))))))
 
 (defmacro v-etype-type-case (type-obj &body cases)
   (alexandria:with-gensyms (type)
@@ -646,7 +650,7 @@
          (assert (typep ,type 'v-type))
          (cond
            ,@(loop :for (type-name . body) :in cases :collect
-                `((typep ,type ',(v-type-name type-name)) ,@body))
+                `((v-typetypep ,type ',(v-type-name type-name)) ,@body))
            (t (error 'fell-through-v-typecase
                      :vtype ,type :wanted ',(mapcar #'first cases))))))))
 
@@ -727,10 +731,11 @@
             &optional (value-in-place-of-error nil vset))
     (labels ((inner (base child accum)
                (cond
-                 ((null child) (if vset
-                                   value-in-place-of-error
-                                   (error "Varjo: ~a is not a descendant of type ~a"
-                                          type ancestor)))
+                 ((null child)
+                  (if vset
+                      value-in-place-of-error
+                      (error "Varjo: ~a is not a descendant of type ~a"
+                             type ancestor)))
                  ((v-type-eq base child) accum)
                  (t (inner base (v-superclass child) (1+ accum))))))
       (inner ancestor type 0))))
@@ -747,7 +752,7 @@
 
 (defun make-type-set* (members)
   (when (and (= (length members) 1)
-             (not (typep (first members) 'v-stemcell)))
+             (not (v-typetypep (first members) 'v-stemcell)))
     (assert (not (v-typep (first members) :void))))
   (apply #'vector members))
 
@@ -807,7 +812,7 @@
   (:method ((x compiled))
     (v-voidp (type-set x)))
   (:method ((x v-type))
-    (typep x 'v-void))
+    (v-typetypep x 'v-void))
   (:method ((x vector))
     (= (length x) 0)))
 

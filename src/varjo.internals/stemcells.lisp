@@ -61,4 +61,4 @@
     (copy-compiled code :node-tree ast)))
 
 (defun stemcellp (x)
-  (typep x 'v-stemcell))
+  (v-typetypep x 'v-stemcell))

@@ -15,7 +15,7 @@
             ()
             "Varjo: All types must specify one superclass, this will usually be v-type"))
   ;;
-  (let ((direct-superclass (mapcar #'v-type-name direct-superclass))
+  (let ((direct-superclass-class (mapcar #'v-type-name direct-superclass))
         (v-name (v-type-name name)))
     (unless (find 'type->type-spec direct-slots :key #'first)
       (push `(type->type-spec :initform ',name :accessor type->type-spec)
@@ -29,7 +29,7 @@
       (pushnew (kwd (subseq (symbol-name name) 2))  *registered-types*))
 
     `(progn
-       (defclass ,v-name ,direct-superclass
+       (defclass ,v-name ,direct-superclass-class
          ,(if (eq name 'v-type)
               direct-slots
               (cons `(superclass :initform ',(first direct-superclass))
