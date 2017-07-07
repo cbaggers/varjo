@@ -121,7 +121,7 @@ context is implicit"))
                (let ((raw (slot-value val-id 'val)))
                  (or (get-seen raw)
                      (setf (gethash raw origins-dict)
-                           (if (typep (ast-kind node) 'v-user-function)
+                           (if (typep (ast-kind node) 'v-lisp-function)
                                (f-origin val-id node)
                                node)))))
 

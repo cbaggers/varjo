@@ -111,7 +111,7 @@
                (compile-special-function func args env))
 
               ;; funcs taking unrepresentable values as arguments
-              ((and (typep func 'v-user-function)
+              ((and (typep func 'v-lisp-function)
                     (some λ(v-typetypep _ 'v-unrepresentable-value)
                           (v-argument-spec func)))
                (compile-function-taking-unreps func args env))

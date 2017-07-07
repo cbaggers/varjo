@@ -8,7 +8,7 @@
 
 * unify type & multi-vals in code objects
 
-* make-user-function-obj in make-function.lisp has a daft way of storing the
+* make-lisp-function-obj in make-function.lisp has a daft way of storing the
   return types, we should make it follow the return-set approach. Currently
   I think this is where the return-sets of void are coming from
 
@@ -16,7 +16,7 @@
 
 ------------------------------------------------------------
 
-* why use def-v-type-class for v-user-function? Switch to defclass?
+* why use def-v-type-class for v-lisp-function? Switch to defclass?
 
 * low-hanging-fruit: unify labels/flet/labels-no-implicit implementations
 

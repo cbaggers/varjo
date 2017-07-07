@@ -3,7 +3,7 @@
 
 ;;------------------------------------------------------------
 
-(defmethod functions ((fn v-user-function))
+(defmethod functions ((fn v-lisp-function))
   (list fn))
 
 ;;------------------------------------------------------------
@@ -47,7 +47,7 @@
 (defmethod v-type-of ((func v-function))
   (with-slots (argument-spec return-spec) func
     (assert (valid-func-return-spec-p return-spec)
-            () 'user-func-invalid-x
+            () 'lisp-function-invalid-x
             :kind 'returns
             :name (name func)
             :args return-spec)
@@ -73,7 +73,7 @@
                           &key v-place-index glsl-name implicit-args
                             in-out-args flow-ids in-arg-flow-ids pure)
   (assert (valid-func-return-spec-p return-spec)
-          () 'user-func-invalid-x
+          () 'lisp-function-invalid-x
           :kind 'returns
           :name name
           :args return-spec)
@@ -83,7 +83,7 @@
                          (functionp x)
                          (&rest-p x)))
                    arg-spec)
-            () 'user-func-invalid-x
+            () 'lisp-function-invalid-x
             :kind 'args
             :name name
             :args arg-spec))
@@ -101,17 +101,17 @@
                  :in-arg-flow-ids in-arg-flow-ids
                  :pure pure))
 
-(defun make-user-function-obj (name transform versions arg-spec return-spec
+(defun make-lisp-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
                                  code captured-vars pure emit-set)
   (assert (and (vectorp return-spec)
                (every #'valid-type-set-member-p return-spec))
-          () 'user-func-invalid-x :kind :returns :name name :args arg-spec)
+          () 'lisp-function-invalid-x :kind :returns :name name :args arg-spec)
   (when (listp arg-spec)
     (assert (every (lambda (x) (typep x 'v-type)) arg-spec)
-            () 'user-func-invalid-x :args name arg-spec))
-  (make-instance 'v-user-function
+            () 'lisp-function-invalid-x :args name arg-spec))
+  (make-instance 'v-lisp-function
                  :glsl-string transform
                  :arg-spec arg-spec
                  :return-spec return-spec
@@ -189,7 +189,7 @@
       new-func)))
 
 ;; {TODO} proper error
-(defmethod shadow-function ((func v-user-function) shadowed-type new-type
+(defmethod shadow-function ((func v-lisp-function) shadowed-type new-type
                             &key (convert-args t) convert-returns)
   (declare (ignore convert-args convert-returns shadowed-type new-type))
   (error 'shadowing-user-defined-func :func func))
@@ -209,10 +209,10 @@
                       λ(find shadowed (v-argument-spec _) :test #'v-type-eq)
                       functions))
            (no-type (set-difference functions has-type))
-           (valid (remove-if λ(typep _ 'v-user-function) has-type))
-           (user-funcs (set-difference valid has-type)))
-      (when user-funcs
-        (warn 'cant-shadow-user-defined-func :funcs user-funcs))
+           (valid (remove-if λ(typep _ 'v-lisp-function) has-type))
+           (lisp-functions (set-difference valid has-type)))
+      (when lisp-functions
+        (warn 'cant-shadow-user-defined-func :funcs lisp-functions))
       (when no-type
         (warn 'cant-shadow-no-type-match :shadowed shadowed :funcs no-type))
       (loop :for func :in valid :collect
@@ -232,8 +232,8 @@
     (let* ((function (first functions))
            (has-type (find shadowed (v-return-spec function)
                            :test #'v-type-eq))
-           (user-func (typep function 'v-user-function)))
-      (when user-func
+           (lisp-function (typep function 'v-lisp-function)))
+      (when lisp-function
         (error 'shadowing-user-defined-func :func function))
       (unless has-type
         (error 'shadowing-no-return-matched :shadowed shadowed :func function))

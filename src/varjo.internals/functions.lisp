@@ -9,8 +9,8 @@
 (defmethod v-special-functionp ((func v-function-set))
   (some #'v-special-functionp (functions func)))
 
-(defun user-function-p (f)
-  (typep f 'v-user-function))
+(defun lisp-function-p (f)
+  (typep f 'v-lisp-function))
 
 (defun multi-return-function-p (func)
   (let ((rset (v-return-spec func)))

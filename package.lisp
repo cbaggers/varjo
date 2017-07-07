@@ -62,7 +62,7 @@
            :v-sampler
            ;;
            :v-function-type
-           :v-user-function
+           :v-lisp-function
            ;;
            :v-void
            :v-bool
@@ -299,7 +299,7 @@
            :emit-not-in-geometry-stage
            :inline-glsl-vertex-stage-not-supported
            :clashes-found-between-input-and-output-names
-           :user-func-invalid-x
+           :lisp-function-invalid-x
            :invalid-inline-glsl-stage-arg-layout
            :return-set-mismatch
            :funcall-of-special-operator
@@ -557,7 +557,7 @@
            :used-top-level-lisp-function-decls
            :used-types
            :used-user-structs
-           :user-function-p
+           :lisp-function-p
            :v-allowed-outer-vars
            :v-argument-spec
            :v-array-type-of

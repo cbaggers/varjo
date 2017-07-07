@@ -165,7 +165,7 @@
                                return-for-glsl body-obj
                                implicit-args in-out-args)))
              (arg-types (mapcar #'second args))
-             (func (make-user-function-obj name
+             (func (make-lisp-function-obj name
                                            (unless strip-glsl
                                              (gen-function-transform
                                               glsl-name args
@@ -228,7 +228,7 @@
                                         all-vars))
            (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
            (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
-           (func (make-user-function-obj name nil nil arg-types #()
+           (func (make-lisp-function-obj name nil nil arg-types #()
                                          :code (list args body)
                                          :captured-vars visible-var-pairs))
            (ast-body (if (= 1 (length body))

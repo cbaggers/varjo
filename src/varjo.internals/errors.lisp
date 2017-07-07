@@ -812,8 +812,8 @@ Out Values: ~s
 Clashes: ~s
 " stage-kind inputs outputs clashes)
 
-(defbug user-func-invalid-x () (kind name args)
-    "Invalid types found in internal user-function construction.
+(defbug lisp-function-invalid-x () (kind name args)
+    "Invalid types found in internal lisp-function construction.
 
 Our apologies for this mistake. If you have the time please raise an issue at
 https://github.com/cbaggers/varjo/issues including the code that triggered this

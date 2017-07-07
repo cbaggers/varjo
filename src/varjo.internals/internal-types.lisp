@@ -437,7 +437,7 @@
 
 ;;------------------------------------------------------------
 
-(defclass v-user-function (v-function)
+(defclass v-lisp-function (v-function)
   ((captured-vars :initform nil :initarg :captured-vars :reader captured-vars)
    (code :initform nil :initarg :code :reader v-code)))
 
