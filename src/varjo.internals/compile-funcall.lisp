@@ -63,7 +63,7 @@
                         func-set args-code env func-name code)
       (typecase func
         (v-function (compile-function-call func args env))
-        (external-function (compile-external-function-call func args env))
+        (top-level-lisp-function-decl (compile-top-level-lisp-function-decl-call func args env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
                      (error 'cannot-compile
@@ -152,18 +152,18 @@
                (,func-name ,@(remove-if #'unrep-p args))))
            env))))))
 
-(defun compile-external-func-returning-ref (func func-name-form env)
-  ;; Here we are going to make use of the fact that a external function
+(defun compile-top-level-lisp-function-decl-returning-ref (func func-name-form env)
+  ;; Here we are going to make use of the fact that a top-level function
   ;; is not allowed to mutate the environment it was called from.
   ;; We are going to grab the base environment and compile the labels form
   ;; there. We can then extract the signatures we need from this and add them
   ;; to the final source. The deduplication will be achieved by the fact that
-  ;; we will use the external-function object as a key to a hashtable in the
-  ;; base-env which will cache the results of these compiled external functions.
+  ;; we will use the top-level-lisp-function-decl object as a key to a hashtable in the
+  ;; base-env which will cache the results of these compiled top-level functions.
   ;;
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
-                            (build-external-function func env base-env))))
+                            (build-top-level-lisp-function-decl func env base-env))))
     (setf (compiled-functions base-env func) compiled-func)
     ;;
     (let* ((func (function-obj compiled-func))
@@ -180,18 +180,18 @@
                                             type-set nil nil))
        env))))
 
-(defun compile-external-function-call (func args env)
-  ;; Here we are going to make use of the fact that a external function
+(defun compile-top-level-lisp-function-decl-call (func args env)
+  ;; Here we are going to make use of the fact that a top-level function
   ;; is not allowed to mutate the environment it was called from.
   ;; We are going to grab the base environment and compile the labels form
   ;; there. We can then extract the signatures we need from this and add them
   ;; to the final source. The deduplication will be achieved by the fact that
-  ;; we will use the external-function object as a key to a hashtable in the
-  ;; base-env which will cache the results of these compiled external
+  ;; we will use the top-level-lisp-function-decl object as a key to a hashtable in the
+  ;; base-env which will cache the results of these compiled top-level
   ;; functions.
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
-                            (build-external-function func env base-env))))
+                            (build-top-level-lisp-function-decl func env base-env))))
     (setf (compiled-functions base-env func) compiled-func)
     (compile-function-call (function-obj compiled-func)
                            args

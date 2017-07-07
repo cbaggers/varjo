@@ -267,7 +267,7 @@
            :name-clash
            :name-mismatch
            :function-with-no-return-type
-           :external-function-invalid-in-arg-types
+           :top-level-lisp-function-decl-invalid-in-arg-types
            :invalid-special-function-arg-spec
            :closures-not-supported
            :cannot-establish-exact-function
@@ -336,7 +336,7 @@
            :%uniform-name
            :a-add
            :add-equivalent-name
-           :add-external-function
+           :add-top-level-lisp-function-decl
            :add-form-binding
            :add-symbol-binding
            :add-type-to-stemcell-code
@@ -367,7 +367,7 @@
            :code
            :combine-metadata
            :compile-declares
-           :compile-external-func-returning-ref
+           :compile-top-level-lisp-function-decl-returning-ref
            :compile-form
            :compile-forms-not-propagating-env-returning-list-of-compiled
            :compile-forms-propagating-env-returning-list-of-compiled
@@ -394,7 +394,7 @@
            :def-metadata-kind
            :def-shadow-type-constructor
            :default-value
-           :delete-external-function
+           :delete-top-level-lisp-function-decl
            :dynamic
            :emit-set
            :end-line
@@ -409,8 +409,8 @@
            :expanded-input-variables
            :expansion
            :ext-func-compile-chain
-           :external-function
-           :external-function-p
+           :top-level-lisp-function-decl
+           :top-level-lisp-function-decl-p
            :extract-declares
            :extract-value-qualifiers
            :extended-environment
@@ -421,7 +421,7 @@
            :flow-identifier
            :flow-ids
            :flow-id-scope
-           :format-external-func-for-error
+           :format-top-level-lisp-function-decl-for-error
            :fragment-stage
            :fresh-env
            :fresh-environment
@@ -554,7 +554,7 @@
            :type-specp
            :uniform-variables
            :uniforms
-           :used-external-functions
+           :used-top-level-lisp-function-decls
            :used-types
            :used-user-structs
            :user-function-p
@@ -660,8 +660,8 @@
    :v-defmacro
    :v-define-compiler-macro
    :v-defstruct
-   :add-external-function
-   :delete-external-function
+   :add-top-level-lisp-function-decl
+   :delete-top-level-lisp-function-decl
    ;;
    ;; types
    :v-deftype
@@ -728,7 +728,7 @@
    :glsl-code
    :output-variables
    :implicit-uniforms
-   :used-external-functions
+   :used-top-level-lisp-function-decls
    :primitive-out
    :ast->code
    ;;

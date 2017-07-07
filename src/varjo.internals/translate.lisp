@@ -174,7 +174,7 @@
    'post-compile-process
    :stage stage
    :env env
-   :used-external-functions (remove-duplicates (used-external-functions env))
+   :used-top-level-lisp-function-decls (remove-duplicates (used-top-level-lisp-function-decls env))
    :all-functions (cons main-func (all-cached-compiled-functions env))
    :raw-out-set (establish-out-set-for-stage stage main-func)
    :main-metadata (top-level-scoped-metadata main-func)))
@@ -188,7 +188,7 @@
       (geometry-stage
        (let* ((tl (find 'vari.cl:output-primitive main-metadata :key #'type-of)))
          ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
+         (assert tl () "Varjo: The function used as a geometry stage must have a top-level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
@@ -197,7 +197,7 @@
       (tessellation-control-stage
        (let* ((tl (find 'vari.cl:output-patch main-metadata :key #'type-of)))
          ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a tessellation control stage must have a top level output-primitive declaration")
+         (assert tl () "Varjo: The function used as a tessellation control stage must have a top-level output-primitive declaration")
          (setf (out-declarations post-proc-obj)
                (list (gen-tess-con-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
@@ -643,7 +643,7 @@
        :output-variables (output-variables post-proc-obj)
        :starting-stage (stage post-proc-obj)
        :implicit-uniforms (stemcells post-proc-obj)
-       :used-external-functions (used-external-functions post-proc-obj)
+       :used-top-level-lisp-function-decls (used-top-level-lisp-function-decls post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
        :primitive-out (primitive-out post-proc-obj)))))
 

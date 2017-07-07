@@ -51,8 +51,8 @@
    (stemcells :initarg :stemcells :accessor stemcells)
    (input-variables :initarg :input-variables :accessor input-variables)
    (used-user-structs :initarg :used-user-structs :accessor used-user-structs)
-   (used-external-functions :initarg :used-external-functions
-                            :accessor used-external-functions)
+   (used-top-level-lisp-function-decls :initarg :used-top-level-lisp-function-decls
+                            :accessor used-top-level-lisp-function-decls)
    (main-metadata :initarg :main-metadata :accessor main-metadata)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
@@ -102,8 +102,8 @@
    (output-variables :initarg :output-variables :accessor output-variables)
    (starting-stage :initarg :starting-stage :accessor starting-stage)
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
-   (used-external-functions :initarg :used-external-functions
-                            :reader used-external-functions)
+   (used-top-level-lisp-function-decls :initarg :used-top-level-lisp-function-decls
+                            :reader used-top-level-lisp-function-decls)
    (function-asts :initarg :function-asts :reader function-asts)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
@@ -183,7 +183,7 @@
 
 ;;----------------------------------------------------------------------
 
-(defclass external-function ()
+(defclass top-level-lisp-function-decl ()
   ((name :initarg :name :reader name)
    (in-args :initarg :in-args :reader in-args)
    (uniforms :initarg :uniforms :reader uniforms)

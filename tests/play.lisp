@@ -1,6 +1,6 @@
 (in-package :varjo.tests)
 
-(varjo:add-external-function
+(varjo:add-top-level-lisp-function-decl
  'some-vec4er '((jam :float)) nil
  `((progn (v! jam jam jam))))
 

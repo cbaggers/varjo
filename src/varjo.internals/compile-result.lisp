@@ -12,7 +12,7 @@
        (implicit-uniforms nil implicit-uniforms-set)
        (context nil context-set)
        (stemcells-allowed nil a-s-set)
-       (used-external-functions nil used-external-functions-set)
+       (used-top-level-lisp-function-decls nil used-top-level-lisp-function-decls-set)
        (previous-stage nil previous-stage-set)
        (primitive-in nil primitive-in-set)
        (primitive-out nil primitive-out-set)
@@ -46,9 +46,9 @@
    :stemcells-allowed (if a-s-set
                           stemcells-allowed
                           (stemcells-allowed original))
-   :used-external-functions (if used-external-functions-set
-                                used-external-functions
-                                (used-external-functions original))
+   :used-top-level-lisp-function-decls (if used-top-level-lisp-function-decls-set
+                                used-top-level-lisp-function-decls
+                                (used-top-level-lisp-function-decls original))
    :function-asts (if function-asts-set
                       function-asts
                       (function-asts original))

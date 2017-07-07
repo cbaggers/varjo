@@ -23,7 +23,7 @@
       (split-arguments args '(&uniform &context))
     (declare (ignore context))
     `(progn
-       (add-external-function ',name ',in-args ',uniforms ',body)
+       (add-top-level-lisp-function-decl ',name ',in-args ',uniforms ',body)
        ',name)))
 
 (defun template-args-valid (args rest types)

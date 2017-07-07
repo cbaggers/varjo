@@ -26,6 +26,6 @@
            :name-shadowing-tests
            :compiler-macro-tests
            :first-class-func-tests
-           :external-functions-tests
+           :top-level-lisp-function-decls-tests
            :uninitialized-value-tests
            :multiple-value-return-tests))

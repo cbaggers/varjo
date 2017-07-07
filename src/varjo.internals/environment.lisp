@@ -14,7 +14,7 @@
   (with-slots (stemcell->flow-id) (get-base-env e)
     (car (rassoc id stemcell->flow-id))))
 
-(defmethod compiled-functions ((e environment) (key external-function))
+(defmethod compiled-functions ((e environment) (key top-level-lisp-function-decl))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
 
 (defmethod (setf compiled-functions) (value (e environment) key)
@@ -34,12 +34,12 @@
              (slot-value (get-base-env e) 'compiled-functions)))
    :test #'equal))
 
-(defmethod used-external-functions ((e environment))
+(defmethod used-top-level-lisp-function-decls ((e environment))
   (let (functions)
     (maphash
      (lambda (k v)
        (declare (ignore v))
-       (when (typep k 'external-function)
+       (when (typep k 'top-level-lisp-function-decl)
          (push k functions)))
      (slot-value (get-base-env e) 'compiled-functions))
     functions))
@@ -601,7 +601,7 @@ For example calling env-prune on this environment..
   (let* ((bindings-at-this-level
           (append (a-get name (v-form-bindings env))
                   (when (typep env 'base-environment)
-                    (get-external-function-by-name name env))))
+                    (get-top-level-lisp-function-decl-by-name name env))))
          ;;
          (macro (find-if λ(typep _ 'v-regular-macro) bindings-at-this-level))
          (macro (when (valid-for-contextp macro env)
@@ -646,7 +646,7 @@ For example calling env-prune on this environment..
         (context (v-context env)))
     (%valid-for-contextp func versions context)))
 
-(defmethod valid-for-contextp ((func external-function) env)
+(defmethod valid-for-contextp ((func top-level-lisp-function-decl) env)
   (declare (ignore env))
   t)
 

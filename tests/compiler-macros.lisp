@@ -4,7 +4,7 @@
 ;;------------------------------------------------------------
 ;; Helper data
 
-(add-external-function 'test-cm '((x :int) (y :float)) nil
+(add-top-level-lisp-function-decl 'test-cm '((x :int) (y :float)) nil
                        '((* x y)))
 
 (v-define-compiler-macro test-cm (&whole w (x :int) (y :float))

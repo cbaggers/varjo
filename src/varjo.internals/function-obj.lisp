@@ -14,7 +14,7 @@
 ;; {TODO} Proper error
 (defun make-function-set (functions)
   (when functions
-    (assert (every λ(or (typep _ 'v-function) (typep _ 'external-function))
+    (assert (every λ(or (typep _ 'v-function) (typep _ 'top-level-lisp-function-decl))
                    functions)
             (functions)
             "Failed to initialize v-function-set:~% functions: ~s" functions)

@@ -4,11 +4,11 @@
 ;;------------------------------------------------------------
 ;; Helper data
 
-(varjo:add-external-function
+(varjo:add-top-level-lisp-function-decl
  'ext-int-fncaller '((fn (function (:int) :int)) (ham :int)) nil
  `((funcall fn ham)))
 
-(varjo:add-external-function
+(varjo:add-top-level-lisp-function-decl
  'ext-return-int '() nil
  `(10))
 

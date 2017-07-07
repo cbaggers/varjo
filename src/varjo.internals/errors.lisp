@@ -327,7 +327,7 @@ a return type.
 Most likely you currently have one of the following in the tail position:
 %if, for or while" func-name)
 
-(deferror external-function-invalid-in-arg-types
+(deferror top-level-lisp-function-decl-invalid-in-arg-types
     (:error-type varjo-critical-error) (name args)
     "When defining the function ~a we found some args with types that
 we didnt recognise:
@@ -597,8 +597,8 @@ Metadata already present: ~a"
 only valid to return nil or a piece of metadata of the correct type."
   expected found)
 
-(deferror multiple-external-func-match () (name matches)
-    "Multiple externally defined functions found matching the
+(deferror multiple-top-level-lisp-function-decl-match () (name matches)
+    "Multiple top-level lisp functions found matching the
 identifier ~a:
 
 Matches:

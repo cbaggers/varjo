@@ -79,7 +79,7 @@ This is annoying but a neccessary step before I could start documenting the proj
 
 - `vec2`, `vec3`, `vec4`, `mat3` & `mat4` constructors
 
-- Fix bug where `#'` would get confused in the presence of local & external functions
+- Fix bug where `#'` would get confused in the presence of local & top-level lisp functions
 
 #### 2017-05-16
 

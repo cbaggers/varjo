@@ -11,7 +11,7 @@
                (:file "tests/tests")
                (:file "tests/build-tests")
                (:file "tests/array-tests")
-               (:file "tests/external-functions")
+               (:file "tests/top-level-lisp-functions")
                (:file "tests/first-class-functions")
                (:file "tests/flow-control")
                (:file "tests/multiple-values")

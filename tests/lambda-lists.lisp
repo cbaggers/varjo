@@ -4,7 +4,7 @@
 ;;------------------------------------------------------------
 ;; Helper data
 
-(add-external-function 'test-ll-0 '((x :int)) nil
+(add-top-level-lisp-function-decl 'test-ll-0 '((x :int)) nil
                        '((* x x)))
 
 ;;------------------------------------------------------------

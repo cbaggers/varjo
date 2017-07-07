@@ -4,11 +4,11 @@
 ;;============================================================
 ;; The mess of creation
 
-(defmethod build-external-function ((func external-function) calling-env env)
-  ;; If our external-function is in the list then we have recurred
+(defmethod build-top-level-lisp-function-decl ((func top-level-lisp-function-decl) calling-env env)
+  ;; If our top-level-lisp-function-decl is in the list then we have recurred
   (assert (not (find func (ext-func-compile-chain calling-env))) ()
           'recursive-function-call-detected
-          :func (format-external-func-for-error func))
+          :func (format-top-level-lisp-function-decl-for-error func))
   (with-slots (name in-args uniforms code glsl-versions) func
     (vbind (compiled-func maybe-def-code)
         (build-function (cons func (ext-func-compile-chain calling-env))
@@ -19,7 +19,7 @@
                         nil
                         env)
       ;; Here we check that we haven't got any behaviour that, while legal for
-      ;; main or local funcs, would be undesired in external functions
+      ;; main or local funcs, would be undesired in top-level functions
       (when maybe-def-code
         (assert (= (length (return-set maybe-def-code)) 0))
         ;; (assert (= (length (emit-set maybe-def-code)) 0))

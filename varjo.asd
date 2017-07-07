@@ -40,7 +40,7 @@
                (:file "src/varjo.internals/stemcells")
                (:file "src/vari.types/types")
                (:file "src/varjo.internals/environment")
-               (:file "src/varjo.internals/external-functions")
+               (:file "src/varjo.internals/top-level-lisp-functions")
                (:file "src/varjo.internals/structs")
                (:file "src/varjo.internals/string-generation")
                (:file "src/varjo.internals/casting")
