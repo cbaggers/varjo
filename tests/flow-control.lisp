@@ -46,3 +46,18 @@
           1
           4s0))
       (v! 0 0 0 0))))
+
+(5am:def-test flow-control-4 (:suite return-tests)
+  (finishes-p
+   (compile-vert ((a :int)) :450 nil
+     (let ((x 1)
+           (y 2)
+           (z 3)
+           (w 4))
+       (for (i 0) (< i 10) (++ i)
+            (let ((a 0))
+              (setf y x
+                    a z
+                    w a
+                    x w))))
+     (v! 1 2 3 4))))

@@ -77,7 +77,6 @@
 ;; For's flow-id resolution
 
 
-
 (defun search-for-flow-id-fixpoint (code starting-env)
   ;; Lets document this a bit and work out how to debug it from a crash
   (labels ((names-to-new-flow-bindings (x)
@@ -88,24 +87,48 @@
                (assert (not (typep binding 'v-symbol-macro)))
                `(,x . ,(flow-ids binding)))))
     ;;
+    ;; So the goal is to calculate the flow ids for variables that were
+    ;; modified from within the loop.
+    ;;
+    ;; We start off with a list of envs
+    ;; and a new scope (checkpoint) for flow-ids
     (let ((envs (list starting-env))
           (last-code-obj nil)
           (flow-ids nil)
           (checkpoint (checkpoint-flow-ids)))
+      ;; and we loop until we find the fixpoint
       (loop :for pass :from 0
+         ;; taking the first env (which will be the most recently added.
          :for current-env = (first envs)
+         ;; We compile the codeand look at the result
          :until (vbind (o new-env) (compile-form code current-env)
-                  (let* ((new-flow-ids (get-new-flow-ids new-env current-env))
+                  (let* (;; First off grab the names and flow-ids of the
+                         ;; bindings outside the loop that havebeen modified
+                         (new-flow-ids (get-new-flow-ids new-env current-env))
+                         ;; Then we loop up the names and flow-ids for the same
+                         ;; variables in the starting env -or- if we have done
+                         ;; that before we can just use the currently
+                         ;; accumulated values
                          (f-ids (or flow-ids
                                     (mapcar #'names-to-new-flow-bindings
-                                            (mapcar #'car new-flow-ids)))))
-                    (setf last-code-obj o
+                                            (mapcar #'car new-flow-ids))))
+                         ;; Then for the each binding we make new flow-ids that
+                         ;; contain both the original flow-ids and the new ones
+                         (accumulated (accumulate-flow-ids
+                                       f-ids new-flow-ids)))
+                    ;; update the wip findings. The new env is the one we want
+                    ;; to use for the next iteration. the accumulated ids are
+                    ;; what we want to use as the base of the next check.
+                    (setf flow-ids accumulated
                           envs (cons new-env envs)
-                          flow-ids (accumulate-flow-ids f-ids new-flow-ids))
-                    (let ((done (fixpoint-reached
+                          last-code-obj o)
+                    (format t "~%new-flow-ids: ~a~%f-ids:~a~%accumulated:~a~%"
+                            new-flow-ids f-ids accumulated)
+                    (let ((done (fixpoint-reached-p
                                  new-flow-ids starting-env pass)))
                       (unless done (reset-flow-ids-to-checkpoint checkpoint))
                       done))))
+      (format t "~%-----------~%")
       (values last-code-obj
               (create-post-loop-env flow-ids starting-env)))))
 
@@ -150,12 +173,12 @@
                                       (flow-ids new-var)))
                        _))
                   variables-changed)))
-    (mapcar λ`(,_ . ,(flow-ids (get-symbol-binding _ nil latest-env)))
+    (mapcar λ(cons _ (flow-ids (get-symbol-binding _ nil latest-env)))
             (remove nil trimmed-changes))))
 
-(defun fixpoint-reached (new-flow-ids starting-env pass)
-  (unless (< pass *max-resolve-loop-flow-id-pass-count*)
-    (error 'loop-flow-analysis-failure))
+(defun fixpoint-reached-p (new-flow-ids starting-env pass)
+  (assert (< pass *max-resolve-loop-flow-id-pass-count*) ()
+          'loop-flow-analysis-failure)
   (let* ((variables-changed (mapcar #'car new-flow-ids)))
     (or
      ;; if no variable from outer scope changed then we stop
