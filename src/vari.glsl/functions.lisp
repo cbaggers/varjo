@@ -437,3 +437,15 @@
 (v-def-glsl-template-fun dvec4 (x y z) "dvec4(~a, ~a, ~a, 0.0lf)" (v-double v-double v-double) v-dvec4 :pure t)
 
 ;;------------------------------------------------------------
+
+(v-def-glsl-template-fun max (a b c &rest c) "max(~a, max(~a, max(~a~{ ,~a~})"
+                         (t t t &rest t) 0 :pure t)
+
+(v-define-compiler-macro max ((a t) (b t) (c t) &rest (d t))
+  `(max ,a (max ,b (max ,c ,@d))))
+
+(v-def-glsl-template-fun min (a b c &rest c) "min(~a, min(~a, min(~a~{ ,~a~})"
+                         (t t t &rest t) 0 :pure t)
+
+(v-define-compiler-macro min ((a t) (b t) (c t) &rest (d t))
+  `(min ,a (min ,b (min ,c ,@d))))
