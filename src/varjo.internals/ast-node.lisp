@@ -189,116 +189,27 @@ context is implicit"))
       (compiled (walk-node (node-tree from-node) :parent nil))
       (compiled-stage (walk-node (ast from-node) :parent nil))
       (ast-node (walk-node from-node :parent nil))
-      (t (error "object with the invalid type ~s passed to ast->code"
-                (type-of from-node))))))
+      (t (error "object with the invalid type ~s passed to ast->code:~%~s"
+                (type-of from-node)
+                from-node)))))
 
-(defun visit-ast-nodes (func x)
-  (labels ((f (node walk)
-             (funcall func node)
-             (with-slots (args) node
-               (mapcar walk args))))
-    (walk-ast #'f x)
-    t))
+(defun serialize-node (node walk)
+  (with-slots (kind args) node
+    (if (keywordp kind)
+        (case kind
+          (:function-top-level (mapcar walk args))
+          (:get (first args))
+          (:get-stemcell (first args))
+          (:literal (first args))
+          (:code-section args)
+          (:funcall `(funcall ,@(mapcar walk args)))
+          (:break `(%break ,@args))
+          (t (error "invalid node kind ~s found in result"
+                    kind)))
+        `(,kind ,@(mapcar walk args)))))
 
-(defun filter-ast-nodes (func x)
-  (let (r)
-    (visit-ast-nodes λ(when (funcall func _) (push _ r)) x)
-    (reverse r)))
-
-(defun ast->pcode (x &key show-flow-ids)
-  (labels ((f (node walk)
-             (with-slots (kind args) node
-               (let ((name (if (typep kind 'v-function)
-                               (name kind)
-                               kind)))
-                 `(,@(when show-flow-ids
-                           (flow-ids node))
-                     ,name ,@(mapcar walk args))))))
-    (walk-ast #'f x)))
-
-(defun filter-&-func (node filter-func-pairs
-                      set-seen has-been-seen)
-  (let ((has-changed nil))
-    (labels ((ff (accum pair)
-               (dbind (filter func) pair
-                 (if (and (typep accum 'ast-node)
-                          (not (funcall has-been-seen node filter))
-                          (funcall filter accum))
-                     (progn
-                       (setf has-changed t)
-                       (funcall set-seen node filter)
-                       (funcall func accum))
-                     accum))))
-      (let ((res (reduce #'ff filter-func-pairs :initial-value node)))
-        (values res has-changed)))))
-
-(defun ast->code (ast &key filter-func-pairs)
-  (let ((has-changed nil)
-        (seen nil))
-    (labels ((set-seen (node filter)
-               (push (cons node filter) seen))
-             (has-been-seen (node filter)
-               (member (cons node filter) seen :test #'equal))
-             (serialize-node (node walk)
-               (with-slots (kind args) node
-                 (if (keywordp kind)
-                     (case kind
-                       (:function-top-level (mapcar walk args))
-                       (:get (first args))
-                       (:get-stemcell (first args))
-                       (:literal (first args))
-                       (:code-section args)
-                       (:funcall `(funcall ,@(mapcar walk args)))
-                       (:break `(%break ,@args))
-                       (t (error "invalid node kind ~s found in result"
-                                 kind)))
-                     `(,kind ,@(mapcar walk args)))))
-             (f (node walk)
-               (vbind (node changed?)
-                   (filter-&-func node filter-func-pairs
-                                  #'set-seen #'has-been-seen)
-                 (when changed? (setf has-changed t))
-                 (if changed?
-                     (funcall walk node)
-                     (serialize-node node walk)))))
-      (values (walk-ast #'f ast) has-changed))))
-
-(defun ast-deep-replace (ast filter func)
-  (labels ((to-code (x)
-             (typecase x
-               (ast-node (ast->code x))
-               (list (mapcar #'to-code x))
-               (t x)))
-           (or-max (x y)
-             (cond ((null x) y)
-                   ((null y) x)
-                   (t (max x y))))
-           (args-sweep (ast-args)
-             (let* ((first-pass (mapcar λ(multiple-value-list
-                                          (ast-deep-replace _ filter func))
-                                        ast-args))
-                    (max-halted-depth (when first-pass
-                                        (reduce #'or-max
-                                                (mapcar #'second first-pass))))
-                    (args (mapcar λ(if (or (null max-halted-depth)
-                                           (and (second _)
-                                                (= (second _)
-                                                   max-halted-depth)))
-                                       (to-code (first _))
-                                       (to-code _1))
-                                  first-pass
-                                  ast-args)))
-               (list args max-halted-depth))))
-    (typecase ast
-      (ast-node
-       (dbind (args halted-at) (args-sweep (ast-args ast))
-         (let ((kind (ast-kind ast)))
-           (if (and (not halted-at) (funcall filter ast))
-               (values (funcall func ast) 0)
-               (values `(,kind ,@args) (when halted-at (1+ halted-at)))))))
-      (list (dbind (args halted-at) (args-sweep ast)
-              (values args halted-at)))
-      (t (values ast nil)))))
+(defun ast->code (ast)
+  (walk-ast #'serialize-node ast))
 
 ;;----------------------------------------------------------------------
 
