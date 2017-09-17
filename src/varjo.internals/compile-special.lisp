@@ -43,7 +43,9 @@
 
 (defun %merge-progn (code-objs starting-env final-env)
   (if (= 1 (length code-objs))
-      (first code-objs)
+      (let* ((obj (first code-objs))
+             (ast (copy-ast-node (node-tree obj) :ending-env final-env)))
+        (copy-compiled obj :node-tree ast))
       (let* ((last-obj (last1 (remove nil code-objs)))
              (type-set (type-set (last1 code-objs))))
         (merge-compiled code-objs
@@ -55,16 +57,14 @@
                                               type-set
                                               starting-env final-env)))))
 
-(defmacro merge-progn (code-objs starting-env &optional final-env)
-  (let ((co (gensym "code-objs"))
+(defmacro merge-progn (compile-form starting-env &optional final-env)
+  (let ((co (gensym "compile-form"))
         (pe (gensym "potential-env"))
         (se (gensym "starting-env"))
         (fe (gensym "final-env")))
-    `(vbind (,co ,pe) ,code-objs
+    `(vbind (,co ,pe) ,compile-form
        (let* ((,se ,starting-env)
-              (,fe ,(if final-env
-                        `(or ,final-env ,pe ,se)
-                        `(or ,pe ,se))))
+              (,fe (or ,final-env ,pe ,se)))
          (values (%merge-progn ,co ,se ,fe)
                  ,fe)))))
 

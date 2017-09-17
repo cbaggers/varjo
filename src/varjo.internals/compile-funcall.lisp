@@ -59,11 +59,11 @@
 (defun compile-call-with-set-of-functions (func-set args-code env
                                            &optional name code)
   (let ((func-name (or name (%func-name-from-set func-set))))
-    (dbind (func args) (find-function-in-set-for-args
-                        func-set args-code env func-name code)
+    (vbind (func args new-env)
+        (find-function-in-set-for-args func-set args-code env func-name code)
       (typecase func
-        (v-function (compile-function-call func args env))
-        (external-function (compile-external-function-call func args env))
+        (v-function (compile-function-call func args new-env))
+        (external-function (compile-external-function-call func args new-env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
                      (error 'cannot-compile

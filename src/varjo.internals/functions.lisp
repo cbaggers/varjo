@@ -248,31 +248,48 @@ however failed to do so when asked."
             (error e))))))
 
 (defun try-compile-args (args-code env)
-  ;; {TODO} Why don't we care about the env here?
-  (mapcar (rcurry #'try-compile-arg env) args-code))
+  (let ((current-env env))
+    (values
+     (loop :for code :in args-code :collect
+        (vbind (compiled new-env) (try-compile-arg code current-env)
+          (setf current-env (or new-env env))
+          compiled))
+     current-env)))
 
 (defmethod func-need-arguments-compiledp ((func v-function))
   (not (and (v-special-functionp func)
             (eq (v-argument-spec func) t))))
 
-(defun find-functions-in-set-for-args (func-set args-code env &optional name code)
-  (let* ((func-name (or name (%func-name-from-set func-set)))
-         (candidates (functions func-set))
-         (compiled-args (when (some #'func-need-arguments-compiledp candidates)
-                          (try-compile-args args-code env)))
-         (match-fn (curry #'match-function-to-args args-code compiled-args env))
-         (matches (remove nil (mapcar match-fn candidates)))
-         (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
-    ;;
-    (or (when instant-win (list instant-win))
-        (progn
-          (assert (every λ(numberp (score _)) matches))
-          matches)
-        (func-find-failure func-name
-                           code
-                           (mapcar #'primary-type compiled-args)))))
+(defun create-post-func-call-env (starting-env new-env)
+  (if new-env
+      (env-replace-parent starting-env (v-parent-env new-env))
+      starting-env))
 
-(defun find-function-in-set-for-args (func-set args-code env &optional name code)
+(defun find-functions-in-set-for-args (func-set args-code env
+                                       &optional name code)
+  (let* ((func-name (or name (%func-name-from-set func-set)))
+         (candidates (functions func-set)))
+    (vbind (compiled-args new-env)
+        (when (some #'func-need-arguments-compiledp candidates)
+          (try-compile-args args-code env))
+      (let* ((env (create-post-func-call-env env new-env))
+             (match-fn (curry #'match-function-to-args
+                              args-code compiled-args env))
+             (matches (remove nil (mapcar match-fn candidates)))
+             (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
+        ;;
+        (values
+         (or (when instant-win (list instant-win))
+             (progn
+               (assert (every λ(numberp (score _)) matches))
+               matches)
+             (func-find-failure func-name
+                                code
+                                (mapcar #'primary-type compiled-args)))
+         env)))))
+
+(defun find-function-in-set-for-args (func-set args-code env
+                                      &optional name code)
   "Find the function that best matches the name and arg spec given
    the current environment. This process simply involves finding the
    functions and then sorting them by their appropriateness score,
@@ -293,16 +310,17 @@ however failed to do so when asked."
                                          :key #'score
                                          :test-not #'=)))
                (sort primary-set #'< :key #'secondary-score))))
-    (let* ((func-name (or name (%func-name-from-set func-set)))
-           (matches (find-functions-in-set-for-args
-                     func-set
-                     args-code env nil code))
-           (function (if (= (length matches) 1)
-                         (first matches)
-                         (progn
-                           (check-for-stemcell-issue matches func-name)
-                           (first (dual-sort matches))))))
-      (list (func function) (arguments function)))))
+    (let ((func-name (or name (%func-name-from-set func-set))))
+      (vbind (matches new-env)
+          (find-functions-in-set-for-args func-set args-code env nil code)
+        (let ((function (if (= (length matches) 1)
+                            (first matches)
+                            (progn
+                              (check-for-stemcell-issue matches func-name)
+                              (first (dual-sort matches))))))
+          (values (func function)
+                  (arguments function)
+                  new-env))))))
 
 (defun %func-name-from-set (func-set)
   (let* ((names (mapcar #'name (functions func-set)))
