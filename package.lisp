@@ -205,6 +205,7 @@
            :unknown-type-spec
            :duplicate-name
            :clone-global-env-error
+           :cannot-swizzle-this-type
            :clean-global-env-error
            :could-not-find-function
            :could-not-find-any
