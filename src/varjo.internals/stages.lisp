@@ -32,6 +32,10 @@
                  :stemcells-allowed stemcells-allowed
                  :primitive-in (%process-primitive-type stage-type
                                                         primitive))))
+        (when (equal kind :geometry)
+          ;; {TODO} proper error
+          (assert (intersection context '(:150 :330 :400 :410 :420 :430 :440 :450)) ()
+                  "Varjo: Geometry stages require a GLSL version of at least 150"))
         (when (member kind '(:tessellation-control :tessellation-evaluation))
           ;; {TODO} proper error
           (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
