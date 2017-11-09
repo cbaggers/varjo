@@ -143,15 +143,6 @@
             (current-line test-obj)
             format-clauses)))
 
-(defun qualify (obj &rest qualifiers)
-  (%qualify obj qualifiers))
-
-(defun %qualify (obj qualifiers)
-  (copy-compiled obj :current-line (format nil "~(~{~a ~}~)~a"
-                                           (string-downcase (string qualifiers))
-                                           (current-line obj))
-                 :place-tree nil))
-
 (defun prefix-type-to-string (type line-string
                               &optional qualifiers storage-qual)
   (let* ((line (cond ((typep type 'v-type) (format nil "~a ~a"
@@ -160,8 +151,9 @@
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
         (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a"
-                (loop :for q :in qualifiers :collect
-                   (string-downcase (string q)))
+                (loop :for q :in qualifiers
+                   :unless (member q *non-glsl-vari-qualifiers*)
+                   :collect (string-downcase (string q)))
                 storage-qual
                 line)
         (format nil "~@[~(~a ~)~]~a" storage-qual line))))

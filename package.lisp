@@ -307,6 +307,8 @@
            :v-def-template-arg-mismatch
            :cannot-take-reference-to-&rest-func
            :illegal-&rest-in-args
+           :attempted-transform-feedback-in-fragment-shader
+           :transform-feedback-incorrect-stage
 
            ;; restarts
            :setq-supply-alternate-type

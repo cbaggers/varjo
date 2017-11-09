@@ -930,6 +930,24 @@ For example, for a function FOO with args (:int &rest :int) you can do this:
          (funcall fn2 1 2 3))
 " func-name)
 
+(deferror attempted-transform-feedback-in-fragment-shader () ()
+    "The fragment stage in this pipeline was found to contain the :feedback
+qualifier.
+
+Transform feedback is only valid in the vertex processing stages and thus
+:feedback can only be used from :vertex, :tessellation-control,
+:tessellation-evaluation or :geometry stages.")
+
+(deferror transform-feedback-incorrect-stage () (stage)
+    "The :feedback qualifier was found in the ~a stage.
+
+This is invalid in this case because only the last vertex processing stage is
+allowed to use transform feedback."
+  (etypecase stage
+    (compiled-vertex-stage "vertex")
+    (compiled-tessellation-control-stage "tessellation-control")
+    (compiled-tessellation-evaluation-stage "tessellation-evaluation")))
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

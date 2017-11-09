@@ -7,9 +7,9 @@
             () 'rolling-translate-invalid-stage
             :invalid (remove-if #'valid-for-rt stages)))
   ;;
-  (let ((result (reduce λ(compile-stage _ _1 compile-func) stages
-                        :initial-value (make-instance 'rolling-result))))
-    (reverse (slot-value result 'compiled-stages))))
+  (let* ((result (reduce λ(compile-stage _ _1 compile-func) stages
+                         :initial-value (make-instance 'rolling-result))))
+    (final-validation (reverse (slot-value result 'compiled-stages)))))
 
 (defun compile-stage (accum stage compile-func)
   (with-slots (remaining-stages compiled-stages) accum
@@ -334,3 +334,28 @@
               (,qualifiers (if ,glsl-name (butlast ,qn) ,qn)))
          (declare (ignorable ,qualifiers ,glsl-name))
          ,@body))))
+
+;;----------------------------------------------------------------------
+
+(defun final-validation (rolling-result)
+  ;; Checks we can perform once we have the whole pipeline
+  (check-for-invalid-feedback-stage rolling-result)
+  rolling-result)
+
+(defun check-for-invalid-feedback-stage (rolling-result)
+  (labels ((fragp (stage) (typep stage 'compiled-fragment-stage))
+           (has-feedback (stage)
+             (when stage
+               (some λ(find :feedback (qualifiers _))
+                     (output-variables stage)))))
+    (let ((frag-with-feedback (has-feedback (find-if #'fragp rolling-result))))
+      (assert (not frag-with-feedback) ()
+              'attempted-transform-feedback-in-fragment-shader)
+      (let* ((but-last-vert (butlast (remove-if #'fragp rolling-result)))
+             (with-feedback (remove-if-not #'has-feedback but-last-vert)))
+        (assert (not with-feedback) ()
+                'transform-feedback-incorrect-stage
+                :stage (first with-feedback)))))
+  rolling-result)
+
+;;----------------------------------------------------------------------
