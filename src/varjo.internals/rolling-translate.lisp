@@ -236,6 +236,7 @@
   (mapcar λ(make-instance
             'output-variable
             :name (name _)
+            :block-name (block-name _)
             :glsl-name (glsl-name _)
             :type (v-array-type-of (v-type-of _) (vertex-count primitive) nil)
             :qualifiers (qualifiers _))

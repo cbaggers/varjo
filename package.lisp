@@ -361,6 +361,7 @@
            :base-environment
            :binding-accesible-p
            :block-name
+           :block-name-string
            :build-function
            :calc-place-tree
            :captured-vars
@@ -733,6 +734,7 @@
    :used-external-functions
    :primitive-out
    :ast->code
+   :block-name-string
    ;;
    ;; compiled vars
    :name

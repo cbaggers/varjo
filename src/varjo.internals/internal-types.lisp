@@ -138,7 +138,8 @@
                        :reader cpu-side-transform)))
 
 (defclass output-variable (shader-variable)
-  ((location :initarg :location :reader location)))
+  ((location :initarg :location :reader location)
+   (block-name :initarg :block-name :reader block-name)))
 
 ;;----------------------------------------------------------------------
 

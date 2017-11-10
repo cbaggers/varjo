@@ -246,8 +246,11 @@
 (defmethod block-name-string (block-name)
   (substitute #\_ #\- (format nil "_~a_" block-name)))
 
-;; (defun requires-out-interface-block (stage)
-;;   (not (typep stage 'fragment-stage)))
+(defmethod block-name-string ((var output-variable))
+  (block-name-string (block-name var)))
+
+(defun requires-out-interface-block (stage)
+  (not (typep stage 'fragment-stage)))
 
 (defun requires-in-interface-block (stage)
   (not (typep stage 'vertex-stage)))
