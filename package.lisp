@@ -517,6 +517,9 @@
            :pure-p
            :quads
            :qualifiers
+           :qualifier
+           :feedback-qualifier
+           :feedback-group
            :qualify-type
            :raw-out-set
            :replace-flow-id
@@ -692,6 +695,9 @@
    :def-metadata-kind
    :combine-metadata
    :v-dimensions
+   :qualifier
+   :feedback-qualifier
+   :feedback-group
    ;;
    ;; environment
    :add-lisp-form-as-uniform

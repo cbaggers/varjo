@@ -196,16 +196,18 @@
                            :pure t)
             env)))
 
+(defun qualifier-form-p (form)
+  (or (keywordp form)
+      (and (listp form) (keywordp (first form)))))
+
 (defun extract-value-qualifiers (value-form)
   (when (and (listp value-form)
-             (let ((to-check (first value-form)))
-               (or (keywordp to-check)
-                   (and (listp to-check)
-                        (keywordp (first to-check))))))
+             (qualifier-form-p (first value-form)))
     (butlast value-form)))
 
 (defun extract-value-form (value-form)
-  (if (and (listp value-form) (keywordp (first value-form)))
+  (if (and (listp value-form)
+           (qualifier-form-p (first value-form)))
       (last1 value-form)
       value-form))
 

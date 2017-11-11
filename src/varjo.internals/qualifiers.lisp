@@ -16,11 +16,9 @@
 
 (defun parse-feedback-qualifier (name args)
   (let ((fb-arg-len (length args))
-        (arg (first args)))
+        (arg (or (first args) 0)))
     (assert (and (or (= fb-arg-len 0) (= fb-arg-len 1))
-                 (if args
-                     (and (integerp arg) (>= arg 0))
-                     t))
+                 (and (integerp arg) (>= arg 0)))
             () 'invalid-feedback-qualifier-form
             :form (if args (cons name args) name))
     (make-instance 'feedback-qualifier
