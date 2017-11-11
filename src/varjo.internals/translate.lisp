@@ -495,7 +495,7 @@
      :collect (make-instance
                'output-variable
                :name (make-symbol glsl-name)
-               :block-name (when (requires-out-interface-block stage)
+               :block-name (when (requires-out-interface-block stage i)
                              (out-block-name-for stage))
                :glsl-name glsl-name
                :type type
