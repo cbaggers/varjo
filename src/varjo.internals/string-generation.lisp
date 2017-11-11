@@ -151,9 +151,7 @@
                      (t (error "dont know how to add the type here")))))
     (if qualifiers
         (format nil "~{~a~^ ~}~@[~( ~a~)~] ~a"
-                (loop :for q :in qualifiers
-                   :unless (member q *non-glsl-vari-qualifiers*)
-                   :collect (string-downcase (string q)))
+                (remove nil (mapcar #'glsl-string qualifiers))
                 storage-qual
                 line)
         (format nil "~@[~(~a ~)~]~a" storage-qual line))))
@@ -166,11 +164,13 @@
 
 (defun gen-out-var-string (glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~] ~a;" layout
-          (prefix-type-to-string type glsl-name (append qualifiers '("out")))))
+          (prefix-type-to-string type glsl-name
+                                 (append qualifiers (list *out-qualifier*)))))
 
 (defun gen-in-var-string (glsl-name type qualifiers &optional layout)
   (format nil "~@[layout(location = ~a) ~] ~a;" layout
-          (prefix-type-to-string type glsl-name (append qualifiers '("in")))))
+          (prefix-type-to-string type glsl-name
+                                 (append qualifiers (list *in-qualifier*)))))
 
 (defun gen-uniform-decl-string (glsl-name type qualifiers)
   (declare (ignore qualifiers))

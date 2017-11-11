@@ -948,6 +948,13 @@ allowed to use transform feedback."
     (compiled-tessellation-control-stage "tessellation-control")
     (compiled-tessellation-evaluation-stage "tessellation-evaluation")))
 
+(deferror invalid-feedback-qualifier-form () (form)
+    "The :feedback qualifier may be provided just as a keywork or as
+a form with a single positive integer specifying the group e.g. (:feedback 0)
+
+However in this case we found ~s which is invalid"
+  form)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

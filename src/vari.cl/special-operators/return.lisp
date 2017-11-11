@@ -46,9 +46,12 @@
                                    :type-set (make-type-set)
                                    :node-tree ast)
                     final-env))
-          (%values-for-return (list code-obj)
-                              (list (extract-value-qualifiers code-obj))
-                              final-env)))))
+          (let* ((qualifiers (extract-value-qualifiers code-obj))
+                 (parsed (mapcar #'parse-qualifier qualifiers)))
+            (%values-for-return (list code-obj)
+                                (list qualifiers)
+                                (list parsed)
+                                final-env))))))
 
 ;; (error 'nil-return-set
 ;;        :form `(return ,form)

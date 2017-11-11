@@ -20,24 +20,36 @@
          ;;
          (new-env (fresh-environment env :multi-val-base nil))
          (qualifier-lists (mapcar #'extract-value-qualifiers values))
+         (parsed-qualifier-lists (mapcar λ(mapcar #'parse-qualifier _)
+                                         qualifier-lists))
          (forms (mapcar #'extract-value-form values))
          (objs (mapcar λ(compile-form _ new-env) forms)))
     (if values
         (cond
-          (for-return (%values-for-return objs qualifier-lists env))
-          (for-emit (%values-for-emit objs qualifier-lists env))
-          (base (%values forms objs qualifier-lists env))
+          (for-return (%values-for-return objs
+                                          qualifier-lists
+                                          parsed-qualifier-lists
+                                          env))
+          (for-emit (%values-for-emit objs
+                                      qualifier-lists
+                                      parsed-qualifier-lists
+                                      env))
+          (base (%values forms
+                         objs
+                         qualifier-lists
+                         parsed-qualifier-lists
+                         env))
           (t (compile-form `(prog1 ,@values) env)))
         (%values-void for-return env))))
 
-(defun %values (forms objs qualifier-lists env)
+(defun %values (forms objs qualifier-lists parsed-qualifier-lists env)
   (let* ((base (v-multi-val-base env))
          (glsl-names (loop :for i :from 1 :below (length forms) :collect
                         (postfix-glsl-index base i)))
 
          (vals (loop :for o :in objs
-                  :for q :in qualifier-lists
-                  :collect (qualify-type (primary-type o) q)))
+                  :for qlist :in parsed-qualifier-lists
+                  :collect (qualify-type (primary-type o) qlist)))
          (first-name (gensym))
          (result (compile-form
                   `(let ((,first-name ,(first objs)))
@@ -61,7 +73,7 @@
             env)))
 
 
-(defun %values-for-emit (objs qualifier-lists env)
+(defun %values-for-emit (objs qualifier-lists parsed-qualifier-lists env)
   (let* (;;
          (new-env (fresh-environment env :multi-val-base nil))
 
@@ -83,8 +95,8 @@
                    (t (error "Varjo: Invalid values form inside emit (values)"))))
          ;;
          (qualified-types (loop :for o :in objs
-                             :for q :in qualifier-lists
-                             :collect (qualify-type (primary-type o) q)))
+                             :for qlist :in parsed-qualifier-lists
+                             :collect (qualify-type (primary-type o) qlist)))
          (type-set (make-type-set* qualified-types))
          ;;
          (ast (ast-node! 'values
@@ -99,7 +111,7 @@
              :node-tree ast)
             env)))
 
-(defun %values-for-return (objs qualifier-lists env)
+(defun %values-for-return (objs qualifier-lists parsed-qualifier-lists env)
   (let* (;;
          (is-main-p (not (null (member :main (v-context env)))))
          (new-env (fresh-environment env :multi-val-base nil))
@@ -139,8 +151,8 @@
                        env))))
          ;;
          (qualified-types (loop :for o :in objs
-                             :for q :in qualifier-lists
-                             :collect (qualify-type (primary-type o) q)))
+                             :for qlist :in parsed-qualifier-lists
+                             :collect (qualify-type (primary-type o) qlist)))
          (type-set (make-type-set* qualified-types))
          ;;
          (ast (ast-node! 'values
@@ -185,7 +197,11 @@
             env)))
 
 (defun extract-value-qualifiers (value-form)
-  (when (and (listp value-form) (keywordp (first value-form)))
+  (when (and (listp value-form)
+             (let ((to-check (first value-form)))
+               (or (keywordp to-check)
+                   (and (listp to-check)
+                        (keywordp (first to-check))))))
     (butlast value-form)))
 
 (defun extract-value-form (value-form)

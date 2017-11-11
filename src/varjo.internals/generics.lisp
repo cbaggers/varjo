@@ -87,3 +87,4 @@
                                    stemcells out-of-scope-args
                                    place-tree pure node-tree))
 (defgeneric flow-id-origins (node &optional error-on-missingp context))
+(defgeneric qualifier-equal (qual-a qual-b))

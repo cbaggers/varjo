@@ -4,7 +4,7 @@
 (defun qualified-eql (ret-a ret-b)
   (and (v-type-eq ret-a ret-b)
        (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-       (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
+       (every #'qualifier-equal (qualifiers ret-a) (qualifiers ret-b))))
 
 (defun type-sets-equal (set-a set-b)
   (and (= (length set-a) (length set-b))
@@ -32,6 +32,7 @@
             (substitute #\_ #\- (symbol-name (type-of stage)))
             n))
   (:method (n (stage vertex-stage) &optional include-instance-name)
+    (declare (ignore include-instance-name))
     (if (= n 0)
         "gl_Position"
         (call-next-method)))

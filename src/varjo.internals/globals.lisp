@@ -99,6 +99,3 @@
 (defvar *valid-contents-symbols*
   (append (copy-list *supported-versions*)
           (copy-list *draw-modes*)))
-
-(defvar *non-glsl-vari-qualifiers*
-  '(:feedback))

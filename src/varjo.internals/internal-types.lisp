@@ -141,6 +141,13 @@
   ((location :initarg :location :reader location)
    (block-name :initarg :block-name :reader block-name)))
 
+(defclass qualifier ()
+  ((name :initarg :name :reader name)
+   (glsl-string :initarg :glsl-string :reader glsl-string)))
+
+(defclass feedback-qualifier (qualifier)
+  ((group :initarg :group :reader feedback-group)))
+
 ;;----------------------------------------------------------------------
 
 (defclass environment ()

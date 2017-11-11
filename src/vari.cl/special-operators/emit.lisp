@@ -60,9 +60,12 @@
                                    :type-set (make-type-set)
                                    :node-tree ast)
                     final-env))
-          (%values-for-emit (list code-obj)
-                            (list (extract-value-qualifiers code-obj))
-                            final-env)))))
+          (let* ((qualifiers (extract-value-qualifiers code-obj))
+                 (parsed (mapcar #'parse-qualifier qualifiers)))
+            (%values-for-emit (list code-obj)
+                              (list qualifiers)
+                              (list parsed)
+                              final-env))))))
 
 ;;------------------------------------------------------------
 

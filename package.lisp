@@ -309,6 +309,7 @@
            :illegal-&rest-in-args
            :attempted-transform-feedback-in-fragment-shader
            :transform-feedback-incorrect-stage
+           :invalid-feedback-qualifier-form
 
            ;; restarts
            :setq-supply-alternate-type
@@ -615,7 +616,10 @@
            :with-fresh-env-scope
            :with-stemcell-infer-hook
            :with-v-arg
-           :with-v-let-spec))
+           :with-v-let-spec
+           :parse-qualifier
+           :*in-qualifier*
+           :*out-qualifier*))
 
 (uiop:define-package #:varjo.api
     (:use #:cl #:varjo.utils #:varjo.internals #:alexandria #:named-readtables)
