@@ -24,15 +24,17 @@
 
 (defgeneric nth-return-name (n stage &optional include-instance-name)
   (:method (n (stage stage) &optional include-instance-name)
+    (format nil "~@[~a.~]_~a_OUT_~a"
+            (when include-instance-name
+              (if (typep stage 'tessellation-control-stage)
+                  (format nil "~a[gl_InvocationID]" *out-block-name*)
+                  *out-block-name*))
+            (substitute #\_ #\- (symbol-name (type-of stage)))
+            n))
+  (:method (n (stage vertex-stage) &optional include-instance-name)
     (if (= n 0)
         "gl_Position"
-        (format nil "~@[~a.~]_~a_OUT_~a"
-                (when include-instance-name
-                  (if (typep stage 'tessellation-control-stage)
-                      (format nil "~a[gl_InvocationID]" *out-block-name*)
-                      *out-block-name*))
-                (substitute #\_ #\- (symbol-name (type-of stage)))
-                n)))
+        (call-next-method)))
   (:method (n (stage fragment-stage) &optional include-instance-name)
     (declare (ignore include-instance-name))
     (format nil "_~a_OUT_~a"
