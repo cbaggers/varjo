@@ -29,11 +29,14 @@
 ;;------------------------------------------------------------
 ;; Converting specs into types
 
+(defun expand-keyword-type-spec-shorthand (spec)
+  (cond ((keywordp spec) (p-symb 'vari.types 'v- spec))
+        ((and (listp spec) (keywordp (first spec)))
+         (cons (p-symb 'vari.types 'v- (first spec)) (rest spec)))
+        (t spec)))
+
 (defun try-type-spec->type (spec flow-id)
-  (let ((spec (cond ((keywordp spec) (p-symb 'vari.types 'v- spec))
-                    ((and (listp spec) (keywordp (first spec)))
-                     (cons (p-symb 'vari.types 'v- (first spec)) (rest spec)))
-                    (t spec))))
+  (let ((spec (expand-keyword-type-spec-shorthand spec)))
     (cond ((null spec) nil)
           ;;
           ((eq spec t) (type-spec->type 'v-type))
