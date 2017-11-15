@@ -132,7 +132,14 @@
    If the input is symbol/s then the output is a regular symbol
    If the input is string/s, then the output is
    a |symbol like this|"
-  (values (intern (format nil "~{~a~}" args) package)))
+  (labels ((treat-symb (x)
+             ;; we have to do this so it works with *print-case*
+             ;; set to :lower
+             (if (symbolp x)
+                 (symbol-name x)
+                 x)))
+    (let ((args (mapcar #'treat-symb args)))
+      (values (intern (format nil "~{~a~}" args) package)))))
 
 (defun assocr (item alist &key (key nil keyp) (test nil testp)
                             (test-not nil notp))
