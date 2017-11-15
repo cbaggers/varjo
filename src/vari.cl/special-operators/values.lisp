@@ -177,6 +177,7 @@
                 `(setq vari.glsl::gl-position ,code-obj)
                 (error 'vertex-stage-primary-type-mismatch
                        :prim-type (primary-type code-obj)))
+            ;; this branch is related to the issue
             `(glsl-expr
               ,(format nil "~a = ~~a" (nth-return-name index stage t))
               ,(primary-type code-obj) ,code-obj))
