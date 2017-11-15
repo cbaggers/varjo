@@ -126,6 +126,31 @@
                    10001)))
         (test 1)))))
 
+(5am:def-test values-17 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 nil
+     (multiple-value-bind (x y) (values 1 2)
+       (values))
+     (vec4 1 2 3 4))))
+
+(5am:def-test values-18 (:suite multiple-value-return-tests)
+  ;; tests emit in tail position of multiple-value-bind
+  (finishes-p
+   (varjo.tests::compile-geom () :450 nil
+     (declare (output-primitive :kind :triangle-strip
+                                :max-vertices 3))
+     (multiple-value-bind (x y) (values 1 2)
+       (emit ()
+             (vec4 0.0 0.0 0.0 1.0)
+             (vec3 0.0 0.0 0.0))
+       (emit ()
+             (vec4 0.0 0.0 0.0 1.0)
+             (vec3 0.0 y 0.0))
+       (emit ()
+             (vec4 0.0 0.0 0.0 1.0)
+             (vec3 0.0 x 0.0)))
+     (end-primitive)
+     (values))))
 
 ;; These are not valid until #'vector is a function
 
