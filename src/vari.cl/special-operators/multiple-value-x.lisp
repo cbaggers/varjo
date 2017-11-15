@@ -35,7 +35,7 @@
               :node-tree (ast-node! 'multiple-value-bind
                                     `(,vars ,(node-tree value-obj)
                                             ,@(mapcar #'node-tree b-objs))
-                                    (make-type-set (primary-type merged))
+                                    (type-set merged)
                                     env final-env))
              final-env)))))))
 
