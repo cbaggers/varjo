@@ -595,7 +595,7 @@
                                 (write-ubo-block :uniform string-name
                                                  (v-slots type-obj)))
                                ((member :ssbo qualifiers)
-                                (write-ssbo-block :uniform string-name
+                                (write-ssbo-block :buffer string-name
                                                   (v-slots type-obj)))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj

@@ -35,8 +35,10 @@
 (v-defspecial %modify-place (lisp-op-name glsl-op-symbol place val)
   :args-valid t
   :return
+  ;; compile place and val so we can see what we have to work with
   (multiple-value-bind (place-obj env-0) (compile-place place env :allow-unbound t)
     (multiple-value-bind (val-obj env) (compile-form val env-0)
+      ;; make sure we in the compiler havent been dumbasses
       (assert (member lisp-op-name '(setf incf decf multf divf)))
       (cond
         ((not (place-tree place-obj))
@@ -47,7 +49,14 @@
                 :code-obj-a place-obj :code-obj-b val-obj
                 :form `(,lisp-op-name ,place ,val)))
         (t (destructuring-bind (name value) (last1 (place-tree place-obj))
-             (when (v-read-only value)
+             (when (and (v-read-only value)
+                        ;; The one time we can write to a uniform is when
+                        ;; it's an ssbo. We do make sure that the place-tree
+                        ;; is deeper than 1 though because otherwise we are
+                        ;; setting the uniform itself rather than an
+                        ;; element/slot
+                        (not (and (find :ssbo (qualifiers (v-type-of value)))
+                                  (> (length (place-tree place-obj)) 1))))
                (error 'assigning-to-readonly :var-name name))
              (unless (or (= (v-function-scope env) (v-function-scope value))
                          (= (v-function-scope value) 0))
