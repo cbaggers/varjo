@@ -85,6 +85,11 @@
 
 ;; mutates env
 (defun expand-input-variables (stage env)
+  (when (typep stage 'compute-stage)
+    (assert (null (input-variables stage)) ()
+            'compute-stage-with-in-args
+            :args (mapcar λ(list (name _) (type->type-spec (v-type-of _)))
+                          (input-variables stage))))
   (mapcar (lambda (var)
             (vbind (input-value expanded-vars expanded-funcs)
                 (expand-input-variable stage (v-type-of var) var env)
@@ -187,8 +192,7 @@
 
       (geometry-stage
        (let* ((tl (find 'vari.cl:output-primitive main-metadata :key #'type-of)))
-         ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a geometry stage must have a top level output-primitive declaration")
+         (assert tl () 'stage-must-have-output-prim-declaration :stage stage)
          (setf (out-declarations post-proc-obj)
                (list (gen-geom-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
@@ -196,8 +200,7 @@
 
       (tessellation-control-stage
        (let* ((tl (find 'vari.cl:output-patch main-metadata :key #'type-of)))
-         ;; {TODO} proper error
-         (assert tl () "Varjo: The function used as a tessellation control stage must have a top level output-primitive declaration")
+         (assert tl () 'stage-must-have-output-patch-declaration :stage stage)
          (setf (out-declarations post-proc-obj)
                (list (gen-tess-con-output-primitive-string tl)))
          (setf (primitive-out post-proc-obj)
@@ -221,6 +224,14 @@
                         'tessellation-out-primitive)
                  () 'tessellation-evaluation-invalid-primitive
                  :primitive (primitive-out post-proc-obj))))
+
+      (compute-stage
+       (let* ((tl (find 'vari.cl:local-size main-metadata :key #'type-of)))
+         (assert tl () 'stage-must-have-local-size-declaration :stage stage)
+         (setf (out-declarations post-proc-obj)
+               (list (gen-compute-local-size-layout-string tl)))
+         (setf (primitive-out post-proc-obj)
+               nil)))
 
       (t (setf (primitive-out post-proc-obj)
                (primitive-in (stage post-proc-obj))))))
@@ -249,7 +260,7 @@
       (%array-the-return-vals-for-size
        (vertex-count primitive-out)
        raw-out-set)))
-
+  ;; {TODO} compute: must assert for no return args
   (:method (stage raw-out-set primitive-out)
     (declare (ignore stage primitive-out))
     raw-out-set))
@@ -538,7 +549,11 @@
 
   (:method ((stage fragment-stage) post-proc-obj locations)
     (with-slots (out-set) post-proc-obj
-      (gen-out-glsl-decls stage out-set locations))))
+      (gen-out-glsl-decls stage out-set locations)))
+
+  (:method ((stage compute-stage) post-proc-obj locations)
+    (with-slots (out-set) post-proc-obj
+      nil)))
 
 ;;----------------------------------------------------------------------
 

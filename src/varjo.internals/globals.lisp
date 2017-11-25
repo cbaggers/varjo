@@ -13,14 +13,16 @@
     :tessellation-control
     :tessellation-evaluation
     :geometry
-    :fragment))
+    :fragment
+    :compute))
 
 (defvar *stage-type-names*
   '(vertex-stage
     tessellation-control-stage
     tessellation-evaluation-stage
     geometry-stage
-    fragment-stage))
+    fragment-stage
+    compute-stage))
 
 (defvar *unshadowable-names* '(;; special
                                and

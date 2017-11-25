@@ -189,6 +189,13 @@
   (with-slots (vari.cl:vertices) metadata
     (format nil "layout (vertices = ~a) out;" vari.cl:vertices)))
 
+(defun gen-compute-local-size-layout-string (metadata)
+  (with-slots (vari.cl::x vari.cl::y vari.cl::z) metadata
+    (format nil "layout(local_size_x = ~a, local_size_y = ~a, local_size_z = ~a) in;"
+            (or vari.cl::x 1)
+            (or vari.cl::y 1)
+            (or vari.cl::z 1))))
+
 (defun gen-tess-eval-output-primitive-string (metadata)
   (with-slots (vari.cl:primitive vari.cl:spacing vari.cl:order) metadata
     (let ((primitive (primitive-name-to-instance vari.cl:primitive)))

@@ -11,6 +11,7 @@
            (tessellation-evaluation-stage '(:patch 32))
            (geometry-stage :triangles-adjacency)
            (fragment-stage nil)
+           (compute-stage nil)
            (otherwise (error "Varjo: Invalid stage kind name ~a" type)))))
     (when prim
       (primitive-name-to-instance prim))))
@@ -28,7 +29,9 @@
     (tessellation-control-stage
      `((declare (vari.cl:output-patch :vertices 32))))
     (geometry-stage
-     `((declare (vari.cl:output-primitive :kind :triangle-strip :max-vertices 3))))))
+     `((declare (vari.cl:output-primitive :kind :triangle-strip :max-vertices 3))))
+    (compute-stage
+     `((declare (vari.cl:local-size :x 10 :y 10 :z 10))))))
 
 ;;----------------------------------------------------------------------
 
@@ -85,7 +88,10 @@
       (%test-translate-raising request-stage-func :geometry))
 
     (retest-assuming-fragment-stage ()
-      (%test-translate-raising request-stage-func :fragment))))
+      (%test-translate-raising request-stage-func :fragment))
+
+    (retest-assuming-compute-stage ()
+      (%test-translate-raising request-stage-func :compute))))
 
 ;;----------------------------------------------------------------------
 

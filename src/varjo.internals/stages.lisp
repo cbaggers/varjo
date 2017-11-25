@@ -40,6 +40,10 @@
           ;; {TODO} proper error
           (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
                   "Varjo: Tessellation stages require a GLSL version of at least 400"))
+        (when (member kind '(:compute))
+          ;; {TODO} proper error
+          (assert (intersection context '(:430 :440 :450)) ()
+                  "Varjo: Compute stages require a GLSL version of at least 430"))
         (check-for-stage-specific-limitations r)
         r))))
 
@@ -75,7 +79,13 @@
                  :prim (type-of primitive))
          primitive)
 
-        (fragment-stage nil)))))
+        (fragment-stage nil)
+
+        (compute-stage
+         (assert (null primitive) ()
+                 'invalid-primitive-for-compute-stage
+                 :prim (type-of primitive))
+         nil)))))
 
 
 ;;----------------------------------------------------------------------
@@ -129,14 +139,16 @@
     (tessellation-control-stage :tessellation-control)
     (tessellation-evaluation-stage :tessellation-evaluation)
     (geometry-stage :geometry)
-    (fragment-stage :fragment)))
+    (fragment-stage :fragment)
+    (compute-stage :compute)))
 
 (defun stage-kind-to-type (kind)
   (let ((map '((:vertex . vertex-stage)
                (:tessellation-control . tessellation-control-stage)
                (:tessellation-evaluation . tessellation-evaluation-stage)
                (:geometry . geometry-stage)
-               (:fragment . fragment-stage))))
+               (:fragment . fragment-stage)
+               (:compute . compute-stage))))
     (or (assocr kind map)
         (when (subtypep kind 'stage) kind)
         (error 'invalid-stage-kind :kind kind))))
@@ -147,7 +159,8 @@
     (tessellation-control-stage 'compiled-tessellation-control-stage)
     (tessellation-evaluation-stage 'compiled-tessellation-evaluation-stage)
     (geometry-stage 'compiled-geometry-stage)
-    (fragment-stage 'compiled-fragment-stage)))
+    (fragment-stage 'compiled-fragment-stage)
+    (compute-stage 'compiled-compute-stage)))
 
 (defun process-context (raw-context)
   ;; As this was a more recent change we wanted a more explanatory error

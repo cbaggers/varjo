@@ -16,7 +16,7 @@
             "Varjo: All types must specify one superclass, this will usually be v-type"))
   ;;
   (let ((new-names (if (and (equal (package-name (symbol-package name)) "VARJO")
-                            (equal (subseq (symbol-name name) 2) "V-")
+                            (equal (subseq (symbol-name name) 0 2) "V-")
                             (not (member name '(v-type))))
                        `(append (list ,(kwd (subseq (symbol-name name) 2))
                                       ',name)

@@ -5,7 +5,11 @@
   (labels ((valid-for-rt (x) (typep x 'stage)))
     (assert (every #'valid-for-rt stages)
             () 'rolling-translate-invalid-stage
-            :invalid (remove-if #'valid-for-rt stages)))
+            :invalid (remove-if #'valid-for-rt stages))
+    (when (find-if λ(typep _ 'compute-stage) stages)
+      (assert (= (length stages) 1) ()
+              'compute-pipeline-may-only-contain-one-stage
+              :stages (mapcar #'type-of stages))))
   ;;
   (let* ((result (reduce λ(compile-stage _ _1 compile-func) stages
                          :initial-value (make-instance 'rolling-result))))

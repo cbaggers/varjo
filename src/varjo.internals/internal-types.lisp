@@ -93,6 +93,7 @@
 (defclass tessellation-evaluation-stage (stage tessellation-stage) ())
 (defclass geometry-stage (stage) ())
 (defclass fragment-stage (stage) ())
+(defclass compute-stage (stage) ())
 
 ;;----------------------------------------------------------------------
 ;; Compiler output
@@ -121,6 +122,9 @@
 
 (defclass compiled-fragment-stage
     (fragment-stage compiled-stage) ())
+
+(defclass compiled-compute-stage
+    (compute-stage compiled-stage) ())
 
 (defclass shader-variable ()
   ((name :initarg :name :reader name)

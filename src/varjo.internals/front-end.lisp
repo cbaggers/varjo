@@ -5,7 +5,8 @@
 
 (defun v-compile (uniforms version
                   &key vertex tessellation-control tessellation-evaluation
-                    geometry fragment allow-stemcells (draw-mode :triangles))
+                    geometry fragment compute allow-stemcells
+                    (draw-mode :triangles))
   "
 This function takes lisp code as lists and returns the results of compiling
 that code to glsl.
@@ -29,7 +30,7 @@ Example:
                              (vec4 1.0 1.0 hmm (fun a)))))
 "
   (assert (or vertex tessellation-control tessellation-evaluation
-              geometry fragment))
+              geometry fragment compute))
   (let* ((prim (list draw-mode))
          (stages (list (when vertex
                          (make-stage :vertex
@@ -70,11 +71,19 @@ Example:
                                      (list version)
                                      (rest fragment)
                                      allow-stemcells
+                                     (pop prim)))
+                       (when compute
+                         (make-stage :compute
+                                     nil
+                                     uniforms
+                                     (list version)
+                                     (rest fragment)
+                                     allow-stemcells
                                      (pop prim)))))
          (stages (remove nil stages))
          (first (first stages)))
     (setf (primitive-in first) draw-mode)
-    (rolling-translate (remove nil stages))))
+    (rolling-translate stages)))
 
 ;;----------------------------------------------------------------------
 

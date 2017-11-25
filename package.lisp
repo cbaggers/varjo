@@ -310,6 +310,12 @@
            :attempted-transform-feedback-in-fragment-shader
            :transform-feedback-incorrect-stage
            :invalid-feedback-qualifier-form
+           :invalid-primitive-for-compute-stage
+           :compute-pipeline-may-only-contain-one-stage
+           :stage-must-have-local-size-declaration
+           :stage-must-have-output-prim-declaration
+           :stage-must-have-output-patch-declaration
+           :compute-stage-with-in-args
 
            ;; restarts
            :setq-supply-alternate-type
@@ -387,6 +393,7 @@
            :compiled-tessellation-evaluation-stage
            :compiled-geometry-stage
            :compiled-fragment-stage
+           :compiled-compute-stage
            :compiler-macro-expansion-environment
            :context
            :copy-ast-node
@@ -542,6 +549,7 @@
            :swizzlable-p
            :tessellation-control-stage
            :tessellation-evaluation-stage
+           :compute-stage
            :test-translate-function-split-details
            :to-arg-form
            :to-block
@@ -644,6 +652,7 @@
    :tessellation-evaluation-stage
    :geometry-stage
    :fragment-stage
+   :compute-stage
    ;;
    ;; primitives, draw-modes, etc
    :dynamic
@@ -738,6 +747,7 @@
    :compiled-tessellation-evaluation-stage
    :compiled-geometry-stage
    :compiled-fragment-stage
+   :compiled-compute-stage
    :glsl-code
    :output-variables
    :implicit-uniforms
@@ -858,6 +868,7 @@
    :output-patch
    :vertices
    :tessellate-to
+   :local-size
    :primitive
    :spacing
    :order))

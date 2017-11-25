@@ -955,6 +955,47 @@ a form with a single positive integer specifying the group e.g. (:feedback 0)
 However in this case we found ~s which is invalid"
   form)
 
+(deferror invalid-primitive-for-compute-stage () (prim)
+    "Whilst compiling a compute stage it was found that primitive had been set
+to something other than nil. This is invalid for this stage. Please use nil
+instead.
+
+Primitive found: ~a"
+  prim)
+
+(deferror compute-pipeline-may-only-contain-one-stage () (stages)
+    "A attempt was made to compile a pipeline with the following stages:
+~{~a~^, ~}
+
+However, if you are compiling a pipeline that contains a compute stage there
+may not be any other stages in that pipeline."
+  stages)
+
+(deferror stage-must-have-output-prim-declaration () (stage)
+    "The function used as a geometry stage must have a top level
+output-primitive declaration
+
+Stage: ~a" stage)
+
+(deferror stage-must-have-output-patch-declaration () (stage)
+    "The function used as a tessellation control stage must have a top level
+output-patch declaration
+
+Stage: ~a" stage)
+
+(deferror stage-must-have-local-size-declaration () (stage)
+    "The function used as a compute stage must have a top level local-size
+declaration.
+
+Stage: ~a" stage)
+
+(deferror compute-stage-with-in-args () (args)
+    "We were asked to compile a compute stage but have found that it has input
+arguments defined for it. GL does not allow input arguments for compute stages,
+only uniforms.
+
+Args found: ~a" args)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

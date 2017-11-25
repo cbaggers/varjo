@@ -27,6 +27,14 @@
   order)
 
 ;;------------------------------------------------------------
+;; Compute
+
+(def-metadata-kind local-size (:binds-to :scope)
+  x
+  y
+  z)
+
+;;------------------------------------------------------------
 ;; emit
 
 (v-defspecial emit-data (&optional (form '(values)))
