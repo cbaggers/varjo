@@ -11,8 +11,8 @@ Vari is the dialect of lisp Varjo compiles. It aims to be as close to Common Lis
 Subset of common lisp. Including:
 
 - Macros
- - `defmacro`, `define-compiler-macro`, `macrolet`, `symbol-macrolet` all supported
- - `&environment` supported (currently custom API for introspection but [cltl2](https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node102.html) API planned)
+  - `defmacro`, `define-compiler-macro`, `macrolet`, `symbol-macrolet` all supported
+  - `&environment` supported (currently custom API for introspection but [cltl2](https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node102.html) API planned)
 - Multiple-value return via `values` & `multiple-value-bind`
 - local functions via `labels`
 - `defstruct` which can be used across multiple shaders (Less repeated code)
@@ -59,11 +59,11 @@ This is annoying but a neccessary step before I could start documenting the proj
 **Bugfixes & Enhancements**
 
 - `if` will now generate a ternary expression (e.g. `x<0 ? -1 : 1`) if the followiung is true
- - there is an 'else' form
- - both the 'then' & 'else' forms return a value of the same type
- - both the 'then' & 'else' forms are pure
- - neither the 'then' & 'else' forms return multiple values
- - there is also a 'style' restriction that means if the glsl code for the expression goes over 100 characters then it will emit a regular `if` block. This is just to keep code readable.
+  - there is an 'else' form
+  - both the 'then' & 'else' forms return a value of the same type
+  - both the 'then' & 'else' forms are pure
+  - neither the 'then' & 'else' forms return multiple values
+  - there is also a 'style' restriction that means if the glsl code for the expression goes over 100 characters then it will emit a regular `if` block. This is just to keep code readable.
 
 - If you use `->` in a symbol it will become `_to_` in glsl. So `int->float` becomes `int_to_float`
 
