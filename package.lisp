@@ -318,6 +318,7 @@
            :compute-stage-with-in-args
            :uniform-ubo-and-ssbo
            :ubo-ssbo-type-limitation
+           :compute-stage-must-be-void
 
            ;; restarts
            :setq-supply-alternate-type

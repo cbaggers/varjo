@@ -1009,6 +1009,12 @@ Uniform Argument: ~s" arg)
 If this is impeding your work please feel free to file an issue
 at https://github.com/cbaggers/varjo/issues")
 
+(deferror compute-stage-must-be-void () (name returns)
+    "Compute stages must return (values) however ~a returns:
+~a"
+  (or name "this lambda")
+  returns)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

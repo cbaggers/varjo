@@ -19,6 +19,7 @@
 (defun gen-dummy-out-for-stage-type (stage-type)
   (case stage-type
     (geometry-stage '(values))
+    (compute-stage '(values))
     (otherwise '(vari.glsl:vec4 1 2 3 4))))
 
 (defun gen-dummy-call (name args)

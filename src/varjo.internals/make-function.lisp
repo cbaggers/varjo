@@ -112,23 +112,25 @@
                                           func-env
                                           (remove-main-method-flag-from-env
                                            func-env)))))
-           (body-code (if (typep (stage env) 'compute-stage)
-                          `(progn ,@body (implicit-return (values)))
-                          `(implicit-return (progn ,@body))))
+           (body-code `(implicit-return (progn ,@body)))
            (body-obj (compile-form body-code body-env))
            (implicit-args (extract-implicit-args name allowed-implicit-args
                                                  (normalize-out-of-scope-args
                                                   (out-of-scope-args body-obj))
                                                  func-env))
            (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
-           (return-set (coerce (return-set body-obj) 'list))
-           (emit-set (emit-set body-obj))
-           (multi-return-vars (when return-set (rest return-set)))
-           (type (if mainp
-                     (type-spec->type 'v-void)
-                     (or (when return-set (first return-set))
-                         (type-spec->type :void)))))
-      (let* ((arg-pairs (unless mainp
+           (return-set (coerce (return-set body-obj) 'list)))
+      (when (typep (stage env) 'compute-stage)
+        (assert (null return-set) () 'compute-stage-must-be-void
+                :name name :returns return-set))
+      (let* ((emit-set (emit-set body-obj))
+             (multi-return-vars (when return-set (rest return-set)))
+             (type (if mainp
+                       (type-spec->type 'v-void)
+                       (or (when return-set (first return-set))
+                           (type-spec->type :void))))
+             ;;
+             (arg-pairs (unless mainp
                           (loop :for (nil type) :in args
                              :for name :in arg-glsl-names :collect
                              `(,(v-glsl-string type) ,name))))
