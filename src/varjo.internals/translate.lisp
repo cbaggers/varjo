@@ -117,7 +117,8 @@
     (map nil
          λ(with-slots (name type qualifiers glsl-name) _
             (case-member qualifiers
-              (:ubo (process-ubo-uniform name glsl-name type qualifiers env))
+              (:ubo (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
+              (:ssbo (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
               (:fake (add-fake-struct stage env))
               (otherwise (process-regular-uniform name glsl-name type
                                                   qualifiers env))))
@@ -138,7 +139,9 @@
   env)
 
 ;; mutates env
-(defun process-ubo-uniform (name glsl-name type qualifiers env)
+(defun process-ubo/ssbo-uniform (name glsl-name type qualifiers env)
+  (assert (v-typep type 'v-user-struct) ()
+          'ubo-ssbo-type-limitation :type type)
   (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-symbol-binding
@@ -591,6 +594,9 @@
                                ((member :ubo qualifiers)
                                 (write-ubo-block :uniform string-name
                                                  (v-slots type-obj)))
+                               ((member :ssbo qualifiers)
+                                (write-ssbo-block :uniform string-name
+                                                  (v-slots type-obj)))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))

@@ -77,7 +77,7 @@ Example:
                                      nil
                                      uniforms
                                      (list version)
-                                     (rest fragment)
+                                     (rest compute)
                                      allow-stemcells
                                      (pop prim)))))
          (stages (remove nil stages))

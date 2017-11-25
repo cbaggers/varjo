@@ -8,7 +8,13 @@
   (when (and (every #'check-arg-form in-args)
              (every #'check-arg-form uniforms)
              (check-for-dups in-args uniforms))
-    (labels ((make-var (vkind raw)
+    (labels ((early-qualifier-checks (whole qualifiers)
+               (assert (not (and (find :ubo qualifiers)
+                                 (find :ssbo qualifiers)))
+                       () 'uniform-ubo-and-ssbo
+                       :arg whole)
+               qualifiers)
+             (make-var (vkind raw)
                (dbind (name type-spec . rest) raw
                  (vbind (qualifiers glsl-name) (extract-glsl-name rest)
                    (make-instance
@@ -16,7 +22,7 @@
                     :name name
                     :glsl-name (or glsl-name (safe-glsl-name-string name))
                     :type (type-spec->type type-spec)
-                    :qualifiers qualifiers)))))
+                    :qualifiers (early-qualifier-checks raw qualifiers))))))
       (let* ((context (process-context context))
              (stage-type (if kind
                              (stage-kind-to-type kind)

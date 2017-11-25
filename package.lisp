@@ -316,6 +316,8 @@
            :stage-must-have-output-prim-declaration
            :stage-must-have-output-patch-declaration
            :compute-stage-with-in-args
+           :uniform-ubo-and-ssbo
+           :ubo-ssbo-type-limitation
 
            ;; restarts
            :setq-supply-alternate-type

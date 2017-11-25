@@ -295,6 +295,15 @@
           (mapcar #'gen-interface-block-slot-string slots)
           block-name))
 
+(defun write-ssbo-block (storage-qualifier block-name slots
+                        &optional (layout "std140"))
+  (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
+          layout
+          (string-downcase (symbol-name storage-qualifier))
+          (format nil "_SSBO_~a" block-name)
+          (mapcar #'gen-interface-block-slot-string slots)
+          block-name))
+
 (defun gen-interface-block-slot-string (slot)
   (destructuring-bind (slot-name slot-type accessor transform-string) slot
     (declare (ignore transform-string))

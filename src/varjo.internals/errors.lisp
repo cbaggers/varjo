@@ -996,6 +996,19 @@ only uniforms.
 
 Args found: ~a" args)
 
+(deferror uniform-ubo-and-ssbo () (arg)
+    "Whilst making a stage object we found a uniform argument which is
+specified to be both a UBO and a SSBO. It is not valid for a uniform to be
+both of these.
+
+Uniform Argument: ~s" arg)
+
+(deferror ubo-ssbo-type-limitation () (type)
+    "Currently UBOs and SSBOs in Varjo must be structs.
+
+If this is impeding your work please feel free to file an issue
+at https://github.com/cbaggers/varjo/issues")
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package
