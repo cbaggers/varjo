@@ -43,6 +43,15 @@
               :fragment ',(third body)
               :allow-stemcells ,allow-stemcells))
 
+(defmacro compile-compute (args version allow-stemcells &body body)
+  (destructuring-bind (in-args uniforms) (varjo.internals::split-arguments args '(&uniform))
+    (assert (null in-args))
+    `(first
+      (v-compile ',uniforms ,version
+                 :compute '(,in-args ,@body)
+                 :allow-stemcells ,allow-stemcells
+                 :draw-mode nil))))
+
 (defun ast-stabalizes-p (compile-result &optional (depth 0) (max-depth 20))
   "Returns t if compile the ast->code of compile-result gives the same ast
    It is allowed to recompile up to 'max-depth' times in order to find
