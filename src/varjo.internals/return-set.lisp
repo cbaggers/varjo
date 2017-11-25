@@ -26,9 +26,13 @@
   (:method (n (stage stage) &optional include-instance-name)
     (format nil "~@[~a.~]_~a_OUT_~a"
             (when include-instance-name
-              (if (typep stage 'tessellation-control-stage)
-                  (format nil "~a[gl_InvocationID]" *out-block-name*)
-                  *out-block-name*))
+              *out-block-name*)
+            (substitute #\_ #\- (symbol-name (type-of stage)))
+            n))
+  (:method (n (stage tessellation-control-stage) &optional include-instance-name)
+    (format nil "~@[~a.~]_~a_OUT_~a"
+            (when include-instance-name
+              (format nil "~a[gl_InvocationID]" *out-block-name*))
             (substitute #\_ #\- (symbol-name (type-of stage)))
             n))
   (:method (n (stage vertex-stage) &optional include-instance-name)
