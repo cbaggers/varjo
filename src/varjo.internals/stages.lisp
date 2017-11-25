@@ -21,7 +21,8 @@
                     vkind
                     :name name
                     :glsl-name (or glsl-name (safe-glsl-name-string name))
-                    :type (type-spec->type type-spec)
+                    :type (qualify-type (type-spec->type type-spec)
+                                        qualifiers)
                     :qualifiers (early-qualifier-checks raw qualifiers))))))
       (let* ((context (process-context context))
              (stage-type (if kind
