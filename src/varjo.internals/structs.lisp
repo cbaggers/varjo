@@ -59,9 +59,13 @@
              ((signature :initform ""))))
          ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod v-true-type ((object ,class-name))
-           (make-instance ',true-type-name :flow-ids (flow-ids object)))
+           (make-instance ',true-type-name
+                          :flow-ids (flow-ids object)
+                          :qualifiers (qualifiers object)))
          (defmethod v-fake-type ((object ,class-name))
-           (make-instance ',fake-type-name :flow-ids (flow-ids object)))
+           (make-instance ',fake-type-name
+                          :flow-ids (flow-ids object)
+                          :qualifiers (qualifiers object)))
          (defmethod type->type-spec ((type ,true-type-name))
            ',name)
          (v-def-glsl-template-fun ,(symb 'make- (or constructor name))
