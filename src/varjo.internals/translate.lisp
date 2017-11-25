@@ -552,6 +552,7 @@
       (gen-out-glsl-decls stage out-set locations)))
 
   (:method ((stage compute-stage) post-proc-obj locations)
+    (declare (ignore locations))
     (with-slots (out-set) post-proc-obj
       nil)))
 
