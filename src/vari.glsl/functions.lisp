@@ -57,6 +57,17 @@
 ;;------------------------------------------------------------
 ;; Devil magic that makes operators work on any length
 
+(v-def-glsl-template-fun = (a b c &rest c) "(~a |==| ~a |==| ~a ~{ |==| ~a~})"
+                         (t t t &rest t) 0 :pure t)
+
+(v-define-compiler-macro = ((a t) (b t) (c t) &rest (d t))
+  (let ((ga (gensym "a")))
+    `(let ((,ga ,a))
+       (and (= ,ga ,b)
+            (= ,ga ,c)
+            ,@(loop :for x :in d :collect
+                 `(= ,ga ,x))))))
+
 (v-def-glsl-template-fun * (a b c &rest c) "(~a |*| ~a |*| ~a ~{ |*| ~a~})"
                          (t t t &rest t) 0 :pure t)
 
