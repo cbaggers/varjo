@@ -49,6 +49,7 @@
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec2 v-dvec2) v-bool :pure t)
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec3 v-dvec3) v-bool :pure t)
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec4 v-dvec4) v-bool :pure t)
+(v-def-glsl-template-fun = (a) "true" (t) v-bool :pure t)
 
 (v-def-glsl-template-fun ++ (a) "(++ ~a)" (v-number) nil)
 (v-def-glsl-template-fun -- (a) "(-- ~a)" (v-number) nil)
