@@ -593,10 +593,20 @@
                   :glsl-decl (cond
                                ((member :ubo qualifiers)
                                 (write-ubo-block :uniform string-name
-                                                 (v-slots type-obj)))
+                                                 (v-slots type-obj)
+                                                 (or (find :std-140 qualifiers
+                                                           :test #'string=)
+                                                     (find :std-430 qualifiers
+                                                           :test #'string=)
+                                                     :std-140)))
                                ((member :ssbo qualifiers)
                                 (write-ssbo-block :buffer string-name
-                                                  (v-slots type-obj)))
+                                                  (v-slots type-obj)
+                                                  (or (find :std-140 qualifiers
+                                                            :test #'string=)
+                                                      (find :std-430 qualifiers
+                                                            :test #'string=)
+                                                      :std-140)))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))

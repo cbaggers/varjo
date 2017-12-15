@@ -319,6 +319,7 @@
            :uniform-ubo-and-ssbo
            :ubo-ssbo-type-limitation
            :compute-stage-must-be-void
+           :unknown-layout-specifier
 
            ;; restarts
            :setq-supply-alternate-type

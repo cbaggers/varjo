@@ -1015,6 +1015,11 @@ at https://github.com/cbaggers/varjo/issues")
   (or name "this lambda")
   returns)
 
+(deferror unknown-layout-specifier () (target-kind name specifier)
+    "Unknown layout specifier used for the ~a uniform named ~a.
+Was expecting one of std-140 or std-430. Recieved ~a instead."
+  target-kind name specifier)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package
