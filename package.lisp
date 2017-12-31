@@ -320,6 +320,7 @@
            :ubo-ssbo-type-limitation
            :compute-stage-must-be-void
            :unknown-layout-specifier
+           :find-mutual-type-bug
 
            ;; restarts
            :setq-supply-alternate-type

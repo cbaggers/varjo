@@ -41,7 +41,9 @@ type-spec trick doesnt"))
     type))
 
 (defmethod type->type-spec ((type v-type))
-  (class-name (class-of type)))
+  (let ((name (class-name (class-of type))))
+    (or (car (rassoc name *type-shorthand*))
+        name)))
 
 (defmethod make-load-form ((type v-type) &optional environment)
   (declare (ignore environment))
@@ -57,12 +59,13 @@ type-spec trick doesnt"))
   object)
 
 (defun vtype-existsp (type-name)
-  (etypecase type-name
-    (symbol
-     (and type-name
-          (find-class type-name nil)
-          (values (subtypep type-name 'v-type))))
-    (list (vtype-existsp (first type-name)))))
+  (let ((type-name (expand-keyword-type-spec-shorthand type-name)))
+    (etypecase type-name
+      (symbol
+       (and type-name
+            (find-class type-name nil)
+            (values (subtypep type-name 'v-type))))
+      (list (vtype-existsp (first type-name))))))
 
 ;;------------------------------------------------------------
 ;; Compilation Error

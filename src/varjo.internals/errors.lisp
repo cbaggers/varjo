@@ -1020,6 +1020,10 @@ at https://github.com/cbaggers/varjo/issues")
 Was expecting one of std-140 or std-430. Recieved ~a instead."
   target-kind name specifier)
 
+(deferror find-mutual-type-bug () (types)
+    "BUG: find-mutual-cast-type take a list of types, not type specs
+~a" types)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

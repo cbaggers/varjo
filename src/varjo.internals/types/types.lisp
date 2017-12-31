@@ -30,10 +30,9 @@
 ;; Converting specs into types
 
 (defun expand-keyword-type-spec-shorthand (spec)
-  (cond ((keywordp spec) (p-symb 'vari.types 'v- spec))
-        ((and (listp spec) (keywordp (first spec)))
-         (cons (p-symb 'vari.types 'v- (first spec)) (rest spec)))
-        (t spec)))
+  (or (when (keywordp spec)
+        (cdr (assoc spec *type-shorthand*)))
+      spec))
 
 (defun try-type-spec->type (spec flow-id)
   (let ((spec (expand-keyword-type-spec-shorthand spec)))
@@ -669,26 +668,29 @@
 
 
 (defun find-mutual-cast-type (&rest types)
-  (let ((names (loop :for type :in types
-                  :collect (if (typep type 'v-type)
-                               (type->type-spec type)
-                               type))))
-    (if (loop :for name :in names :always (equal name (first names)))
-        (when (first names) (type-spec->type (first names)))
-        (let* ((all-casts (sort (loop :for type :in types :for name :in names :collect
-                                   (cons name
-                                         (if (symbolp type)
-                                             (slot-value (type-spec->type type)
-                                                         'casts-to)
-                                             (slot-value type 'casts-to))))
-                                #'> :key #'length))
-               (master (first all-casts))
-               (rest-casts (rest all-casts))
-               (result (first (sort (loop :for type :in master
-                                       :if (loop :for casts :in rest-casts
-                                              :always (find type casts))
-                                       :collect type) #'> :key #'v-superior-score))))
-          (when result (type-spec->type result))))))
+  (assert (every λ(typep _ 'v-type) types) ()
+          'find-mutual-type-bug :types types)
+  (if (every λ(v-type-eq _ (first types)) (rest types))
+      (first types)
+      (let* ((all-casts
+              (sort (mapcar (lambda (type)
+                              (cons type
+                                    (mapcar #'type-spec->type
+                                            (slot-value type 'casts-to))))
+                            types)
+                    #'> :key #'length))
+             (master
+              (first all-casts))
+             (rest-casts
+              (rest all-casts))
+             (result
+              (first (sort (loop :for type :in master
+                              :if (every λ(find type _ :test #'v-type-eq)
+                                         rest-casts)
+                              :collect type)
+                           #'>
+                           :key #'v-superior-score))))
+        result)))
 
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
