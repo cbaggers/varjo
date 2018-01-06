@@ -315,8 +315,8 @@
 
 (defun gen-interface-block-slot-string (slot)
   (destructuring-bind (slot-name slot-type accessor transform-string) slot
-    (declare (ignore transform-string))
-    (let ((name (or accessor slot-name))
+    (declare (ignore transform-string accessor))
+    (let ((name slot-name)
           (type-obj slot-type))
       (format nil "    ~{~a ~}~a"
               ;;(loop :for q :in qualifiers :collect (string-downcase (string q)))

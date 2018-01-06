@@ -35,8 +35,7 @@
                                              (symb name '- slot-name)))
                                (transform
                                 (format nil "~~a.~a"
-                                        (safe-glsl-name-string
-                                         (or accessor slot-name)))))
+                                        (safe-glsl-name-string slot-name))))
                           (list slot-name slot-type accessor transform))))
                     slots))
            (slot-transforms-type-obj
@@ -98,7 +97,8 @@
 
 (defun gen-slot-string (slot)
   (destructuring-bind (slot-name slot-type &key accessor) slot
-    (let ((name (or accessor slot-name)))
+    (declare (ignore accessor))
+    (let ((name slot-name))
       (if (typep slot-type 'v-array)
           (format nil "    ~a ~a[~a];"
                   (v-glsl-string (v-element-type slot-type))
