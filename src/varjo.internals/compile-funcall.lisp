@@ -71,21 +71,27 @@
                                       `(funcall ,func-set ,@args-code)))))
         (t (error 'problem-with-the-compiler :target func))))))
 
+(defvar *allow-call-function-signature* nil)
+
+(defmacro with-unknown-first-class-functions-allowed (&body body)
+  `(let ((*allow-call-function-signature* t))
+     ,@body))
+
 (defun get-actual-function (func-code-obj code)
   (let ((primary-type (primary-type func-code-obj)))
     (if (typep primary-type 'v-any-one-of)
         (make-function-set (mapcar #'ctv (v-types primary-type)))
         (let* ((func (ctv primary-type)))
-          (restart-case (typecase func
-                          (v-function func)
-                          (v-function-set func)
-                          (t (error 'cannot-establish-exact-function
-                                    :funcall-form code)))
-            ;;
-            (allow-call-function-signature ()
-              (values
-               (make-dummy-function-from-type (primary-type func-code-obj))
-               t)))))))
+          (typecase func
+            (v-function func)
+            (v-function-set func)
+            (t (if *allow-call-function-signature*
+                   (values
+                    (make-dummy-function-from-type
+                     (primary-type func-code-obj))
+                    t)
+                   (error 'cannot-establish-exact-function
+                          :funcall-form code))))))))
 
 (defun find-and-expand-compiler-macro (func args env)
   (unless (v-special-functionp func)

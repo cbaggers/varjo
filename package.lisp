@@ -323,8 +323,7 @@
            :find-mutual-type-bug
 
            ;; restarts
-           :setq-supply-alternate-type
-           :allow-call-function-signature))
+           :setq-supply-alternate-type))
 
 (uiop:define-package #:varjo.internals
     (:use #:cl #:varjo.utils #:vari.types #:split-sequence
@@ -631,6 +630,7 @@
            :with-constant-inject-hook
            :with-fresh-env-scope
            :with-stemcell-infer-hook
+           :with-unknown-first-class-functions-allowed
            :with-v-arg
            :with-v-let-spec
            :parse-qualifier
@@ -773,6 +773,9 @@
    ;; hooks
    :with-stemcell-infer-hook
    :with-constant-inject-hook
+   ;;
+   ;; testing
+   :with-unknown-first-class-functions-allowed
    ;;
    ;; to sort
    :lisp-name))
