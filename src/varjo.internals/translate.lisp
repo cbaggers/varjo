@@ -399,9 +399,12 @@
                       (loop :for (name type) :in (v-slots type)
                             :append (extract-component-types type))))
                (t (list type)))))
-    (with-slots (form-bindings uniforms) env
-      (loop :for (name type) :in (append form-bindings uniforms)
-            :append (extract-component-types type)))))
+    (with-slots (symbol-bindings uniforms) env
+      (append
+       (loop :for (name type) :in uniforms
+             :append (extract-component-types type))
+       (loop :for (name value) :in symbol-bindings
+             :append (extract-component-types (v-type-of value)))))))
 
 (defun find-used-user-structs (functions env)
   (let* ((used-types (normalize-used-types
