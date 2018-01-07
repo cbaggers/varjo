@@ -9,13 +9,15 @@
 (v-defspecial function (func-name)
   :args-valid t
   :return
-  (let ((func (find-form-binding-by-literal func-name env)))
-    (etypecase func
-      (v-regular-macro (error "Varjo: Although legal in CL, Varjo does not allow taking a reference to a macro function"))
-      (external-function (%function-for-external-funcs func func-name env))
-      (v-function (%function-for-regular-funcs func-name func env))
-      (v-function-set (%function-for-func-sets func-name func env))
-      (null (error 'could-not-find-function :name func-name)))))
+  (if (and (listp func-name) (and (eq (first func-name) 'lambda)))
+      (compile-form func-name env)
+      (let ((func (find-form-binding-by-literal func-name env)))
+        (etypecase func
+          (v-regular-macro (error "Varjo: Although legal in CL, Varjo does not allow taking a reference to a macro function"))
+          (external-function (%function-for-external-funcs func func-name env))
+          (v-function (%function-for-regular-funcs func-name func env))
+          (v-function-set (%function-for-func-sets func-name func env))
+          (null (error 'could-not-find-function :name func-name))))))
 
 (defun %function-for-func-sets (func-name-form func-set env)
   (let* ((functions (functions func-set))
