@@ -390,10 +390,24 @@
 
 ;;----------------------------------------------------------------------
 
+(defun get-all-types-from-all-args (env)
+  (labels ((extract-component-types (type)
+             (etypecase type
+               (v-array (cons type (extract-component-types (v-element-type type))))
+               (v-user-struct
+                (cons type
+                      (loop :for (name type) :in (v-slots type)
+                            :append (extract-component-types type))))
+               (t (list type)))))
+    (with-slots (form-bindings uniforms) env
+      (loop :for (name type) :in (append form-bindings uniforms)
+            :append (extract-component-types type)))))
+
 (defun find-used-user-structs (functions env)
-  (declare (ignore env))
   (let* ((used-types (normalize-used-types
-                      (reduce #'append (mapcar #'used-types functions))))
+                      (append
+                       (get-all-types-from-all-args env)
+                       (reduce #'append (mapcar #'used-types functions)))))
          (struct-types
           (remove nil
                   (loop :for type :in used-types
