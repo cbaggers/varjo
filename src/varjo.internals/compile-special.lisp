@@ -159,6 +159,7 @@
                  :type-set (make-type-set
                             (or type-obj (primary-type value-obj)))
                  :current-line glsl-name
+                 :used-types (used-types value-obj)
                  :node-tree :ignored)
                 value-obj))
               ;;
