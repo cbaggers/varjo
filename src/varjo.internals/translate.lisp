@@ -390,17 +390,35 @@
 
 ;;----------------------------------------------------------------------
 
+(defun get-all-types-from-all-args (env)
+  (labels ((extract-component-types (type)
+             (etypecase type
+               (v-array (cons type (extract-component-types (v-element-type type))))
+               (v-user-struct
+                (cons type
+                      (loop :for (name type) :in (v-slots type)
+                            :append (extract-component-types type))))
+               (v-type (list type)))))
+    (with-slots (symbol-bindings uniforms) env
+      (append
+       (loop :for (name type) :in uniforms
+             :append (extract-component-types type))
+       (loop :for (name value) :in symbol-bindings
+             :append (extract-component-types (v-type-of value)))))))
+
 (defun find-used-user-structs (functions env)
-  (declare (ignore env))
   (let* ((used-types (normalize-used-types
-                      (reduce #'append (mapcar #'used-types functions))))
+                      (append
+                       (get-all-types-from-all-args env)
+                       (reduce #'append (mapcar #'used-types functions)))))
          (struct-types
           (remove nil
                   (loop :for type :in used-types
-                     :if (or (typep type 'v-struct)
-                             (and (typep type 'v-array)
-                                  (typep (v-element-type type) 'v-struct)))
-                     :collect type)))
+                     :if (typep type 'v-struct)
+                       :collect type
+                     :if (and (typep type 'v-array)
+                              (typep (v-element-type type) 'v-struct))
+                       :collect (v-element-type type))))
          (result (order-structs-by-dependency struct-types)))
     result))
 
