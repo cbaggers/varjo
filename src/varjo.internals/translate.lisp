@@ -398,7 +398,7 @@
                 (cons type
                       (loop :for (name type) :in (v-slots type)
                             :append (extract-component-types type))))
-               (t (list type)))))
+               (v-type (list type)))))
     (with-slots (symbol-bindings uniforms) env
       (append
        (loop :for (name type) :in uniforms
@@ -414,10 +414,11 @@
          (struct-types
           (remove nil
                   (loop :for type :in used-types
-                     :if (or (typep type 'v-struct)
-                             (and (typep type 'v-array)
-                                  (typep (v-element-type type) 'v-struct)))
-                     :collect type)))
+                     :if (typep type 'v-struct)
+                       :collect type
+                     :if (and (typep type 'v-array)
+                              (typep (v-element-type type) 'v-struct))
+                       :collect (v-element-type type))))
          (result (order-structs-by-dependency struct-types)))
     result))
 
