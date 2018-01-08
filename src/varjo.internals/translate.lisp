@@ -390,44 +390,37 @@
 
 ;;----------------------------------------------------------------------
 
-(defun get-all-types-from-all-args (env)
-  (labels ((extract-component-types (type)
-             (etypecase type
-               (v-array (cons type (extract-component-types (v-element-type type))))
-               (v-user-struct
-                (cons type
-                      (loop :for (name type) :in (v-slots type)
-                            :append (extract-component-types type))))
-               (v-type (list type)))))
-    (with-slots (symbol-bindings uniforms) env
-      (append
-       (loop :for (name type) :in uniforms
-             :append (extract-component-types type))
-       (loop :for (name value) :in symbol-bindings
-             :append (extract-component-types (v-type-of value)))))))
+(defun find-used-user-structs (types)
+  (let ((found nil))
+    (labels ((process (type)
+               (typecase type
+                 (v-array (process-array type))
+                 (v-user-struct (process-struct type))))
+             (process-array (type)
+               (process (v-element-type type)))
+             (process-struct (type)
+               (unless (find type found :test #'v-type-eq)
+                 (loop :for slot :in (v-slots type) :do
+                    (process (second slot)))
+                 (push type found))))
+      (loop :for type :in types :do
+         (process type)))
+    (reverse found)))
 
-(defun find-used-user-structs (functions env)
-  (let* ((used-types (normalize-used-types
-                      (append
-                       (get-all-types-from-all-args env)
-                       (reduce #'append (mapcar #'used-types functions)))))
-         (struct-types
-          (remove nil
-                  (loop :for type :in used-types
-                     :if (typep type 'v-struct)
-                       :collect type
-                     :if (and (typep type 'v-array)
-                              (typep (v-element-type type) 'v-struct))
-                       :collect (v-element-type type))))
-         (result (order-structs-by-dependency struct-types)))
-    result))
+(defun all-type-from-post-proc (post-proc-obj)
+  (with-slots (env) post-proc-obj
+    (normalize-used-types
+     (append
+      (mapcar #'second (v-uniforms env))
+      (reduce #'append (mapcar #'used-types (all-functions post-proc-obj)))))))
 
 (defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
   (with-slots (env) post-proc-obj
     (setf (used-user-structs post-proc-obj)
-          (find-used-user-structs (all-functions post-proc-obj) env)))
+          (find-used-user-structs
+           (all-type-from-post-proc post-proc-obj))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
