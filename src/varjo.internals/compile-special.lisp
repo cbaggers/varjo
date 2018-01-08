@@ -165,6 +165,7 @@
               ;;
               (t (typify-code
                   (make-compiled :type-set (make-type-set type-obj)
+                                 :used-types (list type-obj)
                                  :current-line glsl-name
                                  :node-tree :ignored)))))
            (to-block

@@ -3,17 +3,20 @@
 
 (defun compile-bool (code env)
   (let* ((flow-id (flow-id!))
-         (type-set (make-type-set (type-spec->type 'v-bool flow-id))))
+         (bool (type-spec->type 'v-bool flow-id))
+         (type-set (make-type-set bool)))
     (if code
         (make-compiled
          :type-set type-set
          :current-line "true"
          :node-tree (ast-node! :literal code type-set env env)
+         :used-types (list bool)
          :pure t)
         (make-compiled
          :type-set type-set
          :current-line "false"
          :node-tree (ast-node! :literal code type-set env env)
+         :used-types (list bool)
          :pure t))))
 
 (defun get-number-type (x)
@@ -32,6 +35,7 @@
      :type-set type-set
      :current-line (gen-number-string code num-type)
      :node-tree (ast-node! :literal code type-set env env)
+     :used-types (list num-type)
      :pure t)))
 
 (defun compile-array-literal (arr env)
