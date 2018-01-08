@@ -159,11 +159,13 @@
                  :type-set (make-type-set
                             (or type-obj (primary-type value-obj)))
                  :current-line glsl-name
+                 :used-types (used-types value-obj)
                  :node-tree :ignored)
                 value-obj))
               ;;
               (t (typify-code
                   (make-compiled :type-set (make-type-set type-obj)
+                                 :used-types (list type-obj)
                                  :current-line glsl-name
                                  :node-tree :ignored)))))
            (to-block
