@@ -687,6 +687,7 @@
        :glsl-code final-glsl-code
        :output-variables (output-variables post-proc-obj)
        :starting-stage (stage post-proc-obj)
+       :previous-stage (previous-stage (stage post-proc-obj))
        :implicit-uniforms (stemcells post-proc-obj)
        :used-external-functions (used-external-functions post-proc-obj)
        :function-asts (mapcar #'ast (all-functions post-proc-obj))
