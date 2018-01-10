@@ -159,7 +159,14 @@
 
 (defgeneric context-compatiblep (stage previous-stage)
   (:method ((stage stage) (previous-stage stage))
-    (context-ok-given-restriction (context previous-stage) (context stage))))
+    ;; Ick, I really dont like this hacky code. The whole 'context is a
+    ;; list' thing was a mistake and I need to spin out each option to
+    ;; a slot on the environment
+    (flet ((hack-remove-versions (seq)
+             (remove-if λ(find _ *supported-versions*) seq)))
+      (context-ok-given-restriction
+       (hack-remove-versions (context previous-stage))
+       (hack-remove-versions (context stage))))))
 
 ;;----------------------------------------------------------------------
 
