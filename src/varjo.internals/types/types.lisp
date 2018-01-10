@@ -102,6 +102,21 @@
    (glsl-size :initform :sizeless)))
 
 ;;------------------------------------------------------------
+;; Discarded
+;;
+;; The type of the discard expression. Indicates a termination
+;; of execution without a return.
+
+(def-v-type-class v-discarded (v-type)
+  ((glsl-string :initform "void" :reader v-glsl-string)))
+
+(defun v-discarded-p (obj)
+  (etypecase obj
+    (v-type (typep obj 'v-discarded))
+    (compiled (v-discarded-p (type-set obj)))
+    (vector (not (null (find-if λ(typep _ 'v-discarded) obj))))))
+
+;;------------------------------------------------------------
 ;; Shadow Type
 ;;
 ;; The supertype for all types which that are shadowing a core
@@ -399,8 +414,11 @@
            (reduced (reduce-types-for-or-type types)))
       (if (= (length reduced) 1)
           (first reduced)
-          (make-instance 'v-or :types reduced
-                         :flow-ids (apply #'flow-id! reduced))))))
+          (let ((no-discarded (remove-if λ(typep _ 'v-discarded) types)))
+            (if (= (length no-discarded) 1)
+                (first no-discarded)
+                (make-instance 'v-or :types no-discarded
+                               :flow-ids (apply #'flow-id! no-discarded))))))))
 
 (defgeneric reduce-types-for-or-type (types)
   (:method (types)
@@ -735,7 +753,7 @@
 (defun make-type-set* (members)
   (when (and (= (length members) 1)
              (not (typep (first members) 'v-stemcell)))
-    (assert (not (v-typep (first members) :void))))
+    (assert (not (v-voidp (first members)))))
   (apply #'vector members))
 
 (defun make-type-set (&rest members)

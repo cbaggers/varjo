@@ -194,6 +194,10 @@
         env)))))
 
 (defun %validate-var-types (var-name type code-obj)
+  (when (and code-obj (v-discarded-p code-obj))
+    (error "TODO: GOOD ERROR ABOUT DISCARDED"))
+  (when (and code-obj (v-voidp code-obj))
+    (error "TODO: GOOD ERROR ABOUT VOID"))
   (when (and code-obj (typep (primary-type code-obj) 'v-stemcell))
     (error "Code not ascertain the type of the stemcell used in the let form:~%(~a ~a)"
            (string-downcase var-name) (current-line code-obj)))

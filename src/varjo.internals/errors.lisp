@@ -1024,6 +1024,25 @@ Was expecting one of std-140 or std-430. Recieved ~a instead."
     "BUG: find-mutual-cast-type take a list of types, not type specs
 ~a" types)
 
+(deferror void-type-for-if-test () (form)
+    "The test for an 'if' expression cannot be :void.
+
+ (if ~a
+     ..)"
+  form)
+
+(deferror discarded-for-if-test () (form)
+    "The expression used as the test for one of your 'if' expression is just
+discarding the fragment. We arent sure what to emit for this 'if'.
+
+ (if ~a
+     ..)"
+  form)
+
+(deferror discard-not-in-fragment-stage () (stage)
+    "The discard expression was found in a ~a. This is invalid as it is only
+allowed in fragment stages" stage)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

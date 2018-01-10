@@ -63,6 +63,7 @@
                (:file "src/vari.glsl/bitwise-operators")
                (:file "src/vari.glsl/special-operators/iteration")
                (:file "src/vari.glsl/special-operators/switch")
+               (:file "src/vari.glsl/special-operators/discard")
                ;;
                (:file "src/vari.cl/macros")
                (:file "src/vari.cl/functions")

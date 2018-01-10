@@ -9,6 +9,10 @@
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
+    (assert (not (v-voidp test-obj)) () 'void-type-for-if-test
+            :form test-form)
+    (assert (not (v-discarded-p test-obj)) () 'discarded-for-if-test
+            :form test-form)
     (let ((always-true (or (not (v-typep (primary-type test-obj) 'v-bool))
                            (eq test-form t)))
           (always-false (eq test-form nil))
@@ -46,16 +50,6 @@
                                    starting-env final-env)))
         (vbind (block-string current-line-string)
             (if (and has-else
-                     (not (to-block test-obj))
-                     (not (to-block then-obj))
-                     (not (to-block else-obj))
-                     (pure-p test-obj)
-                     (pure-p then-obj)
-                     (pure-p else-obj)
-                     (= (length (type-set then-obj)) 1)
-                     (= (length (type-set else-obj)) 1)
-                     (v-type-eq (primary-type then-obj)
-                                (primary-type else-obj))
                      (satifies-ternary-style-restrictions-p
                       test-form test-obj
                       then-form then-obj
@@ -76,10 +70,24 @@
   (declare (ignorable test-form test-obj
                       then-form then-obj
                       else-form else-obj))
-  (< (+ (length (current-line test-obj))
-        (length (current-line then-obj))
-        (length (current-line else-obj)))
-     100))
+  (and (not (to-block test-obj))
+       (not (to-block then-obj))
+       (not (to-block else-obj))
+       (pure-p test-obj)
+       (pure-p then-obj)
+       (pure-p else-obj)
+       (= (length (type-set then-obj)) 1)
+       (= (length (type-set else-obj)) 1)
+       (v-type-eq (primary-type then-obj)
+                  (primary-type else-obj))
+       (not (v-voidp then-obj))
+       (not (v-voidp else-obj))
+       (not (v-discarded-p then-obj))
+       (not (v-discarded-p else-obj))
+       (< (+ (length (current-line test-obj))
+             (length (current-line then-obj))
+             (length (current-line else-obj)))
+          100)))
 
 (defun gen-string-for-ternary-form (test-obj then-obj else-obj)
   (values nil (format nil "(~a ? ~a : ~a)"
@@ -116,7 +124,7 @@
               (when current-line
                 (let ((current (end-line-str current-line)))
                   (indent-for-block
-                   (if glsl-tmp-var-name
+                   (if (and glsl-tmp-var-name (not (v-primary-type-eq code-obj (type-spec->type 'v-discarded))))
                        (%gen-assignment-string glsl-tmp-var-name current)
                        current))))))))
 

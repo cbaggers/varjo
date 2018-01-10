@@ -122,7 +122,8 @@
          ;;
          (first-name (gensym))
          (result (cond
-                   ((v-voidp (first objs))
+                   ((or (v-voidp (first objs))
+                        (v-discarded-p (first objs)))
                     (compile-form
                      `(progn
                         ,@assign-forms

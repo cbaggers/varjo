@@ -58,10 +58,12 @@
            :v-struct
            :v-user-struct
            :v-sampler
+           :v-discarded
            ;;
            :v-function-type
            :v-user-function
            ;;
+           :v-discarded
            :v-void
            :v-bool
            :v-int
@@ -321,6 +323,9 @@
            :compute-stage-must-be-void
            :unknown-layout-specifier
            :find-mutual-type-bug
+           :void-type-for-if-test
+           :discarded-for-if-test
+           :discard-not-in-fragment-stage
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -623,6 +628,7 @@
            :v-value
            :v-versions
            :v-voidp
+           :v-discarded-p
            :values-safe
            :vec-of
            :vertex-count
@@ -836,7 +842,8 @@
    :mat4
 
    ;; things not in glsl-spec
-   :gl-in))
+   :gl-in
+   :discard))
 
 (uiop:define-package #:vari.cl
     (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals

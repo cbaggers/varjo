@@ -63,6 +63,10 @@
                               &optional (env *global-env*))
   (v-type-eq (primary-type a) (primary-type b) env))
 
+(defmethod v-primary-type-eq ((a compiled) (b v-type)
+                              &optional (env *global-env*))
+  (v-type-eq (primary-type a) b env))
+
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defmethod copy-compiled ((code-obj compiled)
