@@ -155,25 +155,6 @@
 (defun normalize-used-types (types)
   (remove-duplicates (flatten types) :from-end t :test #'v-type-eq))
 
-(defun order-structs-by-dependency (struct-types)
-  (let* ((type-graphs (mapcar (lambda (x)
-                                (cons x (walk-struct-dependencies x)))
-                              struct-types))
-         (flat-graphs (mapcar #'flatten type-graphs))
-         (sorted-graphs (sort flat-graphs #'< :key #'length))
-         (flat (flatten sorted-graphs)))
-    (remove-duplicates flat :from-end t :test #'v-type-eq)))
-
-(defun walk-struct-dependencies (type)
-  (remove
-   nil
-   (mapcar (lambda (x)
-             (destructuring-bind (_ slot-type &rest _1) x
-               (declare (ignore _ _1))
-               (when (typep slot-type 'v-struct)
-                 (cons slot-type (walk-struct-dependencies slot-type)))))
-           (v-slots type))))
-
 ;;----------------------------------------------------------------------
 
 (defun end-line (obj &optional force)

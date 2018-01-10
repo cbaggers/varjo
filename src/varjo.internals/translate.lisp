@@ -390,26 +390,37 @@
 
 ;;----------------------------------------------------------------------
 
-(defun find-used-user-structs (functions env)
-  (declare (ignore env))
-  (let* ((used-types (normalize-used-types
-                      (reduce #'append (mapcar #'used-types functions))))
-         (struct-types
-          (remove nil
-                  (loop :for type :in used-types
-                     :if (or (typep type 'v-struct)
-                             (and (typep type 'v-array)
-                                  (typep (v-element-type type) 'v-struct)))
-                     :collect type)))
-         (result (order-structs-by-dependency struct-types)))
-    result))
+(defun find-used-user-structs (types)
+  (let ((found nil))
+    (labels ((process (type)
+               (typecase type
+                 (v-array (process-array type))
+                 (v-user-struct (process-struct type))))
+             (process-array (type)
+               (process (v-element-type type)))
+             (process-struct (type)
+               (unless (find type found :test #'v-type-eq)
+                 (loop :for slot :in (v-slots type) :do
+                    (process (second slot)))
+                 (push type found))))
+      (loop :for type :in types :do
+         (process type)))
+    (reverse found)))
+
+(defun all-type-from-post-proc (post-proc-obj)
+  (with-slots (env) post-proc-obj
+    (normalize-used-types
+     (append
+      (mapcar #'second (v-uniforms env))
+      (reduce #'append (mapcar #'used-types (all-functions post-proc-obj)))))))
 
 (defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used
    'user' defined structs."
   (with-slots (env) post-proc-obj
     (setf (used-user-structs post-proc-obj)
-          (find-used-user-structs (all-functions post-proc-obj) env)))
+          (find-used-user-structs
+           (all-type-from-post-proc post-proc-obj))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
