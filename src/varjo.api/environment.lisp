@@ -158,8 +158,7 @@
 (defun all-symbol-binding-names (env &key stop-at-base)
   (let ((result (v-symbol-bindings env)))
     (labels ((stop-p (e)
-               (or (and stop-at-base (typep e 'base-environment))
-                   (eq e *global-env*))))
+               (and stop-at-base (typep e 'base-environment))))
       (let ((current-env env))
         (loop :until (stop-p current-env) :do
            (setf current-env (v-parent-env current-env))

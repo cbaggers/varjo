@@ -59,13 +59,11 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defmethod v-primary-type-eq ((a compiled) (b compiled)
-                              &optional (env *global-env*))
-  (v-type-eq (primary-type a) (primary-type b) env))
+(defmethod v-primary-type-eq ((a compiled) (b compiled))
+  (v-type-eq (primary-type a) (primary-type b)))
 
-(defmethod v-primary-type-eq ((a compiled) (b v-type)
-                              &optional (env *global-env*))
-  (v-type-eq (primary-type a) b env))
+(defmethod v-primary-type-eq ((a compiled) (b v-type))
+  (v-type-eq (primary-type a) b))
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -343,7 +343,6 @@
            :*default-version*
            :*draw-modes*
            :*emit-var-name-base*
-           :*global-env*
            :*return-var-name-base*
            :*stage-names*
            :*stage-type-names*
@@ -356,6 +355,7 @@
            :add-equivalent-name
            :add-external-function
            :add-form-binding
+           :add-global-form-binding
            :add-symbol-binding
            :add-type-to-stemcell-code
            :all-functions

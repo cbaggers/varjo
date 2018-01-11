@@ -44,7 +44,7 @@
     (let ((arg-types (if (listp arg-types)
                          (mapcar #'arg-form->type arg-types)
                          arg-types)))
-      `(progn (add-form-binding
+      `(progn (add-global-form-binding
                (make-function-obj
                 ',name ,transform ',context ',arg-types
                 ,(make-template-return-spec-generator return-spec)
@@ -52,8 +52,7 @@
                 :flow-ids (%gl-flow-id!)
                 :in-arg-flow-ids
                 (list ,@(n-of '(%gl-flow-id!) (length args)))
-                :pure ,pure)
-               *global-env*)
+                :pure ,pure))
               ',name))))
 
 (defun element-spec-p (spec)
@@ -95,24 +94,22 @@
               (defun ,func-name ,(append (list env this) args)
                 (declare (ignorable ,env ,this ,@arg-names))
                 ,return)
-              (add-form-binding
+              (add-global-form-binding
                (make-function-obj ',name :special ',context t
                                   #',func-name
-                                  :v-place-index ',v-place-index)
-               *global-env*)
+                                  :v-place-index ',v-place-index))
               ',name))
           (t `(progn
                 (defun ,func-name ,(append (list env this)
                                            (mapcar #'first args))
                   (declare (ignorable ,env ,this ,@arg-names))
                   ,return)
-                (add-form-binding
+                (add-global-form-binding
                  (make-function-obj ',name :special ',context
                                     ',(mapcar λ(type-spec->type (second _))
                                               args)
                                     #',func-name
-                                    :v-place-index ',v-place-index)
-                 *global-env*)
+                                    :v-place-index ',v-place-index))
                 ',name)))))))
 
 ;;------------------------------------------------------------

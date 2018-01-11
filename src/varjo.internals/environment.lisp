@@ -46,7 +46,7 @@
 
 (defun get-base-env (env)
   (let ((parent (v-parent-env env)))
-    (if (not (eq parent *global-env*))
+    (if parent
         (get-base-env parent)
         env)))
 
@@ -56,7 +56,7 @@
 (defmethod map-environments (func (e environment))
   (cons (funcall func e)
         (let ((parent (v-parent-env e)))
-          (when (not (eq parent *global-env*))
+          (when parent
             (map-environments func parent)))))
 
 ;;-------------------------------------------------------------------------
@@ -148,8 +148,7 @@
 ;;-------------------------------------------------------------------------
 ;; global env
 
-(defmethod v-form-bindings ((env (eql #.*global-env*)))
-  (declare (ignore env))
+(defmethod v-global-form-bindings ()
   *global-env-form-bindings*)
 
 ;;-------------------------------------------------------------------------
@@ -236,8 +235,10 @@
 
 (defun env-depth (env)
   (labels ((dist (e &optional (accum 0))
-             (let ((p (v-parent-env e)))
-               (if (eq p *global-env*) accum (dist p (1+ accum))))))
+             (let ((parent (v-parent-env e)))
+               (if parent
+                   (dist parent (1+ accum))
+                   accum))))
     (dist env)))
 
 (defun env-prune* (to-depth &rest envs)
@@ -313,8 +314,7 @@ For example calling env-prune on this environment..
                     :test #'eq
                     :from-end t)))
            (walk (e accum)
-             (if (or (and stop-at-base (typep e 'base-environment))
-                     (eq e *global-env*))
+             (if (and stop-at-base (typep e 'base-environment))
                  accum
                  (collect e accum))))
     (walk env nil)))
@@ -411,35 +411,31 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-compiler-macro ((macro v-compiler-macro) (env (eql #.*global-env*)))
+(defmethod add-global-compiler-macro ((macro v-compiler-macro))
   (setf (gethash (name macro) *global-env-compiler-macros*)
         (cons macro (gethash (name macro) *global-env-compiler-macros*)))
-  *global-env*)
+  macro)
 
 ;; {TODO} proper error
 (defmethod add-compiler-macro (macro (env environment))
   (error "Varjo: Compiler Bug: Compiler macros can only be added to the global environment: ~a"
          (name macro)))
 
-(defmethod get-compiler-macro (macro-name (env (eql #.*global-env*)))
+(defmethod get-global-compiler-macro (macro-name)
   (gethash macro-name *global-env-compiler-macros*))
-
-(defmethod get-compiler-macro (macro-name (env environment))
-  (get-compiler-macro macro-name *global-env*))
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-symbol-binding (name (val v-value) (env (eql #.*global-env*)))
+(defmethod add-global-symbol-binding (name (val v-value))
   (setf (gethash name *global-env-symbol-bindings*) val)
-  *global-env*)
+  val)
 
-(defmethod add-symbol-binding (name (val uninitialized-value)
-                               (env (eql #.*global-env*)))
-  (error 'global-uninitialized-var :name name))
-
-(defmethod add-symbol-binding (name (macro v-symbol-macro) (env (eql #.*global-env*)))
+(defmethod add-global-symbol-binding (name (macro v-symbol-macro))
   (setf (gethash name *global-env-symbol-bindings*) macro)
-  *global-env*)
+  macro)
+
+(defmethod add-global-symbol-binding (name (val uninitialized-value))
+  (error 'global-uninitialized-var :name name))
 
 (defmethod %add-symbol-binding (var-name (val v-value) (env base-environment))
   "Warning - Destructive: Used when we don't want to create a fresh environment.
@@ -503,11 +499,9 @@ For example calling env-prune on this environment..
     (assert binding (name) 'symbol-unidentified :sym name)
     (binding-in-higher-scope-p binding env)))
 
-(defmethod get-symbol-binding (symbol respect-scope-rules (env (eql #.*global-env*)))
+(defmethod get-global-symbol-binding (symbol respect-scope-rules)
   (declare (ignore respect-scope-rules))
-  (let ((s (gethash symbol *global-env-symbol-bindings*)))
-    (when s
-      (values s *global-env*))))
+  (values (gethash symbol *global-env-symbol-bindings*)))
 
 ;; {TODO} does get-symbol-binding need to return the env?
 (defmethod get-symbol-binding (symbol respect-scope-rules (env environment))
@@ -519,22 +513,19 @@ For example calling env-prune on this environment..
                                  respect-scope-rules
                                  (v-parent-env env))))))
 
-(defmethod v-symbol-bindings ((env (eql #.*global-env*)))
-  nil)
-
 ;;-------------------------------------------------------------------------
 ;; Adding bindings for functions & macros
 
 
 ;; Global Env
 ;;
-(defmethod add-form-binding ((macro-obj v-regular-macro) (env (eql #.*global-env*)))
+(defmethod add-global-form-binding ((macro-obj v-regular-macro))
   (let ((macro-name (name macro-obj)))
     (setf (gethash macro-name *global-env-form-bindings*)
           (list macro-obj)))
-  *global-env*)
+  macro-obj)
 
-(defmethod add-form-binding ((func-obj v-function) (env (eql #.*global-env*)))
+(defmethod add-global-form-binding ((func-obj v-function))
   (let* ((func-name (name func-obj))
          (current-bindings (gethash func-name *global-env-form-bindings*)))
     (if (find-if λ(typep _ 'v-regular-macro) current-bindings)
@@ -542,7 +533,7 @@ For example calling env-prune on this environment..
               (list func-obj))
         (setf (gethash func-name *global-env-form-bindings*)
               (cons func-obj current-bindings))))
-  *global-env*)
+  func-obj)
 
 ;; Standard Environment
 ;;
@@ -578,7 +569,7 @@ For example calling env-prune on this environment..
 
 ;; Global Environment
 ;;
-(defmethod get-form-binding (name (env (eql #.*global-env*)))
+(defmethod get-global-form-binding (name)
   (let* ((bindings (gethash name *global-env-form-bindings*))
          (macro-count (count-if λ(typep _ 'v-regular-macro) bindings))
          (func-count (count-if λ(typep _ 'v-function) bindings)))
@@ -636,11 +627,6 @@ For example calling env-prune on this environment..
         (context (v-context env)))
     (%valid-for-contextp func versions context)))
 
-(defmethod valid-for-contextp ((func v-function) (env (eql *global-env*)))
-  (let ((versions (v-versions func))
-        (context (v-context env)))
-    (%valid-for-contextp func versions context)))
-
 (defmethod valid-for-contextp ((func list) (env environment))
   (let ((versions (second func))
         (context (v-context env)))
@@ -661,7 +647,7 @@ For example calling env-prune on this environment..
       func))
 
 (defmethod add-equivalent-name (existing-name new-name)
-  (let ((current (get-form-binding existing-name *global-env*)))
+  (let ((current (get-global-form-binding existing-name)))
     (if current
         (setf (gethash new-name *global-env-form-bindings*)
               (gethash existing-name *global-env-form-bindings*))
@@ -671,7 +657,5 @@ For example calling env-prune on this environment..
 ;;-------------------------------------------------------------------------
 
 (defun descendant-env-p (env ancestor)
-  (cond
-    ((eq env ancestor) t)
-    ((eq env *global-env*) nil)
-    (t (descendant-env-p (v-parent-env env) ancestor))))
+  (or (eq env ancestor)
+      (descendant-env-p (v-parent-env env) ancestor)))

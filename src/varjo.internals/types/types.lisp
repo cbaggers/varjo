@@ -11,7 +11,7 @@
     (setf (gethash alt-type-name alternate-ht) src-type-name)
     (setf (gethash src-type-name alternate-ht-backward) alt-type-name)
     (when (and (ephemeral-p (type-spec->type src-type-name))
-               (not (get-form-binding alt-type-name *global-env*)))
+               (not (get-global-form-binding alt-type-name)))
       (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
     alt-type-name)
   (defun resolve-name-from-alternative (spec)
@@ -250,8 +250,7 @@
                    :element-type element-type
                    :flow-ids flow-id)))
 
-(defmethod v-typep ((a v-array) (b v-array) &optional (env *global-env*))
-  (declare (ignore env))
+(defmethod v-typep ((a v-array) (b v-array))
   (v-typep (v-element-type a) (v-element-type b)))
 
 ;;------------------------------------------------------------
@@ -568,68 +567,62 @@
 
 ;; Type <-> Type
 
-(defmethod v-type-eq ((a v-type) (b v-type) &optional (env *global-env*))
-  (declare (ignore env))
+(defmethod v-type-eq ((a v-type) (b v-type))
   (and (equal (type->type-spec a) (type->type-spec b))
        (eq (ctv a) (ctv b))))
 
 ;; Type <-> Spec
 
-(defmethod v-type-eq ((a v-type) (b symbol) &optional (env *global-env*))
-  (declare (ignore env))
-  (v-type-eq a (type-spec->type b)))
+(defmethod v-type-eq ((a v-type) (b symbol))
+   (v-type-eq a (type-spec->type b)))
 
-(defmethod v-type-eq ((a v-type) (b list) &optional (env *global-env*))
-  (declare (ignore env))
-  (v-type-eq a (type-spec->type b)))
+(defmethod v-type-eq ((a v-type) (b list))
+   (v-type-eq a (type-spec->type b)))
 
 ;; Function-Type <-> Function-Type
 ;;
 
 ;; (defmethod v-type-eq ((a v-function-type) (b v-function-type)
-;;                       &optional (env *global-env*))
+;;                      )
 ;;   (declare (ignore env))
 ;;   (if (or (ctv a) (ctv b))
 ;;       (eq (ctv a) (ctv b))
 ;;       (equal (type->type-spec a) (type->type-spec b))))
 
 ;; (defmethod v-type-eq ((a v-function-type) (b v-type)
-;;                       &optional (env *global-env*))
+;;                      )
 ;;   (declare (ignore a b env))
 ;;   nil)
 
 ;; (defmethod v-type-eq ((a v-type) (b v-function-type)
-;;                       &optional (env *global-env*))
+;;                      )
 ;;   (declare (ignore a b env))
 ;;   nil)
 
 ;;------------------------------------------------------------
 ;; Type predicate
 
-(defmethod v-typep ((a v-type) (b symbol) &optional (env *global-env*))
-  (declare (ignore env))
+(defmethod v-typep ((a v-type) (b symbol))
   (v-typep a (type-spec->type (resolve-name-from-alternative b))))
 
-(defmethod v-typep ((a v-type) (b list) &optional (env *global-env*))
-  (declare (ignore env))
+(defmethod v-typep ((a v-type) (b list))
   (let ((b (resolve-name-from-alternative
             (mapcar #'resolve-name-from-alternative b))))
     (v-typep a (type-spec->type b))))
 
-(defmethod v-typep ((a v-type) (b v-type) &optional (env *global-env*))
-  (declare (ignore env))
+(defmethod v-typep ((a v-type) (b v-type))
   (typep a (type-of b)))
 
-(defmethod v-typep ((a null) b &optional (env *global-env*))
-  (declare (ignore env a b))
+(defmethod v-typep ((a null) b)
+  (declare (ignore a b))
   nil)
 
-(defmethod v-typep (a (b null) &optional (env *global-env*))
-  (declare (ignore env a b))
+(defmethod v-typep (a (b null))
+  (declare (ignore a b))
   nil)
 
-(defmethod v-typep ((a v-stemcell) b &optional (env *global-env*))
-  (declare (ignore env a b))
+(defmethod v-typep ((a v-stemcell) b)
+  (declare (ignore a b))
   t)
 
 (defmacro v-typecase (varjo-form &body cases)

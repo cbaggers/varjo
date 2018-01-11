@@ -185,7 +185,7 @@
                                     :in-out-args in-out-args
                                     :in-arg-flow-ids in-arg-flow-ids
                                     :flow-ids flow-ids)))
-      (add-form-binding new-func *global-env*)
+      (add-global-form-binding new-func)
       new-func)))
 
 ;; {TODO} proper error
@@ -197,7 +197,7 @@
 (defun shadow-functions (shadow-type-spec function-identifiers)
   (let* ((type (type-spec->type shadow-type-spec))
          (shadowed (shadowed-type type))
-         (func-sets (mapcar λ(find-form-binding-by-literal _ *global-env*)
+         (func-sets (mapcar #'find-global-form-binding-by-literal
                             function-identifiers))
          (pairs (mapcar λ(list _ (functions _1)) function-identifiers
                         func-sets))
@@ -222,8 +222,7 @@
 (defun shadow-constructor-function (shadow-type-spec function-identifier)
   (let* ((type (type-spec->type shadow-type-spec))
          (shadowed (shadowed-type type))
-         (func-set (find-form-binding-by-literal function-identifier
-                                                 *global-env*))
+         (func-set (find-global-form-binding-by-literal function-identifier))
          (functions (functions func-set)))
     (assert (not (null functions)) () 'shadowing-constructor-no-match
             :shadow-type type :func-id function-identifier)
@@ -247,8 +246,8 @@
   (let ((src-type (type-spec->type src-type-name))
         (alt-type (type-spec->type alt-type-name)))
     (when (ephemeral-p (type-spec->type src-type-name))
-      (let* ((func-set (find-form-binding-by-literal (list src-type-name)
-                                                     *global-env*))
+      (let* ((func-set (find-global-form-binding-by-literal
+                        (list src-type-name)))
              (functions (functions func-set))
              (constr (first (remove-if λ(> (length (v-argument-spec _)) 0)
                                        functions))))
