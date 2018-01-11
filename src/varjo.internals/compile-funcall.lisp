@@ -95,7 +95,7 @@
 
 (defun find-and-expand-compiler-macro (func args env)
   (unless (v-special-functionp func)
-    (let ((macro (find-compiler-macro-for-func func env)))
+    (let ((macro (find-compiler-macro-for-func func)))
       (when macro
         (let ((public-env (make-instance 'compiler-macro-expansion-environment
                                          :macro-obj macro

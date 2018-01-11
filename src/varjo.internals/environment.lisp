@@ -148,8 +148,9 @@
 ;;-------------------------------------------------------------------------
 ;; global env
 
-(defmethod v-global-form-bindings ()
-  *global-env-form-bindings*)
+(defgeneric v-global-form-bindings ()
+  (:method ()
+    *global-env-form-bindings*))
 
 ;;-------------------------------------------------------------------------
 

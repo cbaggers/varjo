@@ -114,12 +114,11 @@
 
 ;;------------------------------------------------------------
 
-(defun special-arg-matchp (func arg-code arg-objs arg-types any-errors env)
-  (let ((arg-spec (v-argument-spec func))
-        (env (fresh-environment env)))
+(defun special-arg-matchp (func arg-code arg-objs arg-types any-errors)
+  (let ((arg-spec (v-argument-spec func)))
     (cond
       ((listp arg-spec)
-       (when (not any-errors) (basic-arg-matchp func arg-types arg-objs env)))
+       (when (not any-errors) (basic-arg-matchp func arg-types arg-objs)))
       ((eq arg-spec t)
        (make-instance 'func-match :func func :arguments arg-code
                       :score t :secondary-score 0))
@@ -128,9 +127,10 @@
                 :spec arg-spec)))))
 
 ;; {TODO} proper error
-(defmethod cast-code-inner
-    ((varjo-type v-any-one-of) src-obj (cast-to-type v-function-type) env)
-  (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type env))
+(defmethod cast-code-inner ((varjo-type v-any-one-of)
+                            src-obj
+                            (cast-to-type v-function-type))
+  (let ((funcs (remove-if-not (lambda (fn) (v-casts-to fn cast-to-type))
                               (v-types varjo-type))))
     (if funcs
         (copy-compiled src-obj
@@ -141,12 +141,11 @@ however failed to do so when asked."
 
 (defmethod cast-code-inner ((varjo-type v-any-one-of)
                             src-obj
-                            (cast-to-type v-any-one-of)
-                            env)
+                            (cast-to-type v-any-one-of))
   ;; in cases where v-casts-to has been used to calculate a new
   ;; v-any-one-of type then the type has the flow-ids of the ctvs
   ;; this means we don't want to use the flow-ids in the src-obj
-  (declare (ignore varjo-type env))
+  (declare (ignore varjo-type))
   (assert (flow-ids cast-to-type))
   (let* ((dest-type cast-to-type))
     (copy-compiled src-obj :type-set (make-type-set dest-type))))
@@ -165,7 +164,7 @@ however failed to do so when asked."
         spec)))
 
 ;; [TODO] should this always copy the arg-objs?
-(defun basic-arg-matchp (func arg-types arg-objs env
+(defun basic-arg-matchp (func arg-types arg-objs
                          &key (allow-casting t))
   (let ((spec-types (expand-argument-spec func arg-types)))
     (labels ((calc-secondary-score (types)
@@ -181,7 +180,7 @@ however failed to do so when asked."
                    most-positive-fixnum)))
       ;;
       (when (eql (length arg-types) (length spec-types))
-        (let* ((perfect-matches (mapcar λ(v-typep _ _1 env)
+        (let* ((perfect-matches (mapcar λ(v-typep _ _1)
                                         arg-types
                                         spec-types))
                (score (- (length arg-types)
@@ -199,26 +198,26 @@ however failed to do so when asked."
               (when allow-casting
                 (let ((cast-types
                        (loop :for a :in arg-types :for s :in spec-types :collect
-                          (v-casts-to a s env))))
+                          (v-casts-to a s))))
                   (when (not (some #'null cast-types))
                     ;; when all the types can be cast
                     (let ((secondary-score (calc-secondary-score cast-types)))
                       (make-instance
                        'func-match
                        :func func
-                       :arguments (mapcar (lambda (a c) (cast-code a c env))
+                       :arguments (mapcar (lambda (a c) (cast-code a c))
                                           arg-objs cast-types)
                        :score score
                        :secondary-score secondary-score)))))))))))
 
-(defun match-function-to-args (args-code compiled-args env candidate)
+(defun match-function-to-args (args-code compiled-args candidate)
   (let* ((arg-types (mapcar #'primary-type compiled-args))
          (any-errors (some #'v-errorp arg-types)))
     (if (v-special-functionp candidate)
         (special-arg-matchp candidate args-code compiled-args arg-types
-                            any-errors env)
+                            any-errors)
         (when (not any-errors)
-          (basic-arg-matchp candidate arg-types compiled-args env)))))
+          (basic-arg-matchp candidate arg-types compiled-args)))))
 
 
 (defun try-compile-arg (arg env &optional (wrap-errors-p t))
@@ -257,7 +256,7 @@ however failed to do so when asked."
          (candidates (functions func-set))
          (compiled-args (when (some #'func-need-arguments-compiledp candidates)
                           (try-compile-args args-code env)))
-         (match-fn (curry #'match-function-to-args args-code compiled-args env))
+         (match-fn (curry #'match-function-to-args args-code compiled-args))
          (matches (remove nil (mapcar match-fn candidates)))
          (instant-win (find-if #'(lambda (x) (eq t (score x))) matches)))
     ;;
@@ -371,36 +370,64 @@ however failed to do so when asked."
 
 ;;------------------------------------------------------------
 
-(defun function-arg-specs-match-p (func-a func-b env)
-  (exact-match-function-to-types
-   (v-argument-spec func-a) env func-b))
+(defun function-arg-specs-match-p (func-a func-b)
+  (exact-match-function-to-types (v-argument-spec func-a) func-b))
 
-(defun basic-exact-type-matchp (func arg-types env)
-  (let ((match (basic-arg-matchp func arg-types nil env :allow-casting nil)))
+(defun basic-exact-type-matchp (func arg-types)
+  (let ((match (basic-arg-matchp func arg-types nil :allow-casting nil)))
     (and match (= 0 (score match) (secondary-score match)))))
 
-(defun special-exact-type-matchp (func arg-types env)
-  (let ((arg-spec (v-argument-spec func))
-        (env (fresh-environment env)))
+(defun special-exact-type-matchp (func arg-types)
+  (let ((arg-spec (v-argument-spec func)))
     (cond
-      ((listp arg-spec) (basic-exact-type-matchp func arg-types env))
+      ((listp arg-spec) (basic-exact-type-matchp func arg-types))
       ((eq arg-spec t) t)
       (t (error 'invalid-special-function-arg-spec
                 :name (name func)
                 :spec arg-spec)))))
 
-(defun exact-match-function-to-types (arg-types env candidate)
+(defun exact-match-function-to-types (arg-types candidate)
   (if (v-special-functionp candidate)
-      (special-exact-type-matchp candidate arg-types env)
-      (basic-exact-type-matchp candidate arg-types env)))
+      (special-exact-type-matchp candidate arg-types)
+      (basic-exact-type-matchp candidate arg-types)))
 
 ;;------------------------------------------------------------
 
-;; {TODO} proper error
+(defmethod find-global-form-binding-by-literal ((name symbol))
+  (assert (not (eq name 'declare)) ()
+          'treating-declare-as-func :decl '(function declare))
+  (get-global-form-binding name))
+
 (defmethod find-form-binding-by-literal ((name symbol) env)
   (assert (not (eq name 'declare)) ()
           'treating-declare-as-func :decl '(function declare))
   (get-form-binding name env))
+
+(defmethod find-global-form-binding-by-literal ((func-name list))
+  ;;
+  (destructuring-bind (name &rest arg-types) func-name
+    (assert (not (eq name 'declare)) ()
+            'treating-declare-as-func :decl func-name)
+    (assert (not (find-if #'&rest-p arg-types))
+            () 'cannot-take-reference-to-&rest-func :func-name func-name)
+    (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
+                             arg-types))
+          (binding (get-global-form-binding name)))
+      ;;
+      (etypecase binding
+        ;; When we have types we should try to match exactly
+        (v-function-set
+         (if arg-types
+             (or (%post-process-found-literal-func
+                  (find-if λ(exact-match-function-to-types arg-types _)
+                           (functions binding))
+                  arg-types)
+                 (error 'could-not-find-function :name func-name))
+             binding))
+        ;; otherwise return the binding
+        (v-regular-macro binding)
+        ;;
+        (null (error 'could-not-find-function :name func-name))))))
 
 (defmethod find-form-binding-by-literal ((func-name list) env)
   ;;
@@ -418,7 +445,7 @@ however failed to do so when asked."
         (v-function-set
          (if arg-types
              (or (%post-process-found-literal-func
-                  (find-if λ(exact-match-function-to-types arg-types env _)
+                  (find-if λ(exact-match-function-to-types arg-types _)
                            (functions binding))
                   arg-types)
                  (error 'could-not-find-function :name func-name))

@@ -47,7 +47,7 @@
          (types (mapcar #'primary-type elements))
          (element-type (apply #'find-mutual-cast-type types))
          (array-type (v-array-type-of element-type len (flow-id!)))
-         (cast-objs (cast-for-array-literal element-type elements env))
+         (cast-objs (cast-for-array-literal element-type elements))
          (glsl (gen-array-literal-string cast-objs element-type))
          (type-set (make-type-set array-type))
          (ast (ast-node! :literal arr type-set env env)))

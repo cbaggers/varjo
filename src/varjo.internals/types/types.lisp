@@ -4,27 +4,30 @@
 ;;------------------------------------------------------------
 ;; Type shadowing
 
-(let* ((alternate-ht (make-hash-table))
-       (alternate-ht-backward (make-hash-table)))
-  (defun add-alternate-type-name (alt-type-name src-type-name)
-    (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
-    (setf (gethash alt-type-name alternate-ht) src-type-name)
-    (setf (gethash src-type-name alternate-ht-backward) alt-type-name)
-    (when (and (ephemeral-p (type-spec->type src-type-name))
-               (not (get-global-form-binding alt-type-name)))
-      (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
-    alt-type-name)
-  (defun resolve-name-from-alternative (spec)
-    (if (listp spec)
-        `(,(or (gethash (first spec) alternate-ht) (first spec)) ,@(rest spec))
-        (or (gethash spec alternate-ht) spec)))
-  (defun alternate-name-for (type-spec)
-    (if (listp type-spec)
-        `(,(or (gethash (first type-spec) alternate-ht-backward)
-               (first type-spec))
-           ,@(rest type-spec))
-        (or (gethash type-spec alternate-ht-backward)
-            type-spec))))
+(defvar *alternate-ht* (make-hash-table))
+(defvar *alternate-ht-backward* (make-hash-table))
+
+(defun add-alternate-type-name (alt-type-name src-type-name)
+  (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
+  (setf (gethash alt-type-name *alternate-ht*) src-type-name)
+  (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
+  (when (and (ephemeral-p (type-spec->type src-type-name))
+             (not (get-global-form-binding alt-type-name)))
+    (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
+  alt-type-name)
+
+(defun resolve-name-from-alternative (spec)
+  (if (listp spec)
+      `(,(or (gethash (first spec) *alternate-ht*) (first spec)) ,@(rest spec))
+      (or (gethash spec *alternate-ht*) spec)))
+
+(defun alternate-name-for (type-spec)
+  (if (listp type-spec)
+      `(,(or (gethash (first type-spec) *alternate-ht-backward*)
+             (first type-spec))
+         ,@(rest type-spec))
+      (or (gethash type-spec *alternate-ht-backward*)
+          type-spec)))
 
 ;;------------------------------------------------------------
 ;; Converting specs into types
@@ -647,34 +650,32 @@
 ;; Casting
 
 
-(defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type)
-                       env)
-  (declare (ignore env))
+(defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type))
   (when (and (every #'v-type-eq (v-argument-spec from-type)
                     (v-argument-spec to-type))
              (every #'v-type-eq (v-return-spec from-type)
                     (v-return-spec to-type)))
     to-type))
 
-(defmethod v-casts-to ((from-type v-any-one-of) (to-type v-function-type) env)
-  (let* ((funcs (remove-if-not (lambda (fn) (v-casts-to fn to-type env))
+(defmethod v-casts-to ((from-type v-any-one-of) (to-type v-function-type))
+  (let* ((funcs (remove-if-not (lambda (fn) (v-casts-to fn to-type))
                                (v-types from-type))))
     (when funcs
       (gen-any-one-of-type funcs))))
 
-(defmethod v-casts-to ((from-type v-stemcell) (to-type v-type) env)
-  (declare (ignore env from-type))
+(defmethod v-casts-to ((from-type v-stemcell) (to-type v-type))
+  (declare (ignore from-type))
   to-type)
 
-(defmethod v-casts-to-p (from-type to-type env)
-  (not (null (v-casts-to from-type to-type env))))
+(defmethod v-casts-to-p (from-type to-type)
+  (not (null (v-casts-to from-type to-type))))
 
-(defmethod v-casts-to ((from-type v-type) (to-type v-type) env)
+(defmethod v-casts-to ((from-type v-type) (to-type v-type))
   (if (v-typep from-type to-type)
       (strip-flow-id from-type)
       (when (slot-exists-p from-type 'casts-to)
         (loop :for cast-type :in (slot-value from-type 'casts-to)
-           :if (v-typep (type-spec->type cast-type) to-type env)
+           :if (v-typep (type-spec->type cast-type) to-type)
            :return (type-spec->type cast-type)))))
 
 

@@ -66,7 +66,7 @@
                  :arg-spec arg-spec
                  :macro-function macro-function))
 
-(defun find-compiler-macro-for-func (func env)
+(defun find-compiler-macro-for-func (func)
   (labels ((&rest-pos (s) (position-if #'&rest-p s)))
     (unless (v-special-functionp func)
       (let* ((name (name func))
@@ -80,7 +80,7 @@
                              candidates))
              (func-spec (remove-if #'&rest-p func-spec)))
         (when candidates
-          (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil env
+          (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil
                                                     :allow-casting nil)
                                  candidates))
                  (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
