@@ -184,6 +184,7 @@
                  &optional in-args uniforms (version :450) allow-stemcells)
   (let* ((stage (make-stage stage-kind in-args uniforms (list version) allow-stemcells))
          (env (varjo.internals::%make-base-environment stage)))
+    (varjo.internals::add-glsl-funcs env)
     (varjo::pipe-> (stage env)
       #'varjo.internals::process-primitive-type
       #'varjo.internals::add-context-glsl-vars

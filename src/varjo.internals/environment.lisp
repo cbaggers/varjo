@@ -510,9 +510,10 @@ For example calling env-prune on this environment..
     (cond (s (if respect-scope-rules
                  (values (apply-scope-rules symbol s env) env)
                  (values s env)))
-          (t (get-symbol-binding symbol
-                                 respect-scope-rules
-                                 (v-parent-env env))))))
+          (t (when (v-parent-env env)
+               (get-symbol-binding symbol
+                                   respect-scope-rules
+                                   (v-parent-env env)))))))
 
 ;;-------------------------------------------------------------------------
 ;; Adding bindings for functions & macros
@@ -602,7 +603,9 @@ For example calling env-prune on this environment..
     (if bindings-at-this-level
         ;; it's either a macro from this level or a function set
         (or macro
-            (let* ((bindings-above (get-form-binding name (v-parent-env env)))
+            (let* ((bindings-above
+                    (when (v-parent-env env)
+                      (get-form-binding name (v-parent-env env))))
                    (all-bindings
                     (append bindings-at-this-level
                             (when (typep bindings-above 'v-function-set)
@@ -611,7 +614,8 @@ For example calling env-prune on this environment..
                                          all-bindings)))
               (make-function-set valid)))
         ;; nothing here? Check higher.
-        (get-form-binding name (v-parent-env env)))))
+        (when (v-parent-env env)
+          (get-form-binding name (v-parent-env env))))))
 
 ;;-------------------------------------------------------------------------
 

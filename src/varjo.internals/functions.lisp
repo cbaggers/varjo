@@ -515,3 +515,14 @@ however failed to do so when asked."
                 (iota (length flow-ids))))))
 
 ;;----------------------------------------------------------------------
+
+(defun add-glsl-funcs (env)
+  (assert (typep env 'base-environment))
+  (let ((funcs *global-env-form-bindings*))
+    (with-slots (form-bindings) env
+      (setf form-bindings
+            (loop :for key :in (hash-table-keys funcs) :collect
+               (cons key (gethash key funcs))))
+      env)))
+
+;;----------------------------------------------------------------------
