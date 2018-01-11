@@ -88,32 +88,37 @@
           (func-name (symb :vs- name))
           (env (symb :env))
           (this (symb :this)))
-      (destructuring-bind (&key context v-place-index args-valid return) body
-        (cond
-          ((eq args-valid t)
-           `(progn
-              (defun ,func-name ,(append (list env this) args)
-                (declare (ignorable ,env ,this ,@arg-names))
-                ,return)
-              (add-form-binding
-               (make-function-obj ',name :special ',context t
-                                  #',func-name
-                                  :v-place-index ',v-place-index)
-               *global-env*)
-              ',name))
-          (t `(progn
-                (defun ,func-name ,(append (list env this)
-                                           (mapcar #'first args))
+      (destructuring-bind (&key context stage-restrictions v-place-index
+                                args-valid return)
+          body
+        (let ((stage-restrictions (listify stage-restrictions)))
+          (cond
+            ((eq args-valid t)
+             `(progn
+                (defun ,func-name ,(append (list env this) args)
                   (declare (ignorable ,env ,this ,@arg-names))
                   ,return)
                 (add-form-binding
-                 (make-function-obj ',name :special ',context
-                                    ',(mapcar λ(type-spec->type (second _))
-                                              args)
+                 (make-function-obj ',name :special ',context t
                                     #',func-name
-                                    :v-place-index ',v-place-index)
+                                    :v-place-index ',v-place-index
+                                    :stage-restrictions ',stage-restrictions)
                  *global-env*)
-                ',name)))))))
+                ',name))
+            (t `(progn
+                  (defun ,func-name ,(append (list env this)
+                                             (mapcar #'first args))
+                    (declare (ignorable ,env ,this ,@arg-names))
+                    ,return)
+                  (add-form-binding
+                   (make-function-obj ',name :special ',context
+                                      ',(mapcar λ(type-spec->type (second _))
+                                                args)
+                                      #',func-name
+                                      :v-place-index ',v-place-index
+                                      :stage-restrictions ',stage-restrictions)
+                   *global-env*)
+                  ',name))))))))
 
 ;;------------------------------------------------------------
 

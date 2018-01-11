@@ -109,3 +109,13 @@
 
 (defun %get-gensym-name (symbol)
   (format nil "g_~a" (gen-glsl-string-for-symbol symbol)))
+
+;;-------------------------------------------------------------------------
+
+(defun stage-name->stage-type (name)
+  (let ((index (position name *stage-names*)))
+    (if index
+        (elt *stage-type-names* index)
+        (error "TODO: ERROR FOR BAD STAGE NAME"))))
+
+;;-------------------------------------------------------------------------

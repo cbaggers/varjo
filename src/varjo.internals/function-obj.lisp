@@ -71,7 +71,8 @@
 
 (defun make-function-obj (name transform versions arg-spec return-spec
                           &key v-place-index glsl-name implicit-args
-                            in-out-args flow-ids in-arg-flow-ids pure)
+                            in-out-args flow-ids in-arg-flow-ids pure
+                            stage-restrictions)
   (assert (valid-func-return-spec-p return-spec)
           () 'user-func-invalid-x
           :kind 'returns
@@ -87,19 +88,25 @@
             :kind 'args
             :name name
             :args arg-spec))
-  (make-instance 'v-function
-                 :glsl-string transform
-                 :arg-spec arg-spec
-                 :return-spec return-spec
-                 :versions versions
-                 :v-place-index v-place-index
-                 :glsl-name glsl-name
-                 :name name
-                 :implicit-args implicit-args
-                 :in-out-args in-out-args
-                 :flow-ids flow-ids
-                 :in-arg-flow-ids in-arg-flow-ids
-                 :pure pure))
+  (assert (every λ(find _ *stage-names*) stage-restrictions) ()
+          "TODO: GOOD ERROR FOR STAGE-RESTRICTION NAMES"
+          (set-difference stage-restrictions *stage-names*))
+  (let ((stage-restrictions
+         (mapcar #'stage-name->stage-type stage-restrictions)))
+    (make-instance 'v-function
+                   :glsl-string transform
+                   :arg-spec arg-spec
+                   :return-spec return-spec
+                   :versions versions
+                   :stage-restrictions stage-restrictions
+                   :v-place-index v-place-index
+                   :glsl-name glsl-name
+                   :name name
+                   :implicit-args implicit-args
+                   :in-out-args in-out-args
+                   :flow-ids flow-ids
+                   :in-arg-flow-ids in-arg-flow-ids
+                   :pure pure)))
 
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
@@ -142,6 +149,7 @@
      :arg-spec arg-spec
      :return-spec (v-return-spec func-type)
      :versions *supported-versions*
+     :stage-restrictions nil
      :v-place-index nil
      :glsl-name glsl-name
      :name 'dummy-func
@@ -175,6 +183,7 @@
                                 return-spec))
            (new-func (make-instance 'v-function
                                     :versions versions
+                                    :stage-restrictions nil
                                     :arg-spec new-arg-spec
                                     :glsl-string glsl-string
                                     :glsl-name glsl-name

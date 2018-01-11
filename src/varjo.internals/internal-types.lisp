@@ -424,6 +424,8 @@
 
 (defclass v-function ()
   ((versions :initform nil :initarg :versions :accessor v-versions)
+   (stage-restrictions :initform nil :initarg :stage-restrictions
+                       :accessor v-stage-restrictions)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (glsl-name :initarg :glsl-name :accessor glsl-name)

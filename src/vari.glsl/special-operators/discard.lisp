@@ -6,6 +6,10 @@
 
 ;; {TODO} check keys
 (v-defspecial discard ()
+<<<<<<< Updated upstream
+=======
+  :stage-restrictions :fragment
+>>>>>>> Stashed changes
   :return
   (let* ((discarded (type-spec->type 'v-discarded (flow-id!)))
          (type-set (make-type-set discarded))
