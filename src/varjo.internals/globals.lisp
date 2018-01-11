@@ -2,7 +2,6 @@
 (in-readtable fn:fn-reader)
 
 (defvar *global-env-form-bindings* (make-hash-table))
-(defvar *global-env-symbol-bindings* (make-hash-table))
 (defvar *global-env-compiler-macros* (make-hash-table))
 
 (defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450))

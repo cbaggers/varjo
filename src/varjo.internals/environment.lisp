@@ -427,17 +427,6 @@ For example calling env-prune on this environment..
 
 ;;-------------------------------------------------------------------------
 
-(defmethod add-global-symbol-binding (name (val v-value))
-  (setf (gethash name *global-env-symbol-bindings*) val)
-  val)
-
-(defmethod add-global-symbol-binding (name (macro v-symbol-macro))
-  (setf (gethash name *global-env-symbol-bindings*) macro)
-  macro)
-
-(defmethod add-global-symbol-binding (name (val uninitialized-value))
-  (error 'global-uninitialized-var :name name))
-
 (defmethod %add-symbol-binding (var-name (val v-value) (env base-environment))
   "Warning - Destructive: Used when we don't want to create a fresh environment.
    This is used when setting up the environment prior to starting the actual
@@ -499,10 +488,6 @@ For example calling env-prune on this environment..
   (let* ((binding (get-symbol-binding name nil env)))
     (assert binding (name) 'symbol-unidentified :sym name)
     (binding-in-higher-scope-p binding env)))
-
-(defmethod get-global-symbol-binding (symbol respect-scope-rules)
-  (declare (ignore respect-scope-rules))
-  (values (gethash symbol *global-env-symbol-bindings*)))
 
 ;; {TODO} does get-symbol-binding need to return the env?
 (defmethod get-symbol-binding (symbol respect-scope-rules (env environment))

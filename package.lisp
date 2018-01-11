@@ -600,7 +600,7 @@
            :v-dimensions
            :v-element-type
            :v-errorp
-           :v-form-bindings
+           :v-global-form-bindings
            :v-function
            :v-function-scope
            :v-function-set
