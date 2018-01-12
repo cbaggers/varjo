@@ -95,6 +95,10 @@
             :args (mapcar λ(list (name _) (type->type-spec (v-type-of _)))
                           (input-variables stage))))
   (mapcar (lambda (var)
+            (assert (not (holds-opaque-data-p (v-type-of var))) ()
+                    'opaque-data-found
+                    :arg-name (name var)
+                    :type-spec (type->type-spec (v-type-of var)))
             (vbind (input-value expanded-vars expanded-funcs)
                 (expand-input-variable stage (v-type-of var) var env)
               ;;
@@ -146,6 +150,9 @@
 (defun process-ubo/ssbo-uniform (name glsl-name type qualifiers env)
   (assert (v-typep type 'v-user-struct) ()
           'ubo-ssbo-type-limitation :type type)
+  (assert (not (holds-opaque-data-p type)) () 'opaque-data-found
+          :arg-name name
+          :type-spec (type->type-spec type))
   (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-symbol-binding

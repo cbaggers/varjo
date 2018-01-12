@@ -326,6 +326,7 @@
            :void-type-for-if-test
            :discarded-for-if-test
            :discard-not-in-fragment-stage
+           :opaque-data-found
 
            ;; restarts
            :setq-supply-alternate-type))

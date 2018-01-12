@@ -341,3 +341,10 @@
       (labels ((foo (&rest (x :int))
                  x))
         (v! (foo 10) 2 3 4)))))
+
+(5am:def-test build-25 (:suite struct-tests)
+  ;; this test makes sure that even though opaque structs arent allowed in
+  ;; interface-blocks, that we havent stopped allowing opaque uniforms
+  (finishes-p
+    (compile-vert (&uniform (vert :sampler-2d)) :450 nil
+      (v! 1 2 3 4))))

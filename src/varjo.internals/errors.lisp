@@ -1043,6 +1043,11 @@ discarding the fragment. We arent sure what to emit for this 'if'.
     "The discard expression was found in a ~a. This is invalid as it is only
 allowed in fragment stages" stage)
 
+(deferror opaque-data-found () (arg-name type-spec)
+    "The argument ~a has type ~a which contains opaque data.
+This is invalid in this context"
+  arg-name type-spec)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

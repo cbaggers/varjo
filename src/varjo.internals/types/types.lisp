@@ -101,6 +101,22 @@
 
 (def-v-type-class v-opaque (v-type) ())
 
+(defgeneric has-any-opaque-slots-p (type)
+  (:method ((type v-struct))
+    (some (lambda (slot)
+            (holds-opaque-slots-p (second slot)))
+          (v-slots type)))
+  (:method ((type t))
+    nil))
+
+(defgeneric holds-opaque-data-p (type)
+  (:method ((type v-struct))
+    (has-any-opaque-slots-p type))
+  (:method ((type v-opaque))
+    t)
+  (:method ((type t))
+    nil))
+
 ;;------------------------------------------------------------
 ;; Void
 
