@@ -78,7 +78,7 @@
          (new-env (fresh-environment env :multi-val-base nil))
 
          ;;
-         (assign-forms (mapcar λ(gen-assignement-form-for-return new-env _ _1)
+         (assign-forms (mapcar λ(gen-assignement-form-for-emit new-env _ _1)
                                (alexandria:iota (length objs))
                                objs))
          ;;
@@ -187,6 +187,13 @@
                        (postfix-glsl-index *return-var-name-base* index))
               ,(primary-type code-obj) ,code-obj)
             code-obj))))
+
+(defun gen-assignement-form-for-emit (env index code-obj)
+  (let* ((stage (stage env)))
+    (assert (typep stage 'geometry-stage))
+    `(glsl-expr
+      ,(format nil "~a = ~~a" (nth-return-name index stage t))
+      ,(primary-type code-obj) ,code-obj)))
 
 (defun %values-void (for-return env)
   (let ((void (make-type-set)))
