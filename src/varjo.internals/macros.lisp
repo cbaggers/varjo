@@ -7,9 +7,8 @@
 (defmacro v-defmacro (name lambda-list &body body)
   (vbind (func-code context) (gen-macro-function-code name lambda-list body)
     `(progn
-       (add-form-binding
-        (make-regular-macro ',name ,func-code ',context *global-env*)
-        *global-env*)
+       (add-global-form-binding
+        (make-regular-macro ',name ,func-code ',context nil))
        ',name)))
 
 (defgeneric make-regular-macro (name macro-function context env)
@@ -18,9 +17,9 @@
                    :name name
                    :macro-function macro-function
                    :context context
-                   :function-scope (if (eq env *global-env*)
-                                       0
-                                       (v-function-scope env)))))
+                   :function-scope (if env
+                                       (v-function-scope env)
+                                       0))))
 
 ;;------------------------------------------------------------
 ;; Symbol Macros
@@ -54,10 +53,9 @@
                (arg-names (mapcar λ(maybe-nth 0 _) args))
                (arg-types (mapcar λ(arg-form->type (maybe-nth 1 _)) args)))
           `(progn
-             (add-compiler-macro
+             (add-global-compiler-macro
               (make-compiler-macro ',name ,func-code ',arg-names ',arg-types
-                                   ',context)
-              *global-env*)
+                                   ',context))
              ',name))))))
 
 (defun make-compiler-macro (name macro-function arg-names arg-spec context)
@@ -68,13 +66,13 @@
                  :arg-spec arg-spec
                  :macro-function macro-function))
 
-(defun find-compiler-macro-for-func (func env)
+(defun find-compiler-macro-for-func (func)
   (labels ((&rest-pos (s) (position-if #'&rest-p s)))
     (unless (v-special-functionp func)
       (let* ((name (name func))
              (func-spec (v-argument-spec func))
              (rest-pos (&rest-pos func-spec))
-             (candidates (get-compiler-macro name env))
+             (candidates (get-global-compiler-macro name))
              (candidates (if rest-pos
                              (remove-if-not λ(= (&rest-pos (v-argument-spec _))
                                                 rest-pos)
@@ -82,7 +80,7 @@
                              candidates))
              (func-spec (remove-if #'&rest-p func-spec)))
         (when candidates
-          (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil env
+          (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil
                                                     :allow-casting nil)
                                  candidates))
                  (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))

@@ -156,7 +156,7 @@
 
 (defclass environment ()
   ((parent-env
-    :initform *global-env* :initarg :parent-env :reader v-parent-env)
+    :initform nil :initarg :parent-env :reader v-parent-env)
    (context
     :initform nil :initarg :context :reader v-context)
    (symbol-bindings

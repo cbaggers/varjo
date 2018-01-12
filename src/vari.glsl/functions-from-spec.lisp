@@ -25,7 +25,7 @@
                                     :collect "~a")))
               (versions (mapcar #'kwd versions)))
          (unless (some #'third args)
-           (varjo.internals::add-form-binding
+           (varjo.internals::add-global-form-binding
             (varjo.internals::make-function-obj
              lisp-name transform versions lisp-arg-types
              lisp-return :v-place-index nil :glsl-name nil
@@ -34,7 +34,6 @@
              ;;                ↓↓↓
              :in-arg-flow-ids (n-of (varjo.internals::%gl-flow-id!)
                                     (length args))
-             :pure pure)
-            varjo.internals::*global-env*))))))
+             :pure pure)))))))
 
 (populate-functions)

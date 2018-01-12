@@ -45,12 +45,11 @@
                (elem-objs (mapcar λ(compile-literal _ env) initial-contents))
                (types (mapcar #'primary-type elem-objs))
                (array-type (v-array-type-of element-type len (flow-id!))))
-          (assert (every λ(v-casts-to-p _ element-type env) types) ()
+          (assert (every λ(v-casts-to-p _ element-type) types) ()
                   'make-array-cant-cast-args
                   :element-type element-type
                   :initial-contents initial-contents)
-          (let* ((cast-objs (cast-for-array-literal element-type elem-objs
-                                                    env))
+          (let* ((cast-objs (cast-for-array-literal element-type elem-objs))
                  (glsl (gen-array-literal-string cast-objs element-type))
                  (type-set (make-type-set array-type))
                  (ast (ast-node! :code-section (cons 'make-array args)
@@ -71,8 +70,7 @@
            (types (mapcar #'primary-type objs))
            (element-type (apply #'find-mutual-cast-type types))
            (array-type (v-array-type-of element-type len (flow-id!)))
-           (cast-objs (cast-for-array-literal element-type objs
-                                              env))
+           (cast-objs (cast-for-array-literal element-type objs))
            (glsl (gen-array-literal-string cast-objs element-type))
            (type-set (make-type-set array-type))
            (ast (ast-node! 'vector (mapcar #'node-tree objs)

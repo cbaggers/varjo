@@ -12,6 +12,7 @@
           (pipe-> (stage env)
             #'process-primitive-type
             #'add-context-glsl-vars
+            #'add-context-glsl-funcs
             #'expand-input-variables
             #'process-uniforms
             #'compile-pass
@@ -43,6 +44,9 @@
 
 (defun add-context-glsl-vars (stage env)
   (values stage (add-glsl-vars env)))
+
+(defun add-context-glsl-funcs (stage env)
+  (values stage (add-glsl-funcs env)))
 
 ;;----------------------------------------------------------------------
 

@@ -3,11 +3,11 @@
 
 ;;------------------------------------------------------------
 
-(defun cast-code (src-obj cast-to-type env)
-  (cast-code-inner (primary-type src-obj) src-obj cast-to-type env))
+(defun cast-code (src-obj cast-to-type)
+  (cast-code-inner (primary-type src-obj) src-obj cast-to-type))
 
-(defmethod cast-code-inner (varjo-type src-obj cast-to-type env)
-  (declare (ignore varjo-type env))
+(defmethod cast-code-inner (varjo-type src-obj cast-to-type)
+  (declare (ignore varjo-type))
   (let* ((src-type (primary-type src-obj))
          (dest-type (set-flow-id cast-to-type (flow-ids src-type))))
     (if (v-type-eq src-type cast-to-type)
@@ -16,8 +16,8 @@
                        :type-set (make-type-set dest-type)))))
 
 (defmethod cast-code-inner
-    (varjo-type src-obj (cast-to-type v-function-type) env)
-  (declare (ignore varjo-type env))
+    (varjo-type src-obj (cast-to-type v-function-type))
+  (declare (ignore varjo-type))
   (let ((new-type (make-instance
                    'v-function-type
                    :arg-spec (v-argument-spec cast-to-type)
@@ -33,11 +33,11 @@
 
 ;;------------------------------------------------------------
 
-(defun cast-for-array-literal (target-element-type elements env)
+(defun cast-for-array-literal (target-element-type elements)
   (labels ((cast (x)
              (if (v-type-eq (primary-type x) target-element-type)
                  x
-                 (cast-code x target-element-type env))))
+                 (cast-code x target-element-type))))
     (mapcar #'cast elements)))
 
 ;;------------------------------------------------------------
