@@ -327,6 +327,7 @@
            :discarded-for-if-test
            :discard-not-in-fragment-stage
            :opaque-data-found
+           :invalid-output-primitive-for-geometry
 
            ;; restarts
            :setq-supply-alternate-type))

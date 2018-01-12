@@ -1048,6 +1048,14 @@ allowed in fragment stages" stage)
 This is invalid in this context"
   arg-name type-spec)
 
+(deferror invalid-output-primitive-for-geometry () (kind)
+    "The output primitive for the geometry stages was set to be ~s,
+however the only valid option is one of the following:
+
+- :points
+- :line-strip
+- :triangle-strip" kind)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

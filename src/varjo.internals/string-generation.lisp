@@ -181,6 +181,9 @@
 
 (defun gen-geom-output-primitive-string (metadata)
   (with-slots (vari.cl:kind vari.cl:max-vertices) metadata
+    (assert (find vari.cl:kind '(:points :line-strip :triangle-strip)) ()
+            'invalid-output-primitive-for-geometry
+            :kind vari.cl:kind)
     (format nil "layout (~a, max_vertices = ~a) out;"
             (glsl-string (primitive-name-to-instance vari.cl:kind))
             vari.cl:max-vertices)))
