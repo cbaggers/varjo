@@ -97,6 +97,11 @@
       (type-spec->type superclass))))
 
 ;;------------------------------------------------------------
+;; Opaque
+
+(def-v-type-class v-opaque (v-type) ())
+
+;;------------------------------------------------------------
 ;; Void
 
 (def-v-type-class v-void (v-type)
@@ -131,7 +136,7 @@
 ;;------------------------------------------------------------
 ;; Sampler
 
-(def-v-type-class v-sampler (v-type)
+(def-v-type-class v-sampler (v-opaque)
   ((element-type :initform 'v-type)))
 
 (defmethod post-initialise ((object v-sampler))
