@@ -152,6 +152,27 @@
      (end-primitive)
      (values))))
 
+(5am:def-test values-19 (:suite multiple-value-return-tests)
+  (glsl-doesnt-contain-p ".+=.+return"
+    (varjo.tests::compile-vert () :450 nil
+      (flet ((foo ((test :bool) (a :int) (b :int) (c :int) (d :int))
+               (if test
+                   (values a b c)
+                   (values b c d))))
+        (vec4 (foo t 1 2 3 4) 2 3 4)))))
+
+(5am:def-test values-20 (:suite multiple-value-return-tests)
+  (glsl-doesnt-contain-p ".+=.+return"
+    (varjo.tests::compile-vert () :450 nil
+     (flet ((foo ((test :bool) (a :int) (b :int) (c :int) (d :int))
+              (if test
+                  (return (values a b c))
+                  (return (values b c d)))))
+       (vec4 (foo t 1 2 3 4) 2 3 4)))))
+
+
+
+
 ;; These are not valid until #'vector is a function
 
 ;; (glsl-code
