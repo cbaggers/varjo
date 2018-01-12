@@ -29,4 +29,5 @@
                (:file "tests/let-tests")
                (:file "tests/qualifier-tests")
                (:file "tests/uninitialized-value-tests")
-               (:file "tests/metadata")))
+               (:file "tests/metadata")
+               (:file "tests/emit")))
