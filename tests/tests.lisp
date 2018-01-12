@@ -81,14 +81,14 @@
             (ast-stabalizes-p recomp (incf depth)))))))
 
 (defmacro finishes-p (form)
-  (alexandria:with-gensyms (res)
+  (alexandria:with-gensyms (res elem)
     `(let ((,res (varjo::listify ,form)))
-       (is (every (lambda (x)
-                    (and (typep x 'compiled-stage)
-                         (ast-stabalizes-p x)
-                         (not (glsl-contains-invalid x))
-                         (not (glsl-contains-nil x))))
-                  ,res)))))
+       (loop :for ,elem :in ,res :do
+          (is-true (typep ,elem 'compiled-stage))
+          (is-true (ast-stabalizes-p ,elem))
+          (is-false (glsl-contains-invalid ,elem))
+          (is-false (glsl-contains-nil ,elem)))
+       ,res)))
 
 (defun glsl-contains-invalid (compile-result)
   (not (null (cl-ppcre:all-matches-as-strings "<invalid>"
