@@ -101,17 +101,17 @@
 (defmacro glsl-contains-p (regex &body form)
   (assert (= 1 (length form)))
   `(let ((compile-result ,(first form)))
-     (is (and (cl-ppcre:all-matches ,regex (glsl-code compile-result))
-              (not (glsl-contains-invalid compile-result))
-              (not (glsl-contains-nil compile-result))))))
+     (is-true (cl-ppcre:all-matches ,regex (glsl-code compile-result)))
+     (is-false (glsl-contains-invalid compile-result))
+     (is-false (glsl-contains-nil compile-result))))
 
 (defmacro glsl-doesnt-contain-p (regex &body form)
   (assert (= 1 (length form)))
   `(let ((compile-result ,(first form)))
-     (is (and (null (cl-ppcre:all-matches-as-strings
-                     ,regex (glsl-code compile-result)))
-              (not (glsl-contains-invalid compile-result))
-              (not (glsl-contains-nil compile-result))))))
+     (is-true (null (cl-ppcre:all-matches-as-strings
+                     ,regex (glsl-code compile-result))))
+     (is-false (glsl-contains-invalid compile-result))
+     (is-false (glsl-contains-nil compile-result))))
 
 (defmacro glsl-contains-n-p (n regex &body form)
   (assert (= 1 (length form)))
@@ -121,9 +121,9 @@
             (,matches (cl-ppcre:all-matches-as-strings
                        ,regex
                        (glsl-code ,compiled))))
-       (is (and (= ,count (length ,matches))
-                (not (glsl-contains-invalid ,compiled))
-                (not (glsl-contains-nil ,compiled)))))))
+       (is-true (= ,count (length ,matches)))
+       (is-false (glsl-contains-invalid ,compiled))
+       (is-false (glsl-contains-nil ,compiled)))))
 
 (defmacro glsl-contains-all-p ((&rest regexes) &body form)
   (assert (= 1 (length form)))
@@ -133,10 +133,10 @@
               ,@(loop :for g :in gvars :for r :in regexes :collect
                    `(,g (cl-ppcre:all-matches-as-strings
                          ,r (glsl-code ,compiled)))))
-         (is (and (or (and ,@gvars)
-                      (map nil #'print (list ,@gvars)))
-                  (not (glsl-contains-invalid ,compiled))
-                  (not (glsl-contains-nil ,compiled))))))))
+         (is-true (or (and ,@gvars)
+                      (map nil #'print (list ,@gvars))))
+         (is-false (glsl-contains-invalid ,compiled))
+         (is-false (glsl-contains-nil ,compiled))))))
 
 (defmacro glsl-contains-1-of-all-p ((&rest regexes) &body form)
   (assert (= 1 (length form)))
@@ -146,11 +146,11 @@
               ,@(loop :for g :in gvars :for r :in regexes :collect
                    `(,g (cl-ppcre:all-matches-as-strings
                          ,r (glsl-code ,compiled)))))
-         (is (and (or (every (lambda (x) (= (length x) 1))
+         (is-true (or (every (lambda (x) (= (length x) 1))
                              (list ,@gvars))
-                      (map nil #'print (list ,@gvars)))
-                  (not (glsl-contains-invalid ,compiled))
-                  (not (glsl-contains-nil ,compiled))))))))
+                      (map nil #'print (list ,@gvars))))
+         (is-false (glsl-contains-invalid ,compiled))
+         (is-false (glsl-contains-nil ,compiled))))))
 
 ;;------------------------------------------------------------
 
