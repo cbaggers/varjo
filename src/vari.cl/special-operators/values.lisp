@@ -82,15 +82,14 @@
                                (alexandria:iota (length objs))
                                objs))
          ;;
-         (first-name (gensym))
          (result (cond
                    ((v-voidp (first objs))
                     (compile-form `(progn ,@assign-forms) env))
                    (objs
                     (compile-form
-                     `(let ((,first-name ,(first assign-forms)))
-                        ,@(rest assign-forms)
-                        ,first-name)
+                     `(progn
+                        ,@assign-forms
+                        (values))
                      env))
                    (t (error "Varjo: Invalid values form inside emit (values)"))))
          ;;
@@ -112,6 +111,34 @@
             env)))
 
 (defun %values-for-return (objs qualifier-lists parsed-qualifier-lists env)
+  (if (or (v-voidp (first objs))
+          (v-discarded-p (first objs)))
+      (%values-for-return-void objs qualifier-lists env)
+      (%values-for-return-values objs qualifier-lists parsed-qualifier-lists
+                                 env)))
+
+(defun %values-for-return-void (objs qualifier-lists env)
+  (let* ((result (compile-form
+                  `(progn
+                     ,@objs
+                     (%glsl-expr "return" :void))
+                  env))
+         (type-set (make-type-set))
+         ;;
+         (ast (ast-node! 'values
+                         (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
+                                 objs
+                                 qualifier-lists)
+                         type-set env env)))
+    (values (copy-compiled
+             result
+             :type-set type-set
+             :return-set type-set
+             :node-tree ast)
+            env)))
+
+(defun %values-for-return-values (objs qualifier-lists parsed-qualifier-lists
+                                  env)
   (let* (;;
          (is-main-p (not (null (member :main (v-context env)))))
          (new-env (fresh-environment env :multi-val-base nil))
@@ -122,13 +149,6 @@
          ;;
          (first-name (gensym))
          (result (cond
-                   ((or (v-voidp (first objs))
-                        (v-discarded-p (first objs)))
-                    (compile-form
-                     `(progn
-                        ,@assign-forms
-                        (%glsl-expr "return" :void))
-                     env))
                    ((> (length objs) 1)
                     (compile-form
                      (if is-main-p
