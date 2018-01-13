@@ -1056,6 +1056,18 @@ however the only valid option is one of the following:
 - :line-strip
 - :triangle-strip" kind)
 
+(deferror let-void () (name)
+    "Found an invalid attempt to make a local variable ~a with type :void"
+  name)
+
+(deferror let-discarded () (name)
+    "Found an attempt to 'let' a local variable called ~a, however the form
+providing the value has discarded the fragment and as such will never return.
+
+Due to this CEPL can't infer a valid type for this form and this is triggering
+this issue in 'let'"
+  name)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

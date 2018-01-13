@@ -328,6 +328,8 @@
            :discard-not-in-fragment-stage
            :opaque-data-found
            :invalid-output-primitive-for-geometry
+           :let-void
+           :let-discarded
 
            ;; restarts
            :setq-supply-alternate-type))
