@@ -330,6 +330,7 @@
            :invalid-output-primitive-for-geometry
            :let-void
            :let-discarded
+           :conditional-return-type-mismatch
 
            ;; restarts
            :setq-supply-alternate-type))

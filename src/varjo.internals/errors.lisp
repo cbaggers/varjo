@@ -63,6 +63,13 @@ when called with ~a
   (mapcar (lambda (x) (map 'list #'type->type-spec x))
           sets))
 
+(deferror conditional-return-type-mismatch () (sets)
+    "Due to a conditional the function could return any of the following:~{~%~a~}
+
+This stopped us working out the correct return types for this function"
+  (mapcar (lambda (x) (or (map 'list #'type->type-spec x) :void))
+          sets))
+
 (deferror emit-type-mismatch () (sets)
     "Some of the emit statements emit different types:~{~%~a~}"
   (mapcar (lambda (x) (map 'list #'type->type-spec x))

@@ -57,6 +57,14 @@
                 (gen-string-for-ternary-form test-obj then-obj else-obj)
                 (gen-string-for-if-form test-obj then-obj else-obj result-type
                                         has-else))
+          ;; this next check is to preempt a possible return-type-mismatch
+          ;; error. The reason we do this is to give a better error.
+          (let ((returns-sets (remove nil (mapcar #'return-set arg-objs))))
+            (when (and (> (length returns-sets) 1)
+                       (find-if (lambda (x) (= (length x) 0))
+                                returns-sets))
+              (error 'conditional-return-type-mismatch
+                     :sets returns-sets)))
           (values (merge-compiled arg-objs
                                   :type-set type-set
                                   :current-line current-line-string
