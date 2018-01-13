@@ -287,36 +287,5 @@
                          (mapcar #'node-tree args)
                          type-set
                          env env)))
-    (if for-return
-        (%values-for-tail-call call-obj ast env)
-        (values (copy-compiled call-obj :node-tree ast)
-                env))))
-
-(defun %values-for-tail-call (call-obj ast env)
-  (let* ((stage (stage env))
-         (is-main-p (not (null (member :main (v-context env)))))
-         (first-is-pos (stage-where-first-return-is-position-p stage)))
-    (when (and is-main-p first-is-pos)
-      (assert (v-type-eq (primary-type call-obj) (type-spec->type :vec4)) ()
-              'vertex-stage-primary-type-mismatch
-              :prim-type (primary-type call-obj)))
-    ;;
-    (let* ((result
-            (compile-form
-             (if is-main-p
-                 `(progn
-                    ,(if first-is-pos
-                         `(setq vari.glsl:gl-position ,call-obj)
-                         `(vari.cl::glsl-expr
-                           ,(format nil "~a = ~~a" (nth-return-name 0 stage t))
-                           ,(primary-type call-obj) ,call-obj))
-                    (vari.cl::%glsl-expr "return" :void))
-                 `(vari.cl::%glsl-expr "return ~a" ,(primary-type call-obj)
-                                       ,call-obj))
-             env)))
-      (values (copy-compiled
-               result
-               :type-set (type-set call-obj)
-               :return-set (type-set call-obj)
-               :node-tree ast)
-              env))))
+    (values (copy-compiled call-obj :node-tree ast)
+            env)))

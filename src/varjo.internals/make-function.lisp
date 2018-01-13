@@ -112,7 +112,7 @@
                                           func-env
                                           (remove-main-method-flag-from-env
                                            func-env)))))
-           (body-code `(implicit-return (progn ,@body)))
+           (body-code `(return (progn ,@body)))
            (body-obj (compile-form body-code body-env))
            (implicit-args (extract-implicit-args name allowed-implicit-args
                                                  (normalize-out-of-scope-args

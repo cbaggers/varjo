@@ -20,7 +20,7 @@
        (v! 0 0 0 0)))))
 
 (5am:def-test return-2 (:suite return-tests)
-  (signals varjo-conditions:vertex-stage-primary-type-mismatch
+  (signals varjo-conditions:stage-primary-type-mismatch
    (compile-vert ((a :int)) :450 nil
      (let ((x t))
        (if x

@@ -34,7 +34,9 @@ same rules as v-discarded where that reduces to :int
 I think that we can ditch the implicit-return special form and just say that
 'return' is allowed to take a 'v-returned in which case it is just a no-op
 
-Maybe we can ditch return-set in favor of the v-returned type
+Maybe we can ditch return-set in favor of the v-returned type.. nah lets have
+the unparametized v-returned & return-set. It should require less jumping
+through hoops.
 
 Let's have a look at this code:
 ||#

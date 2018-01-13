@@ -58,12 +58,12 @@
            :v-struct
            :v-user-struct
            :v-sampler
-           :v-discarded
            ;;
            :v-function-type
            :v-user-function
            ;;
            :v-discarded
+           :v-returned
            :v-void
            :v-bool
            :v-int
@@ -278,7 +278,7 @@
            :global-uninitialized-var
            :nil-return-set
            :with-fresh-env-scope-missing-env
-           :vertex-stage-primary-type-mismatch
+           :stage-primary-type-mismatch
            :multi-dimensional-array
            :make-array-mandatory-args
            :make-array-conflicting-args
@@ -634,6 +634,7 @@
            :v-versions
            :v-voidp
            :v-discarded-p
+           :v-returned-p
            :values-safe
            :vec-of
            :vertex-count

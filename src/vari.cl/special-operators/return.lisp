@@ -7,52 +7,60 @@
 (v-defspecial return (&optional (form '(values)))
   :args-valid t
   :return
-  (%return-impl env form nil))
-
-(v-defspecial implicit-return (&optional (form '(values)))
-  :args-valid t
-  :return
-  (%return-impl env form t))
-
-(defun %return-impl (env form implicit-p)
-  (let ((new-env (fresh-environment
+  ;; we create an environment with the signal to let any 'values' forms
+  ;; down the tree know they will be caught and what their name prefix should
+  ;; be.
+  ;; We then compile the form using the augmented environment, the values
+  ;; statements will expand and flow back as 'multi-vals' and the
+  ;; current-line
+  (let ((stage (stage env))
+        (is-main-p (member :main (v-context env)))
+        (new-env (fresh-environment
                   env :multi-val-base *return-var-name-base*)))
-    ;; we create an environment with the signal to let any 'values' forms
-    ;; down the tree know they will be caught and what their name prefix should
-    ;; be.
-    ;; We then compile the form using the augmented environment, the values
-    ;; statements will expand and flow back as 'multi-vals' and the
-    ;; current-line
-    ;;
-    ;; now there are two styles of return:
-    ;; - The first is for a regular function, in which multivals become
-    ;;   out-arguments and the current-line is returned
-    ;; - The second is for a shader stage in which the multi-vars become
-    ;;   output-variables and the current line is handled in a 'context'
-    ;;   specific way.
-    ;;
-    ;; If you make changes here, look at #'emit to see if it needs
-    ;; similar changes
-    (vbind (code-obj final-env) (compile-form form new-env)
-      (if (return-set code-obj)
-          (let ((ast (ast-node! 'return (node-tree code-obj)
-                                (make-type-set)
-                                env env)))
-            (unless implicit-p
-              (assert (type-sets-equal (type-set code-obj)
-                                       (return-set code-obj))
-                      () 'return-set-mismatch :form form ))
-            (values (copy-compiled code-obj
-                                   :type-set (make-type-set)
-                                   :node-tree ast)
-                    final-env))
-          (let* ((qualifiers (extract-value-qualifiers code-obj))
-                 (parsed (mapcar #'parse-qualifier qualifiers)))
-            (%values-for-return (list code-obj)
-                                (list qualifiers)
-                                (list parsed)
-                                final-env))))))
-
-;; (error 'nil-return-set
-;;        :form `(return ,form)
-;;        :possible-set (return-set code-obj))
+    (vbind (code-obj code-env) (compile-form form new-env)
+      (if (or (v-returned-p code-obj)
+              (v-discarded-p code-obj))
+          ;;
+          ;; no-op
+          (values code-obj code-env)
+          ;;
+          ;; emit the 'return'
+          (vbind (final-obj final-env)
+              (compile-form
+               (cond
+                 ((v-voidp code-obj)
+                  `(progn
+                     ,code-obj
+                     (%glsl-expr "return" v-returned)))
+                 (is-main-p
+                  (let* ((glsl-name (nth-return-name 0 stage t))
+                         (code `(progn
+                                  (glsl-expr
+                                   ,(format nil "~a = ~~a" glsl-name)
+                                   ,(primary-type code-obj) ,code-obj)
+                                  (%glsl-expr "return" v-returned))))
+                    (when (typep stage 'vertex-stage)
+                      (let ((expected (type-spec->type :vec4)))
+                        (assert (v-type-eq (primary-type code-obj)
+                                           expected)
+                                () 'stage-primary-type-mismatch
+                                (type-of stage)
+                                :type-expected expected
+                                :type-found (primary-type code-obj))))
+                    code))
+                 (t
+                  `(%glsl-expr "return ~a"
+                               ,(primary-type code-obj)
+                               ,code-obj)))
+               code-env)
+            (assert (not (return-set code-obj)))
+            (let* ((ast (ast-node! 'return (node-tree code-obj)
+                                   (make-type-set)
+                                   env env))
+                   (type (type-spec->type 'v-returned (flow-ids final-obj)))
+                   (type-set (make-type-set type)))
+              (values (copy-compiled final-obj
+                                     :return-set (type-set code-obj)
+                                     :type-set type-set
+                                     :node-tree ast)
+                      final-env)))))))

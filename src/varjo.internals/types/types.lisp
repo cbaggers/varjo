@@ -125,6 +125,19 @@
     (vector (not (null (find-if λ(typep _ 'v-discarded) obj))))))
 
 ;;------------------------------------------------------------
+;; Returned
+;;
+;; Indicates a termination of execution due to 'return'
+
+(def-v-type-class v-returned (v-type) ())
+
+(defun v-returned-p (obj)
+  (etypecase obj
+    (v-type (typep obj 'v-returned))
+    (compiled (v-returned-p (type-set obj)))
+    (vector (not (null (find-if λ(typep _ 'v-returned) obj))))))
+
+;;------------------------------------------------------------
 ;; Shadow Type
 ;;
 ;; The supertype for all types which that are shadowing a core

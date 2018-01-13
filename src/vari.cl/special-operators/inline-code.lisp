@@ -9,7 +9,7 @@
       (if (and (every λ(typep _ 'compiled) args) (not (some #'to-block args)))
           `(%glsl-expr ,glsl-string ,type-spec ,@args)
           (let ((gs (loop :for i :below (length args) :collect
-                       (gensym (format nil "GEXPR~a" i)))))
+                       (gensym (format nil "GEXPR~a-" i)))))
             `(let ,(mapcar #'list gs args)
                (%glsl-expr ,glsl-string ,type-spec ,@gs))))
       `(%glsl-expr ,glsl-string ,type-spec)))

@@ -666,9 +666,12 @@ Possible Set: ~a" form possible-set)
     "with-fresh-env-scope expects a code object & an environment to
 be returned from it's body. However there was no environment returned.")
 
-(deferror vertex-stage-primary-type-mismatch () (prim-type)
-    "The primary return value from vertex shaders must be a vec4.
-Instead ~a was found" (type->type-spec prim-type))
+(deferror stage-primary-type-mismatch () (stage-kind type-found type-expected)
+    "The primary return value from ~a must be a ~a.
+Instead ~a was found"
+  stage-kind
+  (type->type-spec type-expected)
+  (type->type-spec type-found))
 
 (deferror multi-dimensional-array () (dimensions)
     "We do not yet support multidimensional arrays.
