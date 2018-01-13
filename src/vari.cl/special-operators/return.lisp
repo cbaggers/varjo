@@ -44,7 +44,7 @@
                         (assert (v-type-eq (primary-type code-obj)
                                            expected)
                                 () 'stage-primary-type-mismatch
-                                (type-of stage)
+                                :stage-kind (type-of stage)
                                 :type-expected expected
                                 :type-found (primary-type code-obj))))
                     code))
@@ -53,14 +53,27 @@
                                ,(primary-type code-obj)
                                ,code-obj)))
                code-env)
-            (assert (not (return-set code-obj)))
             (let* ((ast (ast-node! 'return (node-tree code-obj)
                                    (make-type-set)
                                    env env))
                    (type (type-spec->type 'v-returned (flow-ids final-obj)))
-                   (type-set (make-type-set type)))
+                   (type-set (make-type-set type))
+                   (return-set (varjo.internals::merge-return-sets
+                                (remove nil (list (return-set code-obj)
+                                                  (type-set code-obj))))))
               (values (copy-compiled final-obj
-                                     :return-set (type-set code-obj)
+                                     :return-set return-set
                                      :type-set type-set
                                      :node-tree ast)
                       final-env)))))))
+
+;; tests
+
+#+nil
+(glsl-code
+ (varjo.tests::compile-vert () :450 t
+   (labels ((gen-line ((x :int))
+              (values x 1 2)))
+     (gen-line 2)
+     (multiple-value-bind (a b c) (gen-line 2)
+       (values (v! a b c 4) (v! 2 2))))))

@@ -434,11 +434,13 @@
            (reduced (reduce-types-for-or-type types)))
       (if (= (length reduced) 1)
           (first reduced)
-          (let ((no-discarded (remove-if λ(typep _ 'v-discarded) types)))
-            (if (= (length no-discarded) 1)
-                (first no-discarded)
-                (make-instance 'v-or :types no-discarded
-                               :flow-ids (apply #'flow-id! no-discarded))))))))
+          (let ((no-terminated (remove-if λ(or (v-discarded-p _)
+                                               (v-returned-p _))
+                                          types)))
+            (if (= (length no-terminated) 1)
+                (first no-terminated)
+                (make-instance 'v-or :types no-terminated
+                               :flow-ids (apply #'flow-id! no-terminated))))))))
 
 (defgeneric reduce-types-for-or-type (types)
   (:method (types)

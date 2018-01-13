@@ -56,7 +56,7 @@
                       else-form else-obj))
                 (gen-string-for-ternary-form test-obj then-obj else-obj)
                 (gen-string-for-if-form test-obj then-obj else-obj result-type
-                                        has-else starting-env))
+                                        has-else))
           ;; this next check is to preempt a possible return-type-mismatch
           ;; error. The reason we do this is to give a better error.
           (let ((return-sets (remove nil (mapcar #'return-set arg-objs))))
@@ -86,12 +86,13 @@
        (pure-p else-obj)
        (= (length (type-set then-obj)) 1)
        (= (length (type-set else-obj)) 1)
-       (v-type-eq (primary-type then-obj)
-                  (primary-type else-obj))
+       (v-type-eq (primary-type then-obj) (primary-type else-obj))
        (not (v-voidp then-obj))
        (not (v-voidp else-obj))
        (not (v-discarded-p then-obj))
        (not (v-discarded-p else-obj))
+       (not (v-returned-p then-obj))
+       (not (v-returned-p else-obj))
        (< (+ (length (current-line test-obj))
              (length (current-line then-obj))
              (length (current-line else-obj)))
@@ -103,28 +104,30 @@
                       (current-line then-obj)
                       (current-line else-obj))))
 
-(defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else
-                               env)
-  (let* ((will-assign (and (not (v-voidp result-type))
-                           (not (typep result-type 'v-or))
-                           (not (and (equal (v-multi-val-base env)
-                                            *return-var-name-base*)
-                                     (some #'return-set (list then-obj else-obj))))))
-         (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp"))))
-         (then-string (gen-string-for-if-block then-obj tmp-var))
-         (else-string (when has-else
-                        (gen-string-for-if-block else-obj tmp-var))))
-    (values
-     (when (or then-string else-string)
-       (format nil "~{~a~%~}~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
-               (to-block test-obj)
-               (when tmp-var
-                 (prefix-type-to-string result-type (end-line-str tmp-var)))
-               (current-line test-obj)
-               (or then-string (format nil "{~%}"))
-               else-string))
-     (when will-assign
-       tmp-var))))
+(defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
+  (flet ((needs-assign-p (obj)
+           (and (not (v-voidp obj))
+                (not (v-returned-p obj))
+                (not (v-discarded-p obj)))))
+    (let* ((will-assign (and (not (typep result-type 'v-or))
+                             (or (needs-assign-p then-obj)
+                                 (needs-assign-p else-obj))))
+           (tmp-var (when will-assign
+                      (safe-glsl-name-string (gensym "if-tmp-"))))
+           (then-string (gen-string-for-if-block then-obj tmp-var))
+           (else-string (when has-else
+                          (gen-string-for-if-block else-obj tmp-var))))
+      (values
+       (when (or then-string else-string)
+         (format nil "~{~a~%~}~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
+                 (to-block test-obj)
+                 (when tmp-var
+                   (prefix-type-to-string result-type (end-line-str tmp-var)))
+                 (current-line test-obj)
+                 (or then-string (format nil "{~%}"))
+                 else-string))
+       (when will-assign
+         tmp-var)))))
 
 (defun gen-string-for-if-block (code-obj glsl-tmp-var-name)
   (let ((to-block (to-block code-obj))
@@ -136,7 +139,9 @@
               (when current-line
                 (let ((current (end-line-str current-line)))
                   (indent-for-block
-                   (if (and glsl-tmp-var-name (not (v-primary-type-eq code-obj (type-spec->type 'v-discarded))))
+                   (if (and glsl-tmp-var-name
+                            (not (v-discarded-p code-obj))
+                            (not (v-returned-p code-obj)))
                        (%gen-assignment-string glsl-tmp-var-name current)
                        current))))))))
 
