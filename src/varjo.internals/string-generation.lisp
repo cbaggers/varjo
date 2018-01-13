@@ -352,6 +352,7 @@
 
 (defun gen-array-literal-string (elements element-type)
   (assert (every λ(v-type-eq element-type (primary-type _)) elements))
-  (format nil "~a[~a](~{~a~^, ~})"
-          (v-glsl-string element-type) (length elements)
-          (mapcar #'current-line elements)))
+  (let ((arr-type (v-array-type-of element-type (length elements) (flow-id!))))
+    (format nil "~a(~{~a~^, ~})"
+            (v-glsl-string arr-type)
+            (mapcar #'current-line elements))))
