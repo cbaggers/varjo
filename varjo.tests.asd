@@ -9,6 +9,7 @@
   :depends-on (#:varjo #:fiveam #:rtg-math.vari)
   :components ((:file "tests/package")
                (:file "tests/tests")
+               (:file "tests/suites")
                (:file "tests/build-tests")
                (:file "tests/array-tests")
                (:file "tests/external-functions")

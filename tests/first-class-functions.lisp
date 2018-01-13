@@ -178,7 +178,7 @@
 
 (5am:def-test f-c-func-17 (:suite first-class-func-tests)
   ;; this needs a new home. doesnt belong in this suite
-  (finishes-p
+  (finishes-p-no-test-compile
    (compile-vert () :450 nil
      (foop 1)
      (foop .1)
@@ -188,7 +188,7 @@
 
 (5am:def-test f-c-func-18 (:suite first-class-func-tests)
   ;; this needs a new home. doesnt belong in this suite
-  (finishes-p
+  (finishes-p-no-test-compile
    (compile-vert () :450 nil
      (boop 1)
      (boop .1)
@@ -197,7 +197,7 @@
      (v! 1 2 3 4))))
 
 (5am:def-test f-c-func-19 (:suite first-class-func-tests)
-  (finishes-p
+  (finishes-p-no-test-compile
    (compile-vert () :450 nil
      (let ((fn0 #'(foop :int))
            (fn1 #'(boop :int :int)))
@@ -206,7 +206,7 @@
      (v! 1 2 3 4))))
 
 (5am:def-test f-c-func-20 (:suite first-class-func-tests)
-  (finishes-p
+  (finishes-p-no-test-compile
    (compile-vert () :450 nil
      (let ((fn0 #'(foop :int))
            (fn1 #'(boop :int :int)))
@@ -215,7 +215,7 @@
      (v! 1 2 3 4))))
 
 (5am:def-test f-c-func-21 (:suite first-class-func-tests)
-  (finishes-p
+  (finishes-p-no-test-compile
    (compile-vert () :450 nil
      (let ((fn0 #'foop))
        (funcall fn0 1)
