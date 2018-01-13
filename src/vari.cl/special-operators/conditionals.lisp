@@ -56,15 +56,15 @@
                       else-form else-obj))
                 (gen-string-for-ternary-form test-obj then-obj else-obj)
                 (gen-string-for-if-form test-obj then-obj else-obj result-type
-                                        has-else))
+                                        has-else starting-env))
           ;; this next check is to preempt a possible return-type-mismatch
           ;; error. The reason we do this is to give a better error.
-          (let ((returns-sets (remove nil (mapcar #'return-set arg-objs))))
-            (when (and (> (length returns-sets) 1)
+          (let ((return-sets (remove nil (mapcar #'return-set arg-objs))))
+            (when (and (> (length return-sets) 1)
                        (find-if (lambda (x) (= (length x) 0))
-                                returns-sets))
+                                return-sets))
               (error 'conditional-return-type-mismatch
-                     :sets returns-sets)))
+                     :sets return-sets)))
           (values (merge-compiled arg-objs
                                   :type-set type-set
                                   :current-line current-line-string
@@ -103,9 +103,13 @@
                       (current-line then-obj)
                       (current-line else-obj))))
 
-(defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
+(defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else
+                               env)
   (let* ((will-assign (and (not (v-voidp result-type))
-                           (not (typep result-type 'v-or))))
+                           (not (typep result-type 'v-or))
+                           (not (and (equal (v-multi-val-base env)
+                                            *return-var-name-base*)
+                                     (some #'return-set (list then-obj else-obj))))))
          (tmp-var (when will-assign (safe-glsl-name-string (gensym "tmp"))))
          (then-string (gen-string-for-if-block then-obj tmp-var))
          (else-string (when has-else
