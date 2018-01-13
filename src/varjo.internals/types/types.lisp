@@ -285,11 +285,12 @@
 
 (def-v-type-class v-ephemeral-type (v-type) ())
 
-(defgeneric ephemeral-p (x)
-  (:method ((x v-type))
-    (typep x 'v-ephemeral-type))
-  (:method (x)
-    (ephemeral-p (v-type-of x))))
+(defun ephemeral-p (obj)
+  (typecase obj
+    (v-type (typep obj 'v-ephemeral-type))
+    (compiled (ephemeral-p (type-set obj)))
+    (vector (not (null (some #'ephemeral-p obj))))
+    (otherwise (ephemeral-p (v-type-of obj)))))
 
 ;;------------------------------------------------------------
 ;; Ephemeral Array

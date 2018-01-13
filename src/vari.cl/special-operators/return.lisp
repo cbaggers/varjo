@@ -28,7 +28,8 @@
           (vbind (final-obj final-env)
               (compile-form
                (cond
-                 ((v-voidp code-obj)
+                 ((or (v-voidp code-obj)
+                      (ephemeral-p code-obj))
                   `(progn
                      ,code-obj
                      (%glsl-expr "return" v-returned)))
