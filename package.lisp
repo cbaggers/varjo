@@ -331,6 +331,7 @@
            :let-void
            :let-discarded
            :conditional-return-type-mismatch
+           :if-form-multiple-vals-mismatch
 
            ;; restarts
            :setq-supply-alternate-type))

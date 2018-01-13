@@ -56,8 +56,10 @@
             (let* ((ast (ast-node! 'return (node-tree code-obj)
                                    (make-type-set)
                                    env env))
-                   (type (type-spec->type 'v-returned (flow-ids final-obj)))
-                   (type-set (make-type-set type))
+                   (returned (type-spec->type 'v-returned
+                                              (or (flow-ids code-obj)
+                                                  (flow-id!))))
+                   (type-set (make-type-set returned))
                    (return-set (varjo.internals::merge-return-sets
                                 (remove nil (list (return-set code-obj)
                                                   (type-set code-obj))))))
@@ -77,3 +79,23 @@
      (gen-line 2)
      (multiple-value-bind (a b c) (gen-line 2)
        (values (v! a b c 4) (v! 2 2))))))
+
+#+nil
+(glsl-code
+ (compile-vert ((x :int)) :450 t
+   (flet ((foo ()
+            (if (= x 1)
+                (return (v! 1 1 1 1))
+                (v! 2 2 2 2))))
+     (foo))))
+
+#+nil
+(glsl-code
+ (compile-vert ((x :int)) :450 t
+   (flet ((foo ()
+            (if (= x 1)
+                (return (values (v! 1 1 1 1)
+                                (v! 2 2)))
+                (values (v! 3 3 3 3)
+                        (v! 4 4)))))
+     (foo))))

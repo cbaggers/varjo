@@ -1078,6 +1078,18 @@ Due to this CEPL can't infer a valid type for this form and this is triggering
 this issue in 'let'"
   name)
 
+(deferror if-form-multiple-vals-mismatch () (then-set else-set)
+    "Found an if form where the number of values returned on each branch
+do not match.
+
+The then branch returned: ~s
+The else branch returned: ~s
+
+This matters as the result of this 'if' is going to be used as a return from a
+function or by a multiple-value-bind form"
+  (or (map 'list #'type->type-spec then-set) :void)
+  (or (map 'list #'type->type-spec else-set) :void))
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

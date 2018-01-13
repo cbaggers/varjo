@@ -38,11 +38,7 @@
              (final-env
               (apply #'env-merge-history
                      (env-prune* (env-depth test-env) then-env else-env)))
-             (result-type (gen-or-type (list (primary-type then-obj)
-                                             (primary-type else-obj))))
-             (type-set (if (v-voidp result-type)
-                           (make-type-set)
-                           (make-type-set result-type)))
+             (type-set (compute-if-type-set then-obj else-obj starting-env))
              (node-tree (ast-node! 'if
                                    (mapcar #'node-tree
                                            (list test-obj then-obj else-obj))
@@ -55,7 +51,10 @@
                       then-form then-obj
                       else-form else-obj))
                 (gen-string-for-ternary-form test-obj then-obj else-obj)
-                (gen-string-for-if-form test-obj then-obj else-obj result-type
+                (gen-string-for-if-form test-obj
+                                        then-obj
+                                        else-obj
+                                        (primary-type type-set)
                                         has-else))
           ;; this next check is to preempt a possible return-type-mismatch
           ;; error. The reason we do this is to give a better error.
@@ -71,6 +70,39 @@
                                   :to-block (list block-string)
                                   :node-tree node-tree)
                   final-env))))))
+
+(defun compute-if-type-set (then-obj else-obj env)
+  ;; The type-set needs to include all the results
+  ;; so we need to do two things.
+  ;; - assert the same number of values returned
+  ;; - make v-or types for each pair
+  ;; - add logic to multiple-value-bind & co to check
+  ;;   for v-or types and complain
+  ;; Only need this if multi-val-base is not nil
+  (let* ((then-set (type-set then-obj))
+         (else-set (type-set else-obj))
+         (then-terminated (varjo.internals::v-terminated-p then-set))
+         (else-terminated (varjo.internals::v-terminated-p else-set)))
+    (cond
+      ((and then-terminated (not else-terminated))
+       else-set)
+      ((and else-terminated (not then-terminated))
+       then-set)
+      ((v-multi-val-base env)
+       (flet ((gen-or-pair (a b)
+                (gen-or-type (list a b))))
+         (assert (= (length then-set) (length else-set)) ()
+                 'if-form-multiple-vals-mismatch
+                 :then-set then-set
+                 :else-set else-set)
+         (make-type-set* (map 'list #'gen-or-pair then-set else-set))))
+      (t
+       (let ((primary-result-type
+              (gen-or-type (list (primary-type then-obj)
+                                 (primary-type else-obj)))))
+         (if (v-voidp primary-result-type)
+             (make-type-set)
+             (make-type-set primary-result-type)))))))
 
 (defun satifies-ternary-style-restrictions-p (test-form test-obj
                                               then-form then-obj
@@ -104,12 +136,13 @@
                       (current-line then-obj)
                       (current-line else-obj))))
 
-(defun gen-string-for-if-form (test-obj then-obj else-obj result-type has-else)
+(defun gen-string-for-if-form (test-obj then-obj else-obj primary-result-type
+                               has-else)
   (flet ((needs-assign-p (obj)
            (and (not (v-voidp obj))
                 (not (v-returned-p obj))
                 (not (v-discarded-p obj)))))
-    (let* ((will-assign (and (not (typep result-type 'v-or))
+    (let* ((will-assign (and (not (typep primary-result-type 'v-or))
                              (or (needs-assign-p then-obj)
                                  (needs-assign-p else-obj))))
            (tmp-var (when will-assign
@@ -122,7 +155,8 @@
          (format nil "~{~a~%~}~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
                  (to-block test-obj)
                  (when tmp-var
-                   (prefix-type-to-string result-type (end-line-str tmp-var)))
+                   (prefix-type-to-string primary-result-type
+                                          (end-line-str tmp-var)))
                  (current-line test-obj)
                  (or then-string (format nil "{~%}"))
                  else-string))

@@ -822,6 +822,10 @@
 
 ;;------------------------------------------------------------
 
+(defun v-terminated-p (x)
+  (or (v-returned-p x)
+      (v-discarded-p x)))
+
 (defgeneric v-voidp (x)
   (:method ((x compiled))
     (v-voidp (type-set x)))

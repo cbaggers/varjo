@@ -59,7 +59,7 @@
          (vals (loop :for o :in objs
                   :for qlist :in parsed-qualifier-lists
                   :collect (qualify-type (primary-type o) qlist)))
-         (first-name (gensym "vfmvb"))
+         (first-name (gensym "val-for-mvb-"))
          (result (compile-form
                   `(let ((,first-name ,(first objs)))
                      ,@(loop :for o :in (rest objs)
