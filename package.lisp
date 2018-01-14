@@ -894,7 +894,9 @@
    :local-size
    :primitive
    :spacing
-   :order))
+   :order
+
+   :vari-describe))
 
 (uiop:define-package #:vari
     (:use #:vari.types #:vari.glsl #:vari.cl)

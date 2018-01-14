@@ -13,6 +13,7 @@
                #:parse-float
                #:alexandria
                #:glsl-spec
+               #:glsl-docs
                #:cl-ppcre
                #:uiop
                #:fn)
@@ -65,6 +66,7 @@
                (:file "src/vari.glsl/special-operators/switch")
                (:file "src/vari.glsl/special-operators/discard")
                ;;
+               (:file "src/vari.cl/docs")
                (:file "src/vari.cl/macros")
                (:file "src/vari.cl/functions")
                (:file "src/vari.cl/bitwise-operators")
