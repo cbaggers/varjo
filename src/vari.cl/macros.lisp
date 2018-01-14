@@ -6,6 +6,7 @@
 
 (v-defmacro cond (&rest clauses)
   `(if ,(caar clauses)
-       ,(cadar clauses)
+       (progn
+         ,@(cdar clauses))
        ,@(when (rest clauses)
-               `((cond ,@(rest clauses))))))
+           `((cond ,@(rest clauses))))))
