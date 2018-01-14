@@ -332,6 +332,7 @@
            :let-discarded
            :conditional-return-type-mismatch
            :if-form-multiple-vals-mismatch
+           :integer-out-var-must-be-flat
 
            ;; restarts
            :setq-supply-alternate-type))

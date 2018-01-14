@@ -1090,6 +1090,14 @@ function or by a multiple-value-bind form"
   (or (map 'list #'type->type-spec then-set) :void)
   (or (map 'list #'type->type-spec else-set) :void))
 
+(deferror integer-out-var-must-be-flat () (type qualifiers)
+    "One of the outputs from the stage was ~a however it's qualifiers do not
+include :flat. In glsl integer outputs must be :flat.
+
+You can specify this using 'values' like this: (values (:flat 1))
+
+Qualifiers found: ~a" (type->type-spec type) qualifiers)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

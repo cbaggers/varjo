@@ -108,3 +108,13 @@
       (declare (output-primitive :kind :line-strip :max-vertices 6))
       (v! (aref foo? 0) 0 0 0)
       (values)))))
+
+(5am:def-test array-16 (:suite array-tests)
+  (signals varjo-conditions:integer-out-var-must-be-flat
+   (compile-vert-frag () :450 nil
+     (()
+      (let ((i (vector 1 2 3)))
+        (values (v! 0 0 0 0)
+                i)))
+     (((foo? (:int 3)))
+      (v! (aref foo? 0) 0 0 0)))))

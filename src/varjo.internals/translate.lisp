@@ -267,6 +267,18 @@
                             (qualifiers emit-val)))))
        emit-vals))
 
+(defun check-out-set-for-required-qualifiers (stage out-set)
+  (unless (typep stage 'fragment-stage)
+    (loop :for type :across out-set :do
+       (when (or (v-typep type :int)
+                 (and (v-typep type 'v-array)
+                      (v-typep (v-element-type type) :int)))
+         (assert (find :flat (qualifiers type) :test #'qualifier=) ()
+                 'integer-out-var-must-be-flat
+                 :type type
+                 :qualifiers (mapcar #'name (qualifiers type))))))
+  out-set)
+
 (defgeneric transform-out-set-for-stage (stage raw-out-set primitive-out)
   ;;
   (:method ((stage tessellation-control-stage) raw-out-set primitive-out)
@@ -281,9 +293,11 @@
 
 (defun make-out-set (post-proc-obj)
   (setf (out-set post-proc-obj)
-        (transform-out-set-for-stage (stage post-proc-obj)
-                                     (raw-out-set post-proc-obj)
-                                     (primitive-out post-proc-obj)))
+        (check-out-set-for-required-qualifiers
+         (stage post-proc-obj)
+         (transform-out-set-for-stage (stage post-proc-obj)
+                                      (raw-out-set post-proc-obj)
+                                      (primitive-out post-proc-obj))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
