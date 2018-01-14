@@ -87,7 +87,7 @@
      (()
       (let ((i (vector 1 2 3)))
         (values (v! 0 0 0 0)
-                i)))
+                (:flat i))))
      (((foo? (:int 3)))
       (v! (aref foo? 0) 0 0 0)))))
 
