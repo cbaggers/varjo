@@ -6,6 +6,9 @@
 (defvar *out-qualifier*
   (make-instance 'qualifier :name :out :glsl-string "out"))
 
+(defmethod print-object ((obj qualifier) stream)
+  (format stream "#<QUALIFIER ~a>" (name obj)))
+
 (defun parse-qualifier (qualifier-form)
   (destructuring-bind (name &rest args) (listify qualifier-form)
     (case name
@@ -26,10 +29,19 @@
                    :group arg
                    :glsl-string nil)))
 
-(defmethod qualifier-equal (qual-a qual-b)
+(defmethod qualifier= ((qual-a qualifier) (qual-b qualifier))
   (eq (name qual-a) (name qual-b)))
 
-(defmethod qualifier-equal ((qual-a feedback-qualifier)
-                            (qual-b feedback-qualifier))
+(defmethod qualifier= ((qual-a feedback-qualifier)
+                       (qual-b feedback-qualifier))
   (and (eq (name qual-a) (name qual-b))
        (eql (feedback-group qual-a) (feedback-group qual-b))))
+
+(defmethod qualifier= (a b)
+  (let ((a (if (typep a 'qualifier)
+               (name a)
+               a))
+        (b (if (typep b 'qualifier)
+               (name b)
+               b)))
+    (string= a b)))

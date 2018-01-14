@@ -63,7 +63,7 @@
 (defgeneric post-initialise (object))
 (defgeneric primary-type (compiled))
 (defgeneric primitive-in (pp))
-(defgeneric qualifier-equal (qual-a qual-b))
+(defgeneric qualifier= (qual-a qual-b))
 (defgeneric qualify-type (type qualifiers))
 (defgeneric raw-ids (flow-id))
 (defgeneric record-func-usage (func env))

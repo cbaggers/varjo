@@ -17,13 +17,16 @@
              (make-var (vkind raw)
                (dbind (name type-spec . rest) raw
                  (vbind (qualifiers glsl-name) (extract-glsl-name rest)
-                   (make-instance
-                    vkind
-                    :name name
-                    :glsl-name (or glsl-name (safe-glsl-name-string name))
-                    :type (qualify-type (type-spec->type type-spec)
-                                        qualifiers)
-                    :qualifiers (early-qualifier-checks raw qualifiers))))))
+                   (let ((qualifiers
+                          (mapcar #'parse-qualifier
+                                  (early-qualifier-checks raw qualifiers))))
+                     (make-instance
+                      vkind
+                      :name name
+                      :glsl-name (or glsl-name (safe-glsl-name-string name))
+                      :type (qualify-type (type-spec->type type-spec)
+                                          qualifiers)
+                      :qualifiers qualifiers))))))
       (let* ((context (process-context context))
              (stage-type (if kind
                              (stage-kind-to-type kind)

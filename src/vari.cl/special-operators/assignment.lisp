@@ -55,7 +55,8 @@
                         ;; is deeper than 1 though because otherwise we are
                         ;; setting the uniform itself rather than an
                         ;; element/slot
-                        (not (and (find :ssbo (qualifiers (v-type-of value)))
+                        (not (and (find :ssbo (qualifiers (v-type-of value))
+                                        :test #'qualifier=)
                                   (> (length (place-tree place-obj)) 1))))
                (error 'assigning-to-readonly :var-name name))
              (unless (or (= (v-function-scope env) (v-function-scope value))

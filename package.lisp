@@ -540,6 +540,7 @@
            :quads
            :qualifiers
            :qualifier
+           :qualifier=
            :feedback-qualifier
            :feedback-group
            :qualify-type

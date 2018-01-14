@@ -6,7 +6,7 @@
 (defun emit-val-eql (ret-a ret-b)
   (and (v-type-eq ret-a ret-b)
        (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-       (every #'eq (qualifiers ret-a) (qualifiers ret-b))))
+       (every #'qualifier= (qualifiers ret-a) (qualifiers ret-b))))
 
 (defun merge-emit-sets (sets)
   (labels ((%merge-emit-sets (set-a set-b)

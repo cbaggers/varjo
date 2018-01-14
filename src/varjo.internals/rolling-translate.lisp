@@ -39,7 +39,8 @@
               :glsl-name (or (glsl-name previous) (glsl-name current))
               :type (or (v-type-of current) (v-type-of previous))
               :qualifiers (union (qualifiers current)
-                                 (qualifiers previous))))
+                                 (qualifiers previous)
+                                 :test #'qualifier=)))
            (arg-for-error (x)
              (subseq (to-arg-form x) 0 2))
            (args-for-error (x)
@@ -146,7 +147,8 @@
 
 (defun %suitable-qualifiersp (out-arg in-arg)
   (let ((out-qual (qualifiers out-arg)))
-    (every λ(member _ out-qual) (qualifiers in-arg))))
+    (every λ(member _ out-qual :test #'qualifier=)
+           (qualifiers in-arg))))
 
 (defgeneric uniforms-compatiblep (uniforms last-uniforms)
   ;;
@@ -316,21 +318,26 @@
 
 ;;----------------------------------------------------------------------
 
+(defun ensure-qualifier-designator (obj)
+  (if (typep obj 'qualifier)
+      (name obj)
+      obj))
+
 (defmethod to-arg-form ((uniform uniform-variable))
   `(,(name uniform)
      ,(type->type-spec (v-type-of uniform))
-     ,@(qualifiers uniform)))
+     ,@(mapcar #'ensure-qualifier-designator (qualifiers uniform))))
 
 (defmethod to-arg-form ((in-var input-variable))
   `(,(name in-var)
      ,(type->type-spec (v-type-of in-var))
-     ,@(qualifiers in-var)
+     ,@(mapcar #'ensure-qualifier-designator (qualifiers in-var))
      ,@(when (glsl-name in-var) (list (glsl-name in-var)))))
 
 (defmethod to-arg-form ((out-var output-variable))
   `(,(name out-var)
      ,(type->type-spec (v-type-of out-var))
-     ,@(qualifiers out-var)
+     ,@(mapcar #'ensure-qualifier-designator (qualifiers out-var))
      ,@(when (glsl-name out-var) (list (glsl-name out-var)))))
 
 ;;----------------------------------------------------------------------
@@ -358,7 +365,7 @@
   (labels ((fragp (stage) (typep stage 'compiled-fragment-stage))
            (has-feedback (stage)
              (when stage
-               (some λ(find :feedback (qualifiers _))
+               (some λ(find :feedback (qualifiers _) :test #'qualifier=)
                      (output-variables stage)))))
     (let ((frag-with-feedback (has-feedback (find-if #'fragp rolling-result))))
       (assert (not frag-with-feedback) ()

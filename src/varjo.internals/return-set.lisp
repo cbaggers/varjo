@@ -4,7 +4,7 @@
 (defun qualified-eql (ret-a ret-b)
   (and (v-type-eq ret-a ret-b)
        (= (length (qualifiers ret-a)) (length (qualifiers ret-b)))
-       (every #'qualifier-equal (qualifiers ret-a) (qualifiers ret-b))))
+       (every #'qualifier= (qualifiers ret-a) (qualifiers ret-b))))
 
 (defun type-sets-equal (set-a set-b)
   (and (= (length set-a) (length set-b))

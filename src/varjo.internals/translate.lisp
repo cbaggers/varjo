@@ -124,7 +124,7 @@
   (let ((uniforms (uniform-variables stage)))
     (map nil
          λ(with-slots (name type qualifiers glsl-name) _
-            (case-member qualifiers
+            (case-member qualifiers (:test #'qualifier=)
               (:ubo (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
               (:ssbo (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
               (:fake (add-fake-struct stage env))
@@ -613,21 +613,23 @@
                   :glsl-name string-name
                   :type type-obj
                   :glsl-decl (cond
-                               ((member :ubo qualifiers)
-                                (write-ubo-block :uniform string-name
+                               ((find :ubo qualifiers :test #'qualifier=)
+                                (write-ubo-block (parse-qualifier :uniform)
+                                                 string-name
                                                  (v-slots type-obj)
                                                  (or (find :std-140 qualifiers
-                                                           :test #'string=)
+                                                           :test #'qualifier=)
                                                      (find :std-430 qualifiers
-                                                           :test #'string=)
+                                                           :test #'qualifier=)
                                                      :std-140)))
-                               ((member :ssbo qualifiers)
-                                (write-ssbo-block :buffer string-name
+                               ((find :ssbo qualifiers :test #'qualifier=)
+                                (write-ssbo-block (parse-qualifier :buffer)
+                                                  string-name
                                                   (v-slots type-obj)
                                                   (or (find :std-140 qualifiers
-                                                            :test #'string=)
+                                                            :test #'qualifier=)
                                                       (find :std-430 qualifiers
-                                                            :test #'string=)
+                                                            :test #'qualifier=)
                                                       :std-140)))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj

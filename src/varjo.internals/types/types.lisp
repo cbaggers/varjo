@@ -812,7 +812,8 @@
 
 (defgeneric make-typed-external-name (type glsl-name &optional qualifiers)
   (:method ((type v-type) (glsl-name string) &optional qualifiers)
-    (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers))
+    (let ((qualifiers (sort (copy-list (union (qualifiers type) qualifiers
+                                              :test #'qualifier=))
                             #'string<)))
       (make-instance 'typed-external-name
                      :type (qualify-type type qualifiers)

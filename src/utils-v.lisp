@@ -218,13 +218,12 @@ are supported in this context are: ~s"
           (loop :for kw :in template :collect
              (cdr (assoc (kwd kw) split))))))
 
-(defmacro case-member (member-form &body cases)
-  (let ((member-form (listify member-form)))
-    `(cond
-       ,@(loop :for (item . rest) :in cases :collect
-            (if (string-equal item 'otherwise)
-                `(t ,@rest)
-                `((member ,item ,@member-form) ,@rest))))))
+(defmacro case-member (member-form (&key (test #'eql)) &body cases)
+  `(cond
+     ,@(loop :for (item . rest) :in cases :collect
+          (if (string-equal item 'otherwise)
+              `(t ,@rest)
+              `((member ,item ,member-form :test ,test) ,@rest)))))
 
 (defun n-of (thing count)
   (loop :for i :below count :collect thing))

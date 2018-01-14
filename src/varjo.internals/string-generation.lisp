@@ -291,8 +291,8 @@
 
 (defun layout-specifier-string (target-name target-kind layout)
   (cond
-    ((string= layout :std-140) "std140")
-    ((string= layout :std-430) "std430")
+    ((qualifier= layout :std-140) "std140")
+    ((qualifier= layout :std-430) "std430")
     (t (error 'unknown-layout-specifier
               :name target-name
               :target-kind target-kind
@@ -302,16 +302,16 @@
                         &optional (layout :std-140))
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
           (layout-specifier-string block-name :ubo layout)
-          (string-downcase (symbol-name storage-qualifier))
+          (glsl-string storage-qualifier)
           (format nil "_UBO_~a" block-name)
           (mapcar #'gen-interface-block-slot-string slots)
           block-name))
 
 (defun write-ssbo-block (storage-qualifier block-name slots
-                        &optional (layout :std-140))
+                         &optional (layout :std-140))
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
           (layout-specifier-string block-name :ssbo layout)
-          (string-downcase (symbol-name storage-qualifier))
+          (glsl-string storage-qualifier)
           (format nil "_SSBO_~a" block-name)
           (mapcar #'gen-interface-block-slot-string slots)
           block-name))
