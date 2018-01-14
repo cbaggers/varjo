@@ -35,6 +35,11 @@
               (format nil "~a[gl_InvocationID]" *out-block-name*))
             (substitute #\_ #\- (symbol-name (type-of stage)))
             n))
+  (:method (n (stage tessellation-evaluation-stage) &optional include-instance-name)
+    (declare (ignore include-instance-name))
+    (if (= n 0)
+        "gl_Position"
+        (call-next-method)))
   (:method (n (stage vertex-stage) &optional include-instance-name)
     (declare (ignore include-instance-name))
     (if (= n 0)

@@ -67,7 +67,8 @@
           (values (merge-compiled arg-objs
                                   :type-set type-set
                                   :current-line current-line-string
-                                  :to-block (list block-string)
+                                  :to-block (when block-string
+                                              (list block-string))
                                   :node-tree node-tree)
                   final-env))))))
 

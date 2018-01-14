@@ -69,34 +69,3 @@
                                      :type-set type-set
                                      :node-tree ast)
                       final-env)))))))
-
-;; tests
-
-#+nil
-(glsl-code
- (varjo.tests::compile-vert () :450 t
-   (labels ((gen-line ((x :int))
-              (values x 1 2)))
-     (gen-line 2)
-     (multiple-value-bind (a b c) (gen-line 2)
-       (values (v! a b c 4) (v! 2 2))))))
-
-#+nil
-(glsl-code
- (compile-vert ((x :int)) :450 t
-   (flet ((foo ()
-            (if (= x 1)
-                (return (v! 1 1 1 1))
-                (v! 2 2 2 2))))
-     (foo))))
-
-#+nil
-(glsl-code
- (compile-vert ((x :int)) :450 t
-   (flet ((foo ()
-            (if (= x 1)
-                (return (values (v! 1 1 1 1)
-                                (v! 2 2)))
-                (values (v! 3 3 3 3)
-                        (v! 4 4)))))
-     (foo))))

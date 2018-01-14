@@ -170,7 +170,34 @@
                   (return (values b c d)))))
        (vec4 (foo t 1 2 3 4) 2 3 4)))))
 
+(5am:def-test values-21 (:suite multiple-value-return-tests)
+  (finishes-p
+   (varjo.tests::compile-vert () :450 t
+     (labels ((gen-line ((x :int))
+                (values x 1 2)))
+       (gen-line 2)
+       (multiple-value-bind (a b c) (gen-line 2)
+         (values (v! a b c 4) (v! 2 2)))))))
 
+(5am:def-test values-22 (:suite multiple-value-return-tests)
+  (finishes-p
+   (compile-vert ((x :int)) :450 t
+     (flet ((foo ()
+              (if (= x 1)
+                  (return (v! 1 1 1 1))
+                  (v! 2 2 2 2))))
+       (foo)))))
+
+(5am:def-test values-23 (:suite multiple-value-return-tests)
+  (finishes-p
+   (compile-vert ((x :int)) :450 t
+     (flet ((foo ()
+              (if (= x 1)
+                  (return (values (v! 1 1 1 1)
+                                  (v! 2 2)))
+                  (values (v! 3 3 3 3)
+                          (v! 4 4)))))
+       (foo)))))
 
 
 ;; These are not valid until #'vector is a function
