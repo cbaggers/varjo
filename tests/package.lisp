@@ -29,3 +29,18 @@
            :external-functions-tests
            :uninitialized-value-tests
            :multiple-value-return-tests))
+
+(uiop:define-package #:varjo.tests.fuzz
+    (:use #:cl #:varjo #:vari #:rtg-math #:rtg-math.base-maths #:fiveam
+          :varjo.utils)
+  (:import-from :varjo :vbind)
+  (:import-from :varjo.internals
+                :id=
+                :compile-form
+                :flow-ids
+                :flow-id-scope
+                :metadata-for-flow-id
+                :v-uniforms
+                :v-defspecial)
+  (:import-from :alexandria
+                :random-elt))

@@ -156,9 +156,10 @@
                              :callee callee)))))
 
 (defun all-symbol-binding-names (env &key stop-at-base)
+  (declare (ignore stop-at-base))
   (let ((result (v-symbol-bindings env)))
     (labels ((stop-p (e)
-               (and stop-at-base (typep e 'base-environment))))
+               (typep e 'base-environment)))
       (let ((current-env env))
         (loop :until (stop-p current-env) :do
            (setf current-env (v-parent-env current-env))
@@ -166,7 +167,7 @@
               (push binding result)))))
     (let* ((dedup (remove-duplicates result :key #'first))
            (accessible (remove-if-not
-                        ;; <<this subseq is a hack
+                        ;; ↓↓-this subseq is a hack
                         λ(apply #'binding-accesible-p env (subseq _ 0 2))
                         dedup))
            (names (mapcar #'first accessible)))

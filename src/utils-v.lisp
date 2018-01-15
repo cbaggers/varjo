@@ -274,3 +274,23 @@ are supported in this context are: ~s"
   `(remove ,name ,list-place :key #'first))
 
 ;;-------------------------------------------------------------------------
+
+(defun weighted-rand-elt (elt-weight-pairs)
+  (let* ((total (loop :for x :in elt-weight-pairs :summing (cdr x)))
+         (rand (random (float total 1f0)))
+         (total 0))
+    (loop :for (elt . weight) :in elt-weight-pairs
+       :for next := (+ total weight)
+       :if (< rand next) :do (return elt)
+       :else :do (setf total next))))
+
+
+
+(defmacro rand-case (&body cases)
+  (let* ((weights (mapcar #'first cases))
+         (bodies (mapcar #'rest cases))
+         (gcases (loop :for x :in weights :collect (gensym))))
+    `(ecase (weighted-rand-elt ',(mapcar #'cons gcases weights))
+       ,@(mapcar #'cons gcases bodies))))
+
+;;------------------------------------------------------------
