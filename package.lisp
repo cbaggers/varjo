@@ -337,6 +337,7 @@
            :let-or
            :let-void
            :let-discarded
+           :let-returned
            :conditional-return-type-mismatch
            :if-form-multiple-vals-mismatch
            :v-deprecated

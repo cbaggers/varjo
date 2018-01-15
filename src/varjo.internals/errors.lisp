@@ -1092,6 +1092,16 @@ can't infer a single valid type for this form and this is triggering this
 issue."
   name (type->type-spec type))
 
+
+(define-error let-returned () (name)
+    "Found an attempt to 'let' a local variable called ~a, however the form
+providing the value has called return so this expression will never result in a
+value.
+
+Due to this CEPL can't infer a valid type for this form and this is triggering
+this issue in 'let'"
+  name)
+
 (define-error if-form-multiple-vals-mismatch () (then-set else-set)
     "Found an if form where the number of values returned on each branch
 do not match.
