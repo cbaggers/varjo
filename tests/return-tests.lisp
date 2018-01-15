@@ -93,3 +93,50 @@
       (labels ((gen-line ()
                  (return (values 1 2 3))))
         (gen-line)))))
+
+(5am:def-test return-12 (:suite return-tests)
+  (finishes-p
+   (compile-frag ((a :int :flat)) :450 nil
+     (if (= a 1)
+         (return (v! 1 1 1 1))
+         (discard)))))
+
+
+(5am:def-test return-13 (:suite return-tests)
+  (finishes-p
+   (compile-frag ((a :int :flat)) :450 nil
+     (if (= a 1)
+         (discard)
+         (discard)))))
+
+(5am:def-test return-14 (:suite return-tests)
+  (signals varjo-conditions:return-type-mismatch
+    (compile-frag ((a :int :flat)) :450 nil
+      (if (= a 1)
+          (return)
+          (v! 1 2)))))
+
+(5am:def-test return-15 (:suite return-tests)
+  (signals varjo-conditions:return-type-mismatch
+    (compile-frag ((a :int :flat)) :450 nil
+      (let ((a (if (= a 1)
+                   (return)
+                   (v! 1 2))))
+        a))))
+
+(5am:def-test return-16 (:suite return-tests)
+  (signals varjo-conditions:let-returned
+    (compile-frag ((a :int :flat)) :450 nil
+      (let ((a (if (= a 1)
+                   (return 1)
+                   (return (values 2)))))
+        (return (values 1 2))))))
+
+(5am:def-test return-17 (:suite return-tests)
+  (finishes-p
+   (compile-frag ((a :int :flat)) :450 nil
+     (labels ((foo ()
+                (if (= a 1)
+                    (return)
+                    (return))))
+       (v! 1 2 3 4)))))
