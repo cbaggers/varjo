@@ -1,13 +1,28 @@
 (uiop:define-package #:varjo.tests
-    (:use #:cl #:varjo #:vari #:rtg-math #:rtg-math.base-maths #:fiveam)
+    (:use #:cl #:varjo #:vari #:rtg-math #:rtg-math.base-maths #:fiveam
+          :varjo.utils)
   (:import-from :varjo :vbind)
   (:import-from :varjo.internals
-                :id=
                 :compile-form
-                :flow-ids
                 :flow-id-scope
+                :flow-ids
+                :id=
                 :metadata-for-flow-id
-                :v-uniforms)
+                :v-defspecial
+                :v-uniforms
+                :get-base-env
+                :get-symbol-binding
+                :primary-type
+                :v-argument-spec
+                :v-discarded-p
+                :v-form-bindings
+                :v-function
+                :v-return-spec
+                :v-returned-p
+                :v-voidp
+                :valid-for-contextp)
+  (:import-from :alexandria
+                :random-elt)
   (:export :test-all
            :void-tests
            :array-tests
@@ -29,18 +44,3 @@
            :external-functions-tests
            :uninitialized-value-tests
            :multiple-value-return-tests))
-
-(uiop:define-package #:varjo.tests.fuzz
-    (:use #:cl #:varjo #:vari #:rtg-math #:rtg-math.base-maths #:fiveam
-          :varjo.utils)
-  (:import-from :varjo :vbind)
-  (:import-from :varjo.internals
-                :id=
-                :compile-form
-                :flow-ids
-                :flow-id-scope
-                :metadata-for-flow-id
-                :v-uniforms
-                :v-defspecial)
-  (:import-from :alexandria
-                :random-elt))
