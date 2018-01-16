@@ -194,6 +194,8 @@
         env)))))
 
 (defun %validate-var-types (var-name type code-obj)
+  (when (and code-obj (v-typep (primary-type code-obj) 'v-or))
+    (error 'let-or :name var-name :type (primary-type code-obj)))
   (when (and code-obj (v-discarded-p code-obj))
     (error 'let-discarded :name var-name))
   (when (and code-obj (v-voidp code-obj))
