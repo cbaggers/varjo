@@ -330,6 +330,7 @@
            :discard-not-in-fragment-stage
            :opaque-data-found
            :invalid-output-primitive-for-geometry
+           :let-or
            :let-void
            :let-discarded
            :conditional-return-type-mismatch

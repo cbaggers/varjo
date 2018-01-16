@@ -1078,6 +1078,16 @@ Due to this CEPL can't infer a valid type for this form and this is triggering
 this issue in 'let'"
   name)
 
+(deferror let-or () (name type)
+    "Found an invalid attempt to make a local variable ~a with the
+type ~a
+
+This usually happens due to the use of a conditions (like an 'if') where the
+different branches of the conditional have different types. Due to this CEPL
+can't infer a single valid type for this form and this is triggering this
+issue."
+  name (type->type-spec type))
+
 (deferror if-form-multiple-vals-mismatch () (then-set else-set)
     "Found an if form where the number of values returned on each branch
 do not match.
