@@ -4,7 +4,8 @@
 
 (defun fuzz-many ()
   (loop :for i :below 10000 :do
-     (print i)
+     (when (= 0 (mod i 50))
+       (print i))
      (handler-case (fuzz-vert)
        (error (e)
          (print "found failure")
@@ -68,8 +69,8 @@
                         (1 `(gen-progn ,required-type ,must-be-value))
                         (1 `(gen-let ,required-type ,must-be-value))
                         (1 `(gen-if ,required-type ,must-be-value))
-                        ;; (1 `(gen-flet ,required-type ,must-be-value))
-                        ;; (1 `(gen-labels ,required-type ,must-be-value))
+                        (1 `(gen-flet ,required-type ,must-be-value))
+                        (1 `(gen-labels ,required-type ,must-be-value))
                         )
                       env))))
 
@@ -135,6 +136,12 @@
        (loop :for binding :in set
           :when (typep binding 'v-function)
           :collect binding))))
+
+(defun vars-of-type (type env)
+  (loop :for name :in (all-symbol-binding-names env)
+     :when (typep (v-type-of (get-symbol-binding name t env))
+                  type)
+     :collect name))
 
 (v-defspecial gen-function-call (required-type must-be-value)
   :args-valid t
@@ -260,15 +267,30 @@
 (v-defspecial gen-flet (required-type must-be-value)
   :args-valid t
   :return
-  (let ((*available-funcs* nil))
-    nil))
+  (let ((*available-types* nil)
+        (*available-funcs* nil))
+    (compile-form
+     `(flet ,(loop :for i :below (random 4) :collect
+                `(,(gen-func-name) ,(gen-func-args)
+                   ,@(gen-progn-body nil t)))
+        ,@(gen-progn-body required-type must-be-value))
+     env)))
 
 (v-defspecial gen-labels (required-type must-be-value)
   :args-valid t
   :return
-  (let ((*available-funcs* nil))
-    nil))
+  (let ((*available-types* nil)
+        (*available-funcs* nil))
+    (compile-form
+     `(flet ,(loop :for i :below (random 4) :collect
+                `(,(gen-func-name) ,(gen-func-args)
+                   ,@(gen-progn-body nil t)))
+        ,@(gen-progn-body required-type must-be-value))
+     env)))
 
+(defun gen-func-args ()
+  (loop :for i :below 6 :collect
+     (list (gen-var-name) (type->type-spec (random-elt *generatable-primitives*)))))
 
 (defvar *var-names*
   '(bize boxy bozo buzz chez cozy czar dozy faze fizz flux fozy friz
@@ -277,8 +299,7 @@
     jibs jiff jimp jink jinx jive jivy jobs jock john joke joky jouk
     jowl jows juba jube juco juga jugs juju juke juku jump junk jupe
     jury koji lazy maze mazy meze mojo mozo phiz pixy poxy prez puja
-    putz qoph quag quay quey quip quiz razz waxy whiz yutz zany zaps
-    zarf zebu zeks zeps zerk zinc zonk zouk zyme))
+    putz qoph quag quay quey quip quiz razz waxy whiz))
 
 (defvar *name-id* 0)
 
@@ -286,3 +307,29 @@
   (loop :for name := (elt *var-names* (mod (incf *name-id*) (length *var-names*)))
      :when (not (member name except-these-names))
      :return name))
+
+(defvar *func-name-id* 0)
+
+(defun gen-func-name (&optional except-these-names)
+  (loop :for name := (elt *func-names* (mod (incf *func-name-id*)
+                                            (length *func-names*)))
+     :when (not (member name except-these-names))
+     :return name))
+
+(defvar *func-names*
+  '(xebec xenia xenic xenon xeric xerox xerus xylan xylem xylol xylyl
+    xysti xysts yabby yacht yacks yaffs yager yagis yahoo yaird yamen
+    yamun yangs yanks yapok yapon yards yarer yarns yauds yauld yaups
+    yawed yawey yawls yawns yawps yclad yeahs yeans yearn years yeast
+    yecch yechs yechy yeggs yelks yells yelps yenta yente yerba yerks
+    yeses yetis yetts yeuks yeuky yield yikes yills yince yipes yirds
+    yirrs yirth ylems yobbo yocks yodel yodhs yodle yogas yogee yoghs
+    yogic yogin yogis yoked yokel yokes yolks yolky yomim yonic yonis
+    yores young yourn yours youse youth yowed yowes yowie yowls yoyos
+    yuans yucas yucca yucch yucks yucky yugas yukky yulan yules yummy
+    yupon yuppy yurta yurts zaire zamia zanza zappy zarfs zaxes zayin
+    zazen zeals zebec zebra zebus zeins zerks zeros zests zesty zetas
+    zibet zilch zills zincs zincy zineb zines zings zingy zinky zippy
+    ziram zitis zizit zlote zloty zoeae zoeal zoeas zombi zonae zonal
+    zoned zoner zones zonks zooey zooid zooks zooms zoons zooty zoril
+    zoris zouks zowie zuzim zymes))
