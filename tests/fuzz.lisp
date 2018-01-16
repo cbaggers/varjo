@@ -18,11 +18,15 @@
 
 (defvar *rough-desired-depth*)
 (defvar *rough-depth*)
+(defvar *available-types*)
+(defvar *available-funcs*)
 
 (defun fuzz-vert (&optional (rough-desired-depth 10))
-  (let* ((version :450)
+  (let* ((version :410)
          (*rough-desired-depth* rough-desired-depth)
          (*rough-depth* 0)
+         (*available-types* nil)
+         (*available-funcs* nil)
          (stage (gen-vert-stage version))
          (compiled (translate stage)))
     (assert (typep compiled 'compiled-stage) ()
@@ -48,7 +52,7 @@
   (let ((required (and required-type (not (eq required-type t)))))
     (append (loop :for i :from 0 :below (+ (if required 0 1) (random 5))
                :collect `(gen-form nil nil))
-            (when required
+            (when (or required must-be-value)
               `((gen-form ,required-type ,must-be-value))))))
 
 (v-defspecial gen-form (required-type must-be-value)
@@ -94,45 +98,55 @@
 (defun is-v-type-p (x)
   (typep x 'v-type))
 
-(defun pick-function (required-type must-be-value env)
+(defun pick-function (required-type available-types available-funcs
+                      must-be-value env)
   (assert (or (null required-type) (is-v-type-p required-type)))
-  (let ((available-types (available-types env)))
-    (labels ((good-type-p (x)
-               (and (is-v-type-p x)
-                    (find x available-types :test #'v-typep)))
-             (good-func-p (func)
-               (let ((args (v-argument-spec func))
-                     (ret-spec (v-return-spec func)))
-                 (and (valid-for-contextp func env)
-                      (listp args)
-                      (not (find '&rest args :test #'tag=))
-                      (vectorp ret-spec)
-                      (every #'good-type-p args)
-                      (every #'is-v-type-p ret-spec)
-                      (if must-be-value
-                          (and (not (v-voidp ret-spec))
-                               (not (v-returned-p ret-spec))
-                               (not (v-discarded-p ret-spec))))
-                      (if required-type
-                          (v-typep (primary-type ret-spec)
-                                   required-type)
-                          t)))))
-      (let* ((base-env (get-base-env env))
-             (all-bindings (loop :for (name . set) :in (v-form-bindings base-env) :append
-                              (loop :for binding :in set
-                                 :when (typep binding 'v-function)
-                                 :collect binding)))
-             (applicable-bindings
-              (loop :for func :in all-bindings
-                 :when (good-func-p func)
-                 :collect func)))
-        (when applicable-bindings
-          (random-elt applicable-bindings))))))
+  (labels ((good-type-p (x)
+             (and (is-v-type-p x)
+                  (find x available-types :test #'v-typep)))
+           (good-func-p (func)
+             (let ((args (v-argument-spec func))
+                   (ret-spec (v-return-spec func)))
+               (and (valid-for-contextp func env)
+                    (listp args)
+                    (not (find '&rest args :test #'tag=))
+                    (vectorp ret-spec)
+                    (every #'good-type-p args)
+                    (every #'is-v-type-p ret-spec)
+                    (if must-be-value
+                        (and (not (v-voidp ret-spec))
+                             (not (v-returned-p ret-spec))
+                             (not (v-discarded-p ret-spec))))
+                    (if required-type
+                        (v-typep (primary-type ret-spec)
+                                 required-type)
+                        t)))))
+    (let* ((all-bindings available-funcs)
+           (applicable-bindings
+            (loop :for func :in all-bindings
+               :when (good-func-p func)
+               :collect func)))
+      (when applicable-bindings
+        (random-elt applicable-bindings)))))
+
+(defun available-funcs (env)
+  (let ((base-env (get-base-env env)))
+    (loop :for (name . set) :in (v-form-bindings base-env) :append
+       (loop :for binding :in set
+          :when (typep binding 'v-function)
+          :collect binding))))
 
 (v-defspecial gen-function-call (required-type must-be-value)
   :args-valid t
   :return
-  (let ((function (pick-function required-type must-be-value env)))
+  (let ((*available-types* (or *available-types*
+                               (available-types env)))
+        (*available-funcs* (or *available-funcs*
+                               (available-funcs env)))
+        (function (pick-function required-type
+                                 *available-types*
+                                 *available-funcs*
+                                 must-be-value env)))
     (compile-form
      (if function
          (cons (name function)
@@ -221,30 +235,39 @@
 (v-defspecial gen-let (required-type must-be-value)
   :args-valid t
   :return
-  (compile-form
-   `(let ,(loop :for i :below (random 4) :collect
-             `(,(gen-var-name) (gen-form nil t)))
-      ,@(gen-progn-body required-type must-be-value))
-   env))
+  (let ((*available-types* nil))
+    (compile-form
+     `(let ,(loop :for i :below (random 4) :collect
+               `(,(gen-var-name) (gen-form nil t)))
+        ,@(gen-progn-body required-type must-be-value))
+     env)))
 
 (v-defspecial gen-if (required-type must-be-value)
   :args-valid t
   :return
-  (compile-form
-   `(if (= 1 2)
-        (gen-form ,required-type ,must-be-value)
-        (gen-form ,required-type ,must-be-value))
-   env))
+  (let* ((*available-types* (or *available-types*
+                                (available-types env)))
+         (required-type
+          (or required-type
+              (when must-be-value
+                (random-elt *available-types*)))))
+    (compile-form
+     `(if (= 1 2)
+          (gen-form ,required-type ,must-be-value)
+          (gen-form ,required-type ,must-be-value))
+     env)))
 
 (v-defspecial gen-flet (required-type must-be-value)
   :args-valid t
   :return
-  nil)
+  (let ((*available-funcs* nil))
+    nil))
 
 (v-defspecial gen-labels (required-type must-be-value)
   :args-valid t
   :return
-  nil)
+  (let ((*available-funcs* nil))
+    nil))
 
 
 (defvar *var-names*
