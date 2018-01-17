@@ -23,7 +23,7 @@
 (defvar *available-funcs*)
 
 (defun fuzz-vert (&optional (rough-desired-depth 10))
-  (let* ((version :410)
+  (let* ((version :410-core)
          (*rough-desired-depth* rough-desired-depth)
          (*rough-depth* 0)
          (*available-types* nil)
@@ -43,7 +43,7 @@
     (values (glsl-code compiled)
             (ast->code compiled))))
 
-(defun gen-vert-stage (&optional (version :450))
+(defun gen-vert-stage (&optional (version :450-core))
   (let* ((args (gen-in-args))
          (uniforms (gen-uniforms)))
     (make-stage :vertex args uniforms (list version)
@@ -253,7 +253,8 @@
   :args-valid t
   :return
   (let* ((*available-types* (or *available-types*
-                                (available-types env)))
+                                (available-types env)
+                                *generatable-primitives*))
          (required-type
           (or required-type
               (when must-be-value
@@ -310,12 +311,6 @@
 
 (defvar *func-name-id* 0)
 
-(defun gen-func-name (&optional except-these-names)
-  (loop :for name := (elt *func-names* (mod (incf *func-name-id*)
-                                            (length *func-names*)))
-     :when (not (member name except-these-names))
-     :return name))
-
 (defvar *func-names*
   '(xebec xenia xenic xenon xeric xerox xerus xylan xylem xylol xylyl
     xysti xysts yabby yacht yacks yaffs yager yagis yahoo yaird yamen
@@ -333,3 +328,9 @@
     ziram zitis zizit zlote zloty zoeae zoeal zoeas zombi zonae zonal
     zoned zoner zones zonks zooey zooid zooks zooms zoons zooty zoril
     zoris zouks zowie zuzim zymes))
+
+(defun gen-func-name (&optional except-these-names)
+  (loop :for name := (elt *func-names* (mod (incf *func-name-id*)
+                                            (length *func-names*)))
+     :when (not (member name except-these-names))
+     :return name))
