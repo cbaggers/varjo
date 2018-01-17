@@ -4,7 +4,8 @@
 (defvar *global-env-form-bindings* (make-hash-table))
 (defvar *global-env-compiler-macros* (make-hash-table))
 
-(defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450))
+(defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450
+                               :140-core :150-core :330-core :400-core :410-core :420-core :430-core :440-core :450-core))
 
 (defvar *stage-names*
   '(:vertex

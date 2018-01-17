@@ -215,12 +215,33 @@
                 (:cw "cw")
                 (:ccw "ccw"))))))
 
+(defun version-string (x)
+  (ecase x
+    (:140 "140 compatibility")
+    (:150 "150 compatibility")
+    (:330 "330 compatibility")
+    (:400 "400 compatibility")
+    (:410 "410 compatibility")
+    (:420 "420 compatibility")
+    (:430 "430 compatibility")
+    (:440 "440 compatibility")
+    (:450 "450 compatibility")
+    (:140-core "140 core")
+    (:150-core "150 core")
+    (:330-core "330 core")
+    (:400-core "400 core")
+    (:410-core "410 core")
+    (:420-core "420 core")
+    (:430-core "430 core")
+    (:440-core "440 core")
+    (:450-core "450 core")))
+
 (defun gen-shader-string (post-proc-obj)
   (with-slots (env) post-proc-obj
     (format
      nil "// ~a~%#version ~a~%~{~%~{~a~%~}~}"
      (string-downcase (type-of (stage env)))
-     (get-version-from-context env)
+     (version-string (get-version-from-context env))
      (remove nil
              (list (used-user-structs post-proc-obj)
                    (in-declarations post-proc-obj)
