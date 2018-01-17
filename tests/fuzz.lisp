@@ -23,7 +23,7 @@
 (defvar *available-funcs*)
 
 (defun fuzz-vert (&optional (rough-desired-depth 10))
-  (let* ((version :410-core)
+  (let* ((version :450-core)
          (*rough-desired-depth* rough-desired-depth)
          (*rough-depth* 0)
          (*available-types* nil)
@@ -67,7 +67,7 @@
                         ;; (1 `(gen-funcall ,required-type ,must-be-value))
                         (1 `(gen-value ,required-type ,must-be-value))
                         (1 `(gen-progn ,required-type ,must-be-value))
-                        (1 `(gen-let ,required-type ,must-be-value))
+                        (2 `(gen-let ,required-type ,must-be-value))
                         (1 `(gen-if ,required-type ,must-be-value))
                         (1 `(gen-flet ,required-type ,must-be-value))
                         (1 `(gen-labels ,required-type ,must-be-value))

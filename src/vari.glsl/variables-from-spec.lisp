@@ -12,11 +12,11 @@
   (let ((vars (mapcar λ(destructuring-bind
                              (&key lisp-name name type place-p versions
                                    (stage t) &allow-other-keys) _
-                         (declare (ignore versions))
                          (assert lisp-name)
                          (let* ((lisp-name (intern lisp-name :vari.glsl))
                                 (lisp-type (parse-gl-type-name type)))
-                           `(,stage ,lisp-name ,name ,lisp-type ,place-p)))
+                           `(,stage ,lisp-name ,name ,lisp-type ,place-p
+                                    ,versions)))
                       (append *definitions-missing-from-glsl-spec*
                               glsl-spec:*variables*))))
 
