@@ -5,7 +5,7 @@
 ;; If
 
 ;; note that just like in lisp this only fails if false. 0 does not fail.
-(v-defspecial if (test-form then-form &optional else-form)
+(v-defspecial if (test-form then-form &optional (else-form nil has-else))
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
@@ -16,8 +16,8 @@
     (let ((always-true (or (not (v-typep (primary-type test-obj) 'v-bool))
                            (eq test-form t)))
           (always-false (eq test-form nil))
-          (has-else (not (or (null else-form) (equal else-form '(values)))))
-          (else-form (or else-form '(values))))
+          (has-else (and has-else (not (equal else-form '(values)))))
+          (else-form (if has-else else-form '(values))))
       (cond
         ;; constant true
         (always-true (compile-form `(progn ,test-obj ,then-form) test-env))
