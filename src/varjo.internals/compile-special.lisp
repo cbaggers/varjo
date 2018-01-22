@@ -55,6 +55,11 @@
                                               type-set
                                               starting-env final-env)))))
 
+(defun merge-progn+ (code-objs starting-env &optional final-env potential-env)
+  (let ((final-env (or final-env potential-env starting-env)))
+    (values (merge-progn code-objs starting-env final-env)
+            final-env)))
+
 ;;----------------------------------------------------------------------
 
 (defun compile-forms-not-propagating-env-returning-list-of-compiled
