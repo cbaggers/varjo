@@ -272,17 +272,20 @@
           ;; has already written the lets for the vars.
           (if (v-multi-val-base env)
               o
-              (merge-progn
-               (with-fresh-env-scope (fresh-env env)
-                 (env-> (p-env fresh-env)
-                   (merge-multi-env-progn
-                    (compile-forms-not-propagating-env-returning-list-of-compiled
-                     (lambda (env binding gname)
-                       (with-v-let-spec binding
-                         (compile-let name type-spec nil env gname)))
-                     p-env bindings m-r-names))
-                   (compile-form o p-env)))
-               env env)))
+              (vbind (code-objs potential-env)
+                  (with-fresh-env-scope (fresh-env env)
+                    (env-> (p-env fresh-env)
+                      (merge-multi-env-progn
+                       (compile-forms-not-propagating-env-returning-list-of-compiled
+                        (lambda (env binding gname)
+                          (with-v-let-spec binding
+                            (compile-let name type-spec nil env gname)))
+                        p-env bindings m-r-names))
+                      (compile-form o p-env)))
+                (let* ((starting-env env)
+                       (final-env (or env potential-env starting-env)))
+                  (values (merge-progn code-objs starting-env final-env)
+                          final-env)))))
          (ast (ast-node! (name func)
                          (mapcar #'node-tree args)
                          type-set

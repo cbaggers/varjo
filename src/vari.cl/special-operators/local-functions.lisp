@@ -80,10 +80,9 @@
            definitions)
           (compile-form `(progn ,@body) p-env)))
     ;;
-    (let* ((merged (merge-progn
-                    (remove nil (cons-end body-obj func-def-objs))
-                    env
-                    pruned-starting-env))
+    (let* ((merged (merge-progn (remove nil (cons-end body-obj func-def-objs))
+                                env
+                                pruned-starting-env))
            (ast (ast-node!
                  'labels-no-implicit
                  (list (remove nil (mapcar λ(if _1

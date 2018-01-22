@@ -27,8 +27,9 @@
                 (compile-form `(setq ,(first vars) ,value-obj) p-env)
                 (compile-progn body p-env)))
           (let* ((m-obj (%merge-multi-env-progn m-objs))
-                 (merged (merge-progn `(,m-obj ,s-obj ,@b-objs)
-                                      env final-env)))
+                 (merged  (merge-progn `(,m-obj ,s-obj ,@b-objs)
+                                       env
+                                       final-env)))
             (values
              (copy-compiled
               merged
@@ -92,7 +93,7 @@
                   (compile-form `(funcall ,function ,@names) p-env)))
             ;; The rest is fairly standard
             (let* ((m-obj (%merge-multi-env-progn m-objs))
-                   (merged (merge-progn `(,m-obj ,s-obj ,b-obj)
+                   (merged (merge-progn (list m-obj s-obj b-obj)
                                         env final-env)))
               (values
                (copy-compiled

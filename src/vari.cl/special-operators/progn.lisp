@@ -21,7 +21,10 @@
   :args-valid t
   :return
   (if body
-      (merge-progn (compile-progn body env) env)
+      (vbind (code-objs potential-env) (compile-progn body env)
+        (let* ((final-env (or potential-env env)))
+          (values (merge-progn code-objs env final-env)
+                  final-env)))
       (error 'empty-progn)))
 
 ;;------------------------------------------------------------

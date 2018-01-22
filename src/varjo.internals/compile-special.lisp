@@ -41,7 +41,7 @@
                  (cons list more-lists))
           env))
 
-(defun %merge-progn (code-objs starting-env final-env)
+(defun merge-progn (code-objs starting-env final-env)
   (if (= 1 (length code-objs))
       (first code-objs)
       (let* ((last-obj (last1 (remove nil code-objs)))
@@ -54,20 +54,6 @@
                                               (mapcar #'node-tree code-objs)
                                               type-set
                                               starting-env final-env)))))
-
-(defmacro merge-progn (code-objs starting-env &optional final-env)
-  (let ((co (gensym "code-objs"))
-        (pe (gensym "potential-env"))
-        (se (gensym "starting-env"))
-        (fe (gensym "final-env")))
-    `(vbind (,co ,pe) ,code-objs
-       (let* ((,se ,starting-env)
-              (,fe ,(if final-env
-                        `(or ,final-env ,pe ,se)
-                        `(or ,pe ,se))))
-         (values (%merge-progn ,co ,se ,fe)
-                 ,fe)))))
-
 
 ;;----------------------------------------------------------------------
 
