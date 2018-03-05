@@ -4,7 +4,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *definitions-missing-from-glsl-spec*
     '((:lisp-name "GL-IN" :name "gl_in" :type "{gl_PerVertex" :place-p t
-       :versions (150 330 400 410 420 430 440 450)
+       :versions (150 330 400 410 420 430 440 450 460)
        :stage :geometry)
       )))
 

@@ -4,7 +4,7 @@
 (defvar *global-env-form-bindings* (make-hash-table))
 (defvar *global-env-compiler-macros* (make-hash-table))
 
-(defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450))
+(defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450 :460))
 
 (defvar *stage-names*
   '(:vertex
@@ -50,7 +50,7 @@
                                unless
                                when))
 
-(defvar *default-version* :450)
+(defvar *default-version* :460)
 
 
 (defvar *ast-node-kinds*

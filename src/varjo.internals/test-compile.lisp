@@ -110,7 +110,7 @@
                                   (allow-stemcells t))
   (let* ((name (or name (gensym "test-lambda"))))
     (labels ((get-stage (stage-type)
-               (make-stage stage-type nil nil '(:450)
+               (make-stage stage-type nil nil '(:460)
                            `(,@(gen-dummy-declarations-for-stage stage-type)
                                (labels ((,name ,args ,@body))
                                  ,(gen-dummy-call name args)

@@ -44,15 +44,15 @@
                                                         primitive))))
         (when (equal kind :geometry)
           ;; {TODO} proper error
-          (assert (intersection context '(:150 :330 :400 :410 :420 :430 :440 :450)) ()
+          (assert (intersection context '(:150 :330 :400 :410 :420 :430 :440 :450 :460)) ()
                   "Varjo: Geometry stages require a GLSL version of at least 150"))
         (when (member kind '(:tessellation-control :tessellation-evaluation))
           ;; {TODO} proper error
-          (assert (intersection context '(:400 :410 :420 :430 :440 :450)) ()
+          (assert (intersection context '(:400 :410 :420 :430 :440 :450 :460)) ()
                   "Varjo: Tessellation stages require a GLSL version of at least 400"))
         (when (member kind '(:compute))
           ;; {TODO} proper error
-          (assert (intersection context '(:430 :440 :450)) ()
+          (assert (intersection context '(:430 :440 :450 :460)) ()
                   "Varjo: Compute stages require a GLSL version of at least 430"))
         (check-for-stage-specific-limitations r)
         r))))
