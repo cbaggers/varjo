@@ -24,3 +24,5 @@
 (v-def-glsl-template-fun /= (a b) "(~a != ~a)" (v-dvec2 v-dvec2) v-bool :pure t)
 (v-def-glsl-template-fun /= (a b) "(~a != ~a)" (v-dvec3 v-dvec3) v-bool :pure t)
 (v-def-glsl-template-fun /= (a b) "(~a != ~a)" (v-dvec4 v-dvec4) v-bool :pure t)
+
+(v-def-glsl-template-fun zerop (a) "(~a == 0)" (v-number) v-bool :pure t)
