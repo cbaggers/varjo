@@ -57,7 +57,9 @@
   (define-type-pred numberp v-number)
   (define-type-pred realp v-real)
   (define-type-pred floatp v-float v-double)
-  (define-type-pred integerp v-integer))
+  (define-type-pred integerp v-integer)
+  (define-type-pred rationalp v-rational))
+
 
 (v-def-glsl-template-fun simple-bit-vector-p (a) "false" (v-type) v-bool)
 (v-def-glsl-template-fun random-state-p (a) "false" (v-type) v-bool)
