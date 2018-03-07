@@ -1019,10 +1019,9 @@ Uniform Argument: ~s" arg)
 If this is impeding your work please feel free to file an issue
 at https://github.com/cbaggers/varjo/issues")
 
-(deferror compute-stage-must-be-void () (name returns)
-    "Compute stages must return (values) however ~a returns:
+(deferror compute-stage-must-be-void () (returns)
+    "Compute stages must return (values) however this one returns:
 ~a"
-  (or name "this lambda")
   returns)
 
 (deferror unknown-layout-specifier () (target-kind name specifier)

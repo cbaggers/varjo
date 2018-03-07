@@ -120,9 +120,9 @@
                                                  func-env))
            (glsl-name (if mainp "main" (lisp-name->glsl-name name func-env)))
            (return-set (coerce (return-set body-obj) 'list)))
-      (when (typep (stage env) 'compute-stage)
+      (when (and (typep (stage env) 'compute-stage) mainp)
         (assert (null return-set) () 'compute-stage-must-be-void
-                :name name :returns return-set))
+                :returns return-set))
       (let* ((emit-set (emit-set body-obj))
              (multi-return-vars (when return-set (rest return-set)))
              (type (if mainp

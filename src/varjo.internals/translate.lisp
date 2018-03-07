@@ -578,8 +578,7 @@
 
   (:method ((stage compute-stage) post-proc-obj locations)
     (declare (ignore locations))
-    (with-slots (out-set) post-proc-obj
-      nil)))
+    nil))
 
 ;;----------------------------------------------------------------------
 
