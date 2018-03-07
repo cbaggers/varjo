@@ -42,7 +42,8 @@
             (mapcar (lambda (x)
                       (dbind (name type acc tran) x
                         (list name (type-spec->type type) acc tran)))
-                    slot-transforms)))
+                    slot-transforms))
+           (constructor-name (symb 'make- (or constructor name))))
       `(progn
          (eval-when (:compile-toplevel :load-toplevel :execute)
            (def-v-type-class ,class-name (v-user-struct)
@@ -67,7 +68,7 @@
                           :qualifiers (qualifiers object)))
          (defmethod type->type-spec ((type ,true-type-name))
            ',name)
-         (v-def-glsl-template-fun ,(symb 'make- (or constructor name))
+         (v-def-glsl-template-fun ,constructor-name
                                   ,(append (loop :for slot :in slots :collect (first slot))
                                            (when context `(&context ,@context)))
                                   ,(format nil "~a(~{~a~^,~^ ~})" name-string
@@ -75,10 +76,17 @@
                                   ,(loop :for slot :in slots :collect (second slot))
                                   ,true-type-name :v-place-index nil)
          ,@(make-struct-accessors name true-type-name context slot-transforms)
+         ,(make-copy-structure name constructor-name slot-transforms)
          ',name))))
 
 (defmethod v-glsl-size ((type v-user-struct))
   (reduce #'+ (mapcar #'v-glsl-size (mapcar #'second (v-slots type)))))
+
+(defun make-copy-structure (name constructor-name transforms)
+  `(v-defun copy-structure ((x ,name))
+     (,constructor-name
+      ,@(loop :for (nil nil accessor) :in transforms :collect
+           `(,accessor x)))))
 
 (defun make-struct-accessors (name true-type-name context transforms)
   (loop :for (nil slot-type accessor slot-transform) :in transforms :collect
