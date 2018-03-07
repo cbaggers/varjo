@@ -90,6 +90,8 @@
                (:file "src/vari.cl/special-operators/aref")
                (:file "src/vari.cl/special-operators/emit")
                (:file "src/vari.cl/special-operators/slots")
+               (:file "src/vari.cl/complex")
+               (:file "src/vari.cl/ratio")
                ;;
                (:file "src/varjo.internals/translate")
                (:file "src/varjo.internals/glsl-stage")
