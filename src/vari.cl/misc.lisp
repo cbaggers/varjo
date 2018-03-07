@@ -97,20 +97,28 @@
        (for (,var 0) (< ,var ,gcount) (++ ,var)
             ,@body))))
 
+(v-def-glsl-template-fun array-total-size (x) "~a.length()" (v-array)
+                         v-int :pure t)
+
+(v-define-compiler-macro array-total-size
+    (&environment env &whole whole (x v-array))
+  (let* ((type (varjo:argument-type 'x env))
+         (len (first (v-dimensions type))))
+    (if (numberp len)
+        `(progn
+           ,x
+           ,len)
+        whole)))
+
 ;; reading
-;; array-total-size
 ;; scale-float
 
 ;; harder
 ;; log (with optional arg)
 ;; complement (returns a function)
-;; integerp (need to add v-integer)
-;; realp
-;; rationalp
 
 ;; rem
 ;; logbitp
-;; copy-structure
 ;; typecase
 
 ;;------------------------------------------------------------
