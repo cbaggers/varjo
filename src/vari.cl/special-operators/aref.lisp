@@ -54,3 +54,10 @@
                                        (node-tree index))
                                  type-set env env))
      env)))
+
+;;------------------------------------------------------------
+
+(v-def-glsl-template-fun row-major-aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
+(v-def-glsl-template-fun svref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
+
+;;------------------------------------------------------------

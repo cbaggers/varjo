@@ -92,6 +92,7 @@
                (:file "src/vari.cl/special-operators/slots")
                (:file "src/vari.cl/complex")
                (:file "src/vari.cl/ratio")
+               (:file "src/vari.cl/misc")
                ;;
                (:file "src/varjo.internals/translate")
                (:file "src/varjo.internals/glsl-stage")

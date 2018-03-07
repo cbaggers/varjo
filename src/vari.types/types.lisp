@@ -707,6 +707,16 @@
    (glsl-string :initform "uimage2DMSArray" :reader v-glsl-string)))
 
 ;;----------------------------------------------------------------------
+
+(def-v-type-class v-complex (v-type)
+  ((core :initform nil :reader core-typep)
+   (glsl-string :initform "vec2" :reader v-glsl-string)))
+
+(def-v-type-class v-ratio (v-type)
+  ((core :initform nil :reader core-typep)
+   (glsl-string :initform "ivec2" :reader v-glsl-string)))
+
+;;----------------------------------------------------------------------
 ;; Type Stubs
 ;;
 ;; {TODO} look into these

@@ -58,6 +58,8 @@
            :v-struct
            :v-user-struct
            :v-sampler
+           :v-complex
+           :v-ratio
            ;;
            :v-function-type
            :v-user-function

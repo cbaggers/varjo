@@ -2,40 +2,29 @@
 
 ;;----------------------------------------------------------------------
 
-(def-v-type-class v-complex (v-type) ())
+(v-def-glsl-template-fun complex (a b) "vec2(~a, ~a)" (v-float v-float)
+                         v-complex :pure t)
 
-(def-v-type-class v-single-complex (v-complex)
-  ((core :initform nil :reader core-typep)
-   (glsl-string :initform "vec2" :reader v-glsl-string)))
+(v-def-glsl-template-fun complex (a) "vec2(~a, 0.0f)" (v-float)
+                         v-complex :pure t)
 
-(def-v-type-class v-double-complex (v-complex)
-  ((core :initform nil :reader core-typep)
-   (glsl-string :initform "dvec2" :reader v-glsl-string)))
+
+
+(v-def-glsl-template-fun realpart (a) "~a.x" (v-complex)
+                         v-float :pure t)
+
+(v-def-glsl-template-fun imagpart (a) "~a.y" (v-complex)
+                         v-float :pure t)
 
 ;;----------------------------------------------------------------------
 
-(v-def-glsl-template-fun complex (a b) "vec2(~a, ~a)" (v-float v-float)
-                         v-single-complex :pure t)
+;; currently complex isnt a v-number
 
-(v-def-glsl-template-fun complex (a b) "dvec2(~a, ~a)" (v-double v-double)
-                         v-double-complex :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (v-number) 0 :pure t)
 
-(v-def-glsl-template-fun complex (a b) "vec2(~a, 0.0f)" (v-float)
-                         v-single-complex :pure t)
+(v-defun conjugate ((x v-complex))
+  (complex (realpart x) (- (imagpart x))))
 
-(v-def-glsl-template-fun complex (a b) "dvec2(~a, 0.0f)" (v-double)
-                         v-double-complex :pure t)
-
-
-
-(v-def-glsl-template-fun realpart (a) "~a.x" (v-single-complex)
-                         v-float :pure t)
-
-(v-def-glsl-template-fun imagpart (a) "~a.y" (v-single-complex)
-                         v-float :pure t)
-
-(v-def-glsl-template-fun realpart (a) "~a.x" (v-double-complex)
-                         v-double :pure t)
-
-(v-def-glsl-template-fun imagpart (a) "~a.y" (v-double-complex)
-                         v-double :pure t)
+;; cis
+(v-defun cis ((x v-float))
+  (complex (cos x) (sin x)))

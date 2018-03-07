@@ -4,11 +4,22 @@
 ;;------------------------------------------------------------
 ;; Prog1
 
-(v-defmacro prog1 (&body body)
+(v-defmacro prog1 (result &body body)
   (let ((tmp (gensym "PROG1-TMP")))
-    `(let ((,tmp ,(first body)))
-       ,@(rest body)
+    `(let ((,tmp ,result))
+       ,@body
        ,tmp)))
+
+;;------------------------------------------------------------
+;; Prog2
+
+(v-defmacro prog2 (form result &body body)
+  (let ((tmp (gensym "PROG2-TMP")))
+    `(progn
+       ,form
+       (let ((,tmp ,result))
+         ,@body
+         ,tmp))))
 
 ;;------------------------------------------------------------
 ;; Progn
