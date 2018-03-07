@@ -111,6 +111,31 @@
         whole)))
 
 ;; reading
+;;
+;; phase
+;; isqrt
+;; logand
+;; logandc1
+;; logandc2
+;; logcount
+;; logeqv
+;; logior
+;; lognand
+;; lognor
+;; lognot
+;; logorc1
+;; logorc2
+;; logtest
+;; logxor
+;; make-random-state (could be a seed for some rand func?)
+;; with-accessors
+;; rotatef
+;; shiftf
+;; multiple-value-setq
+;; multiple-value-call
+;; multiple-value-prog1
+;; nth-value
+;; function
 ;; scale-float
 
 ;; harder
