@@ -10,13 +10,17 @@
 
 (def-v-type-class v-real (v-number) ())
 
-(def-v-type-class v-int (v-real)
+(def-v-type-class v-rational (v-real) ())
+
+(def-v-type-class v-integer (v-real) ())
+
+(def-v-type-class v-int (v-integer)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "int" :reader v-glsl-string)
    (casts-to :initform '(v-uint v-float v-double))
    (default-value :initform 0)))
 
-(def-v-type-class v-uint (v-real)
+(def-v-type-class v-uint (v-integer)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uint" :reader v-glsl-string)
    (casts-to :initform '(v-float v-double))
@@ -714,7 +718,7 @@
   ((core :initform nil :reader core-typep)
    (glsl-string :initform "vec2" :reader v-glsl-string)))
 
-(def-v-type-class v-ratio (v-type)
+(def-v-type-class v-ratio (v-rational)
   ((core :initform nil :reader core-typep)
    (glsl-string :initform "ivec2" :reader v-glsl-string)))
 

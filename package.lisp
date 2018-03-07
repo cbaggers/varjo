@@ -47,6 +47,8 @@
            :v-array
            :v-number
            :v-real
+           :v-integer
+           :v-rational
            :v-vector
            :v-fvector
            :v-bvector
