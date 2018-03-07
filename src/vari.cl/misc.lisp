@@ -11,7 +11,7 @@
 (v-def-glsl-template-fun adjustable-array-p (a) "false" (v-array) v-bool)
 (v-def-glsl-template-fun array-has-fill-pointer-p (a) "false" (v-array) v-bool)
 
-(v-def-glsl-template-fun bit-vector-p (a) "true" (v-array) v-bool)
+(v-def-glsl-template-fun bit-vector-p (a) "false" (v-array) v-bool)
 (v-def-glsl-template-fun compiled-function-p (a) "true" (v-function-type) v-bool)
 
 
