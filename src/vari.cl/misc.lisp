@@ -15,24 +15,24 @@
 (v-def-glsl-template-fun compiled-function-p (a) "true" (v-function-type) v-bool)
 
 
-(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-number) 0 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-vector) 0 :pure t)
 (v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-matrix) 0 :pure t)
-(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-number) 0 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-vector) 0 :pure t)
 (v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-matrix) 0 :pure t)
 
 ;; not really accurate as loses side effects of prototype
 ;; we use the compiler macro to patch this up
-(v-def-glsl-template-fun float (x p) "float(~a)" (v-number v-float) 0 :pure t)
-(v-def-glsl-template-fun float (x p) "double(~a)" (v-number v-double) 0 :pure t)
+(v-def-glsl-template-fun float (x p) "float(~a)" (v-real v-float) 0 :pure t)
+(v-def-glsl-template-fun float (x p) "double(~a)" (v-real v-double) 0 :pure t)
 
-(v-define-compiler-macro float ((x v-number) (p v-float))
+(v-define-compiler-macro float ((x v-real) (p v-float))
   (if (numberp p)
       `(float ,x)
       `(progn ,p (float ,x))))
 
-(v-define-compiler-macro float ((x v-number) (p v-double))
+(v-define-compiler-macro float ((x v-real) (p v-double))
   (if (numberp p)
       `(double ,x)
       `(progn ,p (double ,x))))
@@ -55,6 +55,7 @@
   (define-type-pred functionp v-function-type)
   (define-type-pred complexp v-complex)
   (define-type-pred numberp v-number)
+  (define-type-pred realp v-real)
   (define-type-pred floatp v-float v-double))
 
 (v-def-glsl-template-fun simple-bit-vector-p (a) "false" (v-type) v-bool)
@@ -76,14 +77,14 @@
       `(progn ,x 32)))
 
 
-(v-def-glsl-template-fun signum (x) "sign(~a)" (v-number) 0 :pure t)
+(v-def-glsl-template-fun signum (x) "sign(~a)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun evenp (x) "(~a % 2 == 0)" (v-int) v-bool :pure t)
 (v-def-glsl-template-fun evenp (x) "(~a % 2 == 0)" (v-uint) v-bool :pure t)
 (v-def-glsl-template-fun oddp (x) "(~a % 2 != 0)" (v-int) v-bool :pure t)
 (v-def-glsl-template-fun oddp (x) "(~a % 2 != 0)" (v-uint) v-bool :pure t)
 
-(v-def-glsl-template-fun minusp (x) "(~a < 0)" (v-number) v-bool :pure t)
-(v-def-glsl-template-fun plusp (x) "(~a > 0)" (v-number) v-bool :pure t)
+(v-def-glsl-template-fun minusp (x) "(~a < 0)" (v-real) v-bool :pure t)
+(v-def-glsl-template-fun plusp (x) "(~a > 0)" (v-real) v-bool :pure t)
 
 (v-defmacro dotimes ((var count &optional result) &body body)
   (assert (not result) () "Varjo: Currently we do not support the result form")

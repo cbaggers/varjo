@@ -8,30 +8,32 @@
 
 (def-v-type-class v-number (v-type) ())
 
-(def-v-type-class v-int (v-number)
+(def-v-type-class v-real (v-number) ())
+
+(def-v-type-class v-int (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "int" :reader v-glsl-string)
    (casts-to :initform '(v-uint v-float v-double))
    (default-value :initform 0)))
 
-(def-v-type-class v-uint (v-number)
+(def-v-type-class v-uint (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uint" :reader v-glsl-string)
    (casts-to :initform '(v-float v-double))
    (default-value :initform 0)))
 
-(def-v-type-class v-float (v-number)
+(def-v-type-class v-float (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "float" :reader v-glsl-string)
    (casts-to :initform '(v-double))
    (default-value :initform 0f0)))
 
-(def-v-type-class v-short-float (v-number)
+(def-v-type-class v-short-float (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "short-float" :reader v-glsl-string)
    (default-value :initform 0s0)))
 
-(def-v-type-class v-double (v-number)
+(def-v-type-class v-double (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "double" :reader v-glsl-string)
    (default-value :initform 0d0)))
@@ -708,7 +710,7 @@
 
 ;;----------------------------------------------------------------------
 
-(def-v-type-class v-complex (v-type)
+(def-v-type-class v-complex (v-number)
   ((core :initform nil :reader core-typep)
    (glsl-string :initform "vec2" :reader v-glsl-string)))
 

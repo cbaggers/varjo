@@ -46,6 +46,7 @@
            :v-container
            :v-array
            :v-number
+           :v-real
            :v-vector
            :v-fvector
            :v-bvector

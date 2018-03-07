@@ -31,12 +31,12 @@
 (v-def-glsl-template-fun double (x) "double(~a)" (v-bool)  v-double :pure t)
 (v-def-glsl-template-fun double (x) "double(~a)" (v-float) v-double :pure t)
 
-(v-def-glsl-template-fun < (a b &rest c) "(~a < ~a~{ < ~a~})" (v-number v-number &rest v-number) v-bool :pure t)
-(v-def-glsl-template-fun > (a b &rest c) "(~a > ~a~{ > ~a~})" (v-number v-number &rest v-number) v-bool :pure t)
-(v-def-glsl-template-fun <= (a b &rest c) "(~a <= ~a~{ <= ~a~})" (v-number v-number &rest v-number) v-bool :pure t)
-(v-def-glsl-template-fun >= (a b &rest c) "(~a >= ~a~{ >= ~a~})" (v-number v-number &rest v-number) v-bool :pure t)
+(v-def-glsl-template-fun < (a b &rest c) "(~a < ~a~{ < ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
+(v-def-glsl-template-fun > (a b &rest c) "(~a > ~a~{ > ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
+(v-def-glsl-template-fun <= (a b &rest c) "(~a <= ~a~{ <= ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
+(v-def-glsl-template-fun >= (a b &rest c) "(~a >= ~a~{ >= ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
 
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-number v-number) v-bool :pure t)
+(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-real v-real) v-bool :pure t)
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-vec2 v-vec2) v-bool :pure t)
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-vec3 v-vec3) v-bool :pure t)
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-vec4 v-vec4) v-bool :pure t)
@@ -51,8 +51,8 @@
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec4 v-dvec4) v-bool :pure t)
 (v-def-glsl-template-fun = (a) "true" (t) v-bool :pure t)
 
-(v-def-glsl-template-fun ++ (a) "(++ ~a)" (v-number) nil)
-(v-def-glsl-template-fun -- (a) "(-- ~a)" (v-number) nil)
+(v-def-glsl-template-fun ++ (a) "(++ ~a)" (v-real) nil)
+(v-def-glsl-template-fun -- (a) "(-- ~a)" (v-real) nil)
 
 ;;------------------------------------------------------------
 ;; Devil magic that makes operators work on any length
@@ -95,9 +95,9 @@
 ;;------------------------------------------------------------
 
 (v-def-glsl-template-fun + () "0" () :int :pure t)
-(v-def-glsl-template-fun + (v-number &rest v-number) "(~a~{ + ~a~})" (v-number &rest v-number) nil :pure t)
+(v-def-glsl-template-fun + (x &rest y) "(~a~{ + ~a~})" (v-number &rest v-number) nil :pure t)
 
-(v-def-glsl-template-fun + (a) "~a" (v-number) 0 :pure t)
+(v-def-glsl-template-fun + (a) "~a" (v-real) 0 :pure t)
 (v-def-glsl-template-fun + (a) "~a" (v-vector) 0 :pure t)
 
 (v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-vec2 v-vec2) 0 :pure t)
@@ -116,12 +116,12 @@
 (v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-dvec3 v-dvec3) 0 :pure t)
 (v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-dvec4 v-dvec4) 0 :pure t)
 
-(v-def-glsl-template-fun - (a) "(-~a)" (v-number) 0 :pure t)
+(v-def-glsl-template-fun - (a) "(-~a)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun - (a) "(-~a)" (v-vec2) 0 :pure t)
 (v-def-glsl-template-fun - (a) "(-~a)" (v-vec3) 0 :pure t)
 (v-def-glsl-template-fun - (a) "(-~a)" (v-vec4) 0 :pure t)
 
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-number v-number) nil :pure t)
+(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-real v-real) nil :pure t)
 (v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-vec2 v-vec2) 0 :pure t)
 (v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-vec3 v-vec3) 0 :pure t)
 (v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-vec4 v-vec4) 0 :pure t)
@@ -139,11 +139,11 @@
 (v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-dvec4 v-dvec4) 0 :pure t)
 
 (v-def-glsl-template-fun * () "1" () :int :pure t)
-(v-def-glsl-template-fun * (a) "~a" (v-number) 0 :pure t)
+(v-def-glsl-template-fun * (a) "~a" (v-real) 0 :pure t)
 (v-def-glsl-template-fun * (a) "~a" (v-vector) 0 :pure t)
 (v-def-glsl-template-fun * (a) "~a" (v-matrix) 0 :pure t)
 
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-number v-number) nil :pure t)
+(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-real v-real) nil :pure t)
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vec2 v-vec2) 0 :pure t)
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vec3 v-vec3) 0 :pure t)
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vec4 v-vec4) 0 :pure t)
@@ -165,18 +165,18 @@
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-mat3 v-vec3) 1 :pure t)
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-mat4 v-vec4) 1 :pure t)
 
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-matrix v-number) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vector v-number) 0 :pure t)
+(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-matrix v-real) 0 :pure t)
+(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vector v-real) 0 :pure t)
 
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-float v-vec2) 1 :pure t)
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-float v-vec3) 1 :pure t)
 (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-float v-vec4) 1 :pure t)
 
-(v-def-glsl-template-fun / (a) "(1.0f / ~a)" (v-number) :float :pure t)
+(v-def-glsl-template-fun / (a) "(1.0f / ~a)" (v-real) :float :pure t)
 (v-def-glsl-template-fun / (a) "(1 / ~a)" (v-vector) 0 :pure t)
 
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-number v-number) nil :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vector v-number) 0 :pure t)
+(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-real v-real) nil :pure t)
+(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vector v-real) 0 :pure t)
 (v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vec2 v-vec2) 0 :pure t)
 (v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vec3 v-vec3) 0 :pure t)
 (v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vec4 v-vec4) 0 :pure t)
