@@ -31,15 +31,25 @@
 
 (defun extract-swizzle-string (vec-type components)
   (assert (swizzlable-p vec-type) () 'cannot-swizzle-this-type
-            :vtype vec-type)
+          :vtype vec-type)
   (assert (keywordp components) () 'swizzle-keyword :item components)
-  (let* ((allowed (subseq "xyzw" 0 (first (v-dimensions vec-type))))
-         (components (string-downcase components))
+  (let* ((components (string-downcase components))
+         (swizzle-set (let ((key (char components 0)))
+                        (cond
+                          ((find key "xyzw") "xyzw")
+                          ((find key "rgba") "rgba")
+                          ((find key "stpq") "stpq")
+                          (t (error "Varjo: swizzle form for ~a invalid: ~a"
+                                    (type->type-spec vec-type)
+                                    components)))))
+         (allowed (subseq swizzle-set 0 (first (v-dimensions vec-type))))
          (new-len (length components)))
     (assert (and (every λ(find _ allowed) components)
                  (>= new-len 1)
                  (<= new-len 4))
-            () (error "Varjo: swizzle form invalid: ~a" components))
+            () "Varjo: swizzle form for ~a invalid: ~a"
+            (type->type-spec vec-type)
+            components)
     components))
 
 ;;------------------------------------------------------------
