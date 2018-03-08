@@ -36,3 +36,9 @@
 ;; (v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-complex v-complex) 0 :pure t)
 ;; (v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-complex v-complex) 0 :pure t)
 (v-def-glsl-template-fun /= (a b) "(~a != ~a)" (v-complex v-complex) v-bool :pure t)
+
+(v-defun phase ((n v-float))
+  (atan 0 (realpart x)))
+
+(v-defun phase ((n v-complex))
+  (atan (imagpart x) (realpart x)))
