@@ -31,3 +31,26 @@
 
 ;;------------------------------------------------------------
 ;; with-accessors
+
+(defun struct-accessors (struct-obj)
+  (let* ((type (primary-type struct-obj)))
+    (assert (typep type 'v-struct))
+    (with-slots ((slots varjo.internals::slots)) type
+      (mapcar #'third slots))))
+
+(v-defspecial with-accessors (slots instance &rest body)
+  :args-valid t
+  :return
+  (vbind (inst-obj inst-env) (compile-form instance env)
+    (let* ((type (primary-type inst-obj))
+           (struct-accessors (struct-accessors inst-obj))
+           (ginst (gensym "instance")))
+      (compile-form
+       `(let ((,ginst ,inst-obj))
+          (symbol-macrolet ,(loop :for (name accessor) :in slots
+                               :do (assert (find accessor struct-accessors) ()
+                                           "Varjo: with-accessors could not find accessor named ~a not found in ~a"
+                                           accessor (type->type-spec type))
+                               :collect `(,name (,accessor ,ginst)))
+            ,@body))
+       inst-env))))
