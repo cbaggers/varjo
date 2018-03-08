@@ -188,6 +188,40 @@
 (v-defun logtest ((a v-uint) (b v-uint))
   (not (zerop (logand x y))))
 
+;;------------------------------------------------------------
+;; Limited Complement
+
+(v-def-glsl-template-fun complement (x) "~a.length()" (v-function-type)
+                         v-function-type :pure t)
+(v-define-compiler-macro complement
+    (&environment env (func v-function-type))
+  (let ((type (varjo:argument-type 'func env)))
+    (if (typep type 'v-any-one-of)
+        (complement-v-any-one-of)
+        (complement-single-func func type))))
+
+(defun complement-single-func (func type)
+  (let* ((arg-spec (v-argument-spec type))
+         (ret-spec (v-return-spec type))
+         (names (loop :for i :below (length arg-spec) :collect (gensym)))
+         (primary-bool-p (v-typep (elt ret-spec 0) 'v-bool))
+         (new-args (map 'list (lambda (n s) (list n (type->type-spec s)))
+                        names arg-spec))
+         (gfunc (gensym "func")))
+    `(let ((,gfunc ,func))
+       ,(if primary-bool-p
+            `(lambda ,new-args
+               (not (funcall ,gfunc ,@names)))
+            `(lambda ,new-args
+               (funcall ,gfunc ,@names)
+               nil)))))
+
+(defun complement-v-any-one-of ()
+  (error "Varjo: Cannot yet make the complement in cases where there are many possible overloads.
+Try qualifying the types in order to pass complement a specific overload."))
+
+;;------------------------------------------------------------
+
 ;; still to do
 ;;
 ;; rem
