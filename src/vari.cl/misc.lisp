@@ -110,6 +110,9 @@
            ,len)
         whole)))
 
+(v-def-glsl-template-fun isqrt (x) "floor(sqrt(~a))" (v-uint)
+                         v-uint :pure t)
+
 ;; reading
 ;;
 ;; phase
