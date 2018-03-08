@@ -2,18 +2,52 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun symbolp (a) "false" (v-type) v-bool)
-(v-def-glsl-template-fun keywordp (a) "false" (v-type) v-bool)
-(v-def-glsl-template-fun vectorp (a) "true" (v-array) v-bool)
-(v-def-glsl-template-fun array-rank (a) "1" (v-array) v-int)
+(defmacro define-type-pred (func-name func-arg pred-func args
+                            &optional (then t) (else nil))
+  (destructuring-bind (arg-name arg-type) func-arg
+    (let ((args (or (uiop:ensure-list args)
+                    '(nil))))
+      `(progn
+         (v-def-glsl-template-fun ,func-name (,arg-name) "<invalid>"
+                                  (,arg-type)
+                                  v-bool :pure t)
+         (v-define-compiler-macro ,func-name (,func-arg
+                                              &environment env)
+           (declare (ignorable ,arg-name))
+           ,(if (equal then else)
+                then
+                `(let ((type (varjo:argument-type ',arg-name env)))
+                   (list 'progn
+                         ,arg-name
+                         (if (or ,@(loop :for arg :in args :collect
+                                      `(,pred-func type ',arg)))
+                             ,then
+                             ,else)))))))))
+
+(define-type-pred arrayp (x v-type) v-typep v-array)
+(define-type-pred simple-vector-p (x v-type) v-typep v-array)
+(define-type-pred vectorp (x v-type) v-typep v-array)
+(define-type-pred functionp (x v-type) v-typep v-function-type)
+(define-type-pred complexp (x v-type) v-typep v-complex)
+(define-type-pred numberp (x v-type) v-typep v-number)
+(define-type-pred realp (x v-type) v-typep v-real)
+(define-type-pred floatp (x v-type) v-typep (v-float v-double))
+(define-type-pred integerp (x v-type) v-typep v-integer)
+(define-type-pred rationalp (x v-type) v-typep v-rational)
+(define-type-pred symbolp (x v-type) typep nil)
+(define-type-pred keywordp (x v-type) typep nil)
+(define-type-pred simple-bit-vector-p (x v-type) typep nil)
+(define-type-pred random-state-p (x v-type) typep nil)
+(define-type-pred vectorp (x v-type) v-typep v-vector)
+(define-type-pred adjustable-array-p (x v-array) nil nil nil nil)
+(define-type-pred array-has-fill-pointer-p (x v-array) nil nil nil nil)
+(define-type-pred bit-vector-p (x v-array) nil nil nil nil)
+(define-type-pred array-rank (x v-array) nil nil 1 1)
+(define-type-pred compiled-function-p (x v-function-type) nil nil t t)
+
 (v-def-glsl-template-fun array-row-major-index (a i) "~a" (v-array v-int) v-int)
 
-(v-def-glsl-template-fun adjustable-array-p (a) "false" (v-array) v-bool)
-(v-def-glsl-template-fun array-has-fill-pointer-p (a) "false" (v-array) v-bool)
-
-(v-def-glsl-template-fun bit-vector-p (a) "false" (v-array) v-bool)
-(v-def-glsl-template-fun compiled-function-p (a) "true" (v-function-type) v-bool)
-
+;;------------------------------------------------------------
 
 (v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-vector) 0 :pure t)
@@ -36,34 +70,6 @@
   (if (numberp p)
       `(double ,x)
       `(progn ,p (double ,x))))
-
-
-(macrolet ((define-type-pred (func-name &rest v-types)
-             `(progn
-                (v-def-glsl-template-fun ,func-name (x) "<invalid>" (v-type)
-                                         v-bool :pure t)
-                (v-define-compiler-macro ,func-name ((x v-type)
-                                                     &environment env)
-                  (let ((type (varjo:argument-type 'x env)))
-                    (list 'progn
-                          x
-                          (or ,@(loop :for v-type :in v-types :collect
-                                   `(v-typep type ',v-type)))))))))
-  (define-type-pred arrayp v-array)
-  (define-type-pred simple-vector-p v-array)
-  (define-type-pred vectorp v-array)
-  (define-type-pred functionp v-function-type)
-  (define-type-pred complexp v-complex)
-  (define-type-pred numberp v-number)
-  (define-type-pred realp v-real)
-  (define-type-pred floatp v-float v-double)
-  (define-type-pred integerp v-integer)
-  (define-type-pred rationalp v-rational))
-
-
-(v-def-glsl-template-fun simple-bit-vector-p (a) "false" (v-type) v-bool)
-(v-def-glsl-template-fun random-state-p (a) "false" (v-type) v-bool)
-
 
 
 ;; Could use v-integer for both of these when we add that
@@ -113,8 +119,6 @@
 
 (v-def-glsl-template-fun isqrt (x) "floor(sqrt(~a))" (v-uint)
                          v-uint :pure t)
-
-
 (v-def-glsl-template-fun logand (a b) "(~a & ~a)" (v-uint v-uint)
                          v-uint :pure t)
 (v-def-glsl-template-fun logand (a b) "(~a & ~a)" (v-int v-int)
@@ -265,19 +269,7 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;; ceiling (check api)
 
 ;; ## Harder
-;; rational
-;; rationalize
-;; decode-float
-;; float-digits
-;; float-precision
-;; float-radix
-;; integer-decode-float
-;; every      ;;-|
-;; notany     ;; |
-;; notevery   ;; |-- impl depends on if we go the sequence route
-;; some       ;; |
-;; constantly ;;-|
-;; constantp (issue is that running constantp on a non-const form could have compile time sideffects)
+;; constantp (issue is that running constantp on a non-const form could have compile time side-effects)
 ;; coerce
 ;; random
 ;; make-random-state (could be a seed for some rand func. however cl's random hard on gpu)
@@ -286,9 +278,17 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;; setf expanders
 ;; rotatef
 ;; shiftf
+;; decode-float
+;; float-precision
+;; integer-decode-float
 
 
 ;; ## Crazy Town
+;; every
+;; notany
+;; notevery
+;; some
+;; constantly
 ;; copy-seq
 ;; make-sequence
 ;; subseq
@@ -331,6 +331,9 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;; merge
 ;; fill
 
+;; ## Wont Implement
+;; rational (uses gcd)
+;; rationalize (uses gcd)
 
 ;;------------------------------------------------------------
 
