@@ -223,15 +223,11 @@
   (error "Varjo: Cannot yet make the complement in cases where there are many possible overloads.
 Try qualifying the types in order to pass complement a specific overload."))
 
+(v-defun scale-float ((f v-float)
+                      (i v-int))
+  (* f (expt 2f0 i)))
+
 ;;------------------------------------------------------------
-
-;; ## Easy
-;; rem
-
-;; ## Needs a bit of reading
-;; scale-float
-;; rotatef
-;; shiftf
 
 ;; ## Spec clash issues
 ;; floor (check api)
@@ -239,6 +235,7 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;; ffloor
 ;; fround
 ;; ftruncate
+;; rem
 ;; round
 ;; truncate
 ;; ceiling (check api)
@@ -264,6 +261,8 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;; do
 ;; do*
 ;; setf expanders
+;; rotatef
+;; shiftf
 
 
 ;; ## Crazy Town
