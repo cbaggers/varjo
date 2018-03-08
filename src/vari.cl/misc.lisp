@@ -113,10 +113,15 @@
 (v-def-glsl-template-fun isqrt (x) "floor(sqrt(~a))" (v-uint)
                          v-uint :pure t)
 
+
+;; still to do
+;;
+;; rem
+;; logbitp
+;; typecase
+
 ;; reading
 ;;
-;; phase
-;; isqrt
 ;; logand
 ;; logandc1
 ;; logandc2
@@ -132,21 +137,14 @@
 ;; logxor
 ;; make-random-state (could be a seed for some rand func?)
 ;; with-accessors
+;; with-slots
 ;; rotatef
 ;; shiftf
-;; multiple-value-setq
-;; multiple-value-call
-;; multiple-value-prog1
-;; nth-value
 ;; function
 ;; scale-float
 
 ;; harder
 ;; log (with optional arg)
 ;; complement (returns a function)
-
-;; rem
-;; logbitp
-;; typecase
 
 ;;------------------------------------------------------------

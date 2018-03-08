@@ -197,3 +197,51 @@
                                       (make-type-set (primary-type merged))
                                       env final-env))
                final-env))))))))
+
+;;------------------------------------------------------------
+;; setq
+
+(v-defspecial multiple-value-setq (vars values-form)
+  ;; {TODO} extend to multiple forms
+  :args-valid t
+  :return
+  ;; We want a seperate base for each form to avoid var naming clashes
+  (let* ((base (lisp-name->glsl-name 'mvb env))
+         (new-env (fresh-environment env :multi-val-base base)))
+    ;; we compile the forms in a way that passes along the env (as in progn)
+    ;; but returns all the compiled objs as a list
+    (vbind (value-obj v-env) (compile-form values-form new-env)
+      ;; We then want to make let forms for the multiple returns and then
+      ;; assignments which store the primary returns of the value-objs
+      (let* ((types (type-set-to-type-list (type-set value-obj)))
+             (names (loop :for nil :in types :collect (gensym)))
+             (glsl-names (loop :for i :below (length types)
+                            :collect (postfix-glsl-index base i))))
+        ;; here we compile the lets and..
+        (vbind ((m-objs s-obj b-obj) final-env)
+            (with-fresh-env-scope (fresh-env v-env)
+              (env-> (p-env fresh-env)
+                (compile-forms-not-propagating-env-returning-list-of-compiled
+                 (lambda (env type name glsl-name)
+                   (compile-let name (type->type-spec type) nil env
+                                glsl-name))
+                 p-env types names glsl-names)
+                ;; ..the assignments..
+                (compile-form `(setq ,(first names) ,value-obj) p-env)
+                (compile-form `(progn ,@(loop :for v :in vars
+                                           :for n :in names
+                                           :collect `(setq ,v ,n)))
+                              p-env)))
+          ;; The rest is fairly standard
+          (let* ((m-obj (%merge-multi-env-progn m-objs))
+                 (merged (merge-progn `(,m-obj ,s-obj ,b-obj)
+                                      env final-env)))
+            (values
+             (copy-compiled
+              merged
+              :node-tree (ast-node! 'multiple-value-setq
+                                    (list vars
+                                          (node-tree value-obj))
+                                    (make-type-set (primary-type merged))
+                                    env final-env))
+             final-env)))))))
