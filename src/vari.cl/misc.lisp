@@ -191,12 +191,9 @@
 ;; still to do
 ;;
 ;; rem
-;; typecase
 
 ;; reading
 ;;
-;; with-accessors
-;; with-slots
 ;; rotatef
 ;; shiftf
 ;; scale-float
