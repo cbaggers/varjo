@@ -188,6 +188,9 @@
 (v-defun logtest ((a v-uint) (b v-uint))
   (not (zerop (logand x y))))
 
+;; natural log for 1 arg already defined in glsl
+(v-def-glsl-template-fun log (x b) "(log2(~a) / log2(~a))" (v-float v-float) 0 :pure t)
+
 ;;------------------------------------------------------------
 ;; Limited Complement
 
