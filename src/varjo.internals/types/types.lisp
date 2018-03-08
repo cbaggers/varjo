@@ -209,8 +209,8 @@
 
 (defun v-array-spec-p (spec)
   (labels ((valid-dim-p (x)
-             (or (typep x '(integer 0 #xFFFF))
-                 (and (symbolp x) (string= x :*)))))
+             (or (typep x 'unsigned-byte)
+                 (and (symbolp x) (string= x "*")))))
     (and (listp spec)
          (= (length spec) 2)
          (or (valid-dim-p (second spec))
@@ -302,7 +302,7 @@
 
 (defmethod v-make-type ((type v-ephemeral-array) flow-id &rest args)
   (destructuring-bind (element-type length) args
-    (assert (or (and (numberp length) (typep length '(integer 0 #xFFFF)))
+    (assert (or (and (numberp length) (typep length 'unsigned-byte))
                 (and (symbolp length) (string= length :*))))
     (initialize-instance type
                          :element-type (type-spec->type element-type)
