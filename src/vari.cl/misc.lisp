@@ -225,20 +225,131 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;;------------------------------------------------------------
 
-;; still to do
-;;
+;; ## Easy
 ;; rem
 
-;; reading
-;;
+;; ## Needs a bit of reading
+;; scale-float
 ;; rotatef
 ;; shiftf
-;; scale-float
 
-;; harder
-;; log (with optional arg)
-;; complement (returns a function)
+;; ## Spec clash issues
+;; floor (check api)
+;; fceiling
+;; ffloor
+;; fround
+;; ftruncate
+;; round
+;; truncate
+;; ceiling (check api)
+
+;; ## Harder
+;; rational
+;; rationalize
+;; decode-float
+;; float-digits
+;; float-precision
+;; float-radix
+;; float-sign
+;; integer-decode-float
+;; every      ;;-|
+;; notany     ;; |
+;; notevery   ;; |-- impl depends on if we go the sequence route
+;; some       ;; |
+;; constantly ;;-|
+;; constantp
+;; coerce
+;; random
+;; make-random-state (could be a seed for some rand func. however cl's random hard on gpu)
+;; do
+;; do*
 ;; setf expanders
-;; make-random-state (could be a seed for some rand func. but cl random is hard on gpu)
+
+
+;; ## Crazy Town
+;; copy-seq
+;; make-sequence
+;; subseq
+;; concatenate
+;; elt
+;; map
+;; reduce
+;; reverse
+;; length
+;; search
+;; mismatch
+;; find
+;; find-if
+;; find-if-not
+;; count
+;; count-if
+;; count-if-not
+;; position
+;; position-if
+;; position-if-not
+;; remove
+;; remove-duplicates
+;; remove-if
+;; remove-if-not
+;; substitute
+;; substitute-if
+;; substitute-if-not
+;; delete
+;; delete-duplicates
+;; delete-if
+;; delete-if-not
+;; nsubstitute
+;; nsubstitute-if
+;; nsubstitute-if-not
+;; nreverse
+;; replace
+;; stable-sort
+;; sort
+;; map-into
+;; merge
+;; fill
+
+
+;;------------------------------------------------------------
+
+;; a 'do' form can be explained as
+;;
+;; (block nil
+;;   (let ((var1 init1)
+;;         (var2 init2)
+;;         ...
+;;         (varn initn))
+;;     declarations
+;;     (loop
+;;        (when end-test (return (progn . result)))
+;;        (tagbody . tagbody)
+;;        (psetq var1 step1
+;;               var2 step2
+;;               ...
+;;               varn stepn))))
+
+#||
+var result;
+var a = init-a();
+var b = init-b();
+...
+while(true)
+{
+    if (endtest-0())
+    {
+        result = calc-result-0();
+        break;
+    }
+    if (endtest-1())
+    {
+        result = calc-result-1();
+        break;
+    }
+    ...
+    a = step-a();
+    b = step-b();
+    ...
+}
+||#
 
 ;;------------------------------------------------------------
