@@ -80,6 +80,7 @@
       `(progn ,x 32)))
 
 
+;; TODO: Incorrect, signum type should be based on argument
 (v-def-glsl-template-fun signum (x) "sign(~a)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun evenp (x) "(~a % 2 == 0)" (v-int) v-bool :pure t)
 (v-def-glsl-template-fun evenp (x) "(~a % 2 == 0)" (v-uint) v-bool :pure t)
@@ -229,6 +230,29 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;;------------------------------------------------------------
 
+(v-def-glsl-template-fun float-sign (x) "sign(~a)" (v-float) v-float
+                         :pure t)
+
+;;------------------------------------------------------------
+
+(v-def-glsl-template-fun float-radix (x) "<invalid float-radix>"
+                         (v-float) 0 :pure t)
+
+(v-define-compiler-macro float-radix ((a v-float))
+  (if (floatp a)
+      2
+      `(progn ,a 2)))
+
+(v-def-glsl-template-fun float-digits (x) "<invalid float-digits>"
+                         (v-float) 0 :pure t)
+
+(v-define-compiler-macro float-digits ((a v-float))
+  (if (floatp a)
+      24
+      `(progn ,a 24)))
+
+;;------------------------------------------------------------
+
 ;; ## Spec clash issues
 ;; floor (check api)
 ;; fceiling
@@ -247,14 +271,13 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;; float-digits
 ;; float-precision
 ;; float-radix
-;; float-sign
 ;; integer-decode-float
 ;; every      ;;-|
 ;; notany     ;; |
 ;; notevery   ;; |-- impl depends on if we go the sequence route
 ;; some       ;; |
 ;; constantly ;;-|
-;; constantp
+;; constantp (issue is that running constantp on a non-const form could have compile time sideffects)
 ;; coerce
 ;; random
 ;; make-random-state (could be a seed for some rand func. however cl's random hard on gpu)
