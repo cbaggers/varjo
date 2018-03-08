@@ -195,7 +195,6 @@
 
 ;; reading
 ;;
-;; make-random-state (could be a seed for some rand func?)
 ;; with-accessors
 ;; with-slots
 ;; rotatef
@@ -206,5 +205,6 @@
 ;; log (with optional arg)
 ;; complement (returns a function)
 ;; setf expanders
+;; make-random-state (could be a seed for some rand func. but cl random is hard on gpu)
 
 ;;------------------------------------------------------------
