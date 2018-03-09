@@ -121,7 +121,7 @@
        (when (not any-errors) (basic-arg-matchp func arg-types arg-objs)))
       ((eq arg-spec t)
        (make-instance 'func-match :func func :arguments arg-code
-                      :score t :secondary-score 0))
+                      :score t :secondary-score 0 :tertiary-score 0))
       (t (error 'invalid-special-function-arg-spec
                 :name (name func)
                 :spec arg-spec)))))
@@ -194,21 +194,25 @@ however failed to do so when asked."
                  :func func
                  :arguments (mapcar #'copy-compiled arg-objs)
                  :score score
-                 :secondary-score secondary-score))
+                 :secondary-score secondary-score
+                 :tertiary-score 0))
               (when allow-casting
                 (let ((cast-types
                        (loop :for a :in arg-types :for s :in spec-types :collect
                           (v-casts-to a s))))
                   (when (not (some #'null cast-types))
                     ;; when all the types can be cast
-                    (let ((secondary-score (calc-secondary-score cast-types)))
+                    (let ((secondary-score (calc-secondary-score cast-types))
+                          (tertiary-score (reduce #'+ (mapcar #'tertiary-score
+                                                              spec-types))))
                       (make-instance
                        'func-match
                        :func func
                        :arguments (mapcar (lambda (a c) (cast-code a c))
                                           arg-objs cast-types)
                        :score score
-                       :secondary-score secondary-score)))))))))))
+                       :secondary-score secondary-score
+                       :tertiary-score tertiary-score)))))))))))
 
 (defun match-function-to-args (args-code compiled-args candidate)
   (let* ((arg-types (mapcar #'primary-type compiled-args))
@@ -288,16 +292,30 @@ however failed to do so when asked."
                     (primary-set (remove best-primary primary-sorted
                                          :key #'score
                                          :test-not #'=)))
-               (sort primary-set #'< :key #'secondary-score))))
+               (sort primary-set #'< :key #'secondary-score)))
+           (pick-using-scores (func-name matches)
+             (check-for-stemcell-issue matches func-name)
+             (let* ((2nd-matches (dual-sort matches))
+                    (best-2d-score (secondary-score (first 2nd-matches)))
+                    (2nd-candidates (remove-if-not
+                                     (lambda (x)
+                                       (= (secondary-score x) best-2d-score))
+                                     2nd-matches))
+                    (3rd (sort 2nd-matches #'> :key #'tertiary-score)))
+               (cond
+                 ((= (length 2nd-candidates) 1)
+                  (first 2nd-candidates))
+                 ((= (tertiary-score (first 3rd))
+                     (tertiary-score (first 2nd-candidates)))
+                  (first 2nd-candidates))
+                 (t (first 3rd))))))
     (let* ((func-name (or name (%func-name-from-set func-set)))
            (matches (find-functions-in-set-for-args
                      func-set
                      args-code env nil code))
            (function (if (= (length matches) 1)
                          (first matches)
-                         (progn
-                           (check-for-stemcell-issue matches func-name)
-                           (first (dual-sort matches))))))
+                         (pick-using-scores func-name matches ))))
       (list (func function) (arguments function)))))
 
 (defun %func-name-from-set (func-set)

@@ -230,6 +230,7 @@
 (defclass func-match ()
   ((score :initarg :score :reader score)
    (secondary-score :initarg :secondary-score :reader secondary-score)
+   (tertiary-score :initarg :tertiary-score :reader tertiary-score)
    (func :initarg :func :reader func)
    (arguments :initarg :arguments :reader arguments)))
 

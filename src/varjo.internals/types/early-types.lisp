@@ -13,7 +13,9 @@
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
    (ctv :initform nil :initarg :ctv :accessor ctv)
    (default-value :initarg :default-value)
-   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)))
+   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
+   (tertiary-score :initform 0 :initarg :tertiary-score
+                   :reader tertiary-score)))
 
 ;;------------------------------------------------------------
 ;; Core type methods
