@@ -55,7 +55,6 @@
   (:method ((var input-variable))
     (make-instance 'input-variable
                    :name (name var)
-                   :qualifiers (qualifiers var)
                    :glsl-name (prefix-in-block-to-glsl-name (glsl-name var))
                    :type (v-type-of var)))
   (:method ((var string))

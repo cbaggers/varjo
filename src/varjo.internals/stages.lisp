@@ -25,8 +25,7 @@
                       :name name
                       :glsl-name (or glsl-name (safe-glsl-name-string name))
                       :type (qualify-type (type-spec->type type-spec)
-                                          qualifiers)
-                      :qualifiers qualifiers))))))
+                                          qualifiers)))))))
       (let* ((context (process-context context))
              (stage-type (if kind
                              (stage-kind-to-type kind)
@@ -212,7 +211,8 @@
 ;;{TODO} proper error
 (defun check-for-stage-specific-limitations (stage)
   (assert (not (and (typep stage 'vertex-stage)
-                    (some #'qualifiers (input-variables stage))))
+                    (some λ(qualifiers (v-type-of _))
+                          (input-variables stage))))
           () "In args to vertex shaders can not have qualifiers"))
 
 ;;------------------------------------------------------------

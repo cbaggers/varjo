@@ -33,14 +33,16 @@
 (defun merge-in-previous-stage-args (previous-stage stage)
   (declare (optimize debug))
   (labels ((merge-in-arg (previous current)
-             (make-instance
-              'input-variable
-              :name (name current)
-              :glsl-name (or (glsl-name previous) (glsl-name current))
-              :type (or (v-type-of current) (v-type-of previous))
-              :qualifiers (union (qualifiers current)
-                                 (qualifiers previous)
-                                 :test #'qualifier=)))
+             (let* ((type (or (v-type-of current) (v-type-of previous)))
+                    (qualifiers (union (qualifiers (v-type-of current))
+                                       (qualifiers (v-type-of previous))
+                                       :test #'qualifier=))
+                    (type (qualify-type type qualifiers)))
+               (make-instance
+                'input-variable
+                :name (name current)
+                :glsl-name (or (glsl-name previous) (glsl-name current))
+                :type type)))
            (arg-for-error (x)
              (subseq (to-arg-form x) 0 2))
            (args-for-error (x)
@@ -146,9 +148,9 @@
            last-output-variables input-variables)))
 
 (defun %suitable-qualifiersp (out-arg in-arg)
-  (let ((out-qual (qualifiers out-arg)))
+  (let ((out-qual (qualifiers (v-type-of out-arg))))
     (every λ(member _ out-qual :test #'qualifier=)
-           (qualifiers in-arg))))
+           (qualifiers (v-type-of in-arg)))))
 
 (defgeneric uniforms-compatiblep (uniforms last-uniforms)
   ;;
@@ -251,8 +253,9 @@
             :name (name _)
             :block-name (block-name _)
             :glsl-name (glsl-name _)
-            :type (v-array-type-of (v-type-of _) (vertex-count primitive) nil)
-            :qualifiers (qualifiers _))
+            :type (qualify-type
+                   (v-array-type-of (v-type-of _) (vertex-count primitive) nil)
+                   (qualifiers (v-type-of _))))
           output-variables))
 
 (defgeneric transform-arg-types (last next stage primitive)
@@ -326,18 +329,21 @@
 (defmethod to-arg-form ((uniform uniform-variable))
   `(,(name uniform)
      ,(type->type-spec (v-type-of uniform))
-     ,@(mapcar #'ensure-qualifier-designator (qualifiers uniform))))
+     ,@(mapcar #'ensure-qualifier-designator
+               (qualifiers (v-type-of uniform)))))
 
 (defmethod to-arg-form ((in-var input-variable))
   `(,(name in-var)
      ,(type->type-spec (v-type-of in-var))
-     ,@(mapcar #'ensure-qualifier-designator (qualifiers in-var))
+     ,@(mapcar #'ensure-qualifier-designator
+               (qualifiers (v-type-of in-var)))
      ,@(when (glsl-name in-var) (list (glsl-name in-var)))))
 
 (defmethod to-arg-form ((out-var output-variable))
   `(,(name out-var)
      ,(type->type-spec (v-type-of out-var))
-     ,@(mapcar #'ensure-qualifier-designator (qualifiers out-var))
+     ,@(mapcar #'ensure-qualifier-designator
+               (v-type-of (qualifiers out-var)))
      ,@(when (glsl-name out-var) (list (glsl-name out-var)))))
 
 ;;----------------------------------------------------------------------
@@ -365,7 +371,8 @@
   (labels ((fragp (stage) (typep stage 'compiled-fragment-stage))
            (has-feedback (stage)
              (when stage
-               (some λ(find :feedback (qualifiers _) :test #'qualifier=)
+               (some λ(find :feedback (qualifiers (v-type-of _))
+                            :test #'qualifier=)
                      (output-variables stage)))))
     (let ((frag-with-feedback (has-feedback (find-if #'fragp rolling-result))))
       (assert (not frag-with-feedback) ()

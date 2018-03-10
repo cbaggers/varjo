@@ -374,7 +374,8 @@
   (make-instance 'v-block-array
                  :block-name (block-name type)
                  :dimensions (v-dimensions type)
-                 :element-type (v-element-type type)))
+                 :element-type (v-element-type type)
+                 :flow-ids (flow-ids type)))
 
 (defun make-into-block-array (array-type block-name)
   (assert (v-typep array-type 'v-array))
@@ -384,7 +385,8 @@
                            :dimensions dim
                            :element-type (v-element-type array-type)
                            :ctv (ctv array-type)
-                           :flow-ids (flow-ids array-type))))
+                           :flow-ids (flow-ids array-type)
+                           :qualifiers (qualifiers array-type))))
     (when (slot-boundp array-type 'default-value)
       (setf (slot-value r 'default-value)
             (slot-value array-type 'default-value)))
@@ -396,7 +398,8 @@
                           :dimensions (v-dimensions block-array)
                           :element-type (v-element-type block-array)
                           :ctv (ctv block-array)
-                          :flow-ids (flow-ids block-array))))
+                          :flow-ids (flow-ids block-array)
+                          :qualifiers (qualifiers block-array))))
     (when (slot-boundp block-array 'default-value)
       (setf (slot-value r 'default-value)
             (slot-value block-array 'default-value)))
@@ -859,3 +862,8 @@
     nil))
 
 ;;------------------------------------------------------------
+
+(defun strip-qualifiers (type)
+  (let ((new-type (copy-type type)))
+    (setf (slot-value new-type 'qualifiers) nil)
+    new-type))

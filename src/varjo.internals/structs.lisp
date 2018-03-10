@@ -122,6 +122,7 @@
                                   (input-variable input-variable)
                                   (env environment))
   (declare (ignore stage))
+  (assert (eq var-type (v-type-of input-variable)))
   (let* ((glsl-name (glsl-name input-variable))
          (fake-struct (set-flow-id (v-fake-type var-type) (flow-id!))))
     ;;
@@ -141,8 +142,9 @@
                  'input-variable
                  :name fake-slot-name
                  :glsl-name fake-slot-name
-                 :type slot-type
-                 :qualifiers (qualifiers input-variable))
+                 :type (qualify-type slot-type
+                                     (qualifiers
+                                      (v-type-of input-variable))))
        :into vars
 
        :finally (return
@@ -157,7 +159,7 @@
   (let* (;;
          (uniform-name (name var))
          (type (v-type-of var))
-         (qualifiers (qualifiers var))
+         (qualifiers (qualifiers (v-type-of var)))
          (glsl-name (glsl-name var))
          ;;
          (struct (set-flow-id (v-fake-type type) (flow-id!)))

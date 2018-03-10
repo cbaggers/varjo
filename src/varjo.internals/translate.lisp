@@ -55,6 +55,7 @@
                                   (input-variable input-variable)
                                   (env environment))
   (declare (ignore stage env))
+  (assert (eq var-type (v-type-of input-variable)))
   ;; {TODO} Proper error
   (error
    "Varjo: Cannot have stage arguments with ephemeral types:~%~a has type ~a"
@@ -70,21 +71,22 @@
                                   (var-type v-type)
                                   (input-variable input-variable)
                                   (env environment))
+  (assert (eq var-type (v-type-of input-variable)))
   (let* ((ephem-p (should-make-an-ephermal-block-p stage))
          (type (set-flow-id var-type (flow-id!)))
          (type (if ephem-p
                    (make-into-block-array type *in-block-name*)
                    type))
+         (type-for-value (strip-qualifiers type))
          (glsl-name (glsl-name input-variable))
          (glsl-name (if (or ephem-p (typep stage 'vertex-stage))
                         glsl-name
                         (prefix-in-block-to-glsl-name glsl-name))))
-    (values (v-make-value type env :glsl-name glsl-name)
+    (values (v-make-value type-for-value env :glsl-name glsl-name)
             (list (make-instance 'input-variable
                                  :name (name input-variable)
                                  :glsl-name (glsl-name input-variable)
-                                 :type type
-                                 :qualifiers (qualifiers input-variable)))
+                                 :type type))
             nil)))
 
 ;; mutates env
@@ -100,6 +102,10 @@
                     :arg-name (name var)
                     :type-spec (type->type-spec (v-type-of var)))
             (vbind (input-value expanded-vars expanded-funcs)
+                ;; we pass the var and type here as we specialize the
+                ;; methods on the v-type. In each impl we assert that
+                ;; the type matches var's type still incase we messed
+                ;; something up
                 (expand-input-variable stage (v-type-of var) var env)
               ;;
               (%add-symbol-binding (name var) input-value env)
@@ -123,23 +129,29 @@
 (defun process-uniforms (stage env)
   (let ((uniforms (uniform-variables stage)))
     (map nil
-         λ(with-slots (name type qualifiers glsl-name) _
-            (case-member qualifiers (:test #'qualifier=)
-              (:ubo (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
-              (:ssbo (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
-              (:fake (add-fake-struct stage env))
-              (otherwise (process-regular-uniform name glsl-name type
-                                                  qualifiers env))))
+         λ(with-slots (name type glsl-name) _
+            (let ((qualifiers (qualifiers type)))
+              (case-member qualifiers (:test #'qualifier=)
+                (:ubo
+                 (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
+                (:ssbo
+                 (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
+                (:fake
+                 (add-fake-struct stage env))
+                (otherwise
+                 (process-regular-uniform name glsl-name type
+                                          qualifiers env)))))
          uniforms)
     (values stage env)))
 
 ;; mutates env
 (defun process-regular-uniform (name glsl-name type qualifiers env)
   (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
+         (type-for-value (strip-qualifiers true-type))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-symbol-binding
      name
-     (v-make-value true-type env :glsl-name glsl-name :read-only t)
+     (v-make-value type-for-value env :glsl-name glsl-name :read-only t)
      env)
     (add-lisp-name name env glsl-name)
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
@@ -154,9 +166,10 @@
           :arg-name name
           :type-spec (type->type-spec type))
   (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
+         (type-for-value (strip-qualifiers true-type))
          (glsl-name (or glsl-name (safe-glsl-name-string name))))
     (%add-symbol-binding
-     name (v-make-value true-type env :glsl-name glsl-name
+     name (v-make-value type-for-value env :glsl-name glsl-name
                         :function-scope 0 :read-only t)
      env)
     (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
@@ -466,7 +479,7 @@
             (mapcar (lambda (var location)
                       (gen-in-var-string (or (glsl-name var) (name var))
                                          (v-type-of var)
-                                         (qualifiers var)
+                                         (qualifiers (v-type-of var))
                                          location))
                     expanded-vars
                     locations)))
@@ -535,7 +548,6 @@
                              (out-block-name-for stage))
                :glsl-name glsl-name
                :type type
-               :qualifiers (qualifiers type)
                :location location)))
 
 (defgeneric gen-stage-out-interface-block (stage post-proc-obj locations)
@@ -604,11 +616,11 @@
            (implicit-uniforms nil))
 
       (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
-         (let ((string-name (or glsl-name (safe-glsl-name-string name))))
+         (let ((string-name (or glsl-name (safe-glsl-name-string name)))
+               (type-obj (qualify-type type-obj qualifiers)))
            (push (make-instance
                   'uniform-variable
                   :name name
-                  :qualifiers qualifiers
                   :glsl-name string-name
                   :type type-obj
                   :glsl-decl (cond

@@ -128,7 +128,6 @@
 
 (defclass shader-variable ()
   ((name :initarg :name :reader name)
-   (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
    (glsl-name :initarg :glsl-name :reader glsl-name)
    (type :initarg :type :reader v-type-of)))
 
