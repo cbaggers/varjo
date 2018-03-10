@@ -203,7 +203,6 @@
     (return-set main-func)))
 
 (defun make-post-process-obj (main-func stage env)
-  ()
   (make-instance
    'post-compile-process
    :stage stage
