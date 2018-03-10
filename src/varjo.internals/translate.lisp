@@ -622,8 +622,7 @@
          :for qualifiers = (qualifiers type-obj)
          :for glsl-name = (glsl-name uniform)
          :do
-         (let ((string-name (or glsl-name (safe-glsl-name-string name)))
-               (type-obj (qualify-type type-obj qualifiers)))
+         (let ((string-name (or glsl-name (safe-glsl-name-string name))))
            (push (make-instance
                   'uniform-variable
                   :name name

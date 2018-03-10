@@ -162,7 +162,8 @@
          (qualifiers (qualifiers (v-type-of var)))
          (glsl-name (glsl-name var))
          ;;
-         (struct (set-flow-id (v-fake-type type) (flow-id!)))
+         (struct (strip-qualifiers
+                  (set-flow-id (v-fake-type type) (flow-id!))))
          (fake-type (class-name (class-of struct)))
          (slots (v-slots type))
          (fake-type-obj (try-type-spec->type
