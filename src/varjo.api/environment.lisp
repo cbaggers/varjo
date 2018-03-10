@@ -134,9 +134,11 @@
       (elt args arg-pos))))
 
 (defmethod %uniform-name ((id flow-identifier) (env extended-environment))
-  (let ((env (slot-value env 'env)))
-    (or (first (find id (v-uniforms env) :test #'id=
-                     :key λ(flow-ids (second _))))
+  (let* ((env (slot-value env 'env))
+         (uniform (find id (v-uniforms env) :test #'id=
+                        :key λ(flow-ids (v-type-of _)))))
+    (if uniform
+        (name uniform)
         (get-stemcell-name-for-flow-id id env))))
 
 (defmethod %uniform-name ((compiled compiled) (env extended-environment))
