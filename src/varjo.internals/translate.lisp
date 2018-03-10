@@ -129,52 +129,54 @@
 (defun process-uniforms (stage env)
   (let ((uniforms (uniform-variables stage)))
     (map nil
-         λ(with-slots (name type glsl-name) _
-            (let ((qualifiers (qualifiers type)))
-              (case-member qualifiers (:test #'qualifier=)
-                (:ubo
-                 (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
-                (:ssbo
-                 (process-ubo/ssbo-uniform name glsl-name type qualifiers env))
-                (:fake
-                 (add-fake-struct stage env))
-                (otherwise
-                 (process-regular-uniform name glsl-name type
-                                          qualifiers env)))))
+         λ(case-member (qualifiers (v-type-of _)) (:test #'qualifier=)
+            (:ubo (process-ubo/ssbo-uniform _ env))
+            (:ssbo (process-ubo/ssbo-uniform _ env))
+            (otherwise (process-regular-uniform _ env)))
          uniforms)
     (values stage env)))
 
 ;; mutates env
-(defun process-regular-uniform (name glsl-name type qualifiers env)
-  (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
-         (type-for-value (strip-qualifiers true-type))
-         (glsl-name (or glsl-name (safe-glsl-name-string name))))
-    (%add-symbol-binding
-     name
-     (v-make-value type-for-value env :glsl-name glsl-name :read-only t)
-     env)
-    (add-lisp-name name env glsl-name)
-    (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
-      (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
+(defun process-regular-uniform (uvar env)
+  (with-slots (name glsl-name type) uvar
+    (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
+           (type-for-value (strip-qualifiers true-type)))
+      (%add-symbol-binding
+       name
+       (v-make-value type-for-value env :glsl-name glsl-name :read-only t)
+       env)
+      (add-lisp-name name env glsl-name)
+      (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
+        (push (make-instance 'uniform-variable
+                             :name name
+                             :glsl-name glsl-name
+                             :type type-with-flow
+                             :glsl-decl "?glsl-decl?")
+              (v-uniforms env)))))
   env)
 
 ;; mutates env
-(defun process-ubo/ssbo-uniform (name glsl-name type qualifiers env)
-  (assert (v-typep type 'v-user-struct) ()
-          'ubo-ssbo-type-limitation :type type)
-  (assert (not (holds-opaque-data-p type)) () 'opaque-data-found
-          :arg-name name
-          :type-spec (type->type-spec type))
-  (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
-         (type-for-value (strip-qualifiers true-type))
-         (glsl-name (or glsl-name (safe-glsl-name-string name))))
-    (%add-symbol-binding
-     name (v-make-value type-for-value env :glsl-name glsl-name
-                        :function-scope 0 :read-only t)
-     env)
-    (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
-      (push (list name type-with-flow qualifiers glsl-name) (v-uniforms env))))
-  env)
+(defun process-ubo/ssbo-uniform (uvar env)
+  (with-slots (name glsl-name type) uvar
+    (assert (v-typep type 'v-user-struct) ()
+            'ubo-ssbo-type-limitation :type type)
+    (assert (not (holds-opaque-data-p type)) () 'opaque-data-found
+            :arg-name name
+            :type-spec (type->type-spec type))
+    (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
+           (type-for-value (strip-qualifiers true-type)))
+      (%add-symbol-binding
+       name (v-make-value type-for-value env :glsl-name glsl-name
+                          :function-scope 0 :read-only t)
+       env)
+      (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
+        (push (make-instance 'uniform-variable
+                             :name name
+                             :glsl-name glsl-name
+                             :type type-with-flow
+                             :glsl-decl "?glsl-decl?")
+              (v-uniforms env))))
+    env))
 
 ;;----------------------------------------------------------------------
 
@@ -334,13 +336,13 @@
              (slot-value (first (ids (first (listify (flow-ids val)))))
                          'val)))
     (let ((env (get-base-env env)))
-      (loop :for (name) :in (v-uniforms env) :do
-         (let ((binding (get-symbol-binding name nil env)))
+      (loop :for uniform :in (v-uniforms env) :do
+         (let ((binding (get-symbol-binding (name uniform) nil env)))
            ;; {TODO} proper errror
            (assert (not (typep binding 'v-symbol-macro)) ()
                    "Varjo: Compiler Bug: Unexpanded symbol-macro found in ast")
            (let ((key (uniform-raw binding))
-                 (val (make-uniform-origin :name name)))
+                 (val (make-uniform-origin :name (name uniform))))
              (setf (gethash key flow-origin-map) val)
              (setf (gethash key val-origin-map) val))))))
 
@@ -435,7 +437,7 @@
   (with-slots (env) post-proc-obj
     (normalize-used-types
      (append
-      (mapcar #'second (v-uniforms env))
+      (mapcar #'v-type-of (v-uniforms env))
       (reduce #'append (mapcar #'used-types (all-functions post-proc-obj)))))))
 
 (defun filter-used-items (post-proc-obj)
@@ -615,7 +617,12 @@
            (uniforms (v-uniforms env))
            (implicit-uniforms nil))
 
-      (loop :for (name type-obj qualifiers glsl-name) :in uniforms :do
+      (loop :for uniform :in uniforms
+         :for name = (name uniform)
+         :for type-obj = (v-type-of uniform)
+         :for qualifiers = (qualifiers type-obj)
+         :for glsl-name = (glsl-name uniform)
+         :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name)))
                (type-obj (qualify-type type-obj qualifiers)))
            (push (make-instance
