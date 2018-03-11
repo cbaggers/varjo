@@ -624,7 +624,7 @@
          :for glsl-name = (glsl-name uniform)
          :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name)))
-               (layout (find-if #'layout-qualfier-p qualifiers)))
+               (layout (find-if #'block-memory-layout-qualfier-p qualifiers)))
            (push (make-instance
                   'uniform-variable
                   :name name

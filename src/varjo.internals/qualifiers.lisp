@@ -11,11 +11,14 @@
 
 (defun parse-qualifier (qualifier-form)
   (destructuring-bind (name &rest args) (listify qualifier-form)
-    (case name
-      (:feedback (parse-feedback-qualifier name args))
-      (otherwise (make-instance 'qualifier
-                                :name name
-                                :glsl-string (string-downcase (string name)))))))
+    (let ((spec (find name *varjo-qualifiers* :key #'first)))
+      ;; {TODO} Proper error
+      (assert spec () "Varjo: '~a' is not a valid qualifier." name)
+      (case name
+        (:feedback (parse-feedback-qualifier name args))
+        (otherwise (make-instance 'qualifier
+                                  :name name
+                                  :glsl-string (second spec)))))))
 
 (defun parse-feedback-qualifier (name args)
   (let ((fb-arg-len (length args))
@@ -47,7 +50,7 @@
     (string= a b)))
 
 
-(defun layout-qualfier-p (qualifier)
+(defun block-memory-layout-qualfier-p (qualifier)
   (check-type qualifier qualifier)
-  (or (qualifier= qualifier :std-140)
-      (qualifier= qualifier :std-430)))
+  (not (null (member (name qualifier)
+                     '(:std-140 :std-430 :packed :shared)))))

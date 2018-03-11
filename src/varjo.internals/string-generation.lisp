@@ -289,19 +289,19 @@
                           length))
               "")))
 
-(defun layout-specifier-string (target-name target-kind layout)
-  (cond
-    ((qualifier= layout :std-140) "std140")
-    ((qualifier= layout :std-430) "std430")
-    (t (error 'unknown-layout-specifier
-              :name target-name
-              :target-kind target-kind
-              :specifier layout))))
+(defun block-memory-layout-string (target-name target-kind layout)
+  (assert (typep layout 'qualifier))
+  (assert (block-memory-layout-qualfier-p layout) ()
+          'unknown-layout-specifier
+          :name target-name
+          :target-kind target-kind
+          :specifier layout)
+  (glsl-string layout))
 
 (defun write-ubo-block (storage-qualifier block-name slots
                         &optional (layout :std-140))
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
-          (layout-specifier-string block-name :ubo layout)
+          (block-memory-layout-string block-name :ubo layout)
           (glsl-string storage-qualifier)
           (format nil "_UBO_~a" block-name)
           (mapcar #'gen-interface-block-slot-string slots)
@@ -310,7 +310,7 @@
 (defun write-ssbo-block (storage-qualifier block-name slots
                          &optional (layout :std-140))
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
-          (layout-specifier-string block-name :ssbo layout)
+          (block-memory-layout-string block-name :ssbo layout)
           (glsl-string storage-qualifier)
           (format nil "_SSBO_~a" block-name)
           (mapcar #'gen-interface-block-slot-string slots)

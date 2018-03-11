@@ -88,6 +88,39 @@
     :quads
     :patches))
 
+(defparameter *glsl-qualifiers*
+  '((:attribute "attribute")
+    (:buffer "buffer")
+    (:centroid "centroid")
+    (:coherent "coherent")
+    (:const "const")
+    (:flat "flat")
+    (:highp "highp")
+    (:in "in")
+    (:invariant "invariant")
+    (:lowp "lowp")
+    (:mediump "mediump")
+    (:noperspective "noperspective")
+    (:out "out")
+    (:readonly "readonly")
+    (:restrict "restrict")
+    (:sample "sample")
+    (:shared "shared")
+    (:smooth "smooth")
+    (:uniform "uniform")
+    (:varying "varying")
+    (:volatile "volatile")
+    (:writeonly "writeonly")
+    (:std-140 "std140")
+    (:std-430 "std430")))
+
+(defparameter *varjo-qualifiers*
+  (append
+   *glsl-qualifiers*
+   '((:ssbo "ssbo")
+     (:ubo "ubo")
+     (:feedback nil))))
+
 (defvar *glsl-variables* nil)
 
 (defvar *fallback-block-name* :in_block)
