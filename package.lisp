@@ -424,8 +424,11 @@
            :cpu-side-transform
            :current-line
            :def-metadata-infer
+           :define-metadata-infer
            :def-metadata-kind
+           :define-metadata-kind
            :def-shadow-type-constructor
+           :define-shadow-type-constructor
            :default-value
            :delete-external-function
            :dynamic
@@ -710,6 +713,7 @@
    ;; types
    :v-deftype
    :def-shadow-type-constructor
+   :define-shadow-type-constructor
    :type-specp
    :type->type-spec
    :type-spec->type
@@ -727,7 +731,9 @@
    :core-typep
    :make-type-set
    :def-metadata-infer
+   :define-metadata-infer
    :def-metadata-kind
+   :define-metadata-kind
    :combine-metadata
    :v-dimensions
    :qualifier
@@ -890,7 +896,9 @@
    :v-defstruct
    :v-deftype
    :def-metadata-infer
+   :define-metadata-infer
    :def-metadata-kind
+   :define-metadata-kind
 
    :output-primitive
    :kind

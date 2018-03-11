@@ -26,12 +26,12 @@
                (declare (ignore varjo-type))
                ',valid-metadata-kinds))))))
 
-(defmacro def-shadow-type-functions (shadow-type &body function-identifiers)
+(defmacro define-shadow-type-functions (shadow-type &body function-identifiers)
   (flet ((func-form-p (x)
            (and (listp x) (eq (first x) 'function) (= (length x) 2))))
     (assert (v-typep (type-spec->type shadow-type) 'v-shadow-type) (shadow-type)
             'shadowing-funcs-for-non-shadow-type
-            :name 'def-shadow-type-functions
+            :name 'define-shadow-type-functions
             :shadow-type shadow-type)
     (assert (every #'func-form-p function-identifiers) ()
             'def-shadow-non-func-identifier
@@ -40,7 +40,7 @@
     (let ((function-identifiers (mapcar #'second function-identifiers)))
       `(shadow-functions ',shadow-type ',function-identifiers))))
 
-(defmacro def-shadow-type-constructor (shadow-type function-identifier)
+(defmacro define-shadow-type-constructor (shadow-type function-identifier)
   (flet ((func-form-p (x)
            (and (listp x) (eq (first x) 'function) (= (length x) 2))))
     (assert (func-form-p function-identifier) ()
@@ -50,7 +50,11 @@
     (let ((function-identifier (second function-identifier)))
       `(shadow-constructor-function ',shadow-type ',function-identifier))))
 
-
+(defmacro def-shadow-type-constructor (shadow-type function-identifier)
+  (warn 'v-deprecated
+        :old 'def-shadow-type-constructor
+        :new 'define-shadow-type-constructor)
+  `(define-shadow-type-constructor ,shadow-type ,function-identifier))
 
 #+nil
 (v-deftype zoob () ())
@@ -62,8 +66,8 @@
 (v-deftype flart () :float)
 
 #+nil
-(def-shadow-type-functions flart
+(define-shadow-type-functions flart
   #'(sin :float))
 
 #+nil
-(def-shadow-type-constructor flart #'(float :int))
+(define-shadow-type-constructor flart #'(float :int))

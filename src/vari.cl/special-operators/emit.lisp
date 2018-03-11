@@ -8,20 +8,20 @@
 ;; line-strip
 ;; triangle-strip
 
-(def-metadata-kind output-primitive (:binds-to :scope)
+(define-metadata-kind output-primitive (:binds-to :scope)
   kind
   max-vertices)
 
 ;;------------------------------------------------------------
 ;; Tessellation Control
 
-(def-metadata-kind output-patch (:binds-to :scope)
+(define-metadata-kind output-patch (:binds-to :scope)
   vertices)
 
 ;;------------------------------------------------------------
 ;; Tessellation Evaluation
 
-(def-metadata-kind tessellate-to (:binds-to :scope)
+(define-metadata-kind tessellate-to (:binds-to :scope)
   primitive
   spacing
   order)
@@ -29,7 +29,7 @@
 ;;------------------------------------------------------------
 ;; Compute
 
-(def-metadata-kind local-size (:binds-to :scope)
+(define-metadata-kind local-size (:binds-to :scope)
   x
   y
   z)

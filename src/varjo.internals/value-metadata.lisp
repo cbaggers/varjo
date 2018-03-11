@@ -9,7 +9,7 @@
 ;;-------------------------------------------------------------------------
 
 ;; {TODO} proper error
-(defmacro def-metadata-kind (name (&key conc-name (binds-to :value))
+(defmacro define-metadata-kind (name (&key conc-name (binds-to :value))
                              &body slot-names)
   (check-metadata-slots slot-names)
   (let ((type (ecase binds-to
@@ -39,6 +39,14 @@
              (format stream ,(format nil "~{:~a ~~a~^ ~}" slot-names)
                      ,@slot-names))))
        (pushnew ',name *metadata-kinds*))))
+
+(defmacro def-metadata-kind (name (&key conc-name (binds-to :value))
+                             &body slot-names)
+  (warn 'v-deprecated
+        :old 'def-metadata-kind
+        :new 'define-metadata-kind)
+  `(define-metadata-kind ,name (:conc-name ,conc-name :binds-to ,binds-to)
+     ,@slot-names))
 
 (defun gen-meta-init-check (name slot-names)
   (let ((init-args (loop :for name :in slot-names :collect
@@ -232,7 +240,7 @@
                       (setf (metadata-for-flow-id flow-id env) meta))))))))))
   code-obj)
 
-(defmacro def-metadata-infer (varjo-type-spec metadata-kind env-var &body body)
+(defmacro define-metadata-infer (varjo-type-spec metadata-kind env-var &body body)
   (assert (symbolp varjo-type-spec))
   (assert (symbolp metadata-kind))
   (assert (subtypep metadata-kind 'standard-value-metadata))
@@ -249,3 +257,9 @@
                                       (,kind (eql ',metadata-kind))
                                       ,env-var)
          ,@body))))
+
+(defmacro def-metadata-infer (varjo-type-spec metadata-kind env-var &body body)
+  (warn 'v-deprecated
+        :old 'def-metadata-infer
+        :new 'define-metadata-infer)
+  `(define-metadata-infer ,varjo-type-spec ,metadata-kind ,env-var ,@body))
