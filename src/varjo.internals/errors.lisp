@@ -1099,6 +1099,10 @@ function or by a multiple-value-bind form"
   (or (map 'list #'type->type-spec then-set) :void)
   (or (map 'list #'type->type-spec else-set) :void))
 
+(define-warning v-deprecated (:error-type style-warning) (old new)
+    "'~a' is deprecated, please use '~a'"
+  old new)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package
