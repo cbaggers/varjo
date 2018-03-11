@@ -171,26 +171,26 @@ implementation that compiles the code for real"
 
 ;;------------------------------------------------------------
 
-(defmacro def-finishes-test (name (&key suite) &body body)
+(defmacro define-finishes-test (name (&key suite) &body body)
   `(progn
      (defun ,name () ,@body)
      (def-test ,name (:suite ,suite)
        (finishes (,name)))))
 
-(defmacro def-is-true-test (name (&key suite) &body body)
+(defmacro define-is-true-test (name (&key suite) &body body)
   `(progn
      (defun ,name () ,@body)
      (def-test ,name (:suite ,suite)
        (is-true (,name)))))
 
-(defmacro def-dbind-test (name (&key suite) bind-vars test-form &body body)
+(defmacro define-dbind-test (name (&key suite) bind-vars test-form &body body)
   `(progn
      (defun ,name () ,@body)
      (def-test ,name (:suite ,suite)
        (destructuring-bind ,bind-vars (,name)
          ,test-form))))
 
-(defmacro def-vbind-test (name (&key suite) bind-vars test-form &body body)
+(defmacro define-vbind-test (name (&key suite) bind-vars test-form &body body)
   `(progn
      (defun ,name () ,@body)
      (def-test ,name (:suite ,suite)

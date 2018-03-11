@@ -26,7 +26,7 @@
      (lisp-code-as-uniform foo :int 10)
      (v! 0 0 0 1))))
 
-(def-vbind-test metadata-1 (:suite metadata-tests) (meta)
+(define-vbind-test metadata-1 (:suite metadata-tests) (meta)
     (is-true (equal (val meta) 10))
   (flow-id-scope
     (let ((env (make-env :vertex nil '((x some-ephem)))))

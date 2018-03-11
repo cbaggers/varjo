@@ -9,7 +9,7 @@
   (diff v-float :accessor diff))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (def-v-type-class v-per-vertex (v-ephemeral-type) ()))
+  (define-v-type-class v-per-vertex (v-ephemeral-type) ()))
 
 (v-def-glsl-template-fun gl-position (vert-data) "~a.gl_Position" (v-per-vertex) :vec4)
 (v-def-glsl-template-fun gl-point-size (vert-data) "~a.gl_PointSize" (v-per-vertex) :float)

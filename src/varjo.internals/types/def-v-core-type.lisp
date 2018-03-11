@@ -5,7 +5,7 @@
 ;; Macro for defining vari.types
 
 ;; {TODO} proper errors
-(defmacro def-v-type-class (name direct-superclass direct-slots &rest options)
+(defmacro define-v-type-class (name direct-superclass direct-slots &rest options)
   (unless (eq name 'v-type)
     (assert (and (listp direct-superclass)
                  (symbolp (first direct-superclass))

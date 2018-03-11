@@ -99,12 +99,12 @@
 ;;------------------------------------------------------------
 ;; Opaque
 
-(def-v-type-class v-opaque (v-type) ())
+(define-v-type-class v-opaque (v-type) ())
 
 ;;------------------------------------------------------------
 ;; Void
 
-(def-v-type-class v-void (v-type)
+(define-v-type-class v-void (v-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "void" :reader v-glsl-string)
    (glsl-size :initform :sizeless)))
@@ -115,7 +115,7 @@
 ;; The type of the discard expression. Indicates a termination
 ;; of execution without a return.
 
-(def-v-type-class v-discarded (v-type)
+(define-v-type-class v-discarded (v-type)
   ((glsl-string :initform "void" :reader v-glsl-string)))
 
 (defun v-discarded-p (obj)
@@ -129,7 +129,7 @@
 ;;
 ;; Indicates a termination of execution due to 'return'
 
-(def-v-type-class v-returned (v-type) ())
+(define-v-type-class v-returned (v-type) ())
 
 (defun v-returned-p (obj)
   (etypecase obj
@@ -143,13 +143,13 @@
 ;; The supertype for all types which that are shadowing a core
 ;; glsl type.
 
-(def-v-type-class v-shadow-type (v-type)
+(define-v-type-class v-shadow-type (v-type)
   ((shadowed-type :initform nil :reader shadowed-type)))
 
 ;;------------------------------------------------------------
 ;; Sampler
 
-(def-v-type-class v-sampler (v-opaque)
+(define-v-type-class v-sampler (v-opaque)
   ((element-type :initform 'v-type)))
 
 (defmethod post-initialise ((object v-sampler))
@@ -171,7 +171,7 @@
 ;; The supertype of all types that can have values stored into, and
 ;; retrieved from, themselves
 
-(def-v-type-class v-container (v-type)
+(define-v-type-class v-container (v-type)
   ((element-type :initform t)
    (dimensions :initform nil :accessor v-dimensions)))
 
@@ -195,7 +195,7 @@
 ;;------------------------------------------------------------
 ;; Array
 
-(def-v-type-class v-array (v-container)
+(define-v-type-class v-array (v-container)
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 
@@ -283,7 +283,7 @@
 ;; Make sure you define these using deftype
 ;;
 
-(def-v-type-class v-ephemeral-type (v-type) ())
+(define-v-type-class v-ephemeral-type (v-type) ())
 
 (defun ephemeral-p (obj)
   (typecase obj
@@ -298,7 +298,7 @@
 ;; An array for item which that have no representation in glsl.
 ;;
 
-(def-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
+(define-v-type-class v-ephemeral-array (v-array v-ephemeral-type) ())
 
 (defmethod v-make-type ((type v-ephemeral-array) flow-id &rest args)
   (destructuring-bind (element-type length) args
@@ -318,7 +318,7 @@
 ;; {TODO} I think this should be a field on ephemeral-types. We then
 ;;        have func spicing ephemerals and regular.
 
-(def-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
+(define-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
 
 ;;------------------------------------------------------------
 ;; Block Array
@@ -331,7 +331,7 @@
 ;; array.
 ;;
 
-(def-v-type-class v-block-array (v-ephemeral-type)
+(define-v-type-class v-block-array (v-ephemeral-type)
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
    (block-name :initarg :block-name :initform "<invalid>" :reader block-name)))
@@ -411,7 +411,7 @@
 ;;------------------------------------------------------------
 ;; Or
 
-(def-v-type-class v-or (v-type)
+(define-v-type-class v-or (v-type)
   ((types :initform nil :initarg :types :reader v-types)))
 
 (defmethod copy-type ((type v-or))
@@ -465,7 +465,7 @@
 ;; all of the values and the compiler is free to pick any which
 ;; satisfies it's needs
 
-(def-v-type-class v-any-one-of (v-unrepresentable-value)
+(define-v-type-class v-any-one-of (v-unrepresentable-value)
   ((types :initform nil :initarg :types :reader v-types)))
 
 (defmethod copy-type ((type v-any-one-of))
@@ -501,21 +501,21 @@
 ;;
 ;; Supertype of all structs
 
-(def-v-type-class v-struct (v-type)
+(define-v-type-class v-struct (v-type)
   ((versions :initform nil :initarg :versions :accessor v-versions)
    (signature :initform nil :initarg :signature :accessor v-signature)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
    (slots :initform nil :initarg :slots :reader v-slots)))
 
 ;; Supertype of all structs that are not from the glsl spec
-(def-v-type-class v-user-struct (v-struct) ())
+(define-v-type-class v-user-struct (v-struct) ())
 
 ;;------------------------------------------------------------
 ;; Function Type
 ;;
 ;; The type of all function objects
 
-(def-v-type-class v-function-type (v-unrepresentable-value)
+(define-v-type-class v-function-type (v-unrepresentable-value)
   ((argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (return-spec :initform nil :initarg :return-spec :accessor v-return-spec)))
 
@@ -587,7 +587,7 @@
 ;;------------------------------------------------------------
 ;; Stemcell
 
-(def-v-type-class v-stemcell (v-type) ())
+(define-v-type-class v-stemcell (v-type) ())
 
 ;;------------------------------------------------------------
 ;; Type Equality

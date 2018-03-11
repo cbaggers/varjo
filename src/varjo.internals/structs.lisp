@@ -46,7 +46,7 @@
            (constructor-name (symb 'make- (or constructor name))))
       `(progn
          (eval-when (:compile-toplevel :load-toplevel :execute)
-           (def-v-type-class ,class-name (v-user-struct)
+           (define-v-type-class ,class-name (v-user-struct)
              ((glsl-string :initform ,name-string :initarg :glsl-string
                            :reader v-glsl-string)
               (signature :initform ,(gen-struct-sig
@@ -54,8 +54,8 @@
                          :initarg :signature :accessor v-signature)
               (slots :initform ',slot-transforms-type-obj
                      :reader v-slots)))
-           (def-v-type-class ,true-type-name (,class-name) ())
-           (def-v-type-class ,fake-type-name (,class-name)
+           (define-v-type-class ,true-type-name (,class-name) ())
+           (define-v-type-class ,fake-type-name (,class-name)
              ((signature :initform ""))))
          ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod v-true-type ((object ,class-name))

@@ -4,7 +4,7 @@
 ;;------------------------------------------------------------
 ;; Varjo's root type
 
-(def-v-type-class v-type ()
+(define-v-type-class v-type ()
   ((core :initform nil :reader core-typep)
    (superclass :initform nil)
    (glsl-string :initform "<invalid>" :reader v-glsl-string)
@@ -75,7 +75,7 @@ type-spec trick doesnt"))
 ;; Attached to failed compilation objects when delaying errors
 ;; see functions.lisp for use
 
-(def-v-type-class v-error (v-type)
+(define-v-type-class v-error (v-type)
   ((payload :initform nil :initarg :payload :accessor v-payload)))
 
 (defun v-errorp (obj)

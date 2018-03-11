@@ -22,17 +22,17 @@
                   (with-slots ,args condition
                     (format stream ,control-str ,@body)))))))
 
-(defmacro defbug (name (&key (error-type 'varjo-error) (prefix "Varjo Bug"))
+(defmacro define-bug (name (&key (error-type 'varjo-error) (prefix "Varjo Bug"))
                             (&rest args) error-string &body body)
   `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
        ,error-string ,@body))
 
-(defmacro deferror (name (&key (error-type 'varjo-error) (prefix "Varjo"))
+(defmacro define-error (name (&key (error-type 'varjo-error) (prefix "Varjo"))
                             (&rest args) error-string &body body)
   `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
        ,error-string ,@body))
 
-(defmacro defwarning (name (&key (error-type 'varjo-warning) (prefix "Varjo"))
+(defmacro define-warning (name (&key (error-type 'varjo-warning) (prefix "Varjo"))
                               (&rest args) error-string &body body)
   `(defcondition ,name (:error-type ,error-type :prefix ,prefix) ,args
        ,error-string ,@body))
