@@ -622,7 +622,8 @@
          :for qualifiers = (qualifiers type-obj)
          :for glsl-name = (glsl-name uniform)
          :do
-         (let ((string-name (or glsl-name (safe-glsl-name-string name))))
+         (let ((string-name (or glsl-name (safe-glsl-name-string name)))
+               (layout (find-if #'layout-qualfier-p qualifiers)))
            (push (make-instance
                   'uniform-variable
                   :name name
@@ -630,23 +631,18 @@
                   :type type-obj
                   :glsl-decl (cond
                                ((find :ubo qualifiers :test #'qualifier=)
+                                (assert (qualifier= layout :std-140))
                                 (write-ubo-block (parse-qualifier :uniform)
                                                  string-name
                                                  (v-slots type-obj)
-                                                 (or (find :std-140 qualifiers
-                                                           :test #'qualifier=)
-                                                     (find :std-430 qualifiers
-                                                           :test #'qualifier=)
-                                                     :std-140)))
+                                                 layout))
                                ((find :ssbo qualifiers :test #'qualifier=)
+                                (assert (or (qualifier= layout :std-140)
+                                            (qualifier= layout :std-430)))
                                 (write-ssbo-block (parse-qualifier :buffer)
                                                   string-name
                                                   (v-slots type-obj)
-                                                  (or (find :std-140 qualifiers
-                                                            :test #'qualifier=)
-                                                      (find :std-430 qualifiers
-                                                            :test #'qualifier=)
-                                                      :std-140)))
+                                                  layout))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))

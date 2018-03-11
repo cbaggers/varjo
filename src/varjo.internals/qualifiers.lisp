@@ -45,3 +45,9 @@
                (name b)
                b)))
     (string= a b)))
+
+
+(defun layout-qualfier-p (qualifier)
+  (check-type qualifier qualifier)
+  (or (qualifier= qualifier :std-140)
+      (qualifier= qualifier :std-430)))

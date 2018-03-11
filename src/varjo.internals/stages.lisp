@@ -9,11 +9,15 @@
              (every #'check-arg-form uniforms)
              (check-for-dups in-args uniforms))
     (labels ((early-qualifier-checks (whole qualifiers)
-               (assert (not (and (find :ubo qualifiers)
-                                 (find :ssbo qualifiers)))
-                       () 'uniform-ubo-and-ssbo
-                       :arg whole)
-               qualifiers)
+               (let ((is-ubo (find :ubo qualifiers))
+                     (is-ssbo (find :ssbo qualifiers)))
+                 (assert (not (and is-ubo is-ssbo))
+                         () 'uniform-ubo-and-ssbo
+                         :arg whole)
+                 (if (and (or is-ubo is-ssbo)
+                          (not (intersection qualifiers '(:std-140 :std-430))))
+                     (cons :std-140 qualifiers)
+                     qualifiers)))
              (make-var (vkind raw)
                (dbind (name type-spec . rest) raw
                  (vbind (qualifiers glsl-name) (extract-glsl-name rest)
