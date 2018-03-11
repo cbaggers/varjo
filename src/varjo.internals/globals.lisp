@@ -138,6 +138,8 @@
   '((:bool . v-bool)
     (:int . v-int)
     (:uint . v-uint)
+    (:int32 . v-int)
+    (:uint32 . v-uint)
     (:float . v-float)
     (:short-float . v-short-float)
     (:double . v-double)
