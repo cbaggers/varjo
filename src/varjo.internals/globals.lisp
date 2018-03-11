@@ -102,17 +102,18 @@
     (:mediump "mediump")
     (:noperspective "noperspective")
     (:out "out")
+    (:packed "packed")
     (:readonly "readonly")
     (:restrict "restrict")
     (:sample "sample")
     (:shared "shared")
     (:smooth "smooth")
+    (:std-140 "std140")
+    (:std-430 "std430")
     (:uniform "uniform")
     (:varying "varying")
     (:volatile "volatile")
-    (:writeonly "writeonly")
-    (:std-140 "std140")
-    (:std-430 "std430")))
+    (:writeonly "writeonly")))
 
 (defparameter *varjo-qualifiers*
   (append

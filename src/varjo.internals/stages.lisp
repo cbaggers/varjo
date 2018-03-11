@@ -11,7 +11,10 @@
     (labels ((early-qualifier-checks (vkind whole qualifiers)
                (let* ((is-ubo (find :ubo qualifiers))
                       (is-ssbo (find :ssbo qualifiers))
-                      (layouts (intersection qualifiers '(:std-140 :std-430)))
+                      (layouts (intersection qualifiers '(:std-140
+                                                          :std-430
+                                                          :shared
+                                                          :packed)))
                       (layout (first layouts)))
                  (assert (not (and is-ubo is-ssbo))
                          () 'uniform-ubo-and-ssbo :arg whole)

@@ -298,8 +298,7 @@
           :specifier layout)
   (glsl-string layout))
 
-(defun write-ubo-block (storage-qualifier block-name slots
-                        &optional (layout :std-140))
+(defun write-ubo-block (storage-qualifier block-name slots layout)
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
           (block-memory-layout-string block-name :ubo layout)
           (glsl-string storage-qualifier)
@@ -307,8 +306,7 @@
           (mapcar #'gen-interface-block-slot-string slots)
           block-name))
 
-(defun write-ssbo-block (storage-qualifier block-name slots
-                         &optional (layout :std-140))
+(defun write-ssbo-block (storage-qualifier block-name slots layout)
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"
           (block-memory-layout-string block-name :ssbo layout)
           (glsl-string storage-qualifier)

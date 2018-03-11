@@ -632,14 +632,12 @@
                   :type type-obj
                   :glsl-decl (cond
                                ((find :ubo qualifiers :test #'qualifier=)
-                                (assert (qualifier= layout :std-140))
+                                (assert (not (qualifier= layout :std-430)))
                                 (write-ubo-block (parse-qualifier :uniform)
                                                  string-name
                                                  (v-slots type-obj)
                                                  layout))
                                ((find :ssbo qualifiers :test #'qualifier=)
-                                (assert (or (qualifier= layout :std-140)
-                                            (qualifier= layout :std-430)))
                                 (write-ssbo-block (parse-qualifier :buffer)
                                                   string-name
                                                   (v-slots type-obj)
