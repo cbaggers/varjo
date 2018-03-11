@@ -62,7 +62,11 @@
     (dbind (func args) (find-function-in-set-for-args
                         func-set args-code env func-name code)
       (typecase func
-        (v-function (compile-function-call func args env))
+        (v-function
+         (vbind (new-obj new-env used-compiler-macro-p)
+             (compile-function-call func args env)
+           (declare (ignore used-compiler-macro-p))
+           (values new-obj new-env)))
         (external-function (compile-external-function-call func args env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
@@ -106,10 +110,14 @@
                    public-env))))))
 
 (defun compile-function-call (func args env)
+  "Returns 3 values: the new compiled object, the new environment & a boolean
+   this shows whether the function was use or a compiler macro expansion
+   (t means the compiler-macro was used)"
   (vbind (expansion use-expansion)
       (find-and-expand-compiler-macro func args env)
     (if use-expansion
-        (compile-form expansion env)
+        (vbind (new-obj new-env) (compile-form expansion env)
+          (values new-obj new-env t))
         (vbind (code-obj new-env)
             (cond
               ;; special funcs
@@ -129,7 +137,7 @@
               ;; all the other funcs :)
               (t (compile-regular-function-call func args env)))
           (assert new-env)
-          (values code-obj new-env)))))
+          (values code-obj new-env nil)))))
 
 
 (defun compile-function-taking-unreps (func args env)
@@ -196,11 +204,14 @@
   ;; functions.
   (let* ((base-env (get-base-env env))
          (compiled-func (or (compiled-functions base-env func)
-                            (build-external-function func env base-env))))
-    (setf (compiled-functions base-env func) compiled-func)
-    (compile-function-call (function-obj compiled-func)
-                           args
-                           env)))
+                            (setf (compiled-functions base-env func)
+                                  (build-external-function func env base-env)))))
+    (vbind (new-obj new-env used-compiler-macro-p)
+        (compile-function-call (function-obj compiled-func) args env)
+      (unless used-compiler-macro-p
+        ;; track the number of times the function was used
+        (incf (call-count compiled-func)))
+      (values new-obj new-env))))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)

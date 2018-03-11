@@ -199,7 +199,7 @@
 ;;------------------------------------------------------------
 ;; Limited Complement
 
-(v-def-glsl-template-fun complement (x) "~a.length()" (v-function-type)
+(v-def-glsl-template-fun complement (x) "|complement|(~a)" (v-function-type)
                          v-function-type :pure t)
 (v-define-compiler-macro complement
     (&environment env (func v-function-type))

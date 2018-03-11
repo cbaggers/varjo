@@ -233,6 +233,8 @@
                      (mapcar #'%glsl-decl (stemcells post-proc-obj))))
                    (signatures env)
                    (let* ((funcs (all-functions post-proc-obj))
+                          (funcs (remove-if (lambda (f) (= 0 (call-count f)))
+                                            funcs))
                           (code (remove nil (mapcar #'glsl-code funcs))))
                      (reverse code)))))))
 

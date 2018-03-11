@@ -198,6 +198,7 @@
                                       :out-of-scope-args implicit-args))
              (ast (to-top-level-ast-node body-obj declarations body-env)))
         (values (make-instance 'compiled-function-result
+                               :call-count (if mainp 1 0)
                                :function-obj func
                                :signatures sigs
                                :ast ast
