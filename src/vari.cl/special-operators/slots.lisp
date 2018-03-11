@@ -1,31 +1,34 @@
 (in-package :vari.cl)
-(in-readtable :fn.reader)
+(in-readtable fn:fn-reader)
 
-(v-defspecial slot-value (form slot-name)
+;;------------------------------------------------------------
+;; slot-value
+
+(defun struct-slot-accessor (struct-obj slot-name)
+  (let* ((type (primary-type struct-obj)))
+    (assert (typep type 'v-struct))
+    (with-slots ((slots varjo.internals::slots)) type
+      (let ((def (find slot-name slots :key #'first)))
+        (assert def ()
+                "Varjo: slot-value could not find a slot named ~a in ~a"
+                slot-name (type->type-spec type))
+        (destructuring-bind (slot-name type accessor glsl-string) def
+          (declare (ignore slot-name type glsl-string))
+          accessor)))))
+
+(v-defspecial slot-value (instance slot-name)
   :args-valid t
   :return
-  (vbind (v e) (compile-form form env)
-    (let ((type (primary-type v)))
-      (assert (typep type 'v-struct) () 'slot-value-on-non-struct
-              :type type :slot-name slot-name)
-      ;;
-      ;; NAH, this bit wont work. Instead we need to add another field to
-      ;; the v-struct type to hold the transform strings. Then we can query
-      ;; that here
-      ;;
-      (let ((slot (find slot-name (v-slots type) :key #'first)))
-        (assert slot () 'slot-not-found
-                :type type :slot-name slot-name)
-        (dbind (name slot-type accessor slot-transform-string) slot
-          (declare (ignore name accessor))
-          (let* ((type-set (make-type-set (set-flow-id slot-type (flow-id!))))
-                 (ast (ast-node! 'slot-value (list (node-tree v) slot-name)
-                                 type-set env env))
-                 (cline (format nil slot-transform-string (current-line v))))
-            (values
-             (copy-compiled v :current-line cline :type-set type-set
-                            :node-tree ast)
-             e)))))))
+  (vbind (inst-obj inst-env) (compile-form instance env)
+    (assert (v-typep inst-obj 'v-struct) () 'slot-value-on-non-struct
+            :type (v-type-of inst-obj) :slot-name slot-name)
+    (let* ((accessor (struct-slot-accessor inst-obj slot-name)))
+      (compile-form
+       `(,accessor ,inst-obj)
+       inst-env))))
+
+;;------------------------------------------------------------
+;; with-slots
 
 (v-defmacro with-slots (slots form &body body)
   (let* ((name (gensym "with"))
@@ -36,8 +39,11 @@
     `(let ((,name ,form))
        (symbol-macrolet ,bindings ,@body))))
 
+;;------------------------------------------------------------
+;; with-accessors
+
 (v-defmacro with-accessors (bindings form &body body)
-  (let* ((name (gensym "with"))
+  (let* ((name (gensym "instance"))
          (bindings (mapcar λ(dbind (accessor-symbol-name accessor-name)
                                 (ensure-list _)
                               `(,accessor-symbol-name (,accessor-name ,name)))
