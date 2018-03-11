@@ -130,8 +130,8 @@
   (let ((uniforms (uniform-variables stage)))
     (map nil
          λ(case-member (qualifiers (v-type-of _)) (:test #'qualifier=)
-            (:ubo (process-ubo/ssbo-uniform _ env))
-            (:ssbo (process-ubo/ssbo-uniform _ env))
+            (:ubo (process-ubo/ssbo-uniform :ubo _ env))
+            (:ssbo (process-ubo/ssbo-uniform :ssbo _ env))
             (otherwise (process-regular-uniform _ env)))
          uniforms)
     (values stage env)))
@@ -150,19 +150,21 @@
         (push (make-instance 'uniform-variable
                              :name name
                              :glsl-name glsl-name
-                             :type type-with-flow
-                             :glsl-decl "?glsl-decl?")
+                             :type type-with-flow)
               (v-uniforms env)))))
   env)
 
 ;; mutates env
-(defun process-ubo/ssbo-uniform (uvar env)
+(defun process-ubo/ssbo-uniform (which uvar env)
   (with-slots (name glsl-name type) uvar
     (assert (v-typep type 'v-user-struct) ()
             'ubo-ssbo-type-limitation :type type)
     (assert (not (holds-opaque-data-p type)) () 'opaque-data-found
             :arg-name name
             :type-spec (type->type-spec type))
+    (when (eq which :ssbo)
+      (assert (intersection (v-context env) '(:430 :440 :450 :460)) ()
+              "Varjo: SSBOs require a context version of at least 430"))
     (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
            (type-for-value (strip-qualifiers true-type)))
       (%add-symbol-binding
@@ -173,8 +175,7 @@
         (push (make-instance 'uniform-variable
                              :name name
                              :glsl-name glsl-name
-                             :type type-with-flow
-                             :glsl-decl "?glsl-decl?")
+                             :type type-with-flow)
               (v-uniforms env))))
     env))
 
