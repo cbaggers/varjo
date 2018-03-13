@@ -31,4 +31,5 @@
                (:file "tests/qualifier-tests")
                (:file "tests/uninitialized-value-tests")
                (:file "tests/metadata")
-               (:file "tests/emit")))
+               (:file "tests/emit")
+               (:file "tests/ubo-ssbo-tests")))
