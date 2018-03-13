@@ -30,8 +30,9 @@
   ;;        find out why this is happening
   (remove-duplicates
    (mappend #'signatures
-            (hash-table-values
-             (slot-value (get-base-env e) 'compiled-functions)))
+            (remove-if (lambda (f) (= (call-count f) 0))
+                       (hash-table-values
+                        (slot-value (get-base-env e) 'compiled-functions))))
    :test #'equal))
 
 (defmethod used-external-functions ((e environment))

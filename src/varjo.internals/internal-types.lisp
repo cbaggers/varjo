@@ -72,7 +72,8 @@
    (emit-set :initarg :emit-set :reader emit-set)
    (top-level-scoped-metadata :initarg :top-level-scoped-metadata
                               :initform nil
-                              :reader top-level-scoped-metadata)))
+                              :reader top-level-scoped-metadata)
+   (call-count :initform 0 :initarg :call-count :accessor call-count)))
 
 ;;----------------------------------------------------------------------
 
