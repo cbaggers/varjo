@@ -27,14 +27,14 @@
 
 (5am:def-test compiler-macros-0 (:suite compiler-macro-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (test-cm 10 2s0)
      (v! 0 0 0 0))))
 
 (5am:def-test compiler-macros-1 (:suite compiler-macro-tests)
   (is (equal
        (ast->code
-        (compile-vert () :450 nil
+        (compile-vert () :410 nil
           (let ((x 1))
             (test-cm x 2s0))
           (v! 0 0 0 0)))
@@ -46,7 +46,7 @@
 (5am:def-test compiler-macros-2 (:suite compiler-macro-tests)
   (is (equal
        (ast->code
-        (varjo.tests::compile-vert () :450 nil
+        (varjo.tests::compile-vert () :410 nil
           (varjo.tests::test-cm 1 2s0)
           (v! 0 0 0 0)))
        '((progn 2.0 (v! 0 0 0 0))))))

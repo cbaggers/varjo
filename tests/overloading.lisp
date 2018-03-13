@@ -6,6 +6,6 @@
 
 (5am:def-test array-1 (:suite array-tests)
   (finishes-p
-   (compile-vert ((i :int)) :450 nil
+   (compile-vert ((i :int)) :410 nil
      (let (((arr (:float 10))))
        (v! 0 0 0 0)))))

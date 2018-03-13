@@ -21,6 +21,7 @@
   (destructuring-bind (in-args uniforms) (varjo.internals::split-arguments args '(&uniform))
     `(first
       (v-compile ',uniforms ,version
+                 :vertex '(() (v! 1 2 3 4))
                  :geometry '(,in-args ,@body)
                  :allow-stemcells ,allow-stemcells))))
 
@@ -88,7 +89,7 @@
           (is-true (ast-stabalizes-p ,elem))
           (is-false (glsl-contains-invalid ,elem))
           (is-false (glsl-contains-nil ,elem))
-          (is-true (glsl-compiles-p ,elem)))
+          (glsl-compiles-p ,res))
        ,res)))
 
 (defmacro finishes-p-no-test-compile (form)
@@ -105,7 +106,7 @@
   "This function only exists so cepl.tests can replace it with an
 implementation that compiles the code for real"
   (declare (ignore elem))
-  t)
+  nil)
 
 (defun glsl-contains-invalid (compile-result)
   (not (null (cl-ppcre:all-matches-as-strings "£.*£"
@@ -198,7 +199,7 @@ implementation that compiles the code for real"
          ,test-form))))
 
 (defun make-env (stage-kind
-                 &optional in-args uniforms (version :450) allow-stemcells)
+                 &optional in-args uniforms (version :410) allow-stemcells)
   (let* ((stage (make-stage stage-kind in-args uniforms (list version) allow-stemcells))
          (env (varjo.internals::%make-base-environment stage)))
     (varjo.internals::add-glsl-funcs env)

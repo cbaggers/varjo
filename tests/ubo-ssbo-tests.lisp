@@ -12,33 +12,33 @@
 
 (5am:def-test ubo-0 (:suite ubo-ssbo-tests)
   (finishes-p
-   (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo)) :450 nil
+   (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo)) :410 nil
      (v! 1 2 3 4))))
 
 (5am:def-test ubo-1 (:suite ubo-ssbo-tests)
   (finishes-p
-   (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo)) :450 nil
+   (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo)) :410 nil
      (with-slots (ints) the-data
        (v! (aref ints 1) 2 3 4)))))
 
 (5am:def-test ubo-2 (:suite ubo-ssbo-tests)
   (finishes-p
    (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo :std-140))
-       :450 nil
+       :410 nil
      (with-slots (ints) the-data
        (v! (aref ints 1) 2 3 4)))))
 
 (5am:def-test ubo-3 (:suite ubo-ssbo-tests)
   (signals error
     (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo :std-430))
-        :450 nil
+        :410 nil
       (with-slots (ints) the-data
         (v! (aref ints 1) 2 3 4)))))
 
 (5am:def-test ubo-3 (:suite ubo-ssbo-tests)
   (signals assigning-to-readonly
    (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo :std-140))
-       :450 nil
+       :410 nil
      (with-slots (ints) the-data
        (setf (aref ints 1) 10)
        (v! 1 2 3 4)))))

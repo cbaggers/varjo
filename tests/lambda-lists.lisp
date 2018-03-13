@@ -12,6 +12,6 @@
 
 (5am:def-test lambda-lists-0 (:suite lambda-list-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (test-ll 10)
      (v! 0 0 0 0))))

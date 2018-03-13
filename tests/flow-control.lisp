@@ -3,7 +3,7 @@
 
 (5am:def-test flow-control-0 (:suite flow-control-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (let ((x 1))
        (let ((y 2)
              (z 3))
@@ -15,7 +15,7 @@
 
 (5am:def-test flow-control-1 (:suite flow-control-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (let ((x 0)
            (z 1))
        (v! x z)
@@ -28,7 +28,7 @@
 
 (5am:def-test flow-control-2 (:suite flow-control-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (let ((x 0)
            (z 1))
        (v! x z)
@@ -39,7 +39,7 @@
 
 (5am:def-test flow-control-3 (:suite flow-control-tests)
   (glsl-doesnt-contain-p "B = false"
-    (varjo.tests::compile-vert () :450 nil
+    (varjo.tests::compile-vert () :410 nil
       (let ((a (< 1 2))
             (b (not (< 1 2))))
         (unless (< 1 2)

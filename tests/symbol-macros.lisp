@@ -7,7 +7,7 @@
 (5am:def-test symbol-macros-0 (:suite symbol-macro-tests)
   (is (equal
        (ast->code
-        (compile-vert () :450 nil
+        (compile-vert () :410 nil
           (symbol-macrolet ((x 10))
             (v! x x 0 0))))
        '((v! 10 10 0 0)))))
@@ -15,7 +15,7 @@
 (5am:def-test symbol-macros-1 (:suite symbol-macro-tests)
   (is (equal
        (ast->code
-        (compile-vert () :450 nil
+        (compile-vert () :410 nil
           (symbol-macrolet ((x 10))
             (let ((x 20))
               (v! x x))
@@ -28,7 +28,7 @@
 (5am:def-test symbol-macros-2 (:suite symbol-macro-tests)
   (is (equal
        (ast->code
-        (compile-vert () :450 nil
+        (compile-vert () :410 nil
           (symbol-macrolet ((x 10))
             (let ((x 20))
               (v! x (symbol-macrolet ((x 2s0))
@@ -42,7 +42,7 @@
 (5am:def-test symbol-macros-3 (:suite symbol-macro-tests)
   (is (equal
        (ast->code
-        (compile-vert () :450 nil
+        (compile-vert () :410 nil
           (let ((v (v! 0 0 0 0)))
             (symbol-macrolet ((x (x v)))
               (v! x x x x)))))
@@ -52,7 +52,7 @@
 (5am:def-test symbol-macros-4 (:suite symbol-macro-tests)
   (is (equal
        (ast->code
-        (varjo.tests::compile-vert () :450 nil
+        (varjo.tests::compile-vert () :410 nil
           (let ((v (v! 0 0 0 0)))
             (symbol-macrolet ((x (x v)))
               (let ((y 0s0))

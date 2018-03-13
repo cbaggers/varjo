@@ -14,5 +14,5 @@
 
 (5am:def-test shadowing-0 (:suite name-shadowing-tests)
   (finishes-p
-   (compile-vert (&uniform (x foo)) :450 nil
+   (compile-vert (&uniform (x foo)) :410 nil
      (v! 0 0 0 0))))

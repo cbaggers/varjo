@@ -3,7 +3,7 @@
 
 (5am:def-test inline-glsl-0 (:suite inline-glsl-tests)
   (finishes-p
-   (compile-vert ((a :int)) :450 nil
+   (compile-vert ((a :int)) :410 nil
      (glsl-expr "vec4(1,2,3,4)" :vec4))))
 
 (5am:def-test inline-glsl-1 (:suite inline-glsl-tests)

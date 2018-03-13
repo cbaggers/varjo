@@ -21,13 +21,13 @@
 
 (5am:def-test structs-0 (:suite struct-tests)
   (finishes-p
-   (compile-vert ((vert pos-col)) :450 nil
+   (compile-vert ((vert pos-col)) :410 nil
      (values (v! (pos vert) 1.0)
              (col vert)))))
 
 (5am:def-test structs-1 (:suite struct-tests)
   (finishes-p
-   (compile-vert-frag () :450 nil
+   (compile-vert-frag () :410 nil
      (((vert pos-rot))
       (values (v! 0 0 0 0)
               (v! 1 1)
@@ -37,7 +37,7 @@
 
 (5am:def-test structs-2 (:suite struct-tests)
   (finishes-p
-   (compile-vert-frag ((thing pos-rot)) :450 nil
+   (compile-vert-frag ((thing pos-rot)) :410 nil
      (()
       (values (v! 0 0 0 0)
               (v! 1 1)
@@ -48,26 +48,26 @@
 
 (5am:def-test structs-3 (:suite struct-tests)
   (glsl-doesnt-contain-p "in POS_COL VERT;"
-   (compile-vert ((vert pos-col)) :450 nil
+   (compile-vert ((vert pos-col)) :410 nil
      (values (v! (pos vert) 1.0)
              (col vert)))))
 
 (5am:def-test structs-4 (:suite struct-tests)
   (finishes-p
-    (compile-vert (&uniform (vert pos-sam)) :450 nil
+    (compile-vert (&uniform (vert pos-sam)) :410 nil
       (v! 1 2 3 4))))
 
 (5am:def-test structs-5 (:suite struct-tests)
   (signals varjo-conditions:opaque-data-found
-    (compile-vert ((vert pos-sam)) :450 nil
+    (compile-vert ((vert pos-sam)) :410 nil
       (v! 1 2 3 4))))
 
 (5am:def-test structs-6 (:suite struct-tests)
   (signals varjo-conditions:opaque-data-found
-    (compile-vert (&uniform (vert pos-sam :ubo)) :450 nil
+    (compile-vert (&uniform (vert pos-sam :ubo)) :410 nil
       (v! 1 2 3 4))))
 
 (5am:def-test structs-7 (:suite struct-tests)
   (signals varjo-conditions:opaque-data-found
-    (compile-vert (&uniform (vert pos-sam :ssbo)) :450 nil
+    (compile-vert (&uniform (vert pos-sam :ssbo)) :410 nil
       (v! 1 2 3 4))))

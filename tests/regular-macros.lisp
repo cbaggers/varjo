@@ -15,12 +15,12 @@
 
 (5am:def-test regular-macros-0 (:suite regular-macro-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (test-rm-0 10 2s0)
      (v! 0 0 0 0))))
 
 (5am:def-test regular-macros-1 (:suite regular-macro-tests)
   (finishes-p
-   (compile-vert () :450 nil
+   (compile-vert () :410 nil
      (test-rm-1 10 2s0)
      (v! 0 0 0 0))))

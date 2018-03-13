@@ -3,7 +3,7 @@
 
 (5am:def-test void-0 (:suite void-tests)
   (finishes-p
-   (compile-vert ((a :int)) :450 nil
+   (compile-vert ((a :int)) :410 nil
      (labels ((fn ()
                 (+ 1 2)
                 (values)))

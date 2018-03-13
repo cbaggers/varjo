@@ -22,7 +22,7 @@
 
 (5am:def-test ext-func-0 (:suite external-functions-tests)
   (glsl-contains-n-p 1 "vec4 TEST_EXT.*\\(float HAM\\);"
-    (compile-vert () :450 nil
+    (compile-vert () :410 nil
       (test-ext 10s0)
       (test-ext 10s0)
       (v! 0 0 0 0))))
@@ -30,7 +30,7 @@
 (5am:def-test ext-func-1 (:suite external-functions-tests)
   (glsl-contains-n-p 1
       "vec4 TEST_EXT2.*\\(float HAM, out int return_1, out int return_2\\);"
-    (compile-vert () :450 nil
+    (compile-vert () :410 nil
       (test-ext2 10s0)
       (test-ext2 10s0)
       (v! 0 0 0 0))))
@@ -38,7 +38,7 @@
 (5am:def-test ext-func-2 (:suite external-functions-tests)
   (glsl-contains-n-p 1
       "vec4 TEST_EXT3.*\\(float HAM.*\\);"
-    (compile-vert () :450 nil
+    (compile-vert () :410 nil
       (test-ext3 10s0)
       (test-ext3 10s0)
       (v! 0 0 0 0))))

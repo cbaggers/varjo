@@ -5,13 +5,13 @@
  `((progn (v! jam jam jam))))
 
 (glsl-code
- (varjo.tests::compile-vert () :450
+ (varjo.tests::compile-vert () :410
    (some-vec4er 10s0)
    (v! 0 0 0 0)))
 
 ;; currently broken
 (glsl-code
- (compile-vert () :450
+ (compile-vert () :410
    (let ((fn #'test-ext3))
      (funcall fn 10s0))
    (v! 0 0 0 0)))

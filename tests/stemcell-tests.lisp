@@ -22,5 +22,5 @@
 (5am:def-test stemcells-0 (:suite stemcell-tests)
   (varjo:with-stemcell-infer-hook #'try-guessing-a-type-for-symbol
     (finishes-p
-     (compile-vert () :450 t
+     (compile-vert () :410 t
        (v! *some-test-var* 0 0 1)))))

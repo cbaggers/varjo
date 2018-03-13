@@ -20,7 +20,7 @@
 
 (5am:def-test metadata-0 (:suite metadata-tests)
   (finishes-p
-   (compile-vert () :450 t
+   (compile-vert () :410 t
      ;; this is to text #'inject-implicit-uniform which is used
      ;; by the metadata api
      (lisp-code-as-uniform foo :int 10)
