@@ -39,6 +39,7 @@
            :v-ephemeral-array
            :v-unrepresentable-value
            :v-block-array
+           :v-block-struct
            :v-or
            :v-any-one-of
            :v-error
