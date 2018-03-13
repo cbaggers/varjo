@@ -89,7 +89,6 @@
      :to-block (if set-block to-block (remove nil (to-block code-obj)))
      :return-set (if set-return-set return-set (return-set code-obj))
      :emit-set (if set-emit-set emit-set (emit-set code-obj))
-     :used-types (used-types code-obj)
      :stemcells (if set-stemcells stemcells (stemcells code-obj))
      :out-of-scope-args (if set-out-of-scope-args
                             out-of-scope-args

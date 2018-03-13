@@ -163,10 +163,16 @@ however failed to do so when asked."
                      (copy-type type))))
         spec)))
 
+
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs
                          &key (allow-casting t))
-  (let ((spec-types (expand-argument-spec func arg-types)))
+  (let ((spec-types (expand-argument-spec func arg-types))
+        (arg-types-no-block-structs
+         (loop :for type :in arg-types :collect
+            (if (typep type 'v-block-struct)
+                (v-element-type type)
+                type))))
     (labels ((calc-secondary-score (types)
                ;; the lambda below sums all numbers or returns nil
                ;; if nil found
@@ -181,14 +187,15 @@ however failed to do so when asked."
       ;;
       (when (eql (length arg-types) (length spec-types))
         (let* ((perfect-matches (mapcar λ(v-typep _ _1)
-                                        arg-types
+                                        arg-types-no-block-structs
                                         spec-types))
                (score (- (length arg-types)
                          (length (remove nil perfect-matches)))))
 
           (if (= score 0)
               ;; if all the types match
-              (let ((secondary-score (calc-secondary-score arg-types)))
+              (let ((secondary-score (calc-secondary-score
+                                      arg-types-no-block-structs)))
                 (make-instance
                  'func-match
                  :func func
@@ -214,18 +221,11 @@ however failed to do so when asked."
                        :secondary-score secondary-score
                        :tertiary-score tertiary-score)))))))))))
 
-(defun unbox-block-structs (types)
-  (loop :for type :in types :collect
-     (if (typep type 'v-block-struct)
-         (v-element-type type)
-         type)))
-
 (defun match-function-to-args (args-code compiled-args candidate)
   ;; could be here that we unbox the block-structs
   ;; hmm I dont think weve ever tried passing ephemerals to non user
   ;; defined funcs before. ah it's ok, this code is used for user funcs too
-  (let* ((arg-types (unbox-block-structs
-                     (mapcar #'primary-type compiled-args)))
+  (let* ((arg-types (mapcar #'primary-type compiled-args))
          (any-errors (some #'v-errorp arg-types)))
     (if (v-special-functionp candidate)
         (special-arg-matchp candidate args-code compiled-args arg-types
