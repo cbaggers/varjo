@@ -166,7 +166,8 @@
       (assert (intersection (v-context env) '(:430 :440 :450 :460)) ()
               "Varjo: SSBOs require a context version of at least 430"))
     (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
-           (type-for-value (strip-qualifiers true-type)))
+           (type-for-value (make-into-block-struct (strip-qualifiers true-type)
+                                                   glsl-name)))
       (%add-symbol-binding
        name (v-make-value type-for-value env :glsl-name glsl-name
                           :function-scope 0 :read-only t)

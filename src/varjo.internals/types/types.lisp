@@ -321,6 +321,64 @@
 (define-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
 
 ;;------------------------------------------------------------
+;; Block Struct
+;;
+;; A vari struct who's representation is a glsl interface block
+
+(define-v-type-class v-block-struct (v-ephemeral-type)
+  ((element-type :initform t :initarg :element-type)
+   (block-name :initarg :block-name :initform "£-v-block-array-£"
+               :reader block-name)))
+
+(defmethod v-make-type ((type v-block-struct) flow-id &rest args)
+  (destructuring-bind (block-name element-type) args
+    (initialize-instance type
+                         :block-name block-name
+                         :element-type (type-spec->type element-type)
+                         :flow-ids flow-id)))
+
+(defmethod post-initialise ((object v-block-struct))
+  (with-slots (element-type) object
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-block-struct))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+(defmethod type->type-spec ((type v-block-struct))
+  `(v-block-struct ,(if (slot-boundp type 'block-name)
+                        (block-name type)
+                        "£-unknown-block-name-£")
+                   ,(type->type-spec (v-element-type type))))
+
+(defmethod copy-type ((type v-block-struct))
+  (make-instance 'v-block-struct
+                 :block-name (block-name type)
+                 :element-type (v-element-type type)
+                 :flow-ids (flow-ids type)))
+
+(defun make-into-block-struct (struct-type block-name)
+  (assert (v-typep struct-type 'v-struct))
+  (let* ((r (make-instance 'v-block-struct
+                           :block-name block-name
+                           :element-type struct-type
+                           :ctv (ctv struct-type)
+                           :flow-ids (flow-ids struct-type)
+                           :qualifiers (qualifiers struct-type))))
+    (when (slot-boundp struct-type 'default-value)
+      (setf (slot-value r 'default-value)
+            (slot-value struct-type 'default-value)))
+    r))
+
+(defmethod v-glsl-string ((object v-block-struct))
+  (v-glsl-string (v-element-type object)))
+
+;;------------------------------------------------------------
 ;; Block Array
 ;;
 ;; These serve a very specific purpose; they are used when you have an

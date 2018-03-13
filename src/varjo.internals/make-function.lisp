@@ -46,7 +46,8 @@
                :arg-specs (remove-if #'function-raw-arg-validp args))))
   ;;
   ;; Parse the types
-  (let* ((arg-types (mapcar λ(type-spec->type (second _)) args))
+  (let* (;; parse the args seperately as this save us doing it twice
+         (arg-types (mapcar λ(type-spec->type (second _)) args))
          (args-with-types (mapcar λ(dbind (name ig . rest) _
                                      (declare (ignore ig))
                                      `(,name ,_1 ,@rest))
@@ -57,7 +58,7 @@
         (make-new-function-with-unreps
          func-id name args body allowed-implicit-args env)
         (make-regular-function
-         func-id name args-with-types body allowed-implicit-args env))))
+         func-id name args args-with-types body allowed-implicit-args env))))
 
 (defun likely-recursion-p (env)
   (labels ((ieql (a b)
@@ -73,7 +74,7 @@
            (depth (or (position-if-not λ(ieql key _) chain) 0)))
       (> depth 15))))
 
-(defun make-regular-function (func-id name args body allowed-implicit-args env)
+(defun make-regular-function (func-id name raw-args args body allowed-implicit-args env)
   (assert (not (likely-recursion-p env)) ()
           'probable-recursion :name name
           :func `(,name ,@(mapcar λ(type->type-spec (second _)) args)))
@@ -179,6 +180,7 @@
                                            nil ;;{TODO} should be context
                                            arg-types
                                            (return-set body-obj)
+                                           :code (list raw-args body)
                                            :glsl-name glsl-name
                                            :implicit-args implicit-args
                                            :in-out-args in-out-args

@@ -61,6 +61,9 @@
   (let ((func-name (or name (%func-name-from-set func-set))))
     (dbind (func args) (find-function-in-set-for-args
                         func-set args-code env func-name code)
+      ;; We take the safe assumption that no non-user-defined function
+      ;; will ever take a user defined struct as an argument. This is
+      ;; important due to how ephemerals work
       (typecase func
         (v-function (compile-function-call func args env))
         (external-function (compile-external-function-call func args env))
@@ -118,8 +121,9 @@
 
               ;; funcs taking unrepresentable values as arguments
               ((and (typep func 'v-user-function)
-                    (some λ(typep _ 'v-unrepresentable-value)
-                          (v-argument-spec func)))
+                    (or (some λ(typep _ 'v-unrepresentable-value)
+                              (v-argument-spec func))
+                        (some λ(typep (primary-type _) 'v-block-struct) args)))
                (compile-function-taking-unreps func args env))
 
               ;; funcs with multiple return values
@@ -134,7 +138,9 @@
 
 (defun compile-function-taking-unreps (func args env)
   (assert (v-code func))
-  (labels ((unrep-p (x) (typep (primary-type x) 'v-unrepresentable-value)))
+  (labels ((unrep-p (x)
+             (or (typep (primary-type x) 'v-unrepresentable-value)
+                 (typep (primary-type x) 'v-block-struct))))
     (dbind (args-code body-code) (v-code func)
       (dbind (trimmed-args hard-coded)
           (loop :for arg-code :in args-code :for arg :in args

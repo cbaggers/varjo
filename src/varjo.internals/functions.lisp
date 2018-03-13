@@ -214,8 +214,18 @@ however failed to do so when asked."
                        :secondary-score secondary-score
                        :tertiary-score tertiary-score)))))))))))
 
+(defun unbox-block-structs (types)
+  (loop :for type :in types :collect
+     (if (typep type 'v-block-struct)
+         (v-element-type type)
+         type)))
+
 (defun match-function-to-args (args-code compiled-args candidate)
-  (let* ((arg-types (mapcar #'primary-type compiled-args))
+  ;; could be here that we unbox the block-structs
+  ;; hmm I dont think weve ever tried passing ephemerals to non user
+  ;; defined funcs before. ah it's ok, this code is used for user funcs too
+  (let* ((arg-types (unbox-block-structs
+                     (mapcar #'primary-type compiled-args)))
          (any-errors (some #'v-errorp arg-types)))
     (if (v-special-functionp candidate)
         (special-arg-matchp candidate args-code compiled-args arg-types
