@@ -58,7 +58,9 @@
 
 (defun valid-user-defined-name (name-symbol)
   "Returns false if name is reserved"
-  (not (glsl-var-namep name-symbol)))
+  (or (not (glsl-var-namep name-symbol))
+      (not (eq name-symbol t))
+      (null name-symbol)))
 
 (defun lisp-name->glsl-name (symbol env)
   (assert (symbolp symbol))
