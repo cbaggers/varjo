@@ -340,7 +340,7 @@
            :conditional-return-type-mismatch
            :if-form-multiple-vals-mismatch
            :v-deprecated
-           :integer-outputs-not-flat
+           :fragment-integer-inputs-not-flat
            :invalid-coerce
 
            ;; restarts

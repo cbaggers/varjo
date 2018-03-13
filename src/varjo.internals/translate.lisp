@@ -35,6 +35,18 @@
 ;;----------------------------------------------------------------------
 
 (defun validate-inputs (stage env)
+  ;; int out's should be flat
+  (when (typep stage 'fragment-stage)
+    (let* ((in-set (input-variables stage))
+           (issues
+            (loop :for var :in in-set
+               :for type = (v-type-of var)
+               :when (and (v-typep type 'v-integer)
+                          (not (find :flat (qualifiers type) :test #'qualifier=)))
+               :collect type)))
+      (assert (null issues) () 'integer-outputs-not-flat
+              :problem-types issues
+              :inputs (mapcar #'v-type-of in-set))))
   (values stage env))
 
 ;;----------------------------------------------------------------------
@@ -466,17 +478,9 @@
 ;;----------------------------------------------------------------------
 
 (defun validate-outputs (post-proc-obj)
-  (with-slots (out-set) post-proc-obj
-    (let ((out-set (coerce out-set 'list)))
-      ;; int out's should be flat
-      (let ((issues
-             (loop :for type :in out-set
-                :when (and (v-typep type 'v-integer)
-                           (not (find :flat (qualifiers type) :test #'qualifier=)))
-                :collect type)))
-        (assert (null issues) () 'integer-outputs-not-flat
-                :problem-types issues
-                :outputs out-set))))
+  ;; (with-slots (out-set) post-proc-obj
+  ;;   (let ((out-set (coerce out-set 'list)))
+  ;;     nil))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------

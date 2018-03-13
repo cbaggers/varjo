@@ -1103,16 +1103,16 @@ function or by a multiple-value-bind form"
     "'~a' is deprecated, please use '~a'"
   old new)
 
-(define-error integer-outputs-not-flat () (problem-types outputs)
+(define-error fragment-integer-inputs-not-flat () (problem-types inputs)
     "Found ~a ~a not qualfied as :flat. This
 is not allowed in glsl.
 
 Outputs:~{~%~s~}"
   (length problem-types)
   (if (= (length problem-types) 1)
-      "output which was an integer and was"
-      "outputs which were integers and were")
-  (mapcar #'type->type-spec outputs))
+      "fragment-stage input which was an integer and was"
+      "fragment-stage inputs which were integers and were")
+  (mapcar #'type->type-spec inputs))
 
 (define-error invalid-coerce () (src-type dst-type code)
     "Could not coerce ~a to ~a
