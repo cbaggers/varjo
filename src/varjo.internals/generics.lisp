@@ -11,7 +11,6 @@
 (defgeneric add-compiler-macro (macro env))
 (defgeneric add-equivalent-name (existing-name new-name))
 (defgeneric add-external-function (name in-args uniforms code &optional valid-glsl-versions))
-(defgeneric add-fake-struct (var env))
 (defgeneric add-form-binding (func/macro env))
 (defgeneric add-global-compiler-macro (macro))
 (defgeneric add-global-form-binding (func/macro))

@@ -154,48 +154,6 @@
                           vars
                           funcs)))))
 
-;; mutates env
-(defmethod add-fake-struct ((var uniform-variable) env)
-  (let* (;;
-         (uniform-name (name var))
-         (type (v-type-of var))
-         (qualifiers (qualifiers (v-type-of var)))
-         (glsl-name (glsl-name var))
-         ;;
-         (struct (strip-qualifiers
-                  (set-flow-id (v-fake-type type) (flow-id!))))
-         (fake-type (class-name (class-of struct)))
-         (slots (v-slots type))
-         (fake-type-obj (try-type-spec->type
-                         (resolve-name-from-alternative fake-type)
-                         nil))
-         (new-uniform-args
-          (loop :for (slot-name slot-type accessor) :in slots
-             :for fake-slot-name = (fake-slot-name uniform-name slot-name)
-             :do (%add-function
-                  accessor
-                  (make-function-obj accessor
-                                     fake-slot-name
-                                     nil ;; {TODO} Must be context
-                                     (list fake-type-obj)
-                                     (make-type-set
-                                      (type-spec->type slot-type))
-                                     :v-place-index nil
-                                     :pure t)
-                  env)
-             :collect (make-instance
-                       'uniform-variable
-                       :name fake-slot-name
-                       :glsl-name fake-slot-name
-                       :type slot-type
-                       :qualifiers qualifiers))))
-    (setf (v-uniforms env) (append (v-uniforms env) new-uniform-args))
-    (%add-symbol-binding
-     uniform-name
-     (v-make-value struct env :glsl-name glsl-name :read-only t)
-     env)
-    env))
-
 (defun fake-slot-name (in-var-name slot-name)
   (format nil "fk_~a_~a" (string-downcase (string in-var-name))
           (string-downcase (safe-glsl-name-string slot-name))))
