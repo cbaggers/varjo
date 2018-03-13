@@ -445,9 +445,14 @@
 (defun all-type-from-post-proc (post-proc-obj)
   (with-slots (env) post-proc-obj
     (normalize-used-types
-     (append
-      (mapcar #'v-type-of (v-uniforms env))
-      (reduce #'append (mapcar #'used-types (all-functions post-proc-obj)))))))
+     (remove-if
+      (lambda (x)
+        (intersection '(:ubo :ssbo) (qualifiers x)
+                      :test #'varjo.internals::qualifier=))
+      (append (mapcar #'v-type-of (v-uniforms env))
+              (reduce #'append
+                      (mapcar #'used-types
+                              (all-functions post-proc-obj))))))))
 
 (defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used
@@ -670,10 +675,7 @@
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
                                                            qualifiers))))
-                 final-strings))
-         (when (and (v-typep type-obj 'v-user-struct)
-                    (not (find type-obj structs :test #'v-type-eq)))
-           (push type-obj structs)))
+                 final-strings)))
 
       (loop :for s :in (stemcells post-proc-obj) :do
          (with-slots (name string-name type cpu-side-transform) s

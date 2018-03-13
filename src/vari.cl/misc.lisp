@@ -258,7 +258,10 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;;------------------------------------------------------------
 
-;; ## Spec clash issues
+;; ## Spec clash issues .. Actually the f* variants are the answer!
+;;                         we will use the glsl version by default and
+;;                         let the user turn to f* when they want the cl
+;;                         behaviour! yay!
 ;; floor (check api)
 ;; fceiling
 ;; ffloor
@@ -271,7 +274,6 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;; ## Harder
 ;; constantp (issue is that running constantp on a non-const form could have compile time side-effects)
-;; coerce
 ;; random
 ;; make-random-state (could be a seed for some rand func. however cl's random hard on gpu)
 ;; do

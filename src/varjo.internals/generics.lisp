@@ -31,7 +31,8 @@
 (defgeneric copy-compiled (code-obj &key type-set current-line to-block
                                       emit-set return-set
                                       stemcells out-of-scope-args
-                                      place-tree pure node-tree))
+                                      place-tree pure node-tree
+                                      used-types))
 (defgeneric delete-external-function (name in-args-types))
 (defgeneric expand-input-variable (stage var-type input-variable env))
 (defgeneric find-form-binding-by-literal (name env))

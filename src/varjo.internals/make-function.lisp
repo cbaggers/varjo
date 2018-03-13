@@ -197,14 +197,15 @@
                                       :return-set nil
                                       :emit-set emit-set
                                       :place-tree nil
-                                      :out-of-scope-args implicit-args))
+                                      :out-of-scope-args implicit-args
+                                      :used-types nil))
              (ast (to-top-level-ast-node body-obj declarations body-env)))
         (let ((res (make-instance 'compiled-function-result
                                   :call-count (if mainp 1 0)
                                   :function-obj func
                                   :signatures sigs
                                   :ast ast
-                                  :used-types (used-types code-obj)
+                                  :used-types (used-types body-obj)
                                   :glsl-code func-glsl-def
                                   :stemcells (stemcells code-obj)
                                   :return-set ret-set

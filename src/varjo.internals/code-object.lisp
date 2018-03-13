@@ -77,7 +77,8 @@
                             (out-of-scope-args nil set-out-of-scope-args)
                             (place-tree nil set-place-tree)
                             (pure nil set-pure)
-                            (node-tree nil set-node-tree))
+                            (node-tree nil set-node-tree)
+                            (used-types nil set-used-types))
   (let ((type-set (if set-type-set type-set (type-set code-obj))))
     (assert type-set () "Varjo: type-set is mandatory when copying compiled objects")
     (assert-valid-type-set type-set :error-hint "ast-node")
@@ -95,7 +96,8 @@
                             (remove nil (out-of-scope-args code-obj)))
      :place-tree (if set-place-tree place-tree (place-tree code-obj))
      :pure (if set-pure pure (pure-p code-obj))
-     :node-tree (if set-node-tree node-tree (node-tree code-obj)))))
+     :node-tree (if set-node-tree node-tree (node-tree code-obj))
+     :used-types (if set-used-types used-types (used-types code-obj)))))
 
 (defmethod merge-compiled ((objs list)
                            &key type-set
