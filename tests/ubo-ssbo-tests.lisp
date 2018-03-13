@@ -35,8 +35,8 @@
       (with-slots (ints) the-data
         (v! (aref ints 1) 2 3 4)))))
 
-(5am:def-test ubo-3 (:suite ubo-ssbo-tests)
-  (signals assigning-to-readonly
+(5am:def-test ubo-4 (:suite ubo-ssbo-tests)
+  (signals varjo-conditions::assigning-to-readonly
    (compile-vert ((vert pos-col) &uniform (the-data some-data :ubo :std-140))
        :410 nil
      (with-slots (ints) the-data

@@ -59,8 +59,9 @@
                                      (v-uniforms env)
                                      :key λ(flow-ids (v-type-of _))
                                      :test #'id=))
-                      (is-ssbo (find :ssbo (qualifiers (v-type-of uniform))
-                                     :test #'qualifier=)))
+                      (is-ssbo (when uniform
+                                 (find :ssbo (qualifiers (v-type-of uniform))
+                                       :test #'qualifier=))))
                  (assert (and is-ssbo (> (length (place-tree place-obj)) 1))
                          () 'assigning-to-readonly :var-name name)))
              (unless (or (= (v-function-scope env) (v-function-scope value))

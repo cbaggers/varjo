@@ -190,8 +190,18 @@
                                   :glsl-name glsl-name)
             (v-make-value (or type-obj (primary-type value-obj))
                           env
-                          :glsl-name glsl-name))
+                          :glsl-name glsl-name
+                          :read-only (code-obj-read-only-p value-obj)))
         env)))))
+
+(defun code-obj-read-only-p (obj)
+  (when obj
+    (let* ((ptree (place-tree obj))
+           (src (last1 ptree)))
+      (when src
+        (destructuring-bind (name value) src
+          (declare (ignore name))
+          (v-read-only value))))))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (v-typep (primary-type code-obj) 'v-or))
