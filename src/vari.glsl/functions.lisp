@@ -57,7 +57,7 @@
 ;;------------------------------------------------------------
 ;; Devil magic that makes operators work on any length
 
-(v-def-glsl-template-fun = (a b c &rest c) "(~a |==| ~a |==| ~a ~{ |==| ~a~})"
+(v-def-glsl-template-fun = (a b c &rest c) "(~a £==£ ~a £==£ ~a ~{ £==£ ~a~})"
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro = ((a t) (b t) (c t) &rest (d t))
@@ -68,25 +68,25 @@
             ,@(loop :for x :in d :collect
                  `(= ,ga ,x))))))
 
-(v-def-glsl-template-fun * (a b c &rest c) "(~a |*| ~a |*| ~a ~{ |*| ~a~})"
+(v-def-glsl-template-fun * (a b c &rest c) "(~a £*£ ~a £*£ ~a ~{ £*£ ~a~})"
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro * ((a t) (b t) (c t) &rest (d t))
   `(* ,a (* ,b (* ,c ,@d))))
 
-(v-def-glsl-template-fun / (a b c &rest c) "(~a |/| ~a |/| ~a ~{ |/| ~a~})"
+(v-def-glsl-template-fun / (a b c &rest c) "(~a £/£ ~a £/£ ~a ~{ £/£ ~a~})"
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro / ((a t) (b t) (c t) &rest (d t))
   `(/ ,a (/ ,b (/ ,c ,@d))))
 
-(v-def-glsl-template-fun + (a b c &rest c) "(~a |+| ~a |+| ~a ~{ |+| ~a~})"
+(v-def-glsl-template-fun + (a b c &rest c) "(~a £+£ ~a £+£ ~a ~{ £+£ ~a~})"
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro + ((a t) (b t) (c t) &rest (d t))
   `(+ ,a (+ ,b (+ ,c ,@d))))
 
-(v-def-glsl-template-fun - (a b c &rest c) "(~a |-| ~a |-| ~a ~{ |-| ~a~})"
+(v-def-glsl-template-fun - (a b c &rest c) "(~a £-£ ~a £-£ ~a ~{ £-£ ~a~})"
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro - ((a t) (b t) (c t) &rest (d t))

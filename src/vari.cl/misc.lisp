@@ -6,9 +6,10 @@
                             &optional (then t) (else nil))
   (destructuring-bind (arg-name arg-type) func-arg
     (let ((args (or (uiop:ensure-list args)
-                    '(nil))))
+                    '(nil)))
+          (glsl (format nil "£-~a-£(~~a)" func-name)))
       `(progn
-         (v-def-glsl-template-fun ,func-name (,arg-name) "<invalid>"
+         (v-def-glsl-template-fun ,func-name (,arg-name) ,glsl
                                   (,arg-type)
                                   v-bool :pure t)
          (v-define-compiler-macro ,func-name (,func-arg
@@ -239,7 +240,7 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun float-radix (x) "<invalid float-radix>"
+(v-def-glsl-template-fun float-radix (x) "£-float-radix-£(~a)"
                          (v-float) 0 :pure t)
 
 (v-define-compiler-macro float-radix ((a v-float))
@@ -247,7 +248,7 @@ Try qualifying the types in order to pass complement a specific overload."))
       2
       `(progn ,a 2)))
 
-(v-def-glsl-template-fun float-digits (x) "<invalid float-digits>"
+(v-def-glsl-template-fun float-digits (x) "£-float-digits-£(~a)"
                          (v-float) 0 :pure t)
 
 (v-define-compiler-macro float-digits ((a v-float))

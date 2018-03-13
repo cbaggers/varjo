@@ -108,7 +108,7 @@ implementation that compiles the code for real"
   t)
 
 (defun glsl-contains-invalid (compile-result)
-  (not (null (cl-ppcre:all-matches-as-strings "<invalid>"
+  (not (null (cl-ppcre:all-matches-as-strings "£.*£"
                                               (glsl-code compile-result)))))
 (defun glsl-contains-nil (compile-result)
   ;; NIL usually means a bug

@@ -334,7 +334,8 @@
 (define-v-type-class v-block-array (v-ephemeral-type)
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)
-   (block-name :initarg :block-name :initform "<invalid>" :reader block-name)))
+   (block-name :initarg :block-name :initform "£-v-block-array-£"
+               :reader block-name)))
 
 (defmethod v-make-type ((type v-block-array) flow-id &rest args)
   (destructuring-bind (block-name element-type length) args
@@ -366,7 +367,7 @@
 (defmethod type->type-spec ((type v-block-array))
   `(v-block-array ,(if (slot-boundp type 'block-name)
                        (block-name type)
-                       "<invalid>")
+                       "£-unknown-block-name-£")
                   ,(type->type-spec (v-element-type type))
                   ,(v-dimensions type)))
 

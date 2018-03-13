@@ -7,7 +7,7 @@
 (define-v-type-class v-type ()
   ((core :initform nil :reader core-typep)
    (superclass :initform nil)
-   (glsl-string :initform "<invalid>" :reader v-glsl-string)
+   (glsl-string :initform "£-vtype-£" :reader v-glsl-string)
    (glsl-size :initform 1 :reader v-glsl-size)
    (casts-to :initform nil)
    (flow-ids :initarg :flow-ids :initform nil :reader flow-ids)
