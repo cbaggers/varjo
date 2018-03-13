@@ -20,7 +20,8 @@
   :args-valid t
   :return
   (vbind (inst-obj inst-env) (compile-form instance env)
-    (assert (v-typep inst-obj 'v-struct) () 'slot-value-on-non-struct
+    (assert (v-typep (primary-type inst-obj) 'v-struct) ()
+            'slot-value-on-non-struct
             :type (v-type-of inst-obj) :slot-name slot-name)
     (let* ((accessor (struct-slot-accessor inst-obj slot-name)))
       (compile-form
