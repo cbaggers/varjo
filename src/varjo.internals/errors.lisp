@@ -150,9 +150,6 @@ type-of new-value: ~a"
 (define-error out-var-type-mismatch () (var-name var-types)
     "The out variable ~a is has been set with different types.~%Types used: ~a" var-name var-types)
 
-(define-error fake-type-global () (env)
-    "fake types can not be added to the global environment")
-
 (define-error invalid-context-symbol () (context-symb)
     "Sorry but the symbol '~a' is not valid as a context specifier" context-symb)
 
@@ -616,7 +613,7 @@ the time, please report this on github."
     "Was asked to swizzle a value with the type ~a
 
 However is not a type that can be swizzled. ~a"
-  (type->type-spec (v-true-type vtype))
+  (type->type-spec vtype)
   (if (typep vtype 'v-struct)
       "Perhaps you meant one of this struct's slots?"
       ""))

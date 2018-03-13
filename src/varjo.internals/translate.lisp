@@ -139,14 +139,15 @@
 ;; mutates env
 (defun process-regular-uniform (uvar env)
   (with-slots (name glsl-name type) uvar
-    (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
-           (type-for-value (strip-qualifiers true-type)))
+    (let* ((type (set-flow-id type (flow-id!)))
+           (type-for-value (strip-qualifiers type)))
+      (assert (flow-ids type) () "fiik")
       (%add-symbol-binding
        name
        (v-make-value type-for-value env :glsl-name glsl-name :read-only t)
        env)
       (add-lisp-name name env glsl-name)
-      (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
+      (let ((type-with-flow type))
         (push (make-instance 'uniform-variable
                              :name name
                              :glsl-name glsl-name
@@ -165,19 +166,19 @@
     (when (eq which :ssbo)
       (assert (intersection (v-context env) '(:430 :440 :450 :460)) ()
               "Varjo: SSBOs require a context version of at least 430"))
-    (let* ((true-type (set-flow-id (v-true-type type) (flow-id!)))
-           (type-for-value (make-into-block-struct (strip-qualifiers true-type)
+    (let* ((type (set-flow-id type (flow-id!)))
+           (type-for-value (make-into-block-struct (strip-qualifiers type)
                                                    glsl-name)))
+      (assert (flow-ids type) () "fiik")
       (%add-symbol-binding
        name (v-make-value type-for-value env :glsl-name glsl-name
                           :function-scope 0 :read-only t)
        env)
-      (let ((type-with-flow (set-flow-id type (flow-ids true-type))))
-        (push (make-instance 'uniform-variable
-                             :name name
-                             :glsl-name glsl-name
-                             :type type-with-flow)
-              (v-uniforms env))))
+      (push (make-instance 'uniform-variable
+                           :name name
+                           :glsl-name glsl-name
+                           :type type)
+            (v-uniforms env)))
     env))
 
 ;;----------------------------------------------------------------------

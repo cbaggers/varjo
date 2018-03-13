@@ -57,9 +57,6 @@ type-spec trick doesnt"))
   (declare (ignore initargs))
   (post-initialise type-obj))
 
-(defmethod v-true-type ((object v-type))
-  object)
-
 (defun vtype-existsp (type-name)
   (let ((type-name (expand-keyword-type-spec-shorthand type-name)))
     (etypecase type-name

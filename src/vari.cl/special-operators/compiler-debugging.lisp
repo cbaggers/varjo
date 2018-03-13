@@ -20,7 +20,9 @@
   :args-valid t
   :return
   (vbind (o e) (compile-form form env)
-    (break "Varjo Peek:~%:code-obj ~s~%:env ~s" o e)
+
+    (break "Varjo Peek:~%:code-obj ~s~%:type-set ~s~%:env ~s"
+           o (if (typep o 'compiled) (type-set o) :n/a) e)
     (values o e)))
 
 ;;------------------------------------------------------------

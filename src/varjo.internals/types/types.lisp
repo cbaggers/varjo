@@ -65,9 +65,8 @@
 
 ;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
 (defmethod type-spec->type (spec &optional flow-id)
-  (v-true-type
-   (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
-       (error 'unknown-type-spec :type-spec spec))))
+  (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
+      (error 'unknown-type-spec :type-spec spec)))
 
 (defun arg-form->type-spec (arg-form)
   (if (&rest-p arg-form)
