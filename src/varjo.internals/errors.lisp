@@ -1103,6 +1103,17 @@ function or by a multiple-value-bind form"
     "'~a' is deprecated, please use '~a'"
   old new)
 
+(define-error integer-outputs-not-flat () (problem-types outputs)
+    "Found ~a ~a not qualfied as :flat. This
+is not allowed in glsl.
+
+Outputs:~{~%~s~}"
+  (length problem-types)
+  (if (= (length problem-types) 1)
+      "output which was an integer and was"
+      "outputs which were integers and were")
+  (mapcar #'type->type-spec outputs))
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

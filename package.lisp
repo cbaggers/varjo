@@ -340,6 +340,7 @@
            :conditional-return-type-mismatch
            :if-form-multiple-vals-mismatch
            :v-deprecated
+           :integer-outputs-not-flat
 
            ;; restarts
            :setq-supply-alternate-type))

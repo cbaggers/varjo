@@ -10,6 +10,7 @@
         (let ((env (%make-base-environment
                     stage :stemcells-allowed stemcells-allowed)))
           (pipe-> (stage env)
+            #'validate-inputs
             #'process-primitive-type
             #'add-context-glsl-vars
             #'add-context-glsl-funcs
@@ -22,6 +23,7 @@
             #'check-stemcells
             #'post-process-ast
             #'filter-used-items
+            #'validate-outputs
             #'gen-in-arg-strings
             #'gen-in-decl-strings
             #'gen-out-var-strings
@@ -29,6 +31,11 @@
             #'dedup-used-types
             #'final-string-compose
             #'package-as-final-result-object))))))
+
+;;----------------------------------------------------------------------
+
+(defun validate-inputs (stage env)
+  (values stage env))
 
 ;;----------------------------------------------------------------------
 
@@ -449,6 +456,22 @@
     (setf (used-user-structs post-proc-obj)
           (find-used-user-structs
            (all-type-from-post-proc post-proc-obj))))
+  post-proc-obj)
+
+;;----------------------------------------------------------------------
+
+(defun validate-outputs (post-proc-obj)
+  (with-slots (out-set) post-proc-obj
+    (let ((out-set (coerce out-set 'list)))
+      ;; int out's should be flat
+      (let ((issues
+             (loop :for type :in out-set
+                :when (and (v-typep type 'v-integer)
+                           (not (find :flat (qualifiers type) :test #'qualifier=)))
+                :collect type)))
+        (assert (null issues) () 'integer-outputs-not-flat
+                :problem-types issues
+                :outputs out-set))))
   post-proc-obj)
 
 ;;----------------------------------------------------------------------
