@@ -9,8 +9,12 @@
     (otherwise (format nil "~a" number))))
 
 (defun gen-variable-string (var-name v-value)
-  (format nil "~a" (or (glsl-name v-value) ()
-                       (string-downcase (string var-name)))))
+  (let ((type (v-type-of v-value)))
+    (format nil "~a"
+            (if (typep type 'v-block-struct)
+                (block-name type)
+                (or (glsl-name v-value)
+                    (string-downcase (string var-name)))))))
 
 (defun gen-function-string (func arg-objs &optional out-strings)
   ;; This will include ephemeral types if passed. It is the responsibility
