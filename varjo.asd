@@ -91,6 +91,7 @@
                (:file "src/vari.cl/special-operators/emit")
                (:file "src/vari.cl/special-operators/slots")
                (:file "src/vari.cl/special-operators/typecase")
+               (:file "src/vari.cl/special-operators/coerce")
                (:file "src/vari.cl/complex")
                (:file "src/vari.cl/ratio")
                (:file "src/vari.cl/misc")

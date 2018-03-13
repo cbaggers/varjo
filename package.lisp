@@ -341,6 +341,7 @@
            :if-form-multiple-vals-mismatch
            :v-deprecated
            :integer-outputs-not-flat
+           :invalid-coerce
 
            ;; restarts
            :setq-supply-alternate-type))
