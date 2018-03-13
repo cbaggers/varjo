@@ -93,7 +93,7 @@
 
 (5am:def-test array-14 (:suite array-tests)
   (finishes-p
-   (compile-vert () :410 nil
+   (compile-vert () :450 nil
      (let* ((i (vector 1 2 3))
             (j (vector i i)))
        (v! (aref i 0) 0 0 0)))))
