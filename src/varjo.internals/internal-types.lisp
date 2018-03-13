@@ -452,7 +452,8 @@
 
 (defclass v-user-function (v-function)
   ((captured-vars :initform nil :initarg :captured-vars :reader captured-vars)
-   (code :initform nil :initarg :code :reader v-code)))
+   (code :initform nil :initarg :code :reader v-code)
+   (compiled-result :accessor compiled-result)))
 
 ;;------------------------------------------------------------
 

@@ -199,18 +199,19 @@
                                       :place-tree nil
                                       :out-of-scope-args implicit-args))
              (ast (to-top-level-ast-node body-obj declarations body-env)))
-        (values (make-instance 'compiled-function-result
-                               :call-count (if mainp 1 0)
-                               :function-obj func
-                               :signatures sigs
-                               :ast ast
-                               :used-types (used-types code-obj)
-                               :glsl-code func-glsl-def
-                               :stemcells (stemcells code-obj)
-                               :return-set ret-set
-                               :emit-set emit-set
-                               :top-level-scoped-metadata tl-meta)
-                code-obj)))))
+        (let ((res (make-instance 'compiled-function-result
+                                  :call-count (if mainp 1 0)
+                                  :function-obj func
+                                  :signatures sigs
+                                  :ast ast
+                                  :used-types (used-types code-obj)
+                                  :glsl-code func-glsl-def
+                                  :stemcells (stemcells code-obj)
+                                  :return-set ret-set
+                                  :emit-set emit-set
+                                  :top-level-scoped-metadata tl-meta)))
+          (setf (compiled-result func) res)
+          (values res code-obj))))))
 
 (defun to-top-level-ast-node (body-obj declarations env)
   (let* ((ast (node-tree body-obj))

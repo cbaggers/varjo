@@ -243,6 +243,8 @@
   (let ((type-set (make-type-set (resolve-func-set func args)
                                  (when (v-multi-val-safe env)
                                    (handle-regular-function-mvals args)))))
+    (when (user-function-p func)
+      (incf (call-count (compiled-result func))))
     (values (merge-compiled
              args
              :type-set type-set
@@ -304,5 +306,7 @@
                          (mapcar #'node-tree args)
                          type-set
                          env env)))
+    (when (user-function-p func)
+      (incf (call-count (compiled-result func))))
     (values (copy-compiled call-obj :node-tree ast)
             env)))
