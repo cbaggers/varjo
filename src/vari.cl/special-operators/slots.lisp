@@ -32,7 +32,7 @@
 ;; with-slots
 
 (v-defmacro with-slots (slots form &body body)
-  (let* ((name (gensym "with"))
+  (let* ((name (gensym "with-slots-tmp"))
          (bindings (mapcar λ(dbind (mname &optional sname) (ensure-list _)
                               (let ((sname (or sname mname)))
                                 `(,mname (slot-value ,name ,sname))))
@@ -44,7 +44,7 @@
 ;; with-accessors
 
 (v-defmacro with-accessors (bindings form &body body)
-  (let* ((name (gensym "instance"))
+  (let* ((name (gensym "with-slots-tmp"))
          (bindings (mapcar λ(dbind (accessor-symbol-name accessor-name)
                                 (ensure-list _)
                               `(,accessor-symbol-name (,accessor-name ,name)))
