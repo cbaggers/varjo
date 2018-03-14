@@ -662,7 +662,8 @@
            :with-v-let-spec
            :parse-qualifier
            :*in-qualifier*
-           :*out-qualifier*))
+           :*out-qualifier*
+           :extract-details-from-problematic-closures))
 
 (uiop:define-package #:varjo.api
     (:use #:cl #:varjo.utils #:varjo.internals #:alexandria #:named-readtables)
