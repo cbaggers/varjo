@@ -54,3 +54,6 @@
   (check-type qualifier qualifier)
   (not (null (member (name qualifier)
                      '(:std-140 :std-430 :packed :shared)))))
+
+(defmethod qualifiers ((obj shader-variable))
+  (qualifiers (v-type-of obj)))
