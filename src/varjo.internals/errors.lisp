@@ -360,12 +360,17 @@ Here are some types we think may have been meant:
 Please report this bug on github" name spec)
 
 (define-error closures-not-supported (:error-type varjo-critical-error)
-    (func)
+    (func details)
     "The function ~s is a closure and currently Varjo doesnt support
 passing these around as first class objects.
 
-Sorry for the odd limitation, this will be fixed in a future version."
-  func)
+Sorry for the odd limitation, this will be fixed in a future version.
+~{~%~%~a~}"
+  func
+  (loop :for (func var-names glsl-names) :in details :collect
+     (format nil "Problematic function:~%~a~%Captured Var/s: ~{~a~^,~^ ~}
+~@[Implicit Arg/s (glsl names): ~{~a~^,~^ ~} ~]"
+             func var-names glsl-names)))
 
 (define-error cannot-establish-exact-function (:error-type varjo-critical-error)
     (funcall-form)

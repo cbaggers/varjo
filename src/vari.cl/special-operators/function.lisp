@@ -42,10 +42,15 @@
       ;; and carry on
       (t (let* ((functions (remove-if #'external-function-p functions))
                 (type (v-type-of (make-function-set functions)))
-                (type-set (make-type-set type)))
-           (when (or (some #'implicit-args functions)
-                     (and (some #'captured-vars functions)))
-            (error 'closures-not-supported :func func-name-form))
+                (type-set (make-type-set type))
+                (funcs-with-implicit-args (remove-if-not #'implicit-args functions))
+                (funcs-with-captured-args (remove-if-not #'captured-vars functions)))
+           (when (or funcs-with-implicit-args funcs-with-captured-args)
+             (let ((details (extract-details-from-problematic-closures
+                             (append funcs-with-implicit-args funcs-with-captured-args))))
+               (error 'varjo.internals::closures-not-supported
+                      :func func-name-form
+                      :details details)))
            (values
             (make-compiled :type-set type-set
                            :current-line nil
@@ -64,7 +69,10 @@
          (type (set-flow-id (v-type-of func) flow-id))
          (type-set (make-type-set type)))
     (when (implicit-args func)
-      (error 'closures-not-supported :func func-name-form))
+      (let ((details (extract-details-from-problematic-closures (list func))))
+        (error 'varjo.internals::closures-not-supported
+               :func func-name-form
+               :details details)))
     (values
      (make-compiled :type-set type-set
                     :current-line nil

@@ -190,7 +190,9 @@
            (type (set-flow-id (v-type-of func) flow-id))
            (type-set (make-type-set type)))
       (when (implicit-args func)
-        (error 'closures-not-supported :func func-name-form))
+        (let ((details (extract-details-from-problematic-closures (list func))))
+          (error 'closures-not-supported :func func-name-form
+                 :details details)))
       (values
        (make-compiled :type-set type-set
                       :current-line nil
@@ -198,6 +200,16 @@
                       :node-tree (ast-node! 'function (list func-name-form)
                                             type-set nil nil))
        env))))
+
+(defun extract-details-from-problematic-closures (closures)
+  (let ((closures (remove-duplicates closures)))
+    (loop :for c :in closures :collect
+       (let ((captured (captured-vars c))
+             (implicit (implicit-args c)))
+         (dbind (args body) (v-code c)
+           (list `(,(name c) ,args ,@body)
+                 (mapcar #'name captured)
+                 (mapcar #'glsl-name implicit)))))))
 
 (defun compile-external-function-call (func args env)
   ;; Here we are going to make use of the fact that a external function
