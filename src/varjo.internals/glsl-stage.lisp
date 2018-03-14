@@ -51,7 +51,11 @@
                                     #())))
                   (values (make-instance
                            'compiled-function-result
-                           :function-obj nil
+                           :function-obj (make-function-obj :main
+                                                            :glsl-stage
+                                                            nil
+                                                            nil
+                                                            nil)
                            :signatures nil
                            :ast (ast-node! :error nil #() nil nil)
                            :used-types nil

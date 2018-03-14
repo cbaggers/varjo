@@ -462,9 +462,14 @@
         (intersection '(:ubo :ssbo) (qualifiers x)
                       :test #'varjo.internals::qualifier=))
       (append (mapcar #'v-type-of (v-uniforms env))
-              (reduce #'append
-                      (mapcar #'used-types
-                              (all-functions post-proc-obj))))))))
+              ;; here we rely on main having the used-types for
+              ;; every function it called, which should be a logical
+              ;; assumption
+              (used-types
+               (find-if (lambda (x)
+                          (let ((func (function-obj x)))
+                            (eq (name func) :main)))
+                        (all-functions post-proc-obj))))))))
 
 (defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used
