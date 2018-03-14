@@ -201,7 +201,8 @@
       (when src
         (destructuring-bind (name value) src
           (declare (ignore name))
-          (v-read-only value))))))
+          (when (typep value 'v-value)
+            (v-read-only value)))))))
 
 (defun %validate-var-types (var-name type code-obj)
   (when (and code-obj (v-typep (primary-type code-obj) 'v-or))
