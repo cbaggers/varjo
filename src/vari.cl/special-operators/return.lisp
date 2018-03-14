@@ -67,5 +67,8 @@
               (values (copy-compiled final-obj
                                      :return-set return-set
                                      :type-set type-set
+                                     :used-types (append
+                                                  (used-types final-obj)
+                                                  (coerce return-set 'list))
                                      :node-tree ast)
                       final-env)))))))

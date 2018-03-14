@@ -17,19 +17,18 @@
     (error "invalid ast node-tree ~s" node-tree))
   (assert type-set () "Varjo: type-set is mandatory when making compiled objects")
   (assert-valid-type-set type-set :error-hint "ast-node")
-  (let* ((used-types (%merge-used-types used-types type-set)))
-    (make-instance 'compiled
-                   :type-set type-set
-                   :current-line current-line
-                   :to-block to-block
-                   :return-set return-set
-                   :emit-set emit-set
-                   :used-types used-types
-                   :stemcells stemcells
-                   :out-of-scope-args out-of-scope-args
-                   :place-tree place-tree
-                   :pure pure
-                   :node-tree node-tree)))
+  (make-instance 'compiled
+                 :type-set type-set
+                 :current-line current-line
+                 :to-block to-block
+                 :return-set return-set
+                 :emit-set emit-set
+                 :used-types used-types
+                 :stemcells stemcells
+                 :out-of-scope-args out-of-scope-args
+                 :place-tree place-tree
+                 :pure pure
+                 :node-tree node-tree))
 
 (defmethod primary-type ((compiled compiled))
   (primary-type (type-set compiled)))
@@ -39,8 +38,6 @@
       (type-spec->type :void)
       (elt set 0)))
 
-(defun %merge-used-types (a b)
-  (concatenate 'list a (remove-if λ(find _ a :test #'v-type-eq) b)))
 
 (defmethod current-line (code-obj &optional even-when-ephemeral)
   (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
@@ -108,7 +105,8 @@
                              (out-of-scope-args nil set-out-of-scope-args)
                              place-tree
                              (pure nil set-pure)
-                             node-tree)
+                             node-tree
+                             (used-types nil set-used-types))
   (assert type-set () "Varjo: type-set is mandatory when merging compiled objects")
   (assert-valid-type-set type-set :error-hint "ast-node")
   (let ((return-set
@@ -129,7 +127,9 @@
                                  (mappend #'to-block objs))
                    :emit-set emit-set
                    :return-set return-set
-                   :used-types (mappend #'used-types objs)
+                   :used-types (if set-used-types
+                                   used-types
+                                   (mappend #'used-types objs))
                    :stemcells (if set-stemcells stemcells
                                   (mappend #'stemcells objs))
                    :out-of-scope-args

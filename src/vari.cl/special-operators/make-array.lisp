@@ -57,7 +57,7 @@
             (values
              (make-compiled :type-set type-set
                             :current-line glsl
-                            :used-types (list element-type)
+                            :used-types (list array-type element-type)
                             :node-tree ast
                             :pure t)
              env)))))))

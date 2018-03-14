@@ -205,7 +205,9 @@
                                   :function-obj func
                                   :signatures sigs
                                   :ast ast
-                                  :used-types (used-types body-obj)
+                                  :used-types (append (used-types body-obj)
+                                                      (coerce ret-set 'list)
+                                                      (coerce emit-set 'list))
                                   :glsl-code func-glsl-def
                                   :stemcells (stemcells code-obj)
                                   :return-set ret-set

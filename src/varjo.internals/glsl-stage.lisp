@@ -59,10 +59,12 @@
                                                             nil)
                            :signatures nil
                            :ast (ast-node! :error nil #() nil nil)
-                           :used-types nil
                            :glsl-code body-string
                            :stemcells nil
-                           :used-types arg-types
+                           :used-types (append
+                                        arg-types
+                                        (map 'list #'v-type-of return-set)
+                                        (map 'list #'v-type-of emit-set))
                            :return-set return-set
                            :emit-set emit-set)
                           stage

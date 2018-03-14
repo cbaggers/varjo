@@ -49,7 +49,7 @@
            (values
             (make-compiled :type-set type-set
                            :current-line nil
-                           :used-types (list type)
+                           :used-types nil
                            :node-tree (ast-node! 'function (list func-name-form)
                                                  type-set nil nil)
                            :pure t)
@@ -68,7 +68,7 @@
     (values
      (make-compiled :type-set type-set
                     :current-line nil
-                    :used-types (list type)
+                    :used-types nil
                     :node-tree (ast-node! 'function (list func-name-form)
                                           type-set nil nil)
                     :pure t)

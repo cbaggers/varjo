@@ -242,7 +242,8 @@
 (defun compile-regular-function-call (func args env)
   (let ((type-set (make-type-set (resolve-func-set func args)
                                  (when (v-multi-val-safe env)
-                                   (handle-regular-function-mvals args)))))
+                                   (handle-regular-function-mvals args))))
+        (emit-set (emit-set func)))
     (when (user-function-p func)
       (incf (call-count (compiled-result func))))
     (values (merge-compiled
@@ -250,14 +251,18 @@
              :type-set type-set
              :current-line (gen-function-string func args)
              :pure (pure-p func)
-             :emit-set (emit-set func)
+             :emit-set emit-set
              :stemcells (mappend #'stemcells args)
              :place-tree (calc-place-tree func args)
              :node-tree (ast-node! (name func)
                                    (mapcar #'node-tree args)
                                    type-set
                                    env
-                                   env))
+                                   env)
+             :used-types (append
+                          (mappend #'used-types args)
+                          (coerce type-set 'list)
+                          (coerce emit-set 'list)))
             env)))
 
 ;;----------------------------------------------------------------------
@@ -273,13 +278,18 @@
                            (nth-return-name i (stage env) t)
                            (postfix-glsl-index m-r-base i))))
          (type-set type-set)
+         (emit-set (emit-set func))
          (o (merge-compiled
              args
              :type-set type-set
              :current-line (gen-function-string func args m-r-names)
              :stemcells (mappend #'stemcells args)
              :pure (pure-p func)
-             :emit-set (emit-set func)
+             :emit-set emit-set
+             :used-types (append
+                          (mappend #'used-types args)
+                          (coerce type-set 'list)
+                          (coerce emit-set 'list))
              :place-tree (calc-place-tree func args)
              :node-tree :ignored))
          (bindings (loop :for i :from 1 :below (length type-set) :collect

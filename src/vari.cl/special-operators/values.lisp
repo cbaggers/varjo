@@ -116,6 +116,9 @@
              result
              :type-set type-set
              :emit-set type-set
+             :used-types (append
+                          (used-types result)
+                          (coerce type-set 'list))
              :node-tree ast)
             env)))
 
@@ -147,6 +150,9 @@
     (values (copy-compiled
              result
              :type-set type-set
+             :used-types (append
+                          (used-types result)
+                          (coerce type-set 'list))
              :node-tree ast)
             env)))
 
