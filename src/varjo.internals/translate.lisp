@@ -44,7 +44,7 @@
                :when (and (v-typep type 'v-integer)
                           (not (find :flat (qualifiers type) :test #'qualifier=)))
                :collect type)))
-      (assert (null issues) () 'integer-outputs-not-flat
+      (assert (null issues) () 'fragment-integer-inputs-not-flat
               :problem-types issues
               :inputs (mapcar #'v-type-of in-set))))
   (values stage env))
