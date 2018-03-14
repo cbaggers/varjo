@@ -38,6 +38,92 @@ Whist it is recommended to get Varjo from quicklisp, if you clone please note th
 
 ### Updates
 
+#### 2018-03-14
+
+Lots landing this month, whilst my current test suite passes I'm still expecting some issues or regressions, if these hit you PLEASE let me know so I can avoid merging this to quicklisp before the regressions have been handled. Quick summary of changes are:
+
+- GLSL 460 fixes
+- compute bug fixes
+- tonnes of functions from the CL spec added (see below)
+- swizzle of rgba & stpq
+- more closely mimick the CL type tree (Still lots to be done here)
+- fix long standing bug which stopped you passing ubo/ssbo structs to functions (due to them being represented by interface blocks)
+- fix max array length bug
+- dont emit spurious function & struct glsl in various cases. Wasnt hurting anything except glsl compile time, but was still ugly.
+- internal environment object now uses the uniform-variable objects rather than lists
+- qualifier refactor to reduce duplication of information
+- some more validation checks around ubos & ssbos (though the validation code is scattered and needs a cleanup)
+- internal macro renaming
+- def-metadata-infer deprecated, use define-metadata-infer instead
+- def-metadata-kind deprecated, use define-metadata-kind instead
+- def-shadow-type-constructor deprecated, use define-shadow-type-constructor instead
+- :int32 & :uint32 type names now work as expected
+- improvements to slot-value
+- fix bug letting you assign to a read-only place
+
+CL functions added listed below. Some of the predicates are basically pointless, but for completeness it's nice to have them
+
+- symbolp
+- keywordp
+- row-major-aref
+- svref
+- array-rank
+- array-row-major-index
+- array-total-size
+- adjustable-array-p
+- array-has-fill-pointer-p
+- arrayp
+- bit-vector-p
+- simple-bit-vector-p
+- simple-vector-p
+- vectorp
+- compiled-function-p
+- functionp
+- 1+
+- 1-
+- cis
+- float (add optional args)
+- integer-length
+- signum
+- conjugate
+- random-state-p (though just false for now)
+- complexp
+- evenp
+- floatp
+- integerp
+- minusp
+- numberp
+- oddp
+- plusp
+- rationalp
+- realp
+- zerop
+- copy-structure
+- prog2
+- dotimes
+- typecase
+- phase
+- isqrt
+- logand
+- logandc1
+- logandc2
+- logcount
+- logeqv
+- logior
+- lognand
+- lognor
+- lognot
+- logorc1
+- logorc2
+- logtest
+- logxor
+- with-accessors
+- multiple-value-setq
+- nth-value
+
+Also added the complex & ratio types. Complex support is limited right now and ratio basically useless. But we have a place to work from.
+Complex numbers are always single-float in vari.
+
 #### 2017-06-04
 
 **PACKAGES**
