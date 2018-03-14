@@ -59,9 +59,8 @@
           ;; this next check is to preempt a possible return-type-mismatch
           ;; error. The reason we do this is to give a better error.
           (let ((return-sets (remove nil (mapcar #'return-set arg-objs))))
-            (when (and (> (length return-sets) 1)
-                       (find-if (lambda (x) (= (length x) 0))
-                                return-sets))
+            (when (and (some #'v-voidp return-sets)
+                       (not (every #'v-voidp return-sets)))
               (error 'conditional-return-type-mismatch
                      :sets return-sets)))
           (values (merge-compiled arg-objs
