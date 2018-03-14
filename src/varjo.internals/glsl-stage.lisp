@@ -51,6 +51,7 @@
                                     #())))
                   (values (make-instance
                            'compiled-function-result
+                           :call-count 1
                            :function-obj (make-function-obj :main
                                                             :glsl-stage
                                                             nil
