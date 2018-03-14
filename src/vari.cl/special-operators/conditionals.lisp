@@ -60,7 +60,7 @@
           ;; error. The reason we do this is to give a better error.
           (let ((return-sets (remove nil (mapcar #'return-set arg-objs))))
             (when (and (some #'v-voidp return-sets)
-                       (not (every #'v-voidp return-sets)))
+                       (some (complement #'v-voidp) return-sets))
               (error 'conditional-return-type-mismatch
                      :sets return-sets)))
           (values (merge-compiled arg-objs

@@ -112,7 +112,7 @@
   (let ((return-set
          (if set-return-set
              return-set
-             (merge-return-sets (remove nil (mapcar #'return-set objs)))))
+             (merge-return-sets (mapcar #'return-set objs))))
         (emit-set
          (if set-emit-set
              emit-set

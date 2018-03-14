@@ -178,6 +178,8 @@
                       :type-set (make-type-set)
                       :current-line nil
                       :to-block to-block
+                      :return-set (when value-obj
+                                    (return-set value-obj))
                       :place-tree nil
                       :node-tree (if value-form
                                      (node-tree value-obj)
