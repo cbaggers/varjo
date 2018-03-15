@@ -12,7 +12,7 @@
          (type-set (make-type-set (type-spec->type :bool flow-id))))
     (unless (loop for o in objs always (v-primary-type-eq o (first objs)))
       (error "all forms of an 'AND' form must resolve to the same type"))
-    (if (v-typep (primary-type (first objs)) (type-spec->type :bool))
+    (if (v-typep (primary-type (first objs)) :bool)
         (values (merge-compiled objs
                                 :type-set type-set
                                 :current-line (gen-bool-and-string objs)
@@ -36,10 +36,10 @@
   :return
   (let* ((objs (mapcar (lambda (x) (compile-form x env)) forms))
          (flow-id (flow-id!))
-         (type-set (make-type-set (type-spec->type :bool flow-id))))
+         (type-set  (make-type-set (type-spec->type :bool flow-id))))
     (unless (loop for o in objs always (v-primary-type-eq o (first objs)))
       (error "all forms of an 'OR' form must resolve to the same type"))
-    (if (v-typep (primary-type (first objs)) (type-spec->type :bool))
+    (if (v-typep (primary-type (first objs)) :bool)
         (values (merge-compiled
                  objs
                  :type-set type-set

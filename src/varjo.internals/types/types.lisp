@@ -68,6 +68,12 @@
   (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
       (error 'unknown-type-spec :type-spec spec)))
 
+(define-compiler-macro type-spec->type (&whole whole spec &optional flow-id)
+  (if flow-id
+      whole
+      (let ((type (try-type-spec->type spec nil)))
+        (or type whole))))
+
 (defun arg-form->type-spec (arg-form)
   (if (&rest-p arg-form)
       arg-form
@@ -195,6 +201,8 @@
 ;; Array
 
 (define-v-type-class v-array (v-container)
+  ;; note: not a core type. Changing this changes assumptions about
+  ;;       the v-typep compiler-macro
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 
@@ -270,9 +278,6 @@
                    :element-type element-type
                    :flow-ids flow-id)))
 
-(defmethod v-typep ((a v-array) (b v-array))
-  (v-typep (v-element-type a) (v-element-type b)))
-
 ;;------------------------------------------------------------
 ;; Ephemeral Values
 ;;
@@ -287,7 +292,10 @@
 (defun ephemeral-p (obj)
   (typecase obj
     (v-type (typep obj 'v-ephemeral-type))
-    (compiled (ephemeral-p (type-set obj)))
+    (compiled (if (slot-boundp obj 'is-ephemeral)
+                  (slot-value obj 'is-ephemeral)
+                  (setf (slot-value obj 'is-ephemeral)
+                        (ephemeral-p (type-set obj)))))
     (vector (not (null (some #'ephemeral-p obj))))
     (otherwise (ephemeral-p (v-type-of obj)))))
 
@@ -653,9 +661,23 @@
 ;; Type Equality
 
 ;; Type <-> Type
-
 (defmethod v-type-eq ((a v-type) (b v-type))
-  (and (equal (type->type-spec a) (type->type-spec b))
+  (and (eq (slot-value a 'type-name) (slot-value b 'type-name))
+       (eq (ctv a) (ctv b))))
+
+(defmethod v-type-eq ((a v-array) (b v-array))
+  (and (eq (slot-value a 'type-name) (slot-value b 'type-name))
+       (v-type-eq (v-element-type a) (v-element-type b))
+       (eq (ctv a) (ctv b))))
+
+(defmethod v-type-eq ((a v-block-array) (b v-block-array))
+  (and (eq (slot-value a 'type-name) (slot-value b 'type-name))
+       (v-type-eq (v-element-type a) (v-element-type b))
+       (eq (ctv a) (ctv b))))
+
+(defmethod v-type-eq ((a v-block-struct) (b v-block-struct))
+  (and (eq (slot-value a 'type-name) (slot-value b 'type-name))
+       (v-type-eq (v-element-type a) (v-element-type b))
        (eq (ctv a) (ctv b))))
 
 ;; Type <-> Spec
@@ -711,6 +733,19 @@
 (defmethod v-typep ((a v-stemcell) b)
   (declare (ignore a b))
   t)
+
+(defmethod v-typep ((a v-array) (b v-array))
+  (v-typep (v-element-type a) (v-element-type b)))
+
+(define-compiler-macro v-typep (&whole whole a b)
+  (if (or (listp b) (symbolp a))
+      (let ((type (try-type-spec->type b nil)))
+        (if type
+            (if (core-typep type)
+                `(typep a ',(slot-value type 'type-name))
+                `(v-typep a ,type))
+            whole))
+      whole))
 
 (defmacro v-typecase (varjo-form &body cases)
   (alexandria:with-gensyms (type)
@@ -824,7 +859,8 @@
 ;; used in errors.lisp
 
 (defun find-alternative-types-for-spec (type-spec)
-  (find-similarly-named-symbol type-spec *registered-types*))
+  (find-similarly-named-symbol
+   type-spec (alexandria:hash-table-values *registered-types*)))
 
 ;;------------------------------------------------------------
 

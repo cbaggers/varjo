@@ -60,11 +60,8 @@ type-spec trick doesnt"))
 (defun vtype-existsp (type-name)
   (let ((type-name (expand-keyword-type-spec-shorthand type-name)))
     (etypecase type-name
-      (symbol
-       (and type-name
-            (find-class type-name nil)
-            (values (subtypep type-name 'v-type))))
-      (list (vtype-existsp (first type-name))))))
+      (symbol (type-name-known type-name))
+      (list (type-name-known (first type-name))))))
 
 ;;------------------------------------------------------------
 ;; Compilation Error

@@ -18,6 +18,7 @@
 
 (defclass compiled ()
   ((type-set :initarg :type-set :reader type-set)
+   (is-ephemeral :initarg :is-ephemeral)
    (current-line :initarg :current-line :initform "")
    (to-block :initarg :to-block :initform nil :reader to-block)
    (return-set :initarg :return-set :initform nil :reader return-set)

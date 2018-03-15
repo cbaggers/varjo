@@ -40,7 +40,8 @@
 
 
 (defmethod current-line (code-obj &optional even-when-ephemeral)
-  (unless (and (ephemeral-p (primary-type code-obj)) (not even-when-ephemeral))
+  (unless (and (not even-when-ephemeral)
+               (ephemeral-p (primary-type code-obj)))
     (slot-value code-obj 'current-line)))
 
 (defun add-higher-scope-val (code-obj value)

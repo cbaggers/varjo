@@ -289,13 +289,14 @@ however failed to do so when asked."
    the lower the better. We then take the first one and return that
    as the function to use."
   ;; optional code is used for errors
-  (labels ((check-for-stemcell-issue (matches func-name)
+  (labels ((check-for-stemcell-issue (matches)
              (when (and (> (length matches) 1)
                         (some (lambda (x)
                                 (some (lambda (x) (stemcellp (primary-type x)))
                                       (arguments x)))
                               matches))
-               (error 'multi-func-stemcells :func-name func-name)))
+               (error 'multi-func-stemcells
+                      :func-name (or name (%func-name-from-set func-set)))))
            (dual-sort (matches)
              (let* ((primary-sorted (sort matches #'< :key #'score))
                     (best-primary (score (first primary-sorted)))
@@ -303,8 +304,8 @@ however failed to do so when asked."
                                          :key #'score
                                          :test-not #'=)))
                (sort primary-set #'< :key #'secondary-score)))
-           (pick-using-scores (func-name matches)
-             (check-for-stemcell-issue matches func-name)
+           (pick-using-scores (matches)
+             (check-for-stemcell-issue matches)
              (let* ((2nd-matches (dual-sort matches))
                     (best-2d-score (secondary-score (first 2nd-matches)))
                     (2nd-candidates (remove-if-not
@@ -319,13 +320,12 @@ however failed to do so when asked."
                      (tertiary-score (first 2nd-candidates)))
                   (first 2nd-candidates))
                  (t (first 3rd))))))
-    (let* ((func-name (or name (%func-name-from-set func-set)))
-           (matches (find-functions-in-set-for-args
+    (let* ((matches (find-functions-in-set-for-args
                      func-set
                      args-code env nil code))
            (function (if (= (length matches) 1)
                          (first matches)
-                         (pick-using-scores func-name matches ))))
+                         (pick-using-scores matches ))))
       (list (func function) (arguments function)))))
 
 (defun %func-name-from-set (func-set)

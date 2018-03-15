@@ -7,6 +7,7 @@
         (valid-metadata-kinds (listify valid-metadata-kinds)))
     (assert (not args) () "args not supported yet")
     (assert (symbolp type-form) () "compound & array types not yet supported")
+    ;; If this ↑↑↑↑↑ changes then v-type-eq has to change too.
     (if ephemeral
         `(progn
            (eval-when (:compile-toplevel :load-toplevel :execute)
