@@ -1,0 +1,1 @@
+- look for all type-spec->type which could be obj at compile-time and make that change

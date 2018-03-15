@@ -40,3 +40,21 @@
    (loop :for i :below 30 :do
       (rolling-translate stages)))
   (sb-profile:report))
+
+(defun hmm (stage)
+  (sb-profile:reset)
+  (time
+   (loop :for i :below 100 :do
+      (translate stage)))
+  (sb-profile:report))
+
+
+(require :sb-sprof)
+
+(defun kick-off (stage)
+  (sb-sprof:reset)
+  (sb-sprof:start-profiling :sample-interval 0.001)
+  (loop :for i :below 10000 :do
+     (translate stage))
+  (sb-sprof:stop-profiling)
+  (sb-sprof:report :type :flat))
