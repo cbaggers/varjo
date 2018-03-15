@@ -225,7 +225,7 @@
         (copy-ast-node ast :kind :function-top-level
                        :args (append decl-nodes ast-args))
         (ast-node! :function-top-level
-                   `(,@decl-nodes ,@ast-args)
+                   (append decl-nodes (list ast))
                    (ast-return-type (last1 ast-args))
                    env env))))
 
