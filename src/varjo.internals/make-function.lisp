@@ -171,6 +171,13 @@
                                return-for-glsl body-obj
                                implicit-args in-out-args)))
              (arg-types (mapcar #'second args))
+             ;;
+             ;; This is an interesting case, it is possible for the user to write a function
+             ;; where they always discard. Whilst strage I don't think is illegal so I dont
+             ;; want to throw an error here. We have to make a valid function though so it
+             ;; pretty much has to be a void.
+             (ret-set (or (return-set body-obj)
+                          (make-type-set)))
              (func (make-user-function-obj name
                                            (unless strip-glsl
                                              (gen-function-transform
@@ -179,7 +186,8 @@
                                               implicit-args))
                                            nil ;;{TODO} should be context
                                            arg-types
-                                           (return-set body-obj)
+                                           (or (return-set body-obj)
+                                               (make-type-set))
                                            :code (list raw-args body)
                                            :glsl-name glsl-name
                                            :implicit-args implicit-args
@@ -188,7 +196,6 @@
                                                        (flow-ids (elt (return-set body-obj) 0)))
                                            :in-arg-flow-ids in-arg-flow-ids
                                            :pure (pure-p body-obj)))
-             (ret-set (return-set body-obj))
              (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
              (code-obj (copy-compiled body-obj
                                       :type-set (make-type-set)
