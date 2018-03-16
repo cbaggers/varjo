@@ -808,16 +808,6 @@
 (defun valid-type-set-member-p (x)
   (typep x 'v-type))
 
-(defun valid-type-set-p (set)
-  ;; {TODO} replace with (every #'valid-type-set-member set)
-  (let ((set-list (coerce set 'list)))
-    (and (arrayp set)
-         (every λ(typep _ 'v-type) set-list))))
-
-(defun assert-valid-type-set (set &key (error-hint ""))
-  (assert (valid-type-set-p set)
-          (set) "Invalid ~a type-set: ~a" error-hint set))
-
 (defun type-set-to-type-list (set)
   (coerce set 'list))
 

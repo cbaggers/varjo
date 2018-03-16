@@ -16,7 +16,6 @@
                    (listp (slot-value node-tree 'args))))
     (error "invalid ast node-tree ~s" node-tree))
   (assert type-set () "Varjo: type-set is mandatory when making compiled objects")
-  (assert-valid-type-set type-set :error-hint "ast-node")
   (make-instance 'compiled
                  :type-set type-set
                  :current-line current-line
@@ -78,8 +77,8 @@
                             (node-tree nil set-node-tree)
                             (used-types nil set-used-types))
   (let ((type-set (if set-type-set type-set (type-set code-obj))))
-    (assert type-set () "Varjo: type-set is mandatory when copying compiled objects")
-    (assert-valid-type-set type-set :error-hint "ast-node")
+    (when set-type-set
+      (assert type-set () "Varjo: type-set is mandatory when copying compiled objects"))
     (make-compiled
      :type-set type-set
      :current-line (if set-current-line current-line
@@ -109,7 +108,6 @@
                              node-tree
                              (used-types nil set-used-types))
   (assert type-set () "Varjo: type-set is mandatory when merging compiled objects")
-  (assert-valid-type-set type-set :error-hint "ast-node")
   (let ((return-set
          (if set-return-set
              return-set
