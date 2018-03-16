@@ -58,7 +58,8 @@
 
 (defun compile-call-with-set-of-functions (func-set args-code env
                                            &optional name code)
-  (let ((func-name (or name (%func-name-from-set func-set))))
+  (let ((func-name name)) ;; ← Its ok if null, other code can search for the
+    ;;                         name from the func-set if needed
     (dbind (func args) (find-function-in-set-for-args
                         func-set args-code env func-name code)
       ;; We take the safe assumption that no non-user-defined function

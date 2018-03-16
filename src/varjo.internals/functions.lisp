@@ -266,8 +266,7 @@ however failed to do so when asked."
             (eq (v-argument-spec func) t))))
 
 (defun find-functions-in-set-for-args (func-set args-code env &optional name code)
-  (let* ((func-name (or name (%func-name-from-set func-set)))
-         (candidates (functions func-set))
+  (let* ((candidates (functions func-set))
          (compiled-args (when (some #'func-need-arguments-compiledp candidates)
                           (try-compile-args args-code env)))
          (match-fn (curry #'match-function-to-args args-code compiled-args))
@@ -278,9 +277,8 @@ however failed to do so when asked."
         (progn
           (assert (every λ(numberp (score _)) matches))
           matches)
-        (func-find-failure func-name
-                           code
-                           (mapcar #'primary-type compiled-args)))))
+        (func-find-failure code (mapcar #'primary-type compiled-args)
+                           name func-set))))
 
 (defun find-function-in-set-for-args (func-set args-code env &optional name code)
   "Find the function that best matches the name and arg spec given
@@ -336,23 +334,24 @@ however failed to do so when asked."
         names)))
 
 ;; if there were no candidates then pass errors back
-(defun func-find-failure (func-name form arg-types)
-  (assert func-name)
+(defun func-find-failure (form arg-types func-set func-name)
   (loop :for arg-type :in arg-types
      :if (typep arg-type 'v-error)
 
      :return `(,(make-instance 'func-match :score t :func arg-type
                                :arguments nil))
      :finally (return
-                `(,(make-instance
-                    'func-match
-                    :score t
-                    :func (make-instance 'v-error :payload
-                                         (make-instance 'no-valid-function
-                                                        :name func-name
-                                                        :types arg-types
-                                                        :form form))
-                    :arguments nil)))))
+                (let ((func-name
+                       (or func-name (%func-name-from-set func-set))))
+                  `(,(make-instance
+                      'func-match
+                      :score t
+                      :func (make-instance 'v-error :payload
+                                           (make-instance 'no-valid-function
+                                                          :name func-name
+                                                          :types arg-types
+                                                          :form form))
+                      :arguments nil))))))
 
 (defun resolve-func-set (func compiled-args)
   (let* ((arg-types (map 'list #'primary-type compiled-args))
