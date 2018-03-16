@@ -1,0 +1,123 @@
+      Self        Total        Cumul
+ Count     %  Count     %  Count     %    Calls  Function
+-------------------------------------------------------------------
+   280   2.6   3533  33.1   2754  25.8        -  VARJO.INTERNALS::BASIC-ARG-MATCHP
+   197   1.8    197   1.8   3671  34.4        -  VARJO.INTERNALS::%GEN-FLOW-GL-ID
+    78   0.7    319   3.0   5358  50.2        -  VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS
+    67   0.6   6268  58.7   5998  56.2        -  VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS
+    55   0.5    186   1.7   6480  60.7        -  VARJO.INTERNALS:MAKE-COMPILED
+    29   0.3    149   1.4   7771  72.8        -  VARJO.INTERNALS::%FUNC-NAME-FROM-SET
+    21   0.2   6303  59.0   8169  76.5        -  VARJO.INTERNALS::FIND-FUNCTION-IN-SET-FOR-ARGS
+    21   0.2    552   5.2   8190  76.7        -  VARJO.INTERNALS::TRY-TYPE-SPEC->TYPE
+    20   0.2    160   1.5   8294  77.7        -  VARJO.INTERNALS::EXPAND-ARGUMENT-SPEC
+    20   0.2     20   0.2   8414  78.8        -  VARJO.INTERNALS::TYPE-NAME-KNOWN
+    18   0.2    110   1.0   8544  80.0        -  VARJO.INTERNALS::ASSERT-VALID-TYPE-SET
+    17   0.2   8446  79.1   8615  80.7        -  VARI.CL::VS-LET
+    17   0.2    209   2.0   8666  81.1        -  VARJO.UTILS:A-GET
+    15   0.1    219   2.1   8762  82.0        -  (LABELS VARJO.INTERNALS::WALK-NODE :IN VARJO.INTERNALS::WALK-AST)
+    15   0.1    126   1.2   8777  82.2        -  VARJO.INTERNALS::INFER-META
+    15   0.1     15   0.1   8822  82.6        -  (LAMBDA (&OPTIONAL VARJO.INTERNALS::X) :IN VARJO.INTERNALS::%MAKE-FLOW-ID-SOURCE-FUNC)
+    14   0.1     55   0.5   8878  83.1        -  VARJO.INTERNALS:FLOW-ID!
+    13   0.1    289   2.7   8919  83.5        -  (LABELS VARJO.INTERNALS::POST-PROCESS-NODE :IN VARJO.INTERNALS::POST-PROCESS-FUNC-AST)
+    12   0.1    297   2.8   8983  84.1        -  VARJO.INTERNALS::RESOLVE-FUNC-SET
+    11   0.1     26   0.2   9090  85.1        -  VARJO.INTERNALS::ADD-GLSL-FUNCS
+    10   0.1     89   0.8   9176  85.9        -  VARJO.INTERNALS::VALID-TYPE-SET-P
+    10   0.1     30   0.3   9206  86.2        -  (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING)
+    10   0.1     26   0.2   9216  86.3        -  VARJO.INTERNALS::VTYPE-EXISTSP
+    10   0.1     10   0.1   9236  86.5        -  VARJO.UTILS:LISTIFY
+    10   0.1     54   0.5   9196  86.1        -  V-ERRORP
+    21   0.2    143   1.3   8232  77.1        -  MAKE-TYPE-SET
+    13   0.1     13   0.1   8971  84.0        -  ALEXANDRIA.0.DEV:CURRY
+    32   0.3     86   0.8   7524  70.5        -  RESOLVE-NAME-FROM-ALTERNATIVE
+    51   0.5    295   2.8   6742  63.1        -  ALEXANDRIA.0.DEV:MAPPEND
+
+
+      Self        Total        Cumul
+ Count     %  Count     %  Count     %    Calls  Function
+-------------------------------------------------------------------
+   240   2.2    353   3.3   3246  30.4        -  MAKE-HASH-TABLE
+   228   2.1    258   2.4   3474  32.5        -  REMOVE
+   136   1.3    137   1.3   4136  38.7        -  EQL
+   116   1.1    177   1.7   4376  41.0        -  GET-OUTPUT-STREAM-STRING
+    80   0.7    105   1.0   5122  48.0        -  POSITION-IF
+    69   0.6    127   1.2   5725  53.6        -  REMOVE-IF-NOT
+    69   0.6    100   0.9   5794  54.3        -  PPRINT-DISPATCH
+    62   0.6     62   0.6   6191  58.0        -  COPY-LIST
+    44   0.4     44   0.4   6979  65.4        -  KEYWORDP
+    41   0.4    169   1.6   7190  67.3        -  TYPE-OF
+    39   0.4    342   3.2   7269  68.1        -  PRINC
+    37   0.3    375   3.5   7458  69.8        -  REDUCE
+    30   0.3     30   0.3   7742  72.5        -  ELT
+    28   0.3     53   0.5   7799  73.0        -  FIND-IF
+    25   0.2     81   0.8   7961  74.5        -  SLOT-EXISTS-P
+    24   0.2     26   0.2   8059  75.5        -  REMOVE-IF
+    22   0.2     22   0.2   8148  76.3        -  VECTOR
+    21   0.2     51   0.5   8253  77.3        -  FIND
+    20   0.2     20   0.2   8374  78.4        -  IDENTITY
+    20   0.2     20   0.2   8394  78.6        -  WRITE-STRING
+    19   0.2     19   0.2   8471  79.3        -  LENGTH
+    17   0.2    272   2.5   8632  80.8        -  TYPEP
+    16   0.1     16   0.1   8731  81.8        -  APPEND
+    13   0.1     39   0.4   8945  83.8        -  SXHASH
+    12   0.1     13   0.1   9055  84.8        -  CL-PPCRE::CREATE-SCANNER-AUX
+    12   0.1     13   0.1   9067  84.9        -  REMOVE-DUPLICATES
+    11   0.1     13   0.1   9134  85.5        -  SEARCH
+    10   0.1     10   0.1   9246  86.6        -  CL-PPCRE::MAKE-LEXER
+
+
+      Self        Total        Cumul
+ Count     %  Count     %  Count     %    Calls  Function
+-------------------------------------------------------------------
+   286   2.7    286   2.7   2474  23.2        -  SB-IMPL::%MAKE-STRING-OUTPUT-STREAM
+   252   2.4    292   2.7   3006  28.1        -  (FLET "BODY-FUN-0" :IN SB-IMPL::GETHASH3)
+   124   1.2    176   1.6   4260  39.9        -  SB-IMPL::GET-INFO-VALUE
+    81   0.8   8083  75.7   5042  47.2        -  SB-IMPL::MAP1
+    79   0.7    106   1.0   5201  48.7        -  SB-IMPL::STRING-SOUT
+    79   0.7     79   0.7   5280  49.4        -  SB-IMPL::VECTOR-TO-LIST*
+    68   0.6     68   0.6   5931  55.5        -  SB-IMPL::APPEND2
+    56   0.5     56   0.5   6425  60.2        -  SB-IMPL::PACKED-INFO-VALUE-INDEX
+    52   0.5     63   0.6   6639  62.2        -  SB-IMPL::%MAKE-HASH-TABLE
+    43   0.4    337   3.2   7022  65.8        -  SB-IMPL::GETHASH3
+    34   0.3     35   0.3   7492  70.2        -  (LAMBDA (SB-IMPL::BUFFER SB-IMPL::FROM) :IN GET-OUTPUT-STREAM-STRING)
+    25   0.2     29   0.3   7986  74.8        -  SB-IMPL::EQL-HASH
+    20   0.2    133   1.2   8314  77.9        -  SB-IMPL::%MAP-FOR-EFFECT
+    20   0.2    123   1.2   8334  78.0        -  SB-IMPL::%WRITE-STRING
+    17   0.2     17   0.2   8683  81.3        -  (SB-IMPL::OPTIMIZED-DATA-VECTOR-REF T)
+    14   0.1    104   1.0   8836  82.7        -  SB-IMPL::LIST-REMOVE-DUPLICATES*
+    13   0.1     21   0.2   8958  83.9        -  (LABELS SB-IMPL::SXHASH-RECURSE :IN SXHASH)
+    10   0.1    112   1.0   9166  85.8        -  (LABELS SB-IMPL::PRINT-IT :IN SB-KERNEL:OUTPUT-OBJECT)
+    10   0.1     58   0.5   9186  86.0        -  (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING)
+
+
+      Self        Total        Cumul
+ Count     %  Count     %  Count     %    Calls  Function
+-------------------------------------------------------------------
+   395   3.7    395   3.7    861   8.1        -  (LAMBDA (SB-PCL::.ARG0.) :IN "SYS:SRC;PCL;DLISP3.LISP")
+   390   3.7    483   4.5   1251  11.7        -  SB-VM::ALLOC-TRAMP
+   295   2.8    295   2.8   2188  20.5        -  SB-KERNEL:CLASSOID-TYPEP
+    76   0.7     76   0.7   5512  51.6        -  SB-KERNEL:%%TYPEP
+    73   0.7    175   1.6   5585  52.3        -  SB-KERNEL:%ASSOC
+    66   0.6    221   2.1   6064  56.8        -  SB-KERNEL::VALUES-SPECIFIER-TYPE-R
+    65   0.6     65   0.6   6129  57.4        -  SB-KERNEL:CLASSOID-CELL-TYPEP
+    61   0.6     61   0.6   6252  58.5        -  (FLET "CLEANUP-FUN-70" :IN SB-THREAD::CALL-WITH-RECURSIVE-SYSTEM-LOCK)
+    53   0.5    516   4.8   6587  61.7        -  SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1
+    40   0.4     40   0.4   7230  67.7        -  SB-KERNEL:UB64-BASH-FILL
+    32   0.3     32   0.3   7588  71.1        -  SB-KERNEL:%COERCE-CALLABLE-TO-FUN
+    31   0.3    107   1.0   7619  71.3        -  SB-KERNEL:FIND-CLASSOID
+    31   0.3    105   1.0   7650  71.6        -  (FLET "BODY-FUN-8" :IN SB-KERNEL:%PUTHASH)
+    31   0.3     31   0.3   7681  71.9        -  SB-KERNEL:%MAKE-LIST
+    27   0.3    250   2.3   7882  73.8        -  SB-KERNEL::SPECIFIER-TYPE-R
+    27   0.3     70   0.7   7909  74.1        -  SB-KERNEL:%MAP-TO-LIST-ARITY-1
+    25   0.2     25   0.2   8011  75.0        -  SB-KERNEL:UB32-BASH-COPY
+    22   0.2    128   1.2   8104  75.9        -  SB-KERNEL:CLASSOID-PROPER-NAME
+    21   0.2     21   0.2   8274  77.5        -  SB-KERNEL:HAIRY-DATA-VECTOR-REF
+    20   0.2     20   0.2   8354  78.2        -  (LAMBDA (SB-KERNEL::CACHE SB-KERNEL::OBJECT) :IN SB-KERNEL::CACHED-TYPEP)
+    19   0.2     28   0.3   8433  79.0        -  SB-KERNEL:%FIND-POSITION
+    17   0.2    264   2.5   8649  81.0        -  SB-KERNEL:SPECIFIER-TYPE
+    16   0.1     26   0.2   8699  81.5        -  SB-KERNEL:STRING=*
+    15   0.1     15   0.1   8807  82.5        -  SB-INT:MEMQ
+    14   0.1     77   0.7   8850  82.9        -  SB-KERNEL:FIND-CLASSOID-CELL
+    12   0.1     27   0.3   9019  84.5        -  SB-INT:EQUAL-BUT-NO-CAR-RECURSION
+    11   0.1     16   0.1   9123  85.4        -  SB-KERNEL:%FIND-POSITION-IF
+    11   0.1     11   0.1   9145  85.6        -  SB-THREAD:MAKE-MUTEX
+    10   0.1     10   0.1   9266  86.8        -  SB-KERNEL:LIST-FILL
