@@ -57,12 +57,6 @@ type-spec trick doesnt"))
   (declare (ignore initargs))
   (post-initialise type-obj))
 
-(defun vtype-existsp (type-name)
-  (let ((type-name (expand-keyword-type-spec-shorthand type-name)))
-    (etypecase type-name
-      (symbol (type-name-known type-name))
-      (list (type-name-known (first type-name))))))
-
 ;;------------------------------------------------------------
 ;; Compilation Error
 ;;
@@ -79,3 +73,85 @@ type-spec trick doesnt"))
 
 (defun &rest-p (x)
   (and (symbolp x) (string= x :&rest)))
+
+;;------------------------------------------------------------
+;; Type shadowing
+
+(defvar *alternate-ht* (make-hash-table))
+(defvar *alternate-ht-backward* (make-hash-table))
+
+(defun resolve-name-from-alternative (spec)
+  (if (listp spec)
+      `(,(or (gethash (first spec) *alternate-ht*) (first spec)) ,@(rest spec))
+      (or (gethash spec *alternate-ht*) spec)))
+
+(defun alternate-name-for (type-spec)
+  (if (listp type-spec)
+      `(,(or (gethash (first type-spec) *alternate-ht-backward*)
+             (first type-spec))
+         ,@(rest type-spec))
+      (or (gethash type-spec *alternate-ht-backward*)
+          type-spec)))
+
+;;------------------------------------------------------------
+;; Converting specs into types
+
+(defun expand-keyword-type-spec-shorthand (spec)
+  (or (when (keywordp spec)
+        (cdr (assoc spec *type-shorthand*)))
+      spec))
+
+(defun try-type-spec->type (spec flow-id)
+  (flet ((array-shorthand-spec-p (spec)
+           (labels ((valid-dim-p (x)
+                      (or (typep x 'unsigned-byte)
+                          (and (symbolp x) (string= x "*")))))
+             (and ;; (listp spec) << already checked below
+                  (= (length spec) 2)
+                  (or (valid-dim-p (second spec))
+                      (and (listp (second spec))
+                           (every #'valid-dim-p (second spec))))
+                  (vtype-existsp (first spec))))))
+    (let ((spec (expand-keyword-type-spec-shorthand spec)))
+      (if (listp spec)
+          (cond
+            ((and (eq (first spec) 'function))
+             (try-type-spec->type `(v-function-type ,@(rest spec)) flow-id))
+            ;;
+            ((and (eq (first spec) 'or))
+             (try-type-spec->type `(v-or ,@(rest spec)) flow-id))
+            ;;
+            ((array-shorthand-spec-p spec)
+             (try-type-spec->type `(v-array ,@spec) flow-id))
+            ;;
+            ((and (type-name-known (first spec)))
+             (apply #'v-make-type
+                    (allocate-instance (find-class (first spec)))
+                    flow-id
+                    (rest spec)))
+            (t nil))
+          (cond ((null spec) nil)
+                ;;
+                ((eq spec t) (make-instance 'v-type))
+                ;;
+                ((and (symbolp spec) (type-name-known spec))
+                 (make-instance spec :flow-ids flow-id))
+                ;;
+                ;;
+                (t nil))))))
+
+;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
+(defmethod type-spec->type (spec &optional flow-id)
+  (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
+      (error 'unknown-type-spec :type-spec spec)))
+
+(define-compiler-macro type-spec->type (&whole whole spec &optional flow-id)
+  (if flow-id
+      whole
+      (let ((type (try-type-spec->type spec nil)))
+        (or type whole))))
+
+(defun type-specp (spec)
+  (not (null (try-type-spec->type (resolve-name-from-alternative spec) nil))))
+
+;;------------------------------------------------------------

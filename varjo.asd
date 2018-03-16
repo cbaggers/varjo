@@ -26,6 +26,7 @@
                (:file "src/varjo.internals/internal-types")
                (:file "src/varjo.internals/qualifiers")
                (:file "src/varjo.internals/types/def-v-core-type")
+               (:file "src/varjo.internals/types/type-spec")
                (:file "src/varjo.internals/types/early-types")
                (:file "src/varjo.internals/flow")
                (:file "src/varjo.internals/types/types")

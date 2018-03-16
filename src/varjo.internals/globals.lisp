@@ -70,13 +70,6 @@
 (defvar *registered-types*
   (make-hash-table))
 
-(defun register-type-name (name)
-  (assert (symbolp name))
-  (setf (gethash name *registered-types*) t))
-
-(defun type-name-known (name)
-  (gethash name *registered-types*))
-
 (defvar +ascii-alpha-num+
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 

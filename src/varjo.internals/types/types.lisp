@@ -2,12 +2,65 @@
 (in-readtable :fn.reader)
 
 ;;------------------------------------------------------------
-;; Type shadowing
+;; Type predicate
 
-(defvar *alternate-ht* (make-hash-table))
-(defvar *alternate-ht-backward* (make-hash-table))
+(define-compiler-macro v-typep (&whole whole a b)
+  (let ((lit-spec
+         (when (constantp b)
+           (cond
+             ((keywordp b) b)
+             ((and (listp b) (eq (first b) 'quote))
+              (second b))))))
+    (if lit-spec
+        (let ((type (try-type-spec->type lit-spec nil)))
+          (if type
+              (if (core-typep type)
+                  `(typep ,a ',(slot-value type 'type-name))
+                  `(v-typep ,a ,type))
+              whole))
+        whole)))
+
+(defmethod v-typep ((a v-type) (b symbol))
+  (v-typep a (type-spec->type (resolve-name-from-alternative b))))
+
+(defmethod v-typep ((a v-type) (b list))
+  (let ((b (resolve-name-from-alternative
+            (mapcar #'resolve-name-from-alternative b))))
+    (v-typep a (type-spec->type b))))
+
+(defmethod v-typep ((a v-type) (b v-type))
+  (typep a (type-of b)))
+
+(defmethod v-typep ((a null) b)
+  (declare (ignore a b))
+  nil)
+
+(defmethod v-typep (a (b null))
+  (declare (ignore a b))
+  nil)
+
+(defmacro v-typecase (varjo-form &body cases)
+  (alexandria:with-gensyms (type)
+    (when cases
+      `(let ((,type (v-type-of ,varjo-form)))
+         (cond
+           ,@(loop :for (type-name . body) :in cases :collect
+                `((v-type-eq ,type ',type-name) ,@body)))))))
+
+(defmacro v-etypecase (varjo-form &body cases)
+  (alexandria:with-gensyms (type)
+    (when cases
+      `(let ((,type (v-type-of ,varjo-form)))
+         (cond
+           ,@(loop :for (type-name . body) :in cases :collect
+                `((v-type-eq ,type ',type-name) ,@body))
+           (t (error 'fell-through-v-typecase
+                     :vtype ,type :wanted ',(mapcar #'first cases))))))))
+
+;;------------------------------------------------------------
 
 (defun add-alternate-type-name (alt-type-name src-type-name)
+  (declare (notinline))
   (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
   (setf (gethash alt-type-name *alternate-ht*) src-type-name)
   (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
@@ -16,63 +69,7 @@
     (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
   alt-type-name)
 
-(defun resolve-name-from-alternative (spec)
-  (if (listp spec)
-      `(,(or (gethash (first spec) *alternate-ht*) (first spec)) ,@(rest spec))
-      (or (gethash spec *alternate-ht*) spec)))
-
-(defun alternate-name-for (type-spec)
-  (if (listp type-spec)
-      `(,(or (gethash (first type-spec) *alternate-ht-backward*)
-             (first type-spec))
-         ,@(rest type-spec))
-      (or (gethash type-spec *alternate-ht-backward*)
-          type-spec)))
-
 ;;------------------------------------------------------------
-;; Converting specs into types
-
-(defun expand-keyword-type-spec-shorthand (spec)
-  (or (when (keywordp spec)
-        (cdr (assoc spec *type-shorthand*)))
-      spec))
-
-(defun try-type-spec->type (spec flow-id)
-  (let ((spec (expand-keyword-type-spec-shorthand spec)))
-    (cond ((null spec) nil)
-          ;;
-          ((eq spec t) (type-spec->type 'v-type))
-          ;;
-          ((and (symbolp spec) (vtype-existsp spec))
-           (make-instance spec :flow-ids flow-id))
-          ;;
-          ;;
-          ((and (listp spec) (eq (first spec) 'function))
-           (try-type-spec->type `(v-function-type ,@(rest spec)) flow-id))
-          ;;
-          ((and (listp spec) (eq (first spec) 'or))
-           (try-type-spec->type `(v-or ,@(rest spec)) flow-id))
-          ;;
-          ((v-array-spec-p spec)
-           (try-type-spec->type `(v-array ,@spec) flow-id))
-          ;;
-          ((and (listp spec) (vtype-existsp (first spec)))
-           (apply #'v-make-type
-                  (allocate-instance (find-class (first spec)))
-                  flow-id
-                  (rest spec)))
-          (t nil))))
-
-;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
-(defmethod type-spec->type (spec &optional flow-id)
-  (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
-      (error 'unknown-type-spec :type-spec spec)))
-
-(define-compiler-macro type-spec->type (&whole whole spec &optional flow-id)
-  (if flow-id
-      whole
-      (let ((type (try-type-spec->type spec nil)))
-        (or type whole))))
 
 (defun arg-form->type-spec (arg-form)
   (if (&rest-p arg-form)
@@ -90,16 +87,6 @@
   (etypecase thing
     (v-type thing)
     (symbol (type-spec->type thing))))
-
-(defun type-specp (spec)
-  (not (null (try-type-spec->type (resolve-name-from-alternative spec) nil))))
-
-;;------------------------------------------------------------
-
-(defmethod v-superclass ((type v-type))
-  (with-slots (superclass) type
-    (when superclass
-      (type-spec->type superclass))))
 
 ;;------------------------------------------------------------
 ;; Opaque
@@ -206,6 +193,9 @@
   ((element-type :initform t :initarg :element-type)
    (dimensions :initform nil :initarg :dimensions :accessor v-dimensions)))
 
+(defmethod v-typep ((a v-array) (b v-array))
+  (v-typep (v-element-type a) (v-element-type b)))
+
 (defmethod v-make-type ((type v-array) flow-id &rest args)
   (destructuring-bind (element-type length) args
     (initialize-instance
@@ -213,17 +203,6 @@
      :element-type (type-spec->type element-type (when flow-id (flow-id!)))
      :dimensions (listify length)
      :flow-ids flow-id)))
-
-(defun v-array-spec-p (spec)
-  (labels ((valid-dim-p (x)
-             (or (typep x 'unsigned-byte)
-                 (and (symbolp x) (string= x "*")))))
-    (and (listp spec)
-         (= (length spec) 2)
-         (or (valid-dim-p (second spec))
-             (and (listp (second spec))
-                  (every #'valid-dim-p (second spec))))
-         (vtype-existsp (first spec)))))
 
 (defmethod v-glsl-size ((type v-array))
   (* (apply #'* (v-dimensions type))
@@ -370,7 +349,7 @@
                  :flow-ids (flow-ids type)))
 
 (defun make-into-block-struct (struct-type block-name)
-  (assert (v-typep struct-type 'v-struct))
+  (assert (typep struct-type 'v-struct))
   (let* ((r (make-instance 'v-block-struct
                            :block-name block-name
                            :element-type struct-type
@@ -444,7 +423,7 @@
                  :flow-ids (flow-ids type)))
 
 (defun make-into-block-array (array-type block-name)
-  (assert (v-typep array-type 'v-array))
+  (assert (typep array-type 'v-array))
   (let* ((dim (v-dimensions array-type))
          (r (make-instance 'v-block-array
                            :block-name block-name
@@ -459,7 +438,7 @@
     r))
 
 (defun block-array-to-regular-array (block-array)
-  (assert (v-typep block-array 'v-block-array))
+  (assert (typep block-array 'v-block-array))
   (let ((r (make-instance 'v-array
                           :dimensions (v-dimensions block-array)
                           :element-type (v-element-type block-array)
@@ -473,6 +452,7 @@
 
 (defmethod v-glsl-string ((object v-block-array))
   (v-glsl-string (v-element-type object)))
+
 
 ;;------------------------------------------------------------
 ;; Or
@@ -488,31 +468,29 @@
   `(or ,@(mapcar #'type->type-spec (v-types type))))
 
 (defmethod v-make-type ((type v-or) flow-id &rest args)
-  (declare (ignore flow-id))
   ;; flow-id is discarded as the flow-id will be the union of the
   ;; ids of the types in the spec
-  (gen-or-type args))
+  (gen-or-type args flow-id))
 
-(defgeneric gen-or-type (types)
-  (:method (types)
-    (let* ((types (mapcar (lambda (type)
-                            (etypecase type
-                              (v-type type)
-                              ((or list symbol)
-                               (type-spec->type type (flow-id!)))))
-                          types))
-           (reduced (reduce-types-for-or-type types)))
-      (if (= (length reduced) 1)
-          (first reduced)
-          (let ((no-terminated (remove-if λ(or (v-discarded-p _)
-                                               (v-returned-p _))
-                                          types)))
-            (case= (length no-terminated)
-              (0 (type-spec->type 'v-discarded (flow-id!)))
-              (1 (first no-terminated))
-              (otherwise
-               (make-instance 'v-or :types no-terminated
-                              :flow-ids (apply #'flow-id! no-terminated)))))))))
+(defun gen-or-type (types flow-id)
+  (let* ((types (mapcar (lambda (type)
+                          (etypecase type
+                            (v-type type)
+                            ((or list symbol)
+                             (type-spec->type type (flow-id!)))))
+                        types))
+         (reduced (reduce-types-for-or-type types)))
+    (if (= (length reduced) 1)
+        (first reduced)
+        (let ((no-terminated (remove-if λ(or (v-discarded-p _)
+                                             (v-returned-p _))
+                                        types)))
+          (case= (length no-terminated)
+            (0 (type-spec->type 'v-discarded flow-id))
+            (1 (first no-terminated))
+            (otherwise
+             (make-instance 'v-or :types no-terminated
+                            :flow-ids (apply #'flow-id! no-terminated))))))))
 
 (defgeneric reduce-types-for-or-type (types)
   (:method (types)
@@ -657,6 +635,10 @@
 
 (define-v-type-class v-stemcell (v-type) ())
 
+(defmethod v-typep ((a v-stemcell) b)
+  (declare (ignore a b))
+  t)
+
 ;;------------------------------------------------------------
 ;; Type Equality
 
@@ -707,63 +689,6 @@
 ;;                      )
 ;;   (declare (ignore a b env))
 ;;   nil)
-
-;;------------------------------------------------------------
-;; Type predicate
-
-(defmethod v-typep ((a v-type) (b symbol))
-  (v-typep a (type-spec->type (resolve-name-from-alternative b))))
-
-(defmethod v-typep ((a v-type) (b list))
-  (let ((b (resolve-name-from-alternative
-            (mapcar #'resolve-name-from-alternative b))))
-    (v-typep a (type-spec->type b))))
-
-(defmethod v-typep ((a v-type) (b v-type))
-  (typep a (type-of b)))
-
-(defmethod v-typep ((a null) b)
-  (declare (ignore a b))
-  nil)
-
-(defmethod v-typep (a (b null))
-  (declare (ignore a b))
-  nil)
-
-(defmethod v-typep ((a v-stemcell) b)
-  (declare (ignore a b))
-  t)
-
-(defmethod v-typep ((a v-array) (b v-array))
-  (v-typep (v-element-type a) (v-element-type b)))
-
-(define-compiler-macro v-typep (&whole whole a b)
-  (if (or (listp b) (symbolp a))
-      (let ((type (try-type-spec->type b nil)))
-        (if type
-            (if (core-typep type)
-                `(typep a ',(slot-value type 'type-name))
-                `(v-typep a ,type))
-            whole))
-      whole))
-
-(defmacro v-typecase (varjo-form &body cases)
-  (alexandria:with-gensyms (type)
-    (when cases
-      `(let ((,type (v-type-of ,varjo-form)))
-         (cond
-           ,@(loop :for (type-name . body) :in cases :collect
-                `((v-type-eq ,type ',type-name) ,@body)))))))
-
-(defmacro v-etypecase (varjo-form &body cases)
-  (alexandria:with-gensyms (type)
-    (when cases
-      `(let ((,type (v-type-of ,varjo-form)))
-         (cond
-           ,@(loop :for (type-name . body) :in cases :collect
-                `((v-type-eq ,type ',type-name) ,@body))
-           (t (error 'fell-through-v-typecase
-                     :vtype ,type :wanted ',(mapcar #'first cases))))))))
 
 ;;------------------------------------------------------------
 ;; Casting
@@ -939,7 +864,7 @@
   (:method ((x compiled))
     (swizzlable-p (primary-type x)))
   (:method ((x v-type))
-    (v-typep x 'v-vector)))
+    (typep x 'v-vector)))
 
 (defgeneric has-any-opaque-slots-p (type)
   (:method ((type v-struct))
@@ -963,3 +888,12 @@
   (let ((new-type (copy-type type)))
     (setf (slot-value new-type 'qualifiers) nil)
     new-type))
+
+;;------------------------------------------------------------
+
+(defmethod v-superclass ((type v-type))
+  (with-slots (superclass) type
+    (when superclass
+      (type-spec->type superclass))))
+
+;;------------------------------------------------------------

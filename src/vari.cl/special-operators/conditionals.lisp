@@ -90,7 +90,7 @@
        then-set)
       ((v-multi-val-base env)
        (flet ((gen-or-pair (a b)
-                (gen-or-type (list a b))))
+                (gen-or-type (list a b) (flow-id!))))
          (assert (= (length then-set) (length else-set)) ()
                  'if-form-multiple-vals-mismatch
                  :then-set then-set
@@ -99,7 +99,8 @@
       (t
        (let ((primary-result-type
               (gen-or-type (list (primary-type then-obj)
-                                 (primary-type else-obj)))))
+                                 (primary-type else-obj))
+                           (flow-id!))))
          (if (v-voidp primary-result-type)
              (make-type-set)
              (make-type-set primary-result-type)))))))
