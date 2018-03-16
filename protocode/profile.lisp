@@ -8,7 +8,12 @@
                     :vari.glsl
                     :vari.cl
                     :vari
-                    :varjo)))
+                    :varjo
+                    :vas-string-metrics
+                    :split-sequence
+                    :parse-float
+                    :alexandria
+                    :cl-ppcre)))
     `(sb-profile:profile
       ,@(loop :for p :in packages :append
            (let ((pkg (find-package p)))
@@ -24,7 +29,12 @@
                     :vari.glsl
                     :vari.cl
                     :vari
-                    :varjo)))
+                    :varjo
+                    :vas-string-metrics
+                    :split-sequence
+                    :parse-float
+                    :alexandria
+                    :cl-ppcre)))
     `(progn
        (sb-profile:unprofile
         ,@(loop :for p :in packages :append
@@ -44,17 +54,17 @@
 (defun hmm (stage)
   (sb-profile:reset)
   (time
-   (loop :for i :below 100 :do
+   (loop :for i :below 10 :do
       (translate stage)))
   (sb-profile:report))
 
 
-(require :sb-sprof)
-
-(defun kick-off (stage)
-  (sb-sprof:reset)
-  (sb-sprof:start-profiling :sample-interval 0.001)
-  (loop :for i :below 10000 :do
-     (translate stage))
-  (sb-sprof:stop-profiling)
-  (sb-sprof:report :type :flat))
+;; (require :sb-sprof)
+;;
+;; (defun kick-off (stage)
+;;   (sb-sprof:reset)
+;;   (sb-sprof:start-profiling :sample-interval 0.001)
+;;   (loop :for i :below 10000 :do
+;;      (translate stage))
+;;   (sb-sprof:stop-profiling)
+;;   (sb-sprof:report :type :flat))
