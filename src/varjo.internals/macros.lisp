@@ -64,6 +64,7 @@
                  :args arg-names
                  :context context
                  :arg-spec arg-spec
+                 :has-&rest (has-&rest arg-spec)
                  :macro-function macro-function))
 
 (defun find-compiler-macro-for-func (func)

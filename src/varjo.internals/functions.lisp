@@ -167,7 +167,9 @@ however failed to do so when asked."
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs
                          &key (allow-casting t))
-  (let ((spec-types (expand-argument-spec func arg-types))
+  (let ((spec-types (if (has-&rest func)
+                        (expand-argument-spec func arg-types)
+                        (v-argument-spec func)))
         (arg-types-no-block-structs
          (loop :for type :in arg-types :collect
             (if (typep type 'v-block-struct)

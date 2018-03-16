@@ -90,6 +90,7 @@
   (make-instance 'v-function
                  :glsl-string transform
                  :arg-spec arg-spec
+                 :has-&rest (has-&rest arg-spec)
                  :return-spec return-spec
                  :versions versions
                  :v-place-index v-place-index
@@ -114,6 +115,7 @@
   (make-instance 'v-user-function
                  :glsl-string transform
                  :arg-spec arg-spec
+                 :has-&rest (has-&rest arg-spec)
                  :return-spec return-spec
                  :versions versions :v-place-index v-place-index
                  :glsl-name glsl-name
@@ -140,6 +142,7 @@
      :glsl-string (format nil "~a(~{~a~})" glsl-name
                           (loop :for nil :in arg-spec :collect "~a"))
      :arg-spec arg-spec
+     :has-&rest (has-&rest arg-spec)
      :return-spec (v-return-spec func-type)
      :versions *supported-versions*
      :v-place-index nil
@@ -176,6 +179,7 @@
            (new-func (make-instance 'v-function
                                     :versions versions
                                     :arg-spec new-arg-spec
+                                    :has-&rest (has-&rest new-arg-spec)
                                     :glsl-string glsl-string
                                     :glsl-name glsl-name
                                     :return-spec new-return-spec
