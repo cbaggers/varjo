@@ -104,7 +104,7 @@
 
 (defun flow-id+meta! (&key return-pos)
   (let ((r (flow-id!)))
-    (setf (slot-value (first (listify (ids r))) 'return-pos)
+    (setf (slot-value (nth-or-self 0 (ids r)) 'return-pos)
           return-pos)
     r))
 

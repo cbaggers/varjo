@@ -7,8 +7,7 @@
 (v-defspecial let (bindings &rest body)
   :args-valid t
   :return
-  (let* ((binding-names (mapcar λ(first (listify (first _)))
-                                bindings))
+  (let* ((binding-names (mapcar λ(nth-or-self 0 _) bindings))
          (dup-names (find-duplicates binding-names)))
     (assert (not dup-names) () 'dup-names-in-let :names dup-names)
     (unless body (error 'body-block-empty :form-name 'let))

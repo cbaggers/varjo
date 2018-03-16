@@ -354,7 +354,7 @@
   ;; prime maps with args (env)
   ;; {TODO} need to prime expanded-input-variables & structs/array elements
   (labels ((uniform-raw (val)
-             (slot-value (first (ids (first (listify (flow-ids val)))))
+             (slot-value (first (ids (nth-or-self 0 (flow-ids val))))
                          'val)))
     (let ((env (get-base-env env)))
       (loop :for uniform :in (v-uniforms env) :do

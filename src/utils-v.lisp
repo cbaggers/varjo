@@ -4,6 +4,7 @@
   (concatenate 'list list (list thing)))
 
 (defun listify (x) (if (listp x) x (list x)))
+(defun nth-or-self (n x) (if (listp x) (nth n x) x))
 
 (defun lambda-list-get-names (l-list)
   (let ((keywords '(&allow-other-keys &environment &rest &aux &key &whole &body

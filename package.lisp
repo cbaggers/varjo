@@ -19,6 +19,7 @@
    :lambda-list-split
    :last1
    :listify
+   :nth-or-self
    :n-of
    :p-symb
    :positions-if
