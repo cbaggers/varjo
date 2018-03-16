@@ -3,6 +3,17 @@
 
 ;;-------------------------------------------------------------------------
 
+(declaim
+ (ftype (function (environment) base-environment)
+        get-base-env)
+ (inline get-base-env))
+(defun get-base-env (env)
+  (declare (type environment env)
+           (optimize (speed 3) (safety 1) (debug 1)))
+  (the base-environment (slot-value env 'base-env)))
+
+;;-------------------------------------------------------------------------
+
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (get-base-env e)
     (or (assocr stem-cell-symbol stemcell->flow-id)
@@ -44,12 +55,6 @@
          (push k functions)))
      (slot-value (get-base-env e) 'compiled-functions))
     functions))
-
-(defun get-base-env (env)
-  (let ((parent (v-parent-env env)))
-    (if parent
-        (get-base-env parent)
-        env)))
 
 (defmethod allows-stemcellsp ((e environment))
   (allows-stemcellsp (get-base-env e)))
@@ -141,10 +146,12 @@
     (error 'invalid-env-vars :vars (v-symbol-bindings env))))
 
 (defun %make-base-environment (stage &key stemcells-allowed)
-  (make-instance 'base-environment
-                 :stage stage
-                 :context (context stage)
-                 :stemcells-allowed stemcells-allowed))
+  (let ((result (make-instance 'base-environment
+                               :stage stage
+                               :context (context stage)
+                               :stemcells-allowed stemcells-allowed)))
+    (setf (slot-value result 'base-env) result)
+    result))
 
 ;;-------------------------------------------------------------------------
 ;; global env
@@ -158,6 +165,7 @@
 (defun remove-main-method-flag-from-env (env)
   (assert (typep env 'environment))
   (make-instance 'environment
+                 :base-env (get-base-env env)
                  :symbol-bindings (v-symbol-bindings env)
                  :form-bindings (v-form-bindings env)
                  :macros nil
@@ -176,6 +184,7 @@
                                 (ext-func-compile-chain nil set-fbc))
   (assert (typep env 'environment))
   (make-instance 'environment
+                 :base-env (get-base-env env)
                  :symbol-bindings symbol-bindings
                  :form-bindings form-bindings
                  :macros macros
@@ -223,6 +232,7 @@
   (assert (typep env 'environment))
   (assert (typep new-parent 'environment))
   (make-instance 'environment
+                 :base-env (get-base-env env)
                  :symbol-bindings (if symbol-bindings-set
                                       symbol-bindings
                                       (v-symbol-bindings env))

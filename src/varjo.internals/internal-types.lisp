@@ -156,7 +156,9 @@
 ;;----------------------------------------------------------------------
 
 (defclass environment ()
-  ((parent-env
+  ((base-env
+    :initform nil :initarg :base-env)
+   (parent-env
     :initform nil :initarg :parent-env :reader v-parent-env)
    (context
     :initform nil :initarg :context :reader v-context)
@@ -176,7 +178,7 @@
     :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)
    (local-metadata :initform (make-hash-table :test #'eql))
    (ext-func-compile-chain :initform nil :initarg :ext-func-compile-chain
-                            :reader ext-func-compile-chain)))
+                           :reader ext-func-compile-chain)))
 
 
 (defclass base-environment (environment)
