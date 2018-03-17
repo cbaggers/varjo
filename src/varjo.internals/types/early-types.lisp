@@ -30,12 +30,12 @@ handles compile/unrepresentable values and flow-ids correctly, which the
 type-spec trick doesnt"))
 
 (defmethod copy-type ((type v-type))
-  (let* ((type-name (class-name (class-of type)))
-         (new-inst (make-instance type-name
-                                  :flow-ids (flow-ids type)
-                                  :qualifiers (qualifiers type))))
-    (setf (ctv new-inst) (ctv type))
-    new-inst))
+  (with-slots (type-name) type
+    (let* ((new-inst (make-instance type-name
+                                    :flow-ids (flow-ids type)
+                                    :qualifiers (qualifiers type))))
+      (setf (ctv new-inst) (ctv type))
+      new-inst)))
 
 (defmethod qualify-type ((type v-type) qualifiers)
   (let ((type (copy-type type)))
