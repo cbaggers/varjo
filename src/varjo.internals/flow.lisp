@@ -112,8 +112,6 @@
   (make-instance 'flow-identifier :ids (list (%gen-flow-gl-id))))
 
 (defun type-doesnt-need-flow-id (type)
-  (when (eq type :void)
-    (error "deprecated behaviour bug ~a" type))
   (typep type 'v-error))
 
 (defun function-return-spec-doesnt-need-flow-ids (spec)
@@ -132,21 +130,15 @@
 ;; inspection
 
 (defun id~= (id-a id-b)
-  (assert (or (typep id-a 'flow-identifier) (null id-a)))
-  (assert (or (typep id-b 'flow-identifier) (null id-b)))
+  (declare (type (or null flow-identifier) id-a id-b)
+           (optimize (speed 3) (safety 1) (debug 1)))
   (unless (or (null id-a) (null id-b))
     (not (null (intersection (listify (ids id-a)) (listify (ids id-b))
                              :key λ(slot-value _ 'val))))))
 
 (defun id= (id-a id-b)
-  (assert (or (typep id-a 'flow-identifier) (null id-a))
-          (id-a)
-          "Varjo: #'id= expected a flow-id or null for the first argument.~%Got: ~a"
-          id-a)
-  (assert (or (typep id-b 'flow-identifier) (null id-b))
-          (id-b)
-          "Varjo: #'id= expected a flow-id or null for the second argument.~%Got: ~a"
-          id-b)
+  (declare (type (or null flow-identifier) id-a id-b)
+           (optimize (speed 3) (safety 1) (debug 1)))
   (unless (or (null id-a) (null id-b))
     (equal (sort (copy-list (raw-ids id-a)) #'<)
            (sort (copy-list (raw-ids id-b)) #'<))))
