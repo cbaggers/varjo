@@ -275,3 +275,11 @@ are supported in this context are: ~s"
   `(remove ,name ,list-place :key #'first))
 
 ;;-------------------------------------------------------------------------
+
+(defmacro %peek (thing)
+  (let ((gthing (gensym "thing")))
+    `(let ((,gthing ,thing))
+       (break "Lisp Peek:~%:obj ~s~%:type ~s"
+              ,gthing
+              (type-of ,gthing))
+       ,gthing)))

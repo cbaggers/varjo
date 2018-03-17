@@ -29,7 +29,8 @@
    :a-get1
    :a-add
    :a-set
-   :a-remove-all))
+   :a-remove-all
+   :%peek))
 
 (uiop:define-package #:vari.types
     (:use #:cl #:varjo.utils #:alexandria #:named-readtables)
