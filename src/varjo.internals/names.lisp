@@ -2,6 +2,33 @@
 
 ;;-------------------------------------------------------------------------
 
+(macrolet ((define-ascii-char-ranges ()
+              (let ((ranges)
+                    (min nil)
+                    (max nil))
+                (loop :for i :in (sort (map 'list #'char-code +ascii-alpha-num+) #'<) :do
+                   (if min
+                       (if (= (- i max) 1)
+                           (setf max i)
+                           (progn
+                             (push (list min max) ranges)
+                             (setf min i
+                                   max i)))
+                       (setf min i
+                             max i))
+                   :finally (push (list min max) ranges))
+                (let* ((ranges (reverse ranges)))
+                  `(progn
+                     (defun glsl-alphanumeric-p (char)
+                       (declare (optimize (speed 3) (debug 1) (safety 1))
+                                (type character char))
+                       (let ((code (char-code char)))
+                         (or ,@(loop :for (min max) :in ranges :collect
+                                  `(and (>= code ,min) (<= code ,max)))))))))))
+  (define-ascii-char-ranges))
+
+;;-------------------------------------------------------------------------
+
 ;; safe-glsl-name-string was used on it's own those when we wanted a direct
 ;; translation from lisp name. For example with in-args/uniforms/structs
 
@@ -13,7 +40,7 @@
 (defun gen-glsl-string-for-symbol (name)
   (let ((name (symbol-name name)))
     (format nil "~@[~a~]~{~a~}"
-            (when (not (and (find (elt name 0) +ascii-alpha-num+)
+            (when (not (and (glsl-alphanumeric-p (elt name 0))
                             (alpha-char-p (elt name 0))))
 
               "_")
@@ -24,12 +51,14 @@
   (ppcre:regex-replace "->" name "-TO-"))
 
 (defun replace-char-in-name (c)
-  (if (find c +ascii-alpha-num+) c
+  (if (glsl-alphanumeric-p c)
+      c
       (if (char= c #\-)
           #\_
           (char-name-or-code-str c))))
 
 (defun char-name-or-code-str (char)
+  (declare (type character char))
   (cond
     ((char= char #\·) "_DOT_")
     ((char= char #\²) "_SQUARED")
