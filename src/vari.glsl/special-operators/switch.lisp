@@ -28,8 +28,8 @@
                      clause-objs
                      :type-set type-set
                      :current-line nil
-                     :to-block (list (gen-switch-string test-obj keys
-                                                        clause-objs))
+                     :to-block (gen-switch-chunk test-obj keys
+                                                 clause-objs)
                      :node-tree (ast-node!
                                  'switch
                                  (cons (node-tree test-obj)

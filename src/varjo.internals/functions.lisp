@@ -152,7 +152,7 @@ however failed to do so when asked."
 
 (defun expand-argument-spec (func arg-types)
   (let* ((spec (v-argument-spec func))
-         (rest-pos (position-if #'&rest-p spec)))
+         (rest-pos (&rest-pos func)))
     (if (and rest-pos (>= (length arg-types) rest-pos))
         (let* ((rest (subseq spec (1+ rest-pos)))
                (type (first rest))
@@ -167,7 +167,7 @@ however failed to do so when asked."
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs
                          &key (allow-casting t))
-  (let ((spec-types (if (has-&rest func)
+  (let ((spec-types (if (&rest-pos func)
                         (expand-argument-spec func arg-types)
                         (v-argument-spec func)))
         (arg-types-no-block-structs

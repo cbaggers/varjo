@@ -50,7 +50,6 @@
 (defgeneric get-symbol-binding (symbol respect-scope-rules env))
 (defgeneric get-symbol-macro (macro-name env))
 (defgeneric in-block-name-for (stage))
-(defgeneric indent (input &optional count))
 (defgeneric map-environments (func e))
 (defgeneric merge-compiled (objs &key type-set emit-set return-set
                                    current-line to-block

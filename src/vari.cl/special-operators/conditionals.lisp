@@ -44,7 +44,7 @@
                                            (list test-obj then-obj else-obj))
                                    type-set
                                    starting-env final-env)))
-        (vbind (block-string current-line-string)
+        (vbind (to-block current-line)
             (if (and has-else
                      (satifies-ternary-style-restrictions-p
                       test-form test-obj
@@ -65,9 +65,8 @@
                      :sets return-sets)))
           (values (merge-compiled arg-objs
                                   :type-set type-set
-                                  :current-line current-line-string
-                                  :to-block (when block-string
-                                              (list block-string))
+                                  :current-line current-line
+                                  :to-block to-block
                                   :node-tree node-tree)
                   final-env))))))
 
@@ -111,9 +110,9 @@
   (declare (ignorable test-form test-obj
                       then-form then-obj
                       else-form else-obj))
-  (and (not (to-block test-obj))
-       (not (to-block then-obj))
-       (not (to-block else-obj))
+  (and (glsl-chunk-emptyp (to-block test-obj))
+       (glsl-chunk-emptyp (to-block then-obj))
+       (glsl-chunk-emptyp (to-block else-obj))
        (pure-p test-obj)
        (pure-p then-obj)
        (pure-p else-obj)
@@ -132,10 +131,11 @@
           100)))
 
 (defun gen-string-for-ternary-form (test-obj then-obj else-obj)
-  (values nil (format nil "(~a ? ~a : ~a)"
-                      (current-line test-obj)
-                      (current-line then-obj)
-                      (current-line else-obj))))
+  (values nil
+          (glsl-line "(~a ? ~a : ~a)"
+                     (current-line test-obj)
+                     (current-line then-obj)
+                     (current-line else-obj))))
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj primary-result-type
                                has-else)
@@ -148,37 +148,45 @@
                                  (needs-assign-p else-obj))))
            (tmp-var (when will-assign
                       (safe-glsl-name-string (gensym "if-tmp-"))))
-           (then-string (gen-string-for-if-block then-obj tmp-var))
-           (else-string (when has-else
-                          (gen-string-for-if-block else-obj tmp-var))))
+           (then-chunk (gen-chunk-for-if-block then-obj tmp-var))
+           (else-chunk (when has-else
+                          (gen-chunk-for-if-block else-obj tmp-var))))
       (values
-       (when (or then-string else-string)
-         (format nil "~{~a~%~}~@[~a~%~]if (~a)~%~a~@[~%else~%~a~]"
-                 (to-block test-obj)
-                 (when tmp-var
-                   (prefix-type-to-string primary-result-type
-                                          (end-line-str tmp-var)))
-                 (current-line test-obj)
-                 (or then-string (format nil "{~%}"))
-                 else-string))
+       (when (or then-chunk else-chunk)
+         (glsl-chunk-splicing
+           :chunk (to-block test-obj)
+           :line (when tmp-var
+                   (glsl-line
+                    (prefix-type-to-string primary-result-type
+                                           (end-line-str tmp-var))))
+           :line (glsl-line "if (~a)" (current-line test-obj))
+           :chunk (or then-chunk
+                      (glsl-chunk
+                       (glsl-line "{")
+                       (glsl-line "}")))
+           :line (when else-chunk (glsl-line "else"))
+           :chunk else-chunk))
        (when will-assign
-         tmp-var)))))
+         (glsl-line tmp-var))))))
 
-(defun gen-string-for-if-block (code-obj glsl-tmp-var-name)
+(defun gen-chunk-for-if-block (code-obj glsl-tmp-var-name)
   (let ((to-block (to-block code-obj))
         (current-line (current-line code-obj)))
     ;;
-    (when (or to-block current-line)
-      (format nil "{~a~@[~a~]~%}"
-              (indent-for-block to-block)
-              (when current-line
+    (when (or current-line (not (glsl-chunk-emptyp to-block)))
+      (glsl-chunk-splicing
+        :line (glsl-line "{")
+        :chunk (indent to-block)
+        :line (when current-line
                 (let ((current (end-line-str current-line)))
-                  (indent-for-block
-                   (if (and glsl-tmp-var-name
-                            (not (v-discarded-p code-obj))
-                            (not (v-returned-p code-obj)))
-                       (%gen-assignment-string glsl-tmp-var-name current)
-                       current))))))))
+                  (indent
+                   (glsl-line
+                    (if (and glsl-tmp-var-name
+                             (not (v-discarded-p code-obj))
+                             (not (v-returned-p code-obj)))
+                        (%gen-assignment-string glsl-tmp-var-name current)
+                        current)))))
+        :line (glsl-line "}")))))
 
 ;;------------------------------------------------------------
 ;; When

@@ -27,7 +27,7 @@
         (assert (null (flow-ids maybe-def-code)))
         (assert (null (out-of-scope-args maybe-def-code)))
         (assert (null (place-tree maybe-def-code)))
-        (assert (null (to-block maybe-def-code)))
+        (assert (glsl-chunk-emptyp (to-block maybe-def-code)))
         (assert (emptyp (type-set maybe-def-code))))
       (values compiled-func maybe-def-code))))
 
@@ -165,11 +165,12 @@
                                                    implicit-args
                                                    in-out-args))))
              (func-glsl-def (unless strip-glsl
-                              (gen-function-body-string
-                               glsl-name arg-pairs
-                               out-arg-pairs
-                               return-for-glsl body-obj
-                               implicit-args in-out-args)))
+                              (glsl-chunk-to-string
+                               (gen-function-body-string
+                                 glsl-name arg-pairs
+                                 out-arg-pairs
+                                 return-for-glsl body-obj
+                                 implicit-args in-out-args))))
              (arg-types (mapcar #'second args))
              ;;
              ;; This is an interesting case, it is possible for the user to write a function

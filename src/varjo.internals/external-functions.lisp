@@ -22,7 +22,7 @@
     (let* ((func (make-instance 'external-function
                                 :name name
                                 :in-args in-args
-                                :has-&rest nil
+                                :&rest-pos nil
                                 :uniforms uniforms
                                 :code code
                                 :glsl-versions valid-glsl-versions))

@@ -64,31 +64,29 @@
                  :args arg-names
                  :context context
                  :arg-spec arg-spec
-                 :has-&rest (has-&rest arg-spec)
+                 :&rest-pos (&rest-pos arg-spec)
                  :macro-function macro-function))
 
 (defun find-compiler-macro-for-func (func)
-  (labels ((&rest-pos (s) (position-if #'&rest-p s)))
-    (unless (v-special-functionp func)
-      (let* ((name (name func))
-             (func-spec (v-argument-spec func))
-             (rest-pos (&rest-pos func-spec))
-             (candidates (get-global-compiler-macro name))
-             (candidates (if rest-pos
-                             (remove-if-not λ(= (&rest-pos (v-argument-spec _))
-                                                rest-pos)
-                                            candidates)
-                             candidates))
-             (func-spec (remove-if #'&rest-p func-spec)))
-        (when candidates
-          (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil
-                                                    :allow-casting nil)
-                                 candidates))
-                 (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
-                 (sorted (sort trimmed #'< :key #'secondary-score))
-                 (winner (first sorted)))
-            (when winner
-              (func winner))))))))
+  (unless (v-special-functionp func)
+    (let* ((name (name func))
+           (func-spec (v-argument-spec func))
+           (rest-pos (&rest-pos func-spec))
+           (candidates (get-global-compiler-macro name))
+           (candidates (if rest-pos
+                           (remove-if-not λ(= (&rest-pos _) rest-pos)
+                                          candidates)
+                           candidates))
+           (func-spec (remove-if #'&rest-p func-spec)))
+      (when candidates
+        (let* ((scored (mapcar λ(basic-arg-matchp _ func-spec nil
+                                                  :allow-casting nil)
+                               candidates))
+               (trimmed (remove-if λ(or (null _) (> (score _) 0)) scored))
+               (sorted (sort trimmed #'< :key #'secondary-score))
+               (winner (first sorted)))
+          (when winner
+            (func winner)))))))
 
 ;;------------------------------------------------------------
 ;; Helpers

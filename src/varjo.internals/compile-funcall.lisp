@@ -45,15 +45,14 @@
                                          (ast-return-type ast)
                                          env
                                          (ast-ending-env ast)))
-                 (to-block (append
-                            (to-block func-code-obj)
-                            (list (current-line (end-line func-code-obj)))
-                            (to-block obj))))
+                 (to-block (join-glsl-chunks
+                             (list (glsl-chunk-from-compiled func-code-obj)
+                                   (to-block obj)))))
             (assert (eq final-env (ast-ending-env ast)))
             (merge-compiled (list func-code-obj obj)
                             :type-set (type-set obj)
                             :current-line (current-line obj)
-                            :to-block (remove nil to-block)
+                            :to-block to-block
                             :node-tree funcall-ast)))))))
 
 (defun compile-call-with-set-of-functions (func-set args-code env
@@ -262,7 +261,7 @@
     (values (merge-compiled
              args
              :type-set type-set
-             :current-line (gen-function-string func args)
+             :current-line (gen-function-call-string func args)
              :pure (pure-p func)
              :emit-set emit-set
              :stemcells (mappend #'stemcells args)
@@ -295,7 +294,7 @@
          (o (merge-compiled
              args
              :type-set type-set
-             :current-line (gen-function-string func args m-r-names)
+             :current-line (gen-function-call-string func args m-r-names)
              :stemcells (mappend #'stemcells args)
              :pure (pure-p func)
              :emit-set emit-set

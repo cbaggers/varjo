@@ -1,6 +1,8 @@
 (in-package :varjo.internals)
 (in-readtable :fn.reader)
 
+;;------------------------------------------------------------
+
 (defun gen-number-string (number type)
   (typecase type
     (v-double (format nil "~flf" number))
@@ -16,7 +18,7 @@
                 (or (glsl-name v-value)
                     (string-downcase (string var-name)))))))
 
-(defun gen-function-string (func arg-objs &optional out-strings)
+(defun gen-function-call-string (func arg-objs &optional out-strings)
   ;; This will include ephemeral types if passed. It is the responsibility
   ;; of the calling code to handle this
   (labels ((rest-pos (func)
@@ -70,13 +72,14 @@
   (let ((args (append (mapcar λ(cons nil _) args)
                       (gen-implicit-arg-tripples implicit-args)
                       (gen-in-out-arg-tripples in-out-args))))
-    (format nil "~a ~a(~a)~%{~%~{~a~%~}~{~a~%~}}~%"
-            (v-glsl-string type)
-            (string name)
-            (gen-arg-string args out-args)
-            (mappend #'indent (remove "" (to-block body-obj) :test #'equal))
-            (when (current-line body-obj)
-              (indent (current-line (end-line body-obj)))))))
+    (glsl-chunk-splicing
+      :line (glsl-line "~a ~a(~a)"
+                       (v-glsl-string type)
+                       (string name)
+                       (gen-arg-string args out-args))
+      :line (glsl-line "{")
+      :chunk (indent (glsl-chunk-from-compiled body-obj))
+      :line (glsl-line "}"))))
 
 (defun gen-bin-op-string (op-symbol place val)
   (assert (symbolp op-symbol))
@@ -99,12 +102,13 @@
 (defun gen-bool-and-string (objs)
   (format nil "~{~a~^ && ~}" (mapcar #'current-line objs)))
 
-(defun gen-while-string (test-obj body-obj)
-  (format nil "~{~a~%~}while (~a)~%{~{~%~a~}~%}"
-          (to-block test-obj)
-          (current-line test-obj)
-          (append (remove-empty (mappend #'indent (to-block body-obj)))
-                  (indent (current-line body-obj)))))
+(defun gen-while-chunk (test-obj body-obj)
+  (glsl-chunk-splicing
+    :chunk (to-block test-obj)
+    :line (glsl-line "while (~a)" (current-line test-obj))
+    :line (glsl-line "{")
+    :chunk (indent (glsl-chunk-from-compiled body-obj))
+    :line (glsl-line "}")))
 
 (defun gen-swizzle-string (vec-obj components-string)
   (format nil "~a.~a" (current-line vec-obj)
@@ -118,34 +122,36 @@
                   x))))
     (remove-if #'empty-p list)))
 
-(defun gen-for-loop-string (var-string condition-obj update-obj body-obj)
-  (let ((prog-strs (or (remove nil (to-block body-obj)) (list ""))))
-    (format nil "for (~a;~a;~a)~%{~{~%~a~}~{~%~a~}~%}"
-            var-string
-            (current-line condition-obj)
-            (current-line update-obj)
-            (remove-empty (mappend #'indent prog-strs))
-            (remove-empty (when (current-line body-obj)
-                            (indent (current-line body-obj)))))))
+(defun gen-for-loop-chunk (var-string condition-obj update-obj body-obj)
+  (glsl-chunk-splicing
+    :line (glsl-line "for (~a;~a;~a)"
+                     var-string
+                     (current-line condition-obj)
+                     (current-line update-obj))
+    :line (glsl-line "{")
+    :chunk (indent (glsl-chunk-from-compiled body-obj))
+    :line (glsl-line "}")))
 
-(defun gen-switch-string (test-obj keys clause-body-objs
+(defun gen-switch-chunk (test-obj keys clause-body-objs
                           &optional (default-symb 'default))
-  (let* ((default-clause nil)
-         (format-clauses
-          (loop :for key :in keys
-             :for obj :in clause-body-objs
-             :append
-             (if (eq key default-symb)
-                 (error "Varjo Bug: switch default not implemented") ;; {TODO}
-                 (list key
-                       (append (mappend #'indent (to-block obj))
-                               (indent (current-line (end-line obj))))))
-             :into result
-             :finally (return (append result default-clause)))))
-    (format nil "~a~%switch (~a) {~{~%    case ~a:~%~{~a~^~%~}~%    break;~%~}}"
-            (or (to-block test-obj) "")
-            (current-line test-obj)
-            format-clauses)))
+  (let* ((cases-chunk
+          (join-glsl-chunks
+              (loop :for key :in keys
+                 :for obj :in clause-body-objs
+                 :collect
+                 (if (eq key default-symb)
+                     (error "Varjo Bug: switch default not implemented") ;; {TODO}
+                     (indent
+                      (glsl-chunk-splicing
+                        :line (glsl-line "case ~a:" key)
+                        :chunk (glsl-chunk-from-compiled obj)
+                        :line (glsl-line "break;" key))))))))
+    (glsl-chunk-splicing
+      :chunk (to-block test-obj)
+      :line (glsl-line "switch (~a)" (current-line test-obj))
+      :line (glsl-line "{")
+      :chunk cases-chunk
+      :line (glsl-line "}"))))
 
 (defun prefix-type-to-string (type line-string
                               &optional qualifiers storage-qual)
@@ -331,18 +337,6 @@
               (format nil "~a ~a;"
                       (v-glsl-string type-obj)
                       (safe-glsl-name-string name))))))
-
-;;----------------------------------------------------------------------
-
-(defmethod indent ((input string) &optional (count 4))
-  (let ((spaces (make-array count :element-type 'character
-                            :initial-element #\space)))
-    (mapcar #'(lambda (x) (format nil "~a~a" spaces x))
-            (split-sequence:split-sequence #\newline input))))
-
-(defun indent-for-block (line/s)
-  (format nil "~@[~%~{~a~^~%~}~]"
-          (remove-empty (mappend #'indent (listify line/s)))))
 
 ;;----------------------------------------------------------------------
 

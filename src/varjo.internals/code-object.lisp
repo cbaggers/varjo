@@ -5,6 +5,8 @@
                         to-block emit-set return-set used-types stemcells
                         out-of-scope-args pure
                         place-tree node-tree)
+  (assert (or (glsl-chunk-p to-block) ;; temporary
+              (null to-block)))
   (assert-flow-id-singularity (flow-ids (primary-type type-set)))
   (unless (or (every #'flow-ids type-set) (set-doesnt-need-flow-ids type-set))
     (error 'flow-ids-mandatory :for "compiled object"
@@ -83,7 +85,7 @@
      :type-set type-set
      :current-line (if set-current-line current-line
                        (current-line code-obj t))
-     :to-block (if set-block to-block (remove nil (to-block code-obj)))
+     :to-block (if set-block to-block (to-block code-obj))
      :return-set (if set-return-set return-set (return-set code-obj))
      :emit-set (if set-emit-set emit-set (emit-set code-obj))
      :stemcells (if set-stemcells stemcells (stemcells code-obj))
@@ -122,8 +124,10 @@
              :primary-type (map 'vector #'type->type-spec type-set)))
     (make-compiled :type-set type-set
                    :current-line current-line
-                   :to-block (if set-block to-block
-                                 (mappend #'to-block objs))
+                   :to-block (if set-block
+                                 to-block
+                                 (join-glsl-chunks
+                                  (mapcar #'to-block objs)))
                    :emit-set emit-set
                    :return-set return-set
                    :used-types (if set-used-types
@@ -138,17 +142,6 @@
                    :place-tree place-tree
                    :pure (if set-pure pure (every #'pure-p objs))
                    :node-tree node-tree)))
-
-(defun merge-lines-into-block-list (objs)
-  (when objs
-    (let ((%objs (remove nil (butlast objs))))
-      (remove #'null
-              (append (loop :for i :in %objs
-                         :for j :in (mapcar #'end-line %objs)
-                         :append (remove nil (to-block i))
-                         :append (listify (current-line j)));this should work
-                      (to-block (last1 objs)))))))
-
 
 (defun array-type-index-p (x)
   (or (numberp x)

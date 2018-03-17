@@ -49,7 +49,10 @@
         (merge-compiled code-objs
                         :type-set type-set
                         :current-line (current-line last-obj)
-                        :to-block (merge-lines-into-block-list code-objs)
+                        :to-block (join-glsl-chunks
+                                   (list
+                                    (join-glsl-of-compiled (butlast code-objs))
+                                    (to-block last-obj)))
                         :node-tree (ast-node! 'progn
                                               (mapcar #'node-tree code-objs)
                                               type-set
@@ -96,9 +99,14 @@
      code-objs
      :type-set type-set
      :current-line nil
-     :to-block (append (mappend #'to-block code-objs)
-                       (mapcar (lambda (_) (current-line (end-line _)))
-                               code-objs))
+     :to-block (join-glsl-chunks
+                (list
+                 (join-glsl-chunks (mapcar #'to-block code-objs))
+                  (glsl-chunk*
+                    (loop :for obj :in code-objs
+                       :for line := (current-line obj)
+                       :when line
+                       :collect (glsl-line (end-line obj))))))
      :node-tree :ignored)))
 
 (defmacro merge-multi-env-progn (code-objs)
@@ -170,9 +178,8 @@
                                  :used-types (list type-obj)
                                  :current-line glsl-name
                                  :node-tree :ignored)))))
-           (to-block
-            (cons-end (current-line (end-line let-obj))
-                      (to-block let-obj))))
+           (to-block (when let-obj
+                       (glsl-chunk-from-compiled let-obj))))
       (values
        (copy-compiled let-obj
                       :type-set (make-type-set)

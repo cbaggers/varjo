@@ -74,10 +74,10 @@ type-spec trick doesnt"))
 (defun &rest-p (x)
   (and (symbolp x) (string= x :&rest)))
 
-(defmethod has-&rest ((arg-spec list))
-  (not (null (find-if #'&rest-p arg-spec))))
+(defmethod &rest-pos ((arg-spec list))
+  (position-if #'&rest-p arg-spec))
 
-(defmethod has-&rest ((arg-spec symbol))
+(defmethod &rest-pos ((arg-spec symbol))
   nil)
 
 ;;------------------------------------------------------------

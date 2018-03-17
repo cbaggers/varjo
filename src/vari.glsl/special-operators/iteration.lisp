@@ -16,8 +16,7 @@
                      (list body-obj test-obj)
                      :type-set type-set
                      :current-line nil
-                     :to-block (list (gen-while-string
-                                      test-obj (end-line body-obj)))
+                     :to-block (gen-while-chunk test-obj (end-line body-obj))
                      :node-tree (ast-node!
                                  'while (mapcar #'node-tree
                                                 (list test-obj body-obj))
@@ -34,44 +33,49 @@
 (v-defspecial for (var-form condition update &rest body)
   :args-valid t
   :return
-  (if (consp (first var-form))
-      (error 'for-loop-only-one-var)
-      (multiple-value-bind (code new-env)
-          (with-v-let-spec var-form
-            (compile-let name type-spec value-form env))
-        (let* ((var-string (subseq (first (to-block code))
-                                   0
-                                   (1- (length (first (to-block code))))))
-               (decl-obj (compile-form (second var-form) new-env))
-               (condition-obj (compile-form condition new-env))
-               (update-obj (compile-form update new-env)))
-          (unless (or (v-typep (primary-type decl-obj) 'v-uint)
-                      (v-typep (primary-type decl-obj) 'v-int)
-                      (v-typep (primary-type decl-obj) 'v-float))
-            (error 'invalid-for-loop-type :decl-obj decl-obj))
-          (vbind (body-obj final-env)
-              (search-for-flow-id-fixpoint `(progn ,@body) new-env)
-            (if (and (null (to-block condition-obj))
-                     (null (to-block update-obj)))
-                (let ((loop-str (gen-for-loop-string
+  (progn
+    (assert (not (consp (first var-form))) () 'for-loop-only-one-var)
+    (multiple-value-bind (code new-env)
+        (with-v-let-spec var-form
+          (compile-let name type-spec value-form env))
+      ;; {TODO} This string fuckery is gross, fix this
+      (let* ((to-block-lines (varjo.internals::glsl-chunk-lines
+                              (to-block code)))
+             (to-block-strings (mapcar #'varjo.internals::glsl-line-string-part
+                                       to-block-lines))
+             (var-string (subseq (first to-block-strings)
+                                 0
+                                 (1- (length (first to-block-strings)))))
+             (decl-obj (compile-form (second var-form) new-env))
+             (condition-obj (compile-form condition new-env))
+             (update-obj (compile-form update new-env)))
+        (unless (or (v-typep (primary-type decl-obj) 'v-uint)
+                    (v-typep (primary-type decl-obj) 'v-int)
+                    (v-typep (primary-type decl-obj) 'v-float))
+          (error 'invalid-for-loop-type :decl-obj decl-obj))
+        (vbind (body-obj final-env)
+            (search-for-flow-id-fixpoint `(progn ,@body) new-env)
+          (if (and (glsl-chunk-emptyp (to-block condition-obj))
+                   (glsl-chunk-emptyp (to-block update-obj)))
+              (let ((loop-chunk (gen-for-loop-chunk
                                  var-string condition-obj update-obj
                                  (end-line body-obj)))
-                      (type-set (make-type-set)))
-                  (values (copy-compiled
-                           body-obj
-                           :type-set type-set
-                           :current-line nil
-                           :to-block (list loop-str)
-                           :node-tree (ast-node!
-                                       'for (cons var-form
-                                                  (mapcar #'node-tree
-                                                          (list condition-obj
-                                                                update-obj
-                                                                body-obj)))
-                                       type-set env final-env)
-                           :place-tree nil)
-                          final-env))
-                (error 'for-loop-simple-expression)))))))
+                    (type-set (make-type-set)))
+                (values (copy-compiled
+                         body-obj
+                         :type-set type-set
+                         :current-line nil
+                         :to-block loop-chunk
+                         :node-tree (ast-node!
+                                     'for (cons var-form
+                                                (mapcar #'node-tree
+                                                        (list condition-obj
+                                                              update-obj
+                                                              body-obj)))
+                                     type-set env final-env)
+                         :place-tree nil)
+                        final-env))
+              (error 'for-loop-simple-expression)))))))
 
 ;;------------------------------------------------------------
 ;; For's flow-id resolution

@@ -6,7 +6,10 @@
 
 (v-defmacro glsl-expr (glsl-string type-spec &rest args)
   (if args
-      (if (and (every λ(typep _ 'compiled) args) (not (some #'to-block args)))
+      (if (every (lambda (arg)
+                   (and (typep arg 'compiled)
+                        (glsl-chunk-emptyp (to-block arg))))
+                 args)
           `(%glsl-expr ,glsl-string ,type-spec ,@args)
           (let ((gs (loop :for i :below (length args) :collect
                        (gensym (format nil "GEXPR~a-" i)))))

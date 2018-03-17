@@ -453,6 +453,7 @@
            :external-function
            :external-function-p
            :extract-declares
+           :extract-details-from-problematic-closures
            :extract-value-qualifiers
            :extended-environment
            :find-env-bindings
@@ -474,18 +475,24 @@
            :gen-bin-op-string
            :gen-bool-and-string
            :gen-bool-or-string
-           :gen-for-loop-string
+           :gen-for-loop-chunk
            :gen-macro-function-code
            :gen-or-type
            :gen-setq-assignment-string
-           :gen-switch-string
+           :gen-switch-chunk
            :gen-swizzle-string
-           :gen-while-string
+           :gen-while-chunk
            :geometry-stage
            :get-primitive-type-from-context
            :get-stage-kind-from-context
            :get-stemcell-name-for-flow-id
            :get-symbol-binding
+           :glsl-chunk
+           :glsl-chunk*
+           :glsl-chunk-emptyp
+           :glsl-chunk-from-compiled
+           :glsl-chunk-splicing
+           :glsl-line
            :glsl-code
            :glsl-name
            :glsl-string
@@ -501,10 +508,12 @@
            :in-args
            :in-declarations
            :in-out-args
-           :indent-for-block
+           :indent
            :inject-implicit-uniform
            :input-variable-glsl
            :input-variables
+           :join-glsl-chunks
+           :join-glsl-of-compiled
            :line-loop
            :line-strip
            :line-strip-adjacency
@@ -664,8 +673,7 @@
            :with-v-let-spec
            :parse-qualifier
            :*in-qualifier*
-           :*out-qualifier*
-           :extract-details-from-problematic-closures))
+           :*out-qualifier*))
 
 (uiop:define-package #:varjo.api
     (:use #:cl #:varjo.utils #:varjo.internals #:alexandria #:named-readtables)

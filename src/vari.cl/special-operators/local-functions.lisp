@@ -48,9 +48,8 @@
                  (values code (add-form-binding fn env)))))
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
-    ;;(print (mapcar #'used-types func-def-objs))
-    (let* ((merged (merge-progn (remove nil (cons-end body-obj func-def-objs))
-                                env e))
+    (let* ((objs (remove nil (cons-end body-obj func-def-objs)))
+           (merged (merge-progn objs env e))
            (ast (ast-node!
                  'flet
                  (list (remove nil (mapcar λ(when _1
