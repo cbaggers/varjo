@@ -21,11 +21,7 @@
                  (replace-substrings-in-name name)))))
 
 (defun replace-substrings-in-name (name)
-  (let ((pairs '(("->" . "-TO-"))))
-    (labels ((swap (name pair)
-               (dbind (match . new) pair
-                 (ppcre:regex-replace match name new))))
-      (reduce #'swap pairs :initial-value name))))
+  (ppcre:regex-replace "->" name "-TO-"))
 
 (defun replace-char-in-name (c)
   (if (find c +ascii-alpha-num+) c
