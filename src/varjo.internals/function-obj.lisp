@@ -9,7 +9,8 @@
 ;;------------------------------------------------------------
 
 (defclass v-function-set ()
-  ((functions :initform nil :initarg :functions :reader functions)))
+  ((functions :initform nil :initarg :functions :reader functions)
+   (is-special :initarg :special :reader v-special-functionp)))
 
 ;; {TODO} Proper error
 (defun make-function-set (functions)
@@ -18,7 +19,9 @@
                    functions)
             (functions)
             "Failed to initialize v-function-set:~% functions: ~s" functions)
-    (make-instance 'v-function-set :functions functions)))
+    (make-instance 'v-function-set
+                   :functions functions
+                   :special (some #'v-special-functionp functions))))
 
 (defmethod print-object ((fs v-function-set) stream)
   (if (null (functions fs))

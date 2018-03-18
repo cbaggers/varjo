@@ -6,9 +6,6 @@
 (defmethod v-special-functionp ((func v-function))
   (eq :special (v-glsl-string func)))
 
-(defmethod v-special-functionp ((func v-function-set))
-  (some #'v-special-functionp (functions func)))
-
 (defun user-function-p (f)
   (typep f 'v-user-function))
 
