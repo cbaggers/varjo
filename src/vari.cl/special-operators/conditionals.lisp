@@ -167,7 +167,7 @@
            :line (when else-chunk (glsl-line "else"))
            :chunk else-chunk))
        (when will-assign
-         (glsl-line tmp-var))))))
+         tmp-var)))))
 
 (defun gen-chunk-for-if-block (code-obj glsl-tmp-var-name)
   (let ((to-block (to-block code-obj))
