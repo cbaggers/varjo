@@ -790,10 +790,11 @@
 ;;------------------------------------------------------------
 
 (defun make-type-set* (members)
-  (when (and (= (length members) 1)
-             (not (typep (first members) 'v-stemcell)))
-    (assert (not (v-voidp (first members)))))
-  (apply #'vector members))
+  (let ((len (length members)))
+    (when (and (= len 1)
+               (not (typep (first members) 'v-stemcell)))
+      (assert (not (v-voidp (first members)))))
+    (make-array len :initial-contents members)))
 
 (defun make-type-set (&rest members)
   (let ((subs (mappend λ(typecase _
