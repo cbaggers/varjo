@@ -20,19 +20,17 @@
 (defun gen-function-call-string (func arg-objs &optional out-strings)
   ;; This will include ephemeral types if passed. It is the responsibility
   ;; of the calling code to handle this
-  (labels ((rest-pos (func)
-             (position-if #'&rest-p (v-argument-spec func))))
-    (when (v-glsl-string func)
-      (let* ((arg-glsl (mapcar λ(current-line _ t) arg-objs))
-             (rest-pos (rest-pos func))
-             (arg-glsl (if rest-pos
-                           (append (subseq arg-glsl 0 rest-pos)
-                                   (list (subseq arg-glsl rest-pos)))
-                           arg-glsl)))
-        (apply #'format nil (v-glsl-string func)
-               (append arg-glsl
-                       out-strings
-                       (mapcar #'glsl-name (implicit-args func))))))))
+  (when (v-glsl-string func)
+    (let* ((arg-glsl (mapcar λ(current-line _ t) arg-objs))
+           (rest-pos (&rest-pos func))
+           (arg-glsl (if rest-pos
+                         (append (subseq arg-glsl 0 rest-pos)
+                                 (list (subseq arg-glsl rest-pos)))
+                         arg-glsl)))
+      (apply #'format nil (v-glsl-string func)
+             (append arg-glsl
+                     out-strings
+                     (mapcar #'glsl-name (implicit-args func)))))))
 
 (defun gen-function-transform (name args &optional out-args implicit-args)
   (format nil "~a(~{~a~^,~})" name
