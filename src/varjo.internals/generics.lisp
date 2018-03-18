@@ -89,3 +89,4 @@
 (defgeneric v-typep (a b))
 (defgeneric val-origins (node &optional error-on-missingp))
 (defgeneric valid-for-contextp (func env))
+(defgeneric qualifiers (obj))
