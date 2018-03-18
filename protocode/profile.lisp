@@ -44,12 +44,24 @@
                   :collect s))))
        (sb-profile:reset))))
 
+(defun boom ()
+  (sb-profile:reset)
+  (time (5am:run-all-tests))
+  (sb-profile:report))
+
 (defun gooo (stages)
   (sb-profile:reset)
   (time
-   (loop :for i :below 30 :do
+   (loop :for i :below 100 :do
       (rolling-translate stages)))
   (sb-profile:report))
+
+(defun nope (stages)
+  (let (a)
+    (time
+     (loop :for i :below 100 :do
+        (setf a (rolling-translate stages))))
+    a))
 
 (defun hmm (stage)
   (sb-profile:reset)
@@ -68,3 +80,6 @@
 ;;      (translate stage))
 ;;   (sb-sprof:stop-profiling)
 ;;   (sb-sprof:report :type :flat))
+
+;; Evaluation took:
+;;   2.380 seconds of real time
