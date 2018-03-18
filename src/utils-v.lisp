@@ -254,9 +254,11 @@ are supported in this context are: ~s"
 
 ;;-------------------------------------------------------------------------
 
+(declaim (inline a-get))
 (defun a-get (name list)
   (assocr name list))
 
+(declaim (inline a-get1))
 (defun a-get1 (name list)
   (first (assocr name list)))
 

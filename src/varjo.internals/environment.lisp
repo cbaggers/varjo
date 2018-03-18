@@ -169,7 +169,7 @@
                  :symbol-bindings (v-symbol-bindings env)
                  :form-bindings (v-form-bindings env)
                  :macros nil
-                 :context (remove :main (copy-list (v-context env)))
+                 :context (remove :main (v-context env))
                  :function-scope (v-function-scope env)
                  :parent-env (v-parent-env env)
                  :allowed-outer-vars (v-allowed-outer-vars env)
@@ -188,7 +188,7 @@
                  :symbol-bindings symbol-bindings
                  :form-bindings form-bindings
                  :macros macros
-                 :context (or context (copy-list (v-context env)))
+                 :context (or context (v-context env))
                  :multi-val-base (if set-mvb
                                      multi-val-base
                                      (v-multi-val-base env))
@@ -238,7 +238,7 @@
                                       (v-symbol-bindings env))
                  :form-bindings (v-form-bindings env)
                  :macros (v-macros env)
-                 :context (copy-list (v-context env))
+                 :context (v-context env)
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
                  :parent-env new-parent
@@ -461,6 +461,18 @@ For example calling env-prune on this environment..
   (fresh-environment env :symbol-bindings (a-add name macro
                                                  (v-symbol-bindings env))))
 
+;; {TODO} does get-symbol-binding need to return the env?
+(defmethod get-symbol-binding (symbol respect-scope-rules (env environment))
+  (declare (inline a-get))
+  (let ((s (first (a-get symbol (v-symbol-bindings env)))))
+    (cond (s (if respect-scope-rules
+                 (values (apply-scope-rules symbol s env) env)
+                 (values s env)))
+          (t (when (v-parent-env env)
+               (get-symbol-binding symbol
+                                   respect-scope-rules
+                                   (v-parent-env env)))))))
+
 (defun binding-accesible-p (env binding &optional binding-name)
   (let ((from-higher-scope (binding-in-higher-scope-p binding env)))
     (when (or (not from-higher-scope)
@@ -499,17 +511,6 @@ For example calling env-prune on this environment..
   (let* ((binding (get-symbol-binding name nil env)))
     (assert binding (name) 'symbol-unidentified :sym name)
     (binding-in-higher-scope-p binding env)))
-
-;; {TODO} does get-symbol-binding need to return the env?
-(defmethod get-symbol-binding (symbol respect-scope-rules (env environment))
-  (let ((s (first (a-get symbol (v-symbol-bindings env)))))
-    (cond (s (if respect-scope-rules
-                 (values (apply-scope-rules symbol s env) env)
-                 (values s env)))
-          (t (when (v-parent-env env)
-               (get-symbol-binding symbol
-                                   respect-scope-rules
-                                   (v-parent-env env)))))))
 
 ;;-------------------------------------------------------------------------
 ;; Adding bindings for functions & macros
@@ -587,6 +588,7 @@ For example calling env-prune on this environment..
 ;;
 (defmethod get-form-binding (name (env environment))
   ;;
+  (declare (inline a-get))
   (let* ((bindings-at-this-level
           (append (a-get name (v-form-bindings env))
                   (when (typep env 'base-environment)

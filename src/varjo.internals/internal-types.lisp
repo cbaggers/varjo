@@ -189,7 +189,7 @@
    (expanded-input-variables :initform nil :initarg :expanded-input-variables
                              :accessor expanded-input-variables)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
-   (context :initform nil :initarg :context :accessor v-context)
+   (context :initform nil :initarg :context :reader v-context)
    (stemcell->flow-id :initform nil :initarg :stemcell->flow-id)
    (name-map :initform (make-hash-table :test #'equal))
    (compiled-functions :initform (make-hash-table :test #'eq))
@@ -282,7 +282,7 @@
                    :reader v-macro-function)
    (function-scope :initarg :function-scope :initform 0
                    :accessor v-function-scope)
-   (context :initform nil :initarg :context :accessor v-context)))
+   (context :initform nil :initarg :context :reader v-context)))
 
 ;;----------------------------------------------------------------------
 
@@ -290,7 +290,7 @@
   ((name :initform nil :initarg :name :reader name)
    (args :initform nil :initarg :args :accessor arguments)
    (&rest-pos :initarg :&rest-pos :reader &rest-pos)
-   (context :initform nil :initarg :context :accessor v-context)
+   (context :initform nil :initarg :context :reader v-context)
    (function-scope :initform 0 :accessor v-function-scope :allocation :class)
    (argument-spec :initform nil :initarg :arg-spec :accessor v-argument-spec)
    (macro-function :initarg :macro-function :initform nil
