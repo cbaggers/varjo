@@ -46,3 +46,10 @@
           1
           4s0))
       (v! 0 0 0 0))))
+
+(5am:def-test flow-control-4 (:suite flow-control-tests)
+  (glsl-contains-p "(1 < 2).*?.*vec4.*:.*vec4"
+    (varjo.tests::compile-vert () :410 nil
+      (if (< 1 2)
+          (vec4 1)
+          (vec4 2)))))
