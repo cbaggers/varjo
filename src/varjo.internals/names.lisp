@@ -74,12 +74,15 @@
 
 ;;-------------------------------------------------------------------------
 
+(declaim (ftype (function (symbol) boolean) glsl-var-namep))
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
+  (declare (optimize (speed 3) (safety 1) (debug 1)))
   (let ((name (symbol-name name-symbol)))
-    (or (uiop:string-prefix-p "GL-" name)
-        (uiop:string-prefix-p "FK-" name) ;; fk use for fake structs
-        (uiop:string-prefix-p "SYM-" name))))
+    (and (>= (length name) 3)
+        (char= (char name 0) #\G)
+        (char= (char name 1) #\L)
+        (char= (char name 2) #\-))))
 
 (defun valid-user-defined-name (name-symbol)
   "Returns false if name is reserved"

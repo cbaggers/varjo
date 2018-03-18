@@ -140,9 +140,8 @@ type-of new-value: ~a"
   (v-context env))
 
 (define-error name-unsuitable () (name)
-    "Names of variables and functions must start with an alpha char.
-They also may not start with 'gl-' 'fk-' or 'sym-'
-Also, naturally, t and nil are not valid names
+    "Names of variables and functions must start with an alpha char,
+they may not start with 'gl-' and, naturally, t and nil are not valid names
 Supplied Name: ~a~%" name)
 
 (define-error unable-to-resolve-func-type () (func-name args)
