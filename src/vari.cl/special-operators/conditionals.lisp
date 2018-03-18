@@ -132,10 +132,10 @@
 
 (defun gen-string-for-ternary-form (test-obj then-obj else-obj)
   (values nil
-          (glsl-line "(~a ? ~a : ~a)"
-                     (current-line test-obj)
-                     (current-line then-obj)
-                     (current-line else-obj))))
+          (format nil "(~a ? ~a : ~a)"
+                  (current-line test-obj)
+                  (current-line then-obj)
+                  (current-line else-obj))))
 
 (defun gen-string-for-if-form (test-obj then-obj else-obj primary-result-type
                                has-else)
