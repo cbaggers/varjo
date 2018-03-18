@@ -10,10 +10,10 @@
         (let ((env (%make-base-environment
                     stage :stemcells-allowed stemcells-allowed)))
           (pipe-> (stage env)
-            #'validate-inputs
-            #'process-primitive-type
             #'add-context-glsl-vars
             #'add-context-glsl-funcs
+            #'validate-inputs
+            #'process-primitive-type
             #'expand-input-variables
             #'process-uniforms
             #'compile-pass
