@@ -197,7 +197,7 @@
        (add-symbol-binding
         name
         (if (and (not value-obj) (not assume-bound))
-            (v-make-uninitialized (or type-obj (primary-type value-obj)) env
+            (v-make-uninitialized type-obj env
                                   :glsl-name glsl-name)
             (v-make-value (or type-obj (primary-type value-obj))
                           env
