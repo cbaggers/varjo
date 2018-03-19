@@ -63,6 +63,23 @@
 (v-def-glsl-template-fun range-start (r) "~a.x" (range) :int)
 (v-def-glsl-template-fun range-end (r) "~a.y" (range) :int)
 
+(v-deftype range-iter-state () :int)
+(v-def-glsl-template-fun
+ range-iter-state (x) "~a" (:int) range-iter-state)
+(v-def-glsl-template-fun
+ inc-range-state (x) "~a++" (range-iter-state) range-iter-state)
+(v-def-glsl-template-fun
+ dec-range-state (x) "~a++" (range-iter-state) range-iter-state)
+(v-def-glsl-template-fun
+ range-state-to-int (x) "~a" (range-iter-state) :int)
+
+#+nil
+(v-defspecial make-sequence (type length)
+  :args-valid t
+  :return
+  ())
+
+;;----------------
 
 (v-defun make-sequence-like ((seq range) (length :int))
   (range 0 length))
@@ -70,42 +87,64 @@
 (v-defun make-sequence-like ((seq range))
   (range (range-start seq) (range-end seq)))
 
+;;----------------
+
 (v-defun length ((seq range))
   (abs (- (range-end seq) (range-start seq))))
 
+;;----------------
 
 (v-defun limit ((seq range))
-  (range-end seq))
+  (range-iter-state (range-end seq)))
 
 (v-defun limit ((seq range) (from-end :bool))
-  (if from-end (range-start seq) (range-end seq)))
+  (range-iter-state (if from-end
+                        (range-start seq)
+                        (range-end seq))))
 
+;;----------------
 
 (v-defun create-iterator-state ((seq range))
-  (range-start seq))
+  (range-iter-state (range-start seq)))
 
 (v-defun create-iterator-state ((seq range) (from-end :bool))
-  (if from-end (range-end seq) (range-start seq)))
+  (range-iter-state (if from-end
+                        (range-end seq)
+                        (range-start seq))))
 
-(v-defun next-iterator-state ((seq range) (state :int))
-  (1+ state))
+;;----------------
 
-(v-defun next-iterator-state ((seq range) (state :int) (from-end :bool))
-  (if from-end (1- state) (1+ state)))
+(v-def-glsl-template-fun
+ next-iterator-state (state) "(~a + 1)" (range-iter-state) range-iter-state)
 
+(v-defun next-iterator-state ((state :int) (from-end :bool))
+  (if from-end (dec-range-state state) (inc-range-state state)))
 
-(v-defun iterator-reached-end ((seq range) (state :int) (limit :int))
-  (< state limit))
+;;----------------
+
+(v-def-glsl-template-fun iterator-reached-end (state limit)
+                         "(~a >= ~a)"
+                         (range-iter-state range-iter-state) :bool)
 
 (v-defun iterator-reached-end ((seq range) (state :int) (limit :int)
                                (from-end :bool))
   (if from-end (> state limit) (< state limit)))
 
-(v-defun element-for-state ((seq range) (state :int))
-  state)
+;;----------------
 
-(v-defun index-for-state ((seq range) (state :int))
-  state)
+(v-def-glsl-template-fun element-for-state (seq state)
+                         "~a[~a]"
+                         (range range-iter-state)
+                         :int)
+
+;;----------------
+
+(v-def-glsl-template-fun index-for-state (state)
+                         "~a" (range-iter-state)
+                         :int)
+
+(v-define-compiler-macro index-for-state ((state range-iter-state))
+  `(range-state-to-int ,state))
 
 ;; set doesnt make sense for range
 ;;
