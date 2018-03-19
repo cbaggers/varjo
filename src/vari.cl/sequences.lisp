@@ -79,6 +79,22 @@
   :return
   ())
 
+(v-def-glsl-template-fun
+ blort (fn seq) "|blort|(~a, ~a)" (v-function-type t) t)
+
+(v-define-compiler-macro blort ((fn v-function-type) (seq t))
+  (alexandria:with-gensyms (gfn gseq)
+    `(let ((,gfn ,fn)
+           (,gseq ,seq))
+       (labels ((blort ()
+                  (let ((limit (limit ,gseq)))
+                    (for (state (create-iterator-state ,gseq))
+                         (iterator-limit-check state limit)
+                         (setq state (next-iterator-state state))
+                         (let ((elem (element-for-state ,gseq state)))
+                           (funcall ,gfn elem))))))
+         (blort)))))
+
 ;;----------------
 
 (v-defun make-sequence-like ((seq range) (length :int))
@@ -102,6 +118,9 @@
                         (range-start seq)
                         (range-end seq))))
 
+(v-define-compiler-macro limit ((seq range))
+  `(range-iter-state (range-end ,seq)))
+
 ;;----------------
 
 (v-defun create-iterator-state ((seq range))
@@ -111,6 +130,9 @@
   (range-iter-state (if from-end
                         (range-end seq)
                         (range-start seq))))
+
+(v-define-compiler-macro create-iterator-state ((seq range))
+  `(range-iter-state (range-start ,seq)))
 
 ;;----------------
 
@@ -122,13 +144,15 @@
 
 ;;----------------
 
-(v-def-glsl-template-fun iterator-reached-end (state limit)
-                         "(~a >= ~a)"
+(v-def-glsl-template-fun iterator-limit-check (limit state)
+                         "(~a < ~a)"
                          (range-iter-state range-iter-state) :bool)
 
-(v-defun iterator-reached-end ((seq range) (state :int) (limit :int)
-                               (from-end :bool))
+(v-defun iterator-limit-check ((limit :int) (state :int) (from-end :bool))
   (if from-end (> state limit) (< state limit)))
+
+(v-define-compiler-macro iterator-limit-check ((limit :int) (state :int))
+  `(< ,limit ,state))
 
 ;;----------------
 
