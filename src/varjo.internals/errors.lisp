@@ -119,8 +119,9 @@ type-of new-value: ~a"
     "Type specified does not match the type of the form~%~s~%~s"
   (primary-type code-obj) var-type)
 
-(define-error switch-type-error () (test-obj keys)
-    "In a switch statement the result of the test and the keys must all be either ints or uints:~%Test type: ~a~%Keys used: ~{~a~^,~}" (primary-type test-obj) keys)
+(define-error switch-type-error () (form)
+    "Currently the clause forms of a switch must all be either ints, uints, floats or doubles:~%Code:~%~a"
+  form)
 
 (define-error loop-will-never-halt () (test-code test-obj)
     "The loop is using the following code as it's test.~%~a~%~%This will only ever result in a ~a which means the loop will never halt" test-code (type->type-spec (primary-type test-obj)))
