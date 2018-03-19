@@ -119,10 +119,17 @@
                   x))))
     (remove-if #'empty-p list)))
 
-(defun gen-for-loop-chunk (var-string condition-obj update-obj body-obj)
+(defun gen-for-loop-chunk (decl-chunk
+                           var-string
+                           condition-obj
+                           update-obj
+                           body-obj)
+  ;; We rely on end-line to create the semicolons that
+  ;; seperate the clauses in the for statement
   (glsl-chunk-splicing
-    :line (glsl-line "for (~a;~a;~a)"
-                     var-string
+    :chunk decl-chunk
+    :line (glsl-line "for (~a ~a ~a)"
+                     (glsl-line-string-part var-string)
                      (current-line condition-obj)
                      (current-line update-obj))
     :line (glsl-line "{")

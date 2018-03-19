@@ -35,31 +35,30 @@
   :return
   (progn
     (assert (not (consp (first var-form))) () 'for-loop-only-one-var)
-    (multiple-value-bind (code new-env)
+    (multiple-value-bind (decl-obj decl-env)
         (with-v-let-spec var-form
           (compile-let name type-spec value-form env))
-      ;; {TODO} This string fuckery is gross, fix this
-      (let* ((to-block-lines (varjo.internals::glsl-chunk-lines
-                              (to-block code)))
-             (to-block-strings (mapcar #'varjo.internals::glsl-line-string-part
-                                       to-block-lines))
-             (var-string (subseq (first to-block-strings)
-                                 0
-                                 (1- (length (first to-block-strings)))))
-             (decl-obj (compile-form (second var-form) new-env))
-             (condition-obj (compile-form condition new-env))
-             (update-obj (compile-form update new-env)))
-        (unless (or (v-typep (primary-type decl-obj) 'v-uint)
-                    (v-typep (primary-type decl-obj) 'v-int)
-                    (v-typep (primary-type decl-obj) 'v-float))
-          (error 'invalid-for-loop-type :decl-obj decl-obj))
+      ;;
+      ;; We have to do some hackery below. compile-let has not current-line
+      ;; but the assignment will be the last entry in to-block. We grab
+      ;; this line for the decl glsl and put the other to-block entries
+      ;; above the glsl statement
+      ;;
+      (let* ((to-block-lines (glsl-chunk-lines (to-block decl-obj)))
+             (decl-chunk (glsl-chunk* (butlast to-block-lines)))
+             (decl-assign-line (last1 to-block-lines))
+             (condition-obj (end-line (compile-form condition decl-env)))
+             (update-obj (compile-form update decl-env)))
         (vbind (body-obj final-env)
-            (search-for-flow-id-fixpoint `(progn ,@body) new-env)
+            (search-for-flow-id-fixpoint `(progn ,@body) decl-env)
           (if (and (glsl-chunk-emptyp (to-block condition-obj))
                    (glsl-chunk-emptyp (to-block update-obj)))
               (let ((loop-chunk (gen-for-loop-chunk
-                                 var-string condition-obj update-obj
-                                 (end-line body-obj)))
+                                 decl-chunk
+                                 decl-assign-line
+                                 condition-obj
+                                 update-obj
+                                 body-obj))
                     (type-set (make-type-set)))
                 (values (copy-compiled
                          body-obj

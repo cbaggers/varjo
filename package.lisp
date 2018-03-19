@@ -494,9 +494,10 @@
            :glsl-chunk*
            :glsl-chunk-emptyp
            :glsl-chunk-from-compiled
+           :glsl-chunk-lines
            :glsl-chunk-splicing
-           :glsl-line
            :glsl-code
+           :glsl-line
            :glsl-name
            :glsl-string
            :glsl-to-compile-result
