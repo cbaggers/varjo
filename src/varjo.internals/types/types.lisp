@@ -480,17 +480,19 @@
                              (type-spec->type type (flow-id!)))))
                         types))
          (reduced (reduce-types-for-or-type types)))
-    (if (= (length reduced) 1)
-        (first reduced)
-        (let ((no-terminated (remove-if λ(or (v-discarded-p _)
-                                             (v-returned-p _))
-                                        types)))
-          (case= (length no-terminated)
-            (0 (type-spec->type 'v-discarded flow-id))
-            (1 (first no-terminated))
-            (otherwise
-             (make-instance 'v-or :types no-terminated
-                            :flow-ids (apply #'flow-id! no-terminated))))))))
+    (case (length reduced)
+      (0 (make-instance 'v-or :types nil :flow-ids flow-id))
+      (1 (first reduced))
+      (otherwise
+       (let ((no-terminated (remove-if λ(or (v-discarded-p _)
+                                            (v-returned-p _))
+                                       types)))
+         (case= (length no-terminated)
+           (0 (type-spec->type 'v-discarded flow-id))
+           (1 (first no-terminated))
+           (otherwise
+            (make-instance 'v-or :types no-terminated
+                           :flow-ids (apply #'flow-id! no-terminated)))))))))
 
 (defgeneric reduce-types-for-or-type (types)
   (:method (types)
@@ -501,7 +503,7 @@
       (remove-duplicates (mappend #'inner types) :test #'v-type-eq))))
 
 (defmethod print-object ((obj v-or) stream)
-  (format stream "#<OR ~{~s~^ ~}>" (mapcar #'type->type-spec (v-types obj))))
+  (format stream "#<OR~{ ~s~}>" (mapcar #'type->type-spec (v-types obj))))
 
 ;;------------------------------------------------------------
 ;; Any one of
