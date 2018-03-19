@@ -258,6 +258,10 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;;------------------------------------------------------------
 
+(v-def-glsl-template-fun length (arr) "~a.length()" (v-array) :int :pure t)
+
+;;------------------------------------------------------------
+
 ;; ## Spec clash issues .. Actually the f* variants are the answer!
 ;;                         we will use the glsl version by default and
 ;;                         let the user turn to f* when they want the cl
