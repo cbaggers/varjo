@@ -53,3 +53,35 @@
       (if (< 1 2)
           (vec4 1)
           (vec4 2)))))
+
+(5am:def-test flow-control-5 (:suite flow-control-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (case (+ 1 2)
+       (2.2 (vec4 3))
+       (otherwise (vec4 4))))))
+
+(5am:def-test flow-control-6 (:suite flow-control-tests)
+  (finishes-p
+   (compile-frag ((a :int :flat)) :450 nil
+     (let ((a (case 10
+                (2 (vec4 3))
+                (1 (vec4 4))
+                (otherwise (vec4 4)))))
+       a))))
+
+(5am:def-test flow-control-7 (:suite flow-control-tests)
+  (signals varjo-conditions:conditional-multiple-vals-mismatch
+    (compile-vert () :450 nil
+      (case 10
+        (2.2 (vec4 3))
+        (1 (vec4 4))))))
+
+(5am:def-test flow-control-8 (:suite flow-control-tests)
+  (signals varjo-conditions:let-or
+    (compile-frag ((a :int :flat)) :450 nil
+      (let ((a (case 10
+                 (2 (vec4 3))
+                 (1 3)
+                 (otherwise (vec4 4)))))
+        (vec4 1)))))

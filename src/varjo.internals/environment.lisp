@@ -254,6 +254,9 @@
     (dist env)))
 
 (defun env-prune* (to-depth &rest envs)
+  (env-prune-many to-depth envs))
+
+(defun env-prune-many (to-depth envs)
   "Remove the first 'to-depth' accestors counting from the base-environment.
 For example calling env-prune on this environment..
 
@@ -273,6 +276,7 @@ For example calling env-prune on this environment..
                (assert (>= c 0))
                (%up e c))))
     (mapcar #'up envs)))
+
 
 (defun env-prune (to-depth env)
   (first (env-prune* to-depth env)))

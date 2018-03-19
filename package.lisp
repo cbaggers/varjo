@@ -331,8 +331,8 @@
            :compute-stage-must-be-void
            :unknown-layout-specifier
            :find-mutual-type-bug
-           :void-type-for-if-test
-           :discarded-for-if-test
+           :void-type-for-conditional-test
+           :discarded-for-conditional-test
            :discard-not-in-fragment-stage
            :opaque-data-found
            :invalid-output-primitive-for-geometry
@@ -345,6 +345,7 @@
            :v-deprecated
            :fragment-integer-inputs-not-flat
            :invalid-coerce
+           :conditional-multiple-vals-mismatch
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -446,6 +447,7 @@
            :env-depth
            :env-merge-history
            :env-prune*
+           :env-prune-many
            :env-replace-parent
            :ephemeral-p
            :expanded-input-variables
@@ -653,6 +655,7 @@
            :v-special-functionp
            :v-symbol-bindings
            :v-symbol-macro
+           :v-terminated-p
            :v-type-eq
            :v-type-of
            :v-typep

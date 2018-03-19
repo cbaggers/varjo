@@ -77,6 +77,7 @@
                (:file "src/vari.cl/special-operators/let")
                (:file "src/vari.cl/special-operators/assignment")
                (:file "src/vari.cl/special-operators/conditionals")
+               (:file "src/vari.cl/special-operators/case")
                (:file "src/vari.cl/special-operators/and-or")
                (:file "src/vari.cl/special-operators/declarations")
                (:file "src/vari.cl/special-operators/values")

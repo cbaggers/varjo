@@ -9,9 +9,11 @@
   :args-valid t
   :return
   (vbind (test-obj test-env) (compile-form test-form env)
-    (assert (not (v-voidp test-obj)) () 'void-type-for-if-test
+    (assert (not (v-voidp test-obj)) () 'void-type-for-conditional-test
+            :kind "if"
             :form test-form)
-    (assert (not (v-discarded-p test-obj)) () 'discarded-for-if-test
+    (assert (not (v-discarded-p test-obj)) () 'discarded-for-conditional-test
+            :kind "if"
             :form test-form)
     (let ((always-true (or (not (v-typep (primary-type test-obj) 'v-bool))
                            (eq test-form t)))

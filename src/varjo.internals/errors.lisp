@@ -1038,19 +1038,24 @@ Was expecting one of std-140 or std-430. Recieved ~a instead."
     "BUG: find-mutual-cast-type take a list of types, not type specs
 ~a" types)
 
-(define-error void-type-for-if-test () (form)
-    "The test for an 'if' expression cannot be :void.
+(define-error void-type-for-conditional-test () (kind form)
+    "The test for an '~a' expression cannot be :void.
 
- (if ~a
+ (~a ~a
      ..)"
+  kind
+  kind
   form)
 
-(define-error discarded-for-if-test () (form)
-    "The expression used as the test for one of your 'if' expression is just
-discarding the fragment. We arent sure what to emit for this 'if'.
+(define-error discarded-for-conditional-test () (kind form)
+    "The expression used as the test for one of your '~a' expression is just
+discarding the fragment. We arent sure what to emit for this '~a'.
 
- (if ~a
+ (~a ~a
      ..)"
+  kind
+  kind
+  kind
   form)
 
 (define-error discard-not-in-fragment-stage () (stage)
@@ -1137,6 +1142,19 @@ Code:
   (type->type-spec src-type)
   (type->type-spec dst-type)
   code)
+
+(define-error conditional-multiple-vals-mismatch () (kind sets)
+    "Found an '~a' form where the number of values returned on each branch
+do not match.
+
+The branches returned:~{~%~s~}
+
+This matters as the result of this '~a' is going to be used as a return from a
+function or by a multiple-value-bind form"
+  kind
+  (loop :for set :in sets :collect
+     (or (map 'list #'type->type-spec set) :void))
+  kind)
 
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
