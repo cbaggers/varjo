@@ -1,9 +1,11 @@
-(in-package :varjo.tests)
+;; (in-package :varjo.tests)
 
-(defmacro define-vari-trait (name &body func-signatures)
-  (declare (ignore name func-signatures)))
+(defmacro define-vari-trait (name (&rest type-vars) &body func-signatures)
+  (declare (ignore name func-signatures type-vars)))
 
-(define-vari-trait iterable (state iter-state)
+(define-vari-trait iter-state ())
+
+(define-vari-trait iterable ((state iter-state))
   (length self)
   (make-sequence-like self)
   (make-sequence-like self :int)
