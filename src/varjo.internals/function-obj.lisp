@@ -105,6 +105,37 @@
                  :in-arg-flow-ids in-arg-flow-ids
                  :pure pure))
 
+(defun make-trait-function-obj (name arg-spec return-spec)
+  (assert (valid-func-return-spec-p return-spec)
+          () 'user-func-invalid-x
+          :kind 'returns
+          :name name
+          :args return-spec)
+  (when (listp arg-spec)
+    (assert (every (lambda (x)
+                     (or (typep x 'v-type)
+                         (functionp x)
+                         (&rest-p x)))
+                   arg-spec)
+            () 'user-func-invalid-x
+            :kind 'args
+            :name name
+            :args arg-spec))
+  (make-instance 'v-function
+                 :name name
+                 :arg-spec arg-spec
+                 :return-spec return-spec
+                 :glsl-string nil
+                 :&rest-pos nil
+                 :versions nil
+                 :v-place-index nil
+                 :glsl-name nil
+                 :implicit-args nil
+                 :in-out-args nil
+                 :flow-ids nil
+                 :in-arg-flow-ids nil
+                 :pure nil))
+
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids

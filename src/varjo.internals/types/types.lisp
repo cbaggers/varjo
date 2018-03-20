@@ -102,6 +102,11 @@
    (glsl-size :initform :sizeless)))
 
 ;;------------------------------------------------------------
+;; Trait
+
+(define-v-type-class v-trait (v-type) ())
+
+;;------------------------------------------------------------
 ;; Discarded
 ;;
 ;; The type of the discard expression. Indicates a termination

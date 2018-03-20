@@ -1,43 +1,247 @@
-;; (in-package :varjo.tests)
+(in-package :varjo.internals)
+
+;;------------------------------------------------------------
+;;
+;; - adding functions needs to check if the name is bound to a trait function
+;;   if so then fail
+;; - defining a function that takes or return traits is fine. They will need to
+;;   be monomorphised though. They won't appear in the final glsl as their
+;;   call-count will always be zero.
+;; - For now dont allow parametized type names to implement traits (except
+;;   arrays which will be hacked in the implementation) HMMMMMM
+
+(defclass trait-function (v-function) ())
+
+;;------------------------------------------------------------
+
+(defvar *traits*
+  (make-hash-table))
+
+(defclass trait-spec ()
+  ((type-vars :initarg :type-vars)
+   (function-signatures :initarg :function-signatures)))
 
 (defmacro define-vari-trait (name (&rest type-vars) &body func-signatures)
-  (declare (ignore name func-signatures type-vars)))
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
+     (define-v-type-class ,name (v-trait) ())
+     (register-trait
+      ',name
+      (make-instance
+       'trait-spec
+       :type-vars ',type-vars
+       :function-signatures (parse-trait-specs
+                             ',name ',type-vars ',func-signatures)))))
 
-(define-vari-trait iter-state ())
+(defun remove-redundent-trait-functions (trait-name new-trait)
+  (let ((old-trait (gethash trait-name *traits*)))
+    (when old-trait
+      (let ((old-funcs
+             (mapcar #'first (slot-value old-trait 'function-signatures)))
+            (new-funcs
+             (mapcar #'second (slot-value new-trait 'function-signatures))))
+        (loop :for name :in (set-difference old-funcs new-funcs) :do
+           (delete-external-function name :all))))))
 
-(define-vari-trait iterable ((state iter-state))
-  (length self)
-  (make-sequence-like self)
-  (make-sequence-like self :int)
-  (limit self)
-  (limit self :bool)
-  (create-iterator-state self)
-  (create-iterator-state self :bool)
-  (next-iterator-state state)
-  (next-iterator-state state :bool)
-  (iterator-limit-check state state)
-  (iterator-limit-check state state :bool)
-  (element-for-state self state)
-  (index-for-state state))
+(defun check-for-trait-function-collision (spec)
+  ;; - adding a trait has to check for existing functions with that name
+  ;;   if they arent functions of that same trait then fail
+  (let ((funcs (slot-value spec 'function-signatures)))
+    (loop :for (func-name . arg-types) :in funcs :do
+       (let* ((bindings (get-global-form-binding func-name))
+              (functions (when bindings
+                           (functions bindings))))
+         (assert (null functions) ()
+                 "Varjo: Trait function cannot be an overload of any existing function:~%Found:~{~%~a~}"
+                 (mapcar (lambda (fn)
+                           (cons func-name
+                                 (rest (type->type-spec (v-type-of fn)))))
+                         functions))))))
+
+(defun add-trait-functions (trait-name spec)
+  (check-for-trait-function-collision spec)
+  (remove-redundent-trait-functions trait-name spec)
+  (let ((funcs (slot-value spec 'function-signatures))
+        (top (make-type-set (type-spec->type t))))
+    (loop :for (func-name . arg-types) :in funcs :do
+       (add-global-form-binding
+        (make-trait-function-obj 'foo arg-types top)))))
+
+(defun register-trait (trait-name spec)
+  (add-trait-functions trait-name spec)
+  (setf (gethash trait-name *traits*) spec))
+
+(defun get-trait (trait-name &key (errorp t))
+  (or (gethash trait-name *traits*)
+      (when errorp
+        (error "Varjo：No trait named ~a is currently known" trait-name))))
+
+(defun parse-trait-specs (trait-name type-vars function-signatures)
+  (let ((name-map
+         (loop :for (name type) :in (cons (list :self trait-name) type-vars)
+            :collect (cons name (type-spec->type type)))))
+    (flet ((as-type (name)
+             (or (assocr name name-map)
+                 (type-spec->type name))))
+      (loop :for (func-name . func-spec) :in function-signatures
+         :do
+         (assert (find :self func-spec) ()
+                 "Trait function specs must have at least one :self argument")
+         :collect
+         (cons func-name (mapcar #'as-type func-spec))))))
+
+;;------------------------------------------------------------
+
+(defvar *trait-implementations*
+  (make-hash-table))
+
+(defclass impl-spec ()
+  ((function-signatures :initarg :function-signatures)))
+
+(defun check-impl-spec (trait-name type-name spec)
+  (assert (vtype-existsp type-name))
+  (assert (vtype-existsp trait-name))
+  (let* ((trait (get-trait trait-name))
+         (required-funcs (slot-value trait 'function-signatures))
+         (provided-funcs (slot-value spec 'function-signatures))
+         (type-var-requirements (make-hash-table :test #'eq)))
+    (assert (= (length required-funcs) (length provided-funcs)))
+    ;; We need to check that the types used are consistent in the implementation in cases
+    ;; where type-vars were used.
+    ;; Relies on Varjo producing new types for each call to type-spec->type
+    (flet ((get-var-req (type)
+             (gethash type type-var-requirements))
+           (set-var-req (req ours)
+             (setf (gethash req type-var-requirements)
+                   ours)
+             t))
+      (loop :for (name func) :in provided-funcs :do
+         (assert
+          (loop :for (req-name . req-types) :in required-funcs :thereis
+             (and (print "--")
+                  (print (string= req-name name))
+                  (print (basic-arg-matchp (print func) (print req-types) nil :allow-casting nil))
+                  (loop :for req-type :in req-types
+                     :for type :in (v-argument-spec func)
+                     :always
+                     (let ((strict (get-var-req req-type)))
+                       (if strict
+                           (v-type-eq type strict)
+                           (set-var-req req-type type))))))
+          () "Varjo: No func in ~a matched ~a" required-funcs func)))))
+
+#+nil
+(define-implementation vari.cl::range-iter-state (iter-state)
+  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state)
+  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state :bool)
+  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state)
+  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state :bool)
+  :index-for-state (vari.cl::index-for-state vari.cl::range-iter-state))
+
+(defun register-trait-implementation (trait-name type-name spec)
+  (check-impl-spec trait-name type-name spec)
+  (let ((trait-table (or (gethash type-name *trait-implementations*)
+                         (setf (gethash type-name *trait-implementations*)
+                               (make-hash-table)))))
+    (setf (gethash trait-name trait-table)
+          spec)))
+
+(defun get-trait-implementation (trait type &key (errorp t))
+  (check-type trait v-type)
+  (check-type type v-type)
+  (let* ((type-name (slot-value type 'type-name))
+         (trait-name (slot-value trait 'type-name))
+         (impl-table (gethash type-name *trait-implementations*)))
+    (if impl-table
+        (or (gethash trait-name impl-table)
+            (when errorp
+              (error "Varjo: Type ~a does not satisfy the trait named ~a"
+                     type-name trait-name)))
+        (when errorp
+          (error "Varjo: Type ~a currently satisfies no traits.~%Looking for: ~a"
+                 type-name trait-name)))))
+
+(defun parse-impl-specs (function-signatures)
+  (loop :for (trait-func-name impl-func) :in function-signatures
+     :for binding := (find-global-form-binding-by-literal impl-func t)
+     :collect
+     (list trait-func-name binding)))
 
 (defmacro define-implementation
-    (impl-type-name (trait-name &rest type-vars &key &allow-other-keys)
+    (impl-type-name (trait-name &key &allow-other-keys)
      &body implementations &key &allow-other-keys)
-  (declare (ignore impl-type-name trait-name type-vars implementations))
-  nil)
+  (let ((grouped
+         (loop :for (k v) :on implementations :by #'cddr :collect
+            (list k v))))
+    `(progn
+       (register-trait-implementation
+        ',trait-name ',impl-type-name
+        (make-instance 'impl-spec :function-signatures
+                       (parse-impl-specs ',grouped)))
+       ',impl-type-name)))
 
-(define-implementation range
-    (iterable :state range-iter-state)
-  :length (length range)
-  :make-sequence-like (make-sequence-like range)
-  :make-sequence-like (make-sequence-like range :int)
-  :limit (limit range)
-  :limit (limit range :bool)
-  :create-iterator-state (create-iterator-state range)
-  :create-iterator-state (create-iterator-state range :bool)
-  :next-iterator-state (next-iterator-state range)
-  :next-iterator-state (next-iterator-state range :bool)
-  :iterator-limit-check (iterator-limit-check range)
-  :iterator-limit-check (iterator-limit-check range :bool)
-  :element-for-state (element-for-state range range-iter-state)
-  :index-for-state (index-for-state range-iter-state))
+;;------------------------------------------------------------
+
+#+nil
+(define-vari-trait iter-state ()
+  (next-iterator-state :self)
+  (next-iterator-state :self :bool)
+  (iterator-limit-check :self :self)
+  (iterator-limit-check :self :self :bool)
+  (index-for-state :self))
+
+#+nil
+(define-vari-trait iterable ((state iter-state))
+  (length :self)
+  (make-sequence-like :self)
+  (make-sequence-like :self :int)
+  (limit :self)
+  (limit :self :bool)
+  (create-iterator-state :self)
+  (create-iterator-state :self :bool)
+  (element-for-state :self state))
+
+;; We will end up adding return type to the specs too. Note that these
+;; types are used to restrict the functions that can satisfy the interface
+;; it does not dictate the actual return type of the function that will be
+;; used. (covariance and shit)
+;;
+;;              (define-vari-trait iterable ((state iter-state))
+;;                (length (:self) :int)
+;;                (make-sequence-like (:self) :self)
+;;                (make-sequence-like (:self :int) :self)
+;;                (limit (:self) state)
+;;                (limit (:self :bool) state)
+;;                (create-iterator-state (:self) state)
+;;                (create-iterator-state (:self :bool) state)
+;;                (element-for-state (:self state) t))
+
+#+nil
+(define-implementation vari.cl::range (iterable)
+  :length (length vari.cl::range)
+  :make-sequence-like (vari.cl::make-sequence-like vari.cl::range)
+  :make-sequence-like (vari.cl::make-sequence-like vari.cl::range :int)
+  :limit (vari.cl::limit vari.cl::range)
+  :limit (vari.cl::limit vari.cl::range :bool)
+  :create-iterator-state (vari.cl::create-iterator-state vari.cl::range)
+  :create-iterator-state (vari.cl::create-iterator-state vari.cl::range :bool)
+  :element-for-state (vari.cl::element-for-state vari.cl::range vari.cl::range-iter-state))
+
+#+nil
+(define-implementation vari.cl::range-iter-state (iter-state)
+  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state)
+  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state :bool)
+  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state)
+  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state :bool)
+  :index-for-state (vari.cl::index-for-state vari.cl::range-iter-state))
+
+#+nil
+(v-defun reduce ((fn function) (seq iterable))
+  (let ((result)
+        (limit (limit seq)))
+    (for (state (create-iterator-state seq))
+         (iterator-limit-check state limit)
+         (setq state (next-iterator-state state))
+         (let ((elem (element-for-state seq state)))
+           (funcall fn elem)))))
+
+;;------------------------------------------------------------

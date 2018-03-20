@@ -3,23 +3,28 @@
 
 ;;------------------------------------------------------------
 
+#+nil
 (defgeneric get-vari-iterator-spec (vari-type))
 
+#+nil
 (defmacro define-vari-iterable ((vari-type) &body body)
   (alexandria:with-gensyms (type-arg)
     `(defmethod get-vari-iterator-spec ((,type-arg ,vari-type))
        (declare (ignore ,type-arg))
        ,@body)))
 
+#+nil
 (defclass vari-iterable-spec ()
   ((like :initform nil :initarg :like)
    (limit :initform nil :initarg :limit)))
 
+#+nil
 (defun vari-iterable-spec (&key like limit)
   (make-instance 'vari-iterable-spec
                  :like like
                  :limit limit))
 
+#+nil
 (v-defmacro map (type-spec function sequence)
   (declare (ignore type-spec))
   (alexandria:with-gensyms (map-result seq)
@@ -28,9 +33,11 @@
        (map-into ,map-result ,function ,seq)
        ,map-result)))
 
+#+nil
 (v-def-glsl-template-fun map-into (result-sequence function sequence)
                          "|map-into|(~a, ~a, ~a)" (t t t) t)
 
+#+nil
 (v-define-compiler-macro map-into
     (result-sequence function sequence &environment env)
   (let* ((src-type (varjo.api:argument-type sequence env))
@@ -79,9 +86,11 @@
   :return
   ())
 
+#+nil
 (v-def-glsl-template-fun
  blort (fn seq) "|blort|(~a, ~a)" (v-function-type t) t)
 
+#+nil
 (v-define-compiler-macro blort ((fn v-function-type) (seq t))
   (alexandria:with-gensyms (gfn gseq)
     `(let ((,gfn ,fn)
@@ -139,7 +148,7 @@
 (v-def-glsl-template-fun
  next-iterator-state (state) "(~a + 1)" (range-iter-state) range-iter-state)
 
-(v-defun next-iterator-state ((state :int) (from-end :bool))
+(v-defun next-iterator-state ((state range-iter-state) (from-end :bool))
   (if from-end (dec-range-state state) (inc-range-state state)))
 
 ;;----------------
@@ -148,11 +157,10 @@
                          "(~a < ~a)"
                          (range-iter-state range-iter-state) :bool)
 
-(v-defun iterator-limit-check ((limit :int) (state :int) (from-end :bool))
+(v-defun iterator-limit-check ((limit range-iter-state)
+                               (state range-iter-state)
+                               (from-end :bool))
   (if from-end (> state limit) (< state limit)))
-
-(v-define-compiler-macro iterator-limit-check ((limit :int) (state :int))
-  `(< ,limit ,state))
 
 ;;----------------
 
@@ -183,15 +191,18 @@
 ;; as we use compiler macros here both for optimization and
 ;; to handle many kinds of array at once.
 
+#+nil
 (define-vari-iterable (v-array)
   (vari-iterable-spec
    :length length
    :like make-array-like
    :limit))
 
+#+nil
 (v-def-glsl-template-fun
  make-array-like (arr len) "|make-array-like|(~a)" (v-array :int) v-array)
 
+#+nil
 (v-define-compiler-macro make-array-like ((arr v-array) (length :int)
                                           &environment env)
   (declare (ignore arr))
