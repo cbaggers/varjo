@@ -572,10 +572,16 @@ For example calling env-prune on this environment..
 
 ;; Global Environment
 ;;
-(defmethod get-global-form-binding (name)
+(defmethod get-global-form-binding (name &optional include-external-functions)
   (let* ((bindings (gethash name *global-env-form-bindings*))
+         (bindings (if include-external-functions
+                       (append (get-external-function-by-name name nil)
+                               bindings)
+                       bindings))
          (macro-count (count-if λ(typep _ 'v-regular-macro) bindings))
-         (func-count (count-if λ(typep _ 'v-function) bindings)))
+         (func-count (count-if λ(or (typep _ 'v-function)
+                                    (typep _ 'external-function))
+                               bindings)))
     (cond
       ;;
       ((> macro-count 0) ;; {TODO} proper errors
@@ -585,7 +591,7 @@ For example calling env-prune on this environment..
        (first bindings))
       ;;
       ((> func-count 0)
-       (make-function-set (gethash name *global-env-form-bindings*)))
+       (make-function-set bindings))
       (t nil))))
 
 ;; Standard Environment

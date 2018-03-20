@@ -429,7 +429,8 @@ however failed to do so when asked."
           'treating-declare-as-func :decl '(function declare))
   (get-form-binding name env))
 
-(defmethod find-global-form-binding-by-literal ((func-name list))
+(defmethod find-global-form-binding-by-literal
+    ((func-name list) &optional include-external-functions)
   ;;
   (destructuring-bind (name &rest arg-types) func-name
     (assert (not (eq name 'declare)) ()
@@ -438,7 +439,7 @@ however failed to do so when asked."
             () 'cannot-take-reference-to-&rest-func :func-name func-name)
     (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
                              arg-types))
-          (binding (get-global-form-binding name)))
+          (binding (get-global-form-binding name include-external-functions)))
       ;;
       (etypecase binding
         ;; When we have types we should try to match exactly

@@ -15,6 +15,31 @@
                          funcs))
         funcs)))
 
+(defmethod get-external-function-by-literal ((func-name list))
+  ;;
+  (destructuring-bind (name &rest arg-types) func-name
+    (assert (not (eq name 'declare)) ()
+            'treating-declare-as-func :decl func-name)
+    (assert (not (find-if #'&rest-p arg-types))
+            () 'cannot-take-reference-to-&rest-func :func-name func-name)
+    (let ((arg-types (mapcar (lambda (x) (type-spec->type x))
+                             arg-types))
+          (binding (make-function-set
+                    (get-external-function-by-name name nil))))
+      ;;
+      (etypecase binding
+        ;; When we have types we should try to match exactly
+        (v-function-set
+         (if arg-types
+             (or (%post-process-found-literal-func
+                  (find-if λ(exact-match-function-to-types arg-types _)
+                           (functions binding))
+                  arg-types)
+                 (error 'could-not-find-function :name func-name))
+             binding))
+        ;;
+        (null (error 'could-not-find-function :name func-name))))))
+
 (defmethod add-external-function (name in-args uniforms code
                                   &optional valid-glsl-versions)
   (quick-check-of-arg-type-validity name (append in-args uniforms))
