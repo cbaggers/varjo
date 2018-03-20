@@ -262,6 +262,17 @@ Try qualifying the types in order to pass complement a specific overload."))
 
 ;;------------------------------------------------------------
 
+(v-defmacro do (var-list end-list &body body)
+  `(let ,(loop :for (var val) :in var-list :collect
+            (list var val))
+     (while (not ,(first end-list))
+       ,@body
+       ,@(loop :for (var nil update) :in var-list :collect
+            `(setq ,var ,update)))
+     ,@(rest end-list)))
+
+;;------------------------------------------------------------
+
 ;; ## Spec clash issues .. Actually the f* variants are the answer!
 ;;                         we will use the glsl version by default and
 ;;                         let the user turn to f* when they want the cl
