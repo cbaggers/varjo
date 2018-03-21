@@ -20,7 +20,7 @@
   ((core :initform t :reader core-typep)
    (glsl-string :initform "int" :reader v-glsl-string)
    (casts-to :initform '(v-uint v-float v-double))
-   (default-value :initform 1)
+   (default-value :initform 0)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
@@ -28,7 +28,7 @@
   ((core :initform t :reader core-typep)
    (glsl-string :initform "uint" :reader v-glsl-string)
    (casts-to :initform '(v-float v-double))
-   (default-value :initform 1)
+   (default-value :initform 0)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
@@ -36,21 +36,21 @@
   ((core :initform t :reader core-typep)
    (glsl-string :initform "float" :reader v-glsl-string)
    (casts-to :initform '(v-double))
-   (default-value :initform 1f0)
+   (default-value :initform 0f0)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
 (define-v-type-class v-short-float (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "short-float" :reader v-glsl-string)
-   (default-value :initform 1s0)
+   (default-value :initform 0s0)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
 (define-v-type-class v-double (v-real)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "double" :reader v-glsl-string)
-   (default-value :initform 1d0)
+   (default-value :initform 0d0)
    (tertiary-score :initform 0.9 :initarg :tertiary-score
                    :reader tertiary-score)))
 
