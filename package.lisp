@@ -436,6 +436,8 @@
            :define-metadata-kind
            :def-shadow-type-constructor
            :define-shadow-type-constructor
+           :define-vari-trait
+           :define-vari-trait-implementation
            :default-value
            :delete-external-function
            :dynamic

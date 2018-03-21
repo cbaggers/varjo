@@ -54,6 +54,7 @@
                (:file "src/varjo.internals/compile-special")
                (:file "src/varjo.internals/make-function")
                (:file "src/varjo.internals/functions")
+               (:file "src/varjo.internals/traits")
                (:file "src/varjo.internals/macros")
                (:file "src/varjo.internals/compile-funcall")
                (:file "src/varjo.internals/compile-form")
