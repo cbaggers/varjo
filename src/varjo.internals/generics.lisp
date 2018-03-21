@@ -41,7 +41,7 @@
 (defgeneric func-need-arguments-compiledp (func))
 (defgeneric functions (object))
 (defgeneric get-external-function-by-name (name env))
-(defgeneric get-external-function-by-literal (name env))
+(defgeneric get-external-function-by-literal (name))
 (defgeneric get-flow-id-for-stem-cell (stem-cell-symbol e))
 (defgeneric get-form-binding (name env))
 (defgeneric get-global-compiler-macro (macro-name))

@@ -11,7 +11,7 @@
 ;;   arrays which will be hacked in the implementation) HMMMMMM
 
 (defclass trait-function (v-function) ())
-
+(defun trait-function-p (x) (typep x 'trait-function))
 ;;------------------------------------------------------------
 
 (defvar *traits*
@@ -49,7 +49,8 @@
     (loop :for (func-name . arg-types) :in funcs :do
        (let* ((bindings (get-global-form-binding func-name))
               (functions (when bindings
-                           (functions bindings))))
+                           (remove-if #'trait-function-p
+                                      (functions bindings)))))
          (assert (null functions) ()
                  "Varjo: Trait function cannot be an overload of any existing function:~%Found:~{~%~a~}"
                  (mapcar (lambda (fn)
@@ -64,7 +65,7 @@
         (top (make-type-set (type-spec->type t))))
     (loop :for (func-name . arg-types) :in funcs :do
        (add-global-form-binding
-        (make-trait-function-obj 'foo arg-types top)))))
+        (make-trait-function-obj func-name arg-types top)))))
 
 (defun register-trait (trait-name spec)
   (add-trait-functions trait-name spec)
@@ -117,9 +118,7 @@
       (loop :for (name func) :in provided-funcs :do
          (assert
           (loop :for (req-name . req-types) :in required-funcs :thereis
-             (and (print "--")
-                  (print (string= req-name name))
-                  (print (basic-arg-matchp (print func) (print req-types) nil :allow-casting nil))
+             (and (func-args-satisfy-p func req-types)
                   (loop :for req-type :in req-types
                      :for type :in (v-argument-spec func)
                      :always
@@ -127,29 +126,25 @@
                        (if strict
                            (v-type-eq type strict)
                            (set-var-req req-type type))))))
-          () "Varjo: No func in ~a matched ~a" required-funcs func)))))
-
-#+nil
-(define-implementation vari.cl::range-iter-state (iter-state)
-  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state)
-  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state :bool)
-  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state)
-  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state :bool)
-  :index-for-state (vari.cl::index-for-state vari.cl::range-iter-state))
+          () "Varjo: No func in~%~a~%matched~%~a" required-funcs func)))))
 
 (defun register-trait-implementation (trait-name type-name spec)
-  (check-impl-spec trait-name type-name spec)
   (let ((trait-table (or (gethash type-name *trait-implementations*)
                          (setf (gethash type-name *trait-implementations*)
                                (make-hash-table)))))
+    (unless (gethash trait-name trait-table)
+      (setf (gethash trait-name trait-table) t))
+    (unwind-protect
+         (check-impl-spec trait-name type-name spec)
+      (setf (gethash trait-name trait-table) nil))
     (setf (gethash trait-name trait-table)
           spec)))
 
 (defun get-trait-implementation (trait type &key (errorp t))
   (check-type trait v-type)
   (check-type type v-type)
-  (let* ((type-name (slot-value type 'type-name))
-         (trait-name (slot-value trait 'type-name))
+  (let* ((trait-name (slot-value trait 'type-name))
+         (type-name (slot-value type 'type-name))
          (impl-table (gethash type-name *trait-implementations*)))
     (if impl-table
         (or (gethash trait-name impl-table)
@@ -181,58 +176,22 @@
 
 ;;------------------------------------------------------------
 
-#+nil
-(define-vari-trait iter-state ()
-  (next-iterator-state :self)
-  (next-iterator-state :self :bool)
-  (iterator-limit-check :self :self)
-  (iterator-limit-check :self :self :bool)
-  (index-for-state :self))
+(v-deftype blerp () :ivec2)
+(v-def-glsl-template-fun boop (x) "boop(~a~)" (blerp) blerp)
+(v-def-glsl-template-fun checker (x y) "(~a?~a)" (blerp blerp) :bool)
+(v-def-glsl-template-fun splat (x y) "~a=~a" (blerp :int) :int)
 
 #+nil
-(define-vari-trait iterable ((state iter-state))
-  (length :self)
-  (make-sequence-like :self)
-  (make-sequence-like :self :int)
-  (limit :self)
-  (limit :self :bool)
-  (create-iterator-state :self)
-  (create-iterator-state :self :bool)
-  (element-for-state :self state))
-
-;; We will end up adding return type to the specs too. Note that these
-;; types are used to restrict the functions that can satisfy the interface
-;; it does not dictate the actual return type of the function that will be
-;; used. (covariance and shit)
-;;
-;;              (define-vari-trait iterable ((state iter-state))
-;;                (length (:self) :int)
-;;                (make-sequence-like (:self) :self)
-;;                (make-sequence-like (:self :int) :self)
-;;                (limit (:self) state)
-;;                (limit (:self :bool) state)
-;;                (create-iterator-state (:self) state)
-;;                (create-iterator-state (:self :bool) state)
-;;                (element-for-state (:self state) t))
+(define-vari-trait trat ()
+  (booper :self)
+  (checkerer :self :self)
+  (splatter :self t))
 
 #+nil
-(define-implementation vari.cl::range (iterable)
-  :length (length vari.cl::range)
-  :make-sequence-like (vari.cl::make-sequence-like vari.cl::range)
-  :make-sequence-like (vari.cl::make-sequence-like vari.cl::range :int)
-  :limit (vari.cl::limit vari.cl::range)
-  :limit (vari.cl::limit vari.cl::range :bool)
-  :create-iterator-state (vari.cl::create-iterator-state vari.cl::range)
-  :create-iterator-state (vari.cl::create-iterator-state vari.cl::range :bool)
-  :element-for-state (vari.cl::element-for-state vari.cl::range vari.cl::range-iter-state))
-
-#+nil
-(define-implementation vari.cl::range-iter-state (iter-state)
-  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state)
-  :next-iterator-state (vari.cl::next-iterator-state vari.cl::range-iter-state :bool)
-  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state)
-  :iterator-limit-check (vari.cl::iterator-limit-check vari.cl::range-iter-state vari.cl::range-iter-state :bool)
-  :index-for-state (vari.cl::index-for-state vari.cl::range-iter-state))
+(define-implementation blerp (trat)
+  :booper (boop blerp)
+  :checkerer (checker blerp blerp)
+  :splatter (splat blerp :int))
 
 #+nil
 (v-defun reduce ((fn function) (seq iterable))

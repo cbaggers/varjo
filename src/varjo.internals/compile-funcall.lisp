@@ -65,6 +65,8 @@
       ;; will ever take a user defined struct as an argument. This is
       ;; important due to how ephemerals work
       (typecase func
+        (trait-function
+         (break "sup"))
         (v-function
          (vbind (new-obj new-env used-compiler-macro-p)
              (compile-function-call func args env)

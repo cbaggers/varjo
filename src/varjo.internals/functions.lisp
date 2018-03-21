@@ -160,11 +160,30 @@ however failed to do so when asked."
                      (copy-type type))))
         spec)))
 
+(defun func-args-satisfy-p (func arg-type-requirements)
+  (let ((func-arg-types (if (&rest-pos func)
+                        (expand-argument-spec func arg-type-requirements)
+                        (v-argument-spec func)))
+        (req-type-no-block-structs
+         (loop :for type :in arg-type-requirements :collect
+            (if (typep type 'v-block-struct)
+                (v-element-type type)
+                type))))
+    (when (eql (length arg-type-requirements) (length func-arg-types))
+      (let* ((perfect-matches 0))
+        (loop :for req :in req-type-no-block-structs
+           :for arg :in func-arg-types :do
+           (when (if (typep req 'v-trait)
+                     (get-trait-implementation req arg :errorp nil)
+                     (v-typep arg req))
+             (incf perfect-matches)))
+        (let ((score (- (length arg-type-requirements) perfect-matches)))
+          (= score 0))))))
 
 ;; [TODO] should this always copy the arg-objs?
 (defun basic-arg-matchp (func arg-types arg-objs
                          &key (allow-casting t))
-  (let ((spec-types (if (&rest-pos func)
+  (let ((func-arg-types (if (&rest-pos func)
                         (expand-argument-spec func arg-types)
                         (v-argument-spec func)))
         (arg-types-no-block-structs
@@ -179,17 +198,19 @@ however failed to do so when asked."
                              (when (and a x)
                                (+ a x)))
                            (mapcar λ(get-type-distance _ _1 nil)
-                                   spec-types
+                                   func-arg-types
                                    types)
                            :initial-value 0)
                    most-positive-fixnum)))
       ;;
-      (when (eql (length arg-types) (length spec-types))
-        (let* ((perfect-matches (mapcar λ(v-typep _ _1)
-                                        arg-types-no-block-structs
-                                        spec-types))
-               (score (- (length arg-types)
-                         (length (remove nil perfect-matches)))))
+      (when (eql (length arg-types) (length func-arg-types))
+        (let* ((perfect-matches
+                (loop :for val :in arg-types-no-block-structs
+                   :for arg :in func-arg-types
+                   :count (if (typep arg 'v-trait)
+                              (get-trait-implementation arg val :errorp nil)
+                              (v-typep val arg))))
+               (score (- (length arg-types) perfect-matches)))
 
           (if (= score 0)
               ;; if all the types match
@@ -204,13 +225,13 @@ however failed to do so when asked."
                  :tertiary-score 0))
               (when allow-casting
                 (let ((cast-types
-                       (loop :for a :in arg-types :for s :in spec-types :collect
+                       (loop :for a :in arg-types :for s :in func-arg-types :collect
                           (v-casts-to a s))))
                   (when (not (some #'null cast-types))
                     ;; when all the types can be cast
                     (let ((secondary-score (calc-secondary-score cast-types))
                           (tertiary-score (reduce #'+ (mapcar #'tertiary-score
-                                                              spec-types))))
+                                                              func-arg-types))))
                       (make-instance
                        'func-match
                        :func func
@@ -419,10 +440,11 @@ however failed to do so when asked."
 
 ;;------------------------------------------------------------
 
-(defmethod find-global-form-binding-by-literal ((name symbol))
+(defmethod find-global-form-binding-by-literal
+    ((name symbol) &optional include-external-functions)
   (assert (not (eq name 'declare)) ()
           'treating-declare-as-func :decl '(function declare))
-  (get-global-form-binding name))
+  (get-global-form-binding name include-external-functions))
 
 (defmethod find-form-binding-by-literal ((name symbol) env)
   (assert (not (eq name 'declare)) ()

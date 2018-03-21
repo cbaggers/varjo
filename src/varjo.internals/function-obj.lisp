@@ -121,7 +121,7 @@
             :kind 'args
             :name name
             :args arg-spec))
-  (make-instance 'v-function
+  (make-instance 'trait-function
                  :name name
                  :arg-spec arg-spec
                  :return-spec return-spec
