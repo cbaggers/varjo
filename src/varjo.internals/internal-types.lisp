@@ -75,7 +75,8 @@
    (top-level-scoped-metadata :initarg :top-level-scoped-metadata
                               :initform nil
                               :reader top-level-scoped-metadata)
-   (call-count :initform 0 :initarg :call-count :accessor call-count)))
+   (call-count :initform 0 :initarg :call-count :accessor call-count)
+   (calls :initform nil :initarg :calls :accessor calls)))
 
 ;;----------------------------------------------------------------------
 
@@ -450,7 +451,8 @@
                               :primary-type :v-function)
              :initarg :flow-ids :reader flow-ids)
    (emit-set :initform nil :initarg :emit-set :reader emit-set)
-   (pure :initform nil :initarg :pure :reader pure-p)))
+   (pure :initform nil :initarg :pure :reader pure-p)
+   (derived-from :initarg :derived-from :initform nil :reader derived-from)))
 
 (defmethod functions ((fn v-function))
   (list fn))

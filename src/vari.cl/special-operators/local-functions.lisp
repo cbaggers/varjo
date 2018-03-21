@@ -63,7 +63,9 @@
       (values (copy-compiled merged :node-tree ast)
               e))))
 
-(v-defspecial labels-no-implicit (definitions exceptions &rest body)
+;; TODO: should only take 1 definition
+(v-defspecial labels-no-implicit (definitions derived-from exceptions
+                                   &rest body)
   :args-valid t
   :return
   (vbind ((func-def-objs body-obj) pruned-starting-env) ;;ending-env
@@ -74,7 +76,8 @@
            (lambda (env d)
              (dbind (name args &rest body) d
                (vbind (fn code)
-                   (build-function nil name args body exceptions env)
+                   (build-function nil name args body exceptions env
+                                   :derived-from derived-from)
                  (values code (add-form-binding fn env)))))
            p-env
            definitions)
@@ -93,6 +96,7 @@
                                                 _)
                                            definitions
                                            func-def-objs))
+                       derived-from
                        exceptions
                        (node-tree body-obj))
                  (type-set body-obj) env env)))

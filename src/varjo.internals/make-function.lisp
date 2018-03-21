@@ -17,7 +17,8 @@
                                 (when uniforms `(&uniform ,@uniforms)))
                         code
                         nil
-                        env)
+                        env
+                        :derived-from func)
       ;; Here we check that we haven't got any behaviour that, while legal for
       ;; main or local funcs, would be undesired in external functions
       (when maybe-def-code
@@ -31,7 +32,8 @@
         (assert (emptyp (type-set maybe-def-code))))
       (values compiled-func maybe-def-code))))
 
-(defun build-function (func-id name args body allowed-implicit-args env)
+(defun build-function (func-id name args body allowed-implicit-args
+                       env &key derived-from)
   ;;
   ;; Check that the args are correctly formatted, we could just let
   ;; type-spec->type take care of this, however this way we get to
@@ -56,9 +58,10 @@
 
     (if (some λ(typep _ 'v-unrepresentable-value) arg-types)
         (make-new-function-with-unreps
-         func-id name args body allowed-implicit-args env)
+         func-id name args body allowed-implicit-args derived-from env)
         (make-regular-function
-         func-id name args args-with-types body allowed-implicit-args env))))
+         func-id name args args-with-types body allowed-implicit-args
+         derived-from env))))
 
 (defun likely-recursion-p (env)
   (labels ((ieql (a b)
@@ -74,7 +77,8 @@
            (depth (or (position-if-not λ(ieql key _) chain) 0)))
       (> depth 15))))
 
-(defun make-regular-function (func-id name raw-args args body allowed-implicit-args env)
+(defun make-regular-function (func-id name raw-args args body
+                              allowed-implicit-args derived-from env)
   (assert (not (likely-recursion-p env)) ()
           'probable-recursion :name name
           :func `(,name ,@(mapcar λ(type->type-spec (second _)) args)))
@@ -196,7 +200,8 @@
                                            :flow-ids (unless (emptyp (return-set body-obj))
                                                        (flow-ids (elt (return-set body-obj) 0)))
                                            :in-arg-flow-ids in-arg-flow-ids
-                                           :pure (pure-p body-obj)))
+                                           :pure (pure-p body-obj)
+                                           :derived-from derived-from))
              (tl-meta (hash-table-values (slot-value body-env 'local-metadata)))
              (code-obj (copy-compiled body-obj
                                       :type-set (make-type-set)
@@ -238,7 +243,8 @@
                    env env))))
 
 (defun make-new-function-with-unreps (func-id name args body
-                                      allowed-implicit-args env)
+                                      allowed-implicit-args
+                                      derived-from env)
   (let ((mainp (eq name :main)))
     (assert (not (eq name :main)))
     (let* ((func-env (make-func-env env func-id mainp allowed-implicit-args))
@@ -250,7 +256,8 @@
            (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
            (func (make-user-function-obj name nil nil arg-types #()
                                          :code (list args body)
-                                         :captured-vars visible-var-pairs))
+                                         :captured-vars visible-var-pairs
+                                         :derived-from derived-from))
            (ast-body (if (= 1 (length body))
                          (first body)
                          `(progn ,@body)))

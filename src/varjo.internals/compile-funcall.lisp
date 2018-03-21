@@ -172,6 +172,9 @@
           (assert new-env)
           (values code-obj new-env nil)))))
 
+
+;; TODO handle traits & unreps in one function
+
 (defun compile-function-taking-traits (func args env)
   (assert (v-code func))
   ;; if we knew that the function was an external function and that the types
@@ -198,9 +201,23 @@
           (compile-form
            `(vari.cl:labels-no-implicit
              ((,func-name ,new-params ,@body-code))
+             ,(derived-from func)
              ,allowed
              (,func-name ,@args))
            env))))))
+
+(defun find-derived-call (func args env)
+  (with-slots (derived-from) func
+    (when derived-from
+      (let ((compiled-result (compiled-functions env derived-from)))
+        (when compiled-result
+          (loop
+             :for (func . types) :in (calls compiled-result)
+             :when (and (= (length args) (length types))
+                        (every #'v-type-eq
+                               (mapcar #'primary-type args)
+                               types))
+             :return (identity func)))))))
 
 (defun compile-function-taking-unreps (func args env)
   (assert (v-code func))
@@ -218,21 +235,25 @@
              :and
              :collect arg :into f
              :finally (return (list a h f)))
-        ;; this is a hack but it'll do for now. It just lets our func use
-        ;; the vars that were captured, if we are still in scope
-        (let* ((captured (captured-vars func))
-               (captured (remove-if-not λ(descendant-env-p env (origin-env _))
-                                        captured))
-               (allowed (append (mapcar #'first hard-coded)
-                                (mapcar #'name captured)))
-               (func-name (name func)))
-          (compile-form
-           `(let ,hard-coded
-              (vari.cl:labels-no-implicit
-               ((,func-name ,trimmed-args ,@body-code))
-               ,allowed
-               (,func-name ,@final-args)))
-           env))))))
+        (let ((derived-call (find-derived-call func final-args env)))
+          (if derived-call
+              (compile-call-with-single-function derived-call final-args env)
+              ;; this is a hack but it'll do for now. It just lets our func use
+              ;; the vars that were captured, if we are still in scope
+              (let* ((captured (captured-vars func))
+                     (captured (remove-if-not λ(descendant-env-p env (origin-env _))
+                                              captured))
+                     (allowed (append (mapcar #'first hard-coded)
+                                      (mapcar #'name captured)))
+                     (func-name (name func)))
+                (compile-form
+                 `(let ,hard-coded
+                    (vari.cl:labels-no-implicit
+                     ((,func-name ,trimmed-args ,@body-code))
+                     ,(derived-from func)
+                     ,allowed
+                     (,func-name ,@final-args)))
+                 env))))))))
 
 (defun compile-external-func-returning-ref (func func-name-form env)
   ;; Here we are going to make use of the fact that a external function
@@ -319,6 +340,12 @@
                                  (when (v-multi-val-safe env)
                                    (handle-regular-function-mvals args))))
         (emit-set (emit-set func)))
+    (with-slots (derived-from) func
+      (when derived-from
+        (let ((compiled-result (compiled-functions env derived-from)))
+          (when compiled-result
+            (push (cons func (mapcar #'primary-type args))
+                  (calls compiled-result))))))
     (when (user-function-p func)
       (incf (call-count (compiled-result func))))
     (values (merge-compiled

@@ -141,7 +141,8 @@
 (defun make-user-function-obj (name transform versions arg-spec return-spec
                                &key v-place-index glsl-name implicit-args
                                  in-out-args flow-ids in-arg-flow-ids
-                                 code captured-vars pure emit-set)
+                                 code captured-vars pure emit-set
+                                 derived-from)
   (assert (and (vectorp return-spec)
                (every #'valid-type-set-member-p return-spec))
           () 'user-func-invalid-x :kind :returns :name name :args arg-spec)
@@ -163,7 +164,8 @@
                  :code code
                  :captured-vars captured-vars
                  :emit-set emit-set
-                 :pure pure))
+                 :pure pure
+                 :derived-from derived-from))
 
 ;; {TODO} make this use the arg & return types
 (defun gen-dummy-func-glsl-name (func-type)
