@@ -165,7 +165,7 @@
      :collect
      (list trait-func-name binding)))
 
-(defmacro define-implementation
+(defmacro define-vari-trait-implementation
     (impl-type-name (trait-name &key &allow-other-keys)
      &body implementations &key &allow-other-keys)
   (let ((grouped
@@ -180,31 +180,35 @@
 
 ;;------------------------------------------------------------
 
-(v-deftype blerp () :ivec2)
-(v-def-glsl-template-fun blerp (x) "blerp(~a)" (:int) blerp)
-
-(v-def-glsl-template-fun boop (x) "boop(~a)" (blerp) blerp)
-(v-def-glsl-template-fun checker (x y) "(~a?~a)" (blerp blerp) :bool)
-(v-def-glsl-template-fun splat (x y) "~a=~a" (blerp :int) :int)
-
-(define-vari-trait trat ()
-  (booper :self)
-  (checkerer :self :self)
-  (splatter :self t))
-
-(define-implementation blerp (trat)
-  :booper (boop blerp)
-  :checkerer (checker blerp blerp)
-  :splatter (splat blerp :int))
-
 #+nil
-(v-defun reduce ((fn function) (seq iterable))
-  (let ((result)
-        (limit (limit seq)))
-    (for (state (create-iterator-state seq))
-         (iterator-limit-check state limit)
-         (setq state (next-iterator-state state))
-         (let ((elem (element-for-state seq state)))
-           (funcall fn elem)))))
+(progn
+  (v-deftype blerp () :ivec2)
+  (v-def-glsl-template-fun blerp (x) "blerp(~a)" (:int) blerp)
+
+  (v-def-glsl-template-fun boop (x) "boop(~a)" (blerp) blerp)
+  (v-def-glsl-template-fun checker (x y) "check(~a, ~a)" (blerp blerp) :bool)
+  (v-def-glsl-template-fun splat (x y) "splat(~a,~a)" (blerp :int) :int)
+
+  (v-deftype narp () :ivec3)
+  (v-def-glsl-template-fun narp (x) "narp(~a)" (:int) narp)
+
+  (v-def-glsl-template-fun nboop (x) "nboop(~a)" (narp) narp)
+  (v-def-glsl-template-fun checker (x y) "check(~a, ~a)" (narp narp) :bool)
+  (v-def-glsl-template-fun splat (x y) "splat(~a,~a)" (narp :int) :int)
+
+  (define-vari-trait trat ()
+    (booper :self)
+    (checkerer :self :self)
+    (splatter :self t))
+
+  (define-vari-trait-implementation blerp (trat)
+    :booper (boop blerp)
+    :checkerer (checker blerp blerp)
+    :splatter (splat blerp :int))
+
+  (define-vari-trait-implementation narp (trat)
+    :booper (nboop narp)
+    :checkerer (checker narp narp)
+    :splatter (splat narp :int)))
 
 ;;------------------------------------------------------------

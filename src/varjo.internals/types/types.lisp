@@ -102,11 +102,6 @@
    (glsl-size :initform :sizeless)))
 
 ;;------------------------------------------------------------
-;; Trait
-
-(define-v-type-class v-trait (v-type) ())
-
-;;------------------------------------------------------------
 ;; Discarded
 ;;
 ;; The type of the discard expression. Indicates a termination
@@ -310,6 +305,11 @@
 ;;        have func spicing ephemerals and regular.
 
 (define-v-type-class v-unrepresentable-value (v-ephemeral-type) ())
+
+;;------------------------------------------------------------
+;; Trait
+
+(define-v-type-class v-trait (v-unrepresentable-value) ())
 
 ;;------------------------------------------------------------
 ;; Block Struct

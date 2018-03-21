@@ -167,14 +167,19 @@
 (defun compile-function-taking-unreps (func args env)
   (assert (v-code func))
   (labels ((unrep-p (x)
-             (or (typep (primary-type x) 'v-unrepresentable-value)
-                 (typep (primary-type x) 'v-block-struct))))
-    (dbind (args-code body-code) (v-code func)
-      (dbind (trimmed-args hard-coded)
-          (loop :for arg-code :in args-code :for arg :in args
-             :if (unrep-p arg) :collect (list (first arg-code) arg) :into h
-             :else :collect arg-code :into a
-             :finally (return (list a h)))
+             (or (typep x 'v-unrepresentable-value)
+                 (typep x 'v-block-struct))))
+    (dbind (params body-code) (v-code func)
+      (dbind (trimmed-args hard-coded final-args)
+          (loop :for param :in params
+             :for arg :in args
+             :for param-type := (type-spec->type (second param))
+             :if (unrep-p param-type) :collect (list (first param) arg) :into h
+             :else
+             :collect param :into a
+             :and
+             :collect arg :into f
+             :finally (return (list a h f)))
         ;; this is a hack but it'll do for now. It just lets our func use
         ;; the vars that were captured, if we are still in scope
         (let* ((captured (captured-vars func))
@@ -188,7 +193,7 @@
               (vari.cl:labels-no-implicit
                ((,func-name ,trimmed-args ,@body-code))
                ,allowed
-               (,func-name ,@(remove-if #'unrep-p args))))
+               (,func-name ,@final-args)))
            env))))))
 
 (defun compile-external-func-returning-ref (func func-name-form env)
