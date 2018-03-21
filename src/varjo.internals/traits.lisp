@@ -62,14 +62,21 @@
 (defun add-trait-functions (trait-name spec)
   (check-for-trait-function-collision spec)
   (remove-redundent-trait-functions trait-name spec)
-  (let ((funcs (slot-value spec 'function-signatures))
-        (top (make-type-set (type-spec->type t))))
-    (loop :for (func-name . arg-types) :in funcs :do
-       (add-global-form-binding
-        (make-trait-function-obj (type-spec->type trait-name)
-                                 func-name
-                                 arg-types
-                                 top)))))
+  (let ((top (type-spec->type t))
+        (top-set (make-type-set (type-spec->type t)))
+        (funcs (slot-value spec 'function-signatures)))
+    (flet ((finalize-type (x)
+             (etypecase x
+               (v-type x)
+               (symbol top))))
+      (loop
+         :for (func-name . arg-types) :in funcs
+         :for final-arg-types := (mapcar #'finalize-type arg-types)
+         :do (add-global-form-binding
+              (make-trait-function-obj (type-spec->type trait-name)
+                                       func-name
+                                       final-arg-types
+                                       top-set))))))
 
 (defun register-trait (trait-name spec)
   (add-trait-functions trait-name spec)
@@ -83,7 +90,9 @@
 (defun parse-trait-specs (trait-name type-vars function-signatures)
   (let ((name-map
          (loop :for (name type) :in (cons (list :self trait-name) type-vars)
-            :collect (cons name (type-spec->type type)))))
+            :collect (cons name (if (string= type "_")
+                                    name
+                                    (type-spec->type type))))))
     (flet ((as-type (name)
              (or (assocr name name-map)
                  (type-spec->type name))))
@@ -102,7 +111,7 @@
 (defclass impl-spec ()
   ((function-signatures :initarg :function-signatures)))
 
-(defun check-impl-spec (trait-name type-name spec)
+(defun check-impl-spec (trait-name trait-args type-name spec)
   (assert (vtype-existsp type-name))
   (assert (vtype-existsp trait-name))
   (let* ((trait (get-trait trait-name))
@@ -118,28 +127,43 @@
            (set-var-req (req ours)
              (setf (gethash req type-var-requirements)
                    ours)
-             t))
+             t)
+           (complete-req-type (type)
+             (etypecase type
+               (v-type type)
+               (symbol (or (assocr type trait-args :test #'string=)
+                           (error "Varjo: Could not find the '~a' trait arg required by ~a"
+                                  type trait-name))))))
       (loop :for (name func) :in provided-funcs :do
          (assert
-          (loop :for (req-name . req-types) :in required-funcs :thereis
-             (and (func-args-satisfy-p func req-types)
-                  (loop :for req-type :in req-types
-                     :for type :in (v-argument-spec func)
-                     :always
-                     (let ((strict (get-var-req req-type)))
-                       (if strict
-                           (v-type-eq type strict)
-                           (set-var-req req-type type))))))
+          (loop
+             :for (req-name . req-types) :in required-funcs
+             :thereis
+             (let ((complete-req-types (mapcar #'complete-req-type req-types)))
+               (and (func-args-satisfy-p func complete-req-types)
+                    (loop :for req-type :in complete-req-types
+                       :for req-spec :in req-types
+                       :for type :in (v-argument-spec func)
+                       :for i :from 0
+                       :always
+                       (let ((strict (get-var-req req-type)))
+                         (when (symbolp req-spec)
+                           (assert (v-type-eq type req-type) ()
+                                   "Varjo: Trait argument states that argument ~a of ~a should be ~a"
+                                   i name (type->type-spec req-type)))
+                         (if strict
+                             (v-type-eq type strict)
+                             (set-var-req req-type type)))))))
           () "Varjo: No func in~%~a~%matched~%~a" required-funcs func)))))
 
-(defun register-trait-implementation (trait-name type-name spec)
+(defun register-trait-implementation (trait-name trait-args type-name spec)
   (let ((trait-table (or (gethash type-name *trait-implementations*)
                          (setf (gethash type-name *trait-implementations*)
                                (make-hash-table)))))
     (unless (gethash trait-name trait-table)
       (setf (gethash trait-name trait-table) t))
     (unwind-protect
-         (check-impl-spec trait-name type-name spec)
+         (check-impl-spec trait-name trait-args type-name spec)
       (setf (gethash trait-name trait-table) nil))
     (setf (gethash trait-name trait-table)
           spec)))
@@ -166,14 +190,17 @@
      (list trait-func-name binding)))
 
 (defmacro define-vari-trait-implementation
-    (impl-type-name (trait-name &key &allow-other-keys)
+    (impl-type-name (trait-name &rest trait-args &key &allow-other-keys)
      &body implementations &key &allow-other-keys)
   (let ((grouped
          (loop :for (k v) :on implementations :by #'cddr :collect
-            (list k v))))
+            (list k v)))
+        (trait-args
+         (loop :for (k v) :on trait-args :by #'cddr :collect
+            (cons k v))))
     `(progn
        (register-trait-implementation
-        ',trait-name ',impl-type-name
+        ',trait-name ',trait-args ',impl-type-name
         (make-instance 'impl-spec :function-signatures
                        (parse-impl-specs ',grouped)))
        ',impl-type-name)))

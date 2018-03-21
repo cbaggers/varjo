@@ -76,9 +76,11 @@
 
 (defun compile-call-with-single-function (func compiled-args env)
   (check-type func (or v-function external-function))
-  ;; We take the safe assumption that no non-user-defined function
+  ;;
+  ;; We take the safe assumption that no 'NON user-defined' function
   ;; will ever take a user defined struct as an argument. This is
-  ;; important due to how ephemerals work
+  ;; important due to how ephemerals work.
+  ;;
   (typecase func
     (trait-function
      (with-slots (trait) func
@@ -147,6 +149,13 @@
               ((v-special-functionp func)
                (compile-special-function func args env))
 
+              ;; funcs taking traits as arguments
+              ;; traits being before unreps matters here.
+              ;; want to hit 'final' types before unrep transforms
+              ((and (typep func 'v-user-function)
+                    (some λ(typep _ 'v-trait) (v-argument-spec func)))
+               (compile-function-taking-traits func args env))
+
               ;; funcs taking unrepresentable values as arguments
               ((and (typep func 'v-user-function)
                     (or (some λ(typep _ 'v-unrepresentable-value)
@@ -163,6 +172,35 @@
           (assert new-env)
           (values code-obj new-env nil)))))
 
+(defun compile-function-taking-traits (func args env)
+  (assert (v-code func))
+  ;; if we knew that the function was an external function and that the types
+  ;; that we were passing for the traits were the same, we could dedup.
+  (labels ((trait-p (x) (typep x 'v-trait)))
+    (dbind (params body-code) (v-code func)
+      (let ((new-params
+             (loop :for param :in params
+                :for arg :in args
+                :for param-type := (type-spec->type (second param))
+                :if (trait-p param-type)
+                :collect `(,(first param)
+                            ,(type->type-spec (primary-type arg))
+                            ,@(cddr param))
+                :else
+                :collect param)))
+        ;; this is a hack but it'll do for now. It just lets our func use
+        ;; the vars that were captured, if we are still in scope
+        (let* ((captured (captured-vars func))
+               (captured (remove-if-not λ(descendant-env-p env (origin-env _))
+                                        captured))
+               (allowed (mapcar #'name captured))
+               (func-name (name func)))
+          (compile-form
+           `(vari.cl:labels-no-implicit
+             ((,func-name ,new-params ,@body-code))
+             ,allowed
+             (,func-name ,@args))
+           env))))))
 
 (defun compile-function-taking-unreps (func args env)
   (assert (v-code func))

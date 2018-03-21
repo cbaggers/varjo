@@ -8,14 +8,15 @@
   (iterator-limit-check :self :self)
   (index-for-state :self))
 
-(define-vari-trait v-user-sequence ((state iter-state))
+(define-vari-trait v-user-sequence ((state iter-state)
+                                    (elem-type _))
   (sequence-length :self)
   (sequence-make-like :self)
   (sequence-make-like-with-length :self :int)
   (sequence-limit :self)
   (sequence-create-iterator-state :self)
   (sequence-element-for-state :self state)
-  (sequence-set-element-for-state :self state t))
+  (sequence-set-element-for-state :self state elem-type))
 
 ;;------------------------------------------------------------
 
@@ -75,13 +76,13 @@
                                          (val t))
   `(setf (aref ,arr (array-iter-to-int ,state)) ,val))
 
-(define-vari-trait-implementation v-array (v-user-sequence)
+(define-vari-trait-implementation v-array (v-user-sequence :elem-type t)
   :sequence-length (length v-array)
   :sequence-make-like (make-array-like v-array)
   :sequence-make-like-with-length (make-array-like-with-len v-array :int)
   :sequence-limit (array-iter-limit v-array)
   :sequence-create-iterator-state (array-create-iter-state v-array)
-  :sequence-element-for-state (aref v-array :int) ;; bug
+  :sequence-element-for-state (aref v-array :int) ;; !!!------WARNING--------!!! BUG
   :sequence-set-element-for-state (set-array-elem v-array array-iter-state t))
 
 ;;------------------------------------------------------------
