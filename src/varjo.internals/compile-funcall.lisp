@@ -65,20 +65,38 @@
       ;; will ever take a user defined struct as an argument. This is
       ;; important due to how ephemerals work
       (typecase func
-        (trait-function
-         (break "sup"))
-        (v-function
-         (vbind (new-obj new-env used-compiler-macro-p)
-             (compile-function-call func args env)
-           (declare (ignore used-compiler-macro-p))
-           (values new-obj new-env)))
-        (external-function (compile-external-function-call func args env))
+        (v-function (compile-call-with-single-function func args env))
+        (external-function (compile-call-with-single-function func args env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
                      (error 'cannot-compile
                             :code (or code
                                       `(funcall ,func-set ,@args-code)))))
         (t (error 'problem-with-the-compiler :target func))))))
+
+(defun compile-call-with-single-function (func compiled-args env)
+  (check-type func (or v-function external-function))
+  ;; We take the safe assumption that no non-user-defined function
+  ;; will ever take a user defined struct as an argument. This is
+  ;; important due to how ephemerals work
+  (typecase func
+    (trait-function
+     (with-slots (trait) func
+       (let* ((arg-type (primary-type (first compiled-args)))
+              (impl (get-trait-implementation trait arg-type))
+              (impl-func (second
+                          (find (name func)
+                                (slot-value impl 'function-signatures)
+                                :key #'first
+                                :test #'string=))))
+         (compile-call-with-single-function impl-func compiled-args env))))
+    (v-function
+     (vbind (new-obj new-env used-compiler-macro-p)
+         (compile-function-call func compiled-args env)
+       (declare (ignore used-compiler-macro-p))
+       (values new-obj new-env)))
+    (external-function (compile-external-function-call func compiled-args env))
+    (t (error 'problem-with-the-compiler :target func))))
 
 (defvar *allow-call-function-signature* nil)
 

@@ -105,7 +105,8 @@
                  :in-arg-flow-ids in-arg-flow-ids
                  :pure pure))
 
-(defun make-trait-function-obj (name arg-spec return-spec)
+(defun make-trait-function-obj (trait-type name arg-spec return-spec)
+  (assert (typep trait-type 'v-trait))
   (assert (valid-func-return-spec-p return-spec)
           () 'user-func-invalid-x
           :kind 'returns
@@ -123,6 +124,7 @@
             :args arg-spec))
   (make-instance 'trait-function
                  :name name
+                 :trait trait-type
                  :arg-spec arg-spec
                  :return-spec return-spec
                  :glsl-string nil

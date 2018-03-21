@@ -10,7 +10,8 @@
 ;; - For now dont allow parametized type names to implement traits (except
 ;;   arrays which will be hacked in the implementation) HMMMMMM
 
-(defclass trait-function (v-function) ())
+(defclass trait-function (v-function)
+  ((trait :initarg :trait)))
 (defun trait-function-p (x) (typep x 'trait-function))
 ;;------------------------------------------------------------
 
@@ -65,7 +66,10 @@
         (top (make-type-set (type-spec->type t))))
     (loop :for (func-name . arg-types) :in funcs :do
        (add-global-form-binding
-        (make-trait-function-obj func-name arg-types top)))))
+        (make-trait-function-obj (type-spec->type trait-name)
+                                 func-name
+                                 arg-types
+                                 top)))))
 
 (defun register-trait (trait-name spec)
   (add-trait-functions trait-name spec)
@@ -177,17 +181,17 @@
 ;;------------------------------------------------------------
 
 (v-deftype blerp () :ivec2)
-(v-def-glsl-template-fun boop (x) "boop(~a~)" (blerp) blerp)
+(v-def-glsl-template-fun blerp (x) "blerp(~a)" (:int) blerp)
+
+(v-def-glsl-template-fun boop (x) "boop(~a)" (blerp) blerp)
 (v-def-glsl-template-fun checker (x y) "(~a?~a)" (blerp blerp) :bool)
 (v-def-glsl-template-fun splat (x y) "~a=~a" (blerp :int) :int)
 
-#+nil
 (define-vari-trait trat ()
   (booper :self)
   (checkerer :self :self)
   (splatter :self t))
 
-#+nil
 (define-implementation blerp (trat)
   :booper (boop blerp)
   :checkerer (checker blerp blerp)
