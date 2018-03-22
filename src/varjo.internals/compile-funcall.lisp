@@ -298,12 +298,28 @@
          (compiled-func (or (compiled-functions base-env func)
                             (setf (compiled-functions base-env func)
                                   (build-external-function func env base-env)))))
-    (vbind (new-obj new-env used-compiler-macro-p)
-        (compile-function-call (function-obj compiled-func) args args-code env)
-      (unless used-compiler-macro-p
-        ;; track the number of times the function was used
-        (incf (call-count compiled-func)))
-      (values new-obj new-env))))
+    (if (and (or (declaimed-inline func)
+                 ;; {TODO} declared inline locally. Cant do this properly until
+                 ;;        metadata can take non &key args
+                 )
+             (inline-candidate compiled-func))
+        (inline-external-function-call compiled-func args-code env)
+        (vbind (new-obj new-env used-compiler-macro-p)
+            (compile-function-call (function-obj compiled-func) args args-code env)
+          (unless used-compiler-macro-p
+            ;; track the number of times the function was used
+            (incf (call-count compiled-func)))
+          (values new-obj new-env)))))
+
+
+(defun inline-external-function-call (compiled-func args-code env)
+  (dbind (args body) (v-code (function-obj compiled-func))
+    (compile-form
+     `(let ,(mapcar #'list
+                    (mapcar #'first args)
+                    args-code)
+        ,@body)
+     env)))
 
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)

@@ -60,7 +60,9 @@
                               :initform nil
                               :reader top-level-scoped-metadata)
    (call-count :initform 0 :initarg :call-count :accessor call-count)
-   (calls :initform nil :initarg :calls :accessor calls)))
+   (calls :initform nil :initarg :calls :accessor calls)
+   (inline-candidate :initform nil :initarg :inline-candidate
+                     :accessor inline-candidate)))
 
 ;;----------------------------------------------------------------------
 
@@ -190,7 +192,8 @@
    (&rest-pos :initarg :&rest-pos :reader &rest-pos)
    (uniforms :initarg :uniforms :reader uniforms)
    (code :initarg :code :reader code)
-   (glsl-versions :initarg :glsl-versions :reader glsl-versions)))
+   (glsl-versions :initarg :glsl-versions :reader glsl-versions)
+   (declaimed-inline :initform nil :accessor declaimed-inline)))
 
 ;;----------------------------------------------------------------------
 

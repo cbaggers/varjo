@@ -211,7 +211,13 @@
                                       :emit-set emit-set
                                       :place-tree nil
                                       :out-of-scope-args implicit-args
-                                      :used-types nil)))
+                                      :used-types nil))
+             (inline-candidate (and (not implicit-args)
+                                    (not strip-glsl)
+                                    (not multi-return-vars)
+                                    (= (length emit-set) 0)
+                                    (= (length (glsl-chunk-lines (to-block body-obj)))
+                                       0))))
         (let ((res (make-instance 'compiled-function-result
                                   :call-count (if mainp 1 0)
                                   :function-obj func
@@ -223,7 +229,8 @@
                                   :stemcells (stemcells code-obj)
                                   :return-set ret-set
                                   :emit-set emit-set
-                                  :top-level-scoped-metadata tl-meta)))
+                                  :top-level-scoped-metadata tl-meta
+                                  :inline-candidate inline-candidate)))
           (setf (compiled-result func) res)
           (values res code-obj))))))
 

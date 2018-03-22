@@ -614,6 +614,7 @@
            :v-def-glsl-template-fun
            :v-define-compiler-macro
            :v-defmacro
+           :v-declaim
            :v-defspecial
            :v-defstruct
            :v-deftype

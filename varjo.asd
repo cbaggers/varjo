@@ -57,6 +57,7 @@
                (:file "src/varjo.internals/macros")
                (:file "src/varjo.internals/compile-funcall")
                (:file "src/varjo.internals/compile-form")
+               (:file "src/varjo.internals/declaim")
                ;;
                (:file "src/vari.glsl/functions")
                (:file "src/vari.glsl/parse-from-spec")
