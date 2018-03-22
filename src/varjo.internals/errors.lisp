@@ -42,7 +42,7 @@
     "Cannot clean the global environment")
 
 (define-error could-not-find-function (:error-type varjo-critical-error) (name)
-    "No function called '~a' was found in this environment" name)
+    "No function called '~s' was found in this environment" name)
 
 (define-error could-not-find-any (:error-type varjo-critical-error) (name)
     "No function, macro or compiler-macro called '~a' could be found in this environment" name)
