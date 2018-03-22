@@ -657,7 +657,17 @@
 (defmethod v-type-eq ((a v-array) (b v-array))
   (and (eq (slot-value a 'type-name) (slot-value b 'type-name))
        (v-type-eq (v-element-type a) (v-element-type b))
-       (eq (ctv a) (ctv b))))
+       (eq (ctv a) (ctv b))
+       ;; assuming num or wild
+       (let* ((len-a (first (v-dimensions a)))
+              (len-a-num (numberp len-a))
+              (len-b (first (v-dimensions b)))
+              (len-b-num (numberp len-b)))
+         (if len-a-num
+             (if len-b-num
+                 (= len-a len-b)
+                 t)
+             (not len-b-num)))))
 
 (defmethod v-type-eq ((a v-block-array) (b v-block-array))
   (and (eq (slot-value a 'type-name) (slot-value b 'type-name))
