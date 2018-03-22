@@ -208,7 +208,9 @@ however failed to do so when asked."
                 (loop :for val :in arg-types-no-block-structs
                    :for arg :in func-arg-types
                    :count (if (typep arg 'v-trait)
-                              (get-trait-implementation arg val :errorp nil)
+                              (if (typep val 'v-trait)
+                                  (v-type-eq arg val)
+                                  (get-trait-implementation arg val :errorp nil))
                               (v-typep val arg))))
                (score (- (length arg-types) perfect-matches)))
 

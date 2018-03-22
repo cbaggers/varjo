@@ -20,6 +20,8 @@
                       specifier))))
 
 (defun declaim-func-inline (func-sig)
+  (assert (listp func-sig) ()
+          "Varjo: function signatures must be fully specified when attempting to declaim inline")
   (let* ((func (handler-case
                    (get-external-function-by-literal func-sig)
                  (error ()

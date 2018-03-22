@@ -96,4 +96,41 @@
          (let ((elem (sequence-element-for-state seq state)))
            (sequence-set-element-for-state result
                                            state
-                                           (funcall fn elem))))))
+                                           (funcall fn elem))))
+    result))
+
+(v-define-compiler-macro mapseq ((fn v-function-type) (seq v-user-sequence))
+  `(let* ((seq ,seq)
+          (result (sequence-make-like seq))
+          (limit (sequence-limit seq)))
+     (for (state (sequence-create-iterator-state seq))
+          (iterator-limit-check state limit)
+          (setq state (iter-state-next state))
+          (let ((elem (sequence-element-for-state seq state)))
+            (sequence-set-element-for-state result
+                                            state
+                                            (funcall ,fn elem))))
+     result))
+
+(v-defun reduce ((fn v-function-type) (seq v-user-sequence) (initial-value t))
+  (let* ((result initial-value)
+         (limit (sequence-limit seq)))
+    (for (state (sequence-create-iterator-state seq))
+         (iterator-limit-check state limit)
+         (setq state (iter-state-next state))
+         (let ((elem (sequence-element-for-state seq state)))
+           (setf result
+                 (funcall fn result elem))))
+    result))
+
+(v-define-compiler-macro reduce ((fn v-function-type) (seq v-user-sequence) (initial-value t))
+  `(let* ((seq ,seq)
+          (result ,initial-value)
+          (limit (sequence-limit seq)))
+     (for (state (sequence-create-iterator-state seq))
+          (iterator-limit-check state limit)
+          (setq state (iter-state-next state))
+          (let ((elem (sequence-element-for-state seq state)))
+            (setf result
+                  (funcall ,fn result elem))))
+     result))
