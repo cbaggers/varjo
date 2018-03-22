@@ -40,12 +40,7 @@
              (final-env
               (apply #'env-merge-history
                      (env-prune* (env-depth test-env) then-env else-env)))
-             (type-set (compute-if-type-set then-obj else-obj starting-env))
-             (node-tree (ast-node! 'if
-                                   (mapcar #'node-tree
-                                           (list test-obj then-obj else-obj))
-                                   type-set
-                                   starting-env final-env)))
+             (type-set (compute-if-type-set then-obj else-obj starting-env)))
         (vbind (to-block current-line)
             (if (and has-else
                      (satifies-ternary-style-restrictions-p
@@ -68,8 +63,7 @@
           (values (merge-compiled arg-objs
                                   :type-set type-set
                                   :current-line current-line
-                                  :to-block to-block
-                                  :node-tree node-tree)
+                                  :to-block to-block)
                   final-env))))))
 
 (defun compute-if-type-set (then-obj else-obj env)

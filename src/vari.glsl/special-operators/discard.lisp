@@ -8,12 +8,7 @@
 (v-defspecial discard ()
   :return
   (let* ((discarded (type-spec->type 'v-discarded (flow-id!)))
-         (type-set (make-type-set discarded))
-         (ast (ast-node! 'discard
-                         nil
-                         type-set
-                         env
-                         env)))
+         (type-set (make-type-set discarded)))
     (assert (typep (stage env) 'fragment-stage) ()
             'discard-not-in-fragment-stage
             :stage (type-of (stage env)))
@@ -21,7 +16,6 @@
      (make-compiled :type-set type-set
                     :current-line "discard"
                     :used-types nil
-                    :node-tree ast
                     :pure nil)
      env)))
 

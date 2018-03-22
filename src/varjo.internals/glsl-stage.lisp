@@ -58,7 +58,6 @@
                                                             nil
                                                             nil)
                            :signatures nil
-                           :ast (ast-node! :error nil #() nil nil)
                            :glsl-code body-string
                            :stemcells nil
                            :used-types (append

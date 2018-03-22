@@ -53,10 +53,6 @@
 (defvar *default-version* :460)
 
 
-(defvar *ast-node-kinds*
-  '(:function-top-level :get :get-stemcell :get-v-value :literal :error :none
-    :code-section :funcall :break))
-
 (defvar *stemcell-infer-hook*
   (lambda (name)
     (declare (ignore name))

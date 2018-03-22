@@ -50,18 +50,12 @@
     (vbind (code-obj final-env) (compile-form form new-env)
       ;; emit-set can be nil when there was no 'values' form within emit-data
       (if (emit-set code-obj)
-          (let ((ast (ast-node! 'emit-data
-                                (node-tree code-obj)
-                                (make-type-set)
-                                env env)))
-            (values (copy-compiled code-obj
-                                   :type-set (make-type-set)
-                                   :node-tree ast)
-                    final-env))
+          (values (copy-compiled code-obj
+                                 :type-set (make-type-set))
+                  final-env)
           (let* ((qualifiers (extract-value-qualifiers code-obj))
                  (parsed (mapcar #'parse-qualifier qualifiers)))
             (%values-for-emit (list code-obj)
-                              (list qualifiers)
                               (list parsed)
                               final-env))))))
 

@@ -1,20 +1,6 @@
 (in-package :varjo.internals)
 (in-readtable :fn.reader)
 
-(defclass ast-node ()
-  ((starting-env :initarg :starting-env :reader ast-starting-env)
-   (ending-env :initarg :ending-env :reader ast-ending-env)
-   (kind :initarg :kind :reader ast-kind)
-   (return-type :initarg :return-type :reader ast-return-type)
-   (val-origin :initarg :val-origin :initform :incomplete
-               :reader ast-val-origin)
-   (parent :initarg :parent :initform :incomplete :reader ast-parent)
-   (args :initarg :args :initform nil :reader ast-args)
-   (val-origins :initarg :val-origins :initform :incomplete)
-   (flow-id-origin :initarg :flow-id-origin :initform :incomplete
-                   :reader ast-flow-id-origin)
-   (flow-id-origins :initarg :flow-id-origins :initform :incomplete)))
-
 ;;----------------------------------------------------------------------
 
 (defclass compiled ()
@@ -29,8 +15,7 @@
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
    (pure :initarg :pure :initform nil :reader pure-p)
-   (place-tree :initarg :place-tree :initform nil :reader place-tree)
-   (node-tree :initarg :node-tree :initform nil :reader node-tree)))
+   (place-tree :initarg :place-tree :initform nil :reader place-tree)))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 
@@ -67,7 +52,6 @@
   ((function-obj :initarg :function-obj :reader function-obj)
    (glsl-code :initarg :glsl-code :reader glsl-code)
    (signatures :initarg :signatures :reader signatures)
-   (ast :initarg :ast :reader ast)
    (used-types :initarg :used-types :reader used-types)
    (stemcells :initarg :stemcells :reader stemcells)
    (return-set :initarg :return-set :reader return-set)

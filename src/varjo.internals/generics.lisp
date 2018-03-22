@@ -18,8 +18,6 @@
 (defgeneric add-symbol-macro (macro-name macro context env))
 (defgeneric all-cached-compiled-functions (e))
 (defgeneric all-functions (object))
-(defgeneric ast-kindp (node kind))
-(defgeneric ast-typep (node type))
 (defgeneric binding-in-higher-scope-p (binding env))
 (defgeneric block-name-string (block-name))
 (defgeneric build-external-function (func env base-env))
@@ -31,7 +29,7 @@
 (defgeneric copy-compiled (code-obj &key type-set current-line to-block
                                       emit-set return-set
                                       stemcells out-of-scope-args
-                                      place-tree pure node-tree
+                                      place-tree pure
                                       used-types))
 (defgeneric delete-external-function (name in-args-types))
 (defgeneric expand-input-variable (stage var-type input-variable env))
@@ -55,7 +53,7 @@
 (defgeneric merge-compiled (objs &key type-set emit-set return-set
                                    current-line to-block
                                    stemcells out-of-scope-args
-                                   place-tree pure node-tree))
+                                   place-tree pure))
 (defgeneric metadata-for-flow-id (metadata-kind flow-id env))
 (defgeneric metadata-for-scope (metadata-kind env))
 (defgeneric origin-name (origin))

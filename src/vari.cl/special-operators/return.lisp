@@ -54,10 +54,7 @@
                                ,(primary-type code-obj)
                                ,code-obj)))
                code-env)
-            (let* ((ast (ast-node! 'return (node-tree code-obj)
-                                   (make-type-set)
-                                   env env))
-                   (returned (type-spec->type 'v-returned
+            (let* ((returned (type-spec->type 'v-returned
                                               (or (flow-ids code-obj)
                                                   (flow-id!))))
                    (type-set (make-type-set returned))
@@ -69,6 +66,5 @@
                                      :type-set type-set
                                      :used-types (append
                                                   (used-types final-obj)
-                                                  (coerce return-set 'list))
-                                     :node-tree ast)
+                                                  (coerce return-set 'list)))
                       final-env)))))))

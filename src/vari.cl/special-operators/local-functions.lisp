@@ -20,20 +20,8 @@
     (assert body-obj)
     ;; can be nil in case of cvt funcs--↓↓↓
     (let* ((merged (merge-progn (remove nil (cons-end body-obj func-def-objs))
-                                env e))
-           (ast (ast-node!
-                 'labels
-                 (list (remove nil (mapcar λ(when _1
-                                              (cons-end
-                                               (node-tree _1)
-                                               (subseq _ 0 2)))
-                                           definitions
-                                           func-def-objs))
-                       (node-tree body-obj))
-                 (type-set body-obj)
-                 env env)))
-      (values (copy-compiled merged :node-tree ast)
-              e))))
+                                env e)))
+      (values merged e))))
 
 (v-defspecial flet (definitions &rest body)
   :args-valid t
@@ -49,18 +37,8 @@
            p-env definitions)
           (compile-form `(progn ,@body) p-env)))
     (let* ((objs (remove nil (cons-end body-obj func-def-objs)))
-           (merged (merge-progn objs env e))
-           (ast (ast-node!
-                 'flet
-                 (list (remove nil (mapcar λ(when _1
-                                              (cons-end
-                                               (node-tree _1)
-                                               (subseq _ 0 2)))
-                                           definitions
-                                           func-def-objs))
-                       (node-tree body-obj))
-                 (type-set body-obj) env env)))
-      (values (copy-compiled merged :node-tree ast)
+           (merged (merge-progn objs env e)))
+      (values merged
               e))))
 
 ;; TODO: should only take 1 definition
@@ -86,19 +64,6 @@
     (let* ((merged (merge-progn
                     (remove nil (cons-end body-obj func-def-objs))
                     env
-                    pruned-starting-env))
-           (ast (ast-node!
-                 'labels-no-implicit
-                 (list (remove nil (mapcar λ(if _1
-                                                (cons-end
-                                                 (node-tree _1)
-                                                 (subseq _ 0 2))
-                                                _)
-                                           definitions
-                                           func-def-objs))
-                       derived-from
-                       exceptions
-                       (node-tree body-obj))
-                 (type-set body-obj) env env)))
-      (values (copy-compiled merged :node-tree ast)
+                    pruned-starting-env)))
+      (values merged
               pruned-starting-env))))

@@ -47,12 +47,7 @@
                      :current-line (format nil "~a[~a].~a"
                                            (block-name type)
                                            (current-line index)
-                                           (current-line arr t))
-                     :node-tree (ast-node!
-                                 'aref
-                                 (list (node-tree arr)
-                                       (node-tree index))
-                                 type-set env env))
+                                           (current-line arr t)))
      env)))
 
 ;;------------------------------------------------------------

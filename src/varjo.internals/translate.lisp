@@ -21,7 +21,6 @@
             #'process-output-primitive
             #'make-out-set
             #'check-stemcells
-            #'post-process-ast
             #'filter-used-items
             #'validate-outputs
             #'gen-in-arg-strings
@@ -349,94 +348,6 @@
 
 ;;----------------------------------------------------------------------
 
-(defun post-process-func-ast
-    (func env flow-origin-map val-origin-map node-copy-map)
-  ;; prime maps with args (env)
-  ;; {TODO} need to prime expanded-input-variables & structs/array elements
-  (labels ((uniform-raw (val)
-             (slot-value (first (ids (nth-or-self 0 (flow-ids val))))
-                         'val)))
-    (let ((env (get-base-env env)))
-      (loop :for uniform :in (v-uniforms env) :do
-         (let ((binding (get-symbol-binding (name uniform) nil env)))
-           ;; {TODO} proper errror
-           (assert (not (typep binding 'v-symbol-macro)) ()
-                   "Varjo: Compiler Bug: Unexpanded symbol-macro found in ast")
-           (let ((key (uniform-raw binding))
-                 (val (make-uniform-origin :name (name uniform))))
-             (setf (gethash key flow-origin-map) val)
-             (setf (gethash key val-origin-map) val))))))
-
-  (labels ((post-process-node (node walk parent &key replace-args)
-             ;; we want a new copy as we will be mutating it
-             (let ((new (copy-ast-node
-                         node
-                         :parent (gethash parent node-copy-map))))
-               ;; store the lookup tables with every node
-               (setf (slot-value new 'flow-id-origins) flow-origin-map
-                     (slot-value new 'val-origins) val-origin-map)
-               (with-slots (args val-origin flow-id-origin kind) new
-                 ;;    maintain the relationship between this copied
-                 ;;    node and the original
-                 (setf (gethash node node-copy-map) new
-                       ;; walk the args. OR, if the caller pass it,
-                       ;; walk the replacement args and store them instead
-                       args (mapcar λ(funcall walk _ :parent node)
-                                    (or replace-args (ast-args node)))
-                       ;;
-                       val-origin (val-origins new)
-                       ;; - - - - - - - - - - - - - - - - - - - - - -
-                       ;; flow-id-origins gets of DESTRUCTIVELY adds
-                       ;; the origin of the flow-id/s for this node.
-                       ;; - - - - - - - - - - - - - - - - - - - - - -
-                       ;; {TODO} redesign this madness
-                       ;; - - - - - - - - - - - - - - - - - - - - - -
-                       flow-id-origin (flow-id-origins new))
-                 ;;
-                 (when (typep (ast-kind new) 'v-function)
-                   (setf kind (name (ast-kind new)))))
-               new))
-
-           (walk-node (node walk &key parent)
-             (cond
-               ;; remove progns with one form
-               ((and (ast-kindp node 'progn) (= (length (ast-args node)) 1))
-                (funcall walk (first (ast-args node)) :parent parent))
-
-               ;; splice progns into let's implicit progn
-               ((ast-kindp node 'let)
-                (let ((args (ast-args node)))
-                  (post-process-node
-                   node walk parent :replace-args
-                   `(,(first args)
-                      ,@(loop :for a :in (rest args)
-                           :if (and (typep a 'ast-node)
-                                    (ast-kindp a 'progn))
-                           :append (ast-args a)
-                           :else :collect a)))))
-
-               ;; remove return nodes
-               ((ast-kindp node 'return)
-                (funcall walk (first (ast-args node)) :parent parent))
-
-               (t (post-process-node node walk parent)))))
-
-    (let ((ast (walk-ast #'walk-node (ast func) :include-parent t)))
-      (setf (slot-value func 'ast) ast))))
-
-(defun post-process-ast (post-proc-obj)
-  (let ((flow-origin-map (make-hash-table))
-        (val-origin-map (make-hash-table))
-        (node-copy-map (make-hash-table :test #'eq)))
-    (map nil λ(post-process-func-ast _ (env post-proc-obj)
-                                     flow-origin-map
-                                     val-origin-map
-                                     node-copy-map)
-         (all-functions post-proc-obj)))
-  post-proc-obj)
-
-;;----------------------------------------------------------------------
-
 (defun find-used-user-structs (types)
   (let ((found nil))
     (labels ((process (type)
@@ -750,7 +661,6 @@
        :previous-stage (previous-stage (stage post-proc-obj))
        :implicit-uniforms (stemcells post-proc-obj)
        :used-external-functions (used-external-functions post-proc-obj)
-       :function-asts (mapcar #'ast (all-functions post-proc-obj))
        :primitive-out (primitive-out post-proc-obj)))))
 
 (defun process-context-for-result (context)

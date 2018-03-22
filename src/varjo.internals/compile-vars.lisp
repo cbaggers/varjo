@@ -16,7 +16,6 @@
              :type-set type-set
              :current-line (gen-variable-string var-name v-value)
              :place-tree `((,var-name ,v-value))
-             :node-tree (ast-node! :get var-name type-set env env)
              :pure t)))
       (if from-higher-scope
           (add-higher-scope-val code-obj v-value)

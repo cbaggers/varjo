@@ -42,10 +42,6 @@
     (merge-compiled objs
      :type-set type-set
      :current-line glsl
-     :node-tree (ast-node! 'glsl-expr
-                           (list current-line type)
-                           type-set
-                           nil nil)
      :pure nil)))
 
 (defun glsl-let (name-symbol name-string type value-form env)

@@ -359,7 +359,6 @@
            :%merge-multi-env-progn
            :%synthesize
            :%values-for-return
-           :*ast-node-kinds*
            :*default-version*
            :*draw-modes*
            :*emit-var-name-base*
@@ -383,17 +382,6 @@
            :args
            :arg-num
            :arguments
-           :ast
-           :ast->code
-           :ast-args
-           :ast-ending-env
-           :ast-flow-id-origin
-           :ast-kind
-           :ast-node!
-           :ast-parent
-           :ast-return-type
-           :ast-starting-env
-           :ast-val-origin
            :base-environment
            :binding-accesible-p
            :block-name
@@ -425,7 +413,6 @@
            :compiled-compute-stage
            :compiler-macro-expansion-environment
            :context
-           :copy-ast-node
            :copy-compiled
            :core-typep
            :cpu-side-transform
@@ -473,7 +460,6 @@
            :fresh-env
            :fresh-environment
            :func
-           :function-asts
            :function-obj
            :functions
            :gen-array-literal-string
@@ -531,7 +517,6 @@
            :location
            :macro-expansion-environment
            :main-metadata
-           :make-ast-node-for-declaration
            :make-compiled
            :make-dummy-function-from-type
            :make-function-set
@@ -546,7 +531,6 @@
            :metadata-for-flow-id
            :macro-obj
            :name
-           :node-tree
            :nth-return-name
            :origin-env
            :out-declarations
@@ -687,7 +671,6 @@
   (:export
    ;;
    ;; globals
-   :*ast-node-kinds*
    :*default-version*
    :*draw-modes*
    :*stage-names*
@@ -806,7 +789,6 @@
    :implicit-uniforms
    :used-external-functions
    :primitive-out
-   :ast->code
    :block-name-string
    ;;
    ;; compiled vars

@@ -39,7 +39,6 @@
                (:file "src/varjo.internals/deftype")
                (:file "src/varjo.internals/variables")
                (:file "src/varjo.internals/code-object")
-               (:file "src/varjo.internals/ast-node")
                (:file "src/varjo.internals/stemcells")
                (:file "src/vari.types/types")
                (:file "src/varjo.internals/environment")

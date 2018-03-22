@@ -15,8 +15,6 @@
         (values (make-compiled :type-set type-set
                                :current-line (format nil "~au" val)
                                :used-types (list type)
-                               :node-tree (ast-node! 'uint val type-set
-                                                     env env)
                                :pure t)
                 env))
       (compile-form `(%uint ,val) env)))

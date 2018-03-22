@@ -25,6 +25,12 @@
 ;;------------------------------------------------------------
 ;; Tests
 
+(defun test-expand (func-sig env arg-code)
+  (let* ((func (find-form-binding-by-literal func-sig env))
+         (func (first (functions func)))
+         (dummy-objs (loop :for nil :in arg-code :collect nil)))
+    (find-and-expand-compiler-macro func dummy-objs arg-code env)))
+
 (5am:def-test compiler-macros-0 (:suite compiler-macro-tests)
   (finishes-p
    (compile-vert () :410 nil
@@ -32,21 +38,17 @@
      (v! 0 0 0 0))))
 
 (5am:def-test compiler-macros-1 (:suite compiler-macro-tests)
-  (is (equal
-       (ast->code
-        (compile-vert () :410 nil
-          (let ((x 1))
-            (test-cm x 2s0))
-          (v! 0 0 0 0)))
-       '((progn
-           (let ((x 1))
-             (varjo.tests::test-cm x 2.0))
-           (v! 0 0 0 0))))))
+  (flow-id-scope
+    (let* ((env (make-env :vertex)))
+      (vbind (expansion use-expansion)
+          (test-expand 'test-cm env '(1 2f0))
+        (is (equal expansion
+                   2f0))))))
 
 (5am:def-test compiler-macros-2 (:suite compiler-macro-tests)
-  (is (equal
-       (ast->code
-        (varjo.tests::compile-vert () :410 nil
-          (varjo.tests::test-cm 1 2s0)
-          (v! 0 0 0 0)))
-       '((progn 2.0 (v! 0 0 0 0))))))
+  (flow-id-scope
+    (let* ((env (make-env :vertex)))
+      (vbind (expansion use-expansion)
+          (test-expand 'test-cm env '(x 2f0))
+        (is (equal expansion
+                   '(test-cm x 2f0)))))))

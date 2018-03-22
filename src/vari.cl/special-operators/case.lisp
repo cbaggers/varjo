@@ -92,20 +92,7 @@
              (type-set
               (compute-conditional-type-set body-objs
                                             othwise-obj
-                                            starting-env))
-             (ast
-              (cons (node-tree key-obj)
-                    (append (mapcar #'list
-                                    (mapcar #'node-tree test-objs)
-                                    (mapcar #'node-tree body-objs))
-                            (when otherwise
-                              `((otherwise ,(node-tree othwise-obj)))))))
-             (node-tree
-              (ast-node! 'case
-                         ast
-                         type-set
-                         starting-env
-                         final-env)))
+                                            starting-env)))
         (vbind (to-block current-line)
             (gen-string-for-switch-form key-obj test-objs body-objs othwise-obj
                                         (primary-type type-set))
@@ -119,8 +106,7 @@
           (values (merge-compiled (cons key-obj body-objs)
                                   :type-set type-set
                                   :current-line current-line
-                                  :to-block to-block
-                                  :node-tree node-tree)
+                                  :to-block to-block)
                   final-env))))))
 
 (defun gen-string-for-switch-form (key-obj test-objs body-objs othwise-obj

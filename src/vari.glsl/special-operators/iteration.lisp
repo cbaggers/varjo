@@ -16,11 +16,7 @@
                      (list body-obj test-obj)
                      :type-set type-set
                      :current-line nil
-                     :to-block (gen-while-chunk test-obj (end-line body-obj))
-                     :node-tree (ast-node!
-                                 'while (mapcar #'node-tree
-                                                (list test-obj body-obj))
-                                 type-set env final-env))
+                     :to-block (gen-while-chunk test-obj (end-line body-obj)))
                     final-env))
           (error 'loop-will-never-halt :test-code test :test-obj test-obj)))))
 
@@ -65,13 +61,6 @@
                          :type-set type-set
                          :current-line nil
                          :to-block loop-chunk
-                         :node-tree (ast-node!
-                                     'for (cons var-form
-                                                (mapcar #'node-tree
-                                                        (list condition-obj
-                                                              update-obj
-                                                              body-obj)))
-                                     type-set env final-env)
                          :place-tree nil)
                         final-env))
               (error 'for-loop-simple-expression)))))))

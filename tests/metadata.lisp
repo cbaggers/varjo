@@ -11,7 +11,7 @@
 
   (varjo:add-alternate-type-name 'some-ephem 'some-ephem-g))
 
-(varjo:def-metadata-kind some-meta ()
+(varjo:define-metadata-kind some-meta ()
   val)
 
 ;;------------------------------------------------------------

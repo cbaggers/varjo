@@ -62,21 +62,6 @@
                       primitive-out
                       (primitive-out original))))
 
-(defmethod ast ((obj compiled-stage))
-  (let* ((res (first (function-asts obj)))
-         (ending-env (ast-ending-env res))
-         (context (v-context ending-env)))
-    (assert (member :main context) ()
-            "The compiled-stage object should have the ast for the main
-function at the head of the list returned by #'function-asts.
-However this was not the case.
-
-This is a compiler bug. If you have the time then please report it at:
-https://github.com/cbaggers/varjo.git
-
-Sorry for the inconvenience")
-    res))
-
 (defmethod print-object ((obj implicit-uniform-variable) stream)
   (format stream "#<IMPLICIT-UNIFORM ~a>" (name obj)))
 

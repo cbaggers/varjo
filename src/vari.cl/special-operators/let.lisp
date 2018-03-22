@@ -24,23 +24,9 @@
               (compile-form `(progn ,@body) p-env)))
         (let* ((merged (merge-progn (list (merge-multi-env-progn new-var-objs)
                                           body-obj)
-                                    env final-env))
-               (val-ast-nodes (mapcar λ(unless (eq (node-tree _) :ignored)
-                                         (list (node-tree _)))
-                                      new-var-objs))
-               (ast-args
-                (list (mapcar λ(with-v-let-spec _
-                                 (if type-spec
-                                     `((,name ,type-spec) ,@_1)
-                                     `(,name ,@_1)))
-                              bindings
-                              val-ast-nodes)
-                      (node-tree body-obj)))
-               (ast (ast-node! 'let ast-args
-                               (type-set merged)
-                               env final-env)))
+                                    env final-env)))
           (values
-           (copy-compiled merged :node-tree ast)
+           merged
            final-env))))))
 
 (v-defmacro let* (bindings &rest body)

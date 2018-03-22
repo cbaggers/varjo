@@ -41,7 +41,7 @@
                  (cons list more-lists))
           env))
 
-(defun %merge-progn (code-objs starting-env final-env)
+(defun %merge-progn (code-objs)
   (if (= 1 (length code-objs))
       (first code-objs)
       (let* ((last-obj (last1 (remove nil code-objs)))
@@ -52,11 +52,7 @@
                         :to-block (join-glsl-chunks
                                    (list
                                     (join-glsl-of-compiled (butlast code-objs))
-                                    (to-block last-obj)))
-                        :node-tree (ast-node! 'progn
-                                              (mapcar #'node-tree code-objs)
-                                              type-set
-                                              starting-env final-env)))))
+                                    (to-block last-obj)))))))
 
 (defmacro merge-progn (code-objs starting-env &optional final-env)
   (let ((co (gensym "code-objs"))
@@ -68,8 +64,7 @@
               (,fe ,(if final-env
                         `(or ,final-env ,pe ,se)
                         `(or ,pe ,se))))
-         (values (%merge-progn ,co ,se ,fe)
-                 ,fe)))))
+         (values (%merge-progn ,co) ,fe)))))
 
 
 ;;----------------------------------------------------------------------
@@ -106,8 +101,7 @@
                     (loop :for obj :in code-objs
                        :for line := (current-line obj)
                        :when line
-                       :collect (glsl-line (end-line obj))))))
-     :node-tree :ignored)))
+                       :collect (glsl-line (end-line obj)))))))))
 
 (defmacro merge-multi-env-progn (code-objs)
   (let ((co (gensym "code-objs"))
@@ -137,7 +131,6 @@
                    :type-set type-set
                    :current-line current-line
                    :to-block to-block
-                   :node-tree :ignored
                    :place-tree nil)))
 
 ;;----------------------------------------------------------------------
@@ -169,15 +162,13 @@
                  :current-line glsl-name
                  :used-types (append (when type-obj
                                        (list type-obj))
-                                     (used-types value-obj))
-                 :node-tree :ignored)
+                                     (used-types value-obj)))
                 value-obj))
               ;;
               (t (typify-code
                   (make-compiled :type-set (make-type-set type-obj)
                                  :used-types (list type-obj)
-                                 :current-line glsl-name
-                                 :node-tree :ignored)))))
+                                 :current-line glsl-name)))))
            (to-block (when let-obj
                        (glsl-chunk-from-compiled let-obj))))
       (values
@@ -188,9 +179,6 @@
                       :return-set (when value-obj
                                     (return-set value-obj))
                       :place-tree nil
-                      :node-tree (if value-form
-                                     (node-tree value-obj)
-                                     :ignored)
                       :stemcells (append (and let-obj (stemcells let-obj))
                                          (and value-obj (stemcells value-obj)))
                       :pure (if value-obj (pure-p value-obj) t))

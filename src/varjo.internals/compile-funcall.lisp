@@ -38,22 +38,13 @@
                 'funcall-of-special-operator :code func-form)
         (vbind (obj final-env)
             (compile-call-with-set-of-functions func arg-forms env nil code)
-          (let* ((ast (node-tree obj))
-                 (funcall-ast (ast-node! :funcall
-                                         (cons (node-tree func-code-obj)
-                                               (ast-args ast))
-                                         (ast-return-type ast)
-                                         env
-                                         (ast-ending-env ast)))
-                 (to-block (join-glsl-chunks
+          (let* ((to-block (join-glsl-chunks
                              (list (glsl-chunk-from-compiled func-code-obj)
                                    (to-block obj)))))
-            (assert (eq final-env (ast-ending-env ast)))
             (merge-compiled (list func-code-obj obj)
                             :type-set (type-set obj)
                             :current-line (current-line obj)
-                            :to-block to-block
-                            :node-tree funcall-ast)))))))
+                            :to-block to-block)))))))
 
 (defun compile-call-with-set-of-functions (func-set args-code env
                                            &optional name code)
@@ -65,8 +56,8 @@
       ;; will ever take a user defined struct as an argument. This is
       ;; important due to how ephemerals work
       (typecase func
-        (v-function (compile-call-with-single-function func args env))
-        (external-function (compile-call-with-single-function func args env))
+        (v-function (compile-call-with-single-function func args args-code env))
+        (external-function (compile-call-with-single-function func args args-code env))
         (v-error (if (v-payload func)
                      (error (v-payload func))
                      (error 'cannot-compile
@@ -74,7 +65,7 @@
                                       `(funcall ,func-set ,@args-code)))))
         (t (error 'problem-with-the-compiler :target func))))))
 
-(defun compile-call-with-single-function (func compiled-args env)
+(defun compile-call-with-single-function (func compiled-args args-code env)
   (check-type func (or v-function external-function))
   ;;
   ;; We take the safe assumption that no 'NON user-defined' function
@@ -91,13 +82,14 @@
                                 (slot-value impl 'function-signatures)
                                 :key #'first
                                 :test #'string=))))
-         (compile-call-with-single-function impl-func compiled-args env))))
+         (compile-call-with-single-function impl-func compiled-args args-code
+                                            env))))
     (v-function
      (vbind (new-obj new-env used-compiler-macro-p)
-         (compile-function-call func compiled-args env)
+         (compile-function-call func compiled-args args-code env)
        (declare (ignore used-compiler-macro-p))
        (values new-obj new-env)))
-    (external-function (compile-external-function-call func compiled-args env))
+    (external-function (compile-external-function-call func compiled-args args-code env))
     (t (error 'problem-with-the-compiler :target func))))
 
 (defvar *allow-call-function-signature* nil)
@@ -122,7 +114,7 @@
                    (error 'cannot-establish-exact-function
                           :funcall-form code))))))))
 
-(defun find-and-expand-compiler-macro (func args env)
+(defun find-and-expand-compiler-macro (func args args-code env)
   (unless (v-special-functionp func)
     (let ((macro (find-compiler-macro-for-func func)))
       (when macro
@@ -131,15 +123,15 @@
                                          :args args
                                          :env env)))
           (funcall (v-macro-function macro)
-                   (mapcar #'ast->code args)
+                   args-code
                    public-env))))))
 
-(defun compile-function-call (func args env)
+(defun compile-function-call (func args args-code env)
   "Returns 3 values: the new compiled object, the new environment & a boolean
    this shows whether the function was use or a compiler macro expansion
    (t means the compiler-macro was used)"
   (vbind (expansion use-expansion)
-      (find-and-expand-compiler-macro func args env)
+      (find-and-expand-compiler-macro func args args-code env)
     (if use-expansion
         (vbind (new-obj new-env) (compile-form expansion env)
           (values new-obj new-env t))
@@ -161,7 +153,7 @@
                     (or (some λ(typep _ 'v-unrepresentable-value)
                               (v-argument-spec func))
                         (some λ(typep (primary-type _) 'v-block-struct) args)))
-               (compile-function-taking-unreps func args env))
+               (compile-function-taking-unreps func args args-code env))
 
               ;; funcs with multiple return values
               ((multi-return-function-p func)
@@ -219,7 +211,7 @@
                                types))
              :return (identity func)))))))
 
-(defun compile-function-taking-unreps (func args env)
+(defun compile-function-taking-unreps (func args args-code env)
   (assert (v-code func))
   (labels ((unrep-p (x)
              (or (typep x 'v-unrepresentable-value)
@@ -237,7 +229,7 @@
              :finally (return (list a h f)))
         (let ((derived-call (find-derived-call func final-args env)))
           (if derived-call
-              (compile-call-with-single-function derived-call final-args env)
+              (compile-call-with-single-function derived-call final-args args-code env)
               ;; this is a hack but it'll do for now. It just lets our func use
               ;; the vars that were captured, if we are still in scope
               (let* ((captured (captured-vars func))
@@ -280,9 +272,7 @@
       (values
        (make-compiled :type-set type-set
                       :current-line nil
-                      :used-types (list type)
-                      :node-tree (ast-node! 'function (list func-name-form)
-                                            type-set nil nil))
+                      :used-types (list type))
        env))))
 
 (defun extract-details-from-problematic-closures (closures)
@@ -295,7 +285,7 @@
                  (mapcar #'name captured)
                  (mapcar #'glsl-name implicit)))))))
 
-(defun compile-external-function-call (func args env)
+(defun compile-external-function-call (func args args-code env)
   ;; Here we are going to make use of the fact that a external function
   ;; is not allowed to mutate the environment it was called from.
   ;; We are going to grab the base environment and compile the labels form
@@ -309,7 +299,7 @@
                             (setf (compiled-functions base-env func)
                                   (build-external-function func env base-env)))))
     (vbind (new-obj new-env used-compiler-macro-p)
-        (compile-function-call (function-obj compiled-func) args env)
+        (compile-function-call (function-obj compiled-func) args args-code env)
       (unless used-compiler-macro-p
         ;; track the number of times the function was used
         (incf (call-count compiled-func)))
@@ -356,11 +346,6 @@
              :emit-set emit-set
              :stemcells (mappend #'stemcells args)
              :place-tree (calc-place-tree func args)
-             :node-tree (ast-node! (name func)
-                                   (mapcar #'node-tree args)
-                                   type-set
-                                   env
-                                   env)
              :used-types (append
                           (mappend #'used-types args)
                           (coerce type-set 'list)
@@ -392,8 +377,7 @@
                           (mappend #'used-types args)
                           (coerce type-set 'list)
                           (coerce emit-set 'list))
-             :place-tree (calc-place-tree func args)
-             :node-tree :ignored))
+             :place-tree (calc-place-tree func args)))
          (bindings (loop :for i :from 1 :below (length type-set) :collect
                       (let ((mval (aref type-set i)))
                         `((,(gensym "NC")
@@ -413,12 +397,8 @@
                          (compile-let name type-spec nil env gname)))
                      p-env bindings m-r-names))
                    (compile-form o p-env)))
-               env env)))
-         (ast (ast-node! (name func)
-                         (mapcar #'node-tree args)
-                         type-set
-                         env env)))
+               env env))))
     (when (user-function-p func)
       (incf (call-count (compiled-result func))))
-    (values (copy-compiled call-obj :node-tree ast)
+    (values call-obj
             env)))

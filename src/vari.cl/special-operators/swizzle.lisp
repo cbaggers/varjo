@@ -23,9 +23,6 @@
       vec-obj
       :type-set type-set
       :current-line (gen-swizzle-string vec-obj comp-string)
-      :node-tree (ast-node! 'swizzle
-                            `(,(node-tree vec-obj) ,components)
-                            type-set env env)
       :place-tree (calc-place-tree this (list vec-obj)))
      env)))
 

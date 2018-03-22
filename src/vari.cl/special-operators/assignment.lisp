@@ -79,12 +79,6 @@
                           (list place-obj val-obj)
                           :type-set type-set
                           :current-line cline
-                          :node-tree (ast-node! lisp-op-name
-                                                (list (node-tree place-obj)
-                                                      (node-tree val-obj))
-                                                type-set
-                                                env
-                                                final-env)
                           :pure nil)
                          final-env)))))))))
 
@@ -118,15 +112,6 @@
                :current-line (gen-setq-assignment-string
                               old-val new-val)
                :place-tree nil
-               :node-tree (ast-node!
-                           'setq
-                           (list (ast-node! :get var-name
-                                            (make-type-set actual-type)
-                                            env env)
-                                 (node-tree new-val))
-                           (make-type-set actual-type)
-                           env
-                           final-env)
                :pure nil)
               final-env))))
 

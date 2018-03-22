@@ -30,13 +30,7 @@
                  (merged (merge-progn `(,m-obj ,s-obj ,@b-objs)
                                       env final-env)))
             (values
-             (copy-compiled
-              merged
-              :node-tree (ast-node! 'multiple-value-bind
-                                    `(,vars ,(node-tree value-obj)
-                                            ,@(mapcar #'node-tree b-objs))
-                                    (type-set merged)
-                                    env final-env))
+             merged
              final-env)))))))
 
 ;;------------------------------------------------------------
@@ -95,13 +89,7 @@
                    (merged (merge-progn `(,m-obj ,s-obj ,b-obj)
                                         env final-env)))
               (values
-               (copy-compiled
-                merged
-                :node-tree (ast-node! 'multiple-value-bind
-                                      (cons (node-tree func-obj)
-                                            (mapcar #'node-tree value-objs))
-                                      (make-type-set (primary-type merged))
-                                      env final-env))
+               merged
                final-env))))))))
 
 ;;------------------------------------------------------------
@@ -140,13 +128,7 @@
                  (merged (merge-progn `(,m-obj ,s-obj ,@b-objs ,r-obj)
                                       env final-env)))
             (values
-             (copy-compiled
-              merged
-              :node-tree (ast-node! 'multiple-value-bind
-                                    (cons (node-tree value-obj)
-                                          (mapcar #'node-tree b-objs))
-                                    (make-type-set (primary-type merged))
-                                    env final-env))
+             merged
              final-env)))))))
 
 ;;------------------------------------------------------------
@@ -189,13 +171,7 @@
                    (merged (merge-progn `(,m-obj ,s-obj ,b-obj)
                                         env final-env)))
               (values
-               (copy-compiled
-                merged
-                :node-tree (ast-node! 'nth-value
-                                      (list (node-tree n-obj)
-                                            (node-tree value-obj))
-                                      (make-type-set (primary-type merged))
-                                      env final-env))
+               merged
                final-env))))))))
 
 ;;------------------------------------------------------------
@@ -237,11 +213,5 @@
                  (merged (merge-progn `(,m-obj ,s-obj ,b-obj)
                                       env final-env)))
             (values
-             (copy-compiled
-              merged
-              :node-tree (ast-node! 'multiple-value-setq
-                                    (list vars
-                                          (node-tree value-obj))
-                                    (make-type-set (primary-type merged))
-                                    env final-env))
+             merged
              final-env)))))))

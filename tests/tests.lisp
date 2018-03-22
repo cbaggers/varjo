@@ -53,40 +53,11 @@
                  :allow-stemcells ,allow-stemcells
                  :draw-mode nil))))
 
-(defun ast-stabalizes-p (compile-result &optional (depth 0) (max-depth 20))
-  "Returns t if compile the ast->code of compile-result gives the same ast
-   It is allowed to recompile up to 'max-depth' times in order to find
-   convergence"
-  (labels ((stage->name (stage)
-             (let ((type-name (type-of stage)))
-               (elt varjo::*stage-names*
-                    (position type-name varjo::*stage-type-names*)))))
-    (let* ((code (ast->code compile-result))
-           (version (varjo.internals::get-version-from-context-list
-                     (context compile-result)))
-           (stemcells (stemcells-allowed compile-result))
-           (primitive-in (primitive-in compile-result))
-           (recomp (first (v-compile
-                           (mapcar #'varjo.internals:to-arg-form
-                                   (varjo::uniform-variables compile-result))
-                           version
-                           (stage->name (varjo.internals::starting-stage compile-result))
-                           `(,(mapcar #'varjo.internals:to-arg-form
-                                      (varjo::input-variables compile-result))
-                              ,@code)
-                           :allow-stemcells stemcells
-                           :draw-mode primitive-in)))
-           (recomp-code (ast->code recomp)))
-      (or (values (equal code recomp-code) depth)
-          (when (< depth max-depth)
-            (ast-stabalizes-p recomp (incf depth)))))))
-
 (defmacro finishes-p (form)
   (alexandria:with-gensyms (res elem)
     `(let ((,res (varjo::listify ,form)))
        (loop :for ,elem :in ,res :do
           (is-true (typep ,elem 'compiled-stage))
-          (is-true (ast-stabalizes-p ,elem))
           (is-false (glsl-contains-invalid ,elem))
           (is-false (glsl-contains-nil ,elem)))
        (glsl-compiles-p ,res)
@@ -97,7 +68,6 @@
     `(let ((,res (varjo::listify ,form)))
        (loop :for ,elem :in ,res :do
           (is-true (typep ,elem 'compiled-stage))
-          (is-true (ast-stabalizes-p ,elem))
           (is-false (glsl-contains-invalid ,elem))
           (is-false (glsl-contains-nil ,elem)))
        ,res)))
@@ -118,15 +88,16 @@ implementation that compiles the code for real"
 
 (defmacro glsl-contains-p (regex &body form)
   (assert (= 1 (length form)))
-  (alexandria:with-gensyms (res elem)
+  (alexandria:with-gensyms (res elem reg)
     `(let* ((,res (alexandria:ensure-list ,(first form)))
-            (,elem (first ,res)))
+            (,elem (first ,res))
+            (,reg ,regex))
        (assert (= 1 (length ,res)) ()
                "Multiple stages found in glsl-contains-p")
-       (is-true (cl-ppcre:all-matches ,regex (glsl-code ,elem)))
+       (is-true (cl-ppcre:all-matches ,reg (glsl-code ,elem))
+                "Did not find ~s in:~%~a" ,reg (glsl-code ,elem))
        (is-false (glsl-contains-invalid ,elem))
        (is-false (glsl-contains-nil ,elem))
-       (is-true (ast-stabalizes-p ,elem))
        (glsl-compiles-p ,res))))
 
 (defmacro glsl-doesnt-contain-p (regex &body form)
@@ -140,7 +111,6 @@ implementation that compiles the code for real"
                        ,regex (glsl-code ,elem))))
        (is-false (glsl-contains-invalid ,elem))
        (is-false (glsl-contains-nil ,elem))
-       (is-true (ast-stabalizes-p ,elem))
        (glsl-compiles-p ,res))))
 
 (defmacro glsl-contains-n-p (n regex &body form)
@@ -156,19 +126,20 @@ implementation that compiles the code for real"
        (is-true (= ,count (length ,matches)))
        (is-false (glsl-contains-invalid ,elem))
        (is-false (glsl-contains-nil ,elem))
-       (is-true (ast-stabalizes-p ,elem))
        (glsl-compiles-p ,res))))
 
 (defmacro glsl-contains-all-p ((&rest regexes) &body form)
   (assert (= 1 (length form)))
   (let ((gvars (loop :for i :below (length regexes) :collect (gensym))))
     (alexandria:with-gensyms (compiled)
-      `(let* ((,compiled ,(first form))
-              ,@(loop :for g :in gvars :for r :in regexes :collect
-                   `(,g (cl-ppcre:all-matches-as-strings
-                         ,r (glsl-code ,compiled)))))
-         (is-true (or (and ,@gvars)
-                      (map nil #'print (list ,@gvars))))
+      `(let* ((,compiled ,(first form)))
+         ,@(loop
+              :for g :in gvars :for r :in regexes
+              :for greg := (gensym)
+              :collect
+              `(let ((,greg ,r))
+                 (is-true (cl-ppcre:all-matches ,greg (glsl-code ,compiled))
+                          "Did not find ~s in:~%~a" ,greg (glsl-code ,compiled))))
          (is-false (glsl-contains-invalid ,compiled))
          (is-false (glsl-contains-nil ,compiled))))))
 

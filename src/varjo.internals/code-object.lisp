@@ -4,7 +4,7 @@
 (defun make-compiled (&key (type-set #() set-type-set) (current-line "")
                         to-block emit-set return-set used-types stemcells
                         out-of-scope-args pure
-                        place-tree node-tree)
+                        place-tree)
   (assert (or (glsl-chunk-p to-block) ;; temporary
               (null to-block)))
   (assert-flow-id-singularity (flow-ids (primary-type type-set)))
@@ -13,10 +13,6 @@
            :primary-type (map 'vector #'type->type-spec type-set)))
   (unless set-type-set
     (error "The type-set must be specified when creating an instance of varjo:compiled"))
-  (unless (or (eq node-tree :ignored)
-              (and (typep node-tree 'ast-node)
-                   (listp (slot-value node-tree 'args))))
-    (error "invalid ast node-tree ~s" node-tree))
   (assert type-set () "Varjo: type-set is mandatory when making compiled objects")
   (make-instance 'compiled
                  :type-set type-set
@@ -28,8 +24,7 @@
                  :stemcells stemcells
                  :out-of-scope-args out-of-scope-args
                  :place-tree place-tree
-                 :pure pure
-                 :node-tree node-tree))
+                 :pure pure))
 
 (defmethod primary-type ((compiled compiled))
   (primary-type (type-set compiled)))
@@ -76,7 +71,6 @@
                             (out-of-scope-args nil set-out-of-scope-args)
                             (place-tree nil set-place-tree)
                             (pure nil set-pure)
-                            (node-tree nil set-node-tree)
                             (used-types nil set-used-types))
   (let ((type-set (if set-type-set type-set (type-set code-obj))))
     (when set-type-set
@@ -94,7 +88,6 @@
                             (remove nil (out-of-scope-args code-obj)))
      :place-tree (if set-place-tree place-tree (place-tree code-obj))
      :pure (if set-pure pure (pure-p code-obj))
-     :node-tree (if set-node-tree node-tree (node-tree code-obj))
      :used-types (if set-used-types used-types (used-types code-obj)))))
 
 (defmethod merge-compiled ((objs list)
@@ -107,7 +100,6 @@
                              (out-of-scope-args nil set-out-of-scope-args)
                              place-tree
                              (pure nil set-pure)
-                             node-tree
                              (used-types nil set-used-types))
   (assert type-set () "Varjo: type-set is mandatory when merging compiled objects")
   (let ((return-set
@@ -140,8 +132,7 @@
                     (if set-out-of-scope-args out-of-scope-args
                         (mappend #'out-of-scope-args objs)))
                    :place-tree place-tree
-                   :pure (if set-pure pure (every #'pure-p objs))
-                   :node-tree node-tree)))
+                   :pure (if set-pure pure (every #'pure-p objs)))))
 
 (defun array-type-index-p (x)
   (or (numberp x)

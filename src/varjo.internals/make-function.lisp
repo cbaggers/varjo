@@ -58,7 +58,7 @@
 
     (if (some λ(typep _ 'v-unrepresentable-value) arg-types)
         (make-new-function-with-unreps
-         func-id name args body allowed-implicit-args derived-from env)
+         name args body derived-from env)
         (make-regular-function
          func-id name args args-with-types body allowed-implicit-args
          derived-from env))))
@@ -211,13 +211,11 @@
                                       :emit-set emit-set
                                       :place-tree nil
                                       :out-of-scope-args implicit-args
-                                      :used-types nil))
-             (ast (to-top-level-ast-node body-obj declarations body-env)))
+                                      :used-types nil)))
         (let ((res (make-instance 'compiled-function-result
                                   :call-count (if mainp 1 0)
                                   :function-obj func
                                   :signatures sigs
-                                  :ast ast
                                   :used-types (append (used-types body-obj)
                                                       (coerce ret-set 'list)
                                                       (coerce emit-set 'list))
@@ -229,58 +227,29 @@
           (setf (compiled-result func) res)
           (values res code-obj))))))
 
-(defun to-top-level-ast-node (body-obj declarations env)
-  (let* ((ast (node-tree body-obj))
-         (ast-args (ast-args ast))
-         (decl-nodes (mapcar λ(make-ast-node-for-declaration _ env)
-                             declarations)))
-    (if (eq 'progn (ast-kind ast))
-        (copy-ast-node ast :kind :function-top-level
-                       :args (append decl-nodes ast-args))
-        (ast-node! :function-top-level
-                   (append decl-nodes (list ast))
-                   (ast-return-type (last1 ast-args))
-                   env env))))
-
-(defun make-new-function-with-unreps (func-id name args body
-                                      allowed-implicit-args
-                                      derived-from env)
-  (let ((mainp (eq name :main)))
-    (assert (not (eq name :main)))
-    (let* ((func-env (make-func-env env func-id mainp allowed-implicit-args))
-           (all-vars (env-binding-names env :stop-at-base t
-                                        :variables-only t))
-           (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
-                                        all-vars))
-           (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
-           (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
-           (func (make-user-function-obj name nil nil arg-types #()
-                                         :code (list args body)
-                                         :captured-vars visible-var-pairs
-                                         :derived-from derived-from))
-           (ast-body (if (= 1 (length body))
-                         (first body)
-                         `(progn ,@body)))
-           (ast (ast-node! :code-section
-                           ast-body
-                           (make-type-set)
-                           func-env func-env)))
-      (values (make-instance 'compiled-function-result
-                             :function-obj func
-                             :signatures nil
-                             :ast ast
-                             :used-types nil
-                             :glsl-code nil
-                             :stemcells nil
-                             :return-set nil
-                             :emit-set nil)
-              (make-compiled :type-set (make-type-set)
-                             :current-line nil
-                             :place-tree nil
-                             :node-tree (ast-node! :code-section
-                                                   ast-body
-                                                   (make-type-set)
-                                                   func-env func-env))))))
+(defun make-new-function-with-unreps (name args body derived-from env)
+  (assert (not (eq name :main)))
+  (let* ((all-vars (env-binding-names env :stop-at-base t
+                                      :variables-only t))
+         (visible-vars (remove-if-not λ(get-symbol-binding _ t env)
+                                      all-vars))
+         (visible-var-pairs (mapcar λ(capture-var _ env) visible-vars))
+         (arg-types (mapcar (lambda (x) (type-spec->type (second x))) args))
+         (func (make-user-function-obj name nil nil arg-types #()
+                                       :code (list args body)
+                                       :captured-vars visible-var-pairs
+                                       :derived-from derived-from)))
+    (values (make-instance 'compiled-function-result
+                           :function-obj func
+                           :signatures nil
+                           :used-types nil
+                           :glsl-code nil
+                           :stemcells nil
+                           :return-set nil
+                           :emit-set nil)
+            (make-compiled :type-set (make-type-set)
+                           :current-line nil
+                           :place-tree nil))))
 
 (defun capture-var (name env)
   (let ((val (get-symbol-binding name t env)))

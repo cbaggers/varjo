@@ -6,8 +6,11 @@
                 :compile-form
                 :flow-ids
                 :flow-id-scope
+                :functions
                 :metadata-for-flow-id
-                :v-uniforms)
+                :v-uniforms
+                :find-form-binding-by-literal
+                :find-and-expand-compiler-macro)
   (:export :test-all
            :void-tests
            :array-tests

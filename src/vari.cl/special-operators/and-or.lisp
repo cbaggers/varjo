@@ -15,11 +15,7 @@
     (if (v-typep (primary-type (first objs)) :bool)
         (values (merge-compiled objs
                                 :type-set type-set
-                                :current-line (gen-bool-and-string objs)
-                                :node-tree (ast-node! 'and
-                                                      (mapcar #'node-tree objs)
-                                                      type-set
-                                                      env env))
+                                :current-line (gen-bool-and-string objs))
                 env) ;; pretty sure this env is wrong, what if side effects in
         ;;              forms?
         (values (last1 objs) env))))
@@ -43,9 +39,7 @@
         (values (merge-compiled
                  objs
                  :type-set type-set
-                 :current-line (gen-bool-or-string objs)
-                 :node-tree (ast-node! 'or (mapcar #'node-tree objs)
-                                       type-set env env))
+                 :current-line (gen-bool-or-string objs))
                 env)
         (values (first objs) env))))
 

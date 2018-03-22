@@ -51,14 +51,11 @@
                   :initial-contents initial-contents)
           (let* ((cast-objs (cast-for-array-literal element-type elem-objs))
                  (glsl (gen-array-literal-string cast-objs element-type))
-                 (type-set (make-type-set array-type))
-                 (ast (ast-node! :code-section (cons 'make-array args)
-                                 type-set env env)))
+                 (type-set (make-type-set array-type)))
             (values
              (make-compiled :type-set type-set
                             :current-line glsl
                             :used-types (list array-type element-type)
-                            :node-tree ast
                             :pure t)
              env)))))))
 
@@ -72,13 +69,9 @@
            (array-type (v-array-type-of element-type len (flow-id!)))
            (cast-objs (cast-for-array-literal element-type objs))
            (glsl (gen-array-literal-string cast-objs element-type))
-           (type-set (make-type-set array-type))
-           (ast (ast-node! 'vector (mapcar #'node-tree objs)
-                           (make-type-set array-type)
-                           env env)))
+           (type-set (make-type-set array-type)))
       (values
        (merge-compiled objs
                        :type-set type-set
-                       :current-line glsl
-                       :node-tree ast)
+                       :current-line glsl)
        env))))

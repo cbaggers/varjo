@@ -2,6 +2,7 @@
 (in-readtable fn:fn-reader)
 
 (defun compile-bool (code env)
+  (declare (ignore env))
   (let* ((flow-id (flow-id!))
          (bool (type-spec->type 'v-bool flow-id))
          (type-set (make-type-set bool)))
@@ -9,13 +10,11 @@
         (make-compiled
          :type-set type-set
          :current-line "true"
-         :node-tree (ast-node! :literal code type-set env env)
          :used-types (list bool)
          :pure t)
         (make-compiled
          :type-set type-set
          :current-line "false"
-         :node-tree (ast-node! :literal code type-set env env)
          :used-types (list bool)
          :pure t))))
 
@@ -28,13 +27,13 @@
     (otherwise (error "Varjo: Do not know the type of the number '~s'" x))))
 
 (defun compile-number (code env)
+  (declare (ignore env))
   (let* ((flow-id (flow-id!))
          (num-type (set-flow-id (get-number-type code) flow-id))
          (type-set (make-type-set num-type)))
     (make-compiled
      :type-set type-set
      :current-line (gen-number-string code num-type)
-     :node-tree (ast-node! :literal code type-set env env)
      :used-types (list num-type)
      :pure t)))
 
@@ -49,12 +48,10 @@
          (array-type (v-array-type-of element-type len (flow-id!)))
          (cast-objs (cast-for-array-literal element-type elements))
          (glsl (gen-array-literal-string cast-objs element-type))
-         (type-set (make-type-set array-type))
-         (ast (ast-node! :literal arr type-set env env)))
+         (type-set (make-type-set array-type)))
     (make-compiled :type-set type-set
                    :current-line glsl
                    :used-types (list element-type)
-                   :node-tree ast
                    :pure t)))
 
 (defun compile-string-literal (str env)

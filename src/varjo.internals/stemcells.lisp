@@ -45,20 +45,14 @@
      :type-set type-set
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
-                              flow-id cpu-side-transform))
-     :node-tree (ast-node! :get-stemcell symbol type-set env env))))
+                              flow-id cpu-side-transform)))))
 
 (defun inject-implicit-uniform (symbol type-spec env
                                 &optional cpu-side-transform)
   (assert (type-specp type-spec) (type-spec))
-  (let ((code (add-type-to-stemcell-code
+  (add-type-to-stemcell-code
                (make-stem-cell symbol env cpu-side-transform)
                type-spec))
-        (ast (ast-node! 'vari.cl:lisp-code-as-uniform
-                        (list symbol type-spec cpu-side-transform)
-                        (make-type-set (type-spec->type type-spec))
-                        env env)))
-    (copy-compiled code :node-tree ast)))
 
 (defun stemcellp (x)
   (typep x 'v-stemcell))

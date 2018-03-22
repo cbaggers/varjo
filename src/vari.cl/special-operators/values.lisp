@@ -24,16 +24,13 @@
     (if values
         (cond
           (for-return (%values-for-return objs
-                                          qualifier-lists
                                           parsed-qualifier-lists
                                           env))
           (for-emit (%values-for-emit objs
-                                      qualifier-lists
                                       parsed-qualifier-lists
                                       env))
           (base (%values-for-multi-value-bind forms
                                               objs
-                                              qualifier-lists
                                               parsed-qualifier-lists
                                               env))
           (t (compile-form `(prog1 ,@values) env)))
@@ -43,13 +40,11 @@
   (let ((void (make-type-set)))
     (values (make-compiled :type-set void
                            :current-line nil
-                           :node-tree (ast-node! 'values nil void env env)
                            :pure t)
             env)))
 
 (defun %values-for-multi-value-bind (forms
                                      objs
-                                     qualifier-lists
                                      parsed-qualifier-lists
                                      env)
   (let* ((base (v-multi-val-base env))
@@ -69,20 +64,14 @@
                                       ,o))
                      ,first-name)
                   env))
-         (type-set (make-type-set* (cons (primary-type result) (rest vals))))
-         (ast (ast-node! 'values
-                         (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
-                                 objs
-                                 qualifier-lists)
-                         type-set env env)))
+         (type-set (make-type-set* (cons (primary-type result) (rest vals)))))
     (values (copy-compiled
              result
-             :type-set type-set
-             :node-tree ast)
+             :type-set type-set)
             env)))
 
 
-(defun %values-for-emit (objs qualifier-lists parsed-qualifier-lists env)
+(defun %values-for-emit (objs parsed-qualifier-lists env)
   (let* (;;
          (new-env (fresh-environment env :multi-val-base nil))
 
@@ -105,24 +94,17 @@
          (qualified-types (loop :for o :in objs
                              :for qlist :in parsed-qualifier-lists
                              :collect (qualify-type (primary-type o) qlist)))
-         (type-set (make-type-set* qualified-types))
-         ;;
-         (ast (ast-node! 'values
-                         (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
-                                 objs
-                                 qualifier-lists)
-                         type-set env env)))
+         (type-set (make-type-set* qualified-types)))
     (values (copy-compiled
              result
              :type-set type-set
              :emit-set type-set
              :used-types (append
                           (used-types result)
-                          (coerce type-set 'list))
-             :node-tree ast)
+                          (coerce type-set 'list)))
             env)))
 
-(defun %values-for-return (objs qualifier-lists parsed-qualifier-lists env)
+(defun %values-for-return (objs parsed-qualifier-lists env)
   (assert objs)
   (let* (;;
          (needs-assign-p (not (or (v-voidp (first objs))
@@ -140,20 +122,13 @@
          (qualified-types (loop :for o :in objs
                              :for qlist :in parsed-qualifier-lists
                              :collect (qualify-type (primary-type o) qlist)))
-         (type-set (make-type-set* qualified-types))
-         ;;
-         (ast (ast-node! 'values
-                         (mapcar λ(if _1 `(,@_1 ,(node-tree _)) (node-tree _))
-                                 objs
-                                 qualifier-lists)
-                         type-set env env)))
+         (type-set (make-type-set* qualified-types)))
     (values (copy-compiled
              result
              :type-set type-set
              :used-types (append
                           (used-types result)
-                          (coerce type-set 'list))
-             :node-tree ast)
+                          (coerce type-set 'list)))
             env)))
 
 (defun gen-assignement-form-for-return (env index code-obj)
@@ -207,12 +182,7 @@
                        env :multi-val-base (v-multi-val-base env)
                        :multi-val-safe t)))
         (vbind (c e) (compile-list-form form safe-env)
-          (let* ((final-env (fresh-environment e :multi-val-safe nil))
-                 (ast (ast-node! 'values-safe
-                                 (list (node-tree c))
-                                 (primary-type c)
-                                 env
-                                 final-env)))
-            (values (copy-compiled c :node-tree ast)
+          (let* ((final-env (fresh-environment e :multi-val-safe nil)))
+            (values c
                     final-env))))
       (compile-form form env )))
