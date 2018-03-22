@@ -95,7 +95,6 @@
    (implicit-uniforms :initarg :implicit-uniforms :accessor implicit-uniforms)
    (used-external-functions :initarg :used-external-functions
                             :reader used-external-functions)
-   (function-asts :initarg :function-asts :reader function-asts)
    (primitive-out :initarg :primitive-out :accessor primitive-out)))
 
 (defclass compiled-vertex-stage
