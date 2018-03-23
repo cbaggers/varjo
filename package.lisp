@@ -425,6 +425,13 @@
            :define-shadow-type-constructor
            :define-vari-trait
            :define-vari-trait-implementation
+           :define-vari-function
+           :define-glsl-template-fun
+           :define-vari-struct
+           :define-vari-type
+           :define-vari-macro
+           :define-vari-compiler-macro
+           :define-alternate-type-name
            :default-value
            :delete-external-function
            :dynamic
@@ -716,6 +723,13 @@
    :delete-external-function
    ;;
    ;; types
+   :define-vari-function
+   :define-glsl-template-fun
+   :define-vari-struct
+   :define-vari-type
+   :define-vari-macro
+   :define-vari-compiler-macro
+   :define-alternate-type-name
    :v-deftype
    :def-shadow-type-constructor
    :define-shadow-type-constructor
@@ -739,6 +753,13 @@
    :define-metadata-infer
    :def-metadata-kind
    :define-metadata-kind
+   :define-vari-function
+   :define-glsl-template-fun
+   :define-vari-struct
+   :define-vari-type
+   :define-vari-macro
+   :define-vari-compiler-macro
+   :define-alternate-type-name
    :combine-metadata
    :v-dimensions
    :qualifier
@@ -816,7 +837,6 @@
           #:named-readtables #:glsl-symbols #:varjo-conditions)
   (:import-from :varjo.internals
                 :define-v-type-class)
-  (:reexport :vari.types)
   (:reexport :glsl-symbols)
   (:export
    ;; bitwise operators
@@ -879,7 +899,6 @@
                 :iota)
   (:import-from :varjo.internals
                 :define-v-type-class)
-  (:reexport :vari.types :vari.glsl)
   (:export
    ;; special functions
    :labels-no-implicit

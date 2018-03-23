@@ -938,17 +938,11 @@
 
 ;;----------------------------------------------------------------------
 
-(define-v-type-class v-complex (v-number)
-  ((core :initform nil :reader core-typep)
-   (glsl-string :initform "vec2" :reader v-glsl-string)
-   (tertiary-score :initform 1 :initarg :tertiary-score
-                   :reader tertiary-score)))
+(define-vari-type v-complex () :vec2)
+(define-alternate-type-name v-complex complex)
 
-(define-v-type-class v-ratio (v-rational)
-  ((core :initform nil :reader core-typep)
-   (glsl-string :initform "ivec2" :reader v-glsl-string)
-   (tertiary-score :initform 1 :initarg :tertiary-score
-                   :reader tertiary-score)))
+(define-vari-type v-ratio () :ivec2)
+(define-alternate-type-name v-ratio ratio)
 
 ;;----------------------------------------------------------------------
 ;; Type Stubs

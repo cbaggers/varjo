@@ -59,6 +59,9 @@
 
 ;;------------------------------------------------------------
 
+(defmacro define-alternate-type-name (current-type-name alternate-type-name)
+  `(add-alternate-type-name ',alternate-type-name ',current-type-name))
+
 (defun add-alternate-type-name (alt-type-name src-type-name)
   (declare (notinline))
   (assert (and (symbolp src-type-name) (symbolp alt-type-name)))

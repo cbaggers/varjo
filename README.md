@@ -1,4 +1,4 @@
-### Varjo
+### Varjo [BETA]
 
 Varjo is a Lisp to GLSL compiler.
 

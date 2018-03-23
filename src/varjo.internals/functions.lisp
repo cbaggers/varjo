@@ -15,13 +15,16 @@
 
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(defmacro v-defun (name args &body body)
+(defmacro define-vari-function (name args &body body)
   (destructuring-bind (in-args uniforms context)
       (split-arguments args '(&uniform &context))
     (declare (ignore context))
     `(progn
        (add-external-function ',name ',in-args ',uniforms ',body)
        ',name)))
+
+(defmacro v-defun (name args &body body)
+  `(define-vari-function ,name ,args ,@body))
 
 (defun template-args-valid (args rest types)
   (let ((args (append args (when rest (cons '&rest rest)))))
@@ -51,6 +54,18 @@
                 (list ,@(n-of '(%gl-flow-id!) (length args)))
                 :pure ,pure))
               ',name))))
+
+(defmacro define-glsl-template-funtion (name args return-spec transform &key pure)
+  (let ((arg-names (mapcar #'first args))
+        (arg-types (mapcar #'second args)))
+    `(v-def-glsl-template-fun ,name ,arg-names ,transform ,arg-types
+                              ,return-spec
+                              :pure ,pure)))
+
+#+nil
+(define-glsl-template-fun foo ((x :int)) :int
+  "foo(~a)"
+  :pure t)
 
 (defun element-spec-p (spec)
   (and (listp spec) (eq (first spec) :element)))

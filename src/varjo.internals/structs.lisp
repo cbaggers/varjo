@@ -11,7 +11,7 @@
 ;;[TODO] should this use defun?
 ;;       pro: this is a global struct so global func
 ;;       con: shadowing.. add-function for global doesnt check.
-(defmacro v-defstruct (name context &body slots)
+(defmacro define-vari-struct (name context &body slots)
   (destructuring-bind (name &key shadowing constructor) (listify name)
     (let* ((name-string (safe-glsl-name-string name))
            (class-name (or shadowing name))
@@ -62,6 +62,9 @@
          ,@(make-struct-accessors name  context slot-transforms)
          ,(make-copy-structure name constructor-name slot-transforms)
          ',name))))
+
+(defmacro v-defstruct (name context &body slots)
+  `(define-vari-struct ,name ,context ,@slots))
 
 (defmethod v-glsl-size ((type v-user-struct))
   (reduce #'+ (mapcar #'v-glsl-size (mapcar #'second (v-slots type)))))

@@ -4,12 +4,15 @@
 ;;------------------------------------------------------------
 ;; Regular Macros
 
-(defmacro v-defmacro (name lambda-list &body body)
+(defmacro define-vari-macro (name lambda-list &body body)
   (vbind (func-code context) (gen-macro-function-code name lambda-list body)
     `(progn
        (add-global-form-binding
         (make-regular-macro ',name ,func-code ',context nil))
        ',name)))
+
+(defmacro v-defmacro (name lambda-list &body body)
+  `(define-vari-macro ,name ,lambda-list ,@body))
 
 (defgeneric make-regular-macro (name macro-function context env)
   (:method (name macro-function context env)
@@ -33,7 +36,7 @@
 ;;------------------------------------------------------------
 ;; Compile Macros
 
-(defmacro v-define-compiler-macro (name lambda-list &body body)
+(defmacro define-vari-compiler-macro (name lambda-list &body body)
   (labels ((namedp (name x)
              (when (symbolp x)
                (string= name x)))
@@ -57,6 +60,9 @@
               (make-compiler-macro ',name ,func-code ',arg-names ',arg-types
                                    ',context))
              ',name))))))
+
+(defmacro v-define-compiler-macro (name lambda-list &body body)
+  `(define-vari-compiler-macro ,name ,lambda-list ,@body))
 
 (defun make-compiler-macro (name macro-function arg-names arg-spec context)
   (make-instance 'v-compiler-macro

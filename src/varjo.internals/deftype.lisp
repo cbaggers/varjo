@@ -1,8 +1,8 @@
 (in-package :varjo.internals)
 (in-readtable :fn.reader)
 
-(defmacro v-deftype (name args type-form
-                     &key valid-metadata-kinds)
+(defmacro define-vari-type (name args type-form
+                            &key valid-metadata-kinds)
   (let ((ephemeral (null type-form))
         (valid-metadata-kinds (listify valid-metadata-kinds)))
     (assert (not args) () "args not supported yet")
@@ -26,6 +26,10 @@
              (defmethod meta-kinds-to-infer ((varjo-type ,name))
                (declare (ignore varjo-type))
                ',valid-metadata-kinds))))))
+
+(defmacro v-deftype (name args type-form
+                     &key valid-metadata-kinds)
+  `(define-vari-type ,name ,args ,type-form :valid-metadata-kinds ,valid-metadata-kinds))
 
 (defmacro define-shadow-type-functions (shadow-type &body function-identifiers)
   (flet ((func-form-p (x)
