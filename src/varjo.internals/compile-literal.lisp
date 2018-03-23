@@ -64,7 +64,7 @@
                    (error () nil)))))
     (etypecase is
       (integer (if unsigned
-                   (compile-form `(vari.cl:uint ,is) env)
+                   (compile-form `(glsl-symbols:uint ,is) env)
                    (compile-form is env)))
       (float (if unsigned
                  (error "Varjo: ~s is an invalid float literal" str)

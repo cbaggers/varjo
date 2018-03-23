@@ -892,7 +892,7 @@
 
 (uiop:define-package #:vari.cl
     (:use #:cl #:varjo.utils #:vari.glsl #:varjo.internals
-          #:named-readtables #:varjo-conditions)
+          #:named-readtables #:varjo-conditions #:vari.types)
   (:import-from :alexandria
                 :ensure-list
                 :flatten
