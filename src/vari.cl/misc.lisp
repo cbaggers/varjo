@@ -120,79 +120,6 @@
 
 (v-def-glsl-template-fun isqrt (x) "floor(sqrt(~a))" (v-uint)
                          v-uint :pure t)
-(v-def-glsl-template-fun logand (a b) "(~a & ~a)" (v-uint v-uint)
-                         v-uint :pure t)
-(v-def-glsl-template-fun logand (a b) "(~a & ~a)" (v-int v-int)
-                         v-int :pure t)
-(v-def-glsl-template-fun logand (a b c &rest c) "logand(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
-(v-define-compiler-macro logand ((a t) (b t) (c t) &rest (d t))
-  `(logand ,a (logand ,b (logand ,c ,@d))))
-(v-def-glsl-template-fun logand (a) "-1" (v-integer) 0 :pure t)
-(v-define-compiler-macro logand ((a v-integer))
-  `(progn ,a -1))
-
-(v-def-glsl-template-fun logxor (a b) "(~a ^ ~a)" (v-uint v-uint)
-                         v-uint :pure t)
-(v-def-glsl-template-fun logxor (a b) "(~a ^ ~a)" (v-int v-int)
-                         v-int :pure t)
-(v-def-glsl-template-fun logxor (a b c &rest c) "logxor(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
-(v-define-compiler-macro logxor ((a t) (b t) (c t) &rest (d t))
-  `(logand ,a (logand ,b (logand ,c ,@d))))
-(v-def-glsl-template-fun logxor (a) "0" (v-integer) 0 :pure t)
-(v-define-compiler-macro logxor ((a v-integer))
-  `(progn ,a 0))
-
-(v-def-glsl-template-fun logior (a b) "(~a | ~a)" (v-uint v-uint)
-                         v-uint :pure t)
-(v-def-glsl-template-fun logior (a b) "(~a | ~a)" (v-int v-int)
-                         v-int :pure t)
-(v-def-glsl-template-fun logior (a b c &rest c) "logior(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
-(v-define-compiler-macro logior ((a t) (b t) (c t) &rest (d t))
-  `(logand ,a (logand ,b (logand ,c ,@d))))
-(v-def-glsl-template-fun logior (a) "0" (v-integer) 0 :pure t)
-(v-define-compiler-macro logior ((a v-integer))
-  `(progn ,a 0))
-
-(v-def-glsl-template-fun logeql (a b) "~~(~a ^ ~a)" (v-uint v-uint)
-                         v-uint :pure t)
-(v-def-glsl-template-fun logeql (a b) "~~(~a ^ ~a)" (v-int v-int)
-                         v-int :pure t)
-(v-def-glsl-template-fun logeql (a b c &rest c) "logeql(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
-(v-define-compiler-macro logeql ((a t) (b t) (c t) &rest (d t))
-  `(lognot ,a (logxor ,b ,c ,@d)))
-(v-def-glsl-template-fun logeql (a) "-1" (v-integer) 0 :pure t)
-(v-define-compiler-macro logeql ((a v-integer))
-  `(progn ,a -1))
-
-(v-def-glsl-template-fun lognot (a) "(~~~a)" (v-integer) 0 :pure t)
-
-(v-defun lognor ((a v-int) (b v-int)) (lognot (logor a b)))
-(v-defun lognor ((a v-uint) (b v-uint)) (lognot (logor a b)))
-
-(v-defun lognand ((a v-int) (b v-int)) (lognot (logand a b)))
-(v-defun lognand ((a v-uint) (b v-uint)) (lognot (logand a b)))
-
-(v-defun logorc1 ((a v-int) (b v-int)) (logor (lognot a) b))
-(v-defun logorc1 ((a v-uint) (b v-uint)) (logor (lognot a) b))
-(v-defun logorc2 ((a v-int) (b v-int)) (logor a (lognot b)))
-(v-defun logorc2 ((a v-uint) (b v-uint)) (logor a (lognot b)))
-
-(v-defun logandc1 ((a v-int) (b v-int)) (logand (lognot a) b))
-(v-defun logandc1 ((a v-uint) (b v-uint)) (logand (lognot a) b))
-(v-defun logandc2 ((a v-int) (b v-int)) (logand a (lognot b)))
-(v-defun logandc2 ((a v-uint) (b v-uint)) (logand a (lognot b)))
-
-(v-def-glsl-template-fun logcount (x) "bitCount(~a)" (v-integer) 0 :pure t)
-
-(v-defun logtest ((a v-int) (b v-int))
-  (not (zerop (logand x y))))
-
-(v-defun logtest ((a v-uint) (b v-uint))
-  (not (zerop (logand x y))))
 
 ;; natural log for 1 arg already defined in glsl
 (v-def-glsl-template-fun log (x b) "(log2(~a) / log2(~a))" (v-float v-float) 0 :pure t)
@@ -263,13 +190,14 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;;------------------------------------------------------------
 
 (v-defmacro do (var-list end-list &body body)
-  `(let ,(loop :for (var val) :in var-list :collect
-            (list var val))
-     (while (not ,(first end-list))
-       ,@body
-       ,@(loop :for (var nil update) :in var-list :collect
-            `(setq ,var ,update)))
-     ,@(rest end-list)))
+  `(locally
+       (let ,(loop :for (var val) :in var-list :collect
+                (list var val))
+         (while (not ,(first end-list))
+           ,@body
+           ,@(loop :for (var nil update) :in var-list :collect
+                `(setq ,var ,update)))
+         ,@(rest end-list))))
 
 ;;------------------------------------------------------------
 
