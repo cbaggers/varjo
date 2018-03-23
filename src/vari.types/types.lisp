@@ -937,14 +937,6 @@
                    :reader tertiary-score)))
 
 ;;----------------------------------------------------------------------
-
-(define-vari-type v-complex () :vec2)
-(define-alternate-type-name v-complex complex)
-
-(define-vari-type v-ratio () :ivec2)
-(define-alternate-type-name v-ratio ratio)
-
-;;----------------------------------------------------------------------
 ;; Type Stubs
 ;;
 ;; {TODO} look into these

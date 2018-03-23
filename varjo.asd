@@ -41,6 +41,7 @@
                (:file "src/varjo.internals/code-object")
                (:file "src/varjo.internals/stemcells")
                (:file "src/vari.types/types")
+               (:file "src/vari.types/other-types")
                (:file "src/varjo.internals/environment")
                (:file "src/varjo.internals/external-functions")
                (:file "src/varjo.internals/structs")
