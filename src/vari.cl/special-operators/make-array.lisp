@@ -5,33 +5,36 @@
   :args-valid t
   :return
   (dbind (dimensions &key element-type initial-element initial-contents) args
-    (flet ((quoted-p (x)
-             (or (and (listp x) (eq (first x) 'quote))
-                 (keywordp x)
-                 (null x))))
+    (labels ((quoted-p (x)
+               (and (listp x) (eq (first x) 'quote)))
+             (const-p (x)
+               (or (quoted-p x)
+                   (keywordp x)
+                   (null x))))
       ;; Sanity check
       (assert (and dimensions element-type) (args) 'make-array-mandatory-args
               :args args)
       (assert (numberp dimensions) (dimensions) 'multi-dimensional-array
               :dimensions dimensions)
-      (assert (quoted-p element-type) (element-type) 'should-be-quoted
-              :thing "element-type" :val element-type)
-      (assert (quoted-p initial-contents) (initial-contents) 'should-be-quoted
-              :thing "initial-contents" :val element-type)
+      (when (quoted-p element-type)
+        (warn 'v-deprecated :old "quoted type-spec" :new element-type))
+      (assert (const-p initial-contents) (initial-contents) 'should-be-quoted
+              :thing "initial-contents" :val initial-contents)
       (assert (constantp initial-element) (initial-element) 'should-be-constant
               :thing "initial-element" :val initial-element)
       (assert (not (and initial-element initial-contents))
               (initial-element initial-contents) 'make-array-conflicting-args
               :args args)
       ;;
-      (let ((initial-contents (second initial-contents)))
+      (let ((element-type (if (quoted-p element-type)
+                              (second element-type)
+                              element-type))
+            (initial-contents (second initial-contents)))
         (when initial-contents
           (assert (= (length initial-contents) dimensions)
                   (dimensions initial-contents) 'make-array-conflicting-lengths
                   :dims dimensions :initial-contents initial-contents))
-        (let* ((element-type (type-spec->type (if (keywordp element-type)
-                                                  element-type
-                                                  (second element-type))))
+        (let* ((element-type (type-spec->type element-type))
                (len dimensions)
                (initial-contents
                 (or initial-contents

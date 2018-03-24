@@ -44,7 +44,7 @@
         (v! (aref i 0) 0 0 0)))))
 
 (5am:def-test array-7 (:suite array-tests)
-  (signals varjo-conditions:should-be-quoted
+  (signals varjo-conditions:unknown-type-spec
     (compile-vert () :410 nil
       (let* ((i (make-array 2 :element-type int)))
         (v! (aref i 0) 0 0 0)))))
