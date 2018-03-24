@@ -319,14 +319,9 @@ Always NIL in Vari")
 (setf (gethash 'THE glsl-docs:*functions*)
       "Specifies that the values returned by FORM conform to the VALUE-TYPE.
 
-CLHS specifies that the consequences are undefined if any result is
-not of the declared type, but SBCL treats declarations as assertions
-as long as SAFETY is at least 2, in which case incorrect type
-information will result in a runtime type-error instead of leading to
-eg. heap corruption. This is however expressly non-portable: use
-CHECK-TYPE instead of THE to catch type-errors at runtime. THE is best
-considered an optimization tool to inform the compiler about types it
-is unable to derive from other declared types.")
+This becomes a compile-time assertion of the type, except in cases of global
+variable capture where it can be used to inform the compiler of the type.")
+
 (setf (gethash 'TYPECASE glsl-docs:*functions*)
       "TYPECASE Keyform {(Type Form*)}*
   Evaluates the Forms in the first clause for which TYPEP of Keyform and Type
