@@ -44,17 +44,17 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun bit-and (x y) "(~a & ~a)" (t t) t :pure t)
-(v-define-compiler-macro bit-and ((x :int) (y :int))
+(define-vari-macro bit-and (x y)
+  (declare (ignore x y))
   (error "Varjo: bit-and was previous incorrectly defined, please use logand"))
 
-(v-def-glsl-template-fun bit-ior (x y) "(~a & ~a)" (t t) t :pure t)
-(v-define-compiler-macro bit-ior ((x :int) (y :int))
-  (error "Varjo: bit-ior was previous incorrectly defined, please use logior"))
+(define-vari-macro bit-ior (x y)
+  (declare (ignore x y))
+  (error "Varjo: bit-and was previous incorrectly defined, please use logand"))
 
-(v-def-glsl-template-fun bit-xor (x y) "(~a & ~a)" (t t) t :pure t)
-(v-define-compiler-macro bit-xor ((x :int) (y :int))
-  (error "Varjo: bit-xor was previous incorrectly defined, please use logxor"))
+(define-vari-macro bit-xor (x y)
+  (declare (ignore x y))
+  (error "Varjo: bit-and was previous incorrectly defined, please use logand"))
 
 ;;------------------------------------------------------------
 
