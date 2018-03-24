@@ -89,3 +89,4 @@
 (defgeneric val-origins (node &optional error-on-missingp))
 (defgeneric valid-for-contextp (func env))
 (defgeneric qualifiers (obj))
+(defgeneric copy-value (value &key type glsl-name function-scope read-only))

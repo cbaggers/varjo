@@ -14,6 +14,34 @@
                  :function-scope (or function-scope (v-function-scope env))
                  :read-only read-only))
 
+(defmethod copy-value ((value v-value)
+                       &key
+                         (type nil type-set-p)
+                         (glsl-name nil glsl-name-set-p)
+                         (function-scope nil function-scope-set-p)
+                         (read-only nil read-only-set-p))
+  (let* ((type (if type-set-p
+                   type
+                   (v-type-of value)))
+         (glsl-name (if glsl-name-set-p
+                        glsl-name
+                        (glsl-name value)))
+         (function-scope (if function-scope-set-p
+                             function-scope
+                             (v-function-scope value)))
+         (read-only (if read-only-set-p
+                        read-only
+                        (v-read-only value)))
+         (flow-ids (flow-ids type)))
+    (unless (or flow-ids (type-doesnt-need-flow-id type))
+      (error 'flow-ids-mandatory :for :v-values
+             :primary-type (type->type-spec type)))
+    (make-instance 'v-value
+                   :type type
+                   :glsl-name glsl-name
+                   :function-scope function-scope
+                   :read-only read-only)))
+
 (defmethod v-make-uninitialized
     ((type v-type) env &key (glsl-name (gensym)) function-scope read-only)
   (let ((flow-ids (flow-ids type)))
