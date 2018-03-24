@@ -2456,35 +2456,12 @@ June 1999. http://opencontent.org/openpub/.</pre></div> </article> </li><li styl
 (EQUAL (X :UVEC4) (Y :UVEC4))
 (EQUAL (X :VEC4) (Y :VEC4))
 
-GLSL Documentation
-equal — perform a component-wise equal-to comparison of two vectors
+GLSL DocumentationEQUAL
 
-Parameters
+Returns T is both arguments are numbers with the same value, or in the case
+of aggregates, if the are component-wise EQUAL.
 
-x
-
-Specifies the first vector to be used in the comparison operation.
-
-x
-
-Specifies the second vector to be used in the comparison operation.
-
-Description
-
-equal returns a boolean vector in which each element i is computed as x[i] == y
-[i].
-
-Version Support
-
-OpenGL Shading Language Version
-Function Name 1.10 1.20 1.30 1.40 1.50 3.30 4.00 4.10 4.20 4.30 4.40 4.50
-equal         ✔    ✔    ✔    ✔    ✔    ✔    ✔    ✔    ✔    ✔    ✔    ✔
-
-Copyright
-
-Copyright © 2011-2014 Khronos Group. This material may be distributed subject
-to the terms and conditions set forth in the Open Publication License, v 1.0, 8
-June 1999. http://opencontent.org/openpub/.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:EXP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AEXP">EXP</a> </code> <code class="qualifiers"></code> <code class="arguments">4 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>Overloads:
+EQUAL does not work on GLSL's opaque types</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:EXP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AEXP">EXP</a> </code> <code class="qualifiers"></code> <code class="arguments">4 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>Overloads:
 (EXP (X :FLOAT))
 (EXP (X :VEC2))
 (EXP (X :VEC3))
@@ -2655,7 +2632,11 @@ Copyright
 
 Copyright © 2011-2014 Khronos Group. This material may be distributed subject
 to the terms and conditions set forth in the Open Publication License, v 1.0, 8
-June 1999. http://opencontent.org/openpub/.</pre></div> </article> </li><li style="list-style-type: none"> <a name="GLSL-SYMBOLS.FUNCTIONS:FLOAT-BITS-TO-INT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#GLSL-SYMBOLS.FUNCTIONS%3AFLOAT-BITS-TO-INT">FLOAT-BITS-TO-INT</a> </code> <code class="qualifiers"></code> <code class="arguments">4 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>Overloads:
+June 1999. http://opencontent.org/openpub/.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FLOAT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFLOAT">FLOAT</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFLOAT
+
+Converts any REAL to a float. If OTHER is not provided, it returns a
+  SINGLE-FLOAT if NUMBER is not already a FLOAT. If OTHER is provided, the
+  result is the same float format as OTHER.</pre></div> </article> </li><li style="list-style-type: none"> <a name="GLSL-SYMBOLS.FUNCTIONS:FLOAT-BITS-TO-INT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#GLSL-SYMBOLS.FUNCTIONS%3AFLOAT-BITS-TO-INT">FLOAT-BITS-TO-INT</a> </code> <code class="qualifiers"></code> <code class="arguments">4 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>Overloads:
 (FLOAT-BITS-TO-INT (X :FLOAT))
 (FLOAT-BITS-TO-INT (X :VEC2))
 (FLOAT-BITS-TO-INT (X :VEC3))
@@ -8067,4 +8048,465 @@ Copyright
 
 Copyright © 2011-2014 Khronos Group. This material may be distributed subject
 to the terms and conditions set forth in the Open Publication License, v 1.0, 8
-June 1999. http://opencontent.org/openpub/.</pre></div> </article> </li></ul> </li></ul> </article>  </div> </body> </html> 
+June 1999. http://opencontent.org/openpub/.</pre></div> </article> </li></ul> </li><li class="package" style="list-style-type: none"> <h3> <a name="COMMON-LISP" href="#COMMON-LISP">COMMON-LISP</a> <span class="nicknames">(CL)</span> </h3> <ul><li style="list-style-type: none"> <a name="COMMON-LISP:*"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%2A">*</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation*
+
+Return the product of its arguments. With no args, returns 1.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:+"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%2B">+</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation+
+
+Return the sum of its arguments. With no args, returns 0.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:-"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A-">-</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation-
+
+Subtract the second and all subsequent arguments from the first;
+  or with one argument, negate the first argument.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:/"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%2F">/</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation/
+
+Divide the first argument by each of the following arguments, in turn.
+  With one argument, return reciprocal.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:/="> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%2F%3D">/=</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation/=
+
+Return T if no two of its arguments are numerically equal, NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:1+"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A1%2B">1+</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation1+
+
+Return NUMBER + 1.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:1-"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A1-">1-</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation1-
+
+Return NUMBER - 1.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:&lt;"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%3C">&lt;</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation&lt;
+
+Return T if its arguments are in strictly increasing order, NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:&lt;="> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%3C%3D">&lt;=</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation&lt;=
+
+Return T if arguments are in strictly non-decreasing order, NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:="> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%3D">=</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation=
+
+Return T if all of its arguments are numerically equal, NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:&gt;"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%3E">&gt;</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation&gt;
+
+Return T if its arguments are in strictly decreasing order, NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:&gt;="> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3A%3E%3D">&gt;=</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL Documentation&gt;=
+
+Return T if arguments are in strictly non-increasing order, NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ADJUSTABLE-ARRAY-P"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AADJUSTABLE-ARRAY-P">ADJUSTABLE-ARRAY-P</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationADJUSTABLE-ARRAY-P
+
+Returns T is the array is adjustable, always returns NIL in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:AND"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AAND">AND</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationAND
+
+The macro and evaluates each form one at a time from left to right.
+As soon as any form evaluates to nil, and returns nil without evaluating the
+remaining forms. If all forms but the last evaluate to true values, and returns
+the results produced by evaluating the last form. </pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:AREF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AAREF">AREF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationAREF
+
+Return the element of the ARRAY specified by the SUBSCRIPT.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ARRAY-HAS-FILL-POINTER-P"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AARRAY-HAS-FILL-POINTER-P">ARRAY-HAS-FILL-POINTER-P</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationARRAY-HAS-FILL-POINTER-P
+
+Return T if the given ARRAY has a fill pointer, or NIL otherwise. Always returns NIL in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ARRAY-RANK"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AARRAY-RANK">ARRAY-RANK</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationARRAY-RANK
+
+Return the number of dimensions of ARRAY. Always returns 1 for Vari arrays as GLSL doesnt support
+multi-dimensional arrays.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ARRAY-ROW-MAJOR-INDEX"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AARRAY-ROW-MAJOR-INDEX">ARRAY-ROW-MAJOR-INDEX</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationARRAY-ROW-MAJOR-INDEX
+
+Computes the position according to the row-major ordering of array for the
+element that is specified by subscripts, and returns the offset of the element
+in the computed position from the beginning of array.
+
+For a one-dimensional array, the result of array-row-major-index equals
+subscript.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ARRAY-TOTAL-SIZE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AARRAY-TOTAL-SIZE">ARRAY-TOTAL-SIZE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationARRAY-TOTAL-SIZE
+
+Return the total number of elements in the Array.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ARRAYP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AARRAYP">ARRAYP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationARRAYP
+
+Return true if OBJECT is an ARRAY, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:BREAK"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ABREAK">BREAK</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationBREAK
+
+break terminates the execution of the nearest enclosing for, switch, or while</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:CASE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACASE">CASE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCASE
+
+CASE Keyform {(Key Form*)}*
+Evaluates the Forms in the first clause with a Key EQL to the value of
+Keyform. If a singleton key is T then the clause is a default clause.
+
+Currently all Keys must be constantp</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:COERCE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACOERCE">COERCE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCOERCE
+
+Coerce the Object to an object of type Output-Type-Spec.
+Output-Type-Spec should not be quoted</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:COMPILED-FUNCTION-P"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACOMPILED-FUNCTION-P">COMPILED-FUNCTION-P</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCOMPILED-FUNCTION-P
+
+Return true if OBJECT is a COMPILED-FUNCTION, and NIL otherwise.
+All functions in Vari are compiled so this will return T for all functions</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:COMPLEMENT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACOMPLEMENT">COMPLEMENT</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCOMPLEMENT
+
+Return a new function that returns T whenever FUNCTION returns NIL and
+NIL whenever FUNCTION returns non-NIL.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:COMPLEX"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACOMPLEX">COMPLEX</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCOMPLEX
+
+Return a complex number with the specified real and imaginary components.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:COMPLEXP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACOMPLEXP">COMPLEXP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCOMPLEXP
+
+Return true if OBJECT is a COMPLEX, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:COND"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACOND">COND</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCOND
+
+Syntax:
+
+cond {clause}+ =&gt; result*
+
+clause::= (test-form form+)
+
+Arguments and Values:
+
+test-form---a form.
+
+forms---an implicit progn.
+
+results---the values of the forms in the first clause whose test-form yields
+          true, or the primary value of the test-form if there are no forms in
+          that clause, or else void if no test-form yields true.
+
+Description:
+
+cond allows the execution of forms to be dependent on test-form.
+
+Test-forms are evaluated one at a time in the order in which they are given in
+the argument list until a test-form is found that evaluates to true.
+
+If there are no forms in that clause, the primary value of the test-form is
+returned by the cond form. Otherwise, the forms associated with this test-form
+are evaluated in order, left to right, as an implicit progn, and the values
+returned by the last form are returned by the cond form.
+
+Once one test-form has yielded true, no additional test-forms are evaluated.
+If no test-form yields true, the COND evaluates to void.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:CONJUGATE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACONJUGATE">CONJUGATE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCONJUGATE
+
+Return the complex conjugate of NUMBER. For non-complex numbers, this is
+  an identity.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:CONTINUE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ACONTINUE">CONTINUE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationCONTINUE
+
+The continue statement passes control to the next iteration of the for or
+while statement in which it appears, bypassing any remaining statements.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:DECF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ADECF">DECF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationDECF
+
+The first argument is some location holding a number. This number is
+  decremented by the second argument, DELTA, which defaults to 1.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:DENOMINATOR"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ADENOMINATOR">DENOMINATOR</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationDENOMINATOR
+
+Return the denominator of NUMBER, which must be rational.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:DO"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ADO">DO</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationDO
+
+DO ({(Var Init Step)}+) (Test Exit-Form+) Declaration* Form*
+  Iteration construct. On subsequent iterations, the Vars are assigned the
+  value of the Step form in parallel. The Test is evaluated before
+  each evaluation of the body Forms. When the Test is true, the Exit-Forms
+  are evaluated as a PROGN, with the result being the value of the DO.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:DOTIMES"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ADOTIMES">DOTIMES</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationDOTIMES
+
+Syntax:
+
+dotimes (var count-form) declaration* {statement}+
+
+=&gt; void
+
+Arguments and Values:
+
+var---a symbol.
+
+count-form---a form.
+
+declaration---a declare expression; not evaluated.
+
+statement---a compound form;
+
+Description:
+
+dotimes iterates over a series of integers.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:EQL"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AEQL">EQL</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationEQL
+
+Returns T is both arguments are numbers with the same value
+
+GLSL does not provide a equivalent of EQ.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:EVENP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AEVENP">EVENP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationEVENP
+
+Is this integer even?</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:EXPT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AEXPT">EXPT</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationEXPT
+
+Return BASE raised to the POWER.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FLET"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFLET">FLET</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFLET
+
+FLET ({(name lambda-list declaration* form*)}*) declaration* body-form*
+
+Evaluate the BODY-FORMS with local function definitions. The bindings do
+not enclose the definitions; any use of NAME in the FORMS will refer to the
+lexically apparent function definition in the enclosing environment.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FLOAT-DIGITS"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFLOAT-DIGITS">FLOAT-DIGITS</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFLOAT-DIGITS
+
+Returns the number of radix b digits used in the representation of float (including
+any implicit digits, such as a ``hidden bit''). </pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FLOAT-RADIX"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFLOAT-RADIX">FLOAT-RADIX</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFLOAT-RADIX
+
+Return (as an integer) the radix b of its floating-point argument.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FLOAT-SIGN"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFLOAT-SIGN">FLOAT-SIGN</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFLOAT-SIGN
+
+Return a floating-point number that has the same sign as
+   FLOAT1 and, if FLOAT2 is given, has the same absolute value
+   as FLOAT2.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FLOATP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFLOATP">FLOATP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFLOATP
+
+Return true if OBJECT is a FLOAT, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FUNCTION"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFUNCTION">FUNCTION</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFUNCTION
+
+FUNCTION name
+
+Return the lexically apparent definition of the function NAME. If NAME is
+a symbol the result will include all possible overloads of the function. To
+specify a single function use the full signatures e.g. #'(sin :float)
+
+NAME may also be a lambda expression.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:FUNCTIONP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AFUNCTIONP">FUNCTIONP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationFUNCTIONP
+
+Return true if OBJECT is a FUNCTION, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:IDENTITY"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AIDENTITY">IDENTITY</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationIDENTITY
+
+This function simply returns what was passed to it.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:IF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AIF">IF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationIF
+
+IF predicate then [else]
+
+If PREDICATE evaluates to true, evaluate THEN and return its values,
+otherwise evaluate ELSE and return its values. ELSE defaults to NIL.
+
+If the branches evaluate to values of different type then the type
+of the result will be (or type-from-then-branch type-from-else-branch)
+This will cause issues if you attempt to return this value from a function
+or pass it as an argument but is harmless in the non-tail position of a progn.
+
+If `discard` is called in one branch then the result type of the IF is the
+type of the branch that didnt discard</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:IMAGPART"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AIMAGPART">IMAGPART</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationIMAGPART
+
+Extract the imaginary part of a number.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:INCF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AINCF">INCF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationINCF
+
+The first argument is some location holding a number. This number is
+  incremented by the second argument, DELTA, which defaults to 1.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:INTEGER-LENGTH"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AINTEGER-LENGTH">INTEGER-LENGTH</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationINTEGER-LENGTH
+
+Return the number of non-sign bits in the twos-complement representation
+  of INTEGER.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:INTEGERP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AINTEGERP">INTEGERP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationINTEGERP
+
+Return true if OBJECT is an INTEGER, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ISQRT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AISQRT">ISQRT</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationISQRT
+
+Return the greatest integer less than or equal to the square root of N.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:KEYWORDP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AKEYWORDP">KEYWORDP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationKEYWORDP
+
+Return true if Object is a symbol in the &quot;KEYWORD&quot; package. Always NIL
+in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LABELS"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALABELS">LABELS</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLABELS
+
+LABELS ({(name lambda-list declaration* form*)}*) declaration* body-form*
+
+Evaluate the BODY-FORMS with local function definitions. The bindings enclose
+each subsequent definitions, so the defined functions can call the functions
+defined before them in the definitions list.
+
+Recursion (direct or indirect) is illegal in GLSL</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LAMBDA"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALAMBDA">LAMBDA</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLAMBDA
+
+lambda lambda-list [[declaration* | documentation]] form+ =&gt; function
+
+Arguments and Values:
+
+lambda-list---an ordinary lambda list.
+
+declaration---a declare expression; not evaluated.
+
+documentation---a string; not evaluated.
+
+form---a form.
+
+function---a function.
+
+Description:
+
+Provides a shorthand notation for a function special form involving a lambda expression such that:
+
+    (lambda lambda-list [[declaration* | documentation]] form*)
+ ==  (function (lambda lambda-list [[declaration* | documentation]] form*))
+ ==  #'(lambda lambda-list [[declaration* | documentation]] form*)
+</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LET"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALET">LET</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLET
+
+LET ({(var [value]) | var}*) declaration* form*
+
+During evaluation of the FORMS, bind the VARS to the result of evaluating the
+VALUE forms. The variables are bound in parallel after all of the VALUES forms
+have been evaluated.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LET*"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALET%2A">LET*</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLET*
+
+LET* ({(var [value]) | var}*) declaration* form*
+
+Similar to LET, but the variables are bound sequentially, allowing each VALUE
+form to reference any of the previous VARS.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LOCALLY"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALOCALLY">LOCALLY</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLOCALLY
+
+LOCALLY declaration* form*
+
+Sequentially evaluate the FORMS in a lexical environment where the
+DECLARATIONS have effect. If LOCALLY is a top level form, then the FORMS are
+also processed as top level forms.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LOGAND"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALOGAND">LOGAND</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLOGAND
+
+Return the bit-wise and of its arguments.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LOGCOUNT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALOGCOUNT">LOGCOUNT</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLOGCOUNT
+
+Count the number of 1 bits if INTEGER is non-negative,
+and the number of 0 bits if INTEGER is negative.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LOGIOR"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALOGIOR">LOGIOR</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLOGIOR
+
+Return the bit-wise or of its arguments</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LOGNOT"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALOGNOT">LOGNOT</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLOGNOT
+
+Return the bit-wise logical not of the input</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:LOGXOR"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ALOGXOR">LOGXOR</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationLOGXOR
+
+Return the bit-wise exclusive or of its arguments.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MACROLET"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMACROLET">MACROLET</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMACROLET
+
+MACROLET ({(name lambda-list form*)}*) body-form*
+
+Evaluate the BODY-FORMS in an environment with the specified local macros
+defined. NAME is the local macro name, LAMBDA-LIST is a DEFMACRO style
+destructuring lambda list, and the FORMS evaluate to the expansion.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MAKE-ARRAY"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMAKE-ARRAY">MAKE-ARRAY</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMAKE-ARRAY
+
+WARNING: API of MAKE-ARRAY subject to change.
+
+Description:
+
+Creates and returns an array.
+
+Dimensions represents the dimensionality of the new array. The array must
+be single-dimensional and dimensions must be a number.
+
+element-type indicates the type of the elements intended to be stored in the
+new-array
+
+If initial-element is supplied, it is used to initialize each element of
+new-array. If initial-element is supplied, it must be of the type given by
+element-type. initial-element must be constantp
+
+initial-contents is used to initialize the contents of array. It must currently
+be a quoted list, this is an issue and will be changed.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MINUSP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMINUSP">MINUSP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMINUSP
+
+Is this real number strictly negative?</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MULTIPLE-VALUE-BIND"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMULTIPLE-VALUE-BIND">MULTIPLE-VALUE-BIND</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMULTIPLE-VALUE-BIND
+
+Creates new variable bindings for the vars and executes a series of forms that use
+these bindings.
+
+The variable bindings created are lexical.
+
+Values-form is evaluated, and each of the vars is bound to the respective value
+returned by that form. The number of values returns by values-form must match
+the number of forms in 'vars'. The vars are bound to the values over the
+execution of the forms, which make up an implicit progn.
+
+The scopes of the name binding and declarations do not include the values-form.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MULTIPLE-VALUE-CALL"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMULTIPLE-VALUE-CALL">MULTIPLE-VALUE-CALL</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMULTIPLE-VALUE-CALL
+
+MULTIPLE-VALUE-CALL function values-form*
+
+Call FUNCTION, passing all the values of each VALUES-FORM as arguments,
+values from the first VALUES-FORM making up the first argument, etc.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MULTIPLE-VALUE-PROG1"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMULTIPLE-VALUE-PROG1">MULTIPLE-VALUE-PROG1</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMULTIPLE-VALUE-PROG1
+
+MULTIPLE-VALUE-PROG1 values-form form*
+
+Evaluate VALUES-FORM and then the FORMS, but return all the values of
+VALUES-FORM.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:MULTIPLE-VALUE-SETQ"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AMULTIPLE-VALUE-SETQ">MULTIPLE-VALUE-SETQ</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationMULTIPLE-VALUE-SETQ
+
+multiple-value-setq assigns values to vars.
+
+The form is evaluated, and each var is assigned to the corresponding value
+returned by that form. The number of values returns by values-form must match
+the number of forms in 'vars'
+
+If any var is the name of a symbol macro, then it is assigned as if by setf.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:NTH-VALUE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ANTH-VALUE">NTH-VALUE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationNTH-VALUE
+
+Evaluate FORM and return the Nth value (zero based)
+ without consing a temporary list of values.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:NUMBERP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ANUMBERP">NUMBERP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationNUMBERP
+
+Return true if OBJECT is a NUMBER, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:NUMERATOR"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ANUMERATOR">NUMERATOR</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationNUMERATOR
+
+Return the numerator of NUMBER, which must be rational.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ODDP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AODDP">ODDP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationODDP
+
+Is this integer odd?</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:OR"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AOR">OR</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationOR
+
+or evaluates each form, one at a time, from left to right. The evaluation of
+all forms terminates when a form evaluates to true (i.e., something other than
+nil).</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:PLUSP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3APLUSP">PLUSP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationPLUSP
+
+Is this real number strictly positive?</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:PROG1"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3APROG1">PROG1</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationPROG1
+
+prog1 evaluates first-form and then forms, yielding as its only value the primary
+value yielded by first-form.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:PROG2"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3APROG2">PROG2</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationPROG2
+
+prog2 evaluates first-form, then second-form, and then forms, yielding as
+its only value the primary value yielded by second-form.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:PROGN"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3APROGN">PROGN</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationPROGN
+
+PROGN form*
+
+Evaluates each FORM in order, returning the values of the last form.
+
+It is not legal to have an empty PROGN in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:RANDOM-STATE-P"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ARANDOM-STATE-P">RANDOM-STATE-P</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationRANDOM-STATE-P
+
+Returns true if object is of type random-state; otherwise, returns false.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:RATIONALP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ARATIONALP">RATIONALP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationRATIONALP
+
+Return true if OBJECT is a RATIONAL, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:REALP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AREALP">REALP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationREALP
+
+Return true if OBJECT is a REAL, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:REALPART"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AREALPART">REALPART</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationREALPART
+
+Extract the real part of a number.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:RETURN"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ARETURN">RETURN</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationRETURN
+
+return terminates the execution of a function and returns control and values to the calling
+function. The types from all return forms in a stage must be idential.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ROW-MAJOR-AREF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AROW-MAJOR-AREF">ROW-MAJOR-AREF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationROW-MAJOR-AREF
+
+Return the element of array corresponding to the row-major index. This is
+   SETFable.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SETF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASETF">SETF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSETF
+
+Takes pairs of arguments like SETQ. The first is a place and the second
+  is the value that is supposed to go into that place. Returns the last
+  value. The place argument may be any of the access forms for which SETF
+  knows a corresponding setting form.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SETQ"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASETQ">SETQ</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSETQ
+
+Assigns a value to a variable.
+
+    (setq var1 form1)
+
+is the simple variable assignment statement of Lisp.
+First form is evaluated and then the result is stored in the variable var1.
+
+If any var refers to a binding made by symbol-macrolet, then that var is
+reated as if setf (not setq) had been used.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SIGNUM"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASIGNUM">SIGNUM</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSIGNUM
+
+If NUMBER is zero, return NUMBER, else return (/ NUMBER (ABS NUMBER)).</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SIMPLE-BIT-VECTOR-P"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASIMPLE-BIT-VECTOR-P">SIMPLE-BIT-VECTOR-P</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSIMPLE-BIT-VECTOR-P
+
+Return true if OBJECT is a SIMPLE-BIT-VECTOR, and NIL otherwise.
+Always NIL in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SIMPLE-VECTOR-P"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASIMPLE-VECTOR-P">SIMPLE-VECTOR-P</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSIMPLE-VECTOR-P
+
+Return true if OBJECT is a SIMPLE-VECTOR, and NIL otherwise.
+All arrays are simple-vectors in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SLOT-VALUE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASLOT-VALUE">SLOT-VALUE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSLOT-VALUE
+
+The function slot-value returns the value of the slot named slot-name in the struct.
+
+`setf` can be used with slot-value to change the value of a slot.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SVREF"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASVREF">SVREF</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSVREF
+
+Return the INDEXth element of the given Simple-Vector.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SYMBOL-MACROLET"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASYMBOL-MACROLET">SYMBOL-MACROLET</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSYMBOL-MACROLET
+
+SYMBOL-MACROLET ({(name expansion)}*) decl* form*
+
+Define the NAMES as symbol macros with the given EXPANSIONS. Within the
+body, references to a NAME will effectively be replaced with the EXPANSION.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:SYMBOLP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ASYMBOLP">SYMBOLP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationSYMBOLP
+
+Return true if OBJECT is a SYMBOL, and NIL otherwise.
+Always NIL in Vari</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:THE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ATHE">THE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationTHE
+
+Specifies that the values returned by FORM conform to the VALUE-TYPE.
+
+CLHS specifies that the consequences are undefined if any result is
+not of the declared type, but SBCL treats declarations as assertions
+as long as SAFETY is at least 2, in which case incorrect type
+information will result in a runtime type-error instead of leading to
+eg. heap corruption. This is however expressly non-portable: use
+CHECK-TYPE instead of THE to catch type-errors at runtime. THE is best
+considered an optimization tool to inform the compiler about types it
+is unable to derive from other declared types.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:TYPECASE"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3ATYPECASE">TYPECASE</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationTYPECASE
+
+TYPECASE Keyform {(Type Form*)}*
+  Evaluates the Forms in the first clause for which TYPEP of Keyform and Type
+  is true.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:UNLESS"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AUNLESS">UNLESS</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationUNLESS
+
+If the first argument is not true, the rest of the forms are
+evaluated as a PROGN.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:VALUES"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AVALUES">VALUES</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationVALUES
+
+Return all arguments, in order, as values.
+
+You may also qualify the values. If the value is a list where the first symbol
+is a qualifier-form then the last form is the value and the butlast forms are
+treated as qualifiers.
+
+For example:
+
+    (values (v! 1 2 3 4)  ←[0]
+            (:flat 10) ←[1]
+            ((:feedback 1) (+ position (v! pos 0 0))) ←[2]
+            ((:feedback 0) (v! 0.1 0 1)))             ←[2]
+
+- [0] unqualified value
+- [1] the value 10 is qualified as flat
+- [2] two forms are qualfied as being the transform feedback of the stage
+</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:VECTOR"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AVECTOR">VECTOR</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationVECTOR
+
+Construct a SIMPLE-VECTOR from the given objects.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:VECTORP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AVECTORP">VECTORP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationVECTORP
+
+Return true if OBJECT is a VECTOR, and NIL otherwise.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:WHEN"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AWHEN">WHEN</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationWHEN
+
+If the first argument is true, the rest of the forms are
+evaluated as a PROGN.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:WITH-ACCESSORS"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AWITH-ACCESSORS">WITH-ACCESSORS</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationWITH-ACCESSORS
+
+Creates a lexical environment in which the slots specified by slot-entry are
+lexically available through their accessors as if they were variables.
+
+The macro with-accessors invokes the appropriate accessors to access the slots
+specified by slot-entry. Both setf and setq can be used to set the value of the slot.</pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:WITH-SLOTS"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AWITH-SLOTS">WITH-SLOTS</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationWITH-SLOTS
+
+The macro with-slots establishes a lexical environment for referring to the slots in
+the struct named by the given slot-names as though they were variables.
+
+Within such a context the value of the slot can be specified by using its
+slot name, as if it were a lexically bound variable.
+
+Both setf and setq can be used to set the value of the slot.
+
+The macro with-slots translates an appearance of the slot name as a variable
+into a call to slot-value. </pre></div> </article> </li><li style="list-style-type: none"> <a name="COMMON-LISP:ZEROP"> </a> <article> <header class="func">  <h4 class="name"> <code>(</code> <code> <a href="#COMMON-LISP%3AZEROP">ZEROP</a> </code> <code class="qualifiers"></code> <code class="arguments">0 overloads</code> <code>)</code> </h4> <i class="type">func</i>  </header> <div class="docstring"><pre>GLSL DocumentationZEROP
+
+Is this number zero?</pre></div> </article> </li></ul> </li></ul> </article>  </div> </body> </html> 

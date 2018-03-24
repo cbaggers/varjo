@@ -5,7 +5,7 @@
   (list :template (asdf:system-relative-pathname
                    :varjo "docs/staple/template.ctml")
         :name "Vari"
-        :packages '(:vari)
+        :packages '(:vari :cl)
         :documentation (asdf:system-relative-pathname
                         :varjo "docs/staple/vari-ref-doc-header.md")
         :out (asdf:system-relative-pathname
@@ -112,7 +112,9 @@
      :collect func))
 
 (staple:define-converter glsl-func (symbol package)
-  (when (and (eq package (find-package :vari))
+  (when (and (or (eq package (find-package :vari))
+                 (and (eq package (find-package :cl))
+                      (not (find-symbol (symbol-name symbol) :vari))))
              (vari:vari-describe symbol nil))
     (list
      (if (eq (symbol-package symbol)

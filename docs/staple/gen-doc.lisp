@@ -13,7 +13,10 @@
                    staple:symb-method
                    staple:symb-generic
                    staple:symb-special
-                   staple:symb-variable))
+                   staple:symb-variable
+                   staple:symb-constant
+                   staple:symb-condition
+                   staple:symb-structure))
          (current (loop :for n :in things :collect (staple:converter n)))
          (ignores (lambda (x y) (declare (ignore x y)))))
     (loop
