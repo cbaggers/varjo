@@ -213,19 +213,20 @@
 
 (defun compile-function-taking-unreps (func args args-code env)
   (assert (v-code func))
-  (labels ((unrep-p (x)
+  (labels ((unrep-type-p (x)
              (or (typep x 'v-unrepresentable-value)
-                 (typep x 'v-block-struct))))
+                 (typep x 'v-block-struct)))
+           (unrep-arg-p (x)
+             (unrep-type-p (primary-type x))))
     (dbind (params body-code) (v-code func)
       (dbind (trimmed-args hard-coded final-args)
           (loop :for param :in params
              :for arg :in args
              :for param-type := (type-spec->type (second param))
-             :if (unrep-p param-type) :collect (list (first param) arg) :into h
+             :if (or (unrep-type-p param-type) (unrep-arg-p arg))
+             :collect (list (first param) arg) :into h
              :else
-             :collect param :into a
-             :and
-             :collect arg :into f
+             :collect param :into a :and :collect arg :into f
              :finally (return (list a h f)))
         (let ((derived-call (find-derived-call func final-args env)))
           (if derived-call
