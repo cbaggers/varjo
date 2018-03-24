@@ -27,6 +27,12 @@
 (defclass glsl-var (staple:symb-variable)
   ())
 
+(defclass cl-func (staple:symb-function)
+  ((args :initform nil :initarg :args)))
+
+(defclass cl-var (staple:symb-variable)
+  ())
+
 (defun parse-type-to-vari-string (glsl-type)
   (let ((spec
          (varjo:type->type-spec
@@ -72,16 +78,15 @@
                  (name (when name (+ 5 name)))
                  (decl (search "Declaration" doc))
                  (param (search "Parameter" doc))
-                 (see-pos (search "See Also" doc))
-                 (copy-pos (search "Copyright" doc)))
-            (if (and name decl param see-pos copy-pos)
+                 (see-pos (search "See Also" doc)))
+            (if (and name decl param see-pos)
                 (string-trim
                  '(#\space)
                  (concatenate
                   'string
                   (subseq doc name decl)
                   (subseq doc param see-pos)
-                  (subseq doc copy-pos)))
+                  "Copyright © 2011-2014 Khronos Group"))
                 doc))))
 
 (defmethod staple:symb-documentation ((symb glsl-var))
@@ -91,9 +96,8 @@
          (name (when name (+ 5 name)))
          (decl (search "Declaration" doc))
          (desc (search "Description" doc))
-         (see-pos (search "See Also" doc))
-         (copy-pos (search "Copyright" doc)))
-    (if (and name decl desc see-pos copy-pos)
+         (see-pos (search "See Also" doc)))
+    (if (and name decl desc see-pos)
         (string-trim
          '(#\space)
          (concatenate
@@ -102,8 +106,19 @@
           '(#\newline)
           (subseq doc name decl)
           (subseq doc desc see-pos)
-          (subseq doc copy-pos)))
+          "Copyright © 2011-2014 Khronos Group"))
         doc)))
+
+(defmethod staple:symb-documentation ((symb cl-func))
+  (format nil "~@[Overloads:~{~%~a~}~%~%~]~a"
+          (overloads symb)
+          (let* ((symbol (staple:symb-symbol symb)))
+            (vari:vari-describe symbol nil))))
+
+(defmethod staple:symb-documentation ((symb cl-var))
+  (let* ((symbol (staple:symb-symbol symb))
+         (doc (vari:vari-describe symbol nil)))
+    doc))
 
 (defun get-func-specs (symb)
   (loop :for func :in glsl-spec:*functions*
@@ -112,23 +127,28 @@
      :collect func))
 
 (staple:define-converter glsl-func (symbol package)
-  (when (and (or (eq package (find-package :vari))
-                 (and (eq package (find-package :cl))
-                      (not (find-symbol (symbol-name symbol) :vari))))
-             (vari:vari-describe symbol nil))
-    (list
-     (if (eq (symbol-package symbol)
-             (find-package :glsl-symbols.variables))
-         (make-instance
-          'glsl-var
-          :symbol symbol)
-         (make-instance
-          'glsl-func
-          :symbol symbol
-          :args (loop
-                   :for spec :in (get-func-specs symbol) :collect
-                   (destructuring-bind (&key args &allow-other-keys) spec
-                     args)))))))
+  (let ((for-cl (eq package (find-package :cl))))
+    (when (and (or (eq package (find-package :vari))
+                   (and for-cl
+                        (not (find-symbol (symbol-name symbol) :vari))))
+               (vari:vari-describe symbol nil))
+      (list
+       (if (eq (symbol-package symbol)
+               (find-package :glsl-symbols.variables))
+           (make-instance
+            (if for-cl
+                'cl-var
+                'glsl-var)
+            :symbol symbol)
+           (make-instance
+            (if for-cl
+                'cl-func
+                'glsl-func)
+            :symbol symbol
+            :args (loop
+                     :for spec :in (get-func-specs symbol) :collect
+                     (destructuring-bind (&key args &allow-other-keys) spec
+                       args))))))))
 
 (defmethod staple:symb-arguments ((symb glsl-func))
   (let ((count (length (slot-value symb 'args))))
