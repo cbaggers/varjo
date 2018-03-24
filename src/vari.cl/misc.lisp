@@ -101,9 +101,10 @@
   (assert (not result) () "Varjo: Currently we do not support the result form")
   (assert (symbolp var) () "Varjo: the var for dotimes was not a symbol")
   (let ((gcount (gensym "count")))
-    `(let ((,gcount ,count))
-       (for (,var 0) (< ,var ,gcount) (++ ,var)
-            ,@body))))
+    `(locally
+         (let ((,gcount ,count))
+         (for (,var 0) (< ,var ,gcount) (++ ,var)
+              ,@body)))))
 
 (v-def-glsl-template-fun array-total-size (x) "~a.length()" (v-array)
                          v-int :pure t)
