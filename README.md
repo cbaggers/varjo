@@ -62,6 +62,7 @@ Lots landing this month, whilst my current test suite passes I'm still expecting
 - fix bug letting you assign to a read-only place
 - perf improvements
 - [BREAKING CHANGE] Removed ast (non trivial ammount of cons and not used for compile)
+- [BREAKING CHANGE] Removed the unused *draw-modes* variable
 
 CL functions added listed below. Some of the predicates are basically pointless, but for completeness it's nice to have them
 

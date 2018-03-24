@@ -361,7 +361,6 @@
            :%synthesize
            :%values-for-return
            :*default-version*
-           :*draw-modes*
            :*emit-var-name-base*
            :*return-var-name-base*
            :*stage-names*
@@ -683,7 +682,6 @@
    ;;
    ;; globals
    :*default-version*
-   :*draw-modes*
    :*stage-names*
    :*stage-type-names*
    :*supported-versions*
@@ -696,7 +694,7 @@
    :fragment-stage
    :compute-stage
    ;;
-   ;; primitives, draw-modes, etc
+   ;; primitives, etc
    :valid-primitive-name-p
    :dynamic
    :line-loop

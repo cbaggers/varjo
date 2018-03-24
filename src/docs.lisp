@@ -12,11 +12,6 @@ will be used for a compile task if a version is not specified in the
 context
 ")
 
-  (defvar *draw-modes*
-    "
-`*draw-modes*` is a variable that holds the list of draw-modes Varjo recognises
-")
-
   (defvar *stage-names*
     "
 `*stage-names*` is a variable that holds the list of keyword stage names that
@@ -78,7 +73,7 @@ tessellation-evaluation stage.
 ")
 
   ;;
-  ;; primitives, draw-modes, etc
+  ;; primitives, etc
   (defclass dynamic
       "
 `dynamic` is the class that represents the simarlaly
