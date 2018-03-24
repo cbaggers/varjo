@@ -87,9 +87,8 @@
   (:method ((meta-a null) (meta-b standard-value-metadata))
     meta-b)
   ;;
-  ;; {TODO} proper error
   (:method ((meta-a null) (meta-b null))
-    (error "Varjo: Compiler Bug: Tried to combine metadata with two null objects")))
+    nil))
 
 ;;-------------------------------------------------------------------------
 ;; Find similar declaration names
