@@ -85,9 +85,9 @@
          (compile-call-with-single-function impl-func compiled-args args-code
                                             env))))
     (v-function
-     (vbind (new-obj new-env used-compiler-macro-p)
+     (vbind (new-obj new-env expanded-into-new-form)
          (compile-function-call func compiled-args args-code env)
-       (declare (ignore used-compiler-macro-p))
+       (declare (ignore expanded-into-new-form))
        (values new-obj new-env)))
     (external-function (compile-external-function-call func compiled-args args-code env))
     (t (error 'problem-with-the-compiler :target func))))
@@ -135,7 +135,7 @@
     (if use-expansion
         (vbind (new-obj new-env) (compile-form expansion env)
           (values new-obj new-env t))
-        (vbind (code-obj new-env)
+        (vbind (code-obj new-env expanded-into-new-form)
             (cond
               ;; special funcs
               ((v-special-functionp func)
@@ -162,7 +162,7 @@
               ;; all the other funcs :)
               (t (compile-regular-function-call func args env)))
           (assert new-env)
-          (values code-obj new-env nil)))))
+          (values code-obj new-env expanded-into-new-form)))))
 
 
 ;; TODO handle traits & unreps in one function
@@ -228,9 +228,16 @@
              :else
              :collect param :into a :and :collect arg :into f
              :finally (return (list a h f)))
+        (assert hard-coded () 'no-args-remove-in-unrep-inlining
+                :func func
+                :args args
+                :args-code args-code)
         (let ((derived-call (find-derived-call func final-args env)))
           (if derived-call
-              (compile-call-with-single-function derived-call final-args args-code env)
+              (compile-call-with-single-function derived-call
+                                                 final-args
+                                                 args-code
+                                                 env)
               ;; this is a hack but it'll do for now. It just lets our func use
               ;; the vars that were captured, if we are still in scope
               (let* ((captured (captured-vars func))
@@ -239,14 +246,17 @@
                      (allowed (append (mapcar #'first hard-coded)
                                       (mapcar #'name captured)))
                      (func-name (name func)))
-                (compile-form
-                 `(let ,hard-coded
-                    (vari.cl:labels-no-implicit
-                     ((,func-name ,trimmed-args ,@body-code))
-                     ,(derived-from func)
-                     ,allowed
-                     (,func-name ,@final-args)))
-                 env))))))))
+                (vbind (new-obj new-env expanded-into-new-form)
+                    (compile-form
+                     `(let ,hard-coded
+                        (vari.cl:labels-no-implicit
+                         ((,func-name ,trimmed-args ,@body-code))
+                         ,(derived-from func)
+                         ,allowed
+                         (,func-name ,@final-args)))
+                     env)
+                  (declare (ignore expanded-into-new-form))
+                  (values new-obj new-env t)))))))))
 
 (defun compile-external-func-returning-ref (func func-name-form env)
   ;; Here we are going to make use of the fact that a external function
@@ -305,9 +315,9 @@
                  )
              (inline-candidate compiled-func))
         (inline-external-function-call compiled-func args-code env)
-        (vbind (new-obj new-env used-compiler-macro-p)
+        (vbind (new-obj new-env expanded-into-new-form)
             (compile-function-call (function-obj compiled-func) args args-code env)
-          (unless used-compiler-macro-p
+          (unless expanded-into-new-form
             ;; track the number of times the function was used
             (incf (call-count compiled-func)))
           (values new-obj new-env)))))

@@ -1163,6 +1163,30 @@ function or by a multiple-value-bind form"
      (or (map 'list #'type->type-spec set) :void))
   kind)
 
+(define-bug no-args-remove-in-unrep-inlining () (func args args-code)
+    "
+Sorry that you have hit this bug, if you have time please copy this error,
+your stack trace and (if possible) the code that triggered this error and
+raise an issue at https://github.com/cbaggers/varjo/issues
+
+Thankyou, and our apologies.
+
+----
+
+When trying to compile the function ~a we knew we had to inline as a local
+function to to one of the arguments being of an unrepresentable type. However
+No arguments were identified for moving from the function to the surrounding
+let.
+
+func: ~a
+args: ~a
+args-code: ~a
+"
+  (slot-value func 'name)
+  func
+  args
+  args-code)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

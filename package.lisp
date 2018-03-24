@@ -347,6 +347,7 @@
            :invalid-coerce
            :conditional-multiple-vals-mismatch
            :primitive-in-context
+           :no-args-remove-in-unrep-inlining
 
            ;; restarts
            :setq-supply-alternate-type))
