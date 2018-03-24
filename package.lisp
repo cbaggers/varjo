@@ -365,7 +365,6 @@
            :*return-var-name-base*
            :*stage-names*
            :*stage-type-names*
-           :*supported-draw-modes*
            :*supported-versions*
            :*valid-contents-symbols*
            :%uniform-name
@@ -426,7 +425,7 @@
            :define-vari-trait
            :define-vari-trait-implementation
            :define-vari-function
-           :define-glsl-template-fun
+           :define-glsl-template-function
            :define-vari-struct
            :define-vari-type
            :define-vari-macro
@@ -511,6 +510,8 @@
            :inject-implicit-uniform
            :input-variable-glsl
            :input-variables
+           :input-variable
+           :implicit-uniform-variable
            :join-glsl-chunks
            :join-glsl-of-compiled
            :line-loop
@@ -605,6 +606,7 @@
            :type-spec->type
            :type-specp
            :uniform-variables
+           :uniform-variable
            :uniforms
            :used-external-functions
            :used-types
@@ -683,7 +685,6 @@
    :*draw-modes*
    :*stage-names*
    :*stage-type-names*
-   :*supported-draw-modes*
    :*supported-versions*
    :*valid-contents-symbols*
    ;;
@@ -713,63 +714,55 @@
    :vertex-count
    ;;
    ;; functions/macros
-   :v-defun
-   :v-def-glsl-template-fun
-   :add-equivalent-name
-   :v-defmacro
-   :v-define-compiler-macro
-   :v-defstruct
    :add-external-function
+   :define-glsl-template-function
+   :define-vari-compiler-macro
+   :define-vari-function
+   :define-vari-macro
    :delete-external-function
+   :v-def-glsl-template-fun
+   :v-define-compiler-macro
+   :v-defmacro
+   :v-defstruct
+   :v-defun
    ;;
    ;; types
-   :define-vari-function
-   :define-glsl-template-fun
+   :add-equivalent-name
+   :define-alternate-type-name
+   :add-alternate-type-name
+   :combine-metadata
+   :core-typep
+   :def-metadata-infer
+   :def-metadata-kind
+   :def-shadow-type-constructor
+   :define-alternate-type-name
+   :define-metadata-infer
+   :define-metadata-kind
+   :define-shadow-type-constructor
    :define-vari-struct
    :define-vari-type
-   :define-vari-macro
-   :define-vari-compiler-macro
-   :define-alternate-type-name
-   :v-deftype
-   :def-shadow-type-constructor
-   :define-shadow-type-constructor
-   :type-specp
+   :ephemeral-p
+   :feedback-group
+   :feedback-qualifier
+   :find-mutual-cast-type
+   :make-type-set
+   :qualifier
    :type->type-spec
    :type-spec->type
-   :v-type-eq
-   :v-typep
-   :v-casts-to-p
+   :type-specp
    :v-casts-to
-   :find-mutual-cast-type
-   :v-special-functionp
+   :v-casts-to-p
+   :v-deftype
+   :v-dimensions
    :v-element-type
    :v-errorp
-   :add-alternate-type-name
-   :resolve-name-from-alternative
-   :ephemeral-p
-   :core-typep
-   :make-type-set
-   :def-metadata-infer
-   :define-metadata-infer
-   :def-metadata-kind
-   :define-metadata-kind
-   :define-vari-function
-   :define-glsl-template-fun
-   :define-vari-struct
-   :define-vari-type
-   :define-vari-macro
-   :define-vari-compiler-macro
-   :define-alternate-type-name
-   :combine-metadata
-   :v-dimensions
-   :qualifier
-   :feedback-qualifier
-   :feedback-group
+   :v-special-functionp
+   :v-type-eq
+   :v-typep
    ;;
    ;; environment
    :add-lisp-form-as-uniform
    :all-bound-symbols
-   :all-symbol-binding-names
    :argument-is-uniform-p
    :argument-type
    :argument-uniform-name
@@ -789,6 +782,9 @@
    :context
    :stemcells-allowed
    :primitive-in
+   :input-variable
+   :uniform-variable
+   :implicit-uniform-variable
    ;;
    ;; compilation
    :translate
