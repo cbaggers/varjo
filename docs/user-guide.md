@@ -8,7 +8,17 @@ Vari is a statically typed dialect of lisp. It attempts to stick as closely as p
 
 ## Language Features
 
-
+- Static typing
+- Basic type propagation (minimizes the need to write the types)
+- Statically resolved first class functions (this means that as long and the compiler can work out the exact function at all call sites you can pass the function)
+- Macros
+  - `defmacro`, `define-compiler-macro`, `macrolet`, `symbol-macrolet` all supported
+  - `&environment` supported (currently custom API for introspection but [cltl2](https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node102.html) API planned)
+- Multiple-value return via `values`, `multiple-value-bind`, `multiple-value-call`, etc
+- local functions via `labels`
+- Functions & Structs defined outside of the shader which allows increase reuse and composability
+- inline GLSL expressions
+- Type & Primitive propagation & checking between shader stages.
 
 ## 'Standard Library'
 
@@ -51,11 +61,11 @@ Vari supports all of the kinds of GLSL stage. When calling make-stage the stage 
 - `:fragment`
 - `:compute`
 
-Input & uniform variables are provided as separate lists along with a [context]() and a list containing the forms that make up the body of the stage (as in a `progn`).
+Input & uniform variables are provided as separate lists, along with a list containing the keyword name of the GLSL version and a list containing the forms that make up the body of the stage (as in a `progn`).
 
 ### Input-Variables
 
-These are the arguments to the stage which change per element that is being processed, whether that be vertex, fragment, patch, etc.
+These are the parameters to the stage which change per element that is being processed, whether that be vertex, fragment, patch, etc.
 
 GLSL does not allow an input variable to a shader stage to be a struct. We found this annoying so Vari allows it and will break down the input structs as you would have to do usually.
 
@@ -102,15 +112,15 @@ Varjo used an interface block to group of the inputs. When [rolling-translate](h
 
 ### Uniforms
 
-These are the arguments that stay the same (are uniform) for the duration of the pipeline. The format is the same as for input-variables, however there are a few more qualifiers of note:
+These are the parameters that stay the same (are uniform) for the duration of the pipeline. The format is the same as for input-variables, however there are a few more qualifiers of note:
 
 #### :ssbo
 
-This tells Varjo that the data will be coming from an SSBO. The type of this argument must be a struct. You can write to the slots of this uniform.
+This tells Varjo that the data will be coming from an SSBO. The type of this parameter must be a struct. You can write to the slots of this uniform.
 
 #### :ubo
 
-This tells Varjo that the data will be coming from an SSBO. The type of this argument must be a struct. This is read only
+This tells Varjo that the data will be coming from an SSBO. The type of this parameter must be a struct. This is read only
 
 #### :packed / :std-140 / :std-430
 
@@ -184,7 +194,7 @@ We also allow you to pass UBO variables & SSBO variables to functions, usually t
 
 ### Stage Specifics
 
-More details on the stages can be found [here]()
+More details on the stages can be found [here](stage-specifics.md)
 
 ## Using the Result
 
@@ -203,14 +213,14 @@ The first is [define-vari-function](http://techsnuffle.com/varjo/varjo-reference
 
 After this is compiled you can write calls such as `(test 3.0)` in any stage as the function will be included in the glsl automatically.
 
-Please note that, other than checking the types of the arguments, Vari will do no checks on the validity of the code. Doing so would requires knowing the [context]() that the function would be used in (e.g. which stage, which version etc). The first time you will know if the code was valid is when it is called from a stage being compiled.
+Please note that, other than checking the types of the parameters, Vari will do no checks on the validity of the code. Doing so would requires knowing the context that the function would be used in (e.g. which stage, which version etc). The first time you will know if the code was valid is when it is called from a stage being compiled.
 
 If the lack of checking is an issue (as it would be in CEPL) it would be advisable to have your code use the [test-translate-function-split-details](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ATEST-TRANSLATE-FUNCTION-SPLIT-DETAILS) function. This will make a dummy stage an compile it in order to find potential issues. To test the above `test` function we would do the following:
 
     (varjo:test-translate-function-split-details
       'test '((x :float)) nil '(:450) '((* x x)))
 
-See the reference docs for [test-translate-function-split-details](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ATEST-TRANSLATE-FUNCTION-SPLIT-DETAILS) for what each argument is for.
+See the reference docs for [test-translate-function-split-details](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ATEST-TRANSLATE-FUNCTION-SPLIT-DETAILS) for what each parameter is for.
 
 If you are wrapping Varjo (which is the most likely usecase) the rather than using `define-vari-function` itself, you can simply use the function call it expands to.
 
@@ -220,7 +230,7 @@ Again see the reference docs for [add-external-function](http://techsnuffle.com/
 
 In short however, `test-translate-function-split-details` & `add-external-function` together allow you to make a more robust experience for your users than `define-vari-function` provides.
 
-### define-glsl-template-fun
+### define-glsl-template-function
 
 This is used to define a GLSL expression as a function. For example
 
@@ -228,7 +238,7 @@ This is used to define a GLSL expression as a function. For example
       "foo(~a)"
       :pure t)
 
-See [here]() for the info on how to use this and it's restrictions.
+See [here](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ADEFINE-GLSL-TEMPLATE-FUNCTION) for the info on how to use this and it's restrictions.
 
 ### A quick note on v-def-glsl-template-fun and v-defun
 
