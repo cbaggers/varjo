@@ -14,33 +14,33 @@ Vari is a statically typed dialect of lisp. It attempts to stick as closely as p
 
 Vari includes a large number of functions, macros etc from both Common Lisp and should support all of GLSL.
 
-You can find details on what exactly is supported in the following links
+You can find details on what exactly is supported here
 
-- [Common Lisp api supported in Vari]()
-- [GLSL api supported in Vari]()
+- [Common Lisp api supported in Vari](http://techsnuffle.com/varjo/vari-reference.html#COMMON-LISP)
+- [GLSL api supported in Vari](http://techsnuffle.com/varjo/vari-reference.html#VARI)
 
 ## The Packages
 
-There are 2 packages of note in the Varjo system: [vari]() & [varjo]()
+There are 2 packages of note in the Varjo system: [vari](http://techsnuffle.com/varjo/vari-reference.html#VARI) & [varjo](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API)
 
 `:Use` the `vari` package in packages where you (or your users) will be writing shaders in Vari
 
-`:Use` the `varjo` package in packages where you will be running the compiler. Usually this is done from withing function/macros the users interact with. See [CEPL]() as an example of such a system.
+`:Use` the `varjo` package in packages where you will be running the compiler. Usually this is done from withing function/macros the users interact with. See [CEPL](https://github.com/cbaggers/cepl) for an example of such a system.
 
 ## Using the Compiler
 
-GLSL programs are made of `stage`s Varjo can compile stages both individually or as a 'pipeline'.
+GLSL programs are made of [stage](https://www.khronos.org/opengl/wiki/Shader#Stages)s. Varjo can compile stages both individually or as a 'pipeline'.
 
-- To compile an individual stage you use the [translate]() function
-- To compile multiple stages as a pipeline you use the [rolling-translate]() function
+- To compile an individual stage you use the [translate](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ATRANSLATE) function
+- To compile multiple stages as a pipeline you use the [rolling-translate](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3AROLLING-TRANSLATE) function
 
 When using `rolling-translate` Varjo will check the data flowing from stage to stage, this can help catch type mismatches and other stage specific issues.
 
-`translate` will produce a [compiled-stage]() object, `rolling-translate` will produce a list of `compiled-stage`s
+`translate` will produce a [compiled-stage](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ACOMPILED-STAGE) object, `rolling-translate` will produce a list of `compiled-stage`s
 
 ## Making a Stage
 
-Stages are made using the [make-stage]() function.
+Stages are made using the [make-stage](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3AMAKE-STAGE) function.
 
 Vari supports all of the kinds of GLSL stage. When calling make-stage the stage kind is passed one of the following keywords:
 
@@ -98,7 +98,7 @@ Here is a simple example showing some inputs:
     }
     "
 
-Varjo used an interface block to group of the inputs. When [rolling-translate]() is used these blocks will be named appropriately so that the GLSL can be compiled as a single program.
+Varjo used an interface block to group of the inputs. When [rolling-translate](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3AROLLING-TRANSLATE) is used these blocks will be named appropriately so that the GLSL can be compiled as a single program.
 
 ### Uniforms
 
@@ -188,7 +188,7 @@ More details on the stages can be found [here]()
 
 ## Using the Result
 
-When you have your `compiled-stage` (or list of them) you will want to get the GLSL from them. This is done using the [glsl-code]() function. Given a `compiled-stage` it will return a string containing the GLSL. Given a list of `compiled-stage`s it will return a list of strings containing the GLSL.
+When you have your `compiled-stage` (or list of them) you will want to get the GLSL from them. This is done using the [glsl-code](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3AGLSL-CODE) function. Given a `compiled-stage` it will return a string containing the GLSL. Given a list of `compiled-stage`s it will return a list of strings containing the GLSL.
 
 ## Defining Functions
 
@@ -196,7 +196,7 @@ Whilst Vari does support local functions, it is nice to be able to share code be
 
 ### define-vari-function
 
-The first is [define-vari-function](), it let's you define a function with the body being written in Vari. For example:
+The first is [define-vari-function](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ADEFINE-VARI-FUNCTION), it let's you define a function with the body being written in Vari. For example:
 
     (define-vari-function test ((x :float))
       (* x x))
@@ -205,18 +205,18 @@ After this is compiled you can write calls such as `(test 3.0)` in any stage as 
 
 Please note that, other than checking the types of the arguments, Vari will do no checks on the validity of the code. Doing so would requires knowing the [context]() that the function would be used in (e.g. which stage, which version etc). The first time you will know if the code was valid is when it is called from a stage being compiled.
 
-If the lack of checking is an issue (as it would be in CEPL) it would be advisable to have your code use the [test-translate-function-split-details]() function. This will make a dummy stage an compile it in order to find potential issues. To test the above `test` function we would do the following:
+If the lack of checking is an issue (as it would be in CEPL) it would be advisable to have your code use the [test-translate-function-split-details](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ATEST-TRANSLATE-FUNCTION-SPLIT-DETAILS) function. This will make a dummy stage an compile it in order to find potential issues. To test the above `test` function we would do the following:
 
     (varjo:test-translate-function-split-details
       'test '((x :float)) nil '(:450) '((* x x)))
 
-See the reference docs for [test-translate-function-split-details]() for what each argument is for.
+See the reference docs for [test-translate-function-split-details](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ATEST-TRANSLATE-FUNCTION-SPLIT-DETAILS) for what each argument is for.
 
 If you are wrapping Varjo (which is the most likely usecase) the rather than using `define-vari-function` itself, you can simply use the function call it expands to.
 
     (add-external-function 'test '((x :float)) nil '((* x x)))
 
-Again see the reference docs for [add-external-function]() to see how this should be used.
+Again see the reference docs for [add-external-function](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3AADD-EXTERNAL-FUNCTION) to see how this should be used.
 
 In short however, `test-translate-function-split-details` & `add-external-function` together allow you to make a more robust experience for your users than `define-vari-function` provides.
 
@@ -238,7 +238,7 @@ They are not removed as I don't want to break existing projects but use of the n
 
 ## User Defined Types
 
-Unlike GLSL, Vari lets you define types outside of stages, further assisting code reuse. There are two ways to define new types for Vari, [define-vari-struct]() & [define-vari-type]().
+Unlike GLSL, Vari lets you define types outside of stages, further assisting code reuse. There are two ways to define new types for Vari, [define-vari-struct](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ADEFINE-VARI-STRUCT) & [define-vari-type](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3ADEFINE-VARI-TYPE).
 
 ### define-vari-struct
 
