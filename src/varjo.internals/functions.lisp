@@ -55,7 +55,7 @@
                 :pure ,pure))
               ',name))))
 
-(defmacro define-glsl-template-funtion (name args return-spec transform &key pure)
+(defmacro define-glsl-template-function (name args return-spec transform &key pure)
   (let ((arg-names (mapcar #'first args))
         (arg-types (mapcar #'second args)))
     `(v-def-glsl-template-fun ,name ,arg-names ,transform ,arg-types
