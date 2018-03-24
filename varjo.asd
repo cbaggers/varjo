@@ -6,7 +6,8 @@
   :license "BSD 2 Clause"
   #+asdf-unicode :encoding #+asdf-unicode :utf-8
   :serial t
-  :depends-on (#:vas-string-metrics
+  :depends-on (#:documentation-utils
+               #:vas-string-metrics
                #:named-readtables
                #:split-sequence
                #:glsl-symbols

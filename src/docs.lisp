@@ -36,12 +36,6 @@ Note: That 'ostensibly' is there as I'm very sure that the lower levels of GLSL
 varjo is currently doing a very poor job. If you have the time please file
 issues that you find at https://github.com/cbaggers/varjo/issues
 ")
-  (defvar *valid-contents-symbols*
-    "
-`*valid-contents-symbols*` is a variable that holds the symbols that are valid
-to use in a context declaration.
-")
-
   ;;
   ;; stages
   (defclass vertex-stage
@@ -476,7 +470,81 @@ various GLSL qualifiers.
   ;; stages
   (defun make-stage
       "
-`make-stage`
+`make-stage` is the function that create an object that can be passed to the
+`translate` function. It takes the following arguments:
+
+### kind
+
+This must be one of the keywords in *stage-names*:
+
+- :vertex
+- :tessellation-control
+- :tessellation-evaluation
+- :geometry
+- :fragment
+- :compute
+
+### in-args
+
+Must be a list of input parameters to the stage. These are the values to which change
+per element that is being processed, whether that be per vertex, fragment, patch,
+instance, etc.
+
+The input variables are defined as lists in the following fashion:
+
+    (variable-name
+     type-spec
+     &rest optional-qualifier-designators [\"explicit-glsl-name\"])
+
+Usually this looks like:
+
+    (vert :vec4)
+    (data lighting-data)
+    (length :int :flat) <- flat is the qualifier in this case
+
+If the last element of the list is a string, then that string is used as the name of the variable in the compiled GLSL. This is very rarely used and should generally be avoided.
+
+### uniforms
+
+This is a list of the uniforms to stage. These are the values that stay the same (are
+uniform) for the duration of the pipeline.
+
+They are defined in the same way as the above 'in-args' except that, if the type-spec
+specified a struct type the following additional qualifiers are allowed:
+
+- `:ssbo`
+- `:ubo`
+- `:std-140`
+- `:std-430`
+
+The result of `make-stage` is an instance of one of the subclasses of the
+`stage` type.
+
+### context
+
+The context argument must be a list that may contain any number of symbols from
+*supported-versions*. Context is used to specify the GLSL version to compile the
+stage.
+
+NOTE: The name 'context' is legacy at thsi point as it is only used to specify
+GLSL versions.
+
+### code
+
+This must be a list containing the forms that make up the 'body' of the stage.
+
+It is not legal for this argument to be nil.
+
+### stemcells-allowed (optional)
+
+If this argument is not NIL then the compiler will allow the capture of globally
+scoped variables from Common Lisp and use of `add-lisp-form-as-uniform` from
+within macros. For details on how to support 'global variable capture' please see
+the documentation for `with-stemcell-infer-hook` & `with-constant-inject-hook`
+
+### primitive (optional)
+
+This can be nil or one of the keywords *
 ")
   (defun lisp-code
       "
@@ -503,51 +571,51 @@ various GLSL qualifiers.
 `primitive-in `
 ")
 
-  input-variable
-  uniform-variable
-  implicit-uniform-variable
+  ;; input-variable
+  ;; uniform-variable
+  ;; implicit-uniform-variable
   )
 
 
-;;
-;; compilation
-translate
-rolling-translate
-v-compile
-;;
-;; test compilation
-test-translate-function-split-details
-;;
-;; compiled stages
-compiled-stage
-compiled-vertex-stage
-compiled-tessellation-control-stage
-compiled-tessellation-evaluation-stage
-compiled-geometry-stage
-compiled-fragment-stage
-compiled-compute-stage
-glsl-code
-output-variables
-implicit-uniforms
-used-external-functions
-primitive-out
-block-name-string
-;;
-;; compiled vars
-name
-qualifiers
-glsl-name
-v-type-of
-location
-v-glsl-size
-cpu-side-transform
-;;
-;; hooks
-with-stemcell-infer-hook
-with-constant-inject-hook
-;;
-;; testing
-with-unknown-first-class-functions-allowed
-;;
-;; to sort
-lisp-name
+;; ;;
+;; ;; compilation
+;; translate
+;; rolling-translate
+;; v-compile
+;; ;;
+;; ;; test compilation
+;; test-translate-function-split-details
+;; ;;
+;; ;; compiled stages
+;; compiled-stage
+;; compiled-vertex-stage
+;; compiled-tessellation-control-stage
+;; compiled-tessellation-evaluation-stage
+;; compiled-geometry-stage
+;; compiled-fragment-stage
+;; compiled-compute-stage
+;; glsl-code
+;; output-variables
+;; implicit-uniforms
+;; used-external-functions
+;; primitive-out
+;; block-name-string
+;; ;;
+;; ;; compiled vars
+;; name
+;; qualifiers
+;; glsl-name
+;; v-type-of
+;; location
+;; v-glsl-size
+;; cpu-side-transform
+;; ;;
+;; ;; hooks
+;; with-stemcell-infer-hook
+;; with-constant-inject-hook
+;; ;;
+;; ;; testing
+;; with-unknown-first-class-functions-allowed
+;; ;;
+;; ;; to sort
+;; lisp-name

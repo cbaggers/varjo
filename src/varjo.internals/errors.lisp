@@ -739,6 +739,12 @@ you need more control.
 
 Context found: ~s" context)
 
+(define-error primitive-in-context () (context)
+    "It is not longer valid for the primitive to be declared in the context
+Please simply use the primitive argument to make-stage.
+
+Context found: ~s" context)
+
 (define-error invalid-stage-kind () (kind)
     "make-stage called with the invalid stage kind ~s"
   kind)

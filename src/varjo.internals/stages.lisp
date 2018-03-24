@@ -190,16 +190,20 @@
 
 (defun process-context (raw-context)
   ;; As this was a more recent change we wanted a more explanatory error
-  (assert (null (remove-if-not λ(find _ *stage-names*) raw-context))
-          () 'stage-in-context :context raw-context)
+  (assert (null (intersection raw-context *stage-names*))
+          () 'stage-in-context
+          :context (set-difference raw-context *stage-names*))
+  (assert (null (find #'valid-primitive-name-p raw-context))
+          () 'primitive-in-context
+          :context raw-context)
   ;; ensure there is a version
-  (labels ((valid (x) (find x *valid-contents-symbols*)))
+  (labels ((valid (x) (find x *supported-versions*)))
     (assert (every #'valid raw-context) () 'invalid-context-symbols
-            :symbols (remove #'valid raw-context )))
+            :symbols (remove-if #'valid raw-context)))
   ;;
   (if (intersection raw-context *supported-versions*)
       raw-context
-      (cons *default-version* raw-context)))
+      (list *default-version*)))
 
 ;;{TODO} proper error
 (defun check-arg-form (arg)

@@ -346,6 +346,7 @@
            :fragment-integer-inputs-not-flat
            :invalid-coerce
            :conditional-multiple-vals-mismatch
+           :primitive-in-context
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -366,7 +367,7 @@
            :*stage-names*
            :*stage-type-names*
            :*supported-versions*
-           :*valid-contents-symbols*
+           :valid-primitive-name-p
            :%uniform-name
            :a-add
            :add-alternate-type-name
@@ -686,7 +687,6 @@
    :*stage-names*
    :*stage-type-names*
    :*supported-versions*
-   :*valid-contents-symbols*
    ;;
    ;; stages
    :vertex-stage
@@ -697,6 +697,7 @@
    :compute-stage
    ;;
    ;; primitives, draw-modes, etc
+   :valid-primitive-name-p
    :dynamic
    :line-loop
    :line-strip

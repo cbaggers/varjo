@@ -12,7 +12,8 @@
              :clashes clashes))))
 
 (defun glsl-to-compile-result
-    (stage-kind in-args uniforms outputs context body-string)
+    (stage-kind in-args uniforms outputs context body-string
+     &optional primitive)
   "Here our goal is to simple reuse as much from varjo as possible.
    This will mean we have less duplication, even if things seem a little
    ugly here"
@@ -24,11 +25,11 @@
   (let* ((arg-types (mapcar #'type-spec->type
                             (append (mapcar #'second in-args)
                                     (mapcar #'second uniforms))))
-         (primitive-kind (get-primitive-type-from-context context))
-         (primitive (when primitive-kind
-                      (primitive-name-to-instance primitive-kind)))
-         (context (when primitive-kind
-                    (remove primitive-kind context :test #'equal)))
+         (stage-type (if stage-kind
+                         (stage-kind-to-type stage-kind)
+                         'stage))
+         (primitive (%process-primitive-type stage-type primitive))
+         (context (process-context context))
          (in-args (mapcar #'process-glsl-arg in-args))
          (uniforms (mapcar #'process-glsl-arg uniforms))
          (stage (make-stage stage-kind in-args uniforms context

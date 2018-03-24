@@ -414,17 +414,6 @@ For example calling env-prune on this environment..
 (defun get-stage-from-env (env)
   (get-version-from-context (v-context env)))
 
-(defun get-primitive-type-from-context (context)
-  (or (find-if λ(or (member _ *draw-modes*)
-                    (and (listp _)
-                         (string= (first _) "PATCH")
-                         (integerp (second _))))
-               context)
-      :triangles))
-
-(defun get-stage-kind-from-context (context)
-  (find-if λ(member _ *stage-names*) context))
-
 ;;-------------------------------------------------------------------------
 
 (defmethod add-global-compiler-macro ((macro v-compiler-macro))

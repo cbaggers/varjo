@@ -127,10 +127,6 @@
 (defvar *emit-var-name-base* "emit")
 (defvar *return-var-name-base* "return")
 
-(defvar *valid-contents-symbols*
-  (append (copy-list *supported-versions*)
-          (copy-list *draw-modes*)))
-
 (defvar *type-shorthand*
   '((:bool . v-bool)
     (:int . v-int)

@@ -414,6 +414,20 @@
         (:quads (make-instance 'quads))
         (:patches (error 'underspecified-patch-primitive)))))
 
+(defun valid-primitive-name-p (name)
+  (if (listp name)
+      (dbind (name length) name
+        (and (string= name "PATCH")
+             (integerp length)
+             (> length 1)))
+      (not (null
+            (find name
+                  '(:dynamic :points :lines :iso-lines
+                    :line-loop :line-strip :lines-adjacency
+                    :line-strip-adjacency :triangles :triangle-fan
+                    :triangle-strip :triangles-adjacency
+                    :triangle-strip-adjacency :quads))))))
+
 ;;-------------------------------------------------------------------------
 
 (defclass v-function ()
