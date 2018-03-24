@@ -16,6 +16,10 @@
   (pos :vec3)
   (sam :sampler-2d))
 
+(v-defun useless-unpack-0 ((pc pos-col))
+  (let ((v (pos pc)))
+    (+ (x v) (y v) (z v))))
+
 ;;------------------------------------------------------------
 ;; Tests
 
@@ -71,3 +75,27 @@
   (signals varjo-conditions:opaque-data-found
     (compile-vert (&uniform (vert pos-sam :ssbo)) :410 nil
       (v! 1 2 3 4))))
+
+(5am:def-test structs-8 (:suite struct-tests)
+  (finishes-p
+   (compile-vert (&uniform (data pos-col)) :410 nil
+     (useless-unpack-0 data)
+     (vec4 0))))
+
+(5am:def-test structs-9 (:suite struct-tests)
+  (finishes-p
+   (compile-vert (&uniform (data pos-col :ssbo)) :430 nil
+     (useless-unpack-0 data)
+     (vec4 0))))
+
+(5am:def-test structs-10 (:suite struct-tests)
+  (finishes-p
+   (compile-vert (&uniform (data pos-col :ubo)) :430 nil
+     (useless-unpack-0 data)
+     (vec4 0))))
+
+(5am:def-test structs-11 (:suite struct-tests)
+  (finishes-p
+   (compile-vert ((vert pos-col)) :430 nil
+     (useless-unpack-0 vert)
+     (vec4 0))))
