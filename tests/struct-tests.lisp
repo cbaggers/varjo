@@ -20,6 +20,12 @@
   (let ((v (pos pc)))
     (+ (x v) (y v) (z v))))
 
+(v-defun useless-unpack-1 ((pc pos-col))
+  (with-slots (position) pc
+    (+ (x position)
+       (y position)
+       (z position))))
+
 ;;------------------------------------------------------------
 ;; Tests
 
@@ -98,4 +104,22 @@
   (finishes-p
    (compile-vert ((vert pos-col)) :430 nil
      (useless-unpack-0 vert)
+     (vec4 0))))
+
+(5am:def-test structs-12 (:suite struct-tests)
+  (finishes-p
+   (compile-vert (&uniform (data pos-col :ssbo)) :430 nil
+     (with-slots (color) data
+       color))))
+
+(5am:def-test structs-13 (:suite struct-tests)
+  (finishes-p
+   (compile-vert (&uniform (data pos-col)) :430 nil
+     (useless-unpack-1 data)
+     (vec4 0))))
+
+(5am:def-test structs-14 (:suite struct-tests)
+  (finishes-p
+   (compile-vert (&uniform (data pos-col :ubo)) :430 nil
+     (useless-unpack-1 data)
      (vec4 0))))

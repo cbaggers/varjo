@@ -150,13 +150,15 @@
   (let ((binding (get-symbol-binding value-form t env)))
     (if (and (typep binding 'v-value)
              (not (typep binding 'uninitialized-value)))
-        (progn
-          (v-variable->code-obj value-form binding env)
+        (let ((binding-with-new-scope-id
+               (copy-value binding :function-scope (v-function-scope env))))
+          ;; {TODO} what is this line for?
+          (v-variable->code-obj value-form binding-with-new-scope-id env)
           (values
            (make-compiled :type-set (make-type-set)
                           :current-line nil
                           :pure t)
-           (add-symbol-binding name binding env)))
+           (add-symbol-binding name binding-with-new-scope-id env)))
         (compile-regular-let name type-spec value-form env
                              glsl-name assume-bound))))
 
