@@ -77,77 +77,77 @@ tessellation-evaluation stage.
   (defclass dynamic
       "
 `dynamic` is the class that represents the simarlaly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass line-loop
       "
 `line-loop` is the class that represents the simarlaly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass line-strip
       "
 `line-strip` is the class that represents the simarlaly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass line-strip-adjacency
       "
 `line-strip-adjacency` is the class that represents the simarlaly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass lines
       "
 `lines` is the class that represents the simarlaly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass lines-adjacency
       "
 `lines-adjacency` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass patches
       "
 `patches` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass points
       "
 `points` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass quads
       "
 `quads` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass triangle-fan
       "
 `triangle-fan` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass triangle-strip
       "
 `triangle-strip` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass triangle-strip-adjacency
       "
 `triangle-strip-adjacency` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass triangles
       "
 `triangles` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass triangles-adjacency
       "
 `triangles-adjacency` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
   (defclass vertex-count
       "
 `vertex-count` is the class that represents the similarly
-named GL draw-mode.
+named GL primitive.
 ")
 
   ;;
@@ -521,7 +521,7 @@ The context argument must be a list that may contain any number of symbols from
 *supported-versions*. Context is used to specify the GLSL version to compile the
 stage.
 
-NOTE: The name 'context' is legacy at thsi point as it is only used to specify
+NOTE: The name 'context' is legacy at this point as it is only used to specify
 GLSL versions.
 
 ### code
@@ -539,31 +539,77 @@ the documentation for `with-stemcell-infer-hook` & `with-constant-inject-hook`
 
 ### primitive (optional)
 
-This can be nil or one of the keywords *
+This can be nil, a instance of the type 'primitive or a valid 'primitive
+designator' as specified by the `valid-primitive-name-p` function.
+
+Primitive designators are either one of the following keywords..
+
+- `:dynamic`
+- `:points`
+- `:lines`
+- `:iso-lines`
+- `:line-loop`
+- `:line-strip`
+- `:lines-adjacency`
+- `:line-strip-adjacency`
+- `:triangles`
+- `:triangle-fan`
+- `:triangle-strip`
+- `:triangles-adjacency`
+- `:triangle-strip-adjacency`
+- `:quads`
+
+.. or a list whos first element is `:patches` and the second (and final) element
+is a positive integer that is greater than 1. This specifies the length of
+the patch.
+
+Whilst this is optional in `make-stage` it must be set before being passed to
+translate if the stage kind is one of the following:
+
+- tessellation-control-stage
+- tessellation-evaluation-stage
+- geometry-stage
+
+*Or* if it the first stage in the list of stages passed to `rolling-translate`
+and if some of the other stages are of the above kinds.
 ")
   (defun lisp-code
       "
-`lisp-code`
+When passed an instance of `stage`, `lisp-code` returns the Vari code that
+acts as the body of the stage.
 ")
   (defun input-variables
       "
-`input-variables`
+When passed an instance of `stage` this function returns a list of
+`input-variable` objects which respresent the input paramaters to
+the stage
 ")
   (defun uniform-variables
       "
-`uniform-variables`
+When passed an instance of `stage` this function returns a list of
+`uniform-variable` objects which respresent the uniform paramaters to
+the stage
 ")
   (defun context
       "
-`context`
+When passed an instance of `stage` this function returns a list of
+GLSL versions which this stage was/is to be compiled with
 ")
   (defun stemcells-allowed
       "
-`stemcells-allowed`
+When passed an instance of `stage` this function returns a `generalized-boolean`
+
+If this argument is not NIL then the compiler will allow the capture
+of globally scoped variables from Common Lisp and use of `add-lisp-form-as-uniform`
+from within macros.
+
+For details on how to support 'global variable capture' please see the documentation
+for `with-stemcell-infer-hook` & `with-constant-inject-hook`
 ")
   (defun primitive-in
       "
-`primitive-in `
+When passed an instance of `stage` this function returns an instance of `primitive`
+or nil.
 ")
 
   ;; input-variable
