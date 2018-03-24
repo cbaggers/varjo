@@ -23,6 +23,14 @@ Subset of common lisp. Including:
 - Rolling translate, where out vars from one stage can be automatically fed into the next
 - Easy to extend (API still in progress)
 
+### Documentation
+
+The user guide can be found in [docs/user-guide.md](docs/user-guide.md)
+
+The reference documentation for the compiler can be found [here](http://techsnuffle.com/varjo/varjo-reference.html)
+
+The reference documentation for the Vari language can be found [here](http://techsnuffle.com/varjo/vari-reference.html)
+
 ### Installing
 
 Run `(ql:quickload :varjo)` at your REPL.
