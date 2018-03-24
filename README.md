@@ -50,6 +50,7 @@ Whist it is recommended to get Varjo from quicklisp, if you clone please note th
 
 Lots landing this month, whilst my current test suite passes I'm still expecting some issues or regressions, if these hit you PLEASE let me know so I can avoid merging this to quicklisp before the regressions have been handled. Quick summary of changes are:
 
+- Documentation! (see the Documentation section above for the links)
 - GLSL 460 fixes
 - compute bug fixes
 - tonnes of functions from the CL spec added (see below)
