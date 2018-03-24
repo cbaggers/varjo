@@ -107,4 +107,7 @@
                (:file "src/varjo.internals/test-compile")
                (:file "src/varjo.internals/front-end")
 
-               (:file "src/varjo.api/environment")))
+               (:file "src/varjo.api/environment")
+
+               (:file "src/varjo.api/docs")
+               (:file "src/docs")))
