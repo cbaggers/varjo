@@ -188,7 +188,7 @@
        (projection :mat4) (model->clip :mat4) (normal-mat :mat3)
        (light-position :vec3) (diffuse-material :vec3) (ambient-material :vec3))
      :410
-     :draw-mode :dynamic
+     :primitive :dynamic
 
      :vertex
      '(((position :vec4)) position)
@@ -206,7 +206,7 @@
       (projection :mat4) (model->clip :mat4) (normal-mat :mat3)
       (light-position :vec3) (diffuse-material :vec3) (ambient-material :vec3))
     :410
-    :draw-mode :dynamic
+    :primitive :dynamic
 
     :vertex
     '(((position :vec4))
@@ -246,7 +246,7 @@
       (projection :mat4) (model->clip :mat4) (normal-mat :mat3)
       (light-position :vec3) (diffuse-material :vec3) (ambient-material :vec3))
     :410
-    :draw-mode '(:patch 3)
+    :primitive '(:patch 3)
 
     :vertex
     '(((position :vec4))

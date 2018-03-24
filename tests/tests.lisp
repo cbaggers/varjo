@@ -51,7 +51,7 @@
       (v-compile ',uniforms ,version
                  :compute '(,in-args ,@body)
                  :allow-stemcells ,allow-stemcells
-                 :draw-mode nil))))
+                 :primitive nil))))
 
 (defmacro finishes-p (form)
   (alexandria:with-gensyms (res elem)

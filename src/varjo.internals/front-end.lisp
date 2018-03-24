@@ -6,7 +6,7 @@
 (defun v-compile (uniforms version
                   &key vertex tessellation-control tessellation-evaluation
                     geometry fragment compute allow-stemcells
-                    (draw-mode :triangles))
+                    draw-mode (primitive :triangles))
   "
 This function takes lisp code as lists and returns the results of compiling
 that code to glsl.
@@ -31,7 +31,10 @@ Example:
 "
   (assert (or vertex tessellation-control tessellation-evaluation
               geometry fragment compute))
-  (let* ((prim (list draw-mode))
+  (when draw-mode
+    (warn 'v-deprecated :old ":draw-mode" :new ":primitive"))
+  (let* ((primitive (or primitive draw-mode))
+         (prims (list primitive))
          (stages (list (when vertex
                          (make-stage :vertex
                                      (first vertex)
@@ -39,7 +42,7 @@ Example:
                                      (list version)
                                      (rest vertex)
                                      allow-stemcells
-                                     (pop prim)))
+                                     (pop prims)))
                        (when tessellation-control
                          (make-stage :tessellation-control
                                      (first tessellation-control)
@@ -47,7 +50,7 @@ Example:
                                      (list version)
                                      (rest tessellation-control)
                                      allow-stemcells
-                                     (pop prim)))
+                                     (pop prims)))
                        (when tessellation-evaluation
                          (make-stage :tessellation-evaluation
                                      (first tessellation-evaluation)
@@ -55,7 +58,7 @@ Example:
                                      (list version)
                                      (rest tessellation-evaluation)
                                      allow-stemcells
-                                     (pop prim)))
+                                     (pop prims)))
                        (when geometry
                          (make-stage :geometry
                                      (first geometry)
@@ -63,7 +66,7 @@ Example:
                                      (list version)
                                      (rest geometry)
                                      allow-stemcells
-                                     (pop prim)))
+                                     (pop prims)))
                        (when fragment
                          (make-stage :fragment
                                      (first fragment)
@@ -71,7 +74,7 @@ Example:
                                      (list version)
                                      (rest fragment)
                                      allow-stemcells
-                                     (pop prim)))
+                                     (pop prims)))
                        (when compute
                          (make-stage :compute
                                      nil
@@ -79,10 +82,10 @@ Example:
                                      (list version)
                                      (rest compute)
                                      allow-stemcells
-                                     (pop prim)))))
+                                     (pop prims)))))
          (stages (remove nil stages))
          (first (first stages)))
-    (setf (primitive-in first) draw-mode)
+    (setf (primitive-in first) primitive)
     (rolling-translate stages)))
 
 ;;----------------------------------------------------------------------
