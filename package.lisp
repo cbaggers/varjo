@@ -511,6 +511,7 @@
            :input-variable-glsl
            :input-variables
            :input-variable
+           :shader-variable
            :implicit-uniform-variable
            :join-glsl-chunks
            :join-glsl-of-compiled
@@ -783,6 +784,7 @@
    :primitive-in
    :input-variable
    :uniform-variable
+   :shader-variable
    :implicit-uniform-variable
    ;;
    ;; compilation

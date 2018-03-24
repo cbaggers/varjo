@@ -144,10 +144,17 @@ named GL primitive.
 `triangles-adjacency` is the class that represents the similarly
 named GL primitive.
 ")
-  (defclass vertex-count
+  (defun vertex-count
       "
-`vertex-count` is the class that represents the similarly
-named GL primitive.
+When passed an instance of `primitive` this function returns the number
+of vertices that make up this kind of primitive.
+")
+
+  (defun lisp-name
+      "
+When passed an instance of `primitive` this function returns the keyword
+name of the primitive. This is the name one would pass to functions like
+`make-stage`.
 ")
 
   ;;
@@ -612,51 +619,310 @@ When passed an instance of `stage` this function returns an instance of `primiti
 or nil.
 ")
 
-  ;; input-variable
-  ;; uniform-variable
-  ;; implicit-uniform-variable
-  )
+  (defclass input-variable
+      "
+`input-variable` is a class which holds data about the input parameters to the stage
 
+You can call the following functions on it to retrieve the data:
 
-;; ;;
-;; ;; compilation
-;; translate
-;; rolling-translate
-;; v-compile
-;; ;;
-;; ;; test compilation
-;; test-translate-function-split-details
-;; ;;
-;; ;; compiled stages
-;; compiled-stage
-;; compiled-vertex-stage
-;; compiled-tessellation-control-stage
-;; compiled-tessellation-evaluation-stage
-;; compiled-geometry-stage
-;; compiled-fragment-stage
-;; compiled-compute-stage
-;; glsl-code
-;; output-variables
-;; implicit-uniforms
-;; used-external-functions
-;; primitive-out
-;; block-name-string
-;; ;;
-;; ;; compiled vars
-;; name
-;; qualifiers
-;; glsl-name
-;; v-type-of
-;; location
-;; v-glsl-size
-;; cpu-side-transform
-;; ;;
-;; ;; hooks
-;; with-stemcell-infer-hook
-;; with-constant-inject-hook
-;; ;;
-;; ;; testing
-;; with-unknown-first-class-functions-allowed
-;; ;;
-;; ;; to sort
-;; lisp-name
+- `name`
+- `v-type-of`
+- `glsl-name`
+")
+  (defclass uniform-variable
+      "
+`uniform-variable` is a class which holds data about the uniform parameters to the stage
+
+You can call the following functions on it to retrieve the data:
+
+- `name`
+- `v-type-of`
+- `glsl-name`
+")
+  (defclass implicit-uniform-variable
+      "
+`implicit-uniform-variable` is a class which holds data about the uniforms that added
+implicitly (whether by globally scoped variable capture or by use of
+`add-lisp-form-as-uniform`)
+
+You can call the following functions on it to retrieve the data:
+
+- `name`
+- `v-type-of`
+- `glsl-name`
+")
+  ;;
+  ;; compilation
+  (defun translate
+      "
+When called with an instance of `stage` `translate` compiles it, returning
+an instance of `compiled-stage`
+"
+    )
+  (defun rolling-translate
+      "
+When called with a list of `stage` objects, `rolling-translate` compiles
+them returning a list of `compiled-stage` objects.
+
+`rolling-translate` does not simply `mapcar` the list over `translate` it
+propegates information like the primitive and ensures that outputs of one
+stage match up with the inputs of the next. This means that you only have
+to specify the primitive on the vertex stage when compiling a whole
+pipeline and any geometry/tessellation stages in the list will receive the
+correct information.
+"
+    )
+  (defun v-compile
+      "
+> NOTE: It is the authors recommendation to use `make-stage` & `translate`
+>       rather than this function
+
+This function takes lisp code as lists and returns the results of compiling
+that code to glsl.
+
+Each result is an object of type 'compiled-stage.
+
+The stages must be defined in the following way.
+
+- The first element of the list is the input args to the stage as pairs of
+  names and types.
+- The rest of the list is the body code of that stage.
+
+Example:
+
+    (v-compile '((a :float)) :330
+               :vertex '(((pos :vec3))
+                         (values (vec4 pos 1.0) a))
+               :fragment '(((hmm :float))
+                           (labels ((fun ((x :float))
+                                      (* x x)))
+                             (vec4 1.0 1.0 hmm (fun a)))))
+")
+
+  ;;
+  ;; test compilation
+  (defun test-translate-function-split-details
+      "
+")
+
+  ;;
+  ;; compiled stages
+  (defclass compiled-stage
+      "
+`compiled-stage` is a type which is used to respresent the compiled equivalent of. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defclass compiled-vertex-stage
+      "
+`compiled-vertex-stage` is a type which is used to respresent the compiled equivalent of `vertex-stage`. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defclass compiled-tessellation-control-stage
+      "
+`compiled-tessellation-control-stage` is a type which is used to respresent the compiled equivalent of `tessellation-control-stage`. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defclass compiled-tessellation-evaluation-stage
+      "
+`compiled-tessellation-evaluation-stage` is a type which is used to respresent the compiled equivalent of `tessellation-evaluation-stage`. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defclass compiled-geometry-stage
+      "
+`compiled-geometry-stage` is a type which is used to respresent the compiled equivalent of `geometry-stage`. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defclass compiled-fragment-stage
+      "
+`compiled-fragment-stage` is a type which is used to respresent the compiled equivalent of `fragment-stage`. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defclass compiled-compute-stage
+      "
+`compiled-compute-stage` is a type which is used to respresent the compiled equivalent of `compute-stage`. Along with the data stored for `stage` you can also query:
+
+- The compiled glsl-code using the `glsl-code` function
+- The `output-variable`s usings the `output-variables` function
+- The uniforms implicitly adding during compilation by calling the
+ `implicit-uniforms` function
+- The `primitive` output from the stage by calling the `primitive-out`
+  function
+- The `external-function`s used from this stage by calling the
+  `external-functions` function
+"
+    )
+  (defun glsl-code
+      "
+When passed an instance of `compiled-stage` this function returns a string
+containing the glsl code that resulted from the compilation.
+")
+  (defun output-variables
+      "
+When passed an instance of `compiled-stage` this function returns a list
+of instances of `output-variable` which represent the data output from
+the given stage.
+")
+  (defun implicit-uniforms
+      "
+When passed an instance of `compiled-stage` this function returns a list
+of instances of `implicit-uniform-variable` which represent the uniforms
+which were added implicitly during the compilation of the given stage.
+")
+  (defun used-external-functions
+      "
+When passed an instance of `compiled-stage` this function returns a list
+of `external-function` objects which were used by the given stage.
+")
+  (defun primitive-out
+      "
+When passed an instance of `compiled-stage` this function returns either
+NIL or an instance of 'primitive'. This represent the primitive that
+could/was be passed to the next stage.
+")
+  (defun block-name-string
+      "
+When passed an instance of `output-variable` this will return the name of
+the interface-block that contained the variable as a string.
+")
+  ;;
+  ;; compiled vars
+  (defgeneric name
+      "
+When passed an instance of `qualfiier` `shader-variable or `external-function`
+the function returns the name of the qualfiier/variable/function respectively.
+")
+  (defgeneric qualifiers
+      "
+When passed an instance of `shader-variable` or Varjo type object this function
+returns a list of any qualifiers that apply to the value (of the variable or
+the value to which the type applies)
+")
+  (defgeneric glsl-name
+      "
+When passed an instance of `shader-variable` this function returns a string
+containing the name that the variable was given in the glsl code.
+")
+  (defclass shader-variable
+      "
+This class is the superclass of input-variable, uniform-variable and
+output-variable.
+
+You can call the following functions on it to retrieve the data:
+
+- `name`
+- `v-type-of`
+- `glsl-name`
+")
+  (defgeneric v-type-of
+      "
+When called with an instance of `shader-variable` this will return the
+Varjo type object which represents the variables Vari type.
+")
+  (defun location
+      "
+When called with an instance of `output-variable` this returns the location[0]
+of the variable. These will only be populated from `output-variable`s from a
+`fragment-stage`.
+
+> `[0]` For info on the fragment output locations please see:
+>       https://www.khronos.org/opengl/wiki/Fragment_Shader#Output_buffers
+")
+  (defun v-glsl-size
+      "
+Given a Varjo type object this function will return it's 'glsl size'. By this
+we mean the number of 'positions' the value would take up (for example when
+being passed into a `vertex-stage`)
+")
+  (defun cpu-side-transform
+      "
+When passed an instance of `implicit-uniform-variable` this returns the lisp
+code that was to be used to populate the implicit uniform.
+
+See `add-lisp-form-as-uniform` for more details.
+")
+  ;;
+  ;; hooks
+  (defmacro with-stemcell-infer-hook
+      "
+When `translate` is called within the dynamic extern of the body of this form,
+if there is a use of a variable which is not in scope in the Vari code, but
+is `boundp` & not constant in the Common Lisp environment then the user
+provided  function will be called with the symbol naming the variable.
+The user provided function must  return a Vari type-spec or throw an error to
+inform the user of the issue.
+")
+  (defmacro with-constant-inject-hook
+      "
+When `translate` is called within the dynamic extern of the body of this form,
+if there is a use of a variable which is not in scope in the Vari code, but
+is `boundp` & constant in the Common Lisp environment then the user
+provided  function will be called with the symbol naming the variable.
+The user provided function must  return a Vari type-spec or throw an error to
+inform the user of the issue.
+")
+  ;;
+  ;; testing
+  (defmacro with-unknown-first-class-functions-allowed
+      "
+When `translate` is called within the dynamic extern of the body of this form,
+it will not throw an error if there is a use of `function` with an unknown
+function name/signature. In the event of such a use the compiler will generate
+a dummy function to satify the typechecker.
+
+This is only useful for testing and the resulting GLSL will (most likely) not
+be legal
+"))

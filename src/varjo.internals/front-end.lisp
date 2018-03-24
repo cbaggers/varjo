@@ -7,28 +7,6 @@
                   &key vertex tessellation-control tessellation-evaluation
                     geometry fragment compute allow-stemcells
                     draw-mode (primitive :triangles))
-  "
-This function takes lisp code as lists and returns the results of compiling
-that code to glsl.
-
-Each result is an object of type 'compiled-stage.
-
-The stages must be defined in the following way.
-
-- The first element of the list is the input args to the stage as pairs of
-  names and types.
-- The rest of the list is the body code of that stage.
-
-Example:
-
-    (v-compile '((a :float)) :330
-               :vertex '(((pos :vec3))
-                         (values (vec4 pos 1.0) a))
-               :fragment '(((hmm :float))
-                           (labels ((fun ((x :float))
-                                      (* x x)))
-                             (vec4 1.0 1.0 hmm (fun a)))))
-"
   (assert (or vertex tessellation-control tessellation-evaluation
               geometry fragment compute))
   (when draw-mode
