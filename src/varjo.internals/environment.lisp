@@ -161,6 +161,29 @@
     *global-env-form-bindings*))
 
 ;;-------------------------------------------------------------------------
+;;
+;; A note on the lack of copy-environment
+;;
+;; Every now and again I decide it would simplify a bunch of these functions
+;; if I have a copy-environment function, you might even be here after
+;; searching for such a function (hi!). The reason we dont have it is that
+;; two of environment's slots (local-metadata & multi-val-safe) have very
+;; specific rules and conditions that mean it should not be trivial to
+;; propagate them.
+;;
+;; 'No problem..' past me says 'I'll call it %copy-environment and only use
+;; it in this file'. No. Dont.
+;;
+;; In order to make the %copy-environment function communicate the issue
+;; clearly you end up putting those slots as mandatory parameters..and then
+;; they have weird rules.. and then what have we gained? another function call
+;; and no simplification.
+;;
+;; My advice is to:
+;; - only make-instances of 'environment from here, expose functions to other
+;;   parts of the system
+;; - audit any new code thoroughly.
+
 
 (defun remove-main-method-flag-from-env (env)
   (assert (typep env 'environment))
