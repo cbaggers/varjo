@@ -250,6 +250,20 @@
          (assert ,e (,e) 'with-fresh-env-scope-missing-env)
          (values ,r (env-prune (env-depth ,s) ,e))))))
 
+(defun env-replace-symbol-bindings (env symbol-bindings)
+  (assert (typep env 'environment))
+  (make-instance 'environment
+                 :base-env (get-base-env env)
+                 :symbol-bindings symbol-bindings
+                 :form-bindings (v-form-bindings env)
+                 :macros (v-macros env)
+                 :context (v-context env)
+                 :multi-val-base (v-multi-val-base env)
+                 :function-scope (v-function-scope env)
+                 :parent-env (v-parent-env env)
+                 :allowed-outer-vars (v-allowed-outer-vars env)
+                 :ext-func-compile-chain (ext-func-compile-chain env)))
+
 (defun env-replace-parent (env new-parent
                            &key (symbol-bindings nil symbol-bindings-set))
   (assert (typep env 'environment))

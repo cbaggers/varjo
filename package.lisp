@@ -445,6 +445,7 @@
            :env-prune*
            :env-prune-many
            :env-replace-parent
+           :env-replace-symbol-bindings
            :ephemeral-p
            :expanded-input-variables
            :expansion
