@@ -10,7 +10,8 @@ Vari is a statically typed dialect of lisp. It attempts to stick as closely as p
 
 - [The Packages](the-packages.md)
 - [Using the Compiler](using-the-compiler.md)
-- [Reference Documentation - Documentation for all public symbols can be found here](reference-links.md)
+- [Varjo Reference Documentation - Documentation for all public symbols can be found here](http://techsnuffle.com/varjo/varjo-reference.html)
+- [Vari Reference Documentation - Documentation for all public symbols can be found here](vari-reference-links.md)
 - [Language Features](language-features.md)
 - [Macros](macros.md)
 - [Design Philosophy](design-philosophy.md)
