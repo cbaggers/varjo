@@ -492,6 +492,7 @@ For example calling env-prune on this environment..
                                                  (v-symbol-bindings env))))
 
 ;; {TODO} does get-symbol-binding need to return the env?
+;;        A: yup, it's used over in the iteration fixpoint code
 (defmethod get-symbol-binding (symbol respect-scope-rules (env environment))
   (declare (inline a-get))
   (let ((s (first (a-get symbol (v-symbol-bindings env)))))

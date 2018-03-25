@@ -168,26 +168,62 @@
       (setf (slot-value new-type 'flow-ids) flow-id)
       new-type)))
 
-(defun replace-flow-ids (old-var-name old-val flow-ids old-env env)
-  (assert (typep old-val 'v-value))
-  (labels ((walk-envs (n)
-             (if (eq n old-env)
-                 (env-replace-parent
-                  n
-                  (v-parent-env n)
-                  :symbol-bindings
-                  (a-add old-var-name
-                         (v-make-value
-                          (replace-flow-id (v-type-of old-val) flow-ids)
-                          n
-                          :read-only (v-read-only old-val)
-                          :function-scope (v-function-scope old-val)
-                          :glsl-name (glsl-name old-val))
-                         (copy-list (v-symbol-bindings n))))
-                 (env-replace-parent n (walk-envs (v-parent-env n))))))
-    (if (typep old-env 'base-environment)
-        env
-        (walk-envs env))))
+
+(defun replace-flow-ids-for-single-var (var-name
+                                        new-flow-ids
+                                        env)
+  ;; for a wip version of this handling multiple vals see:
+  ;; protocode/replace-flow-id-for-multiple-values.lisp
+  (vbind (current-value env-holding-var) (get-symbol-binding var-name nil env)
+    (replace-flow-ids-for-specific-value var-name
+                                         current-value
+                                         env-holding-var
+                                         new-flow-ids
+                                         env)))
+
+(defun replace-flow-ids-for-specific-value (var-name
+                                            current-value
+                                            env-holding-var
+                                            new-flow-ids
+                                            env)
+  ;;
+  ;; Care must be taken when using this function as it is your job
+  ;; to ensure the var-name, value & environments are correctly related.
+  ;;
+  ;; Where possible use the replace-flow-ids-for-single-var function
+  ;; instead.
+  ;;
+  (if (typep env-holding-var 'base-environment)
+      ;; We dont replace things in the base environment
+      env
+      (let (;; child-envs-of-env-holding-var is the list of environments
+            ;; that are children of env-holding-var (in order of nearest
+            ;; decendant to furthest)
+            (child-envs-of-env-holding-var nil)
+            ;; cur-env is the current environment we are visiting
+            (cur-env env))
+        ;; Walking up the tree until we find env-holding-var, this loop
+        ;; pushes all children of env-holding-var onto child-envs-of-env-holding-var
+        (loop
+           :until (eq cur-env env-holding-var)
+           :do
+           (let ((parent (v-parent-env cur-env)))
+             (push cur-env child-envs-of-env-holding-var)
+             (setf cur-env parent)))
+        (let (;; here we perform the flow-id surgery on env-holding-var
+              (new-parent
+               (env-replace-symbol-bindings
+                env-holding-var
+                (a-add var-name
+                       (copy-value current-value
+                                   :type (replace-flow-id
+                                          (v-type-of current-value)
+                                          new-flow-ids))
+                       (copy-list (v-symbol-bindings env-holding-var))))))
+          (loop :for env :in child-envs-of-env-holding-var :do
+             (setf new-parent
+                   (env-replace-parent env new-parent)))
+          new-parent))))
 
 ;;----------------------------------------------------------------------
 ;; Helpers

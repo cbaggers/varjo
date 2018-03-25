@@ -571,7 +571,8 @@
            :qualify-type
            :raw-out-set
            :replace-flow-id
-           :replace-flow-ids
+           :replace-flow-ids-for-single-var
+           :replace-flow-ids-for-specific-value
            :reset-flow-ids-to-checkpoint
            :resolve-name-from-alternative
            :return-set

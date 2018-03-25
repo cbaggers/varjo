@@ -68,58 +68,70 @@
                          (= (v-function-scope value) 0))
                (error 'cross-scope-mutate :var-name name
                       :code (format nil "(setf (... ~s) ...)" name)))
-             (vbind (old-val old-env) (get-symbol-binding name nil env)
-               (assert (eq old-val value))
-               (let ((final-env (replace-flow-ids
-                                 name old-val (flow-ids val-obj) old-env env))
-                     (type-set (make-type-set (primary-type val-obj)))
-                     (cline (gen-bin-op-string
-                             glsl-op-symbol place-obj val-obj)))
-                 (values (merge-compiled
-                          (list place-obj val-obj)
-                          :type-set type-set
-                          :current-line cline
-                          :pure nil)
-                         final-env)))))))))
+             (let ((final-env (replace-flow-ids-for-single-var name
+                                                               (flow-ids val-obj)
+                                                               env))
+                   (type-set (make-type-set (primary-type val-obj)))
+                   (cline (gen-bin-op-string
+                           glsl-op-symbol place-obj val-obj)))
+               (values (merge-compiled
+                        (list place-obj val-obj)
+                        :type-set type-set
+                        :current-line cline
+                        :pure nil)
+                       final-env))))))))
 
 (v-defspecial setq (var-name new-val-code)
   :args-valid t
   :return
-  (multiple-value-bind (old-val old-env) (get-symbol-binding var-name nil env)
-    (assert (and old-val old-env))
-    (if (typep old-val 'v-symbol-macro)
-        (compile-form `(setf ,var-name ,new-val-code) env)
-        (compile-regular-setq-form var-name old-val old-env new-val-code env))))
+  (multiple-value-bind (current-value env-holding-var)
+      (get-symbol-binding var-name nil env)
+    (assert (and current-value env-holding-var))
+    (if (typep current-value 'v-symbol-macro)
+        (compile-form `(setf ,var-name ,new-val-code)
+                      env)
+        (compile-regular-setq-form var-name
+                                   current-value
+                                   env-holding-var
+                                   new-val-code
+                                   env))))
 
-(defun compile-regular-setq-form (var-name old-val old-env new-val-code env)
+(defun compile-regular-setq-form (var-name
+                                  current-value
+                                  env-holding-var
+                                  new-val-code
+                                  env)
   (let ((new-val (compile-form new-val-code env)))
     (cond
-      ((v-read-only old-val)
+      ((v-read-only current-value)
        (error 'setq-readonly :code `(setq ,var-name ,new-val-code)
               :var-name var-name))
-      ((and (not (= (v-function-scope old-val) (v-function-scope env)))
-            (> (v-function-scope old-val) 0)) ;; ok if var is global
+      ((and (not (= (v-function-scope current-value)
+                    (v-function-scope env)))
+            (> (v-function-scope current-value) 0)) ;; ok if var is global
        (error 'cross-scope-mutate :var-name var-name
               :code `(setq ,var-name ,new-val-code))))
 
-    (let ((final-env (replace-flow-ids var-name old-val
-                                       (flow-ids new-val)
-                                       old-env env))
-          (actual-type (calc-setq-type new-val old-val var-name)))
+    (let ((final-env (replace-flow-ids-for-specific-value var-name
+                                                          current-value
+                                                          env-holding-var
+                                                          (flow-ids new-val)
+                                                          env))
+          (actual-type (calc-setq-type new-val current-value var-name)))
       (values (copy-compiled
                new-val
                :type-set (make-type-set actual-type)
                :current-line (gen-setq-assignment-string
-                              old-val new-val)
+                              current-value new-val)
                :place-tree nil
                :pure nil)
               final-env))))
 
-(defun calc-setq-type (new-val old-val var-name)
-  (restart-case (if (v-type-eq (v-type-of old-val) (primary-type new-val))
+(defun calc-setq-type (new-val current-value var-name)
+  (restart-case (if (v-type-eq (v-type-of current-value) (primary-type new-val))
                     (primary-type new-val)
                     (error 'setq-type-match :var-name var-name
-                           :old-value old-val :new-value new-val))
+                           :old-value current-value :new-value new-val))
     (setq-supply-alternate-type (replacement-type-spec)
       (type-spec->type replacement-type-spec (flow-ids new-val)))))
 
