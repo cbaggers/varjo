@@ -12,13 +12,8 @@
   ((functions :initform nil :initarg :functions :reader functions)
    (is-special :initarg :special :reader v-special-functionp)))
 
-;; {TODO} Proper error
 (defun make-function-set (functions)
   (when functions
-    (assert (every λ(or (typep _ 'v-function) (typep _ 'external-function))
-                   functions)
-            (functions)
-            "Failed to initialize v-function-set:~% functions: ~s" functions)
     (make-instance 'v-function-set
                    :functions functions
                    :special (some #'v-special-functionp functions))))
