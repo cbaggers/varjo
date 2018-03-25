@@ -16,14 +16,19 @@
 
 (defmethod get-flow-id-for-stem-cell (stem-cell-symbol (e environment))
   (with-slots (stemcell->flow-id) (get-base-env e)
-    (or (assocr stem-cell-symbol stemcell->flow-id)
+    (or (gethash stem-cell-symbol stemcell->flow-id)
         (let ((flow-id (flow-id!)))
-          (push (cons stem-cell-symbol flow-id) stemcell->flow-id)
+          (setf (gethash stem-cell-symbol stemcell->flow-id)
+                flow-id)
           flow-id))))
 
 (defmethod get-stemcell-name-for-flow-id (id (e environment))
-  (with-slots (stemcell->flow-id) (get-base-env e)
-    (car (rassoc id stemcell->flow-id))))
+  (block nil
+    (with-slots (stemcell->flow-id) (get-base-env e)
+      (maphash (lambda (k v)
+                 (when (eq v id)
+                   (return k)))
+               stemcell->flow-id))))
 
 (defmethod compiled-functions ((e environment) (key external-function))
   (gethash key (slot-value (get-base-env e) 'compiled-functions)))
