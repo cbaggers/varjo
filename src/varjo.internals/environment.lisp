@@ -500,7 +500,7 @@ For example calling env-prune on this environment..
 ;;        A: yup, it's used over in the iteration fixpoint code
 (defmethod get-symbol-binding (symbol respect-scope-rules (env environment))
   (declare (inline a-get))
-  (let ((s (first (a-get symbol (v-symbol-bindings env)))))
+  (let ((s (a-get1 symbol (v-symbol-bindings env))))
     (cond (s (if respect-scope-rules
                  (values (apply-scope-rules symbol s env) env)
                  (values s env)))
