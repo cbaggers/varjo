@@ -44,7 +44,7 @@ type-spec trick doesnt"))
 
 (defmethod type->type-spec ((type v-type))
   (let ((name (class-name (class-of type))))
-    (or (car (rassoc name *type-shorthand*))
+    (or (gethash name *type-name->shorthand*)
         name)))
 
 (defmethod make-load-form ((type v-type) &optional environment)
@@ -104,7 +104,7 @@ type-spec trick doesnt"))
 
 (defun expand-keyword-type-spec-shorthand (spec)
   (or (when (keywordp spec)
-        (cdr (assoc spec *type-shorthand*)))
+        (gethash spec *shorthand->type-name*))
       spec))
 
 (defun try-type-spec->type (spec flow-id)

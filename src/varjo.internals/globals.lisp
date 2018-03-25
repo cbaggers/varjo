@@ -241,3 +241,15 @@
     (:ubuffer-image . v-ubuffer-image)
     (:void . v-void)
     (:shadow-type . v-shadow-type)))
+
+(defvar *shorthand->type-name*
+  (let ((ht (make-hash-table :test #'eq)))
+    (loop :for (k . v) :in *type-shorthand* :do
+       (setf (gethash k ht) v))
+    ht))
+
+(defvar *type-name->shorthand*
+  (let ((ht (make-hash-table :test #'eq)))
+    (loop :for (k . v) :in *type-shorthand* :do
+       (setf (gethash v ht) k))
+    ht))
