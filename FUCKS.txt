@@ -1,8 +1,9 @@
 (defparameter mah-stage
 (make-stage :compute nil nil '(:460)
 '((declare (local-size :x 1 :y 1 :z 1))
-(LABELS ((SIGNAL-FLAG ((a :int) (b :int))
-                 (+ a b))
+(flet ((SIGNAL-FLAG ((a :int) (b :int))
+                 (+ a b)))
+(FLET (
          (LIB-EXPR-0 ()
                  (SIGNAL-FLAG 73 79))
                (LIB-EXPR-1 ()
@@ -2147,4 +2148,4 @@
          (982 (LIB-EXPR-982)) (983 (LIB-EXPR-983)) (984 (LIB-EXPR-984)) (985 (LIB-EXPR-985)) (986 (LIB-EXPR-986)) (987 (LIB-EXPR-987)) (988 (LIB-EXPR-988))
          (989 (LIB-EXPR-989)) (990 (LIB-EXPR-990)) (991 (LIB-EXPR-991)) (992 (LIB-EXPR-992)) (993 (LIB-EXPR-993)) (994 (LIB-EXPR-994)) (995 (LIB-EXPR-995))
          (996 (LIB-EXPR-996)) (997 (LIB-EXPR-997)) (998 (LIB-EXPR-998)) (999 (LIB-EXPR-999))))
-         (values)))))
+         (values))))))

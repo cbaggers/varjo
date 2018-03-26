@@ -374,6 +374,7 @@
            :add-equivalent-name
            :add-external-function
            :add-form-binding
+           :add-form-bindings
            :add-global-form-binding
            :add-symbol-binding
            :add-type-to-stemcell-code

@@ -12,6 +12,7 @@
 (defgeneric add-equivalent-name (existing-name new-name))
 (defgeneric add-external-function (name in-args uniforms code &optional valid-glsl-versions))
 (defgeneric add-form-binding (func/macro env))
+(defgeneric add-form-bindings (funcs/macros env))
 (defgeneric add-global-compiler-macro (macro))
 (defgeneric add-global-form-binding (func/macro))
 (defgeneric add-symbol-binding (var-name val env))

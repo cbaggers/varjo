@@ -64,6 +64,12 @@
    (inline-candidate :initform nil :initarg :inline-candidate
                      :accessor inline-candidate)))
 
+(defmethod name ((compiled-func compiled-function-result))
+  (let ((func (function-obj compiled-func)))
+    (assert func () "BUG: compiled-function without v-function~%~a"
+            compiled-func)
+    (name func)))
+
 ;;----------------------------------------------------------------------
 
 (defclass stage ()

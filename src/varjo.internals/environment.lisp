@@ -255,9 +255,6 @@
                     :symbol-bindings ,symbol-bindings
                     ,@(when set-aov `(:allowed-outer-vars ,allowed-outer-vars))
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
-                    :previous-env-with-form-bindings (if (v-form-bindings ,s)
-                                                      ,s
-                                                      (v-previous-env-with-form-bindings ,s))
                     :multi-val-safe ,multi-val-safe)))
        (vbind (,r ,e) (progn ,@body)
          (assert ,e (,e) 'with-fresh-env-scope-missing-env)
@@ -619,16 +616,18 @@ For example calling env-prune on this environment..
         (setf (gethash func-name *global-env-form-bindings*)
               (list func-obj))
         (setf (gethash func-name *global-env-form-bindings*)
-              (cons func-obj current-bindings))))
+              (cons func-obj (remove-if
+                              (lambda (x)
+                                (function-signatures-equal func-obj x))
+                              current-bindings)))))
   func-obj)
 
 ;; Standard Environment
 ;;
 (defmethod add-form-binding ((compiled-func compiled-function-result)
                              (env environment))
-  (let* ((func (function-obj compiled-func))
-         (func-name (name func)))
-    (when (shadow-global-check func-name)
+  (let* ((func (function-obj compiled-func)))
+    (when (shadow-global-check (name func))
       (assert (typep func 'v-function))
       (setf (compiled-functions env func) compiled-func)
       (add-form-binding func env))))
@@ -652,6 +651,28 @@ For example calling env-prune on this environment..
                            name
                            macro
                            nil)))))
+
+(defmethod add-form-bindings ((funcs list)
+                              (env environment))
+  ;; local mutation of env here
+  (let ((fo (loop
+               :for fn :in funcs
+               :when (shadow-global-check (name fn))
+               :collect fn)))
+    (if fo
+        (let ((new-env (fresh-environment env))
+              (set nil))
+          (with-slots (form-bindings) new-env
+            (loop :for fn :in fo :do
+               (let ((fn (if (typep fn 'compiled-function-result)
+                             (let ((fo (function-obj fn)))
+                               (setf (compiled-functions env fo) fn)
+                               fo)
+                             fn)))
+                 (setf set (push-to-binding-set (name fn) fn set))))
+            (setf form-bindings set))
+          new-env)
+        env)))
 
 ;; Base Environment
 (defmethod add-form-binding (anything (env base-environment))
