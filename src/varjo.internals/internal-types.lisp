@@ -171,6 +171,8 @@
     :initform nil :initarg :multi-val-safe :reader v-multi-val-safe)
    (function-scope
     :initform 0 :initarg :function-scope :reader v-function-scope)
+   (env-depth
+    :initarg :env-depth :reader env-depth)
    (allowed-outer-vars
     :initform nil :initarg :allowed-outer-vars :reader v-allowed-outer-vars)
    (local-metadata :initform (make-hash-table :test #'eql))
@@ -191,7 +193,8 @@
    (compiled-functions :initform (make-hash-table :test #'eq))
    (value-metadata :initform (make-hash-table :test #'eql))
    (stemcells-allowed :initform t :initarg :stemcells-allowed
-                      :reader allows-stemcellsp)))
+                      :reader allows-stemcellsp)
+   (env-depth :initform 0 :initarg :env-depth :reader env-depth)))
 
 ;;----------------------------------------------------------------------
 

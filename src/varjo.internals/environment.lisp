@@ -153,6 +153,7 @@
 (defun %make-base-environment (stage &key stemcells-allowed)
   (let ((result (make-instance 'base-environment
                                :stage stage
+                               :env-depth 0
                                :context (context stage)
                                :stemcells-allowed stemcells-allowed)))
     (setf (slot-value result 'base-env) result)
@@ -200,6 +201,7 @@
                  :context (remove :main (v-context env))
                  :function-scope (v-function-scope env)
                  :parent-env (v-parent-env env)
+                 :env-depth (env-depth env)
                  :allowed-outer-vars (v-allowed-outer-vars env)
                  :previous-env-with-form-bindings (v-previous-env-with-form-bindings env)
                  :ext-func-compile-chain (ext-func-compile-chain env)))
@@ -224,6 +226,7 @@
                  :multi-val-safe multi-val-safe
                  :function-scope (or function-scope (v-function-scope env))
                  :parent-env env
+                 :env-depth (1+ (env-depth env))
                  :previous-env-with-form-bindings
                  (if (v-form-bindings env)
                      env
@@ -270,6 +273,7 @@
                  :context (v-context env)
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
+                 :env-depth (env-depth env)
                  :parent-env (v-parent-env env)
                  :previous-env-with-form-bindings (v-previous-env-with-form-bindings env)
                  :allowed-outer-vars (v-allowed-outer-vars env)
@@ -287,6 +291,7 @@
                  :form-bindings (v-form-bindings env)
                  :macros (v-macros env)
                  :context (v-context env)
+                 :env-depth (env-depth env)
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
                  :previous-env-with-form-bindings (if (v-form-bindings new-parent)
@@ -295,14 +300,6 @@
                  :parent-env new-parent
                  :allowed-outer-vars (v-allowed-outer-vars env)
                  :ext-func-compile-chain (ext-func-compile-chain env)))
-
-(defun env-depth (env)
-  (labels ((dist (e &optional (accum 0))
-             (let ((parent (v-parent-env e)))
-               (if parent
-                   (dist parent (1+ accum))
-                   accum))))
-    (dist env)))
 
 (defun env-prune* (to-depth &rest envs)
   (env-prune-many to-depth envs))

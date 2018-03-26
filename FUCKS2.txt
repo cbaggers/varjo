@@ -4,7 +4,7 @@
   (LET ((NODE-ID 1))
     (FLET ((SIGNAL-FLAG ((ARG-1 :INT) (ARG-2 :INT))
              (+ ARG-1 ARG-2)))
-      (LABELS ((LIB-EXPR-0 ()
+      (FLET ((LIB-EXPR-0 ()
                  (SIGNAL-FLAG 58 88))
                (LIB-EXPR-1 ()
                  (SIGNAL-FLAG 92 84))

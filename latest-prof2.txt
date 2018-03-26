@@ -1,0 +1,1909 @@
+                               Callers
+                 Total.     Function
+ Count     %  Count     %      Callees
+------------------------------------------------------------------------
+    13   0.1                   VARJO.INTERNALS:ENV-MERGE-HISTORY [306]
+     3   0.0                   VARJO.INTERNALS:ENV-PRUNE-MANY [305]
+  1216   6.8                   VARJO.INTERNALS:ENV-DEPTH [15]
+    14   0.1                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+    61   0.3                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+   726   4.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::VALID-FOR-CONTEXTP (LIST VARJO.INTERNALS::ENVIRONMENT)) [13]
+  3659  20.6                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+  5693  32.0   5693  32.0   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+------------------------------------------------------------------------
+  4222  23.7                   SB-IMPL::GETHASH3 [3]
+  4160  23.4   4222  23.7   (FLET #:BODY-FUN-558 :IN SB-IMPL::GETHASH3) [2]
+    60   0.3                   SB-IMPL::EQL-HASH [14]
+     2   0.0                   SB-IMPL::EQUAL-HASH [248]
+------------------------------------------------------------------------
+     1   0.0                   SB-IMPL::LIST-REMOVE-DUPLICATES* [314]
+     2   0.0                   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     1   0.0                   SB-IMPL::GETHASH3 [3]
+     1   0.0                   VARJO.INTERNALS::%GET-FREE-GLSL-NAME [230]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-EXTERNAL-FUNCTION-BY-NAME (T T)) [58]
+  6279  35.3                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+  2026  11.4   6286  35.3   SB-IMPL::GETHASH3 [3]
+     1   0.0                   SB-IMPL::GETHASH3 [3]
+    38   0.2                   SB-IMPL::EQL-HASH [14]
+  4222  23.7                   (FLET #:BODY-FUN-558 :IN SB-IMPL::GETHASH3) [2]
+------------------------------------------------------------------------
+  1987  11.2                   SB-KERNEL:%FIND-POSITION-IF-NOT [107]
+     1   0.0                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+  1435   8.1   1987  11.2   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+   177   1.0                   EQUAL [12]
+    80   0.4                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [16]
+    61   0.3                   (LABELS SB-IMPL::EQUAL-AUX :IN EQUAL) [17]
+   234   1.3                   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+     1   0.0                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+------------------------------------------------------------------------
+   370   2.1                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+   359   2.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+   729   4.1    729   4.1   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [5]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+ 13552  76.2                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+   526   3.0  13552  76.2   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl") [98]
+    16   0.1                   EQL [43]
+    61   0.3                   VARJO.INTERNALS::GET-FROM-BINDING-SET [18]
+    91   0.5                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+   268   1.5                   SB-KERNEL:CLASSOID-TYPEP [11]
+    54   0.3                   VARJO.INTERNALS::%VALID-FOR-CONTEXTP [20]
+   106   0.6                   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+   869   4.9                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::VALID-FOR-CONTEXTP (LIST VARJO.INTERNALS::ENVIRONMENT)) [13]
+   359   2.0                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [5]
+   268   1.5                   SB-VM::UNDEFINED-TRAMP [9]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+    18   0.1                   SB-IMPL::APPEND2 [24]
+   452   2.5                   FIND-IF [8]
+  3659  20.6                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+   479   2.7                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [7]
+    16   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-EXTERNAL-FUNCTION-BY-NAME (T T)) [58]
+  6279  35.3                   SB-IMPL::GETHASH3 [3]
+     8   0.0                   REMOVE-IF-NOT [27]
+------------------------------------------------------------------------
+     3   0.0                   (FLET SB-IMPL::F :IN SB-IMPL::%MAP-TO-LIST) [162]
+     2   0.0                   REMOVE-IF-NOT [27]
+   479   2.7                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+   484   2.7    484   2.7   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [7]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+   452   2.5                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+   435   2.4    453   2.5   FIND-IF [8]
+    16   0.1                   SB-KERNEL:%COERCE-CALLABLE-TO-FUN [21]
+     2   0.0                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+------------------------------------------------------------------------
+    60   0.3                   VARJO.INTERNALS:ENV-DEPTH [15]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     1   0.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     1   0.0                   VARJO.INTERNALS::FIND-FUNCTION-IN-SET-FOR-ARGS [56]
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/first-class-functions.fasl") [35]
+     2   0.0                   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     5   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+    30   0.2                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+    22   0.1                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+   268   1.5                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     1   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     1   0.0                   VARJO.INTERNALS::INFER-META [45]
+     1   0.0                   SB-KERNEL:%MAP-TO-LIST-ARITY-1 [143]
+   399   2.2    399   2.2   SB-VM::UNDEFINED-TRAMP [9]
+------------------------------------------------------------------------
+   106   0.6                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-WITH-SINGLE-FUNCTION [192]
+     1   0.0                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+     1   0.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     1   0.0                   VARJO.INTERNALS:ID~= [234]
+   234   1.3                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+   344   1.9    344   1.9   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+------------------------------------------------------------------------
+     1   0.0                   (LABELS VARJO.INTERNALS::INNER :IN VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE) [307]
+     1   0.0                   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:V-VOIDP (V-TYPE)) [52]
+   268   1.5                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     3   0.0                   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     1   0.0                   VARJO.INTERNALS::INFER-META [45]
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-WITH-SINGLE-FUNCTION [192]
+     1   0.0                   EPHEMERAL-P [133]
+     1   0.0                   VARJO.INTERNALS:FRESH-ENVIRONMENT [121]
+   279   1.6    279   1.6   SB-KERNEL:CLASSOID-TYPEP [11]
+------------------------------------------------------------------------
+   177   1.0                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+   177   1.0    177   1.0   EQUAL [12]
+------------------------------------------------------------------------
+   869   4.9                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+   143   0.8    869   4.9   (SB-PCL::FAST-METHOD VARJO.INTERNALS::VALID-FOR-CONTEXTP (LIST VARJO.INTERNALS::ENVIRONMENT)) [13]
+   726   4.1                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+------------------------------------------------------------------------
+    38   0.2                   SB-IMPL::GETHASH3 [3]
+    60   0.3                   (FLET #:BODY-FUN-558 :IN SB-IMPL::GETHASH3) [2]
+    98   0.6     98   0.6   SB-IMPL::EQL-HASH [14]
+------------------------------------------------------------------------
+   916   5.2                   VARJO.INTERNALS:ENV-MERGE-HISTORY [306]
+   449   2.5                   VARJO.INTERNALS:ENV-PRUNE-MANY [305]
+    89   0.5   1365   7.7   VARJO.INTERNALS:ENV-DEPTH [15]
+    60   0.3                   SB-VM::UNDEFINED-TRAMP [9]
+  1216   6.8                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+------------------------------------------------------------------------
+    80   0.4                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+    80   0.4     80   0.4   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [16]
+------------------------------------------------------------------------
+    61   0.3                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+    61   0.3     61   0.3   (LABELS SB-IMPL::EQUAL-AUX :IN EQUAL) [17]
+------------------------------------------------------------------------
+    61   0.3                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+    61   0.3     61   0.3   VARJO.INTERNALS::GET-FROM-BINDING-SET [18]
+------------------------------------------------------------------------
+    33   0.2                   VARJO.INTERNALS:ENV-MERGE-HISTORY [306]
+    21   0.1                   VARJO.INTERNALS:ENV-PRUNE-MANY [305]
+     1   0.0                   (FLET #:FORM-FUN-3109 :IN SB-GRAY:STREAM-FORCE-OUTPUT) [296]
+     2   0.0                   VARJO.UTILS:NTH-OR-SELF [163]
+    57   0.3     57   0.3   SB-VM::GENERIC-+ [19]
+------------------------------------------------------------------------
+    54   0.3                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+    54   0.3     54   0.3   VARJO.INTERNALS::%VALID-FOR-CONTEXTP [20]
+------------------------------------------------------------------------
+    16   0.1                   FIND-IF [8]
+    16   0.1                   EQL [43]
+     1   0.0                   SB-KERNEL:%MAP-TO-LIST-ARITY-1 [143]
+     1   0.0                   PPRINT-DISPATCH [37]
+     1   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+    35   0.2     35   0.2   SB-KERNEL:%COERCE-CALLABLE-TO-FUN [21]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS [125]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:REPLACE-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [288]
+     1   0.0                   (FLET #:WRAPPER748 :IN VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS) [90]
+     1   0.0                   (LABELS VARJO.INTERNALS::FORCE-FLOW-ID :IN VARJO.INTERNALS::RESOLVE-FUNC-SET) [289]
+     3   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::FUNC-NEED-ARGUMENTS-COMPILEDP (VARJO.INTERNALS:V-FUNCTION)) [89]
+     2   0.0                   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     3   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/first-class-functions.fasl") [35]
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     1   0.0                   (SB-PCL::FAST-METHOD FLOW-IDS (VARJO.INTERNALS:COMPILED)) [276]
+     2   0.0                   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     3   0.0                   (FLET #:WRAPPER7 :IN VARJO.INTERNALS:MAKE-FUNCTION-SET) [257]
+     1   0.0                   VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS [82]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     1   0.0                   VARJO.INTERNALS::INFER-META [45]
+    23   0.1     23   0.1   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+------------------------------------------------------------------------
+    19   0.1     19   0.1   (FLET SB-THREAD::WITH-RECURSIVE-SYSTEM-LOCK-THUNK :IN SB-IMPL::GETHASH3) [23]
+------------------------------------------------------------------------
+    18   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+    18   0.1     18   0.1   SB-IMPL::APPEND2 [24]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-FLET [191]
+     3   0.0                   VARI.CL::VS-%GLSL-EXPR [231]
+    12   0.1                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     9   0.1     16   0.1   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [60]
+     1   0.0                   VARJO.INTERNALS::%MAKE-GLSL-CHUNK [171]
+     1   0.0                   REMOVE-DUPLICATES [69]
+     1   0.0                   VARJO.INTERNALS::NORMALIZE-OUT-OF-SCOPE-ARGS [168]
+     2   0.0                   ALEXANDRIA.0.DEV:MAPPEND [57]
+     1   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+------------------------------------------------------------------------
+     8   0.0                   ALEXANDRIA.0.DEV:MAPPEND [57]
+  2193  12.3                   VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED [190]
+     6   0.0   2196  12.3   SB-IMPL::MAP1 [26]
+     1   0.0                   (LABELS VARJO.INTERNALS::INNER :IN VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE) [307]
+     1   0.0                   SB-KERNEL:%MAKE-LIST [104]
+  2187  12.3                   (LAMBDA (&REST VARJO.INTERNALS:ARGS) :IN VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED) [189]
+------------------------------------------------------------------------
+     8   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     6   0.0      8   0.0   REMOVE-IF-NOT [27]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [7]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+ 13977  78.6                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     6   0.0  13977  78.6   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+     1   0.0                   SB-C::CHECK-DS-LIST/&REST [185]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+     1   0.0                   FIND-IF [8]
+     1   0.0                   KEYWORDP [169]
+    14   0.1                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+    22   0.1                   SB-VM::UNDEFINED-TRAMP [9]
+   370   2.1                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [5]
+     9   0.1                   VARJO.INTERNALS:MAKE-FUNCTION-SET [258]
+ 13552  76.2                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::SHADOW-GLOBAL-CHECK [284]
+    11   0.1                   VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT-LIST [225]
+     6   0.0     12   0.1   FIND [29]
+     1   0.0                   IDENTITY [105]
+     5   0.0                   EQL [43]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     3   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     6   0.0      6   0.0   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.MORE-CONTEXT. SB-PCL::.MORE-COUNT.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [30]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::GEN-STRING-FOR-SWITCH-FORM [311]
+     1   0.0                   VARJO.INTERNALS::INFER-META [45]
+     1   0.0                   VARJO.INTERNALS::SINGULAR-FLOW-ID-P [275]
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     2   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COPY-COMPILED (VARJO.INTERNALS:COMPILED)) [113]
+     6   0.0      6   0.0   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [31]
+------------------------------------------------------------------------
+     6   0.0                   "foreign function interrupt_handle_pending" [241]
+     6   0.0      6   0.0   "foreign function pthread_sigmask" [32]
+------------------------------------------------------------------------
+     1   0.0                   SB-IMPL::%WRITE-STRING [245]
+     2   0.0                   SB-IMPL::VECTOR-SUBSEQ-DISPATCH/SIMPLE-CHARACTER-STRING [173]
+     1   0.0                   (LAMBDA (SB-IMPL::BUFFER SB-IMPL::FROM) :IN GET-OUTPUT-STREAM-STRING) [287]
+     2   0.0                   SB-IMPL::STRING-SOUT [64]
+     6   0.0      6   0.0   SB-KERNEL:UB32-BASH-COPY [33]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::EMF VARJO.INTERNALS:MERGE-COMPILED) [304]
+     1   0.0                   (SB-PCL::EMF VARJO.INTERNALS:COPY-COMPILED) [277]
+     3   0.0                   (SB-PCL::EMF VARJO.INTERNALS:COMPILE-LITERAL) [55]
+     6   0.0      6   0.0   SB-PCL::CHECK-APPLICABLE-KEYWORDS [34]
+------------------------------------------------------------------------
+    11   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     6   0.0     11   0.1   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/first-class-functions.fasl") [35]
+     1   0.0                   (LAMBDA (SB-PCL::METHOD-ARGS SB-PCL::NEXT-METHODS) :IN SB-PCL::METHOD-FUNCTION-FROM-FAST-FUNCTION) [176]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+------------------------------------------------------------------------
+    19   0.1                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     5   0.0     19   0.1   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     1   0.0                   (LAMBDA (SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-OPTIMIZED-STD-READER-METHOD-FUNCTION) [71]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+     2   0.0                   (LABELS VARJO.INTERNALS::CALC-SECONDARY-SCORE :IN VARJO.INTERNALS::BASIC-ARG-MATCHP) [150]
+     1   0.0                   SB-KERNEL:%%TYPEP [147]
+     3   0.0                   (SB-PCL::FAST-METHOD V-TYPEP (V-TYPE V-TYPE)) [253]
+     3   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COPY-COMPILED (VARJO.INTERNALS:COMPILED)) [113]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.MORE-CONTEXT. SB-PCL::.MORE-COUNT.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [30]
+------------------------------------------------------------------------
+     8   0.0                   (LABELS SB-IMPL::PRINT-IT :IN SB-KERNEL:OUTPUT-OBJECT) [228]
+     5   0.0      8   0.0   PPRINT-DISPATCH [37]
+     1   0.0                   "PPRINT-DATA-LIST-P" [186]
+     1   0.0                   "PPRINT-FUN-CALL-P" [154]
+     1   0.0                   SB-KERNEL:%COERCE-CALLABLE-TO-FUN [21]
+------------------------------------------------------------------------
+     9   0.1                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     1   0.0                   VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS [82]
+     9   0.1                   VARJO.INTERNALS:MAKE-FUNCTION-SET [258]
+     2   0.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     4   0.0                   VARJO.INTERNALS:MAKE-COMPILED [111]
+     5   0.0     26   0.1   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     1   0.0                   (FLET #:WRAPPER158 :IN VARJO.INTERNALS::COMPILE-FUNCTION-CALL) [281]
+     9   0.1                   (FLET #:WRAPPER748 :IN VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS) [90]
+     8   0.0                   (FLET #:WRAPPER7 :IN VARJO.INTERNALS:MAKE-FUNCTION-SET) [257]
+     2   0.0                   (FLET #:WRAPPER5 :IN VARJO.INTERNALS:MAKE-COMPILED) [136]
+     1   0.0                   (FLET #:WRAPPER179 :IN VARJO.INTERNALS:MERGE-COMPILED) [126]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     3   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     5   0.0      7   0.0   REPLACE [39]
+     1   0.0                   (SB-IMPL::OPTIMIZED-DATA-VECTOR-SET T) [160]
+     1   0.0                   NTHCDR [63]
+------------------------------------------------------------------------
+     5   0.0                   (FLET #:WRAPPER7 :IN VARJO.INTERNALS:MAKE-FUNCTION-SET) [257]
+     1   0.0                   FIND-AND-EXPAND-COMPILER-MACRO [151]
+     1   0.0                   VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS [82]
+     5   0.0      7   0.0   (SB-PCL::FAST-METHOD V-SPECIAL-FUNCTIONP (VARJO.INTERNALS:V-FUNCTION)) [40]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [51]
+------------------------------------------------------------------------
+     3   0.0                   SB-KERNEL::VALUES-SPECIFIER-TYPE-R [291]
+     1   0.0                   SB-KERNEL:FIND-CLASSOID-CELL [251]
+     5   0.0      6   0.0   SB-C::GET-INFO-VALUE [41]
+     1   0.0                   SB-C::PACKED-INFO-VALUE-INDEX [167]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     5   0.0      5   0.0   SB-KERNEL:%FIND-POSITION-IF [42]
+------------------------------------------------------------------------
+    16   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     5   0.0                   FIND [29]
+     5   0.0     21   0.1   EQL [43]
+    16   0.1                   SB-KERNEL:%COERCE-CALLABLE-TO-FUN [21]
+------------------------------------------------------------------------
+ 14117  79.4                   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     7   0.0                   VARI.CL::VS-CASE [286]
+     1   0.0                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     1   0.0                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+    34   0.2                   VARJO.INTERNALS:TRY-COMPILE-ARG [220]
+ 15738  88.5                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+ 17750  99.8                   VARI.CL::VS-RETURN [194]
+ 17768  99.9                   VARI.CL::VS-LET [193]
+ 15571  87.6                   VARI.CL::VS-FLET [191]
+ 17761  99.9                   VARJO.INTERNALS:COMPILE-PROGN [108]
+     4   0.0  17768  99.9   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     2   0.0                   VARJO.INTERNALS:COMPILE-LIST-FORM [99]
+     1   0.0                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     7   0.0                   (SB-PCL::EMF VARJO.INTERNALS:COMPILE-LITERAL) [55]
+ 13977  78.6                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+    56   0.3                   VARJO.INTERNALS::COMPILE-CALL-WITH-SET-OF-FUNCTIONS [223]
+    42   0.2                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COMPILE-LITERAL (T T)) [109]
+  3681  20.7                   VARJO.INTERNALS::COMPILE-CALL-WITH-SINGLE-FUNCTION [192]
+------------------------------------------------------------------------
+     9   0.1                   (LABELS VARJO.INTERNALS::ENSURE-ENV :IN COMPILE-FORM) [129]
+     8   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COMPILE-LITERAL (T T)) [109]
+     4   0.0     17   0.1   VARJO.INTERNALS::INFER-META [45]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [31]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+     2   0.0                   SB-KERNEL:%MAP-TO-LIST-ARITY-1 [143]
+     3   0.0                   VARJO.INTERNALS::SINGULAR-FLOW-ID-P [275]
+     4   0.0                   SB-IMPL::LIST-NREVERSE [48]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     4   0.0      4   0.0   SB-C:RETURN-MULTIPLE [46]
+------------------------------------------------------------------------
+    17   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:REPLACE-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [288]
+     8   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:SET-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [233]
+     4   0.0     25   0.1   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+     3   0.0                   SB-PCL::ENSURE-CACHED-CTOR [78]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [70]
+    11   0.1                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/first-class-functions.fasl") [35]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [51]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+------------------------------------------------------------------------
+     4   0.0                   VARJO.INTERNALS::INFER-META [45]
+     4   0.0      4   0.0   SB-IMPL::LIST-NREVERSE [48]
+------------------------------------------------------------------------
+     3   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+     4   0.0      4   0.0   (SB-PCL::FAST-METHOD INITIALIZE-INSTANCE :AFTER (VARJO.INTERNALS::ENVIRONMENT)) [49]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS:END-LINE-STR [313]
+     2   0.0                   FORMAT [244]
+     1   0.0                   VARJO.INTERNALS::GEN-ARG-STRING [243]
+     4   0.0      4   0.0   SB-IMPL::%MAKE-STRING-OUTPUT-STREAM [50]
+------------------------------------------------------------------------
+     2   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     2   0.0                   (SB-PCL::FAST-METHOD V-SPECIAL-FUNCTIONP (VARJO.INTERNALS:V-FUNCTION)) [40]
+     4   0.0      4   0.0   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [51]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     4   0.0      5   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:V-VOIDP (V-TYPE)) [52]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+------------------------------------------------------------------------
+    13   0.1                   SB-FORMAT::%FORMAT [130]
+     4   0.0     13   0.1   SB-FORMAT::TOKENIZE-CONTROL-STRING [53]
+     3   0.0                   SB-IMPL::VECTOR-SUBSEQ-DISPATCH/SIMPLE-CHARACTER-STRING [173]
+     2   0.0                   SB-KERNEL:STRING=* [92]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COPY-COMPILED (VARJO.INTERNALS:COMPILED)) [113]
+     4   0.0      4   0.0   REMOVE [54]
+------------------------------------------------------------------------
+     7   0.0                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     4   0.0      7   0.0   (SB-PCL::EMF VARJO.INTERNALS:COMPILE-LITERAL) [55]
+     3   0.0                   SB-PCL::CHECK-APPLICABLE-KEYWORDS [34]
+------------------------------------------------------------------------
+    89   0.5                   VARJO.INTERNALS::COMPILE-CALL-WITH-SET-OF-FUNCTIONS [223]
+     3   0.0     90   0.5   VARJO.INTERNALS::FIND-FUNCTION-IN-SET-FOR-ARGS [56]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+    86   0.5                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE (T)) [308]
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     2   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     9   0.1                   MAKE-TYPE-SET [112]
+     3   0.0     13   0.1   ALEXANDRIA.0.DEV:MAPPEND [57]
+     1   0.0                   SB-KERNEL:%LAST1 [181]
+     1   0.0                   COPY-LIST [146]
+     8   0.0                   SB-IMPL::MAP1 [26]
+------------------------------------------------------------------------
+    16   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     3   0.0     16   0.1   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-EXTERNAL-FUNCTION-BY-NAME (T T)) [58]
+     1   0.0                   SB-IMPL::GETHASH3 [3]
+    12   0.1                   VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT [226]
+------------------------------------------------------------------------
+     3   0.0                   (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T)) [227]
+     3   0.0      3   0.0   (LAMBDA (SB-PCL::|.P0.|)) [59]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0                   VARJO.INTERNALS:FRESH-ENVIRONMENT [121]
+     3   0.0      3   0.0   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [60]
+------------------------------------------------------------------------
+     3   0.0                   SB-PCL::ENSURE-CACHED-CTOR [78]
+     3   0.0      3   0.0   SB-PCL::GET-CTOR [61]
+------------------------------------------------------------------------
+     8   0.0                   SB-KERNEL:%MAP [127]
+     3   0.0      8   0.0   SB-KERNEL:SPECIFIER-TYPE [62]
+     5   0.0                   SB-KERNEL::SPECIFIER-TYPE-R [292]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.UTILS:NTH-OR-SELF [163]
+     1   0.0                   REPLACE [39]
+     3   0.0      3   0.0   NTHCDR [63]
+------------------------------------------------------------------------
+     4   0.0                   SB-IMPL::%WRITE-STRING [245]
+     1   0.0                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     3   0.0      5   0.0   SB-IMPL::STRING-SOUT [64]
+     2   0.0                   SB-KERNEL:UB32-BASH-COPY [33]
+------------------------------------------------------------------------
+    11   0.1                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     3   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     3   0.0     14   0.1   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     1   0.0                   (LAMBDA (SB-KERNEL::CACHE SB-KERNEL::OBJECT) :IN SB-KERNEL::CACHED-TYPEP) [177]
+     3   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     5   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:V-VOIDP (V-TYPE)) [52]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING [240]
+     3   0.0      3   0.0   VARJO.INTERNALS::%MAKE-GLSL-LINE [66]
+------------------------------------------------------------------------
+     3   0.0                   SB-IMPL::OUTPUT-INTEGER [254]
+     3   0.0      3   0.0   SB-IMPL::%OUTPUT-INTEGER-IN-BASE [67]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::%CALC-FLOW-ID-GIVEN-ARGS [237]
+     3   0.0      3   0.0   REVERSE [68]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     2   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     3   0.0      3   0.0   REMOVE-DUPLICATES [69]
+------------------------------------------------------------------------
+     3   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     3   0.0      3   0.0   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [70]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     1   0.0                   (LABELS VARJO.INTERNALS::FORCE-FLOW-ID :IN VARJO.INTERNALS::RESOLVE-FUNC-SET) [289]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::FUNC-NEED-ARGUMENTS-COMPILEDP (VARJO.INTERNALS:V-FUNCTION)) [89]
+     3   0.0      3   0.0   (LAMBDA (SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-OPTIMIZED-STD-READER-METHOD-FUNCTION) [71]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     3   0.0      3   0.0   VARJO.INTERNALS::MULTI-RETURN-FUNCTION-P [72]
+------------------------------------------------------------------------
+ 17770  99.9                   VARJO.INTERNALS::COMPILE-PASS [195]
+  2191  12.3                   (LAMBDA (VARJO.INTERNALS:ENV VARI.CL::D) :IN VARI.CL::VS-FLET) [188]
+     2   0.0  17770  99.9   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0                   VARJO.INTERNALS::GEN-FUNCTION-SIGNATURE [282]
+     3   0.0                   VARJO.INTERNALS::GLSL-CHUNK-TO-STRING [156]
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|)) [155]
+     2   0.0                   REMOVE-DUPLICATES [69]
+     1   0.0                   VARJO.INTERNALS::GEN-FUNCTION-TRANSFORM [135]
+     1   0.0                   VARJO.INTERNALS::MAKE-USER-FUNCTION-OBJ [131]
+     1   0.0                   REPLACE [39]
+    10   0.1                   VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING [240]
+     2   0.0                   VARJO.INTERNALS:FRESH-ENVIRONMENT [121]
+     5   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|)) [117]
+     1   0.0                   VARJO.INTERNALS:MAKE-COMPILED [111]
+    14   0.1                   VARJO.INTERNALS:LISP-NAME->GLSL-NAME [116]
+ 15738  88.5                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+  1988  11.2                   VARJO.INTERNALS::LIKELY-RECURSION-P [187]
+------------------------------------------------------------------------
+ 17613  99.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     2   0.0  17768  99.9   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+  8526  47.9                   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     8   0.0                   VARI.CL::VS-CASE [286]
+    15   0.1                   VARI.CL::VS-%GLSL-EXPR [231]
+    37   0.2                   VARI.CL::VS-RETURN [194]
+     1   0.0                   VARI.CL::VS-LET [193]
+  7125  40.1                   VARI.CL::VS-PROGN [76]
+  2057  11.6                   VARI.CL::VS-FLET [191]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+ 17766  99.9                   VARJO.INTERNALS::COMPILE-CALL-WITH-SINGLE-FUNCTION [192]
+     2   0.0  17768  99.9   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     1   0.0                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+     3   0.0                   VARJO.INTERNALS::MULTI-RETURN-FUNCTION-P [72]
+    11   0.1                   FIND-AND-EXPAND-COMPILER-MACRO [151]
+     1   0.0                   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+     2   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+   132   0.7                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+ 17613  99.0                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+------------------------------------------------------------------------
+  7125  40.1                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     2   0.0  17768  99.9   VARI.CL::VS-PROGN [76]
+ 17766  99.9                   VARJO.INTERNALS:COMPILE-PROGN [108]
+------------------------------------------------------------------------
+     2   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VECTOR)) [110]
+     2   0.0      2   0.0   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/name-shadowing.fasl") [77]
+------------------------------------------------------------------------
+     3   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+     4   0.0                   VARJO.INTERNALS::TRY-TYPE-SPEC->TYPE [232]
+     2   0.0      7   0.0   SB-PCL::ENSURE-CACHED-CTOR [78]
+     2   0.0                   SB-PCL::FIND-CTOR [100]
+     3   0.0                   SB-PCL::GET-CTOR [61]
+------------------------------------------------------------------------
+   962   5.4                   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     1   0.0                   (LABELS VARJO.INTERNALS::CALC-SECONDARY-SCORE :IN VARJO.INTERNALS::BASIC-ARG-MATCHP) [150]
+     3   0.0                   VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED [190]
+     2   0.0                   VARJO.UTILS:POSITIONS-IF [236]
+     2   0.0    968   5.4   REDUCE [79]
+   962   5.4                   VARJO.INTERNALS:ENV-MERGE-HISTORY [306]
+     3   0.0                   VARJO.INTERNALS::MERGE-ENV [283]
+     1   0.0                   (LABELS VARJO.UTILS::F :IN VARJO.UTILS:POSITIONS-IF) [235]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+     1   0.0                   VARJO.INTERNALS:GLSL-CHUNK-FROM-COMPILED [239]
+     2   0.0      2   0.0   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.DFUN-MORE-CONTEXT. SB-PCL::.DFUN-MORE-COUNT.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/varjo.internals/deftype.fasl") [80]
+------------------------------------------------------------------------
+    12   0.1                   SB-FORMAT::%FORMAT [130]
+     1   0.0                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     2   0.0     12   0.1   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     2   0.0                   WRITE-STRING [106]
+     3   0.0                   SB-FORMAT::A-FORMAT-DIRECTIVE-INTERPRETER [134]
+     4   0.0                   SB-IMPL::%WRITE-STRING [245]
+     1   0.0                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     1   0.0                   SB-IMPL::STRING-SOUT [64]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     2   0.0      5   0.0   VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS [82]
+     1   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     1   0.0                   (SB-PCL::FAST-METHOD V-SPECIAL-FUNCTIONP (VARJO.INTERNALS:V-FUNCTION)) [40]
+------------------------------------------------------------------------
+     2   0.0                   (LABELS SB-IMPL::SXHASH-RECURSE :IN SXHASH) [246]
+     2   0.0      2   0.0   SB-KERNEL:%SXHASH-SIMPLE-STRING [83]
+------------------------------------------------------------------------
+     2   0.0                   (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING) [132]
+     2   0.0      2   0.0   SB-KERNEL:LIST-FILL* [84]
+------------------------------------------------------------------------
+     5   0.0                   FORMAT [244]
+     2   0.0                   VARJO.INTERNALS::GEN-NUMBER-STRING [249]
+     2   0.0      7   0.0   GET-OUTPUT-STREAM-STRING [85]
+     5   0.0                   (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING) [132]
+------------------------------------------------------------------------
+     2   0.0                   SB-SYS:WAIT-UNTIL-FD-USABLE [260]
+     2   0.0      2   0.0   "foreign function __poll" [86]
+------------------------------------------------------------------------
+     3   0.0                   MAKE-HASH-TABLE [141]
+     2   0.0      3   0.0   SB-IMPL::%MAKE-HASH-TABLE [87]
+     1   0.0                   SB-THREAD:MAKE-MUTEX [145]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::SINGULAR-FLOW-ID-P [275]
+     2   0.0      2   0.0   LENGTH [88]
+------------------------------------------------------------------------
+     6   0.0                   (FLET #:WRAPPER748 :IN VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS) [90]
+     2   0.0      6   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS::FUNC-NEED-ARGUMENTS-COMPILEDP (VARJO.INTERNALS:V-FUNCTION)) [89]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     1   0.0                   (LAMBDA (SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-OPTIMIZED-STD-READER-METHOD-FUNCTION) [71]
+------------------------------------------------------------------------
+     9   0.1                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     2   0.0      9   0.1   (FLET #:WRAPPER748 :IN VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS) [90]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     6   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::FUNC-NEED-ARGUMENTS-COMPILEDP (VARJO.INTERNALS:V-FUNCTION)) [89]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::GLSL-CHUNK-TO-STRING [156]
+     1   0.0                   VARJO.INTERNALS::GLSL-LEN [91]
+     2   0.0      2   0.0   VARJO.INTERNALS::GLSL-LEN [91]
+     1   0.0                   VARJO.INTERNALS::GLSL-LEN [91]
+------------------------------------------------------------------------
+     2   0.0                   SB-FORMAT::TOKENIZE-CONTROL-STRING [53]
+     2   0.0      2   0.0   SB-KERNEL:STRING=* [92]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS:FLOW-ID! [279]
+     2   0.0      2   0.0   (LAMBDA (&OPTIONAL VARJO.INTERNALS::X) :IN VARJO.INTERNALS::%MAKE-FLOW-ID-SOURCE-FUNC) [93]
+------------------------------------------------------------------------
+    26   0.1                   SB-IMPL::%MAP-TO-LIST [280]
+     2   0.0     26   0.1   SB-IMPL::%MAP-FOR-EFFECT [94]
+    24   0.1                   (FLET SB-IMPL::F :IN SB-IMPL::%MAP-TO-LIST) [162]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-CASE [286]
+     1   0.0                   (FLET #:WRAPPER158 :IN VARJO.INTERNALS::COMPILE-FUNCTION-CALL) [281]
+     2   0.0      2   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VARJO.INTERNALS:COMPILED)) [95]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::MERGE-ENV [283]
+     2   0.0      3   0.0   VARJO.INTERNALS::%MERGE-FORM-BINDINGS [96]
+     1   0.0                   MAKE-HASH-TABLE [141]
+------------------------------------------------------------------------
+  8526  47.9                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     2   0.0  15559  87.5   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     4   0.0                   VARI.CL::GEN-STRING-FOR-SWITCH-FORM [311]
+     1   0.0                   VARI.CL::COMPUTE-CONDITIONAL-TYPE-SET [310]
+   962   5.4                   REDUCE [79]
+   473   2.7                   VARJO.INTERNALS:ENV-PRUNE-MANY [305]
+ 14117  79.4                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     1   0.0                   VARJO.INTERNALS:COMPILE-PROGN [108]
+     2   0.0      2   0.0   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl") [98]
+------------------------------------------------------------------------
+     2   0.0                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     2   0.0      2   0.0   VARJO.INTERNALS:COMPILE-LIST-FORM [99]
+------------------------------------------------------------------------
+     2   0.0                   SB-PCL::ENSURE-CACHED-CTOR [78]
+     2   0.0      2   0.0   SB-PCL::FIND-CTOR [100]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     2   0.0      2   0.0   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl") [101]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     2   0.0      2   0.0   REMOVE-IF [102]
+------------------------------------------------------------------------
+     2   0.0                   (LABELS SB-IMPL::SLOWER-MAP :IN SB-KERNEL:%MAP) [301]
+     2   0.0      2   0.0   SB-KERNEL:CSUBTYPEP [103]
+------------------------------------------------------------------------
+     1   0.0                   SB-IMPL::MAP1 [26]
+     2   0.0      2   0.0   SB-KERNEL:%MAKE-LIST [104]
+------------------------------------------------------------------------
+     1   0.0                   FIND [29]
+     2   0.0      2   0.0   IDENTITY [105]
+------------------------------------------------------------------------
+     2   0.0                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     2   0.0      2   0.0   WRITE-STRING [106]
+------------------------------------------------------------------------
+  1988  11.2                   VARJO.INTERNALS::LIKELY-RECURSION-P [187]
+     1   0.0   1988  11.2   SB-KERNEL:%FIND-POSITION-IF-NOT [107]
+  1987  11.2                   (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P) [4]
+------------------------------------------------------------------------
+ 17766  99.9                   VARI.CL::VS-PROGN [76]
+     1   0.0  17768  99.9   VARJO.INTERNALS:COMPILE-PROGN [108]
+     5   0.0                   (LABELS VARJO.INTERNALS::ENSURE-ENV :IN COMPILE-FORM) [129]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl") [98]
+ 17761  99.9                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+------------------------------------------------------------------------
+    42   0.2                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     1   0.0     42   0.2   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COMPILE-LITERAL (T T)) [109]
+    30   0.2                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     3   0.0                   VARJO.INTERNALS:MAKE-COMPILED [111]
+     8   0.0                   VARJO.INTERNALS::INFER-META [45]
+------------------------------------------------------------------------
+     4   0.0                   VARJO.INTERNALS:MAKE-COMPILED [111]
+     1   0.0      4   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VECTOR)) [110]
+     1   0.0                   (SB-PCL::FAST-METHOD SB-SEQUENCE:EMPTYP (VECTOR)) [184]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/name-shadowing.fasl") [77]
+------------------------------------------------------------------------
+     6   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     3   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COMPILE-LITERAL (T T)) [109]
+     1   0.0     10   0.1   VARJO.INTERNALS:MAKE-COMPILED [111]
+     1   0.0                   VARJO.INTERNALS::ASSERT-FLOW-ID-SINGULARITY [123]
+     4   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     4   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VECTOR)) [110]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     3   0.0                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+     7   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0     11   0.1   MAKE-TYPE-SET [112]
+     1   0.0                   (LAMBDA (VARJO.INTERNALS::_) :IN MAKE-TYPE-SET) [303]
+     9   0.1                   ALEXANDRIA.0.DEV:MAPPEND [57]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     3   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     1   0.0      4   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COPY-COMPILED (VARJO.INTERNALS:COMPILED)) [113]
+     1   0.0                   REMOVE [54]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [31]
+------------------------------------------------------------------------
+    13   0.1                   PRINC [229]
+     1   0.0     13   0.1   (LABELS SB-IMPL::HANDLE-IT :IN SB-KERNEL:OUTPUT-OBJECT) [114]
+     4   0.0                   SB-IMPL::OUTPUT-INTEGER [254]
+     8   0.0                   (LABELS SB-IMPL::PRINT-IT :IN SB-KERNEL:OUTPUT-OBJECT) [228]
+------------------------------------------------------------------------
+    12   0.1                   VARJO.INTERNALS::%GET-FREE-GLSL-NAME [230]
+     1   0.0     12   0.1   VARJO.INTERNALS::GEN-GLSL-STRING-FOR-SYMBOL [115]
+     1   0.0                   SB-INT:MISC-INDEX [144]
+     7   0.0                   CL-PPCRE:REGEX-REPLACE [255]
+     3   0.0                   PRINC [229]
+------------------------------------------------------------------------
+    14   0.1                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0     14   0.1   VARJO.INTERNALS:LISP-NAME->GLSL-NAME [116]
+    13   0.1                   VARJO.INTERNALS::%GET-FREE-GLSL-NAME [230]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0      1   0.0   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|)) [117]
+------------------------------------------------------------------------
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+     1   0.0      1   0.0   SB-VM::FILL-VECTOR/T [118]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS:TRY-COMPILE-ARG [220]
+     5   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0     10   0.1   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+     3   0.0                   (SB-PCL::FAST-METHOD INITIALIZE-INSTANCE :AFTER (VARJO.INTERNALS::ENVIRONMENT)) [49]
+     4   0.0                   MAKE-HASH-TABLE [141]
+     1   0.0                   SB-PCL::%MAKE-STANDARD-INSTANCE [124]
+     1   0.0                   SB-VM::FILL-VECTOR/T [118]
+------------------------------------------------------------------------
+    12   0.1                   VARI.CL::VS-%GLSL-EXPR [231]
+     1   0.0     12   0.1   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+     1   0.0                   REPLACE [39]
+     1   0.0                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.DFUN-MORE-CONTEXT. SB-PCL::.DFUN-MORE-COUNT.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/varjo.internals/deftype.fasl") [80]
+     3   0.0                   FORMAT [244]
+     2   0.0                   (LABELS VARJO.INTERNALS::ENSURE-ENV :IN COMPILE-FORM) [129]
+     3   0.0                   MAKE-TYPE-SET [112]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     2   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0      3   0.0   VARJO.INTERNALS:FRESH-ENVIRONMENT [121]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [60]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+------------------------------------------------------------------------
+    30   0.2                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COMPILE-LITERAL (T T)) [109]
+     1   0.0     30   0.2   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     1   0.0                   VARJO.INTERNALS:FLOW-ID! [279]
+     3   0.0                   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     8   0.0                   VARJO.INTERNALS::GEN-NUMBER-STRING [249]
+     3   0.0                   REPLACE [39]
+     1   0.0                   MAKE-TYPE-SET [112]
+     8   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:SET-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [233]
+     4   0.0                   (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T)) [227]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS:MAKE-COMPILED [111]
+     1   0.0      1   0.0   VARJO.INTERNALS::ASSERT-FLOW-ID-SINGULARITY [123]
+------------------------------------------------------------------------
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+     1   0.0      1   0.0   SB-PCL::%MAKE-STANDARD-INSTANCE [124]
+------------------------------------------------------------------------
+    17   0.1                   VARJO.INTERNALS::RESOLVE-FUNC-SET [238]
+     1   0.0     17   0.1   VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS [125]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     2   0.0                   VARJO.INTERNALS::FUNCTION-RETURN-SPEC-DOESNT-NEED-FLOW-IDS [166]
+     7   0.0                   VARJO.INTERNALS::FLOW-ID+META! [164]
+     5   0.0                   VARJO.INTERNALS::%CALC-FLOW-ID-GIVEN-ARGS [237]
+------------------------------------------------------------------------
+     1   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     1   0.0      1   0.0   (FLET #:WRAPPER179 :IN VARJO.INTERNALS:MERGE-COMPILED) [126]
+------------------------------------------------------------------------
+    38   0.2                   VARJO.INTERNALS::RESOLVE-FUNC-SET [238]
+     1   0.0                   SB-KERNEL:%MAP [127]
+     1   0.0     38   0.2   SB-KERNEL:%MAP [127]
+     2   0.0                   (LABELS SB-IMPL::SLOWER-MAP :IN SB-KERNEL:%MAP) [301]
+    27   0.2                   SB-IMPL::%MAP-TO-LIST [280]
+     1   0.0                   SB-KERNEL:%MAP [127]
+     8   0.0                   SB-KERNEL:SPECIFIER-TYPE [62]
+------------------------------------------------------------------------
+     1   0.0                   (LAMBDA (VARJO.INTERNALS:ENV VARI.CL::D) :IN VARI.CL::VS-FLET) [188]
+     1   0.0      1   0.0   VARJO.INTERNALS:BUILD-FUNCTION [128]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS:COMPILE-PROGN [108]
+     3   0.0                   VARI.CL::VS-RETURN [194]
+     2   0.0                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+     1   0.0     10   0.1   (LABELS VARJO.INTERNALS::ENSURE-ENV :IN COMPILE-FORM) [129]
+     9   0.1                   VARJO.INTERNALS::INFER-META [45]
+------------------------------------------------------------------------
+    26   0.1                   FORMAT [244]
+     1   0.0     26   0.1   SB-FORMAT::%FORMAT [130]
+    13   0.1                   SB-FORMAT::TOKENIZE-CONTROL-STRING [53]
+    12   0.1                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0      1   0.0   VARJO.INTERNALS::MAKE-USER-FUNCTION-OBJ [131]
+------------------------------------------------------------------------
+     5   0.0                   GET-OUTPUT-STREAM-STRING [85]
+     1   0.0      5   0.0   (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING) [132]
+     1   0.0                   SB-IMPL::%WRITE-STRING [245]
+     1   0.0                   (LAMBDA (SB-IMPL::BUFFER SB-IMPL::FROM) :IN GET-OUTPUT-STREAM-STRING) [287]
+     2   0.0                   SB-KERNEL:LIST-FILL* [84]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     1   0.0                   EPHEMERAL-P [133]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:CURRENT-LINE (T)) [250]
+     1   0.0      2   0.0   EPHEMERAL-P [133]
+     1   0.0                   EPHEMERAL-P [133]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+------------------------------------------------------------------------
+     3   0.0                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     1   0.0      3   0.0   SB-FORMAT::A-FORMAT-DIRECTIVE-INTERPRETER [134]
+     2   0.0                   PRINC [229]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0      1   0.0   VARJO.INTERNALS::GEN-FUNCTION-TRANSFORM [135]
+------------------------------------------------------------------------
+     2   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     1   0.0      2   0.0   (FLET #:WRAPPER5 :IN VARJO.INTERNALS:MAKE-COMPILED) [136]
+     1   0.0                   (LAMBDA (SB-PCL::.PV. SB-PCL::.NEXT-METHOD-CALL. SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-STD-READER-METHOD-FUNCTION) [157]
+------------------------------------------------------------------------
+     2   0.0                   SB-KERNEL:CLASSOID-PROPER-NAME [252]
+     1   0.0      2   0.0   SB-KERNEL:FIND-CLASSOID [137]
+     1   0.0                   SB-KERNEL:FIND-CLASSOID-CELL [251]
+------------------------------------------------------------------------
+     3   0.0                   (SB-PCL::FAST-METHOD V-TYPEP (V-TYPE V-TYPE)) [253]
+     1   0.0      3   0.0   TYPE-OF [138]
+     2   0.0                   SB-KERNEL:CLASSOID-PROPER-NAME [252]
+------------------------------------------------------------------------
+     1   0.0                   CL-PPCRE:REGEX-REPLACE [255]
+     1   0.0      1   0.0   SUBSEQ [139]
+------------------------------------------------------------------------
+     3   0.0                   (SB-PCL::FAST-METHOD CL-PPCRE:SCAN (FUNCTION T)) [256]
+     1   0.0      3   0.0   (LAMBDA (STRING CL-PPCRE::START CL-PPCRE::END) :IN CL-PPCRE::CREATE-SCANNER-AUX) [140]
+     2   0.0                   SEARCH [149]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::%MERGE-FORM-BINDINGS [96]
+     4   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+     1   0.0      5   0.0   MAKE-HASH-TABLE [141]
+     1   0.0                   SB-KERNEL:%UNARY-TRUNCATE/SINGLE-FLOAT [152]
+     3   0.0                   SB-IMPL::%MAKE-HASH-TABLE [87]
+------------------------------------------------------------------------
+     1   0.0      1   0.0   SB-KERNEL:OUTPUT-OBJECT [142]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::INFER-META [45]
+     1   0.0                   VARJO.INTERNALS::RESOLVE-FUNC-SET [238]
+     1   0.0      3   0.0   SB-KERNEL:%MAP-TO-LIST-ARITY-1 [143]
+     1   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+     1   0.0                   SB-KERNEL:%COERCE-CALLABLE-TO-FUN [21]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::GEN-GLSL-STRING-FOR-SYMBOL [115]
+     1   0.0      1   0.0   SB-INT:MISC-INDEX [144]
+------------------------------------------------------------------------
+     1   0.0                   SB-IMPL::%MAKE-HASH-TABLE [87]
+     1   0.0      1   0.0   SB-THREAD:MAKE-MUTEX [145]
+------------------------------------------------------------------------
+     1   0.0                   ALEXANDRIA.0.DEV:MAPPEND [57]
+     1   0.0      1   0.0   COPY-LIST [146]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     1   0.0      1   0.0   SB-KERNEL:%%TYPEP [147]
+------------------------------------------------------------------------
+     1   0.0                   SEARCH [149]
+     1   0.0      1   0.0   SB-KERNEL:HAIRY-DATA-VECTOR-REF/CHECK-BOUNDS [148]
+------------------------------------------------------------------------
+     2   0.0                   (LAMBDA (STRING CL-PPCRE::START CL-PPCRE::END) :IN CL-PPCRE::CREATE-SCANNER-AUX) [140]
+     1   0.0      2   0.0   SEARCH [149]
+     1   0.0                   SB-KERNEL:HAIRY-DATA-VECTOR-REF/CHECK-BOUNDS [148]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     1   0.0      2   0.0   (LABELS VARJO.INTERNALS::CALC-SECONDARY-SCORE :IN VARJO.INTERNALS::BASIC-ARG-MATCHP) [150]
+     1   0.0                   REDUCE [79]
+------------------------------------------------------------------------
+    11   0.1                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     1   0.0     12   0.1   FIND-AND-EXPAND-COMPILER-MACRO [151]
+    10   0.1                   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     1   0.0                   (SB-PCL::FAST-METHOD V-SPECIAL-FUNCTIONP (VARJO.INTERNALS:V-FUNCTION)) [40]
+------------------------------------------------------------------------
+     1   0.0                   MAKE-HASH-TABLE [141]
+     1   0.0      1   0.0   SB-KERNEL:%UNARY-TRUNCATE/SINGLE-FLOAT [152]
+------------------------------------------------------------------------
+     1   0.0      1   0.0   TRUNCATE [153]
+------------------------------------------------------------------------
+     1   0.0                   PPRINT-DISPATCH [37]
+     1   0.0      1   0.0   "PPRINT-FUN-CALL-P" [154]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0      1   0.0   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|)) [155]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     1   0.0      3   0.0   VARJO.INTERNALS::GLSL-CHUNK-TO-STRING [156]
+     1   0.0                   VARJO.INTERNALS::GLSL-LEN [91]
+------------------------------------------------------------------------
+     1   0.0                   (FLET #:WRAPPER5 :IN VARJO.INTERNALS:MAKE-COMPILED) [136]
+     1   0.0      1   0.0   (LAMBDA (SB-PCL::.PV. SB-PCL::.NEXT-METHOD-CALL. SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-STD-READER-METHOD-FUNCTION) [157]
+------------------------------------------------------------------------
+     1   0.0                   SB-IMPL::OUTPUT-INTEGER [254]
+     1   0.0      1   0.0   SB-IMPL::%OUTPUT-REASONABLE-INTEGER-IN-BASE [158]
+------------------------------------------------------------------------
+     1   0.0                   CL-PPCRE:REGEX-REPLACE [255]
+     1   0.0      1   0.0   SB-KERNEL:VECTOR-SUBSEQ* [159]
+------------------------------------------------------------------------
+     1   0.0                   REPLACE [39]
+     1   0.0      1   0.0   (SB-IMPL::OPTIMIZED-DATA-VECTOR-SET T) [160]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     1   0.0      1   0.0   SB-IMPL::VECTOR-TO-LIST* [161]
+------------------------------------------------------------------------
+    24   0.1                   SB-IMPL::%MAP-FOR-EFFECT [94]
+     1   0.0     24   0.1   (FLET SB-IMPL::F :IN SB-IMPL::%MAP-TO-LIST) [162]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [7]
+     2   0.0                   (LABELS VARJO.INTERNALS::FORCE-FLOW-ID :IN VARJO.INTERNALS::RESOLVE-FUNC-SET) [289]
+    18   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:REPLACE-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [288]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS::FLOW-ID+META! [164]
+     1   0.0      5   0.0   VARJO.UTILS:NTH-OR-SELF [163]
+     2   0.0                   NTHCDR [63]
+     2   0.0                   SB-VM::GENERIC-+ [19]
+------------------------------------------------------------------------
+     7   0.0                   VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS [125]
+     1   0.0      7   0.0   VARJO.INTERNALS::FLOW-ID+META! [164]
+     1   0.0                   VARJO.INTERNALS:FLOW-ID! [279]
+     5   0.0                   VARJO.UTILS:NTH-OR-SELF [163]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::FUNCTION-RETURN-SPEC-DOESNT-NEED-FLOW-IDS [166]
+     1   0.0      1   0.0   (SB-IMPL::OPTIMIZED-DATA-VECTOR-REF T) [165]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS [125]
+     1   0.0      2   0.0   VARJO.INTERNALS::FUNCTION-RETURN-SPEC-DOESNT-NEED-FLOW-IDS [166]
+     1   0.0                   (SB-IMPL::OPTIMIZED-DATA-VECTOR-REF T) [165]
+------------------------------------------------------------------------
+     1   0.0                   SB-C::GET-INFO-VALUE [41]
+     1   0.0      1   0.0   SB-C::PACKED-INFO-VALUE-INDEX [167]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     1   0.0      1   0.0   VARJO.INTERNALS::NORMALIZE-OUT-OF-SCOPE-ARGS [168]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+     1   0.0      1   0.0   KEYWORDP [169]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     1   0.0      1   0.0   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/vari.glsl/functions.fasl") [170]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     1   0.0      1   0.0   VARJO.INTERNALS::%MAKE-GLSL-CHUNK [171]
+------------------------------------------------------------------------
+     1   0.0                   SB-THREAD::CALL-WITH-RECURSIVE-LOCK [293]
+     1   0.0      1   0.0   (FLET #:WITHOUT-INTERRUPTS-BODY-387 :IN SB-THREAD::CALL-WITH-RECURSIVE-LOCK) [172]
+------------------------------------------------------------------------
+     3   0.0                   SB-FORMAT::TOKENIZE-CONTROL-STRING [53]
+     1   0.0      3   0.0   SB-IMPL::VECTOR-SUBSEQ-DISPATCH/SIMPLE-CHARACTER-STRING [173]
+     2   0.0                   SB-KERNEL:UB32-BASH-COPY [33]
+------------------------------------------------------------------------
+     1   0.0                   SWANK/BACKEND:CALL-WITH-LOCK-HELD [300]
+     1   0.0      1   0.0   SB-IMPL::GET3 [174]
+------------------------------------------------------------------------
+     1   0.0      1   0.0   (SB-IMPL::OPTIMIZED-DATA-VECTOR-REF T) [175]
+------------------------------------------------------------------------
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/first-class-functions.fasl") [35]
+     1   0.0      1   0.0   (LAMBDA (SB-PCL::METHOD-ARGS SB-PCL::NEXT-METHODS) :IN SB-PCL::METHOD-FUNCTION-FROM-FAST-FUNCTION) [176]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     1   0.0      1   0.0   (LAMBDA (SB-KERNEL::CACHE SB-KERNEL::OBJECT) :IN SB-KERNEL::CACHED-TYPEP) [177]
+------------------------------------------------------------------------
+     1   0.0      1   0.0   VARJO.INTERNALS:JOIN-GLSL-CHUNKS [178]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     1   0.0      1   0.0   VARJO.INTERNALS::SPECIAL-ARG-MATCHP [179]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0      1   0.0   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|)) [180]
+------------------------------------------------------------------------
+     1   0.0                   ALEXANDRIA.0.DEV:MAPPEND [57]
+     1   0.0      1   0.0   SB-KERNEL:%LAST1 [181]
+------------------------------------------------------------------------
+     1   0.0                   SLEEP [302]
+     1   0.0      1   0.0   "foreign function __nanosleep" [182]
+------------------------------------------------------------------------
+     1   0.0                   (LAMBDA (VARJO.INTERNALS::_) :IN MAKE-TYPE-SET) [303]
+     1   0.0      1   0.0   MAPCAR [183]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VECTOR)) [110]
+     1   0.0      1   0.0   (SB-PCL::FAST-METHOD SB-SEQUENCE:EMPTYP (VECTOR)) [184]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+     1   0.0      1   0.0   SB-C::CHECK-DS-LIST/&REST [185]
+------------------------------------------------------------------------
+     1   0.0                   PPRINT-DISPATCH [37]
+     1   0.0      1   0.0   "PPRINT-DATA-LIST-P" [186]
+------------------------------------------------------------------------
+  1988  11.2                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     0   0.0   1988  11.2   VARJO.INTERNALS::LIKELY-RECURSION-P [187]
+  1988  11.2                   SB-KERNEL:%FIND-POSITION-IF-NOT [107]
+------------------------------------------------------------------------
+  2192  12.3                   (LAMBDA (&REST VARJO.INTERNALS:ARGS) :IN VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED) [189]
+     0   0.0   2192  12.3   (LAMBDA (VARJO.INTERNALS:ENV VARI.CL::D) :IN VARI.CL::VS-FLET) [188]
+     1   0.0                   VARJO.INTERNALS:BUILD-FUNCTION [128]
+  2191  12.3                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+------------------------------------------------------------------------
+  2187  12.3                   SB-IMPL::MAP1 [26]
+     0   0.0   2192  12.3   (LAMBDA (&REST VARJO.INTERNALS:ARGS) :IN VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED) [189]
+  2192  12.3                   (LAMBDA (VARJO.INTERNALS:ENV VARI.CL::D) :IN VARI.CL::VS-FLET) [188]
+------------------------------------------------------------------------
+  2196  12.3                   VARI.CL::VS-FLET [191]
+     0   0.0   2196  12.3   VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED [190]
+     3   0.0                   REDUCE [79]
+  2193  12.3                   SB-IMPL::MAP1 [26]
+------------------------------------------------------------------------
+  2057  11.6                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     0   0.0  17768  99.9   VARI.CL::VS-FLET [191]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:ADD-FORM-BINDINGS (LIST VARJO.INTERNALS::ENVIRONMENT)) [285]
+ 15571  87.6                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+  2196  12.3                   VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED [190]
+------------------------------------------------------------------------
+  3681  20.7                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     0   0.0  17768  99.9   VARJO.INTERNALS::COMPILE-CALL-WITH-SINGLE-FUNCTION [192]
+     1   0.0                   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+ 17766  99.9                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     0   0.0  17768  99.9   VARI.CL::VS-LET [193]
+ 17768  99.9                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+------------------------------------------------------------------------
+    37   0.2                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     0   0.0  17768  99.9   VARI.CL::VS-RETURN [194]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.MORE-CONTEXT. SB-PCL::.MORE-COUNT.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [30]
+     1   0.0                   SB-IMPL::VECTOR-TO-LIST* [161]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     1   0.0                   EPHEMERAL-P [133]
+     1   0.0                   (SB-PCL::EMF VARJO.INTERNALS:COPY-COMPILED) [277]
+     1   0.0                   SB-C:RETURN-MULTIPLE [46]
+     1   0.0                   (SB-PCL::FAST-METHOD FLOW-IDS (VARJO.INTERNALS:COMPILED)) [276]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:COPY-COMPILED (VARJO.INTERNALS:COMPILED)) [113]
+     1   0.0                   REPLACE [39]
+     3   0.0                   (LABELS VARJO.INTERNALS::ENSURE-ENV :IN COMPILE-FORM) [129]
+     1   0.0                   VARJO.INTERNALS:FRESH-ENVIRONMENT [121]
+     5   0.0                   (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T)) [227]
+ 17750  99.8                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+------------------------------------------------------------------------
+ 17770  99.9                   (SB-PCL::FAST-METHOD TRANSLATE (VARJO.INTERNALS:STAGE)) [196]
+     0   0.0  17770  99.9   VARJO.INTERNALS::COMPILE-PASS [195]
+ 17770  99.9                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+------------------------------------------------------------------------
+ 17772  99.9                   SB-INT:SIMPLE-EVAL-IN-LEXENV [197]
+     0   0.0  17772  99.9   (SB-PCL::FAST-METHOD TRANSLATE (VARJO.INTERNALS:STAGE)) [196]
+     2   0.0                   VARJO.INTERNALS::FINAL-STRING-COMPOSE [316]
+ 17770  99.9                   VARJO.INTERNALS::COMPILE-PASS [195]
+------------------------------------------------------------------------
+ 17772  99.9                   EVAL [199]
+ 17772  99.9                   SB-IMPL::SIMPLE-EVAL-PROGN-BODY [198]
+     0   0.0  17772  99.9   SB-INT:SIMPLE-EVAL-IN-LEXENV [197]
+     1   0.0                   SWANK-REPL::REPL-EVAL [205]
+     1   0.0                   SB-IMPL::SIMPLE-EVAL-PROGN-BODY [198]
+ 17772  99.9                   (SB-PCL::FAST-METHOD TRANSLATE (VARJO.INTERNALS:STAGE)) [196]
+------------------------------------------------------------------------
+     1   0.0                   SB-INT:SIMPLE-EVAL-IN-LEXENV [197]
+     0   0.0  17772  99.9   SB-IMPL::SIMPLE-EVAL-PROGN-BODY [198]
+ 17772  99.9                   SB-INT:SIMPLE-EVAL-IN-LEXENV [197]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK:EVAL-FOR-EMACS [206]
+ 17772  99.9                   SWANK::EVAL-REGION [200]
+     0   0.0  17772  99.9   EVAL [199]
+ 17772  99.9                   SB-INT:SIMPLE-EVAL-IN-LEXENV [197]
+------------------------------------------------------------------------
+ 17772  99.9                   (LAMBDA NIL :IN SWANK-REPL::REPL-EVAL) [201]
+     0   0.0  17772  99.9   SWANK::EVAL-REGION [200]
+ 17772  99.9                   EVAL [199]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK-REPL::TRACK-PACKAGE [202]
+     0   0.0  17772  99.9   (LAMBDA NIL :IN SWANK-REPL::REPL-EVAL) [201]
+ 17772  99.9                   SWANK::EVAL-REGION [200]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK::CALL-WITH-RETRY-RESTART [203]
+     0   0.0  17772  99.9   SWANK-REPL::TRACK-PACKAGE [202]
+ 17772  99.9                   (LAMBDA NIL :IN SWANK-REPL::REPL-EVAL) [201]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK::CALL-WITH-BUFFER-SYNTAX [204]
+     0   0.0  17772  99.9   SWANK::CALL-WITH-RETRY-RESTART [203]
+ 17772  99.9                   SWANK-REPL::TRACK-PACKAGE [202]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK-REPL::REPL-EVAL [205]
+     0   0.0  17772  99.9   SWANK::CALL-WITH-BUFFER-SYNTAX [204]
+ 17772  99.9                   SWANK::CALL-WITH-RETRY-RESTART [203]
+------------------------------------------------------------------------
+     1   0.0                   SB-INT:SIMPLE-EVAL-IN-LEXENV [197]
+     0   0.0  17772  99.9   SWANK-REPL::REPL-EVAL [205]
+ 17772  99.9                   SWANK::CALL-WITH-BUFFER-SYNTAX [204]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK::PROCESS-REQUESTS [207]
+     0   0.0  17772  99.9   SWANK:EVAL-FOR-EMACS [206]
+ 17772  99.9                   EVAL [199]
+------------------------------------------------------------------------
+ 17772  99.9                   (LAMBDA NIL :IN SWANK::HANDLE-REQUESTS) [208]
+     0   0.0  17772  99.9   SWANK::PROCESS-REQUESTS [207]
+ 17772  99.9                   SWANK:EVAL-FOR-EMACS [206]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK/SBCL::CALL-WITH-BREAK-HOOK [209]
+     1   0.0                   (LAMBDA NIL :IN SWANK::HANDLE-REQUESTS) [208]
+     0   0.0  17772  99.9   (LAMBDA NIL :IN SWANK::HANDLE-REQUESTS) [208]
+     1   0.0                   (LAMBDA NIL :IN SWANK::HANDLE-REQUESTS) [208]
+ 17772  99.9                   SWANK::PROCESS-REQUESTS [207]
+------------------------------------------------------------------------
+ 17772  99.9                   (FLET SWANK/BACKEND:CALL-WITH-DEBUGGER-HOOK :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp") [210]
+     0   0.0  17772  99.9   SWANK/SBCL::CALL-WITH-BREAK-HOOK [209]
+ 17772  99.9                   (LAMBDA NIL :IN SWANK::HANDLE-REQUESTS) [208]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK::CALL-WITH-BINDINGS [211]
+     0   0.0  17772  99.9   (FLET SWANK/BACKEND:CALL-WITH-DEBUGGER-HOOK :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp") [210]
+ 17772  99.9                   SWANK/SBCL::CALL-WITH-BREAK-HOOK [209]
+------------------------------------------------------------------------
+ 17772  99.9                   SWANK::HANDLE-REQUESTS [212]
+     0   0.0  17772  99.9   SWANK::CALL-WITH-BINDINGS [211]
+ 17772  99.9                   (FLET SWANK/BACKEND:CALL-WITH-DEBUGGER-HOOK :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp") [210]
+------------------------------------------------------------------------
+ 17772  99.9                   (FLET #:WITHOUT-INTERRUPTS-BODY-1139 :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [213]
+     0   0.0  17772  99.9   SWANK::HANDLE-REQUESTS [212]
+ 17772  99.9                   SWANK::CALL-WITH-BINDINGS [211]
+------------------------------------------------------------------------
+ 17776  99.9                   (FLET SB-THREAD::WITH-MUTEX-THUNK :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [214]
+     0   0.0  17776  99.9   (FLET #:WITHOUT-INTERRUPTS-BODY-1139 :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [213]
+     4   0.0                   SWANK::AUTO-FLUSH-LOOP [299]
+ 17772  99.9                   SWANK::HANDLE-REQUESTS [212]
+------------------------------------------------------------------------
+ 17776  99.9                   (FLET #:WITHOUT-INTERRUPTS-BODY-359 :IN SB-THREAD::CALL-WITH-MUTEX) [215]
+     0   0.0  17776  99.9   (FLET SB-THREAD::WITH-MUTEX-THUNK :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [214]
+ 17776  99.9                   (FLET #:WITHOUT-INTERRUPTS-BODY-1139 :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [213]
+------------------------------------------------------------------------
+ 17776  99.9                   SB-THREAD::CALL-WITH-MUTEX [216]
+     0   0.0  17776  99.9   (FLET #:WITHOUT-INTERRUPTS-BODY-359 :IN SB-THREAD::CALL-WITH-MUTEX) [215]
+ 17776  99.9                   (FLET SB-THREAD::WITH-MUTEX-THUNK :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [214]
+------------------------------------------------------------------------
+ 17776  99.9                   SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE [217]
+     0   0.0  17776  99.9   SB-THREAD::CALL-WITH-MUTEX [216]
+ 17776  99.9                   (FLET #:WITHOUT-INTERRUPTS-BODY-359 :IN SB-THREAD::CALL-WITH-MUTEX) [215]
+------------------------------------------------------------------------
+ 17776  99.9                   "foreign function call_into_lisp" [218]
+     0   0.0  17776  99.9   SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE [217]
+ 17776  99.9                   SB-THREAD::CALL-WITH-MUTEX [216]
+------------------------------------------------------------------------
+ 17776  99.9                   "foreign function new_thread_trampoline" [219]
+     0   0.0  17776  99.9   "foreign function call_into_lisp" [218]
+ 17776  99.9                   SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE [217]
+------------------------------------------------------------------------
+     0   0.0  17776  99.9   "foreign function new_thread_trampoline" [219]
+ 17776  99.9                   "foreign function call_into_lisp" [218]
+------------------------------------------------------------------------
+    40   0.2                   VARJO.INTERNALS::TRY-COMPILE-ARGS [221]
+     0   0.0     40   0.2   VARJO.INTERNALS:TRY-COMPILE-ARG [220]
+     5   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|)) [119]
+    34   0.2                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+------------------------------------------------------------------------
+    40   0.2                   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     0   0.0     40   0.2   VARJO.INTERNALS::TRY-COMPILE-ARGS [221]
+    40   0.2                   VARJO.INTERNALS:TRY-COMPILE-ARG [220]
+------------------------------------------------------------------------
+    86   0.5                   VARJO.INTERNALS::FIND-FUNCTION-IN-SET-FOR-ARGS [56]
+     0   0.0     86   0.5   VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS [222]
+     1   0.0                   VARJO.INTERNALS::SPECIAL-ARG-MATCHP [179]
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/vari.glsl/functions.fasl") [170]
+     1   0.0                   SB-C:RETURN-MULTIPLE [46]
+     3   0.0                   REMOVE [54]
+     9   0.1                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     5   0.0                   SB-KERNEL:%FIND-POSITION-IF [42]
+     5   0.0                   VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS [82]
+     1   0.0                   SB-KERNEL:%COERCE-CALLABLE-TO-FUN [21]
+    19   0.1                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+    40   0.2                   VARJO.INTERNALS::TRY-COMPILE-ARGS [221]
+------------------------------------------------------------------------
+    56   0.3                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     0   0.0     89   0.5   VARJO.INTERNALS::COMPILE-CALL-WITH-SET-OF-FUNCTIONS [223]
+    89   0.5                   VARJO.INTERNALS::FIND-FUNCTION-IN-SET-FOR-ARGS [56]
+------------------------------------------------------------------------
+   132   0.7                   VARJO.INTERNALS::COMPILE-FUNCTION-CALL [75]
+     0   0.0    132   0.7   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0                   (SB-PCL::EMF VARJO.INTERNALS:MERGE-COMPILED) [304]
+     1   0.0                   REPLACE [39]
+     1   0.0                   ALEXANDRIA.0.DEV:MAPPEND [57]
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|)) [180]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.MORE-CONTEXT. SB-PCL::.MORE-COUNT.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [30]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [60]
+    11   0.1                   VARJO.INTERNALS:MAKE-TYPE-SET* [65]
+     5   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+    25   0.1                   FORMAT [244]
+     1   0.0                   SB-C:RETURN-MULTIPLE [46]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [31]
+    56   0.3                   VARJO.INTERNALS::RESOLVE-FUNC-SET [238]
+     6   0.0                   VARJO.INTERNALS:MAKE-COMPILED [111]
+    12   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+     7   0.0                   MAKE-TYPE-SET [112]
+------------------------------------------------------------------------
+    12   0.1                   VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT [226]
+     0   0.0     12   0.1   VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT-LIST [225]
+    11   0.1                   FIND [29]
+------------------------------------------------------------------------
+    12   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-EXTERNAL-FUNCTION-BY-NAME (T T)) [58]
+     0   0.0     12   0.1   VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT [226]
+    12   0.1                   VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT-LIST [225]
+------------------------------------------------------------------------
+     4   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     5   0.0                   VARI.CL::VS-RETURN [194]
+     0   0.0      9   0.1   (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T)) [227]
+     1   0.0                   (LAMBDA (SB-PCL::|.P0.|) :IN "/home/baggers/quicklisp/local-projects/the-works/varjo/src/vari.cl/bitwise-operators.lisp") [259]
+     4   0.0                   VARJO.INTERNALS::TRY-TYPE-SPEC->TYPE [232]
+     3   0.0                   (LAMBDA (SB-PCL::|.P0.|)) [59]
+------------------------------------------------------------------------
+     8   0.0                   (LABELS SB-IMPL::HANDLE-IT :IN SB-KERNEL:OUTPUT-OBJECT) [114]
+     0   0.0      8   0.0   (LABELS SB-IMPL::PRINT-IT :IN SB-KERNEL:OUTPUT-OBJECT) [228]
+     8   0.0                   PPRINT-DISPATCH [37]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::GEN-SHADER-STRING [315]
+     1   0.0                   VARJO.INTERNALS:END-LINE-STR [313]
+     1   0.0                   VARJO.INTERNALS::GEN-FUNCTION-SIGNATURE [282]
+     5   0.0                   VARJO.INTERNALS::GEN-NUMBER-STRING [249]
+     2   0.0                   SB-FORMAT::A-FORMAT-DIRECTIVE-INTERPRETER [134]
+     3   0.0                   VARJO.INTERNALS::GEN-GLSL-STRING-FOR-SYMBOL [115]
+     0   0.0     13   0.1   PRINC [229]
+    13   0.1                   (LABELS SB-IMPL::HANDLE-IT :IN SB-KERNEL:OUTPUT-OBJECT) [114]
+------------------------------------------------------------------------
+    13   0.1                   VARJO.INTERNALS:LISP-NAME->GLSL-NAME [116]
+     0   0.0     13   0.1   VARJO.INTERNALS::%GET-FREE-GLSL-NAME [230]
+     1   0.0                   SB-IMPL::GETHASH3 [3]
+    12   0.1                   VARJO.INTERNALS::GEN-GLSL-STRING-FOR-SYMBOL [115]
+------------------------------------------------------------------------
+    15   0.1                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     0   0.0     15   0.1   VARI.CL::VS-%GLSL-EXPR [231]
+     3   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST)) [25]
+    12   0.1                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+------------------------------------------------------------------------
+     4   0.0                   (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T)) [227]
+     0   0.0      4   0.0   VARJO.INTERNALS::TRY-TYPE-SPEC->TYPE [232]
+     4   0.0                   SB-PCL::ENSURE-CACHED-CTOR [78]
+------------------------------------------------------------------------
+     8   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     0   0.0      8   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:SET-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [233]
+     8   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+------------------------------------------------------------------------
+     1   0.0                   (LABELS VARJO.UTILS::F :IN VARJO.UTILS:POSITIONS-IF) [235]
+     0   0.0      1   0.0   VARJO.INTERNALS:ID~= [234]
+     1   0.0                   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+------------------------------------------------------------------------
+     1   0.0                   REDUCE [79]
+     0   0.0      1   0.0   (LABELS VARJO.UTILS::F :IN VARJO.UTILS:POSITIONS-IF) [235]
+     1   0.0                   VARJO.INTERNALS:ID~= [234]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::%CALC-FLOW-ID-GIVEN-ARGS [237]
+     0   0.0      2   0.0   VARJO.UTILS:POSITIONS-IF [236]
+     2   0.0                   REDUCE [79]
+------------------------------------------------------------------------
+     5   0.0                   VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS [125]
+     0   0.0      5   0.0   VARJO.INTERNALS::%CALC-FLOW-ID-GIVEN-ARGS [237]
+     3   0.0                   REVERSE [68]
+     2   0.0                   VARJO.UTILS:POSITIONS-IF [236]
+------------------------------------------------------------------------
+    56   0.3                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     0   0.0     56   0.3   VARJO.INTERNALS::RESOLVE-FUNC-SET [238]
+     1   0.0                   SB-KERNEL:%MAP-TO-LIST-ARITY-1 [143]
+    38   0.2                   SB-KERNEL:%MAP [127]
+    17   0.1                   VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS [125]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING [240]
+     0   0.0      3   0.0   VARJO.INTERNALS:GLSL-CHUNK-FROM-COMPILED [239]
+     1   0.0                   FORMAT [244]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:CURRENT-LINE (T)) [250]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.DFUN-MORE-CONTEXT. SB-PCL::.DFUN-MORE-COUNT.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/varjo.internals/deftype.fasl") [80]
+------------------------------------------------------------------------
+    10   0.1                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     0   0.0     10   0.1   VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING [240]
+     3   0.0                   VARJO.INTERNALS::%MAKE-GLSL-LINE [66]
+     3   0.0                   FORMAT [244]
+     1   0.0                   VARJO.INTERNALS::GEN-ARG-STRING [243]
+     3   0.0                   VARJO.INTERNALS:GLSL-CHUNK-FROM-COMPILED [239]
+------------------------------------------------------------------------
+     6   0.0                   "foreign function handle_trap" [242]
+     0   0.0      6   0.0   "foreign function interrupt_handle_pending" [241]
+     6   0.0                   "foreign function pthread_sigmask" [32]
+------------------------------------------------------------------------
+     0   0.0      6   0.0   "foreign function handle_trap" [242]
+     6   0.0                   "foreign function interrupt_handle_pending" [241]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING [240]
+     0   0.0      1   0.0   VARJO.INTERNALS::GEN-ARG-STRING [243]
+     1   0.0                   SB-IMPL::%MAKE-STRING-OUTPUT-STREAM [50]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::GEN-CHUNK-FOR-CONDITIONAL-ARM [312]
+    25   0.1                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     1   0.0                   VARJO.INTERNALS:GLSL-CHUNK-FROM-COMPILED [239]
+     3   0.0                   VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING [240]
+     3   0.0                   VARI.CL::COMPILE-GLSL-EXPRESSION-STRING [120]
+     0   0.0     33   0.2   FORMAT [244]
+     5   0.0                   GET-OUTPUT-STREAM-STRING [85]
+     2   0.0                   SB-IMPL::%MAKE-STRING-OUTPUT-STREAM [50]
+    26   0.1                   SB-FORMAT::%FORMAT [130]
+------------------------------------------------------------------------
+     1   0.0                   (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING) [132]
+     4   0.0                   SB-FORMAT::INTERPRET-DIRECTIVE-LIST [81]
+     0   0.0      5   0.0   SB-IMPL::%WRITE-STRING [245]
+     1   0.0                   SB-KERNEL:UB32-BASH-COPY [33]
+     4   0.0                   SB-IMPL::STRING-SOUT [64]
+------------------------------------------------------------------------
+     2   0.0                   SXHASH [247]
+     0   0.0      2   0.0   (LABELS SB-IMPL::SXHASH-RECURSE :IN SXHASH) [246]
+     2   0.0                   SB-KERNEL:%SXHASH-SIMPLE-STRING [83]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::EQUAL-HASH [248]
+     0   0.0      2   0.0   SXHASH [247]
+     2   0.0                   (LABELS SB-IMPL::SXHASH-RECURSE :IN SXHASH) [246]
+------------------------------------------------------------------------
+     2   0.0                   (FLET #:BODY-FUN-558 :IN SB-IMPL::GETHASH3) [2]
+     0   0.0      2   0.0   SB-IMPL::EQUAL-HASH [248]
+     2   0.0                   SXHASH [247]
+------------------------------------------------------------------------
+     8   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     0   0.0      8   0.0   VARJO.INTERNALS::GEN-NUMBER-STRING [249]
+     5   0.0                   PRINC [229]
+     2   0.0                   GET-OUTPUT-STREAM-STRING [85]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS:GLSL-CHUNK-FROM-COMPILED [239]
+     0   0.0      1   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:CURRENT-LINE (T)) [250]
+     1   0.0                   EPHEMERAL-P [133]
+------------------------------------------------------------------------
+     1   0.0                   SB-KERNEL:FIND-CLASSOID [137]
+     0   0.0      1   0.0   SB-KERNEL:FIND-CLASSOID-CELL [251]
+     1   0.0                   SB-C::GET-INFO-VALUE [41]
+------------------------------------------------------------------------
+     2   0.0                   TYPE-OF [138]
+     0   0.0      2   0.0   SB-KERNEL:CLASSOID-PROPER-NAME [252]
+     2   0.0                   SB-KERNEL:FIND-CLASSOID [137]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::BASIC-ARG-MATCHP [36]
+     0   0.0      3   0.0   (SB-PCL::FAST-METHOD V-TYPEP (V-TYPE V-TYPE)) [253]
+     3   0.0                   TYPE-OF [138]
+------------------------------------------------------------------------
+     4   0.0                   (LABELS SB-IMPL::HANDLE-IT :IN SB-KERNEL:OUTPUT-OBJECT) [114]
+     0   0.0      4   0.0   SB-IMPL::OUTPUT-INTEGER [254]
+     1   0.0                   SB-IMPL::%OUTPUT-REASONABLE-INTEGER-IN-BASE [158]
+     3   0.0                   SB-IMPL::%OUTPUT-INTEGER-IN-BASE [67]
+------------------------------------------------------------------------
+     7   0.0                   VARJO.INTERNALS::GEN-GLSL-STRING-FOR-SYMBOL [115]
+     0   0.0      7   0.0   CL-PPCRE:REGEX-REPLACE [255]
+     1   0.0                   SB-KERNEL:VECTOR-SUBSEQ* [159]
+     3   0.0                   (SB-PCL::FAST-METHOD CL-PPCRE:SCAN (FUNCTION T)) [256]
+     1   0.0                   SUBSEQ [139]
+------------------------------------------------------------------------
+     3   0.0                   CL-PPCRE:REGEX-REPLACE [255]
+     0   0.0      3   0.0   (SB-PCL::FAST-METHOD CL-PPCRE:SCAN (FUNCTION T)) [256]
+     3   0.0                   (LAMBDA (STRING CL-PPCRE::START CL-PPCRE::END) :IN CL-PPCRE::CREATE-SCANNER-AUX) [140]
+------------------------------------------------------------------------
+     8   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     0   0.0      8   0.0   (FLET #:WRAPPER7 :IN VARJO.INTERNALS:MAKE-FUNCTION-SET) [257]
+     5   0.0                   (SB-PCL::FAST-METHOD V-SPECIAL-FUNCTIONP (VARJO.INTERNALS:V-FUNCTION)) [40]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+------------------------------------------------------------------------
+     9   0.1                   VARJO.INTERNALS::COMPILE-CALL-FORM [28]
+     0   0.0      9   0.1   VARJO.INTERNALS:MAKE-FUNCTION-SET [258]
+     9   0.1                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T)) [227]
+     0   0.0      1   0.0   (LAMBDA (SB-PCL::|.P0.|) :IN "/home/baggers/quicklisp/local-projects/the-works/varjo/src/vari.cl/bitwise-operators.lisp") [259]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::REFILL-INPUT-BUFFER [261]
+     0   0.0      2   0.0   SB-SYS:WAIT-UNTIL-FD-USABLE [260]
+     2   0.0                   "foreign function __poll" [86]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::INPUT-CHAR/ASCII [262]
+     0   0.0      2   0.0   SB-IMPL::REFILL-INPUT-BUFFER [261]
+     2   0.0                   SB-SYS:WAIT-UNTIL-FD-USABLE [260]
+------------------------------------------------------------------------
+     2   0.0                   (LAMBDA (&REST REST) :IN SB-IMPL::GET-EXTERNAL-FORMAT) [263]
+     0   0.0      2   0.0   SB-IMPL::INPUT-CHAR/ASCII [262]
+     2   0.0                   SB-IMPL::REFILL-INPUT-BUFFER [261]
+------------------------------------------------------------------------
+     2   0.0                   READ-CHAR [264]
+     0   0.0      2   0.0   (LAMBDA (&REST REST) :IN SB-IMPL::GET-EXTERNAL-FORMAT) [263]
+     2   0.0                   SB-IMPL::INPUT-CHAR/ASCII [262]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::%READ-PRESERVING-WHITESPACE [265]
+     1   0.0                   READ-CHAR [264]
+     0   0.0      2   0.0   READ-CHAR [264]
+     1   0.0                   READ-CHAR [264]
+     2   0.0                   (LAMBDA (&REST REST) :IN SB-IMPL::GET-EXTERNAL-FORMAT) [263]
+------------------------------------------------------------------------
+     2   0.0                   READ [266]
+     1   0.0                   SB-IMPL::%READ-PRESERVING-WHITESPACE [265]
+     0   0.0      2   0.0   SB-IMPL::%READ-PRESERVING-WHITESPACE [265]
+     1   0.0                   SB-IMPL::%READ-PRESERVING-WHITESPACE [265]
+     2   0.0                   READ-CHAR [264]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::REPL-READ-FORM-FUN [267]
+     0   0.0      2   0.0   READ [266]
+     2   0.0                   SB-IMPL::%READ-PRESERVING-WHITESPACE [265]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::REPL-FUN [268]
+     0   0.0      2   0.0   SB-IMPL::REPL-READ-FORM-FUN [267]
+     2   0.0                   READ [266]
+------------------------------------------------------------------------
+     2   0.0                   (LAMBDA NIL :IN SB-IMPL::TOPLEVEL-REPL) [269]
+     0   0.0      2   0.0   SB-IMPL::REPL-FUN [268]
+     2   0.0                   SB-IMPL::REPL-READ-FORM-FUN [267]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::%WITH-REBOUND-IO-SYNTAX [270]
+     0   0.0      2   0.0   (LAMBDA NIL :IN SB-IMPL::TOPLEVEL-REPL) [269]
+     2   0.0                   SB-IMPL::REPL-FUN [268]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::TOPLEVEL-REPL [271]
+     0   0.0      2   0.0   SB-IMPL::%WITH-REBOUND-IO-SYNTAX [270]
+     2   0.0                   (LAMBDA NIL :IN SB-IMPL::TOPLEVEL-REPL) [269]
+------------------------------------------------------------------------
+     2   0.0                   SB-IMPL::TOPLEVEL-INIT [272]
+     0   0.0      2   0.0   SB-IMPL::TOPLEVEL-REPL [271]
+     2   0.0                   SB-IMPL::%WITH-REBOUND-IO-SYNTAX [270]
+------------------------------------------------------------------------
+     2   0.0                   (FLET #:WITHOUT-INTERRUPTS-BODY-73 :IN SB-EXT:SAVE-LISP-AND-DIE) [273]
+     0   0.0      2   0.0   SB-IMPL::TOPLEVEL-INIT [272]
+     2   0.0                   SB-IMPL::TOPLEVEL-REPL [271]
+------------------------------------------------------------------------
+     2   0.0                   (LABELS SB-IMPL::RESTART-LISP :IN SB-EXT:SAVE-LISP-AND-DIE) [274]
+     0   0.0      2   0.0   (FLET #:WITHOUT-INTERRUPTS-BODY-73 :IN SB-EXT:SAVE-LISP-AND-DIE) [273]
+     2   0.0                   SB-IMPL::TOPLEVEL-INIT [272]
+------------------------------------------------------------------------
+     0   0.0      2   0.0   (LABELS SB-IMPL::RESTART-LISP :IN SB-EXT:SAVE-LISP-AND-DIE) [274]
+     2   0.0                   (FLET #:WITHOUT-INTERRUPTS-BODY-73 :IN SB-EXT:SAVE-LISP-AND-DIE) [273]
+------------------------------------------------------------------------
+     3   0.0                   VARJO.INTERNALS::INFER-META [45]
+     0   0.0      3   0.0   VARJO.INTERNALS::SINGULAR-FLOW-ID-P [275]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [31]
+     2   0.0                   LENGTH [88]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     0   0.0      1   0.0   (SB-PCL::FAST-METHOD FLOW-IDS (VARJO.INTERNALS:COMPILED)) [276]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-RETURN [194]
+     0   0.0      1   0.0   (SB-PCL::EMF VARJO.INTERNALS:COPY-COMPILED) [277]
+     1   0.0                   SB-PCL::CHECK-APPLICABLE-KEYWORDS [34]
+------------------------------------------------------------------------
+    91   0.5                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT)) [6]
+     2   0.0                   FIND-IF [8]
+     0   0.0     93   0.5   (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING) [278]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+    30   0.2                   SB-VM::UNDEFINED-TRAMP [9]
+    61   0.3                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+     1   0.0                   SB-KERNEL:CLASSOID-CELL-TYPEP [10]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::FLOW-ID+META! [164]
+     1   0.0                   VARJO.INTERNALS::COMPILE-NUMBER [122]
+     0   0.0      2   0.0   VARJO.INTERNALS:FLOW-ID! [279]
+     2   0.0                   (LAMBDA (&OPTIONAL VARJO.INTERNALS::X) :IN VARJO.INTERNALS::%MAKE-FLOW-ID-SOURCE-FUNC) [93]
+------------------------------------------------------------------------
+    27   0.2                   SB-KERNEL:%MAP [127]
+     0   0.0     27   0.2   SB-IMPL::%MAP-TO-LIST [280]
+    26   0.1                   SB-IMPL::%MAP-FOR-EFFECT [94]
+------------------------------------------------------------------------
+     1   0.0                   SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1 [38]
+     0   0.0      1   0.0   (FLET #:WRAPPER158 :IN VARJO.INTERNALS::COMPILE-FUNCTION-CALL) [281]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VARJO.INTERNALS:COMPILED)) [95]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::MAKE-REGULAR-FUNCTION [73]
+     0   0.0      1   0.0   VARJO.INTERNALS::GEN-FUNCTION-SIGNATURE [282]
+     1   0.0                   PRINC [229]
+------------------------------------------------------------------------
+     3   0.0                   REDUCE [79]
+     0   0.0      3   0.0   VARJO.INTERNALS::MERGE-ENV [283]
+     3   0.0                   VARJO.INTERNALS::%MERGE-FORM-BINDINGS [96]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:ADD-FORM-BINDINGS (LIST VARJO.INTERNALS::ENVIRONMENT)) [285]
+     0   0.0      1   0.0   VARJO.INTERNALS::SHADOW-GLOBAL-CHECK [284]
+     1   0.0                   FIND [29]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::VS-FLET [191]
+     0   0.0      1   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS:ADD-FORM-BINDINGS (LIST VARJO.INTERNALS::ENVIRONMENT)) [285]
+     1   0.0                   VARJO.INTERNALS::SHADOW-GLOBAL-CHECK [284]
+------------------------------------------------------------------------
+     8   0.0                   VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION [74]
+     0   0.0      8   0.0   VARI.CL::VS-CASE [286]
+     7   0.0                   (SB-PCL::FAST-METHOD COMPILE-FORM (T T)) [44]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VARJO.INTERNALS:COMPILED)) [95]
+------------------------------------------------------------------------
+     1   0.0                   (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING) [132]
+     0   0.0      1   0.0   (LAMBDA (SB-IMPL::BUFFER SB-IMPL::FROM) :IN GET-OUTPUT-STREAM-STRING) [287]
+     1   0.0                   SB-KERNEL:UB32-BASH-COPY [33]
+------------------------------------------------------------------------
+    18   0.1                   (FLET SB-IMPL::F :IN SB-IMPL::%MAP-TO-LIST) [162]
+     0   0.0     18   0.1   (SB-PCL::FAST-METHOD VARJO.INTERNALS:REPLACE-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER)) [288]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+    17   0.1                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE)) [47]
+------------------------------------------------------------------------
+     2   0.0                   (FLET SB-IMPL::F :IN SB-IMPL::%MAP-TO-LIST) [162]
+     0   0.0      2   0.0   (LABELS VARJO.INTERNALS::FORCE-FLOW-ID :IN VARJO.INTERNALS::RESOLVE-FUNC-SET) [289]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     1   0.0                   (LAMBDA (SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-OPTIMIZED-STD-READER-METHOD-FUNCTION) [71]
+------------------------------------------------------------------------
+    10   0.1                   FIND-AND-EXPAND-COMPILER-MACRO [151]
+     0   0.0     10   0.1   VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC [290]
+     2   0.0                   REMOVE-IF [102]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl") [101]
+     2   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl") [22]
+     2   0.0                   SB-IMPL::GETHASH3 [3]
+     2   0.0                   SB-VM::UNDEFINED-TRAMP [9]
+------------------------------------------------------------------------
+     3   0.0                   SB-KERNEL::SPECIFIER-TYPE-R [292]
+     0   0.0      3   0.0   SB-KERNEL::VALUES-SPECIFIER-TYPE-R [291]
+     3   0.0                   SB-C::GET-INFO-VALUE [41]
+------------------------------------------------------------------------
+     5   0.0                   SB-KERNEL:SPECIFIER-TYPE [62]
+     0   0.0      5   0.0   SB-KERNEL::SPECIFIER-TYPE-R [292]
+     3   0.0                   SB-KERNEL::VALUES-SPECIFIER-TYPE-R [291]
+------------------------------------------------------------------------
+     1   0.0                   (FLET SWANK/BACKEND:CALL-WITH-LOCK-HELD :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp") [294]
+     0   0.0      1   0.0   SB-THREAD::CALL-WITH-RECURSIVE-LOCK [293]
+     1   0.0                   (FLET #:WITHOUT-INTERRUPTS-BODY-387 :IN SB-THREAD::CALL-WITH-RECURSIVE-LOCK) [172]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FINISH-OUTPUT (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [295]
+     0   0.0      1   0.0   (FLET SWANK/BACKEND:CALL-WITH-LOCK-HELD :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp") [294]
+     1   0.0                   SB-THREAD::CALL-WITH-RECURSIVE-LOCK [293]
+------------------------------------------------------------------------
+     2   0.0                   (FLET #:FORM-FUN-3109 :IN SB-GRAY:STREAM-FORCE-OUTPUT) [296]
+     0   0.0      2   0.0   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FINISH-OUTPUT (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [295]
+     1   0.0                   SWANK/BACKEND:CALL-WITH-LOCK-HELD [300]
+     1   0.0                   (FLET SWANK/BACKEND:CALL-WITH-LOCK-HELD :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp") [294]
+------------------------------------------------------------------------
+     3   0.0                   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FORCE-OUTPUT :AROUND (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [297]
+     0   0.0      3   0.0   (FLET #:FORM-FUN-3109 :IN SB-GRAY:STREAM-FORCE-OUTPUT) [296]
+     1   0.0                   SB-VM::GENERIC-+ [19]
+     2   0.0                   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FINISH-OUTPUT (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [295]
+------------------------------------------------------------------------
+     3   0.0                   FORCE-OUTPUT [298]
+     0   0.0      3   0.0   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FORCE-OUTPUT :AROUND (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [297]
+     3   0.0                   (FLET #:FORM-FUN-3109 :IN SB-GRAY:STREAM-FORCE-OUTPUT) [296]
+------------------------------------------------------------------------
+     3   0.0                   SWANK::AUTO-FLUSH-LOOP [299]
+     0   0.0      3   0.0   FORCE-OUTPUT [298]
+     3   0.0                   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FORCE-OUTPUT :AROUND (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [297]
+------------------------------------------------------------------------
+     4   0.0                   (FLET #:WITHOUT-INTERRUPTS-BODY-1139 :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE) [213]
+     0   0.0      4   0.0   SWANK::AUTO-FLUSH-LOOP [299]
+     1   0.0                   SLEEP [302]
+     3   0.0                   FORCE-OUTPUT [298]
+------------------------------------------------------------------------
+     1   0.0                   (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FINISH-OUTPUT (SWANK/GRAY::SLIME-OUTPUT-STREAM)) [295]
+     0   0.0      1   0.0   SWANK/BACKEND:CALL-WITH-LOCK-HELD [300]
+     1   0.0                   SB-IMPL::GET3 [174]
+------------------------------------------------------------------------
+     2   0.0                   SB-KERNEL:%MAP [127]
+     0   0.0      2   0.0   (LABELS SB-IMPL::SLOWER-MAP :IN SB-KERNEL:%MAP) [301]
+     2   0.0                   SB-KERNEL:CSUBTYPEP [103]
+------------------------------------------------------------------------
+     1   0.0                   SWANK::AUTO-FLUSH-LOOP [299]
+     0   0.0      1   0.0   SLEEP [302]
+     1   0.0                   "foreign function __nanosleep" [182]
+------------------------------------------------------------------------
+     1   0.0                   MAKE-TYPE-SET [112]
+     0   0.0      1   0.0   (LAMBDA (VARJO.INTERNALS::_) :IN MAKE-TYPE-SET) [303]
+     1   0.0                   MAPCAR [183]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL [224]
+     0   0.0      1   0.0   (SB-PCL::EMF VARJO.INTERNALS:MERGE-COMPILED) [304]
+     1   0.0                   SB-PCL::CHECK-APPLICABLE-KEYWORDS [34]
+------------------------------------------------------------------------
+   473   2.7                   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     0   0.0    473   2.7   VARJO.INTERNALS:ENV-PRUNE-MANY [305]
+    21   0.1                   SB-VM::GENERIC-+ [19]
+     3   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+   449   2.5                   VARJO.INTERNALS:ENV-DEPTH [15]
+------------------------------------------------------------------------
+   962   5.4                   REDUCE [79]
+     0   0.0    962   5.4   VARJO.INTERNALS:ENV-MERGE-HISTORY [306]
+    13   0.1                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [1]
+    33   0.2                   SB-VM::GENERIC-+ [19]
+   916   5.2                   VARJO.INTERNALS:ENV-DEPTH [15]
+------------------------------------------------------------------------
+     1   0.0                   SB-IMPL::MAP1 [26]
+     0   0.0      1   0.0   (LABELS VARJO.INTERNALS::INNER :IN VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE) [307]
+     1   0.0                   SB-KERNEL:CLASSOID-TYPEP [11]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS:GEN-OR-TYPE [309]
+     0   0.0      1   0.0   (SB-PCL::FAST-METHOD VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE (T)) [308]
+     1   0.0                   ALEXANDRIA.0.DEV:MAPPEND [57]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::COMPUTE-CONDITIONAL-TYPE-SET [310]
+     0   0.0      1   0.0   VARJO.INTERNALS:GEN-OR-TYPE [309]
+     1   0.0                   (SB-PCL::FAST-METHOD VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE (T)) [308]
+------------------------------------------------------------------------
+     1   0.0                   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     0   0.0      1   0.0   VARI.CL::COMPUTE-CONDITIONAL-TYPE-SET [310]
+     1   0.0                   VARJO.INTERNALS:GEN-OR-TYPE [309]
+------------------------------------------------------------------------
+     4   0.0                   VARI.CL::GEN-CASE-USING-SWITCH [97]
+     1   0.0                   VARI.CL::GEN-STRING-FOR-SWITCH-FORM [311]
+     0   0.0      4   0.0   VARI.CL::GEN-STRING-FOR-SWITCH-FORM [311]
+     3   0.0                   VARI.CL::GEN-CHUNK-FOR-CONDITIONAL-ARM [312]
+     1   0.0                   VARI.CL::GEN-STRING-FOR-SWITCH-FORM [311]
+     1   0.0                   (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl") [31]
+------------------------------------------------------------------------
+     3   0.0                   VARI.CL::GEN-STRING-FOR-SWITCH-FORM [311]
+     0   0.0      3   0.0   VARI.CL::GEN-CHUNK-FOR-CONDITIONAL-ARM [312]
+     2   0.0                   VARJO.INTERNALS:END-LINE-STR [313]
+     1   0.0                   FORMAT [244]
+------------------------------------------------------------------------
+     2   0.0                   VARI.CL::GEN-CHUNK-FOR-CONDITIONAL-ARM [312]
+     0   0.0      2   0.0   VARJO.INTERNALS:END-LINE-STR [313]
+     1   0.0                   PRINC [229]
+     1   0.0                   SB-IMPL::%MAKE-STRING-OUTPUT-STREAM [50]
+------------------------------------------------------------------------
+     1   0.0                   VARJO.INTERNALS::GEN-SHADER-STRING [315]
+     0   0.0      1   0.0   SB-IMPL::LIST-REMOVE-DUPLICATES* [314]
+     1   0.0                   SB-IMPL::GETHASH3 [3]
+------------------------------------------------------------------------
+     2   0.0                   VARJO.INTERNALS::FINAL-STRING-COMPOSE [316]
+     0   0.0      2   0.0   VARJO.INTERNALS::GEN-SHADER-STRING [315]
+     1   0.0                   PRINC [229]
+     1   0.0                   SB-IMPL::LIST-REMOVE-DUPLICATES* [314]
+------------------------------------------------------------------------
+     2   0.0                   (SB-PCL::FAST-METHOD TRANSLATE (VARJO.INTERNALS:STAGE)) [196]
+     0   0.0      2   0.0   VARJO.INTERNALS::FINAL-STRING-COMPOSE [316]
+     2   0.0                   VARJO.INTERNALS::GEN-SHADER-STRING [315]
+------------------------------------------------------------------------
+
+
+           Self        Total        Cumul
+  Nr  Count     %  Count     %  Count     %    Calls  Function
+------------------------------------------------------------------------
+   1   5693  32.0   5693  32.0   5693  32.0        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl")
+   2   4160  23.4   4222  23.7   9853  55.4        -  (FLET #:BODY-FUN-558 :IN SB-IMPL::GETHASH3)
+   3   2026  11.4   6286  35.3  11879  66.8        -  SB-IMPL::GETHASH3
+   4   1435   8.1   1987  11.2  13314  74.9        -  (LABELS VARJO.INTERNALS::IEQL :IN VARJO.INTERNALS::LIKELY-RECURSION-P)
+   5    729   4.1    729   4.1  14043  79.0        -  (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl")
+   6    526   3.0  13552  76.2  14569  81.9        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-FORM-BINDING (T VARJO.INTERNALS::ENVIRONMENT))
+   7    484   2.7    484   2.7  15053  84.6        -  (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl")
+   8    435   2.4    453   2.5  15488  87.1        -  FIND-IF
+   9    399   2.2    399   2.2  15887  89.3        -  SB-VM::UNDEFINED-TRAMP
+  10    344   1.9    344   1.9  16231  91.3        -  SB-KERNEL:CLASSOID-CELL-TYPEP
+  11    279   1.6    279   1.6  16510  92.8        -  SB-KERNEL:CLASSOID-TYPEP
+  12    177   1.0    177   1.0  16687  93.8        -  EQUAL
+  13    143   0.8    869   4.9  16830  94.6        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS::VALID-FOR-CONTEXTP (LIST VARJO.INTERNALS::ENVIRONMENT))
+  14     98   0.6     98   0.6  16928  95.2        -  SB-IMPL::EQL-HASH
+  15     89   0.5   1365   7.7  17017  95.7        -  VARJO.INTERNALS:ENV-DEPTH
+  16     80   0.4     80   0.4  17097  96.1        -  (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::LIKELY-RECURSION-P)
+  17     61   0.3     61   0.3  17158  96.5        -  (LABELS SB-IMPL::EQUAL-AUX :IN EQUAL)
+  18     61   0.3     61   0.3  17219  96.8        -  VARJO.INTERNALS::GET-FROM-BINDING-SET
+  19     57   0.3     57   0.3  17276  97.1        -  SB-VM::GENERIC-+
+  20     54   0.3     54   0.3  17330  97.4        -  VARJO.INTERNALS::%VALID-FOR-CONTEXTP
+  21     35   0.2     35   0.2  17365  97.6        -  SB-KERNEL:%COERCE-CALLABLE-TO-FUN
+  22     23   0.1     23   0.1  17388  97.8        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl")
+  23     19   0.1     19   0.1  17407  97.9        -  (FLET SB-THREAD::WITH-RECURSIVE-SYSTEM-LOCK-THUNK :IN SB-IMPL::GETHASH3)
+  24     18   0.1     18   0.1  17425  98.0        -  SB-IMPL::APPEND2
+  25      9   0.1     16   0.1  17434  98.0        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:MERGE-COMPILED (LIST))
+  26      6   0.0  13977  78.6  17440  98.1        -  VARJO.INTERNALS::COMPILE-CALL-FORM
+  27      6   0.0   2196  12.3  17446  98.1        -  SB-IMPL::MAP1
+  28      6   0.0     12   0.1  17452  98.1        -  FIND
+  29      6   0.0     11   0.1  17458  98.2        -  (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/first-class-functions.fasl")
+  30      6   0.0      8   0.0  17464  98.2        -  REMOVE-IF-NOT
+  31      6   0.0      6   0.0  17470  98.2        -  (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.MORE-CONTEXT. SB-PCL::.MORE-COUNT.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/dlisp3.fasl")
+  32      6   0.0      6   0.0  17476  98.3        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl")
+  33      6   0.0      6   0.0  17482  98.3        -  "foreign function pthread_sigmask"
+  34      6   0.0      6   0.0  17488  98.3        -  SB-KERNEL:UB32-BASH-COPY
+  35      6   0.0      6   0.0  17494  98.4        -  SB-PCL::CHECK-APPLICABLE-KEYWORDS
+  36      5   0.0     26   0.1  17499  98.4        -  SB-KERNEL:%MAP-FOR-EFFECT-ARITY-1
+  37      5   0.0     21   0.1  17504  98.4        -  EQL
+  38      5   0.0     19   0.1  17509  98.4        -  VARJO.INTERNALS::BASIC-ARG-MATCHP
+  39      5   0.0      8   0.0  17514  98.5        -  PPRINT-DISPATCH
+  40      5   0.0      7   0.0  17519  98.5        -  REPLACE
+  41      5   0.0      7   0.0  17524  98.5        -  (SB-PCL::FAST-METHOD V-SPECIAL-FUNCTIONP (VARJO.INTERNALS:V-FUNCTION))
+  42      5   0.0      6   0.0  17529  98.6        -  SB-C::GET-INFO-VALUE
+  43      5   0.0      5   0.0  17534  98.6        -  SB-KERNEL:%FIND-POSITION-IF
+  44      4   0.0  17768  99.9  17538  98.6        -  (SB-PCL::FAST-METHOD COMPILE-FORM (T T))
+  45      4   0.0     25   0.1  17542  98.6        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS::COPY-TYPE (V-TYPE))
+  46      4   0.0     17   0.1  17546  98.7        -  VARJO.INTERNALS::INFER-META
+  47      4   0.0     13   0.1  17550  98.7        -  SB-FORMAT::TOKENIZE-CONTROL-STRING
+  48      4   0.0      7   0.0  17554  98.7        -  (SB-PCL::EMF VARJO.INTERNALS:COMPILE-LITERAL)
+  49      4   0.0      5   0.0  17558  98.7        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:V-VOIDP (V-TYPE))
+  50      4   0.0      4   0.0  17562  98.7        -  SB-C:RETURN-MULTIPLE
+  51      4   0.0      4   0.0  17566  98.8        -  SB-IMPL::LIST-NREVERSE
+  52      4   0.0      4   0.0  17570  98.8        -  (SB-PCL::FAST-METHOD INITIALIZE-INSTANCE :AFTER (VARJO.INTERNALS::ENVIRONMENT))
+  53      4   0.0      4   0.0  17574  98.8        -  SB-IMPL::%MAKE-STRING-OUTPUT-STREAM
+  54      4   0.0      4   0.0  17578  98.8        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl")
+  55      4   0.0      4   0.0  17582  98.9        -  REMOVE
+  56      3   0.0     90   0.5  17585  98.9        -  VARJO.INTERNALS::FIND-FUNCTION-IN-SET-FOR-ARGS
+  57      3   0.0     16   0.1  17588  98.9        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS::GET-EXTERNAL-FUNCTION-BY-NAME (T T))
+  58      3   0.0     14   0.1  17591  98.9        -  VARJO.INTERNALS:MAKE-TYPE-SET*
+  59      3   0.0     13   0.1  17594  98.9        -  ALEXANDRIA.0.DEV:MAPPEND
+  60      3   0.0      8   0.0  17597  98.9        -  SB-KERNEL:SPECIFIER-TYPE
+  61      3   0.0      5   0.0  17600  99.0        -  SB-IMPL::STRING-SOUT
+  62      3   0.0      3   0.0  17603  99.0        -  (LAMBDA (SB-PCL::|.P0.|))
+  63      3   0.0      3   0.0  17606  99.0        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl")
+  64      3   0.0      3   0.0  17609  99.0        -  SB-PCL::GET-CTOR
+  65      3   0.0      3   0.0  17612  99.0        -  NTHCDR
+  66      3   0.0      3   0.0  17615  99.0        -  VARJO.INTERNALS::%MAKE-GLSL-LINE
+  67      3   0.0      3   0.0  17618  99.1        -  SB-IMPL::%OUTPUT-INTEGER-IN-BASE
+  68      3   0.0      3   0.0  17621  99.1        -  REVERSE
+  69      3   0.0      3   0.0  17624  99.1        -  REMOVE-DUPLICATES
+  70      3   0.0      3   0.0  17627  99.1        -  (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/christophe/src/sbcl-release-dir-20170122-8YAWYbEiA/sbcl-1.3.14/src/pcl/braid.fasl")
+  71      3   0.0      3   0.0  17630  99.1        -  (LAMBDA (SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-OPTIMIZED-STD-READER-METHOD-FUNCTION)
+  72      3   0.0      3   0.0  17633  99.1        -  VARJO.INTERNALS::MULTI-RETURN-FUNCTION-P
+  73      2   0.0  17770  99.9  17635  99.2        -  VARJO.INTERNALS::MAKE-REGULAR-FUNCTION
+  74      2   0.0  17768  99.9  17637  99.2        -  VARJO.INTERNALS::COMPILE-SPECIAL-FUNCTION
+  75      2   0.0  17768  99.9  17639  99.2        -  VARJO.INTERNALS::COMPILE-FUNCTION-CALL
+  76      2   0.0  17768  99.9  17641  99.2        -  VARI.CL::VS-PROGN
+  77      2   0.0  15559  87.5  17643  99.2        -  VARI.CL::GEN-CASE-USING-SWITCH
+  78      2   0.0    968   5.4  17645  99.2        -  REDUCE
+  79      2   0.0     26   0.1  17647  99.2        -  SB-IMPL::%MAP-FOR-EFFECT
+  80      2   0.0     12   0.1  17649  99.2        -  SB-FORMAT::INTERPRET-DIRECTIVE-LIST
+  81      2   0.0      9   0.1  17651  99.2        -  (FLET #:WRAPPER748 :IN VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS)
+  82      2   0.0      7   0.0  17653  99.3        -  SB-PCL::ENSURE-CACHED-CTOR
+  83      2   0.0      7   0.0  17655  99.3        -  GET-OUTPUT-STREAM-STRING
+  84      2   0.0      6   0.0  17657  99.3        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS::FUNC-NEED-ARGUMENTS-COMPILEDP (VARJO.INTERNALS:V-FUNCTION))
+  85      2   0.0      5   0.0  17659  99.3        -  VARJO.INTERNALS::MATCH-FUNCTION-TO-ARGS
+  86      2   0.0      3   0.0  17661  99.3        -  SB-IMPL::%MAKE-HASH-TABLE
+  87      2   0.0      3   0.0  17663  99.3        -  VARJO.INTERNALS::%MERGE-FORM-BINDINGS
+  88      2   0.0      2   0.0  17665  99.3        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/tests/name-shadowing.fasl")
+  89      2   0.0      2   0.0  17667  99.3        -  (LAMBDA (SB-PCL::.ARG0. SB-INT:&MORE SB-PCL::.DFUN-MORE-CONTEXT. SB-PCL::.DFUN-MORE-COUNT.) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/varjo.internals/deftype.fasl")
+  90      2   0.0      2   0.0  17669  99.3        -  SB-KERNEL:%SXHASH-SIMPLE-STRING
+  91      2   0.0      2   0.0  17671  99.4        -  SB-KERNEL:LIST-FILL*
+  92      2   0.0      2   0.0  17673  99.4        -  "foreign function __poll"
+  93      2   0.0      2   0.0  17675  99.4        -  LENGTH
+  94      2   0.0      2   0.0  17677  99.4        -  VARJO.INTERNALS::GLSL-LEN
+  95      2   0.0      2   0.0  17679  99.4        -  SB-KERNEL:STRING=*
+  96      2   0.0      2   0.0  17681  99.4        -  (LAMBDA (&OPTIONAL VARJO.INTERNALS::X) :IN VARJO.INTERNALS::%MAKE-FLOW-ID-SOURCE-FUNC)
+  97      2   0.0      2   0.0  17683  99.4        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VARJO.INTERNALS:COMPILED))
+  98      2   0.0      2   0.0  17685  99.4        -  (LAMBDA (SB-PCL::.ARG0. SB-PCL::.ARG1.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl")
+  99      2   0.0      2   0.0  17687  99.4        -  VARJO.INTERNALS:COMPILE-LIST-FORM
+ 100      2   0.0      2   0.0  17689  99.5        -  SB-PCL::FIND-CTOR
+ 101      2   0.0      2   0.0  17691  99.5        -  (LAMBDA (SB-PCL::.ARG0.) :IN "/home/baggers/.slime/fasl/2.20/sbcl-1.3.14-linux-x86-64/sbcl.fasl")
+ 102      2   0.0      2   0.0  17693  99.5        -  REMOVE-IF
+ 103      2   0.0      2   0.0  17695  99.5        -  SB-KERNEL:CSUBTYPEP
+ 104      2   0.0      2   0.0  17697  99.5        -  SB-KERNEL:%MAKE-LIST
+ 105      2   0.0      2   0.0  17699  99.5        -  IDENTITY
+ 106      2   0.0      2   0.0  17701  99.5        -  WRITE-STRING
+ 107      1   0.0  17768  99.9  17702  99.5        -  VARJO.INTERNALS:COMPILE-PROGN
+ 108      1   0.0   1988  11.2  17703  99.5        -  SB-KERNEL:%FIND-POSITION-IF-NOT
+ 109      1   0.0     42   0.2  17704  99.5        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:COMPILE-LITERAL (T T))
+ 110      1   0.0     38   0.2  17705  99.6        -  SB-KERNEL:%MAP
+ 111      1   0.0     30   0.2  17706  99.6        -  VARJO.INTERNALS::COMPILE-NUMBER
+ 112      1   0.0     26   0.1  17707  99.6        -  SB-FORMAT::%FORMAT
+ 113      1   0.0     24   0.1  17708  99.6        -  (FLET SB-IMPL::F :IN SB-IMPL::%MAP-TO-LIST)
+ 114      1   0.0     17   0.1  17709  99.6        -  VARJO.INTERNALS::CALC-REGULAR-FUNCTION-RETURN-IDS-GIVEN-ARGS
+ 115      1   0.0     14   0.1  17710  99.6        -  VARJO.INTERNALS:LISP-NAME->GLSL-NAME
+ 116      1   0.0     13   0.1  17711  99.6        -  (LABELS SB-IMPL::HANDLE-IT :IN SB-KERNEL:OUTPUT-OBJECT)
+ 117      1   0.0     12   0.1  17712  99.6        -  VARJO.INTERNALS::GEN-GLSL-STRING-FOR-SYMBOL
+ 118      1   0.0     12   0.1  17713  99.6        -  VARI.CL::COMPILE-GLSL-EXPRESSION-STRING
+ 119      1   0.0     12   0.1  17714  99.6        -  FIND-AND-EXPAND-COMPILER-MACRO
+ 120      1   0.0     11   0.1  17715  99.6        -  MAKE-TYPE-SET
+ 121      1   0.0     10   0.1  17716  99.6        -  VARJO.INTERNALS:MAKE-COMPILED
+ 122      1   0.0     10   0.1  17717  99.6        -  (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.| SB-PCL::|.P10.| SB-PCL::|.P11.|))
+ 123      1   0.0     10   0.1  17718  99.6        -  (LABELS VARJO.INTERNALS::ENSURE-ENV :IN COMPILE-FORM)
+ 124      1   0.0      7   0.0  17719  99.6        -  VARJO.INTERNALS::FLOW-ID+META!
+ 125      1   0.0      5   0.0  17720  99.6        -  (FLET SB-IMPL::REPLACE-ALL :IN GET-OUTPUT-STREAM-STRING)
+ 126      1   0.0      5   0.0  17721  99.6        -  MAKE-HASH-TABLE
+ 127      1   0.0      5   0.0  17722  99.6        -  VARJO.UTILS:NTH-OR-SELF
+ 128      1   0.0      4   0.0  17723  99.7        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:PRIMARY-TYPE (VECTOR))
+ 129      1   0.0      4   0.0  17724  99.7        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:COPY-COMPILED (VARJO.INTERNALS:COMPILED))
+ 130      1   0.0      3   0.0  17725  99.7        -  VARJO.INTERNALS:FRESH-ENVIRONMENT
+ 131      1   0.0      3   0.0  17726  99.7        -  SB-FORMAT::A-FORMAT-DIRECTIVE-INTERPRETER
+ 132      1   0.0      3   0.0  17727  99.7        -  TYPE-OF
+ 133      1   0.0      3   0.0  17728  99.7        -  (LAMBDA (STRING CL-PPCRE::START CL-PPCRE::END) :IN CL-PPCRE::CREATE-SCANNER-AUX)
+ 134      1   0.0      3   0.0  17729  99.7        -  SB-KERNEL:%MAP-TO-LIST-ARITY-1
+ 135      1   0.0      3   0.0  17730  99.7        -  VARJO.INTERNALS::GLSL-CHUNK-TO-STRING
+ 136      1   0.0      3   0.0  17731  99.7        -  SB-IMPL::VECTOR-SUBSEQ-DISPATCH/SIMPLE-CHARACTER-STRING
+ 137      1   0.0      2   0.0  17732  99.7        -  EPHEMERAL-P
+ 138      1   0.0      2   0.0  17733  99.7        -  (FLET #:WRAPPER5 :IN VARJO.INTERNALS:MAKE-COMPILED)
+ 139      1   0.0      2   0.0  17734  99.7        -  SB-KERNEL:FIND-CLASSOID
+ 140      1   0.0      2   0.0  17735  99.7        -  SEARCH
+ 141      1   0.0      2   0.0  17736  99.7        -  (LABELS VARJO.INTERNALS::CALC-SECONDARY-SCORE :IN VARJO.INTERNALS::BASIC-ARG-MATCHP)
+ 142      1   0.0      2   0.0  17737  99.7        -  VARJO.INTERNALS::FUNCTION-RETURN-SPEC-DOESNT-NEED-FLOW-IDS
+ 143      1   0.0      1   0.0  17738  99.7        -  (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|))
+ 144      1   0.0      1   0.0  17739  99.7        -  SB-VM::FILL-VECTOR/T
+ 145      1   0.0      1   0.0  17740  99.7        -  VARJO.INTERNALS::ASSERT-FLOW-ID-SINGULARITY
+ 146      1   0.0      1   0.0  17741  99.8        -  SB-PCL::%MAKE-STANDARD-INSTANCE
+ 147      1   0.0      1   0.0  17742  99.8        -  (FLET #:WRAPPER179 :IN VARJO.INTERNALS:MERGE-COMPILED)
+ 148      1   0.0      1   0.0  17743  99.8        -  VARJO.INTERNALS:BUILD-FUNCTION
+ 149      1   0.0      1   0.0  17744  99.8        -  VARJO.INTERNALS::MAKE-USER-FUNCTION-OBJ
+ 150      1   0.0      1   0.0  17745  99.8        -  VARJO.INTERNALS::GEN-FUNCTION-TRANSFORM
+ 151      1   0.0      1   0.0  17746  99.8        -  SUBSEQ
+ 152      1   0.0      1   0.0  17747  99.8        -  SB-KERNEL:OUTPUT-OBJECT
+ 153      1   0.0      1   0.0  17748  99.8        -  SB-INT:MISC-INDEX
+ 154      1   0.0      1   0.0  17749  99.8        -  SB-THREAD:MAKE-MUTEX
+ 155      1   0.0      1   0.0  17750  99.8        -  COPY-LIST
+ 156      1   0.0      1   0.0  17751  99.8        -  SB-KERNEL:%%TYPEP
+ 157      1   0.0      1   0.0  17752  99.8        -  SB-KERNEL:HAIRY-DATA-VECTOR-REF/CHECK-BOUNDS
+ 158      1   0.0      1   0.0  17753  99.8        -  SB-KERNEL:%UNARY-TRUNCATE/SINGLE-FLOAT
+ 159      1   0.0      1   0.0  17754  99.8        -  TRUNCATE
+ 160      1   0.0      1   0.0  17755  99.8        -  "PPRINT-FUN-CALL-P"
+ 161      1   0.0      1   0.0  17756  99.8        -  (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|))
+ 162      1   0.0      1   0.0  17757  99.8        -  (LAMBDA (SB-PCL::.PV. SB-PCL::.NEXT-METHOD-CALL. SB-KERNEL:INSTANCE) :IN SB-PCL::MAKE-STD-READER-METHOD-FUNCTION)
+ 163      1   0.0      1   0.0  17758  99.8        -  SB-IMPL::%OUTPUT-REASONABLE-INTEGER-IN-BASE
+ 164      1   0.0      1   0.0  17759  99.9        -  SB-KERNEL:VECTOR-SUBSEQ*
+ 165      1   0.0      1   0.0  17760  99.9        -  (SB-IMPL::OPTIMIZED-DATA-VECTOR-SET T)
+ 166      1   0.0      1   0.0  17761  99.9        -  SB-IMPL::VECTOR-TO-LIST*
+ 167      1   0.0      1   0.0  17762  99.9        -  (SB-IMPL::OPTIMIZED-DATA-VECTOR-REF T)
+ 168      1   0.0      1   0.0  17763  99.9        -  SB-C::PACKED-INFO-VALUE-INDEX
+ 169      1   0.0      1   0.0  17764  99.9        -  VARJO.INTERNALS::NORMALIZE-OUT-OF-SCOPE-ARGS
+ 170      1   0.0      1   0.0  17765  99.9        -  KEYWORDP
+ 171      1   0.0      1   0.0  17766  99.9        -  (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.|) :IN "/home/baggers/.cache/common-lisp/sbcl-1.3.14-linux-x64/home/baggers/quicklisp/local-projects/the-works/varjo/src/vari.glsl/functions.fasl")
+ 172      1   0.0      1   0.0  17767  99.9        -  VARJO.INTERNALS::%MAKE-GLSL-CHUNK
+ 173      1   0.0      1   0.0  17768  99.9        -  (FLET #:WITHOUT-INTERRUPTS-BODY-387 :IN SB-THREAD::CALL-WITH-RECURSIVE-LOCK)
+ 174      1   0.0      1   0.0  17769  99.9        -  SB-IMPL::GET3
+ 175      1   0.0      1   0.0  17770  99.9        -  (SB-IMPL::OPTIMIZED-DATA-VECTOR-REF T)
+ 176      1   0.0      1   0.0  17771  99.9        -  (LAMBDA (SB-PCL::METHOD-ARGS SB-PCL::NEXT-METHODS) :IN SB-PCL::METHOD-FUNCTION-FROM-FAST-FUNCTION)
+ 177      1   0.0      1   0.0  17772  99.9        -  (LAMBDA (SB-KERNEL::CACHE SB-KERNEL::OBJECT) :IN SB-KERNEL::CACHED-TYPEP)
+ 178      1   0.0      1   0.0  17773  99.9        -  VARJO.INTERNALS:JOIN-GLSL-CHUNKS
+ 179      1   0.0      1   0.0  17774  99.9        -  VARJO.INTERNALS::SPECIAL-ARG-MATCHP
+ 180      1   0.0      1   0.0  17775  99.9        -  (LAMBDA (SB-PCL::|.P0.| SB-PCL::|.P1.| SB-PCL::|.P2.| SB-PCL::|.P3.| SB-PCL::|.P4.| SB-PCL::|.P5.| SB-PCL::|.P6.| SB-PCL::|.P7.| SB-PCL::|.P8.| SB-PCL::|.P9.|))
+ 181      1   0.0      1   0.0  17776  99.9        -  SB-KERNEL:%LAST1
+ 182      1   0.0      1   0.0  17777 100.0        -  "foreign function __nanosleep"
+ 183      1   0.0      1   0.0  17778 100.0        -  MAPCAR
+ 184      1   0.0      1   0.0  17779 100.0        -  (SB-PCL::FAST-METHOD SB-SEQUENCE:EMPTYP (VECTOR))
+ 185      1   0.0      1   0.0  17780 100.0        -  SB-C::CHECK-DS-LIST/&REST
+ 186      1   0.0      1   0.0  17781 100.0        -  "PPRINT-DATA-LIST-P"
+ 187      0   0.0  17776  99.9  17781 100.0        -  (FLET #:WITHOUT-INTERRUPTS-BODY-1139 :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE)
+ 188      0   0.0  17776  99.9  17781 100.0        -  (FLET SB-THREAD::WITH-MUTEX-THUNK :IN SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE)
+ 189      0   0.0  17776  99.9  17781 100.0        -  (FLET #:WITHOUT-INTERRUPTS-BODY-359 :IN SB-THREAD::CALL-WITH-MUTEX)
+ 190      0   0.0  17776  99.9  17781 100.0        -  SB-THREAD::CALL-WITH-MUTEX
+ 191      0   0.0  17776  99.9  17781 100.0        -  SB-THREAD::INITIAL-THREAD-FUNCTION-TRAMPOLINE
+ 192      0   0.0  17776  99.9  17781 100.0        -  "foreign function call_into_lisp"
+ 193      0   0.0  17776  99.9  17781 100.0        -  "foreign function new_thread_trampoline"
+ 194      0   0.0  17772  99.9  17781 100.0        -  (SB-PCL::FAST-METHOD TRANSLATE (VARJO.INTERNALS:STAGE))
+ 195      0   0.0  17772  99.9  17781 100.0        -  SB-INT:SIMPLE-EVAL-IN-LEXENV
+ 196      0   0.0  17772  99.9  17781 100.0        -  SB-IMPL::SIMPLE-EVAL-PROGN-BODY
+ 197      0   0.0  17772  99.9  17781 100.0        -  EVAL
+ 198      0   0.0  17772  99.9  17781 100.0        -  SWANK::EVAL-REGION
+ 199      0   0.0  17772  99.9  17781 100.0        -  (LAMBDA NIL :IN SWANK-REPL::REPL-EVAL)
+ 200      0   0.0  17772  99.9  17781 100.0        -  SWANK-REPL::TRACK-PACKAGE
+ 201      0   0.0  17772  99.9  17781 100.0        -  SWANK::CALL-WITH-RETRY-RESTART
+ 202      0   0.0  17772  99.9  17781 100.0        -  SWANK::CALL-WITH-BUFFER-SYNTAX
+ 203      0   0.0  17772  99.9  17781 100.0        -  SWANK-REPL::REPL-EVAL
+ 204      0   0.0  17772  99.9  17781 100.0        -  SWANK:EVAL-FOR-EMACS
+ 205      0   0.0  17772  99.9  17781 100.0        -  SWANK::PROCESS-REQUESTS
+ 206      0   0.0  17772  99.9  17781 100.0        -  (LAMBDA NIL :IN SWANK::HANDLE-REQUESTS)
+ 207      0   0.0  17772  99.9  17781 100.0        -  SWANK/SBCL::CALL-WITH-BREAK-HOOK
+ 208      0   0.0  17772  99.9  17781 100.0        -  (FLET SWANK/BACKEND:CALL-WITH-DEBUGGER-HOOK :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp")
+ 209      0   0.0  17772  99.9  17781 100.0        -  SWANK::CALL-WITH-BINDINGS
+ 210      0   0.0  17772  99.9  17781 100.0        -  SWANK::HANDLE-REQUESTS
+ 211      0   0.0  17770  99.9  17781 100.0        -  VARJO.INTERNALS::COMPILE-PASS
+ 212      0   0.0  17768  99.9  17781 100.0        -  VARI.CL::VS-FLET
+ 213      0   0.0  17768  99.9  17781 100.0        -  VARJO.INTERNALS::COMPILE-CALL-WITH-SINGLE-FUNCTION
+ 214      0   0.0  17768  99.9  17781 100.0        -  VARI.CL::VS-LET
+ 215      0   0.0  17768  99.9  17781 100.0        -  VARI.CL::VS-RETURN
+ 216      0   0.0   2196  12.3  17781 100.0        -  VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED
+ 217      0   0.0   2192  12.3  17781 100.0        -  (LAMBDA (VARJO.INTERNALS:ENV VARI.CL::D) :IN VARI.CL::VS-FLET)
+ 218      0   0.0   2192  12.3  17781 100.0        -  (LAMBDA (&REST VARJO.INTERNALS:ARGS) :IN VARJO.INTERNALS:COMPILE-FORMS-NOT-PROPAGATING-ENV-RETURNING-LIST-OF-COMPILED)
+ 219      0   0.0   1988  11.2  17781 100.0        -  VARJO.INTERNALS::LIKELY-RECURSION-P
+ 220      0   0.0    962   5.4  17781 100.0        -  VARJO.INTERNALS:ENV-MERGE-HISTORY
+ 221      0   0.0    473   2.7  17781 100.0        -  VARJO.INTERNALS:ENV-PRUNE-MANY
+ 222      0   0.0    132   0.7  17781 100.0        -  VARJO.INTERNALS::COMPILE-REGULAR-FUNCTION-CALL
+ 223      0   0.0     93   0.5  17781 100.0        -  (LAMBDA (VARJO.INTERNALS::_) :IN VARJO.INTERNALS::GET-FORM-BINDING)
+ 224      0   0.0     89   0.5  17781 100.0        -  VARJO.INTERNALS::COMPILE-CALL-WITH-SET-OF-FUNCTIONS
+ 225      0   0.0     86   0.5  17781 100.0        -  VARJO.INTERNALS::FIND-FUNCTIONS-IN-SET-FOR-ARGS
+ 226      0   0.0     56   0.3  17781 100.0        -  VARJO.INTERNALS::RESOLVE-FUNC-SET
+ 227      0   0.0     40   0.2  17781 100.0        -  VARJO.INTERNALS:TRY-COMPILE-ARG
+ 228      0   0.0     40   0.2  17781 100.0        -  VARJO.INTERNALS::TRY-COMPILE-ARGS
+ 229      0   0.0     33   0.2  17781 100.0        -  FORMAT
+ 230      0   0.0     27   0.2  17781 100.0        -  SB-IMPL::%MAP-TO-LIST
+ 231      0   0.0     18   0.1  17781 100.0        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:REPLACE-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER))
+ 232      0   0.0     15   0.1  17781 100.0        -  VARI.CL::VS-%GLSL-EXPR
+ 233      0   0.0     13   0.1  17781 100.0        -  PRINC
+ 234      0   0.0     13   0.1  17781 100.0        -  VARJO.INTERNALS::%GET-FREE-GLSL-NAME
+ 235      0   0.0     12   0.1  17781 100.0        -  VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT-LIST
+ 236      0   0.0     12   0.1  17781 100.0        -  VARJO.INTERNALS::GET-VERSION-FROM-CONTEXT
+ 237      0   0.0     10   0.1  17781 100.0        -  VARJO.INTERNALS::GEN-FUNCTION-BODY-STRING
+ 238      0   0.0     10   0.1  17781 100.0        -  VARJO.INTERNALS::FIND-COMPILER-MACRO-FOR-FUNC
+ 239      0   0.0      9   0.1  17781 100.0        -  (SB-PCL::FAST-METHOD TYPE-SPEC->TYPE (T))
+ 240      0   0.0      9   0.1  17781 100.0        -  VARJO.INTERNALS:MAKE-FUNCTION-SET
+ 241      0   0.0      8   0.0  17781 100.0        -  (LABELS SB-IMPL::PRINT-IT :IN SB-KERNEL:OUTPUT-OBJECT)
+ 242      0   0.0      8   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:SET-FLOW-ID (V-TYPE VARJO.INTERNALS:FLOW-IDENTIFIER))
+ 243      0   0.0      8   0.0  17781 100.0        -  VARJO.INTERNALS::GEN-NUMBER-STRING
+ 244      0   0.0      8   0.0  17781 100.0        -  (FLET #:WRAPPER7 :IN VARJO.INTERNALS:MAKE-FUNCTION-SET)
+ 245      0   0.0      8   0.0  17781 100.0        -  VARI.CL::VS-CASE
+ 246      0   0.0      7   0.0  17781 100.0        -  CL-PPCRE:REGEX-REPLACE
+ 247      0   0.0      6   0.0  17781 100.0        -  "foreign function interrupt_handle_pending"
+ 248      0   0.0      6   0.0  17781 100.0        -  "foreign function handle_trap"
+ 249      0   0.0      5   0.0  17781 100.0        -  VARJO.INTERNALS::%CALC-FLOW-ID-GIVEN-ARGS
+ 250      0   0.0      5   0.0  17781 100.0        -  SB-IMPL::%WRITE-STRING
+ 251      0   0.0      5   0.0  17781 100.0        -  SB-KERNEL::SPECIFIER-TYPE-R
+ 252      0   0.0      4   0.0  17781 100.0        -  VARJO.INTERNALS::TRY-TYPE-SPEC->TYPE
+ 253      0   0.0      4   0.0  17781 100.0        -  SB-IMPL::OUTPUT-INTEGER
+ 254      0   0.0      4   0.0  17781 100.0        -  SWANK::AUTO-FLUSH-LOOP
+ 255      0   0.0      4   0.0  17781 100.0        -  VARI.CL::GEN-STRING-FOR-SWITCH-FORM
+ 256      0   0.0      3   0.0  17781 100.0        -  VARJO.INTERNALS:GLSL-CHUNK-FROM-COMPILED
+ 257      0   0.0      3   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD V-TYPEP (V-TYPE V-TYPE))
+ 258      0   0.0      3   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD CL-PPCRE:SCAN (FUNCTION T))
+ 259      0   0.0      3   0.0  17781 100.0        -  VARJO.INTERNALS::SINGULAR-FLOW-ID-P
+ 260      0   0.0      3   0.0  17781 100.0        -  VARJO.INTERNALS::MERGE-ENV
+ 261      0   0.0      3   0.0  17781 100.0        -  SB-KERNEL::VALUES-SPECIFIER-TYPE-R
+ 262      0   0.0      3   0.0  17781 100.0        -  (FLET #:FORM-FUN-3109 :IN SB-GRAY:STREAM-FORCE-OUTPUT)
+ 263      0   0.0      3   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FORCE-OUTPUT :AROUND (SWANK/GRAY::SLIME-OUTPUT-STREAM))
+ 264      0   0.0      3   0.0  17781 100.0        -  FORCE-OUTPUT
+ 265      0   0.0      3   0.0  17781 100.0        -  VARI.CL::GEN-CHUNK-FOR-CONDITIONAL-ARM
+ 266      0   0.0      2   0.0  17781 100.0        -  VARJO.UTILS:POSITIONS-IF
+ 267      0   0.0      2   0.0  17781 100.0        -  (LABELS SB-IMPL::SXHASH-RECURSE :IN SXHASH)
+ 268      0   0.0      2   0.0  17781 100.0        -  SXHASH
+ 269      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::EQUAL-HASH
+ 270      0   0.0      2   0.0  17781 100.0        -  SB-KERNEL:CLASSOID-PROPER-NAME
+ 271      0   0.0      2   0.0  17781 100.0        -  SB-SYS:WAIT-UNTIL-FD-USABLE
+ 272      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::REFILL-INPUT-BUFFER
+ 273      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::INPUT-CHAR/ASCII
+ 274      0   0.0      2   0.0  17781 100.0        -  (LAMBDA (&REST REST) :IN SB-IMPL::GET-EXTERNAL-FORMAT)
+ 275      0   0.0      2   0.0  17781 100.0        -  READ-CHAR
+ 276      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::%READ-PRESERVING-WHITESPACE
+ 277      0   0.0      2   0.0  17781 100.0        -  READ
+ 278      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::REPL-READ-FORM-FUN
+ 279      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::REPL-FUN
+ 280      0   0.0      2   0.0  17781 100.0        -  (LAMBDA NIL :IN SB-IMPL::TOPLEVEL-REPL)
+ 281      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::%WITH-REBOUND-IO-SYNTAX
+ 282      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::TOPLEVEL-REPL
+ 283      0   0.0      2   0.0  17781 100.0        -  SB-IMPL::TOPLEVEL-INIT
+ 284      0   0.0      2   0.0  17781 100.0        -  (FLET #:WITHOUT-INTERRUPTS-BODY-73 :IN SB-EXT:SAVE-LISP-AND-DIE)
+ 285      0   0.0      2   0.0  17781 100.0        -  (LABELS SB-IMPL::RESTART-LISP :IN SB-EXT:SAVE-LISP-AND-DIE)
+ 286      0   0.0      2   0.0  17781 100.0        -  VARJO.INTERNALS:FLOW-ID!
+ 287      0   0.0      2   0.0  17781 100.0        -  (LABELS VARJO.INTERNALS::FORCE-FLOW-ID :IN VARJO.INTERNALS::RESOLVE-FUNC-SET)
+ 288      0   0.0      2   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD SB-GRAY:STREAM-FINISH-OUTPUT (SWANK/GRAY::SLIME-OUTPUT-STREAM))
+ 289      0   0.0      2   0.0  17781 100.0        -  (LABELS SB-IMPL::SLOWER-MAP :IN SB-KERNEL:%MAP)
+ 290      0   0.0      2   0.0  17781 100.0        -  VARJO.INTERNALS:END-LINE-STR
+ 291      0   0.0      2   0.0  17781 100.0        -  VARJO.INTERNALS::GEN-SHADER-STRING
+ 292      0   0.0      2   0.0  17781 100.0        -  VARJO.INTERNALS::FINAL-STRING-COMPOSE
+ 293      0   0.0      1   0.0  17781 100.0        -  VARJO.INTERNALS:ID~=
+ 294      0   0.0      1   0.0  17781 100.0        -  (LABELS VARJO.UTILS::F :IN VARJO.UTILS:POSITIONS-IF)
+ 295      0   0.0      1   0.0  17781 100.0        -  VARJO.INTERNALS::GEN-ARG-STRING
+ 296      0   0.0      1   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:CURRENT-LINE (T))
+ 297      0   0.0      1   0.0  17781 100.0        -  SB-KERNEL:FIND-CLASSOID-CELL
+ 298      0   0.0      1   0.0  17781 100.0        -  (LAMBDA (SB-PCL::|.P0.|) :IN "/home/baggers/quicklisp/local-projects/the-works/varjo/src/vari.cl/bitwise-operators.lisp")
+ 299      0   0.0      1   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD FLOW-IDS (VARJO.INTERNALS:COMPILED))
+ 300      0   0.0      1   0.0  17781 100.0        -  (SB-PCL::EMF VARJO.INTERNALS:COPY-COMPILED)
+ 301      0   0.0      1   0.0  17781 100.0        -  (FLET #:WRAPPER158 :IN VARJO.INTERNALS::COMPILE-FUNCTION-CALL)
+ 302      0   0.0      1   0.0  17781 100.0        -  VARJO.INTERNALS::GEN-FUNCTION-SIGNATURE
+ 303      0   0.0      1   0.0  17781 100.0        -  VARJO.INTERNALS::SHADOW-GLOBAL-CHECK
+ 304      0   0.0      1   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS:ADD-FORM-BINDINGS (LIST VARJO.INTERNALS::ENVIRONMENT))
+ 305      0   0.0      1   0.0  17781 100.0        -  (LAMBDA (SB-IMPL::BUFFER SB-IMPL::FROM) :IN GET-OUTPUT-STREAM-STRING)
+ 306      0   0.0      1   0.0  17781 100.0        -  SB-THREAD::CALL-WITH-RECURSIVE-LOCK
+ 307      0   0.0      1   0.0  17781 100.0        -  (FLET SWANK/BACKEND:CALL-WITH-LOCK-HELD :IN "/home/baggers/quicklisp/dists/quicklisp/software/slime-v2.20/swank/sbcl.lisp")
+ 308      0   0.0      1   0.0  17781 100.0        -  SWANK/BACKEND:CALL-WITH-LOCK-HELD
+ 309      0   0.0      1   0.0  17781 100.0        -  SLEEP
+ 310      0   0.0      1   0.0  17781 100.0        -  (LAMBDA (VARJO.INTERNALS::_) :IN MAKE-TYPE-SET)
+ 311      0   0.0      1   0.0  17781 100.0        -  (SB-PCL::EMF VARJO.INTERNALS:MERGE-COMPILED)
+ 312      0   0.0      1   0.0  17781 100.0        -  (LABELS VARJO.INTERNALS::INNER :IN VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE)
+ 313      0   0.0      1   0.0  17781 100.0        -  (SB-PCL::FAST-METHOD VARJO.INTERNALS::REDUCE-TYPES-FOR-OR-TYPE (T))
+ 314      0   0.0      1   0.0  17781 100.0        -  VARJO.INTERNALS:GEN-OR-TYPE
+ 315      0   0.0      1   0.0  17781 100.0        -  VARI.CL::COMPUTE-CONDITIONAL-TYPE-SET
+ 316      0   0.0      1   0.0  17781 100.0        -  SB-IMPL::LIST-REMOVE-DUPLICATES*
+------------------------------------------------------------------------
+          4   0.0                                     elsewhere
