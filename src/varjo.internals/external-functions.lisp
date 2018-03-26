@@ -4,7 +4,7 @@
 ;;----------------------------------------------------------------------
 
 (defvar *external-functions*
-  (make-hash-table))
+  (make-hash-table :test #'eq))
 
 (defmethod get-external-function-by-name (name env)
   (let ((funcs (gethash name *external-functions*)))
