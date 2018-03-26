@@ -444,7 +444,7 @@ For example calling env-prune on this environment..
   (reduce #'%merge-bindings-item b :initial-value a))
 
 (defun %merge-form-bindings (a b)
-  (let ((result (make-hash-table)))
+  (let ((result (make-hash-table :test #'eq)))
     (flet ((add (name items)
              "if item is in A then append its entry to item in A"
              ;; find item in a
