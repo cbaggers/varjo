@@ -147,12 +147,16 @@
     :initform nil :initarg :base-env)
    (parent-env
     :initform nil :initarg :parent-env :reader v-parent-env)
+   (previous-env-with-form-bindings
+    :initform nil
+    :initarg :previous-env-with-form-bindings
+    :reader v-previous-env-with-form-bindings)
    (context
     :initform nil :initarg :context :reader v-context)
    (symbol-bindings
     :initform nil :initarg :symbol-bindings :reader v-symbol-bindings)
    (form-bindings
-    :initform nil :initarg :form-bindings :reader v-form-bindings)
+    :initarg :form-bindings :reader v-form-bindings)
    (macros
     :initform nil :initarg :macros :reader v-macros)
    (multi-val-base
@@ -166,7 +170,6 @@
    (local-metadata :initform (make-hash-table :test #'eql))
    (ext-func-compile-chain :initform nil :initarg :ext-func-compile-chain
                            :reader ext-func-compile-chain)))
-
 
 (defclass base-environment (environment)
   ((stage
