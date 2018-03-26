@@ -432,8 +432,23 @@ however failed to do so when asked."
 
 ;;------------------------------------------------------------
 
+(defun function-signatures-equal (func-a func-b)
+  (and (eq (name func-a) (name func-b))
+       (let ((spec-a (v-special-functionp func-a))
+             (spec-b (v-special-functionp func-b)))
+         (if (or spec-a spec-b)
+             (and (and spec-a spec-b)
+                  (special-exact-type-matchp
+                   func-a (v-argument-spec func-b) ))
+             (function-arg-specs-match-p func-a func-b)))))
+
 (defun function-arg-specs-match-p (func-a func-b)
-  (exact-match-function-to-types (v-argument-spec func-a) func-b))
+  (let* ((a-spec (v-argument-spec func-a))
+         (b-spec (v-argument-spec func-b))
+         (a-spec (if (find '&rest b-spec)
+                     (expand-argument-spec func-a (remove '&rest b-spec))
+                     a-spec)))
+    (exact-match-function-to-types a-spec func-b)))
 
 (defun basic-exact-type-matchp (func arg-types)
   (let ((match (basic-arg-matchp func arg-types nil :allow-casting nil)))

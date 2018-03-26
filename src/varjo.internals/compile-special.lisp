@@ -71,7 +71,7 @@
 
 (defun compile-forms-not-propagating-env-returning-list-of-compiled
     (func env list &rest more-lists)
-  "This compiled each form one after the other (just like progn) however,
+  "This compiles each form one after the other (just like progn) however,
    unlike progn, each form is evaluated with the original environment this
    means that bindings in one won't be visable in another.
    Finally the resulting environement is merged.

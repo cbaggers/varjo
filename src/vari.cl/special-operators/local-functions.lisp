@@ -29,12 +29,16 @@
   (vbind ((func-def-objs body-obj) e)
       (with-fresh-env-scope (fresh-env env)
         (env-> (p-env fresh-env)
-          (compile-forms-not-propagating-env-returning-list-of-compiled
-           (lambda (env d)
-             (dbind (name args &rest body) d
-               (vbind (fn code) (build-function nil name args body t env)
-                 (values code (add-form-binding fn env)))))
-           p-env definitions)
+          (let (form-bindings)
+            (vbind (tobj tenv)
+                (compile-forms-not-propagating-env-returning-list-of-compiled
+                 (lambda (env d)
+                   (dbind (name args &rest body) d
+                     (vbind (fn code) (build-function nil name args body t env)
+                       (push fn form-bindings)
+                       (values code env))))
+                 p-env definitions)
+              (values tobj (add-form-bindings form-bindings tenv))))
           (compile-form `(progn ,@body) p-env)))
     (let* ((objs (remove nil (cons-end body-obj func-def-objs)))
            (merged (merge-progn objs env e)))
