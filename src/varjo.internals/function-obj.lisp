@@ -13,6 +13,7 @@
    (is-special :initarg :special :reader v-special-functionp)))
 
 (defun make-function-set (functions)
+  (declare (optimize (speed 3) (debug 1) (safety 1)))
   (when functions
     (make-instance 'v-function-set
                    :functions functions

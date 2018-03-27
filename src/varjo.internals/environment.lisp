@@ -155,16 +155,11 @@
                                :stage stage
                                :env-depth 0
                                :context (context stage)
+                               :func-form-bindings nil
+                               :macro-form-bindings nil
                                :stemcells-allowed stemcells-allowed)))
     (setf (slot-value result 'base-env) result)
     result))
-
-;;-------------------------------------------------------------------------
-;; global env
-
-(defgeneric v-global-form-bindings ()
-  (:method ()
-    *global-env-form-bindings*))
 
 ;;-------------------------------------------------------------------------
 ;;
@@ -196,8 +191,8 @@
   (make-instance 'environment
                  :base-env (get-base-env env)
                  :symbol-bindings (v-symbol-bindings env)
-                 :form-bindings (v-form-bindings env)
-                 :macros nil
+                 :macro-form-bindings (v-macro-form-bindings env)
+                 :func-form-bindings (v-func-form-bindings env)
                  :context (remove :main (v-context env))
                  :function-scope (v-function-scope env)
                  :parent-env (v-parent-env env)
@@ -207,7 +202,8 @@
                  :ext-func-compile-chain (ext-func-compile-chain env)))
 
 (defun fresh-environment (env &key context function-scope
-                                form-bindings macros
+                                func-form-bindings
+                                macro-form-bindings
                                 symbol-bindings
                                 (multi-val-base nil set-mvb)
                                 multi-val-safe
@@ -217,8 +213,8 @@
   (make-instance 'environment
                  :base-env (get-base-env env)
                  :symbol-bindings symbol-bindings
-                 :form-bindings form-bindings
-                 :macros macros
+                 :macro-form-bindings macro-form-bindings
+                 :func-form-bindings func-form-bindings
                  :context (or context (v-context env))
                  :multi-val-base (if set-mvb
                                      multi-val-base
@@ -228,7 +224,8 @@
                  :parent-env env
                  :env-depth (1+ (env-depth env))
                  :previous-env-with-form-bindings
-                 (if (v-form-bindings env)
+                 (if (or (v-func-form-bindings env)
+                         (v-macro-form-bindings env))
                      env
                      (v-previous-env-with-form-bindings env))
                  :allowed-outer-vars (if set-aov
@@ -240,7 +237,8 @@
 
 (defmacro with-fresh-env-scope ((name starting-env
                                       &key context function-scope
-                                      form-bindings macros
+                                      func-form-bindings
+                                      macro-form-bindings
                                       symbol-bindings
                                       (multi-val-base nil set-mvb)
                                       multi-val-safe
@@ -253,8 +251,8 @@
             (,name (fresh-environment
                     ,s :context ,context
                     :function-scope ,function-scope
-                    :form-bindings ,form-bindings
-                    :macros ,macros
+                    :func-form-bindings ,func-form-bindings
+                    :macro-form-bindings ,macro-form-bindings
                     :symbol-bindings ,symbol-bindings
                     ,@(when set-aov `(:allowed-outer-vars ,allowed-outer-vars))
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
@@ -268,8 +266,8 @@
   (make-instance 'environment
                  :base-env (get-base-env env)
                  :symbol-bindings symbol-bindings
-                 :form-bindings (v-form-bindings env)
-                 :macros (v-macros env)
+                 :macro-form-bindings (v-macro-form-bindings env)
+                 :func-form-bindings (v-func-form-bindings env)
                  :context (v-context env)
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
@@ -288,13 +286,14 @@
                  :symbol-bindings (if symbol-bindings-set
                                       symbol-bindings
                                       (v-symbol-bindings env))
-                 :form-bindings (v-form-bindings env)
-                 :macros (v-macros env)
+                 :macro-form-bindings (v-macro-form-bindings env)
+                 :func-form-bindings (v-func-form-bindings env)
                  :context (v-context env)
                  :env-depth (env-depth env)
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
-                 :previous-env-with-form-bindings (if (v-form-bindings new-parent)
+                 :previous-env-with-form-bindings (if (or (v-func-form-bindings new-parent)
+                                                          (v-macro-form-bindings new-parent))
                                                       new-parent
                                                       (v-previous-env-with-form-bindings new-parent))
                  :parent-env new-parent
@@ -408,18 +407,18 @@ For example calling env-prune on this environment..
   (unless (= (v-function-scope env) (v-function-scope new-env))
     (error 'merge-env-func-scope-mismatch :env-a env :env-b new-env))
   (with-slots ((a-vars symbol-bindings)
-               (a-funcs form-bindings)
-               (a-macros macros))
+               (a-funcs func-form-bindings)
+               (a-macros macro-form-bindings))
       env
     (with-slots ((b-vars symbol-bindings)
-                 (b-funcs form-bindings)
-                 (b-macros macros))
+                 (b-funcs func-form-bindings)
+                 (b-macros macro-form-bindings))
         new-env
       (fresh-environment
        env
        :symbol-bindings (%merge-symbol-bindings a-vars b-vars)
-       :form-bindings (%merge-form-bindings a-funcs b-funcs)
-       :macros (%merge-form-bindings a-macros b-macros)))))
+       :func-form-bindings (%merge-form-bindings a-funcs b-funcs)
+       :macro-form-bindings (%merge-form-bindings a-macros b-macros)))))
 
 ;;------------------------------------------------------------
 
@@ -428,7 +427,11 @@ For example calling env-prune on this environment..
     (assert (hash-table-p set)) ;; {TODO} remove before shipping
     set))
 
+(declaim (inline get-from-binding-set)
+         (ftype (function (symbol hash-table) list)))
 (defun get-from-binding-set (name ht)
+  (declare (type symbol name)
+           (type hash-table ht))
   (gethash name ht))
 
 (defun push-to-binding-set (name thing ht)
@@ -634,23 +637,25 @@ For example calling env-prune on this environment..
   (let ((name (name func)))
     (when (shadow-global-check name)
       (fresh-environment
-       env :form-bindings (push-to-binding-set
-                           name
-                           func
-                           nil)))))
+       env :func-form-bindings (push-to-binding-set
+                                name
+                                func
+                                nil)))))
 
 (defmethod add-form-binding ((macro v-regular-macro)
                              (env environment))
+  ;; {TODO} Can only have one macro of each name at each level,
+  ;;        so dont need a 'push' here
   (let ((name (name macro)))
     (when (shadow-global-check name)
       (fresh-environment
-       env :form-bindings (push-to-binding-set
-                           name
-                           macro
-                           nil)))))
+       env :macro-form-bindings (push-to-binding-set
+                                 name
+                                 macro
+                                 nil)))))
 
-(defmethod add-form-bindings ((funcs list)
-                              (env environment))
+(defmethod add-func-form-bindings ((funcs list)
+                                   (env environment))
   ;; local mutation of env here
   (let ((fo (loop
                :for fn :in funcs
@@ -659,7 +664,7 @@ For example calling env-prune on this environment..
     (if fo
         (let ((new-env (fresh-environment env))
               (set nil))
-          (with-slots (form-bindings) new-env
+          (with-slots (func-form-bindings) new-env
             (loop :for fn :in fo :do
                (let ((fn (if (typep fn 'compiled-function-result)
                              (let ((fo (function-obj fn)))
@@ -667,7 +672,7 @@ For example calling env-prune on this environment..
                                fo)
                              fn)))
                  (setf set (push-to-binding-set (name fn) fn set))))
-            (setf form-bindings set))
+            (setf func-form-bindings set))
           new-env)
         env)))
 
@@ -678,8 +683,8 @@ For example calling env-prune on this environment..
 (defmethod %add-function (func-name (func-spec v-function)
                           (env base-environment))
   (when (shadow-global-check func-name)
-    (with-slots (form-bindings) env
-      (push-to-binding-set func-name func-spec form-bindings))))
+    (with-slots (func-form-bindings) env
+      (push-to-binding-set func-name func-spec func-form-bindings))))
 
 ;;-------------------------------------------------------------------------
 
@@ -710,34 +715,66 @@ For example calling env-prune on this environment..
 ;; Standard Environment
 ;;
 (defmethod get-form-binding (name (env environment))
-  ;;
-  (let* ((bindings-at-this-level
-          (append (let ((set (v-form-bindings env)))
-                    (when set
-                      (get-from-binding-set name set)))
-                  (when (typep env 'base-environment)
-                    (get-external-function-by-name name env))))
-         ;;
-         (macro (find-if λ(typep _ 'v-regular-macro) bindings-at-this-level))
-         (macro (when (valid-for-contextp macro env)
-                  macro)))
+  (labels ((bam-base-env (name env)
+             (declare (optimize (speed 3) (safety 1) (debug 1))
+                      (type symbol name)
+                      (type base-environment env))
+             (let ((macro-at-this-level
+                    (let ((set (v-macro-form-bindings env)))
+                      (when set
+                        (first (get-from-binding-set name set))))))
+               (if macro-at-this-level
+                   macro-at-this-level
+                   (let* ((funcs-at-this-level
+                           (let ((set (v-func-form-bindings env)))
+                             (when set
+                               (get-from-binding-set name set))))
+                          (valid (remove-if-not λ(valid-for-contextp _ env) ;; use this in here
+                                                funcs-at-this-level))
+                          (externals (get-external-function-by-name name env)))
+                     (append valid
+                             externals)))))
+           (bam (name env)
+             (declare (optimize (speed 3) (safety 1) (debug 1))
+                      (type symbol name)
+                      (type environment env))
+             (let ((prev-with-form-bindings (v-previous-env-with-form-bindings env)))
+               (if (not prev-with-form-bindings)
+                   (bam-base-env name env)
+                   (let ((macro-at-this-level
+                          (let ((set (v-macro-form-bindings env)))
+                            (when set
+                              (first (get-from-binding-set name set))))))
+                     (if macro-at-this-level
+                         macro-at-this-level
+                         (let* ((funcs-at-this-level
+                                 (let ((set (v-func-form-bindings env)))
+                                   (when set
+                                     (get-from-binding-set name set)))))
+                           (if funcs-at-this-level
+                               (append funcs-at-this-level
+                                       (bam-no-macros name prev-with-form-bindings))
+                               (bam name prev-with-form-bindings))))))))
+           (bam-no-macros (name env)
+             (declare (optimize (speed 3) (safety 1) (debug 1))
+                      (type symbol name)
+                      (type environment env))
+             (let ((prev-with-form-bindings (v-previous-env-with-form-bindings env)))
+               (if (not prev-with-form-bindings)
+                   (bam-base-env name env)
+                   (let* ((funcs-at-this-level
+                           (let ((set (v-func-form-bindings env)))
+                             (when set
+                               (get-from-binding-set name set)))))
+                     (if funcs-at-this-level
+                         (append funcs-at-this-level
+                                 (bam-no-macros name prev-with-form-bindings))
+                         (bam-no-macros name prev-with-form-bindings)))))))
     ;;
-    (if bindings-at-this-level
-        ;; it's either a macro from this level or a function set
-        (or macro
-            (let* ((bindings-above
-                    (when (v-previous-env-with-form-bindings env)
-                      (get-form-binding name (v-previous-env-with-form-bindings env))))
-                   (all-bindings
-                    (append bindings-at-this-level
-                            (when (typep bindings-above 'v-function-set)
-                              (functions bindings-above))))
-                   (valid (remove-if-not λ(valid-for-contextp _ env)
-                                         all-bindings)))
-              (make-function-set valid)))
-        ;; nothing here? Check higher.
-        (when (v-previous-env-with-form-bindings env)
-          (get-form-binding name (v-previous-env-with-form-bindings env))))))
+    (let ((x (bam name env)))
+      (if (listp x)
+          (make-function-set x)
+          x))))
 
 ;;-------------------------------------------------------------------------
 

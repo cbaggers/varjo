@@ -64,6 +64,7 @@
          derived-from env))))
 
 (defun likely-recursion-p (env)
+  ;; {TODO} fuck this thing in particular
   (labels ((ieql (a b)
              (cond
                ((and (listp a) (listp b))

@@ -38,7 +38,7 @@
                        (push fn form-bindings)
                        (values code env))))
                  p-env definitions)
-              (values tobj (add-form-bindings form-bindings tenv))))
+              (values tobj (add-func-form-bindings form-bindings tenv))))
           (compile-form `(progn ,@body) p-env)))
     (let* ((objs (remove nil (cons-end body-obj func-def-objs)))
            (merged (merge-progn objs env e)))

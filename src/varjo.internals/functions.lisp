@@ -597,13 +597,19 @@ however failed to do so when asked."
 
 (defun add-glsl-funcs (env)
   (assert (typep env 'base-environment))
-  (let ((funcs *global-env-form-bindings*)
-        (binding-set (make-binding-hash-set)))
-    (with-slots (form-bindings) env
-      (loop :for key :in (hash-table-keys funcs) :do
-         (loop :for func :in (gethash key funcs) :do
-            (push-to-binding-set key func binding-set)))
-      (setf form-bindings binding-set)
+  (let ((form-bindings *global-env-form-bindings*)
+        (func-binding-set (make-binding-hash-set))
+        (macro-binding-set (make-binding-hash-set)))
+    (with-slots (func-form-bindings macro-form-bindings) env
+      (maphash (lambda (key bindings)
+                 (if (typep (first bindings) 'v-regular-macro)
+                     (loop :for func :in bindings :do
+                        (push-to-binding-set key func macro-binding-set))
+                     (loop :for func :in bindings :do
+                        (push-to-binding-set key func func-binding-set))))
+               form-bindings)
+      (setf macro-form-bindings macro-binding-set)
+      (setf func-form-bindings func-binding-set)
       env)))
 
 ;;----------------------------------------------------------------------
