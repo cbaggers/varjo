@@ -313,7 +313,7 @@ however failed to do so when asked."
           (assert (every λ(numberp (score _)) matches))
           matches)
         (func-find-failure code (mapcar #'primary-type compiled-args)
-                           name func-set))))
+                           func-set name))))
 
 (defun find-function-in-set-for-args (func-set args-code env &optional name code)
   "Find the function that best matches the name and arg spec given
