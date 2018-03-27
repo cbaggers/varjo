@@ -710,6 +710,7 @@ For example calling env-prune on this environment..
 ;; Standard Environment
 ;;
 (defmethod get-form-binding (name (env environment))
+  (declare (optimize (speed 3) (safety 1) (debug 1)))
   ;;
   (let* ((prev-env-with-bindings (v-previous-env-with-form-bindings env))
          (bindings-at-this-level
@@ -719,7 +720,8 @@ For example calling env-prune on this environment..
                   (unless prev-env-with-bindings
                     (get-external-function-by-name name env))))
          ;;
-         (macro (find-if λ(typep _ 'v-regular-macro) bindings-at-this-level))
+         (macro (find-if λ(typep _ 'v-regular-macro)
+                         (the list bindings-at-this-level)))
          (macro (if prev-env-with-bindings
                     macro
                     (when (valid-for-contextp macro env)
