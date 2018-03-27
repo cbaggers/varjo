@@ -163,8 +163,6 @@
     :initform nil :initarg :symbol-bindings :reader v-symbol-bindings)
    (form-bindings
     :initarg :form-bindings :reader v-form-bindings)
-   (macros
-    :initform nil :initarg :macros :reader v-macros)
    (multi-val-base
     :initform nil :initarg :multi-val-base :reader v-multi-val-base)
    (multi-val-safe

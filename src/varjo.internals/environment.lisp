@@ -197,7 +197,6 @@
                  :base-env (get-base-env env)
                  :symbol-bindings (v-symbol-bindings env)
                  :form-bindings (v-form-bindings env)
-                 :macros nil
                  :context (remove :main (v-context env))
                  :function-scope (v-function-scope env)
                  :parent-env (v-parent-env env)
@@ -207,7 +206,7 @@
                  :ext-func-compile-chain (ext-func-compile-chain env)))
 
 (defun fresh-environment (env &key context function-scope
-                                form-bindings macros
+                                form-bindings
                                 symbol-bindings
                                 (multi-val-base nil set-mvb)
                                 multi-val-safe
@@ -218,7 +217,6 @@
                  :base-env (get-base-env env)
                  :symbol-bindings symbol-bindings
                  :form-bindings form-bindings
-                 :macros macros
                  :context (or context (v-context env))
                  :multi-val-base (if set-mvb
                                      multi-val-base
@@ -240,7 +238,7 @@
 
 (defmacro with-fresh-env-scope ((name starting-env
                                       &key context function-scope
-                                      form-bindings macros
+                                      form-bindings
                                       symbol-bindings
                                       (multi-val-base nil set-mvb)
                                       multi-val-safe
@@ -254,7 +252,6 @@
                     ,s :context ,context
                     :function-scope ,function-scope
                     :form-bindings ,form-bindings
-                    :macros ,macros
                     :symbol-bindings ,symbol-bindings
                     ,@(when set-aov `(:allowed-outer-vars ,allowed-outer-vars))
                     ,@(when set-mvb `(:multi-val-base ,multi-val-base))
@@ -269,7 +266,6 @@
                  :base-env (get-base-env env)
                  :symbol-bindings symbol-bindings
                  :form-bindings (v-form-bindings env)
-                 :macros (v-macros env)
                  :context (v-context env)
                  :multi-val-base (v-multi-val-base env)
                  :function-scope (v-function-scope env)
@@ -289,7 +285,6 @@
                                       symbol-bindings
                                       (v-symbol-bindings env))
                  :form-bindings (v-form-bindings env)
-                 :macros (v-macros env)
                  :context (v-context env)
                  :env-depth (env-depth env)
                  :multi-val-base (v-multi-val-base env)
@@ -433,8 +428,7 @@ For example calling env-prune on this environment..
       (fresh-environment
        env
        :symbol-bindings (%merge-symbol-bindings a-vars b-vars)
-       :form-bindings (%merge-form-bindings a-funcs b-funcs)
-       :macros (%merge-form-bindings a-macros b-macros)))))
+       :form-bindings (%merge-form-bindings a-funcs b-funcs)))))
 
 ;;------------------------------------------------------------
 
@@ -443,6 +437,9 @@ For example calling env-prune on this environment..
     (assert (hash-table-p set)) ;; {TODO} remove before shipping
     set))
 
+(declaim (inline get-from-binding-set)
+         (ftype (function (symbol hash-table) list)
+                get-from-binding-set))
 (defun get-from-binding-set (name ht)
   (gethash name ht))
 
