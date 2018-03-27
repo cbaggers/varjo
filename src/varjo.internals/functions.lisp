@@ -445,10 +445,15 @@ however failed to do so when asked."
 (defun function-arg-specs-match-p (func-a func-b)
   (let* ((a-spec (v-argument-spec func-a))
          (b-spec (v-argument-spec func-b))
-         (a-spec (if (find '&rest b-spec)
-                     (expand-argument-spec func-a (remove '&rest b-spec))
-                     a-spec)))
-    (exact-match-function-to-types a-spec func-b)))
+         (&rest-pos-a (&rest-pos a-spec))
+         (&rest-pos-b (&rest-pos b-spec)))
+    (when (eql &rest-pos-a &rest-pos-b)
+      (let ((a-spec (if &rest-pos-b
+                         (expand-argument-spec
+                          func-a
+                          (remove-if #'&rest-p b-spec))
+                         a-spec)))
+        (exact-match-function-to-types a-spec func-b)))))
 
 (defun basic-exact-type-matchp (func arg-types)
   (let ((match (basic-arg-matchp func arg-types nil :allow-casting nil)))
