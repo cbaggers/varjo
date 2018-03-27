@@ -1,5 +1,6 @@
 (in-package :varjo.internals)
 
+(defgeneric name (obj))
 (defgeneric %add-function (func-name func-spec env))
 (defgeneric %add-symbol-binding (var-name val env))
 (defgeneric %get-symbol-macro-spec (macro-name env))
