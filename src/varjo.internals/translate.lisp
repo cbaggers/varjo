@@ -202,7 +202,7 @@
 ;;----------------------------------------------------------------------
 
 (defun compile-pass (stage env)
-  (values (build-function nil :main () (lisp-code stage) nil env)
+  (values (build-function :main () (lisp-code stage) nil env)
           stage
           env))
 

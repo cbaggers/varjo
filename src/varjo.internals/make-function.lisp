@@ -11,13 +11,12 @@
           :func (format-external-func-for-error func))
   (with-slots (name in-args uniforms code glsl-versions) func
     (vbind (compiled-func maybe-def-code)
-        (build-function (cons func (ext-func-compile-chain calling-env))
-                        name
+        (build-function name
                         (append in-args
                                 (when uniforms `(&uniform ,@uniforms)))
                         code
                         nil
-                        env
+                        (env-add-ext-funct-to-chain env func)
                         :derived-from func)
       ;; Here we check that we haven't got any behaviour that, while legal for
       ;; main or local funcs, would be undesired in external functions
@@ -32,7 +31,7 @@
         (assert (emptyp (type-set maybe-def-code))))
       (values compiled-func maybe-def-code))))
 
-(defun build-function (func-id name args body allowed-implicit-args
+(defun build-function (name args body allowed-implicit-args
                        env &key derived-from)
   ;;
   ;; Check that the args are correctly formatted, we could just let
@@ -60,33 +59,14 @@
         (make-new-function-with-unreps
          name args body derived-from env)
         (make-regular-function
-         func-id name args args-with-types body allowed-implicit-args
+         name args args-with-types body allowed-implicit-args
          derived-from env))))
 
-(defun likely-recursion-p (env)
-  (labels ((ieql (a b)
-             (cond
-               ((and (listp a) (listp b))
-                (loop :for a0 :in a :for b0 :in b :always
-                   (ieql a0 b0)))
-               ((and (typep a 'v-type) (typep b 'v-type))
-                (v-type-eq a b))
-               (t (equal a b)))))
-    (let* ((chain (ext-func-compile-chain env))
-           (key (first chain))
-           (depth (or (position-if-not λ(ieql key _) chain) 0)))
-      (> depth 15))))
-
-(defun make-regular-function (func-id name raw-args args body
+(defun make-regular-function (name raw-args args body
                               allowed-implicit-args derived-from env)
-  (assert (not (likely-recursion-p env)) ()
-          'probable-recursion :name name
-          :func `(,name ,@(mapcar λ(type->type-spec (second _)) args)))
   (vbind (body declarations) (extract-declares body)
-    (let* ((func-id (or func-id (list name args body allowed-implicit-args)))
-           (func-chain (cons func-id (ext-func-compile-chain env)))
-           (mainp (eq name :main))
-           (func-env (make-func-env env func-chain mainp allowed-implicit-args))
+    (let* ((mainp (eq name :main))
+           (func-env (make-func-env env mainp allowed-implicit-args))
            (in-arg-flow-ids (mapcar (lambda (_)
                                       (declare (ignore _))
                                       (flow-id!))
@@ -261,6 +241,8 @@
 (defun capture-var (name env)
   (let ((val (get-symbol-binding name t env)))
     (assert (typep val 'v-value))
+    (assert env ()
+            "why ~a ~a" name env)
     (make-instance 'captured-var
                    :name name
                    :value val
@@ -291,12 +273,10 @@
         (when result
           (error 'illegal-implicit-args :func-name name)))))
 
-(defun make-func-env (env func-id mainp allowed-implicit-args)
+(defun make-func-env (env mainp allowed-implicit-args)
   (if mainp
       (fresh-environment env :function-scope (1+ (v-function-scope env))
                          :context (cons :main (v-context env))
-                         :allowed-outer-vars allowed-implicit-args
-                         :ext-func-compile-chain func-id)
+                         :allowed-outer-vars allowed-implicit-args)
       (fresh-environment env :function-scope (1+ (v-function-scope env))
-                         :allowed-outer-vars allowed-implicit-args
-                         :ext-func-compile-chain func-id)))
+                         :allowed-outer-vars allowed-implicit-args)))

@@ -301,6 +301,21 @@
                  :allowed-outer-vars (v-allowed-outer-vars env)
                  :ext-func-compile-chain (ext-func-compile-chain env)))
 
+(defun env-add-ext-funct-to-chain (env func)
+  (assert (typep env 'environment))
+  (make-instance 'environment
+                 :base-env (get-base-env env)
+                 :symbol-bindings (v-symbol-bindings env)
+                 :form-bindings (v-form-bindings env)
+                 :context (v-context env)
+                 :env-depth (env-depth env)
+                 :multi-val-base (v-multi-val-base env)
+                 :function-scope (v-function-scope env)
+                 :previous-env-with-form-bindings (v-previous-env-with-form-bindings env)
+                 :parent-env env
+                 :allowed-outer-vars (v-allowed-outer-vars env)
+                 :ext-func-compile-chain (cons func (ext-func-compile-chain env))))
+
 (defun env-prune* (to-depth &rest envs)
   (env-prune-many to-depth envs))
 
@@ -792,6 +807,8 @@ For example calling env-prune on this environment..
 
 (defun descendant-env-p (env ancestor)
   (declare (optimize (speed 3) (debug 1) (safety 1))
-           (type environment env ancestor))
+           (type (or null environment) env ancestor))
   (or (eq env ancestor)
-      (descendant-env-p (v-parent-env env) ancestor)))
+      (unless (or (null env) (null ancestor))
+        (descendant-env-p (v-parent-env env)
+                          ancestor))))
