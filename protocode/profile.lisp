@@ -81,5 +81,14 @@
 ;;   (sb-sprof:stop-profiling)
 ;;   (sb-sprof:report :type :flat))
 
+(defmacro sb-prof-form (form)
+  `(progn
+     (sb-sprof:reset)
+     (sb-sprof:start-profiling :sample-interval 0.001)
+     ,form
+     (sb-sprof:stop-profiling)
+     (sb-sprof:report :type :flat)))
+
+
 ;; Evaluation took:
 ;;   2.380 seconds of real time
