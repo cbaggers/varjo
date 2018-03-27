@@ -115,8 +115,7 @@
                           :funcall-form code))))))))
 
 (defun find-and-expand-compiler-macro (func args args-code env)
-  (unless (or (v-special-functionp func)
-              (typep func 'v-user-function))
+  (unless (v-special-functionp func)
     (let ((macro (find-compiler-macro-for-func func)))
       (when macro
         (let ((public-env (make-instance 'compiler-macro-expansion-environment
