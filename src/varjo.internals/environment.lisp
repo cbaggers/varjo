@@ -711,33 +711,38 @@ For example calling env-prune on this environment..
 ;;
 (defmethod get-form-binding (name (env environment))
   ;;
-  (let* ((bindings-at-this-level
+  (let* ((prev-env-with-bindings (v-previous-env-with-form-bindings env))
+         (bindings-at-this-level
           (append (let ((set (v-form-bindings env)))
                     (when set
                       (get-from-binding-set name set)))
-                  (when (typep env 'base-environment)
+                  (unless prev-env-with-bindings
                     (get-external-function-by-name name env))))
          ;;
          (macro (find-if λ(typep _ 'v-regular-macro) bindings-at-this-level))
-         (macro (when (valid-for-contextp macro env)
-                  macro)))
+         (macro (if prev-env-with-bindings
+                    macro
+                    (when (valid-for-contextp macro env)
+                      macro))))
     ;;
     (if bindings-at-this-level
         ;; it's either a macro from this level or a function set
         (or macro
             (let* ((bindings-above
-                    (when (v-previous-env-with-form-bindings env)
-                      (get-form-binding name (v-previous-env-with-form-bindings env))))
+                    (when prev-env-with-bindings
+                      (get-form-binding name prev-env-with-bindings)))
                    (all-bindings
                     (append bindings-at-this-level
                             (when (typep bindings-above 'v-function-set)
                               (functions bindings-above))))
-                   (valid (remove-if-not λ(valid-for-contextp _ env)
-                                         all-bindings)))
+                   (valid (if prev-env-with-bindings
+                              all-bindings
+                              (remove-if-not λ(valid-for-contextp _ env)
+                                             all-bindings))))
               (make-function-set valid)))
         ;; nothing here? Check higher.
-        (when (v-previous-env-with-form-bindings env)
-          (get-form-binding name (v-previous-env-with-form-bindings env))))))
+        (when prev-env-with-bindings
+          (get-form-binding name prev-env-with-bindings)))))
 
 ;;-------------------------------------------------------------------------
 
