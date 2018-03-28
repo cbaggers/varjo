@@ -6,6 +6,48 @@
     (when doc
       (format stream "~a~%~%~a" name doc))))
 
+(defun vari-describe-string (name &optional (stream *standard-output*))
+  (let* ((str (when (stringp name)
+                (let ((p (position #\: name)))
+                  (if p
+                      (subseq name (1+ p))
+                      name))))
+         (name (if str
+                   (cl:find-symbol (cl:string-upcase str) :glsl-symbols)
+                   name))
+         (var (gethash name glsl-docs:*variables*))
+         (func (unless var (gethash name glsl-docs:*functions*))))
+    (cond
+      (var
+       (format stream "~a~%~%~a" name var))
+      (func
+       (let* ((set
+               (varjo.internals::find-global-form-binding-by-literal name t))
+              (funcs
+               (when set (functions set)))
+              (args
+               (loop
+                  :for func :in funcs
+                  :for spec := (v-argument-spec func)
+                  :when (listp spec)
+                  :collect
+                  (handler-case
+                      (loop :for type :in spec :collect
+                         (type->type-spec type))
+                    (error () nil))))
+              (args (if (every #'identity args)
+                        args
+                        '(-)))
+              (decl (search "Declaration" func))
+              (param (search "Parameters" func))
+              (doc (if (and decl param)
+                       (concatenate
+                        'string
+                        (subseq func 0 decl)
+                        (subseq func param))
+                       func)))
+         (format stream "~a~%~%~@[~{~a~%~}~%~]~a" name args doc))))))
+
 (setf (gethash '* glsl-docs:*functions*)
       "Return the product of its arguments. With no args, returns 1.")
 
