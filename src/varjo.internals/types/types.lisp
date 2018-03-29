@@ -700,32 +700,24 @@
 ;; Function-Type <-> Function-Type
 ;;
 
-;; (defmethod v-type-eq ((a v-function-type) (b v-function-type)
-;;                      )
-;;   (declare (ignore env))
-;;   (if (or (ctv a) (ctv b))
-;;       (eq (ctv a) (ctv b))
-;;       (equal (type->type-spec a) (type->type-spec b))))
-
-;; (defmethod v-type-eq ((a v-function-type) (b v-type)
-;;                      )
-;;   (declare (ignore a b env))
-;;   nil)
-
-;; (defmethod v-type-eq ((a v-type) (b v-function-type)
-;;                      )
-;;   (declare (ignore a b env))
-;;   nil)
+(defmethod v-type-eq ((a v-function-type) (b v-function-type))
+  ;; this 'and ctv' stuff makes me nervous.
+  ;; See https://github.com/cbaggers/varjo/issues/181
+  ;;        ↓↓
+  (and (if (and (ctv a) (ctv b))
+           (eq (ctv a) (ctv b))
+           t)
+       (every #'v-type-eq (v-argument-spec a)
+              (v-argument-spec b))
+       (every #'v-type-eq (v-return-spec a)
+              (v-return-spec b))))
 
 ;;------------------------------------------------------------
 ;; Casting
 
 
 (defmethod v-casts-to ((from-type v-function-type) (to-type v-function-type))
-  (when (and (every #'v-type-eq (v-argument-spec from-type)
-                    (v-argument-spec to-type))
-             (every #'v-type-eq (v-return-spec from-type)
-                    (v-return-spec to-type)))
+  (when (v-type-eq from-type to-type)
     to-type))
 
 (defmethod v-casts-to ((from-type v-any-one-of) (to-type v-function-type))
