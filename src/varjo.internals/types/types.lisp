@@ -640,6 +640,13 @@
                   (t (map 'list #'type->type-spec return-spec)))))
       `(function ,in ,out))))
 
+(defmethod v-typep ((a v-function-type)
+                    (b v-function-type))
+  (and (every #'v-type-eq (v-argument-spec a)
+              (v-argument-spec b))
+       (every #'v-type-eq (v-return-spec a)
+              (v-return-spec b))))
+
 ;;------------------------------------------------------------
 ;; Stemcell
 
