@@ -36,9 +36,11 @@
   (let* ((compiled (compile-form form env))
          (obj (if (stemcellp (primary-type compiled))
                   (add-type-to-stemcell-code compiled type-name)
-                  (if (v-typep (primary-type compiled)
-                               (type-spec->type type-name))
-                      compiled ;{TODO} proper error here
-                      (error "Incorrect declaration that ~a was of type ~a"
-                             compiled type-name)))))
+                  (let ((type (type-spec->type type-name)))
+                    (if (v-typep (primary-type compiled) type)
+                        compiled ;{TODO} proper error here
+                        (error 'invalid-the-declaration
+                               :form `(the ,type-name ,form)
+                               :declared-type type
+                               :found-type (primary-type compiled)))))))
     (values obj env)))

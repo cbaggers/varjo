@@ -349,6 +349,7 @@
            :primitive-in-context
            :no-args-remove-in-unrep-inlining
            :invalid-glsl-numeric-literal
+           :invalid-the-declaration
 
            ;; restarts
            :setq-supply-alternate-type))

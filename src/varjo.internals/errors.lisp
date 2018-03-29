@@ -204,11 +204,11 @@ Returned Values: ~a"
   bindings val-form (map 'list #'type->type-spec return-set))
 
 (define-error merge-env-func-scope-mismatch () (env-a env-b)
-    "Attempting to merge two environements with different function scopes ~s~%~s~%~s"
+    "Attempting to merge two environments with different function scopes ~s~%~s~%~s"
   (cons (v-function-scope env-a) (v-function-scope env-b)) env-a env-b)
 
 (define-error merge-env-parent-mismatch () (env-a env-b)
-    "Attempting to merge two environements with different parent environments ~s~%~s~%~s"
+    "Attempting to merge two environments with different parent environments ~s~%~s~%~s"
   (cons (v-parent-env env-a) (v-parent-env env-b)) env-a env-b)
 
 (define-error env-parent-context-mismatch () (env-a env-b)
@@ -1188,7 +1188,8 @@ args-code: ~a
   args-code)
 
 (define-error invalid-glsl-numeric-literal () (str)
-    "When a string is found in regular Vari code it is assumed to be a numeric
+    "
+When a string is found in regular Vari code it is assumed to be a numeric
 literal. We provide this option as some numbers are chosen for their exact bit
 arrangement and we dont want to risk an implementation affecting that[0].
 
@@ -1206,6 +1207,22 @@ https://github.com/cbaggers/varjo/issues
 
 [0] this could happen due to CL not requiring ieee754 floats in the standard"
   str)
+
+(define-error invalid-the-declaration () (form declared-type found-type)
+    "
+Found a 'the' declaration which appears to be invalid.
+
+The type that was expected was: ~a
+
+However the type found was: ~a
+
+The the form was: ~a
+"
+  (type->type-spec declared-type)
+  (type->type-spec found-type)
+  form)
+
+;;type->type-spec
 
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
