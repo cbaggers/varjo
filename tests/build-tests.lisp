@@ -347,3 +347,11 @@
   (finishes-p
     (compile-vert (&uniform (vert :sampler-2d)) :410 nil
       (v! 1 2 3 4))))
+
+(5am:def-test build-26 (:suite build-tests)
+  (signals varjo-conditions:args-incompatible
+   (compile-vert-frag () :410 nil
+     (()
+      (v! 0 0 0 0))
+     (((tc :vec2))
+      (v! tc 0 0)))))
