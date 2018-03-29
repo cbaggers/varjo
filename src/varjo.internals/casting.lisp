@@ -22,7 +22,7 @@
                    'v-function-type
                    :arg-spec (v-argument-spec cast-to-type)
                    :return-spec (v-return-spec cast-to-type)
-                   :ctv (ctv (v-type-of src-obj))
+                   :ctv (ctv (primary-type src-obj))
                    :flow-ids (flow-ids src-obj))))
     (if (v-type-eq (primary-type src-obj) new-type)
         (copy-compiled src-obj :type-set (make-type-set new-type))
