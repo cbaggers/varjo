@@ -348,6 +348,7 @@
            :conditional-multiple-vals-mismatch
            :primitive-in-context
            :no-args-remove-in-unrep-inlining
+           :invalid-glsl-numeric-literal
 
            ;; restarts
            :setq-supply-alternate-type))

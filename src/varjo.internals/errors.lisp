@@ -1187,6 +1187,26 @@ args-code: ~a
   args
   args-code)
 
+(define-error invalid-glsl-numeric-literal () (str)
+    "When a string is found in regular Vari code it is assumed to be a numeric
+literal. We provide this option as some numbers are chosen for their exact bit
+arrangement and we dont want to risk an implementation affecting that[0].
+
+In this case however we recieved ~s which we don't know how to handle.
+
+We currently accept:
+
+- floats e.g. \"1.23\"
+- ints e.g. \"-10\"
+- uints e.g. \"12u\"
+
+Sorry for the inconvenience. If you think of another string pattern you would
+like supported, please raise an issue at our github page:
+https://github.com/cbaggers/varjo/issues
+
+[0] this could happen due to CL not requiring ieee754 floats in the standard"
+  str)
+
 ;;
 ;; Hi! Don't forget to add the name of your condition to the
 ;; varjo.conditions package

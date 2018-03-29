@@ -62,10 +62,11 @@
                    (error () nil))
                  (handler-case (parse-float:parse-float str)
                    (error () nil)))))
-    (etypecase is
+    (typecase is
       (integer (if unsigned
                    (compile-form `(glsl-symbols:uint ,is) env)
                    (compile-form is env)))
       (float (if unsigned
                  (error "Varjo: ~s is an invalid float literal" str)
-                 (compile-form `(vari.cl:glsl-expr ,str :float) env))))))
+                 (compile-form `(vari.cl:glsl-expr ,str :float) env)))
+      (otherwise (error 'invalid-glsl-numeric-literal :str str)))))
