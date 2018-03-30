@@ -11,7 +11,7 @@
   (gethash name *registered-types*))
 
 (defun vtype-existsp (type-name)
-  (let ((type-name (expand-keyword-type-spec-shorthand type-name)))
+  (let ((type-name (resolve-name-from-alternative type-name)))
     (etypecase type-name
       (symbol (type-name-known type-name))
       (list (type-name-known (first type-name))))))

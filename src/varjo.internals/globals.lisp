@@ -172,10 +172,12 @@
     (:isampler-cube-array . v-isampler-cube-array)
     (:sampler-1d . v-sampler-1d)
     (:sampler-1d-array . v-sampler-1d-array)
-    (:sampler-1d-array-shadowv-sampler-1d-shadow . v-sampler-1d-array-shadowv-sampler-1d-shadow)
+    (:sampler-1d-array-shadow . v-sampler-1d-array-shadow)
+    (:v-sampler-1d-shadow . v-sampler-1d-shadow)
     (:sampler-2d . v-sampler-2d)
     (:sampler-2d-array . v-sampler-2d-array)
-    (:sampler-2d-array-shadowv-sampler-2d-ms . v-sampler-2d-array-shadowv-sampler-2d-ms)
+    (:sampler-2d-array-shadow . v-sampler-2d-array-shadow)
+    (:v-sampler-2d-ms . v-sampler-2d-ms)
     (:sampler-2d-ms-array . v-sampler-2d-ms-array)
     (:sampler-2d-rect . v-sampler-2d-rect)
     (:sampler-2d-rect-shadow . v-sampler-2d-rect-shadow)
@@ -184,7 +186,8 @@
     (:sampler-buffer . v-sampler-buffer)
     (:sampler-cube . v-sampler-cube)
     (:sampler-cube-array . v-sampler-cube-array)
-    (:sampler-cube-array-shadowv-sampler-cube-shadow . v-sampler-cube-array-shadowv-sampler-cube-shadow)
+    (:sampler-cube-array-shadow . v-sampler-cube-array-shadow)
+    (:v-sampler-cube-shadow . v-sampler-cube-shadow)
     (:usampler-1d . v-usampler-1d)
     (:usampler-1d-array . v-usampler-1d-array)
     (:usampler-2d . v-usampler-2d)
@@ -241,15 +244,3 @@
     (:ubuffer-image . v-ubuffer-image)
     (:void . v-void)
     (:shadow-type . v-shadow-type)))
-
-(defvar *shorthand->type-name*
-  (let ((ht (make-hash-table :test #'eq)))
-    (loop :for (k . v) :in *type-shorthand* :do
-       (setf (gethash k ht) v))
-    ht))
-
-(defvar *type-name->shorthand*
-  (let ((ht (make-hash-table :test #'eq)))
-    (loop :for (k . v) :in *type-shorthand* :do
-       (setf (gethash v ht) k))
-    ht))

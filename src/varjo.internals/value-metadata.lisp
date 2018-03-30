@@ -244,13 +244,10 @@
   (assert (symbolp metadata-kind))
   (assert (subtypep metadata-kind 'standard-value-metadata))
   (assert (type-specp varjo-type-spec))
-  ;; The conversion below this comment may look redundent but its important
-  ;; it is a lazy way of getting the true type of varjo-type. This is required
-  ;; as we then specialize infer-meta-by-type on it. If this is left out you
-  ;; won't always get and error but for certain types your metadata will fail
-  ;; to infer.
+  ;; The conversion below is essential. If this is left out you won't always
+  ;; get an error but for certain types your metadata will fail to infer.
   ;;                        ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-  (let ((varjo-type-spec (type->type-spec (type-spec->type varjo-type-spec))))
+  (let ((varjo-type-spec (resolve-name-from-alternative varjo-type-spec)))
     (with-gensyms (type kind)
       `(defmethod infer-meta-by-type ((,type ,varjo-type-spec)
                                       (,kind (eql ',metadata-kind))

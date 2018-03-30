@@ -43,9 +43,8 @@ type-spec trick doesnt"))
     type))
 
 (defmethod type->type-spec ((type v-type))
-  (let ((name (class-name (class-of type))))
-    (or (gethash name *type-name->shorthand*)
-        name)))
+  (let* ((name (class-name (class-of type))))
+    (alternate-name-for name)))
 
 (defmethod make-load-form ((type v-type) &optional environment)
   (declare (ignore environment))
@@ -81,31 +80,7 @@ type-spec trick doesnt"))
   nil)
 
 ;;------------------------------------------------------------
-;; Type shadowing
-
-(defvar *alternate-ht* (make-hash-table))
-(defvar *alternate-ht-backward* (make-hash-table))
-
-(defun resolve-name-from-alternative (spec)
-  (if (listp spec)
-      `(,(or (gethash (first spec) *alternate-ht*) (first spec)) ,@(rest spec))
-      (or (gethash spec *alternate-ht*) spec)))
-
-(defun alternate-name-for (type-spec)
-  (if (listp type-spec)
-      `(,(or (gethash (first type-spec) *alternate-ht-backward*)
-             (first type-spec))
-         ,@(rest type-spec))
-      (or (gethash type-spec *alternate-ht-backward*)
-          type-spec)))
-
-;;------------------------------------------------------------
 ;; Converting specs into types
-
-(defun expand-keyword-type-spec-shorthand (spec)
-  (or (when (keywordp spec)
-        (gethash spec *shorthand->type-name*))
-      spec))
 
 (defun try-type-spec->type (spec flow-id)
   (flet ((array-shorthand-spec-p (spec)
@@ -118,7 +93,7 @@ type-spec trick doesnt"))
                       (and (listp (second spec))
                            (every #'valid-dim-p (second spec))))
                   (vtype-existsp (first spec))))))
-    (let ((spec (expand-keyword-type-spec-shorthand spec)))
+    (let ((spec (resolve-name-from-alternative spec)))
       (if (listp spec)
           (cond
             ((and (eq (first spec) 'function))
@@ -146,9 +121,8 @@ type-spec trick doesnt"))
                 ;;
                 (t nil))))))
 
-;; shouldnt the resolve-name-from-alternative be in try-type-spec->type?
 (defmethod type-spec->type (spec &optional flow-id)
-  (or (try-type-spec->type (resolve-name-from-alternative spec) flow-id)
+  (or (try-type-spec->type spec flow-id)
       (error 'unknown-type-spec :type-spec spec)))
 
 (define-compiler-macro type-spec->type (&whole whole spec &optional flow-id)
@@ -159,5 +133,43 @@ type-spec trick doesnt"))
 
 (defun type-specp (spec)
   (not (null (try-type-spec->type (resolve-name-from-alternative spec) nil))))
+
+;;------------------------------------------------------------
+;; Type shadowing
+;;
+;; Note: add-alternate-type-name is defined in types.lisp due to
+;;       compile order issues.
+
+(defvar *alternate-ht* (make-hash-table :test #'eq))
+(defvar *alternate-ht-backward* (make-hash-table :test #'eq))
+
+(defun resolve-name-from-alternative (spec)
+  (if (listp spec)
+      (cons (or (gethash (first spec) *alternate-ht*)
+                (first spec))
+            (rest spec))
+      (or (gethash spec *alternate-ht*) spec)))
+
+(defun alternate-name-for (type-spec)
+  (cond
+    ((null type-spec) nil)
+    ((listp type-spec)
+     (let ((alt (gethash (first type-spec) *alternate-ht-backward*)))
+       (if alt
+           `(,alt ,@(rest type-spec))
+           type-spec)))
+    (t (or (gethash type-spec *alternate-ht-backward*)
+           type-spec))))
+
+(defmacro define-alternate-type-name (current-type-name alternate-type-name)
+  `(add-alternate-type-name ',alternate-type-name ',current-type-name))
+
+(defun force-alternate-type-name (alt-type-name src-type-name)
+  "Only for internal use, required to bootstrap the types"
+  (declare (notinline))
+  (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
+  (setf (gethash alt-type-name *alternate-ht*) src-type-name)
+  (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
+  alt-type-name)
 
 ;;------------------------------------------------------------

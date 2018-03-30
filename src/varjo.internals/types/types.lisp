@@ -2,6 +2,23 @@
 (in-readtable :fn.reader)
 
 ;;------------------------------------------------------------
+;; Alternate Type Names
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (loop :for (shorthand . type) :in *type-shorthand* :do
+     (force-alternate-type-name shorthand type)))
+
+(defun add-alternate-type-name (alt-type-name src-type-name)
+  (declare (notinline type-spec->type))
+  (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
+  (setf (gethash alt-type-name *alternate-ht*) src-type-name)
+  (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
+  (when (and (ephemeral-p (type-spec->type src-type-name))
+             (not (get-global-form-binding alt-type-name)))
+    (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
+  alt-type-name)
+
+;;------------------------------------------------------------
 ;; Type predicate
 
 (define-compiler-macro v-typep (&whole whole a b)
@@ -56,21 +73,6 @@
                 `((v-type-eq ,type ',type-name) ,@body))
            (t (error 'fell-through-v-typecase
                      :vtype ,type :wanted ',(mapcar #'first cases))))))))
-
-;;------------------------------------------------------------
-
-(defmacro define-alternate-type-name (current-type-name alternate-type-name)
-  `(add-alternate-type-name ',alternate-type-name ',current-type-name))
-
-(defun add-alternate-type-name (alt-type-name src-type-name)
-  (declare (notinline))
-  (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
-  (setf (gethash alt-type-name *alternate-ht*) src-type-name)
-  (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
-  (when (and (ephemeral-p (type-spec->type src-type-name))
-             (not (get-global-form-binding alt-type-name)))
-    (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
-  alt-type-name)
 
 ;;------------------------------------------------------------
 
