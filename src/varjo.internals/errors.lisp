@@ -1222,6 +1222,17 @@ The the form was: ~a
   (type->type-spec found-type)
   form)
 
+(define-error invalid-type-for-dummy-function () (type form)
+    "
+Found an attempt to use a ~a in a place a function was expected.
+
+Please see the following code:
+
+~a
+"
+  (type->type-spec type)
+  form)
+
 ;;type->type-spec
 
 ;;

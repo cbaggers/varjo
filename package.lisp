@@ -350,6 +350,7 @@
            :no-args-remove-in-unrep-inlining
            :invalid-glsl-numeric-literal
            :invalid-the-declaration
+           :invalid-type-for-dummy-function
 
            ;; restarts
            :setq-supply-alternate-type))

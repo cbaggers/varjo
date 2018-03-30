@@ -37,7 +37,8 @@
          (str (string-downcase
                (format nil "<dummy ~a>" (type->type-spec type)))))
     (if (typep type 'v-function-type)
-        (let* ((func (make-dummy-function-from-type type))
+        (let* ((func (make-dummy-function-from-type
+                      type `(%synthesize ,type)))
                (ftype (set-flow-id (v-type-of func) (flow-id!))))
           (compile-form `(glsl-expr ,str ,ftype) env))
         (compile-form `(glsl-expr ,str ,type) env))))

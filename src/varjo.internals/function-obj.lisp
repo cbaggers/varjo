@@ -167,7 +167,14 @@
   (declare (ignore func-type))
   "<dummy-func>")
 
-(defun make-dummy-function-from-type (func-type)
+(defun make-dummy-function-from-type (func-type code)
+  (unless (typep func-type '(or v-function v-function-type))
+    (if (typep func-type 'stemcell)
+        (error 'cannot-establish-exact-function
+               :funcall-form code)
+        (error 'invalid-type-for-dummy-function
+               :type func-type
+               :form code)))
   (let ((arg-spec (v-argument-spec func-type))
         (glsl-name (gen-dummy-func-glsl-name func-type)))
     (make-instance

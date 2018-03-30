@@ -109,7 +109,8 @@
             (t (if *allow-call-function-signature*
                    (values
                     (make-dummy-function-from-type
-                     (primary-type func-code-obj))
+                     (primary-type func-code-obj)
+                     code)
                     t)
                    (error 'cannot-establish-exact-function
                           :funcall-form code))))))))
