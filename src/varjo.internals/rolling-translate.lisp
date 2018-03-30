@@ -343,7 +343,7 @@
   `(,(name out-var)
      ,(type->type-spec (v-type-of out-var))
      ,@(mapcar #'ensure-qualifier-designator
-               (v-type-of (qualifiers out-var)))
+               (qualifiers (v-type-of out-var)))
      ,@(when (glsl-name out-var) (list (glsl-name out-var)))))
 
 ;;----------------------------------------------------------------------
