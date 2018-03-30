@@ -141,11 +141,11 @@
 (defgeneric input-variables-compatiblep (input-variables last-output-variables)
   ;;
   (:method ((input-variables list) (last-output-variables list))
-    (and (= (length input-variables) (length last-output-variables)))
-    (every (lambda (out in)
-             (and (v-type-eq (v-type-of out) (v-type-of in))
-                  (%suitable-qualifiersp out in)))
-           last-output-variables input-variables)))
+    (and (= (length input-variables) (length last-output-variables))
+         (every (lambda (out in)
+                  (and (v-type-eq (v-type-of out) (v-type-of in))
+                       (%suitable-qualifiersp out in)))
+                last-output-variables input-variables))))
 
 (defun %suitable-qualifiersp (out-arg in-arg)
   (let ((out-qual (qualifiers (v-type-of out-arg))))
