@@ -58,67 +58,29 @@
 (defmethod staple:symb-type-order ((symb (eql 'glsl-func)))
   210)
 
-(defun overloads (symb)
-  (let ((name (staple:symb-symbol symb)))
-    (loop
-       :for overload :in (slot-value symb 'args)
-       :collect
-       (cons name
-             (loop
-                :for (name type) :in overload
-                :collect (list (intern (string-upcase name) :vari.glsl)
-                               (parse-type-to-vari-string type)))))))
-
-(defmethod staple:symb-documentation ((symb glsl-func))
-  (format nil "~@[Overloads:~{~%~a~}~%~%~]GLSL Documentation~a"
-          (overloads symb)
-          (let* ((symbol (staple:symb-symbol symb))
-                 (doc (vari:vari-describe symbol nil))
-                 (name (search "Name" doc))
-                 (name (when name (+ 5 name)))
-                 (decl (search "Declaration" doc))
-                 (param (search "Parameter" doc))
-                 (see-pos (search "See Also" doc)))
-            (if (and name decl param see-pos)
-                (string-trim
-                 '(#\space)
-                 (concatenate
-                  'string
-                  (subseq doc name decl)
-                  (subseq doc param see-pos)
-                  "Copyright © 2011-2014 Khronos Group"))
-                doc))))
-
-(defmethod staple:symb-documentation ((symb glsl-var))
-  (let* ((symbol (staple:symb-symbol symb))
-         (doc (vari:vari-describe symbol nil))
-         (name (search "Name" doc))
-         (name (when name (+ 5 name)))
-         (decl (search "Declaration" doc))
-         (desc (search "Description" doc))
-         (see-pos (search "See Also" doc)))
-    (if (and name decl desc see-pos)
+(defun format-vari-symb (symbol)
+  (let* ((doc (vari:vari-describe symbol nil))
+         (copy (search "Copyright" doc)))
+    (if copy
         (string-trim
          '(#\space)
          (concatenate
           'string
-          "GLSL Documentation"
-          '(#\newline)
-          (subseq doc name decl)
-          (subseq doc desc see-pos)
+          (subseq doc 0 copy)
           "Copyright © 2011-2014 Khronos Group"))
         doc)))
 
+(defmethod staple:symb-documentation ((symb glsl-func))
+  (format-vari-symb (staple:symb-symbol symb)))
+
+(defmethod staple:symb-documentation ((symb glsl-var))
+  (format-vari-symb (staple:symb-symbol symb)))
+
 (defmethod staple:symb-documentation ((symb cl-func))
-  (format nil "~@[Overloads:~{~%~a~}~%~%~]~a"
-          (overloads symb)
-          (let* ((symbol (staple:symb-symbol symb)))
-            (vari:vari-describe symbol nil))))
+  (format-vari-symb (staple:symb-symbol symb)))
 
 (defmethod staple:symb-documentation ((symb cl-var))
-  (let* ((symbol (staple:symb-symbol symb))
-         (doc (vari:vari-describe symbol nil)))
-    doc))
+  (format-vari-symb (staple:symb-symbol symb)))
 
 (defun get-func-specs (symb)
   (loop :for func :in glsl-spec:*functions*
@@ -151,6 +113,12 @@
                        args))))))))
 
 (defmethod staple:symb-arguments ((symb glsl-func))
+  (let ((count (length (slot-value symb 'args))))
+    (if (= count 1)
+        (list count '#:|overload|)
+        (list count '#:|overloads|))))
+
+(defmethod staple:symb-arguments ((symb cl-func))
   (let ((count (length (slot-value symb 'args))))
     (if (= count 1)
         (list count '#:|overload|)
