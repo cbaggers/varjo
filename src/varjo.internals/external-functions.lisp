@@ -43,19 +43,22 @@
 (defmethod add-external-function (name in-args uniforms code
                                   &optional valid-glsl-versions)
   (quick-check-of-arg-type-validity name (append in-args uniforms))
-  (labels ((get-types (x) (mapcar #'second (in-args x))))
-    (let* ((func (make-instance 'external-function
-                                :name name
-                                :in-args in-args
-                                :&rest-pos nil
-                                :uniforms uniforms
-                                :code code
-                                :glsl-versions valid-glsl-versions))
-           (funcs (cons func (get-external-function-by-name name nil))))
-      (setf (gethash name *external-functions*)
-            (remove-duplicates funcs :key #'get-types :test #'equal
-                               :from-end t))
-      func)))
+  (multiple-value-bind (body decls doc-string)
+      (extract-declares-and-doc-string code code)
+    (labels ((get-types (x) (mapcar #'second (in-args x))))
+      (let* ((func (make-instance 'external-function
+                                  :name name
+                                  :in-args in-args
+                                  :&rest-pos nil
+                                  :uniforms uniforms
+                                  :code (append decls body)
+                                  :doc-string doc-string
+                                  :glsl-versions valid-glsl-versions))
+             (funcs (cons func (get-external-function-by-name name nil))))
+        (setf (gethash name *external-functions*)
+              (remove-duplicates funcs :key #'get-types :test #'equal
+                                 :from-end t))
+        func))))
 
 (defun quick-check-of-arg-type-validity (name args)
   (labels ((key (_)

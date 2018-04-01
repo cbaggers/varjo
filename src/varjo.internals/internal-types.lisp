@@ -200,6 +200,7 @@
   ((name :initarg :name :reader name)
    (in-args :initarg :in-args :reader in-args)
    (&rest-pos :initarg :&rest-pos :reader &rest-pos)
+   (doc-string :initform nil :initarg :doc-string :reader v-doc-string)
    (uniforms :initarg :uniforms :reader uniforms)
    (code :initarg :code :reader code)
    (glsl-versions :initarg :glsl-versions :reader glsl-versions)
