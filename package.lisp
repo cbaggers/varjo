@@ -575,6 +575,7 @@
            :feedback-group
            :qualify-type
            :raw-out-set
+           :register-reserved-name
            :replace-flow-id
            :replace-flow-ids-for-single-var
            :replace-flow-ids-for-specific-value

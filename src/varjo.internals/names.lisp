@@ -2,6 +2,14 @@
 
 ;;-------------------------------------------------------------------------
 
+(defvar *glsl-reserved-names*
+  (let ((ht (make-hash-table :test #'equal)))
+    (loop :for name :in *base-reserved* :do
+       (setf (gethash name ht) t))
+    ht))
+
+;;-------------------------------------------------------------------------
+
 (macrolet ((define-ascii-char-ranges ()
               (let ((ranges)
                     (min nil)
@@ -39,13 +47,14 @@
 
 (defun gen-glsl-string-for-symbol (name)
   (let ((name (symbol-name name)))
-    (format nil "~@[~a~]~{~a~}"
-            (when (not (and (glsl-alphanumeric-p (elt name 0))
-                            (alpha-char-p (elt name 0))))
+    (avoid-reserved
+     (format nil "~@[~a~]~{~a~}"
+             (when (not (and (glsl-alphanumeric-p (elt name 0))
+                             (alpha-char-p (elt name 0))))
 
-              "_")
-            (map 'list #'replace-char-in-name
-                 (replace-substrings-in-name name)))))
+               "_")
+             (map 'list #'replace-char-in-name
+                  (replace-substrings-in-name name))))))
 
 (defun replace-substrings-in-name (name)
   (ppcre:regex-replace "->" name "-TO-"))
@@ -56,6 +65,17 @@
       (if (char= c #\-)
           #\_
           (char-name-or-code-str c))))
+
+(defun avoid-reserved (name)
+  (let ((orig-str-name name)
+        (curr-str-name name))
+    (loop
+       :until (not (gethash curr-str-name *glsl-reserved-names*))
+       :for i :from 0
+       :do
+       (setf curr-str-name (format nil "~a~a" orig-str-name i))
+       (incf i))
+    curr-str-name))
 
 (defun char-name-or-code-str (char)
   (declare (type character char))
@@ -73,6 +93,11 @@
              (format nil "~a" (char-code char)))))))
 
 ;;-------------------------------------------------------------------------
+
+(defun register-reserved-name (name)
+  (check-type name string)
+  (setf (gethash name *glsl-reserved-names*) t)
+  name)
 
 (defun glsl-var-namep (name-symbol)
   "Returns true if the name is reserved"
@@ -129,9 +154,21 @@
 
 (defun %get-free-glsl-name (symbol name-map)
   (let* ((orig-str-name (gen-glsl-string-for-symbol symbol))
-         (curr-str-name orig-str-name))
-    (loop :until (not (gethash curr-str-name name-map)) :for i :from 0 :do
-       (setf curr-str-name (format nil "~a~a" orig-str-name i)))
+         (curr-str-name orig-str-name)
+         (i 0)
+         (done nil))
+    (loop
+       :do
+       (setf done t)
+       (loop :until (not (gethash curr-str-name name-map)) :do
+          (setf curr-str-name (format nil "~a~a" orig-str-name i)
+                done nil)
+          (incf i))
+       (loop :until (not (gethash curr-str-name *glsl-reserved-names*)) :do
+          (setf curr-str-name (format nil "~a~a" orig-str-name i)
+                done nil)
+          (incf i))
+       :until done)
     curr-str-name))
 
 (defun %get-gensym-name (symbol)

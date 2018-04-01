@@ -7,6 +7,7 @@
                                &allow-other-keys)
          func-spec
        (assert lisp-name)
+       (register-reserved-name name)
        (let* ((lisp-name (or (find-symbol lisp-name :cl)
                              (intern lisp-name :vari.glsl)))
               (arg-types (mapcar #'second args))
