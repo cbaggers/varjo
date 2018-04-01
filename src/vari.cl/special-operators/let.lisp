@@ -11,7 +11,7 @@
          (dup-names (find-duplicates binding-names)))
     (assert (not dup-names) () 'dup-names-in-let :names dup-names)
     (unless body (error 'body-block-empty :form-name 'let))
-    (vbind (body declarations) (extract-declares body)
+    (vbind (body declarations) (extract-declares-and-doc-string body)
       (vbind ((new-var-objs nil body-obj) final-env)
           (with-fresh-env-scope (fresh-env env)
             (env-> (p-env fresh-env)

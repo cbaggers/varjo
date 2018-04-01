@@ -457,6 +457,7 @@
            :external-function
            :external-function-p
            :extract-declares
+           :extract-declares-and-doc-string
            :extract-details-from-problematic-closures
            :extract-value-qualifiers
            :extended-environment

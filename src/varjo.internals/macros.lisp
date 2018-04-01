@@ -119,7 +119,7 @@
                (whole-rebind (when whole-var
                                `((,whole-var (cons ',name ,whole-var))))))
           (let* ((env-var (or env-var g-env)))
-            (vbind (body declarations) (extract-declares body)
+            (vbind (body declarations) (extract-declares-and-doc-string body)
               (values
                `(lambda (,form-var ,env-var)
                   (declare (ignorable ,env-var))

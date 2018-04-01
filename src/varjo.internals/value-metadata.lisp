@@ -123,7 +123,7 @@
 ;;-------------------------------------------------------------------------
 ;; Extracting Declarations
 
-(defun extract-declares-and-doc-string (body full-form)
+(defun extract-declares-and-doc-string (body &optional full-form)
   (labels ((declp (x) (and (listp x) (eq (first x) 'declare))))
     (if (= (length body) 1)
         (values body nil nil)
@@ -136,7 +136,7 @@
                ;;
                ((stringp form) (if doc-string
                                    (error 'duplicate-varjo-doc-string
-                                          :dup form :form full-form)
+                                          :dup form :form (or full-form body))
                                    (setf doc-string form))))
              :finally (return (values (subseq body i)
                                       declarations

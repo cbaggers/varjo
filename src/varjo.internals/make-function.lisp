@@ -64,7 +64,7 @@
 
 (defun make-regular-function (name raw-args args body
                               allowed-implicit-args derived-from env)
-  (vbind (body declarations) (extract-declares body)
+  (vbind (body declarations) (extract-declares-and-doc-string body)
     (let* ((mainp (eq name :main))
            (func-env (make-func-env env mainp allowed-implicit-args))
            (in-arg-flow-ids (mapcar (lambda (_)
