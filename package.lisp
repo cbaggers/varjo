@@ -638,6 +638,7 @@
            :v-deftype
            :v-defun
            :v-dimensions
+           :v-doc-string
            :v-element-type
            :v-errorp
            :v-global-form-bindings

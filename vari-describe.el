@@ -6,8 +6,9 @@
   (interactive (list (slime-read-symbol-name "Describe symbol: ")))
   (when (not symbol-name)
     (error "No symbol given"))
-  (slime-eval-describe
-   `(vari.cl::vari-describe ,symbol-name nil)))
+  (let ((pkg (slime-current-package)))
+    (slime-eval-describe
+     `(vari.cl::vari-describe ,symbol-name nil ,pkg))))
 
 (define-key lisp-mode-map (kbd "C-c C-v C-v")
 			    'slime-vari-describe-symbol)

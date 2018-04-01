@@ -3,25 +3,31 @@
 (defvar *vari-additional-form-docs*
   (make-hash-table :test #'eq))
 
-(defun janky-parse-name (str)
-  (flet ((inner (str)
+(defun janky-parse-name (str try-package)
+  (flet ((inner (str package)
            (let* ((pos (position #\: str :test #'char=)))
              (cond
-               ((null pos) (find-symbol str *package*))
+               ((null pos) (find-symbol str package))
                ((= pos 0) (find-symbol (subseq str 1) :keyword))
                (t
                 (let ((pkg (find-package (subseq str 0 pos))))
                   (when pkg
                     (find-symbol (subseq str (1+ pos)) pkg))))))))
-    (values
-     (or (inner str)
-         (inner (string-upcase str))
-         (let ((*package* (find-package "GLSL-SYMBOLS")))
-           (or (inner str)
-               (inner (string-upcase str))))))))
+    ;;
+    (let ((package (or (when (and try-package
+                                  (stringp try-package))
+                         (find-package try-package))
+                       *package*)))
+      (values
+       (or (inner str package)
+           (inner (string-upcase str) package)
+           (let ((package (find-package "GLSL-SYMBOLS")))
+             (or (inner str package)
+                 (inner (string-upcase str) package))))))))
 
-(defun vari-describe (name &optional (stream *standard-output*))
-  (flet ((get-overload-signatures (symb-name form-set)
+(defun vari-describe (name &optional (stream *standard-output*)
+                             try-package-name)
+  (flet ((get-overload-pairs (symb-name form-set)
            (if (typep form-set 'v-function-set)
                (loop
                   :for binding :in (functions form-set)
@@ -31,7 +37,7 @@
                                         (loop :for type :in spec :collect
                                            (type->type-spec type)))
                                 (error () nil))
-                  :when sig :collect sig)
+                  :when sig :collect (cons binding sig))
                (arguments form-set)))
          (format-glsl-func-doc (glsl-doc)
            (let* ((decl (search "Declaration" glsl-doc))
@@ -70,10 +76,15 @@
                   (loop :for (nil . vars) :in varjo.internals::*glsl-variables*
                      :for match := (find name vars :key #'first)
                      :when match :return (third match))))
-             (varjo.internals::alternate-name-for spec))))
+             (varjo.internals::alternate-name-for spec)))
+         (try-get-ext-func-docs (overload-pairs)
+           (loop :for (func . sig) :in overload-pairs
+              :when (and (typep func 'external-function)
+                         (v-doc-string func))
+              :collect (format nil "~%Overload: ~s~%~a" sig (v-doc-string func)))))
 
     (let* ((name (if (stringp name)
-                     (janky-parse-name name)
+                     (janky-parse-name name try-package-name)
                      name))
            (var (gethash name glsl-docs:*variables*))
            (form-binding-set
@@ -89,15 +100,18 @@
         (form-binding-set
          (let* ((glsl-doc (gethash name glsl-docs:*functions*))
                 (v-doc (gethash name *vari-additional-form-docs*))
-                (overloads (get-overload-signatures name form-binding-set))
+                (overload-pairs (get-overload-pairs name form-binding-set))
+                (overload-docs (unless (or glsl-doc v-doc)
+                                 (try-get-ext-func-docs overload-pairs)))
                 (doc (cond
                        (v-doc v-doc)
                        (glsl-doc
                         (format-glsl-func-doc glsl-doc)))))
-           (format stream "~a~%~%~@[Overloads:~%~{~s~%~}~]~@[~%~a~]"
+           (format stream "~a~%~%~@[Overloads:~%~{~s~%~}~]~@[~%~a~]~@[~{~%Overload Docs:~%~a~}~]"
                    name
-                   overloads
-                   doc)))))))
+                   (mapcar #'cdr overload-pairs)
+                   doc
+                   overload-docs)))))))
 
 (setf (gethash '* *vari-additional-form-docs*)
       "Return the product of its arguments. With no args, returns 1.")
