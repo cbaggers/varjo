@@ -15,28 +15,56 @@
                     (find-symbol (subseq str (1+ pos)) pkg))))))))
     (values
      (or (inner str)
-         (inner (string-upcase str))))))
+         (inner (string-upcase str))
+         (let ((*package* (find-package "GLSL-SYMBOLS")))
+           (or (inner str)
+               (inner (string-upcase str))))))))
 
 (defun vari-describe (name &optional (stream *standard-output*))
-  (flet ((get-overload-signatures (symb-name func-set)
-           (let ((funcs (when func-set (functions func-set))))
-             (loop
-                :for func :in funcs
-                :for spec := (v-argument-spec func)
-                :for sig := (handler-case
-                                (cons symb-name
-                                      (loop :for type :in spec :collect
-                                         (type->type-spec type)))
-                              (error () nil))
-                :when sig :collect sig)))
+  (flet ((get-overload-signatures (symb-name form-set)
+           (if (typep form-set 'v-function-set)
+               (loop
+                  :for binding :in (functions form-set)
+                  :for spec := (v-argument-spec binding)
+                  :for sig := (handler-case
+                                  (cons symb-name
+                                        (loop :for type :in spec :collect
+                                           (type->type-spec type)))
+                                (error () nil))
+                  :when sig :collect sig)
+               (arguments form-set)))
          (format-glsl-func-doc (glsl-doc)
            (let* ((decl (search "Declaration" glsl-doc))
-                  (param (search "Parameters" glsl-doc)))
-             (if (and decl param)
-                 (format nil "Official GLSL Documentaion:~%~%~a~a"
-                         (subseq glsl-doc 0 decl)
-                         (subseq glsl-doc param))
-                 (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc))))
+                  (param (search "Parameter" glsl-doc))
+                  (see-also (search "See Also" glsl-doc))
+                  (copyright (search "Copyright" glsl-doc)))
+             (cond
+               ((and decl param see-also copyright)
+                (format nil "Official GLSL Documentaion:~%~%~a~a~a"
+                        (subseq glsl-doc 0 decl)
+                        (subseq glsl-doc param see-also)
+                        (subseq glsl-doc copyright)))
+               ((and decl param)
+                (format nil "Official GLSL Documentaion:~%~%~a~a"
+                        (subseq glsl-doc 0 decl)
+                        (subseq glsl-doc param)))
+               (t (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc)))))
+         (format-glsl-var-doc (glsl-doc)
+           (let* ((decl (search "Declaration" glsl-doc))
+                  (desc (search "Description" glsl-doc))
+                  (see-also (search "See Also" glsl-doc))
+                  (copyright (search "Copyright" glsl-doc)))
+             (cond
+               ((and decl desc see-also copyright)
+                (format nil "Official GLSL Documentaion:~%~%~a~a~a"
+                        (subseq glsl-doc 0 decl)
+                        (subseq glsl-doc desc see-also)
+                        (subseq glsl-doc copyright)))
+               ((and decl desc)
+                (format nil "Official GLSL Documentaion:~%~%~a~a"
+                        (subseq glsl-doc 0 decl)
+                        (subseq glsl-doc desc)))
+               (t (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc)))))
          (try-get-var-type (name)
            (let ((spec
                   (loop :for (nil . vars) :in varjo.internals::*glsl-variables*
@@ -49,15 +77,15 @@
                      name))
            (var (gethash name glsl-docs:*variables*))
            (form-binding-set
-            (unless var
+            (unless (or var (string= name :declare))
               (varjo.internals::find-global-form-binding-by-literal name t))))
       (cond
         (var
          (format stream
-                 "~a~%~%~@[Type:~%~%~s~%~%~]Official GLSL Documentaion:~%~%~a"
+                 "~a~%~%~@[Type:~%~%~s~%~%~]~a"
                  name
                  (try-get-var-type name)
-                 var))
+                 (format-glsl-var-doc var)))
         (form-binding-set
          (let* ((glsl-doc (gethash name glsl-docs:*functions*))
                 (v-doc (gethash name *vari-additional-form-docs*))
