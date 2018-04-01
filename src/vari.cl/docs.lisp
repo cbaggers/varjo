@@ -35,63 +35,80 @@
              (or (inner str package)
                  (inner (string-upcase str) package))))))))
 
+(defun form-binding-signature (binding)
+  (labels ((aesthetic-pair (pair)
+             (format nil "(~a ~s)"
+                     (first pair)
+                     (second pair))))
+    (handler-case
+        (etypecase binding
+          (external-function
+           (format nil "(~a ~{~a~^ ~})"
+                   (name binding)
+                   (append (mapcar #'aesthetic-pair (in-args binding))
+                           (when (uniforms binding)
+                             (cons '&uniform (mapcar #'aesthetic-pair
+                                                     (uniforms binding)))))))
+          (v-function
+           (format nil "(~a ~{~s~^ ~})"
+                   (name binding)
+                   (mapcar #'type->type-spec (v-argument-spec binding))))
+          (v-regular-macro (arguments binding))
+          (v-compiler-macro (arguments binding)))
+      (error () nil))))
+
 (defun vari-describe (name &optional (stream *standard-output*)
                              try-package-name)
-  (flet ((get-overload-pairs (symb-name form-set)
-           (if (typep form-set 'v-function-set)
-               (loop
-                  :for binding :in (functions form-set)
-                  :for spec := (v-argument-spec binding)
-                  :for sig := (handler-case
-                                  (cons symb-name
-                                        (loop :for type :in spec :collect
-                                           (type->type-spec type)))
-                                (error () nil))
-                  :when sig :collect (cons binding sig))
-               (arguments form-set)))
-         (format-glsl-func-doc (glsl-doc)
-           (let* ((decl (search "Declaration" glsl-doc))
-                  (param (search "Parameter" glsl-doc))
-                  (see-also (search "See Also" glsl-doc))
-                  (copyright (search "Copyright" glsl-doc)))
-             (cond
-               ((and decl param see-also copyright)
-                (format nil "Official GLSL Documentaion:~%~%~a~a~a"
-                        (subseq glsl-doc 0 decl)
-                        (subseq glsl-doc param see-also)
-                        (subseq glsl-doc copyright)))
-               ((and decl param)
-                (format nil "Official GLSL Documentaion:~%~%~a~a"
-                        (subseq glsl-doc 0 decl)
-                        (subseq glsl-doc param)))
-               (t (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc)))))
-         (format-glsl-var-doc (glsl-doc)
-           (let* ((decl (search "Declaration" glsl-doc))
-                  (desc (search "Description" glsl-doc))
-                  (see-also (search "See Also" glsl-doc))
-                  (copyright (search "Copyright" glsl-doc)))
-             (cond
-               ((and decl desc see-also copyright)
-                (format nil "Official GLSL Documentaion:~%~%~a~a~a"
-                        (subseq glsl-doc 0 decl)
-                        (subseq glsl-doc desc see-also)
-                        (subseq glsl-doc copyright)))
-               ((and decl desc)
-                (format nil "Official GLSL Documentaion:~%~%~a~a"
-                        (subseq glsl-doc 0 decl)
-                        (subseq glsl-doc desc)))
-               (t (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc)))))
-         (try-get-var-type (name)
-           (let ((spec
-                  (loop :for (nil . vars) :in varjo.internals::*glsl-variables*
-                     :for match := (find name vars :key #'first)
-                     :when match :return (third match))))
-             (varjo.internals::alternate-name-for spec)))
-         (try-get-ext-func-docs (overload-pairs)
-           (loop :for (func . sig) :in overload-pairs
-              :when (and (typep func 'external-function)
-                         (v-doc-string func))
-              :collect (format nil "~%Overload: ~s~%~a" sig (v-doc-string func)))))
+  (labels ((get-overload-pairs (form-set)
+             (if (typep form-set 'v-function-set)
+                 (loop
+                    :for binding :in (functions form-set)
+                    :for sig := (form-binding-signature binding)
+                    :when sig :collect (cons binding sig))
+                 (form-binding-signature form-set)))
+           (format-glsl-func-doc (glsl-doc)
+             (let* ((decl (search "Declaration" glsl-doc))
+                    (param (search "Parameter" glsl-doc))
+                    (see-also (search "See Also" glsl-doc))
+                    (copyright (search "Copyright" glsl-doc)))
+               (cond
+                 ((and decl param see-also copyright)
+                  (format nil "Official GLSL Documentaion:~%~%~a~a~a"
+                          (subseq glsl-doc 0 decl)
+                          (subseq glsl-doc param see-also)
+                          (subseq glsl-doc copyright)))
+                 ((and decl param)
+                  (format nil "Official GLSL Documentaion:~%~%~a~a"
+                          (subseq glsl-doc 0 decl)
+                          (subseq glsl-doc param)))
+                 (t (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc)))))
+           (format-glsl-var-doc (glsl-doc)
+             (let* ((decl (search "Declaration" glsl-doc))
+                    (desc (search "Description" glsl-doc))
+                    (see-also (search "See Also" glsl-doc))
+                    (copyright (search "Copyright" glsl-doc)))
+               (cond
+                 ((and decl desc see-also copyright)
+                  (format nil "Official GLSL Documentaion:~%~%~a~a~a"
+                          (subseq glsl-doc 0 decl)
+                          (subseq glsl-doc desc see-also)
+                          (subseq glsl-doc copyright)))
+                 ((and decl desc)
+                  (format nil "Official GLSL Documentaion:~%~%~a~a"
+                          (subseq glsl-doc 0 decl)
+                          (subseq glsl-doc desc)))
+                 (t (format nil "Official GLSL Documentaion:~%~%~a" glsl-doc)))))
+           (try-get-var-type (name)
+             (let ((spec
+                    (loop :for (nil . vars) :in varjo.internals::*glsl-variables*
+                       :for match := (find name vars :key #'first)
+                       :when match :return (third match))))
+               (varjo.internals::alternate-name-for spec)))
+           (try-get-ext-func-docs (overload-pairs)
+             (loop :for (func . sig) :in overload-pairs
+                :when (and (typep func 'external-function)
+                           (v-doc-string func))
+                :collect (format nil "~%Overload: ~a~%~a" sig (v-doc-string func)))))
 
     (let* ((name (if (stringp name)
                      (janky-parse-name name try-package-name)
@@ -110,14 +127,14 @@
         (form-binding-set
          (let* ((glsl-doc (gethash name glsl-docs:*functions*))
                 (v-doc (gethash name *vari-additional-form-docs*))
-                (overload-pairs (get-overload-pairs name form-binding-set))
+                (overload-pairs (get-overload-pairs form-binding-set))
                 (overload-docs (unless (or glsl-doc v-doc)
                                  (try-get-ext-func-docs overload-pairs)))
                 (doc (cond
                        (v-doc v-doc)
                        (glsl-doc
                         (format-glsl-func-doc glsl-doc)))))
-           (format stream "~a~%~%~@[Overloads:~%~{~s~%~}~]~@[~%~a~]~@[~{~%Overload Docs:~%~a~}~]"
+           (format stream "~a~%~%~@[Overloads:~%~{~a~%~}~]~@[~%~a~]~@[~{~%Overload Docs:~%~a~}~]"
                    name
                    (mapcar #'cdr overload-pairs)
                    doc

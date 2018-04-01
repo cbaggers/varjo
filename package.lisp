@@ -629,6 +629,7 @@
            :v-casts-to-p
            :v-code
            :v-compile
+           :v-compiler-macro
            :v-context
            :v-def-glsl-template-fun
            :v-define-compiler-macro
