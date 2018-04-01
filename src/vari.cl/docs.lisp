@@ -16,7 +16,6 @@
                       (find-package (string-upcase name)))))))))
 
 (defun janky-parse-name (str try-package)
-  (print (list :> str try-package))
   (flet ((inner (str package)
            (let* ((pos (position #\: str :test #'char=)))
              (cond
