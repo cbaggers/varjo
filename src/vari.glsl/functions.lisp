@@ -469,6 +469,21 @@
 (v-def-glsl-template-fun max (a) "~a" (:uvec3) :float :pure t)
 (v-def-glsl-template-fun max (a) "~a" (:uvec4) :float :pure t)
 
+(v-def-glsl-template-fun min (a) "~a" (:float) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:vec2) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:vec3) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:vec4) :float :pure t)
+
+(v-def-glsl-template-fun min (a) "~a" (:int) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:ivec2) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:ivec3) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:ivec4) :float :pure t)
+
+(v-def-glsl-template-fun min (a) "~a" (:uint) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:uvec2) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:uvec3) :float :pure t)
+(v-def-glsl-template-fun min (a) "~a" (:uvec4) :float :pure t)
+
 (v-def-glsl-template-fun max (a b c &rest c) "max(~a, max(~a, max(~a~{ ,~a~})"
                          (t t t &rest t) 0 :pure t)
 
