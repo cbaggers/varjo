@@ -3,7 +3,20 @@
 (defvar *vari-additional-form-docs*
   (make-hash-table :test #'eq))
 
+(defun janky-parse-package (symbol/string)
+  (etypecase symbol/string
+    (null nil)
+    (symbol (find-package (symbol-name symbol/string)))
+    (string (or (find-package symbol/string)
+                (find-package (string-upcase symbol/string))
+                (let ((pos (position #\: symbol/string :test #'char=)))
+                  (when (eql pos 0)
+                    (let ((name (subseq symbol/string 1)))
+                      (find-package name)
+                      (find-package (string-upcase name)))))))))
+
 (defun janky-parse-name (str try-package)
+  (print (list :> str try-package))
   (flet ((inner (str package)
            (let* ((pos (position #\: str :test #'char=)))
              (cond
@@ -14,9 +27,7 @@
                   (when pkg
                     (find-symbol (subseq str (1+ pos)) pkg))))))))
     ;;
-    (let ((package (or (when (and try-package
-                                  (stringp try-package))
-                         (find-package try-package))
+    (let ((package (or (janky-parse-package try-package)
                        *package*)))
       (values
        (or (inner str package)
