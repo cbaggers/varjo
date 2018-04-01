@@ -7,7 +7,7 @@
   (when (not symbol-name)
     (error "No symbol given"))
   (slime-eval-describe
-   `(vari.cl::vari-describe-string ,symbol-name nil)))
+   `(vari.cl::vari-describe ,symbol-name nil)))
 
 (define-key lisp-mode-map (kbd "C-c C-v C-v")
 			    'slime-vari-describe-symbol)
