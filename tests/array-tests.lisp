@@ -108,3 +108,12 @@
       (declare (output-primitive :kind :line-strip :max-vertices 6))
       (v! (aref foo? 0) 0 0 0)
       (values)))))
+
+(5am:def-test array-16 (:suite array-tests)
+  (signals varjo-conditions:bad-make-function-args
+    (finishes-p
+     (compile-vert () :450 nil
+       (flet ((foo ((x (:int *)))
+                (aref x 0)))
+         (foo (vector 1))
+         (vec4 1))))))
