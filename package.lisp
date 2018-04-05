@@ -541,6 +541,7 @@
            :make-function-set
            :make-regular-macro
            :make-stage
+           :create-stage
            :make-symbol-macro
            :make-type-set
            :make-type-set*
@@ -790,6 +791,7 @@
    ;;
    ;; stages
    :make-stage
+   :create-stage
    :lisp-code
    :input-variables
    :uniform-variables
