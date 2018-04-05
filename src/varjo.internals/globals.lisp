@@ -83,6 +83,7 @@
     (:mediump "mediump")
     (:noperspective "noperspective")
     (:out "out")
+    (:in/out "inout")
     (:packed "packed")
     (:readonly "readonly")
     (:restrict "restrict")
