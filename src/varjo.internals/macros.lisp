@@ -44,6 +44,8 @@
              (if (listp x) (nth n x) x)))
     (when (find-if λ(namedp :&uniforms _) lambda-list)
       (error 'uniform-in-cmacro :name name))
+    (when (find-if λ(namedp :&shared _) lambda-list)
+      (error 'shared-in-cmacro :name name))
     (when (find-if λ(namedp :&optional _) lambda-list)
       (error 'optional-in-cmacro :name name))
     (when (find-if λ(namedp :&key _) lambda-list)

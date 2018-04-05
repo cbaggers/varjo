@@ -386,8 +386,16 @@ process so if you have time please report this on github. That way we can try
 and detect these cases more accurately and hopefully provide better error
 messages." funcall-form)
 
+(define-error shared-in-function () (name)
+    "We do not support &shared args in functions, only in shader stages: ~a"
+  name)
+
 (define-error uniform-in-cmacro () (name)
     "We do not currently support &uniforms args in compiler macros, only in shader stages: ~a"
+  name)
+
+(define-error shared-in-cmacro () (name)
+    "We do not support &shared args in compiler macros, only in shader stages: ~a"
   name)
 
 (define-error optional-in-cmacro () (name)

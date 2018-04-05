@@ -16,9 +16,10 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defmacro define-vari-function (name args &body body)
-  (destructuring-bind (in-args uniforms context)
-      (split-arguments args '(&uniform &context))
+  (destructuring-bind (in-args uniforms context shared)
+      (split-arguments args '(&uniform &context &shared))
     (declare (ignore context))
+    (assert (not shared) () 'shared-in-function :name name)
     `(progn
        (add-external-function ',name ',in-args ',uniforms ',body)
        ',name)))
@@ -34,8 +35,9 @@
 
 (defmacro v-def-glsl-template-fun (name args transform arg-types return-spec
                                    &key v-place-index glsl-name pure)
-  (destructuring-bind (in-args rest uniforms context)
-      (split-arguments args '(&rest &uniform &context))
+  (destructuring-bind (in-args rest uniforms context shared)
+      (split-arguments args '(&rest &uniform &context &shared))
+    (assert (not shared) () 'shared-in-function :name name)
     (assert (template-args-valid in-args rest arg-types) (args arg-types)
             'v-def-template-arg-mismatch :args args :types arg-types)
     (when uniforms (error 'uniform-in-sfunc :func-name name))
@@ -88,9 +90,10 @@
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
 (defmacro v-defspecial (name args &body body)
-  (destructuring-bind (in-args uniforms context rest optional)
-      (split-arguments args '(&uniform &context &rest &optional))
+  (destructuring-bind (in-args uniforms context rest optional shared)
+      (split-arguments args '(&uniform &context &rest &optional &shared))
     (declare (ignore context)) ;; ignored as provided from body
+    (assert (not shared) () 'shared-in-function :name name)
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (let ((arg-names (lambda-list-get-names
                       (concatenate 'list in-args

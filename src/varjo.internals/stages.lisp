@@ -5,9 +5,24 @@
 
 (defun make-stage (kind in-args uniforms context code
                    &optional (stemcells-allowed t) primitive)
-  (when (and (every #'check-arg-form in-args)
-             (every #'check-arg-form uniforms)
-             (check-for-dups in-args uniforms))
+  (create-stage kind context
+                :input-variables in-args
+                :uniform-variables uniforms
+                :code code
+                :stemcells-allowed stemcells-allowed
+                :primitive primitive))
+
+(defun create-stage (kind version/s
+                     &key
+                       input-variables
+                       uniform-variables
+                       shared-variables
+                       code
+                       (stemcells-allowed t)
+                       primitive)
+  (when (and (every #'check-arg-form input-variables)
+             (every #'check-arg-form uniform-variables)
+             (check-for-dups input-variables uniform-variables))
     (labels ((early-qualifier-checks (name vkind whole qualifiers)
                (let* ((is-ubo (find :ubo qualifiers))
                       (is-ssbo (find :ssbo qualifiers))
@@ -46,32 +61,34 @@
                       :glsl-name (or glsl-name (safe-glsl-name-string name))
                       :type (qualify-type (type-spec->type type-spec)
                                           qualifiers)))))))
-      (let* ((context (process-context context))
+      (let* ((version/s (process-context version/s))
              (stage-type (if kind
                              (stage-kind-to-type kind)
                              'stage))
              (r (make-instance
                  stage-type
                  :input-variables (mapcar λ(make-var 'input-variable _)
-                                          in-args)
+                                          input-variables)
                  :uniform-variables (mapcar λ(make-var 'uniform-variable _)
-                                            uniforms)
-                 :context context
+                                            uniform-variables)
+                 :shared-variables (mapcar λ(make-var 'shared-variable _)
+                                            shared-variables)
+                 :context version/s
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
                  :primitive-in (%process-primitive-type stage-type
                                                         primitive))))
         (when (equal kind :geometry)
           ;; {TODO} proper error
-          (assert (intersection context '(:150 :330 :400 :410 :420 :430 :440 :450 :460)) ()
+          (assert (intersection version/s '(:150 :330 :400 :410 :420 :430 :440 :450 :460)) ()
                   "Varjo: Geometry stages require a GLSL version of at least 150"))
         (when (member kind '(:tessellation-control :tessellation-evaluation))
           ;; {TODO} proper error
-          (assert (intersection context '(:400 :410 :420 :430 :440 :450 :460)) ()
+          (assert (intersection version/s '(:400 :410 :420 :430 :440 :450 :460)) ()
                   "Varjo: Tessellation stages require a GLSL version of at least 400"))
         (when (member kind '(:compute))
           ;; {TODO} proper error
-          (assert (intersection context '(:430 :440 :450 :460)) ()
+          (assert (intersection version/s '(:430 :440 :450 :460)) ()
                   "Varjo: Compute stages require a GLSL version of at least 430"))
         (check-for-stage-specific-limitations r)
         r))))

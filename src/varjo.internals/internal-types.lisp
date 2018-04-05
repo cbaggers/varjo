@@ -75,6 +75,7 @@
 (defclass stage ()
   ((input-variables :initarg :input-variables :accessor input-variables)
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
+   (shared-variables :initarg :shared-variables :accessor shared-variables)
    (context :initarg :context :accessor context)
    (lisp-code :initarg :lisp-code :accessor lisp-code)
    (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
@@ -130,6 +131,8 @@
 
 (defclass uniform-variable (shader-variable)
   ((glsl-decl :initarg :glsl-decl :reader %glsl-decl)))
+
+(defclass shared-variable (shader-variable) ())
 
 (defclass implicit-uniform-variable (uniform-variable)
   ((cpu-side-transform :initarg :cpu-side-transform
