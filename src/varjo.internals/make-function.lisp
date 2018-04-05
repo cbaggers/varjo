@@ -259,7 +259,14 @@
        (not (null (first raw-arg)))
        (symbolp (first raw-arg))
        (not (keywordp (first raw-arg)))
-       (type-specp (second raw-arg))))
+       (let ((type (try-type-spec->type
+                    (resolve-name-from-alternative (second raw-arg))
+                    nil)))
+         (and type
+              (if (typep type 'v-array)
+                  (let ((dim (first (v-dimensions type))))
+                    (not (equal dim '*)))
+                  t)))))
 
 (defun extract-implicit-args (name allowed-implicit-args
                               normalized-out-of-scope-args env)

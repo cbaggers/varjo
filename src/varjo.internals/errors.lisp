@@ -225,11 +225,11 @@ This is incompatible"
 
 (define-error bad-make-function-args () (func-name arg-specs)
     "Trying to define the function ~s but the following argument specifications
-are a bit odd:
+are invalid:
 ~{~s~^~%~}
 
-Generally arguments are defined in the format (arg-name arg-type)
-e.g. (~a :vec3)"
+Ensure the arguments are defined in the format (arg-name arg-type)
+e.g. (~a :vec3) and that any array arguments have an exact size."
   func-name arg-specs
   ;; this bit below is so that, where possible, the error uses one of
   ;; your arg names in the example of a valid arg spec.
