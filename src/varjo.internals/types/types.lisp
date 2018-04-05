@@ -203,11 +203,14 @@
 
 (defmethod v-make-type ((type v-array) flow-id &rest args)
   (destructuring-bind (element-type length) args
-    (initialize-instance
-     type
-     :element-type (type-spec->type element-type (when flow-id (flow-id!)))
-     :dimensions (listify length)
-     :flow-ids flow-id)))
+    (let ((length (if (and (symbolp length) (string= length "*"))
+                      'cl:*
+                      length)))
+      (initialize-instance
+       type
+       :element-type (type-spec->type element-type (when flow-id (flow-id!)))
+       :dimensions (listify length)
+       :flow-ids flow-id))))
 
 (defmethod v-glsl-size ((type v-array))
   (* (apply #'* (v-dimensions type))
