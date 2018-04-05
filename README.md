@@ -46,6 +46,12 @@ Whist it is recommended to get Varjo from quicklisp, if you clone please note th
 
 ### Updates
 
+#### 2018-04-05
+
+- Tonnes of improvements to docs (see the links in the 'Documentation' section above)
+- `vari-describe`, which is function that given a symbol that names a gpu func/var gives you documentation (check out vari-describe.el for emacs integration)
+- Lots more glsl operators are supported. WARNING we now have pre & post vector/matrix multiplication, please remember that the order matters (just like in regular glsl). To use the glsl specific operators (e.g. ~ ! & etc) please `:use` the `:glsl-symbols.operators` package in your project.
+
 #### 2018-03-14
 
 Lots landing this month, whilst my current test suite passes I'm still expecting some issues or regressions, if these hit you PLEASE let me know so I can avoid merging this to quicklisp before the regressions have been handled. Quick summary of changes are:
