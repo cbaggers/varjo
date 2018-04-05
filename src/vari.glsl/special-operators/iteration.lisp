@@ -88,7 +88,9 @@
 ;;       (for (i 0) (< i 10) (++ i)
 ;;         (setf a b)))
 ;;
-;; if `a` starts with flow-id 1 and `b` starts with flow-id 2 then after the first iteration `a`'s flow id is 2. Any number of additional loops wont change that.
+;; if `a` starts with flow-id 1 and `b` starts with flow-id 2 then after the
+;; first iteration `a`'s flow id is 2. Any number of additional loops wont
+;; change that.
 ;;
 ;; So for the above code the flow is:
 ;;
@@ -105,8 +107,8 @@
 ;;
 ;; Hey future baggers, it's past baggers. I see you've come back to revisit
 ;; this again, no doubt we've left it just long enough to forget how this
-;; works.. thats fair, it's a monstrosity have we started writing a sane
-;; compiler yet? ANYHOO you are looking for an 'in' to get started with this
+;; works.. thats fair, it's a monstrosity (have we started writing a sane
+;; compiler yet?) ANYHOO you are looking for an 'in' to get started with this
 ;; code. Here is your path:
 ;;
 ;; - read #'get-changed-var/flow-id-pairs. it's the first call of note in
