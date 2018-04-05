@@ -196,8 +196,9 @@
                                     (not strip-glsl)
                                     (not multi-return-vars)
                                     (= (length emit-set) 0)
-                                    (= (length (glsl-chunk-lines (to-block body-obj)))
-                                       0))))
+                                    (or (null (to-block body-obj))
+                                        (= (length (glsl-chunk-lines (to-block body-obj)))
+                                           0)))))
         (let ((res (make-instance 'compiled-function-result
                                   :call-count (if mainp 1 0)
                                   :function-obj func

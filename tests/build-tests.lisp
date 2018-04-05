@@ -355,3 +355,10 @@
       (v! 0 0 0 0))
      (((tc :vec2))
       (v! tc 0 0)))))
+
+(5am:def-test build-27 (:suite struct-tests)
+  ;; this test makes sure that even though opaque structs arent allowed in
+  ;; interface-blocks, that we havent stopped allowing opaque uniforms
+  (finishes-p
+   (compile-frag () :410 nil
+     (discard))))
