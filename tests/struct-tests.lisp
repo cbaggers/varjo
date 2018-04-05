@@ -123,3 +123,12 @@
    (compile-vert (&uniform (data pos-col :ubo)) :430 nil
      (useless-unpack-1 data)
      (vec4 0))))
+
+(5am:def-test structs-15 (:suite struct-tests)
+  (finishes-p
+   (compile-vert () :450 nil
+     (flet ((ham ()
+              (let ((x (make-pos-rot (vec3 0) (vec4 0))))
+                (pos-rot-pos x))))
+       (ham)
+       (vec4 0)))))
