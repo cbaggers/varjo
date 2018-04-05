@@ -8,7 +8,7 @@
   (when (and (every #'check-arg-form in-args)
              (every #'check-arg-form uniforms)
              (check-for-dups in-args uniforms))
-    (labels ((early-qualifier-checks (vkind whole qualifiers)
+    (labels ((early-qualifier-checks (name vkind whole qualifiers)
                (let* ((is-ubo (find :ubo qualifiers))
                       (is-ssbo (find :ssbo qualifiers))
                       (layouts (intersection qualifiers '(:std-140
@@ -23,7 +23,9 @@
                          () "Varjo: input-variable cannot be a ubo or ssbo: ~a"
                          whole)
                  (assert (< (length layouts) 2) ()
-                         "Varjo: Layout cannot be both :std-140 & :std-430")
+                         "Varjo: Multiple layout qualifiers found for parameter '~a'~%Qualifiers: ~{~s~^, ~}"
+                         name
+                         layouts)
                  (assert (not (and is-ubo (eq layout :std-430))) ()
                          "Varjo: UBOs cannot have a layout of :std-430")
                  (if (and (or is-ubo is-ssbo) (null layout))
@@ -34,7 +36,8 @@
                  (vbind (qualifiers glsl-name) (extract-glsl-name rest)
                    (let ((qualifiers
                           (mapcar #'parse-qualifier
-                                  (early-qualifier-checks vkind
+                                  (early-qualifier-checks name
+                                                          vkind
                                                           raw
                                                           qualifiers))))
                      (make-instance
