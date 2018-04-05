@@ -853,10 +853,6 @@
              #:glsl-symbols.functions
              #:glsl-symbols.variables)
   (:export
-   ;; bitwise operators
-   :>>
-   :<<
-
    ;; functions
    :atomic-counter
    :bool
