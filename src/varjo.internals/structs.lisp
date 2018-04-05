@@ -38,7 +38,18 @@
                       (dbind (name type acc tran) x
                         (list name (type-spec->type type) acc tran)))
                     slot-transforms))
-           (constructor-name (symb 'make- (or constructor name))))
+           (constructor-name (symb 'make- (or constructor name)))
+           (ephemeral-slots
+            (loop
+               :for (name type) :in slot-transforms-type-obj
+               :when (or (ephemeral-p type)
+                         (and (typep type 'v-container)
+                              (ephemeral-p (v-element-type type))))
+               :collect (list name type))))
+      (assert (null ephemeral-slots) ()
+              'struct-cannot-hold-ephemeral-types
+              :name name
+              :slots (mapcar #'first ephemeral-slots))
       `(progn
          (eval-when (:compile-toplevel :load-toplevel :execute)
            (define-v-type-class ,class-name (v-user-struct)

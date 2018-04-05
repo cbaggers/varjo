@@ -34,33 +34,36 @@
           (assert (= (length initial-contents) dimensions)
                   (dimensions initial-contents) 'make-array-conflicting-lengths
                   :dims dimensions :initial-contents initial-contents))
-        (let* ((element-type (type-spec->type element-type))
-               (len dimensions)
-               (initial-contents
-                (or initial-contents
-                    (when initial-element
-                      (n-of initial-element len))
-                    (when (slot-boundp element-type 'default-value)
-                      (n-of (slot-value element-type 'default-value) len))
-                    (error 'make-array-cant-establish-default-value
-                           :initial-contents initial-contents
-                           :element-type (type->type-spec element-type))))
-               (elem-objs (mapcar λ(compile-literal _ env) initial-contents))
-               (types (mapcar #'primary-type elem-objs))
-               (array-type (v-array-type-of element-type len (flow-id!))))
-          (assert (every λ(v-casts-to-p _ element-type) types) ()
-                  'make-array-cant-cast-args
-                  :element-type element-type
-                  :initial-contents initial-contents)
-          (let* ((cast-objs (cast-for-array-literal element-type elem-objs))
-                 (glsl (gen-array-literal-string cast-objs element-type))
-                 (type-set (make-type-set array-type)))
-            (values
-             (make-compiled :type-set type-set
-                            :current-line glsl
-                            :used-types (list array-type element-type)
-                            :pure t)
-             env)))))))
+        (let ((element-type (type-spec->type element-type)))
+          (assert (not (ephemeral-p element-type)) ()
+                  'arrays-cannot-hold-ephemeral-types
+                  :form (cons 'make-array args))
+          (let* ((len dimensions)
+                 (initial-contents
+                  (or initial-contents
+                      (when initial-element
+                        (n-of initial-element len))
+                      (when (slot-boundp element-type 'default-value)
+                        (n-of (slot-value element-type 'default-value) len))
+                      (error 'make-array-cant-establish-default-value
+                             :initial-contents initial-contents
+                             :element-type (type->type-spec element-type))))
+                 (elem-objs (mapcar λ(compile-literal _ env) initial-contents))
+                 (types (mapcar #'primary-type elem-objs))
+                 (array-type (v-array-type-of element-type len (flow-id!))))
+            (assert (every λ(v-casts-to-p _ element-type) types) ()
+                    'make-array-cant-cast-args
+                    :element-type element-type
+                    :initial-contents initial-contents)
+            (let* ((cast-objs (cast-for-array-literal element-type elem-objs))
+                   (glsl (gen-array-literal-string cast-objs element-type))
+                   (type-set (make-type-set array-type)))
+              (values
+               (make-compiled :type-set type-set
+                              :current-line glsl
+                              :used-types (list array-type element-type)
+                              :pure t)
+               env))))))))
 
 (v-defspecial vector (&rest elements)
   :args-valid t

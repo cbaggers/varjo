@@ -351,6 +351,8 @@
            :invalid-glsl-numeric-literal
            :invalid-the-declaration
            :invalid-type-for-dummy-function
+           :struct-cannot-hold-ephemeral-types
+           :arrays-cannot-hold-ephemeral-types
 
            ;; restarts
            :setq-supply-alternate-type))

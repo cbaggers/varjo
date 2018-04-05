@@ -1231,6 +1231,24 @@ Please see the following code:
   (type->type-spec type)
   form)
 
+(define-error struct-cannot-hold-ephemeral-types () (name slots)
+    "
+The struct ~a could not be defined as it is not legal to store ephemeral types
+in structs.
+
+Problematic Slots:~{~%- ~a~}
+"
+  name
+  slots)
+
+(define-error arrays-cannot-hold-ephemeral-types () (form)
+    "
+make-array has failed as it is not legal for the element-type to be an
+ephemeral type.
+
+Form: ~a
+" form)
+
 ;;type->type-spec
 
 ;;

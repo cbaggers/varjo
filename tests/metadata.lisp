@@ -5,14 +5,18 @@
 ;; Helper data
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (varjo:v-deftype some-ephem-g ()
+  (varjo:v-deftype some-shadow-g ()
                    :vec4
                    :valid-metadata-kinds some-meta)
 
-  (varjo:add-alternate-type-name 'some-ephem 'some-ephem-g))
+  (varjo:add-alternate-type-name 'some-shadow 'some-shadow-g))
 
 (varjo:define-metadata-kind some-meta ()
   val)
+
+;;------------------------------------------------------------
+
+(varjo:v-deftype some-ephemeral () nil)
 
 ;;------------------------------------------------------------
 ;; Tests
@@ -29,7 +33,7 @@
 (define-vbind-test metadata-1 (:suite metadata-tests) (meta)
     (is-true (equal (val meta) 10))
   (flow-id-scope
-    (let ((env (make-env :vertex nil '((x some-ephem)))))
+    (let ((env (make-env :vertex nil '((x some-shadow)))))
       (vbind (c e)
           (compile-form
            '(let ((y x))
@@ -37,3 +41,9 @@
              y)
            env)
         (metadata-for-flow-id 'some-meta (flow-ids c) e)))))
+
+(5am:def-test metadata-2 (:suite metadata-tests)
+  (signals varjo-conditions:arrays-cannot-hold-ephemeral-types
+    (compile-frag () :410 t
+      (make-array 10 :element-type some-ephemeral)
+      (vec4 1))))
