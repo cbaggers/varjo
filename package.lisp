@@ -843,10 +843,15 @@
 
 (uiop:define-package #:vari.glsl
     (:use #:cl #:varjo.utils #:varjo.internals #:vari.types
-          #:named-readtables #:glsl-symbols #:varjo-conditions)
+          #:named-readtables #:varjo-conditions
+          #:glsl-symbols.types
+          #:glsl-symbols.functions
+          #:glsl-symbols.variables)
   (:import-from :varjo.internals
                 :define-v-type-class)
-  (:reexport :glsl-symbols)
+  (:reexport #:glsl-symbols.types
+             #:glsl-symbols.functions
+             #:glsl-symbols.variables)
   (:export
    ;; bitwise operators
    :>>
@@ -861,6 +866,10 @@
    :v-equal
    :v-not
    :v-not-equal
+
+   ;; statements
+
+   :continue
 
    ;; struct slot names
    :near
