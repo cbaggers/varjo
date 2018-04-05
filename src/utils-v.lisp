@@ -212,7 +212,7 @@ are supported in this context are: ~s"
                    (remove nil template)))))))
 
 (defun split-arguments (args
-                        &optional (template '(&uniform &context &instancing)))
+                        &optional (template '(&uniform &context)))
   (let* ((split (lambda-list-split template args))
          (in-args (cdr (assoc nil split))))
     (cons in-args
