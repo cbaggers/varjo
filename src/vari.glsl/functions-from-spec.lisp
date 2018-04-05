@@ -1,8 +1,8 @@
 (in-package :vari.glsl)
 (in-readtable fn:fn-reader)
 
-(defun populate-functions ()
-  (loop :for func-spec :in glsl-spec:*functions* :do
+(defun populate-functions (spec-funcs infix-p)
+  (loop :for func-spec :in spec-funcs :do
      (destructuring-bind (&key lisp-name name return args versions pure
                                &allow-other-keys)
          func-spec
@@ -35,9 +35,14 @@
                                       λ(type-spec->type
                                         (parse-gl-type-name _))
                                       spec-returns)))
-                (transform (format nil "~a(~{~a~^,~})" name
-                                   (loop :for i :below (length orig-args)
-                                      :collect "~a")))
+                (transform (if infix-p
+                               (let ((template (format nil "(~~{~~a~~^ ~~^~a~~^ ~~})" name)))
+                                 (format nil template
+                                         (loop :for i :below (length orig-args)
+                                            :collect "~a")))
+                               (format nil "~a(~{~a~^,~})" name
+                                       (loop :for i :below (length orig-args)
+                                          :collect "~a"))))
                 (versions (mapcar #'kwd versions)))
            (varjo.internals::add-global-form-binding
             (varjo.internals::make-function-obj
@@ -50,4 +55,5 @@
                                     (length args))
              :pure pure)))))))
 
-(populate-functions)
+(populate-functions glsl-spec:*functions* nil)
+(populate-functions glsl-spec:*operators* t)

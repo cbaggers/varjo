@@ -104,98 +104,18 @@
 (v-def-glsl-template-fun + (a) "~a" (v-real) 0 :pure t)
 (v-def-glsl-template-fun + (a) "~a" (v-vector) 0 :pure t)
 
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-vec2 v-vec2) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-vec3 v-vec3) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-vec4 v-vec4) 0 :pure t)
-
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-ivec2 v-ivec2) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-ivec3 v-ivec3) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-ivec4 v-ivec4) 0 :pure t)
-
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-uvec2 v-uvec2) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-uvec3 v-uvec3) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-uvec4 v-uvec4) 0 :pure t)
-
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-dvec2 v-dvec2) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-dvec3 v-dvec3) 0 :pure t)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (v-dvec4 v-dvec4) 0 :pure t)
-
 (v-def-glsl-template-fun - (a) "(-~a)" (v-real) 0 :pure t)
 (v-def-glsl-template-fun - (a) "(-~a)" (v-vec2) 0 :pure t)
 (v-def-glsl-template-fun - (a) "(-~a)" (v-vec3) 0 :pure t)
 (v-def-glsl-template-fun - (a) "(-~a)" (v-vec4) 0 :pure t)
-
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-real v-real) nil :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-vec2 v-vec2) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-vec3 v-vec3) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-vec4 v-vec4) 0 :pure t)
-
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-ivec2 v-ivec2) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-ivec3 v-ivec3) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-ivec4 v-ivec4) 0 :pure t)
-
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-uvec2 v-uvec2) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-uvec3 v-uvec3) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-uvec4 v-uvec4) 0 :pure t)
-
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-dvec2 v-dvec2) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-dvec3 v-dvec3) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (v-dvec4 v-dvec4) 0 :pure t)
 
 (v-def-glsl-template-fun * () "1" () :int :pure t)
 (v-def-glsl-template-fun * (a) "~a" (v-real) 0 :pure t)
 (v-def-glsl-template-fun * (a) "~a" (v-vector) 0 :pure t)
 (v-def-glsl-template-fun * (a) "~a" (v-matrix) 0 :pure t)
 
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-real v-real) nil :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vec2 v-vec2) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vec3 v-vec3) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vec4 v-vec4) 0 :pure t)
-
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-ivec2 v-ivec2) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-ivec3 v-ivec3) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-ivec4 v-ivec4) 0 :pure t)
-
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-uvec2 v-uvec2) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-uvec3 v-uvec3) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-uvec4 v-uvec4) 0 :pure t)
-
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-dvec2 v-dvec2) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-dvec3 v-dvec3) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-dvec4 v-dvec4) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-matrix v-matrix) nil :pure t)
-
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-mat2 v-vec2) 1 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-mat3 v-vec3) 1 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-mat4 v-vec4) 1 :pure t)
-
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-matrix v-real) 0 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-vector v-real) 0 :pure t)
-
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-float v-vec2) 1 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-float v-vec3) 1 :pure t)
-(v-def-glsl-template-fun * (a b) "(~a * ~a)" (v-float v-vec4) 1 :pure t)
-
 (v-def-glsl-template-fun / (a) "(1.0f / ~a)" (v-real) :float :pure t)
 (v-def-glsl-template-fun / (a) "(1 / ~a)" (v-vector) 0 :pure t)
-
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-real v-real) nil :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vector v-real) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vec2 v-vec2) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vec3 v-vec3) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-vec4 v-vec4) 0 :pure t)
-
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-ivec2 v-ivec2) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-ivec3 v-ivec3) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-ivec4 v-ivec4) 0 :pure t)
-
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-uvec2 v-uvec2) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-uvec3 v-uvec3) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-uvec4 v-uvec4) 0 :pure t)
-
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-dvec2 v-dvec2) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-dvec3 v-dvec3) 0 :pure t)
-(v-def-glsl-template-fun / (a b) "(~a / ~a)" (v-dvec4 v-dvec4) 0 :pure t)
 
 (v-def-glsl-template-fun v-not (x &context (:330 :440)) "not(~a)"
          (v-bvector) 0 :pure t)

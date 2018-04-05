@@ -1,7 +1,7 @@
 (in-package :vari.glsl)
 (in-readtable fn:fn-reader)
 
-(defvar *glsl-type->varjo-type*
+(defparameter *glsl-type->varjo-type*
   '(("atomic_uint" v-atomic-uint)
     ("bool" v-bool)
     ("bufferImage" v-buffer-image)
@@ -9,6 +9,9 @@
     ("bvec3" v-bvec3)
     ("bvec4" v-bvec4)
     ("dmat2" v-dmat2)
+    ("dmat2x2" v-dmat2)
+    ("dmat3x3" v-dmat3)
+    ("dmat4x4" v-dmat4)
     ("dmat2x3" v-dmat2x3)
     ("dmat2x4" v-dmat2x4)
     ("dmat3" v-dmat3)
