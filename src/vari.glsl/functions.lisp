@@ -5,7 +5,8 @@
 (v-def-glsl-template-fun break () "break" () v-void)
 (v-def-glsl-template-fun continue () "continue" () v-void)
 
-(v-def-glsl-template-fun identity (x) "(~a)" (v-type) 0 :pure t)
+;;------------------------------------------------------------
+;; Scalar Constructors
 
 (v-def-glsl-template-fun int (x) "~a" (v-int) v-int :pure t)
 (v-def-glsl-template-fun uint (x) "~a" (v-uint) v-uint :pure t)
@@ -31,27 +32,8 @@
 (v-def-glsl-template-fun double (x) "double(~a)" (v-bool)  v-double :pure t)
 (v-def-glsl-template-fun double (x) "double(~a)" (v-float) v-double :pure t)
 
-(v-def-glsl-template-fun < (a b &rest c) "(~a < ~a~{ < ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
-(v-def-glsl-template-fun > (a b &rest c) "(~a > ~a~{ > ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
-(v-def-glsl-template-fun <= (a b &rest c) "(~a <= ~a~{ <= ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
-(v-def-glsl-template-fun >= (a b &rest c) "(~a >= ~a~{ >= ~a~})" (v-real v-real &rest v-real) v-bool :pure t)
+;;------------------------------------------------------------
 
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-real v-real) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-vec2 v-vec2) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-vec3 v-vec3) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-vec4 v-vec4) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-ivec2 v-ivec2) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-ivec3 v-ivec3) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-ivec4 v-ivec4) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-uvec2 v-uvec2) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-uvec3 v-uvec3) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-uvec4 v-uvec4) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec2 v-dvec2) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec3 v-dvec3) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-dvec4 v-dvec4) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-mat2 v-mat2) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-mat3 v-mat3) v-bool :pure t)
-(v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-mat4 v-mat4) v-bool :pure t)
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-array v-array) v-bool :pure t)
 (v-def-glsl-template-fun = (a) "true" (t) v-bool :pure t)
 
@@ -373,45 +355,3 @@
 (v-def-glsl-template-fun dvec4 (x y z) "dvec4(~a, ~a, ~a, 0.0lf)" (v-double v-double v-double) v-dvec4 :pure t)
 
 ;;------------------------------------------------------------
-
-(v-def-glsl-template-fun max (a) "~a" (:float) :float :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:vec2) :vec2 :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:vec3) :vec3 :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:vec4) :vec4 :pure t)
-
-(v-def-glsl-template-fun max (a) "~a" (:int) :int :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:ivec2) :ivec2 :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:ivec3) :ivec3 :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:ivec4) :ivec4 :pure t)
-
-(v-def-glsl-template-fun max (a) "~a" (:uint) :uint :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:uvec2) :uvec2 :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:uvec3) :uvec3 :pure t)
-(v-def-glsl-template-fun max (a) "~a" (:uvec4) :uvec4 :pure t)
-
-(v-def-glsl-template-fun min (a) "~a" (:float) :float :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:vec2) :vec2 :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:vec3) :vec3 :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:vec4) :vec4 :pure t)
-
-(v-def-glsl-template-fun min (a) "~a" (:int) :int :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:ivec2) :ivec2 :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:ivec3) :ivec3 :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:ivec4) :ivec4 :pure t)
-
-(v-def-glsl-template-fun min (a) "~a" (:uint) :uint :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:uvec2) :uvec2 :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:uvec3) :uvec3 :pure t)
-(v-def-glsl-template-fun min (a) "~a" (:uvec4) :uvec4 :pure t)
-
-(v-def-glsl-template-fun max (a b c &rest c) "max(~a, max(~a, max(~a~{ ,~a~})"
-                         (t t t &rest t) 0 :pure t)
-
-(v-define-compiler-macro max ((a t) (b t) (c t) &rest (d t))
-  `(max ,a (max ,b (max ,c ,@d))))
-
-(v-def-glsl-template-fun min (a b c &rest c) "min(~a, min(~a, min(~a~{ ,~a~})"
-                         (t t t &rest t) 0 :pure t)
-
-(v-define-compiler-macro min ((a t) (b t) (c t) &rest (d t))
-  `(min ,a (min ,b (min ,c ,@d))))
