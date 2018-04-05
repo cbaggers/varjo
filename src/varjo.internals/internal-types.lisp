@@ -35,6 +35,7 @@
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
    (output-variables :initarg :output-variables :accessor output-variables)
    (uniforms :initarg :uniforms :accessor uniforms)
+   (shared-decls :initarg :shared-decls :accessor shared-decls)
    (stemcells :initarg :stemcells :accessor stemcells)
    (input-variables :initarg :input-variables :accessor input-variables)
    (used-user-structs :initarg :used-user-structs :accessor used-user-structs)
@@ -187,6 +188,7 @@
    (expanded-input-variables :initform nil :initarg :expanded-input-variables
                              :accessor expanded-input-variables)
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
+   (shared :initform nil :initarg :shared :accessor v-shared)
    (context :initform nil :initarg :context :reader v-context)
    (stemcell->flow-id :initform (make-hash-table :test #'eq)
                       :initarg :stemcell->flow-id)

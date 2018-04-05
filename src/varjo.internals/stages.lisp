@@ -5,6 +5,8 @@
 
 (defun make-stage (kind in-args uniforms context code
                    &optional (stemcells-allowed t) primitive)
+  (assert (listp context) ()
+          "Varjo: The context argument to make-stage must be a list")
   (create-stage kind context
                 :input-variables in-args
                 :uniform-variables uniforms
@@ -61,7 +63,7 @@
                       :glsl-name (or glsl-name (safe-glsl-name-string name))
                       :type (qualify-type (type-spec->type type-spec)
                                           qualifiers)))))))
-      (let* ((version/s (process-context version/s))
+      (let* ((version/s (process-context (ensure-list version/s)))
              (stage-type (if kind
                              (stage-kind-to-type kind)
                              'stage))

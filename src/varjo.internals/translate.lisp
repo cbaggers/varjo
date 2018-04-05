@@ -16,6 +16,7 @@
             #'process-primitive-type
             #'expand-input-variables
             #'process-uniforms
+            #'process-shared
             #'compile-pass
             #'make-post-process-obj
             #'process-output-primitive
@@ -27,6 +28,7 @@
             #'gen-in-decl-strings
             #'gen-out-var-strings
             #'final-uniform-strings
+            #'gen-shared-decls
             #'dedup-used-types
             #'final-string-compose
             #'package-as-final-result-object))))))
@@ -159,7 +161,6 @@
   (with-slots (name glsl-name type) uvar
     (let* ((type (set-flow-id type (flow-id!)))
            (type-for-value (strip-qualifiers type)))
-      (assert (flow-ids type) () "fiik")
       (%add-symbol-binding
        name
        (v-make-value type-for-value env :glsl-name glsl-name :read-only t)
@@ -187,7 +188,6 @@
     (let* ((type (set-flow-id type (flow-id!)))
            (type-for-value (make-into-block-struct (strip-qualifiers type)
                                                    glsl-name)))
-      (assert (flow-ids type) () "fiik")
       (%add-symbol-binding
        name (v-make-value type-for-value env :glsl-name glsl-name
                           :function-scope 0 :read-only t)
@@ -198,6 +198,31 @@
                            :type type)
             (v-uniforms env)))
     env))
+
+;;----------------------------------------------------------------------
+
+(defun process-shared (stage env)
+  (loop :for shared :in (shared-variables stage) :do
+     (process-shared-variable shared env))
+  (values stage env))
+
+;; mutates env
+(defun process-shared-variable (svar env)
+  (with-slots (name glsl-name type) svar
+    (let* ((type (set-flow-id type (flow-id!)))
+           (type-for-value (strip-qualifiers type)))
+      (%add-symbol-binding
+       name
+       (v-make-value type-for-value env :glsl-name glsl-name :read-only nil)
+       env)
+      (add-lisp-name name env glsl-name)
+      (let ((type-with-flow type))
+        (push (make-instance 'shared-variable
+                             :name name
+                             :glsl-name glsl-name
+                             :type type-with-flow)
+              (v-shared env)))))
+  env)
 
 ;;----------------------------------------------------------------------
 
@@ -373,6 +398,7 @@
         (intersection '(:ubo :ssbo) (qualifiers x)
                       :test #'varjo.internals::qualifier=))
       (append (mapcar #'v-type-of (v-uniforms env))
+              (mapcar #'v-type-of (v-shared env))
               (loop
                  :for func :in (all-functions post-proc-obj)
                  :when (> (call-count func) 0)
@@ -622,6 +648,25 @@
 
 ;;----------------------------------------------------------------------
 
+(defun gen-shared-decls (post-proc-obj)
+  (with-slots (env) post-proc-obj
+    (let* ((final-vars nil))
+      (loop :for shared :in (v-shared env)
+         :for name = (name shared)
+         :for type-obj = (v-type-of shared)
+         :for qualifiers = (qualifiers type-obj)
+         :for glsl-name = (or (glsl-name shared)
+                              (safe-glsl-name-string name))
+         :do
+         (push (gen-shared-decl-string glsl-name type-obj
+                                       qualifiers)
+               final-vars))
+      ;;
+      (setf (shared-decls post-proc-obj) final-vars)
+      post-proc-obj)))
+
+;;----------------------------------------------------------------------
+
 (defun dedup-used-types (post-proc-obj)
   (with-slots (main-env) post-proc-obj
     (setf (used-user-structs post-proc-obj)
@@ -646,6 +691,7 @@
        ;; stage slots
        :input-variables (input-variables (stage post-proc-obj))
        :uniform-variables (uniforms post-proc-obj)
+       :shared-variables (shared-variables (stage post-proc-obj))
        :context context
        :lisp-code (lisp-code stage)
        :stemcells-allowed (allows-stemcellsp env)

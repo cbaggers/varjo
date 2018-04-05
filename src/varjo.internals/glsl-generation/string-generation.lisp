@@ -190,6 +190,10 @@
   (declare (ignore qualifiers))
   (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
 
+(defun gen-shared-decl-string (glsl-name type qualifiers)
+  (declare (ignore qualifiers))
+  (format nil "shared ~a;" (prefix-type-to-string type glsl-name)))
+
 (defun gen-geom-input-primitive-string (primitive)
   (format nil "layout (~a) in;" (glsl-string primitive)))
 
@@ -241,6 +245,7 @@
                    (input-variable-glsl post-proc-obj)
                    (out-declarations post-proc-obj)
                    (output-variable-glsl post-proc-obj)
+                   (shared-decls post-proc-obj)
                    (remove-empty
                     (append
                      (mapcar #'%glsl-decl (uniforms post-proc-obj))
