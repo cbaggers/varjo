@@ -85,15 +85,13 @@ This stopped us working out the correct return types for this function"
   var-name)
 
 (define-error assignment-type-match (:error-type varjo-critical-error)
-    (op code-obj-a code-obj-b form)
+    (code-obj-a code-obj-b form)
     "Currently varjo cannot handle changing the type through an assignment due
 to the static nature of glsl.
-operation: ~a
 place: ~a
 value: ~a
-
 Problematic form: ~s"
-  op (primary-type code-obj-a) (primary-type code-obj-b) form)
+  (primary-type code-obj-a) (primary-type code-obj-b) form)
 
 (define-error setq-type-match (:error-type varjo-critical-error)
     (var-name old-value new-value)
@@ -900,10 +898,10 @@ in Varjo is (:patch *) where '*' is the number of vertices in the patch.
 
 For example: (:patch 2) (:patch 3) (:patch 4)")
 
-(define-error non-place-assign () (glsl-op place val)
-    "You cannot assign this: ~a ~%This was attempted as follows ~a ~a ~a"
-  (current-line place)
-  place glsl-op val)
+(define-error non-place-assign () (glsl-code lisp-code)
+    "You cannot assign this: ~a ~%This was attempted as follows: ~a"
+  glsl-code
+  lisp-code)
 
 (define-error v-unrecognized-declaration () (decl)
     "Found an unregonised declaration named ~a

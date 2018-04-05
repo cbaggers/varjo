@@ -40,46 +40,26 @@
     (multiple-value-bind (val-obj env) (compile-form val env-0)
       ;; make sure we in the compiler havent been dumbasses
       (assert (member lisp-op-name '(setf incf decf multf divf)))
-      (cond
-        ((not (place-tree place-obj))
-         (error 'non-place-assign :glsl-op glsl-op-symbol
-                :place place-obj :val val-obj))
-        ((not (v-type-eq (primary-type place-obj) (primary-type val-obj)))
-         (error 'assignment-type-match :op lisp-op-name
-                :code-obj-a place-obj :code-obj-b val-obj
-                :form `(,lisp-op-name ,place ,val)))
-        (t (destructuring-bind (name value) (last1 (place-tree place-obj))
-             (when (v-read-only value)
-               ;; The one time we can write to a uniform is when
-               ;; it's an ssbo. We do make sure that the place-tree
-               ;; is deeper than 1 though because otherwise we are
-               ;; setting the uniform itself rather than an
-               ;; element/slot
-               (let* ((uniform (find (flow-ids (v-type-of value))
-                                     (v-uniforms env)
-                                     :key λ(flow-ids (v-type-of _))
-                                     :test #'id=))
-                      (is-ssbo (when uniform
-                                 (find :ssbo (qualifiers (v-type-of uniform))
-                                       :test #'qualifier=))))
-                 (assert (and is-ssbo (> (length (place-tree place-obj)) 1))
-                         () 'assigning-to-readonly :var-name name)))
-             (unless (or (= (v-function-scope env) (v-function-scope value))
-                         (= (v-function-scope value) 0))
-               (error 'cross-scope-mutate :var-name name
-                      :code (format nil "(setf (... ~s) ...)" name)))
-             (let ((final-env (replace-flow-ids-for-single-var name
-                                                               (flow-ids val-obj)
-                                                               env))
-                   (type-set (make-type-set (primary-type val-obj)))
-                   (cline (gen-bin-op-string
-                           glsl-op-symbol place-obj val-obj)))
-               (values (merge-compiled
-                        (list place-obj val-obj)
-                        :type-set type-set
-                        :current-line cline
-                        :pure nil)
-                       final-env))))))))
+      (let ((code (list lisp-op-name place val)))
+        (assert (v-type-eq (primary-type place-obj) (primary-type val-obj)) ()
+                'assignment-type-match
+                :code-obj-a place-obj
+                :code-obj-b val-obj
+                :form code)
+        (let* ((modified-env (make-env-with-place-modification
+                              place-obj
+                              (flow-ids val-obj)
+                              env
+                              code))
+               (type-set (make-type-set (primary-type val-obj)))
+               (cline (gen-bin-op-string
+                       glsl-op-symbol place-obj val-obj)))
+          (values (merge-compiled
+                   (list place-obj val-obj)
+                   :type-set type-set
+                   :current-line cline
+                   :pure nil)
+                  modified-env))))))
 
 (v-defspecial setq (var-name new-val-code)
   :args-valid t

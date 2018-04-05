@@ -535,6 +535,7 @@
            :main-metadata
            :make-compiled
            :make-dummy-function-from-type
+           :make-env-with-place-modification
            :make-function-set
            :make-regular-macro
            :make-stage

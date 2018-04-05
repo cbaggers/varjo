@@ -131,39 +131,43 @@
   "Returns 3 values: the new compiled object, the new environment & a boolean
    this shows whether the function was use or a compiler macro expansion
    (t means the compiler-macro was used)"
-  (vbind (expansion use-expansion)
-      (find-and-expand-compiler-macro func args args-code env)
-    (if use-expansion
-        (vbind (new-obj new-env) (compile-form expansion env)
-          (values new-obj new-env t))
-        (vbind (code-obj new-env expanded-into-new-form)
-            (cond
-              ;; special funcs
-              ((v-special-functionp func)
-               (compile-special-function func args env))
+  (let ((call-form (cons (name func) args-code)))
+    (vbind (expansion use-expansion)
+        (find-and-expand-compiler-macro func args args-code env)
+      (if use-expansion
+          (vbind (new-obj new-env) (compile-form expansion env)
+            (values new-obj new-env t))
+          (vbind (code-obj new-env expanded-into-new-form)
+              (cond
+                ;; special funcs
+                ((v-special-functionp func)
+                 (compile-special-function func args env))
 
-              ;; funcs taking traits as arguments
-              ;; traits being before unreps matters here.
-              ;; want to hit 'final' types before unrep transforms
-              ((and (typep func 'v-user-function)
-                    (some λ(typep _ 'v-trait) (v-argument-spec func)))
-               (compile-function-taking-traits func args env))
+                ;; funcs taking traits as arguments
+                ;; traits being before unreps matters here.
+                ;; want to hit 'final' types before unrep transforms
+                ((and (typep func 'v-user-function)
+                      (some λ(typep _ 'v-trait) (v-argument-spec func)))
+                 (compile-function-taking-traits func args env))
 
-              ;; funcs taking unrepresentable values as arguments
-              ((and (typep func 'v-user-function)
-                    (or (some λ(typep _ 'v-unrepresentable-value)
-                              (v-argument-spec func))
-                        (some λ(typep (primary-type _) 'v-block-struct) args)))
-               (compile-function-taking-unreps func args args-code env))
+                ;; funcs taking unrepresentable values as arguments
+                ((and (typep func 'v-user-function)
+                      (or (some λ(typep _ 'v-unrepresentable-value)
+                                (v-argument-spec func))
+                          (some λ(typep (primary-type _) 'v-block-struct) args)))
+                 (compile-function-taking-unreps func args args-code env))
 
-              ;; funcs with multiple return values
-              ((multi-return-function-p func)
-               (compile-multi-return-function-call func args env))
+                ;; funcs with multiple return values
+                ((multi-return-function-p func)
+                 (compile-multi-return-function-call func args env call-form))
 
-              ;; all the other funcs :)
-              (t (compile-regular-function-call func args env)))
-          (assert new-env)
-          (values code-obj new-env expanded-into-new-form)))))
+                ;; all the other funcs :)
+                (t (compile-regular-function-call func
+                                                  args
+                                                  env
+                                                  call-form)))
+            (assert new-env)
+            (values code-obj new-env expanded-into-new-form))))))
 
 
 ;; TODO handle traits & unreps in one function
@@ -353,7 +357,7 @@
             ((= count 1) (rest (coerce (type-set (nth n args)) 'list)))
             (t nil)))))
 
-(defun compile-regular-function-call (func args env)
+(defun compile-regular-function-call (func args env call-form)
   (let ((type-set (make-type-set (resolve-func-set func args)
                                  (when (v-multi-val-safe env)
                                    (handle-regular-function-mvals args))))
@@ -378,11 +382,31 @@
                           (mappend #'used-types args)
                           (coerce type-set 'list)
                           (coerce emit-set 'list)))
-            env)))
+            (make-env-with-place-modification-for-funcall func
+                                                          args
+                                                          env
+                                                          call-form))))
+
+(defun make-env-with-place-modification-for-funcall (func
+                                                     arg-objs
+                                                     env
+                                                     call-form)
+  (let ((modified-env env)
+        (arg-types (remove-if #'symbolp (v-argument-spec func))))
+    (loop
+       :for arg-type :in arg-types
+       :for obj :in arg-objs
+       :do (when (find :in/out (qualifiers arg-type) :test #'qualifier=)
+             (setf modified-env
+                   (make-env-with-place-modification obj
+                                                     (flow-id!)
+                                                     modified-env
+                                                     call-form))))
+    modified-env))
 
 ;;----------------------------------------------------------------------
 
-(defun compile-multi-return-function-call (func args env)
+(defun compile-multi-return-function-call (func args env call-form)
   (let* ((type-set (resolve-func-set func args))
          (for-return (equal (v-multi-val-base env) *return-var-name-base*))
          (for-main (not (null (member :main (v-context env)))))
@@ -429,4 +453,7 @@
     (when (user-function-p func)
       (incf (call-count (compiled-result func))))
     (values call-obj
-            env)))
+            (make-env-with-place-modification-for-funcall func
+                                                          args
+                                                          env
+                                                          call-form))))
