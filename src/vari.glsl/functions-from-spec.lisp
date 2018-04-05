@@ -26,7 +26,8 @@
                                                         :in/out
                                                         qualifier)))))))
                 (lisp-name (or (find-symbol lisp-name :cl)
-                               (intern lisp-name :vari.glsl)))
+                               (find-symbol lisp-name :glsl-symbols)
+                               (error "Bug: Unknown Spec Symbol '~a'" lisp-name)))
                 (spec-returns (append (alexandria:ensure-list return)
                                       (mapcar #'second outs)))
                 (lisp-return (if (equal spec-returns '("void"))
