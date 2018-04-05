@@ -3,7 +3,11 @@
 ;;------------------------------------------------------------
 
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (v-array v-array) v-bool :pure t)
-(v-def-glsl-template-fun = (a) "true" (t) v-bool :pure t)
+
+;;------------------------------------------------------------
+
+(v-def-glsl-template-fun v-not (x &context (:330 :440)) "not(~a)"
+         (v-bvector) 0 :pure t)
 
 ;;------------------------------------------------------------
 

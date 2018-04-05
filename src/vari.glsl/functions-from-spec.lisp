@@ -35,25 +35,32 @@
                                       λ(type-spec->type
                                         (parse-gl-type-name _))
                                       spec-returns)))
-                (transform (if infix-p
-                               (let ((template (format nil "(~~{~~a~~^ ~~^~a~~^ ~~})" name)))
-                                 (format nil template
-                                         (loop :for i :below (length orig-args)
-                                            :collect "~a")))
-                               (format nil "~a(~{~a~^,~})" name
-                                       (loop :for i :below (length orig-args)
-                                          :collect "~a"))))
+                (transform
+                 (let ((arg-len (length orig-args)))
+                   (cond
+                     ((not infix-p)
+                      (format nil "~a(~{~a~^,~})" name
+                              (loop :for i :below (length orig-args)
+                                 :collect "~a")))
+                     ((= arg-len 1)
+                      (format nil "(~a ~~a)" name))
+                     (t
+                      (let ((template (format nil "(~~{~~a~~^ ~~^~a~~^ ~~})" name)))
+                        (format nil template
+                                (loop :for i :below (length orig-args)
+                                   :collect "~a")))))))
                 (versions (mapcar #'kwd versions)))
-           (varjo.internals::add-global-form-binding
-            (varjo.internals::make-function-obj
-             lisp-name transform versions lisp-arg-types
-             lisp-return :v-place-index nil :glsl-name nil
-             :flow-ids (varjo.internals::%gl-flow-id!)
-             ;; {TODO} n-of doesnt make new instances. This is problem here
-             ;;                ↓↓↓
-             :in-arg-flow-ids (n-of (varjo.internals::%gl-flow-id!)
-                                    (length args))
-             :pure pure)))))))
+           (unless (equal name "~")
+             (varjo.internals::add-global-form-binding
+              (varjo.internals::make-function-obj
+               lisp-name transform versions lisp-arg-types
+               lisp-return :v-place-index nil :glsl-name nil
+               :flow-ids (varjo.internals::%gl-flow-id!)
+               ;; {TODO} n-of doesnt make new instances. This is problem here
+               ;;                ↓↓↓
+               :in-arg-flow-ids (n-of (varjo.internals::%gl-flow-id!)
+                                      (length args))
+               :pure pure))))))))
 
 (populate-functions glsl-spec:*functions* nil)
 (populate-functions glsl-spec:*operators* t)

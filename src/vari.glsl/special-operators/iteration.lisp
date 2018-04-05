@@ -2,6 +2,12 @@
 (in-readtable fn:fn-reader)
 
 ;;------------------------------------------------------------
+;; Related Statements
+
+(v-def-glsl-template-fun break () "break" () v-void)
+(v-def-glsl-template-fun continue () "continue" () v-void)
+
+;;------------------------------------------------------------
 ;; While
 
 (v-defspecial while (test &rest body)

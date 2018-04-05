@@ -61,7 +61,7 @@
                (:file "src/varjo.internals/compile-form")
                (:file "src/varjo.internals/declaim")
                ;;
-               (:file "src/vari.glsl/functions")
+               (:file "src/vari.glsl/nary-operators")
                (:file "src/vari.glsl/equality")
                (:file "src/vari.glsl/matrix-constructors")
                (:file "src/vari.glsl/scalar-constructors")
