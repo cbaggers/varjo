@@ -61,7 +61,6 @@
                (:file "src/varjo.internals/compile-form")
                (:file "src/varjo.internals/declaim")
                ;;
-               (:file "src/vari.glsl/nary-operators")
                (:file "src/vari.glsl/equality")
                (:file "src/vari.glsl/matrix-constructors")
                (:file "src/vari.glsl/scalar-constructors")
@@ -77,6 +76,7 @@
                (:file "src/vari.cl/docs")
                (:file "src/vari.cl/macros")
                (:file "src/vari.cl/functions")
+               (:file "src/vari.cl/nary-operators")
                (:file "src/vari.cl/bitwise-operators")
                (:file "src/vari.cl/special-operators/uint")
                (:file "src/vari.cl/special-operators/progn")
