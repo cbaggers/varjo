@@ -70,7 +70,6 @@
                (:file "src/vari.glsl/variables-from-spec")
                (:file "src/vari.glsl/functions-from-spec")
                (:file "src/vari.glsl/built-in-types")
-               (:file "src/vari.glsl/bitwise-operators")
                (:file "src/vari.glsl/special-operators/iteration")
                (:file "src/vari.glsl/special-operators/switch")
                (:file "src/vari.glsl/special-operators/discard")
