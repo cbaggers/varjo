@@ -353,6 +353,8 @@
            :invalid-type-for-dummy-function
            :struct-cannot-hold-ephemeral-types
            :arrays-cannot-hold-ephemeral-types
+           :incorrect-stage-for-shared-variables
+           :shared-opaque
 
            ;; restarts
            :setq-supply-alternate-type))

@@ -892,6 +892,8 @@
 (defgeneric holds-opaque-data-p (type)
   (:method ((type v-struct))
     (has-any-opaque-slots-p type))
+  (:method ((type v-container))
+    (holds-opaque-data-p (v-element-type type)))
   (:method ((type v-opaque))
     t)
   (:method ((type t))

@@ -202,8 +202,12 @@
 ;;----------------------------------------------------------------------
 
 (defun process-shared (stage env)
-  (loop :for shared :in (shared-variables stage) :do
-     (process-shared-variable shared env))
+  (when (shared-variables stage)
+    (assert (typep stage 'compute-stage) ()
+            'incorrect-stage-for-shared-variables
+            :stage stage)
+    (loop :for shared :in (shared-variables stage) :do
+       (process-shared-variable shared env)))
   (values stage env))
 
 ;; mutates env
@@ -211,6 +215,9 @@
   (with-slots (name glsl-name type) svar
     (let* ((type (set-flow-id type (flow-id!)))
            (type-for-value (strip-qualifiers type)))
+      (assert (not (holds-opaque-data-p type)) ()
+              'shared-opaque
+              :name name :type type)
       (%add-symbol-binding
        name
        (v-make-value type-for-value env :glsl-name glsl-name :read-only nil)

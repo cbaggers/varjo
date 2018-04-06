@@ -1257,6 +1257,19 @@ ephemeral type.
 Form: ~a
 " form)
 
+(define-error incorrect-stage-for-shared-variables () (stage)
+    "
+Shared variables are only valid in compute stages. This is a ~a.
+" (type-of stage))
+
+(define-error shared-opaque () (name type)
+    "
+We found an issue when compiling the shared variable '~a'.
+
+Shared variables may not hold opaque data, however the type of '~a'
+is ~a
+" name name (type->type-spec type))
+
 ;;type->type-spec
 
 ;;
