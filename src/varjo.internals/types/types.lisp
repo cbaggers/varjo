@@ -11,11 +11,24 @@
 (defun add-alternate-type-name (alt-type-name src-type-name)
   (declare (notinline type-spec->type))
   (assert (and (symbolp src-type-name) (symbolp alt-type-name)))
-  (setf (gethash alt-type-name *alternate-ht*) src-type-name)
-  (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
-  (when (and (ephemeral-p (type-spec->type src-type-name))
-             (not (get-global-form-binding alt-type-name)))
-    (add-alt-ephemeral-constructor-function src-type-name alt-type-name))
+  (unless (gethash alt-type-name *alternate-ht*)
+    (assert (not (try-type-spec->type alt-type-name nil)) ()
+            'alt-type-name-already-taken
+            :alt-name alt-type-name
+            :src-name src-type-name))
+  (let (;; Ensure that, if the src-type-name is another alias, that
+        ;; we resolve the real type name before going any further
+        (src-type-name (or (gethash src-type-name *alternate-ht*)
+                           src-type-name))
+        ;; We need this for the ephemeral check but it has the added
+        ;; bonus of erroring if the source type doesnt exist.
+        ;;              ↓↓↓
+        (src-type (type-spec->type src-type-name)))
+    (setf (gethash alt-type-name *alternate-ht*) src-type-name)
+    (setf (gethash src-type-name *alternate-ht-backward*) alt-type-name)
+    (when (and (ephemeral-p src-type)
+               (not (get-global-form-binding alt-type-name)))
+      (add-alt-ephemeral-constructor-function src-type-name alt-type-name)))
   alt-type-name)
 
 ;;------------------------------------------------------------

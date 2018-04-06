@@ -1270,6 +1270,12 @@ Shared variables may not hold opaque data, however the type of '~a'
 is ~a
 " name name (type->type-spec type))
 
+(define-error alt-type-name-already-taken () (alt-name src-name)
+    "
+An attempt was found to define '~a' as an alternate type name for '~a' however
+~a names an existing type.
+" alt-name src-name alt-name)
+
 ;;type->type-spec
 
 ;;

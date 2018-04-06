@@ -355,6 +355,7 @@
            :arrays-cannot-hold-ephemeral-types
            :incorrect-stage-for-shared-variables
            :shared-opaque
+           :alt-type-name-already-taken
 
            ;; restarts
            :setq-supply-alternate-type))
