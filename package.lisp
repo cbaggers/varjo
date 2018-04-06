@@ -357,6 +357,7 @@
            :shared-opaque
            :alt-type-name-already-taken
            :unknown-alt-type-name
+           :invalid-arguments-for-special-op
 
            ;; restarts
            :setq-supply-alternate-type))

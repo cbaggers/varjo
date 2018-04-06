@@ -1282,6 +1282,13 @@ We were asked to remove the alternate type name '~a' however we are unable
 to find that alias.
 " name)
 
+(define-error invalid-arguments-for-special-op () (name args)
+    "
+Invalid arguments for special function ~a
+
+Arguments: ~a
+" name args)
+
 ;;type->type-spec
 
 ;;

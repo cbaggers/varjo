@@ -87,9 +87,25 @@
     (t (error "Varjo: Invalid return-type specifier in template-function ~a"
               x))))
 
+(defmacro v-defspecial (name args &body body)
+  `(define-vari-special-operator ,name ,args ,@body))
+
+(defun extract-lambda-list-names (llist)
+  (multiple-value-bind (required optional rest keys other aux)
+      (alexandria:parse-ordinary-lambda-list llist)
+    (declare (ignore other))
+    (remove nil
+            (append required
+                    (mapcar #'first optional)
+                    (mapcar #'third optional)
+                    (list rest)
+                    (mapcar #'first keys)
+                    (mapcar #'third keys)
+                    (mapcar #'first aux)))))
+
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
-(defmacro v-defspecial (name args &body body)
+(defmacro define-vari-special-operator (name args &body body)
   (destructuring-bind (in-args uniforms context rest optional shared)
       (split-arguments args '(&uniform &context &rest &optional &shared))
     (declare (ignore context)) ;; ignored as provided from body
@@ -106,9 +122,17 @@
         (cond
           ((eq args-valid t)
            `(progn
-              (defun ,func-name ,(append (list env this) args)
-                (declare (ignorable ,env ,this ,@arg-names))
-                ,return)
+              (defun ,func-name (,env ,this &rest sargs)
+                (declare (ignorable ,env ,this))
+                (handler-case
+                    (destructuring-bind ,args sargs
+                      (declare (ignore ,@(extract-lambda-list-names args))))
+                  (error () (error 'invalid-arguments-for-special-op
+                                   :name ',name
+                                   :args sargs)))
+                (destructuring-bind ,args sargs
+                  (declare (ignorable ,@arg-names))
+                  ,return))
               (add-global-form-binding
                (make-function-obj ',name :special ',context t
                                   #',func-name
