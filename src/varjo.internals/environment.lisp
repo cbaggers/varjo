@@ -645,17 +645,18 @@ For example calling env-prune on this environment..
     (assert (gethash name *global-env-form-bindings*))
     (setf (gethash name *global-env-form-bindings*)
           (delete binding (gethash name *global-env-form-bindings*)))
-    nil)
+    nil))
 
-  ;; Standard Environment
-  ;;
-  (defmethod add-form-binding ((compiled-func compiled-function-result)
-                               (env environment))
-    (let* ((func (function-obj compiled-func)))
-      (when (shadow-global-check (name func))
-        (assert (typep func 'v-function))
-        (setf (compiled-functions env func) compiled-func)
-        (add-form-binding func env)))))
+;; Standard Environment
+;;
+
+(defmethod add-form-binding ((compiled-func compiled-function-result)
+                             (env environment))
+  (let* ((func (function-obj compiled-func)))
+    (when (shadow-global-check (name func))
+      (assert (typep func 'v-function))
+      (setf (compiled-functions env func) compiled-func)
+      (add-form-binding func env))))
 
 (defmethod add-form-binding ((func v-function)
                              (env environment))
