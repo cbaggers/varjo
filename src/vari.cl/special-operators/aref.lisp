@@ -52,26 +52,17 @@
 ;;------------------------------------------------------------
 
 (defun aref-common (func arr index env)
-  (labels ((force-flow-id (type flow-id)
-             ;; This is one of the few cases where we want to set a flow id
-             ;; regardless of the current state
-             (if (flow-ids type)
-                 (replace-flow-id type flow-id)
-                 (set-flow-id type flow-id))))
-    (let* ((type (primary-type arr))
-           (new-flow-id (first
-                         (varjo.internals::calc-regular-function-return-ids-given-args
-                          func (list arr index))))
-           (elem-type (force-flow-id (v-element-type type) new-flow-id))
-           (type-set (make-type-set elem-type)))
-      (values
-       (merge-compiled (list arr index)
-                       :type-set type-set
-                       :current-line (format nil "~a[~a]"
-                                             (current-line arr t)
-                                             (current-line index))
-                       :place-tree (varjo.internals::place-tree-cons func arr))
-       env))))
+  (let* ((type (primary-type arr))
+         (elem-type (set-flow-id (v-element-type type) (flow-id!)))
+         (type-set (make-type-set elem-type)))
+    (values
+     (merge-compiled (list arr index)
+                     :type-set type-set
+                     :current-line (format nil "~a[~a]"
+                                           (current-line arr t)
+                                           (current-line index))
+                     :place-tree (varjo.internals::place-tree-cons func arr))
+     env)))
 
 (v-defspecial aref ((arr v-array) (index v-int))
   :return (aref-common this arr index env))

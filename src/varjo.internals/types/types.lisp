@@ -217,12 +217,7 @@
       (setf element-type (type-spec->type element-type)))))
 
 (defmethod v-element-type ((object v-sampler))
-  (let ((result (slot-value object 'element-type)))
-    ;; {TODO} dedicated error
-    (assert (typep result 'v-type) (object)
-            "The element-type of ~a was ~a which is not an instance of a type."
-            object result)
-    result))
+  (slot-value object 'element-type))
 
 ;;------------------------------------------------------------
 ;; Container
@@ -244,12 +239,7 @@
   (error 'doesnt-have-dimensions :vtype object))
 
 (defmethod v-element-type ((object v-container))
-  (let ((result (slot-value object 'element-type)))
-    ;; {TODO} dedicated error
-    (assert (typep result 'v-type) (object)
-            "The element-type of ~a was ~a which is not an instance of a type."
-            object result)
-    result))
+  (slot-value object 'element-type))
 
 ;;------------------------------------------------------------
 ;; Array
@@ -270,7 +260,7 @@
                       length)))
       (initialize-instance
        type
-       :element-type (type-spec->type element-type (when flow-id (flow-id!)))
+       :element-type (type-spec->type element-type)
        :dimensions (listify length)
        :flow-ids flow-id))))
 
@@ -289,7 +279,10 @@
         (assert (every #'valid-size-p dim))
         (setf dimensions dim))
       (unless (typep element-type 'v-type)
-        (setf element-type (type-spec->type element-type))))))
+        (setf element-type (type-spec->type element-type)))
+      (assert (not (flow-ids element-type)) ()
+              "CEPL Bug: flow-ids found in array element:~%~a"
+              object))))
 
 (defmethod copy-type ((type v-array))
   (make-instance 'v-array
@@ -322,10 +315,18 @@
       (format nil "~a~{[~a]~}" (v-glsl-string elem-type) dims))))
 
 (defmethod v-array-type-of ((element-type v-type) dimensions flow-id)
-  (let ((dimensions (ensure-list dimensions)))
-    (make-instance 'v-array :dimensions dimensions
-                   :element-type element-type
-                   :flow-ids flow-id)))
+  (flet ((strip-flow-id (type)
+           ;; This is one of the few cases where we want to set a flow id
+           ;; regardless of the current state
+           (if (flow-ids type)
+               (let ((res (copy-type type)))
+                 (setf (slot-value res 'flow-ids) nil)
+                 res)
+               type)))
+    (let ((dimensions (ensure-list dimensions)))
+      (make-instance 'v-array :dimensions dimensions
+                     :element-type (strip-flow-id element-type)
+                     :flow-ids flow-id))))
 
 ;;------------------------------------------------------------
 ;; Ephemeral Values
@@ -800,43 +801,37 @@
            :return (type-spec->type cast-type)))))
 
 
-(defun find-mutual-cast-type (&rest types)
-  (assert (every λ(typep _ 'v-type) types) ()
-          'find-mutual-type-bug :types types)
-  (if (every λ(v-type-eq _ (first types)) (rest types))
-      (first types)
-      (let* ((all-casts
-              (sort (mapcar (lambda (type)
-                              (cons type
-                                    (mapcar #'type-spec->type
-                                            (slot-value type 'casts-to))))
-                            types)
-                    #'> :key #'length))
-             (master
-              (first all-casts))
-             (rest-casts
-              (rest all-casts))
-             (result
-              (first (sort (loop :for type :in master
-                              :if (every λ(find type _ :test #'v-type-eq)
-                                         rest-casts)
-                              :collect type)
-                           #'>
-                           :key #'v-superior-score))))
-        result)))
-
 (let ((order-or-superiority '(v-double v-float v-int v-uint v-vec2 v-ivec2
                               v-uvec2 v-vec3 v-ivec3 v-uvec3 v-vec4 v-ivec4
                               v-uvec4 v-mat2 v-mat2x2 v-mat3 v-mat3x3 v-mat4
                               v-mat4x4)))
-  (defun v-superior-score (type)
-    (or (position type order-or-superiority) -1))
-  (defun v-superior (x y)
-    (< (or (position x order-or-superiority) -1)
-       (or (position y order-or-superiority) -1))))
+  (defun find-mutual-cast-type (&rest types)
+    (assert (every λ(typep _ 'v-type) types) ()
+            'find-mutual-type-bug :types types)
+    (flet ((v-superior-score (type)
+             (or (position type order-or-superiority) -1)))
+      (if (every λ(v-type-eq _ (first types)) (rest types))
+          (first types)
+          (let* ((all-casts
+                  (sort (mapcar (lambda (type)
+                                  (cons type
+                                        (mapcar #'type-spec->type
+                                                (slot-value type 'casts-to))))
+                                types)
+                        #'> :key #'length))
+                 (master
+                  (first all-casts))
+                 (rest-casts
+                  (rest all-casts))
+                 (result
+                  (first (sort (loop :for type :in master
+                                  :if (every λ(find type _ :test #'v-type-eq)
+                                             rest-casts)
+                                  :collect type)
+                               #'>
+                               :key #'v-superior-score))))
+            result)))))
 
-(defun v-superior-type (&rest types)
-  (first (sort types #'v-superior)))
 
 ;;------------------------------------------------------------
 ;; Distance
