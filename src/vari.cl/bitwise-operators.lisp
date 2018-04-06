@@ -58,7 +58,7 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun logand (a) "-1" (v-integer) 0 :pure t)
+(v-def-glsl-template-fun logand (a) "-1" (:int) :int :pure t)
 (v-def-glsl-template-fun logand (a b) "(~a & ~a)" (:int :int) :int :pure t)
 (v-def-glsl-template-fun logand (a b) "(~a & ~a)" (:int :ivec2) :ivec2 :pure t)
 (v-def-glsl-template-fun logand (a b) "(~a & ~a)" (:int :ivec3) :ivec3 :pure t)
@@ -82,7 +82,7 @@
 (v-def-glsl-template-fun logand (a b) "(~a & ~a)" (:int :int) :int :pure t)
 
 (v-def-glsl-template-fun logand (a b c &rest c) "logand(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
+                         (t t t &rest t) t :pure t)
 
 (v-define-compiler-macro logand ((a t) (b t) (c t) &rest (d t))
   `(logand ,a (logand ,b (logand ,c ,@d))))
@@ -91,7 +91,8 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun logxor (a) "0" (v-integer) 0 :pure t)
+(v-def-glsl-template-fun logxor (a) "0" (:int) :int :pure t)
+(v-def-glsl-template-fun logxor (a) "0u" (:uint) :uint :pure t)
 (v-def-glsl-template-fun logxor (a b) "(~a ^ ~a)" (v-int v-int) v-int :pure t)
 (v-def-glsl-template-fun logxor (a b) "(~a ^ ~a)" (v-int v-ivec2) v-ivec2 :pure t)
 (v-def-glsl-template-fun logxor (a b) "(~a ^ ~a)" (v-int v-ivec3) v-ivec3 :pure t)
@@ -116,7 +117,7 @@
 
 
 (v-def-glsl-template-fun logxor (a b c &rest c) "logxor(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
+                         (t t t &rest t) t :pure t)
 
 (v-define-compiler-macro logxor ((a t) (b t) (c t) &rest (d t))
   `(logand ,a (logand ,b (logand ,c ,@d))))
@@ -126,7 +127,8 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun logior (a) "0" (v-integer) 0 :pure t)
+(v-def-glsl-template-fun logior (a) "0" (:int) :int :pure t)
+(v-def-glsl-template-fun logior (a) "0u" (:uint) :uint :pure t)
 (v-def-glsl-template-fun logior (a b) "(~a | ~a)" (v-int v-int) v-int :pure t)
 (v-def-glsl-template-fun logior (a b) "(~a | ~a)" (v-int v-ivec2) v-ivec2 :pure t)
 (v-def-glsl-template-fun logior (a b) "(~a | ~a)" (v-int v-ivec3) v-ivec3 :pure t)
@@ -151,7 +153,7 @@
 (v-def-glsl-template-fun logior (a b) "(~a | ~a)" (v-int v-int) v-int :pure t)
 
 (v-def-glsl-template-fun logior (a b c &rest c) "logior(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
+                         (t t t &rest t) t :pure t)
 (v-define-compiler-macro logior ((a t) (b t) (c t) &rest (d t))
   `(logior ,a (logior ,b (logior ,c ,@d))))
 
@@ -165,16 +167,18 @@
 (v-def-glsl-template-fun logeql (a b) "~~(~a ^ ~a)" (v-int v-int)
                          v-int :pure t)
 (v-def-glsl-template-fun logeql (a b c &rest c) "logeql(~a, ~a, ~a, ~{, ~a~})"
-                         (t t t &rest t) 0 :pure t)
+                         (t t t &rest t) t :pure t)
 (v-define-compiler-macro logeql ((a t) (b t) (c t) &rest (d t))
   `(lognot ,a (logxor ,b ,c ,@d)))
-(v-def-glsl-template-fun logeql (a) "-1" (v-integer) 0 :pure t)
+
+(v-def-glsl-template-fun logeql (a) "-1" (:int) :int :pure t)
 (v-define-compiler-macro logeql ((a v-integer))
   `(progn ,a -1))
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun lognot (a) "(~~~a)" (v-integer) 0 :pure t)
+(v-def-glsl-template-fun lognot (a) "(~~~a)" (:int) :int :pure t)
+(v-def-glsl-template-fun lognot (a) "(~~~a)" (:uint) :uint :pure t)
 
 ;;------------------------------------------------------------
 
@@ -202,7 +206,8 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun logcount (x) "bitCount(~a)" (v-integer) 0 :pure t)
+(v-def-glsl-template-fun logcount (x) "bitCount(~a)" (:int) :int :pure t)
+(v-def-glsl-template-fun logcount (x) "bitCount(~a)" (:uint) :uint :pure t)
 
 ;;------------------------------------------------------------
 

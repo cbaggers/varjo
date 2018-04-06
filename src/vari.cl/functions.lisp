@@ -2,7 +2,9 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun identity (x) "(~a)" (v-type) 0 :pure t)
+(v-def-glsl-template-fun identity (x) "(~a)" (t) t :pure t)
+(define-vari-compiler-macro identity ((x t))
+  x)
 
 ;;------------------------------------------------------------
 

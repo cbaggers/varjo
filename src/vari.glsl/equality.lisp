@@ -7,14 +7,31 @@
 ;;------------------------------------------------------------
 
 (v-def-glsl-template-fun v-not (x &context (:330 :440)) "not(~a)"
-         (v-bvector) 0 :pure t)
+                         (v-bvec2) v-bvec2 :pure t)
+
+(v-def-glsl-template-fun v-not (x &context (:330 :440)) "not(~a)"
+                         (v-bvec3) v-bvec3 :pure t)
+
+(v-def-glsl-template-fun v-not (x &context (:330 :440)) "not(~a)"
+                         (v-bvec4) v-bvec4 :pure t)
 
 ;;------------------------------------------------------------
 
 (v-def-glsl-template-fun v-equal (x y &context (:330 :440))
   "equal(~a,~a)"
-  (v-bvector v-bvector)
-  0 :pure t)
+  (v-bvec2 v-bvec2)
+  v-bvec2 :pure t)
+
+(v-def-glsl-template-fun v-equal (x y &context (:330 :440))
+  "equal(~a,~a)"
+  (v-bvec3 v-bvec3)
+  v-bvec3 :pure t)
+
+(v-def-glsl-template-fun v-equal (x y &context (:330 :440))
+  "equal(~a,~a)"
+  (v-bvec4 v-bvec4)
+  v-bvec4 :pure t)
+
 (v-def-glsl-template-fun v-equal (x y &context (:330 :440))
   "equal(~a,~a)"
   (v-float v-float)
@@ -34,7 +51,16 @@
 
 (v-def-glsl-template-fun v-not-equal (x y &context (:330 :440))
   "notEqual(~a,~a)"
-  (v-bvector v-bvector) 0 :pure t)
+  (v-bvec2 v-bvec2) v-bvec2 :pure t)
+
+(v-def-glsl-template-fun v-not-equal (x y &context (:330 :440))
+  "notEqual(~a,~a)"
+  (v-bvec3 v-bvec3) v-bvec3 :pure t)
+
+(v-def-glsl-template-fun v-not-equal (x y &context (:330 :440))
+  "notEqual(~a,~a)"
+  (v-bvec4 v-bvec4) v-bvec4 :pure t)
+
 (v-def-glsl-template-fun v-not-equal (x y &context (:330 :440))
   "notEqual(~a,~a)"
   (v-float v-float) v-bool :pure t)

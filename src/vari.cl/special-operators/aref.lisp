@@ -1,8 +1,21 @@
 (in-package :vari.cl)
 (in-readtable :fn.reader)
 
-(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
-(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-vector v-int) (:element 0) :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-dvec4 v-int) :double :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-dvec3 v-int) :double :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-dvec2 v-int) :double :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-ivec4 v-int) :int :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-ivec3 v-int) :int :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-ivec2 v-int) :int :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-uvec4 v-int) :uint :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-uvec3 v-int) :uint :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-uvec2 v-int) :uint :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-bvec4 v-int) :bool :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-bvec3 v-int) :bool :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-bvec2 v-int) :bool :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-vec4 v-int) :float :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-vec3 v-int) :float :v-place-index 0)
+(v-def-glsl-template-fun aref (x i) "~a[~a]" (v-vec2 v-int) :float :v-place-index 0)
 
 (v-def-glsl-template-fun aref (x i j) "~a[~a][~a]" (v-mat2 v-int v-int) :float :v-place-index 0)
 (v-def-glsl-template-fun aref (x i j) "~a[~a][~a]" (v-mat3 v-int v-int) :float :v-place-index 0)
@@ -36,6 +49,39 @@
 (v-def-glsl-template-fun aref (x i) "~a[~a]" (v-mat4x3 v-int) :vec4 :v-place-index 0)
 (v-def-glsl-template-fun aref (x i) "~a[~a]" (v-mat4x4 v-int) :vec4 :v-place-index 0)
 
+;;------------------------------------------------------------
+
+(defun aref-common (func arr index env)
+  (labels ((force-flow-id (type flow-id)
+             ;; This is one of the few cases where we want to set a flow id
+             ;; regardless of the current state
+             (if (flow-ids type)
+                 (replace-flow-id type flow-id)
+                 (set-flow-id type flow-id))))
+    (let* ((type (primary-type arr))
+           (new-flow-id (first
+                         (varjo.internals::calc-regular-function-return-ids-given-args
+                          func (list arr index))))
+           (elem-type (force-flow-id (v-element-type type) new-flow-id))
+           (type-set (make-type-set elem-type)))
+      (values
+       (merge-compiled (list arr index)
+                       :type-set type-set
+                       :current-line (format nil "~a[~a]"
+                                             (current-line arr t)
+                                             (current-line index))
+                       :place-tree (varjo.internals::place-tree-cons func arr))
+       env))))
+
+(v-defspecial aref ((arr v-array) (index v-int))
+  :return (aref-common this arr index env))
+
+(v-defspecial row-major-aref ((arr v-array) (index v-int))
+  :return (aref-common this arr index env))
+
+(v-defspecial svref ((arr v-array) (index v-int))
+  :return (aref-common this arr index env))
+
 (v-defspecial aref ((arr (v-block-array "n/a" t *)) (index v-int))
   :return
   (let* ((type (primary-type arr))
@@ -49,10 +95,5 @@
                                            (current-line index)
                                            (current-line arr t)))
      env)))
-
-;;------------------------------------------------------------
-
-(v-def-glsl-template-fun row-major-aref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
-(v-def-glsl-template-fun svref (x i) "~a[~a]" (v-array v-int) (:element 0) :v-place-index 0)
 
 ;;------------------------------------------------------------

@@ -340,7 +340,10 @@
 (defun calc-place-tree (func args)
   (when (v-place-function-p func)
     (let ((i (v-place-index func)))
-      (cons (list func (elt args i)) (place-tree (elt args i))))))
+      (place-tree-cons func (elt args i)))))
+
+(defun place-tree-cons (func arg)
+  (cons (list func arg) (place-tree arg)))
 
 (defun handle-regular-function-mvals (args)
   ;; ok so by getting here a few things are true:

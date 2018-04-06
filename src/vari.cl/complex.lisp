@@ -18,7 +18,12 @@
 
 ;;----------------------------------------------------------------------
 
-(v-def-glsl-template-fun conjugate (x) "~a" (v-real) 0 :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (v-double) v-double :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (v-short-float) v-short-float :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (v-float) v-float :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (:int) :int :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (:uint) :uint :pure t)
+(v-def-glsl-template-fun conjugate (x) "~a" (v-rational) v-rational :pure t)
 
 (v-defun conjugate ((x complex))
   (complex (realpart x) (- (imagpart x))))
@@ -30,11 +35,11 @@
 (v-def-glsl-template-fun = (a b) "(~a == ~a)" (complex complex) v-bool :pure t)
 (v-def-glsl-template-fun eql (a b) "(~a == ~a)" (complex complex) v-bool)
 (v-def-glsl-template-fun equal (a b) "(~a == ~a)" (complex complex) v-bool)
-(v-def-glsl-template-fun + (a b) "(~a + ~a)" (complex complex) 0 :pure t)
-(v-def-glsl-template-fun - (a) "(-~a)" (complex) 0 :pure t)
-(v-def-glsl-template-fun - (a b) "(~a - ~a)" (complex complex) 0 :pure t)
-;; (v-def-glsl-template-fun * (a b) "(~a * ~a)" (complex complex) 0 :pure t)
-;; (v-def-glsl-template-fun / (a b) "(~a / ~a)" (complex complex) 0 :pure t)
+(v-def-glsl-template-fun + (a b) "(~a + ~a)" (complex complex) complex :pure t)
+(v-def-glsl-template-fun - (a) "(-~a)" (complex) complex :pure t)
+(v-def-glsl-template-fun - (a b) "(~a - ~a)" (complex complex) complex :pure t)
+;; (v-def-glsl-template-fun * (a b) "(~a * ~a)" (complex complex) complex :pure t)
+;; (v-def-glsl-template-fun / (a b) "(~a / ~a)" (complex complex) complex :pure t)
 (v-def-glsl-template-fun /= (a b) "(~a != ~a)" (complex complex) v-bool :pure t)
 
 (v-defun phase ((n v-float))

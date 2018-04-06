@@ -50,17 +50,101 @@
 
 ;;------------------------------------------------------------
 
-(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-real) 0 :pure t)
-(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-vector) 0 :pure t)
-(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-matrix) 0 :pure t)
-(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-real) 0 :pure t)
-(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-vector) 0 :pure t)
-(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-matrix) 0 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-double) v-double :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-short-float) v-short-float :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-float) v-float :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (:int) :int :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (:uint) :uint :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-rational) v-rational :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dvec4) v-dvec4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dvec3) v-dvec3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dvec2) v-dvec2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-ivec4) v-ivec4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-ivec3) v-ivec3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-ivec2) v-ivec2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-uvec4) v-uvec4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-uvec3) v-uvec3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-uvec2) v-uvec2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-bvec4) v-bvec4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-bvec3) v-bvec3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-bvec2) v-bvec2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-vec4) v-vec4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-vec3) v-vec3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-vec2) v-vec2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat4x4) v-mat4x4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat4x3) v-mat4x3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat4x2) v-mat4x2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat3x4) v-mat3x4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat3x3) v-mat3x3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat3x2) v-mat3x2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat2x4) v-mat2x4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat2x3) v-mat2x3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat2x2) v-mat2x2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat4) v-mat4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat3) v-mat3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-mat2) v-mat2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat4x4) v-dmat4x4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat4x3) v-dmat4x3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat4x2) v-dmat4x2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat3x4) v-dmat3x4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat3x3) v-dmat3x3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat3x2) v-dmat3x2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat2x4) v-dmat2x4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat2x3) v-dmat2x3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat2x2) v-dmat2x2 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat4) v-dmat4 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat3) v-dmat3 :pure t)
+(v-def-glsl-template-fun 1+ (a) "(~a + 1)" (v-dmat2) v-dmat2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-double) v-double :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-short-float) v-short-float :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-float) v-float :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (:int) :int :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (:uint) :uint :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-rational) v-rational :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dvec4) v-dvec4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dvec3) v-dvec3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dvec2) v-dvec2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-ivec4) v-ivec4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-ivec3) v-ivec3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-ivec2) v-ivec2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-uvec4) v-uvec4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-uvec3) v-uvec3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-uvec2) v-uvec2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-bvec4) v-bvec4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-bvec3) v-bvec3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-bvec2) v-bvec2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-vec4) v-vec4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-vec3) v-vec3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-vec2) v-vec2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat4x4) v-mat4x4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat4x3) v-mat4x3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat4x2) v-mat4x2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat3x4) v-mat3x4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat3x3) v-mat3x3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat3x2) v-mat3x2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat2x4) v-mat2x4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat2x3) v-mat2x3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat2x2) v-mat2x2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat4) v-mat4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat3) v-mat3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-mat2) v-mat2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat4x4) v-dmat4x4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat4x3) v-dmat4x3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat4x2) v-dmat4x2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat3x4) v-dmat3x4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat3x3) v-dmat3x3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat3x2) v-dmat3x2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat2x4) v-dmat2x4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat2x3) v-dmat2x3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat2x2) v-dmat2x2 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat4) v-dmat4 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat3) v-dmat3 :pure t)
+(v-def-glsl-template-fun 1- (a) "(~a - 1)" (v-dmat2) v-dmat3 :pure t)
 
 ;; not really accurate as loses side effects of prototype
 ;; we use the compiler macro to patch this up
-(v-def-glsl-template-fun float (x p) "float(~a)" (v-real v-float) 0 :pure t)
-(v-def-glsl-template-fun float (x p) "double(~a)" (v-real v-double) 0 :pure t)
+(v-def-glsl-template-fun float (x p) "float(~a)" (v-real v-float) v-float :pure t)
+(v-def-glsl-template-fun float (x p) "double(~a)" (v-real v-double) v-double :pure t)
 
 (v-define-compiler-macro float ((x v-real) (p v-float))
   (if (numberp p)
@@ -74,13 +158,14 @@
 
 
 ;; Could use v-integer for both of these when we add that
-(v-def-glsl-template-fun integer-length (x) "32" (v-int) 0 :pure t)
+
+(v-def-glsl-template-fun integer-length (x) "32" (v-int) v-int :pure t)
 (v-define-compiler-macro integer-length ((x v-int))
   (if (numberp x)
       32
       `(progn ,x 32)))
 
-(v-def-glsl-template-fun integer-length (x) "32" (v-uint) 0 :pure t)
+(v-def-glsl-template-fun integer-length (x) "32" (v-uint) v-int :pure t)
 (v-define-compiler-macro integer-length ((x v-uint))
   (if (numberp x)
       32
@@ -88,7 +173,12 @@
 
 
 ;; TODO: Incorrect, signum type should be based on argument
-(v-def-glsl-template-fun signum (x) "sign(~a)" (v-real) 0 :pure t)
+(v-def-glsl-template-fun signum (a) "sign(~a)" (v-double) v-double :pure t)
+(v-def-glsl-template-fun signum (a) "sign(~a)" (v-short-float) v-short-float :pure t)
+(v-def-glsl-template-fun signum (a) "sign(~a)" (v-float) v-float :pure t)
+(v-def-glsl-template-fun signum (a) "sign(~a)" (:int) :int :pure t)
+(v-def-glsl-template-fun signum (a) "sign(~a)" (:uint) :uint :pure t)
+(v-def-glsl-template-fun signum (a) "sign(~a)" (v-rational) v-rational :pure t)
 (v-def-glsl-template-fun evenp (x) "(~a % 2 == 0)" (v-int) v-bool :pure t)
 (v-def-glsl-template-fun evenp (x) "(~a % 2 == 0)" (v-uint) v-bool :pure t)
 (v-def-glsl-template-fun oddp (x) "(~a % 2 != 0)" (v-int) v-bool :pure t)
@@ -123,7 +213,8 @@
                          v-uint :pure t)
 
 ;; natural log for 1 arg already defined in glsl
-(v-def-glsl-template-fun log (x b) "(log2(~a) / log2(~a))" (v-float v-float) 0 :pure t)
+(v-def-glsl-template-fun log (x b) "(log2(~a) / log2(~a))"
+                         (v-float v-float) v-float :pure t)
 
 ;;------------------------------------------------------------
 ;; Limited Complement
@@ -169,7 +260,7 @@ Try qualifying the types in order to pass complement a specific overload."))
 ;;------------------------------------------------------------
 
 (v-def-glsl-template-fun float-radix (x) "£-float-radix-£(~a)"
-                         (v-float) 0 :pure t)
+                         (v-float) v-float :pure t)
 
 (v-define-compiler-macro float-radix ((a v-float))
   (if (floatp a)
@@ -177,7 +268,7 @@ Try qualifying the types in order to pass complement a specific overload."))
       `(progn ,a 2)))
 
 (v-def-glsl-template-fun float-digits (x) "£-float-digits-£(~a)"
-                         (v-float) 0 :pure t)
+                         (v-float) v-float :pure t)
 
 (v-define-compiler-macro float-digits ((a v-float))
   (if (floatp a)

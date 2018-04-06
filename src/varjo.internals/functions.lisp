@@ -43,6 +43,7 @@
     (when uniforms (error 'uniform-in-sfunc :func-name name))
     (unless (or (stringp transform) (null transform))
       (error 'invalid-v-defun-template :func-name name :template transform))
+    (assert (or (null v-place-index) (numberp v-place-index)))
     (let ((arg-types (if (listp arg-types)
                          (mapcar #'arg-form->type arg-types)
                          arg-types)))
@@ -76,11 +77,6 @@
   (cond
     ((or (eq x :void) (eq x 'v-void)) (make-type-set))
     ((functionp x) x)
-    ((null x) (vector (make-instance 'ret-gen-superior-type)))
-    ((numberp x) (vector (make-instance 'ret-gen-nth-arg-type
-                                        :arg-num x)))
-    ((element-spec-p x) (vector (make-instance 'ret-gen-element-of-nth-arg-type
-                                               :arg-num (second x))))
     ((typep x 'v-type) (make-type-set x))
     ((type-specp x) (make-type-set (type-spec->type x)))
     ;; {TODO} proper error
@@ -105,6 +101,7 @@
 
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
+(defvar *special-count* 0)
 (defmacro define-vari-special-operator (name args &body body)
   (destructuring-bind (in-args uniforms context rest optional shared)
       (split-arguments args '(&uniform &context &rest &optional &shared))
@@ -115,41 +112,42 @@
                       (concatenate 'list in-args
                                    (when rest (cons '&rest rest))
                                    (when rest (cons '&optional optional)))))
-          (func-name (symb :vs- name))
           (env (symb :env))
           (this (symb :this)))
       (destructuring-bind (&key context v-place-index args-valid return) body
         (cond
           ((eq args-valid t)
-           `(progn
-              (defun ,func-name (,env ,this &rest sargs)
-                (declare (ignorable ,env ,this))
-                (handler-case
-                    (destructuring-bind ,args sargs
-                      (declare (ignore ,@(extract-lambda-list-names args))))
-                  (error () (error 'invalid-arguments-for-special-op
-                                   :name ',name
-                                   :args sargs)))
-                (destructuring-bind ,args sargs
-                  (declare (ignorable ,@arg-names))
-                  ,return))
-              (add-global-form-binding
-               (make-function-obj ',name :special ',context t
-                                  #',func-name
-                                  :v-place-index ',v-place-index))
-              ',name))
-          (t `(progn
-                (defun ,func-name ,(append (list env this)
-                                           (mapcar #'first args))
-                  (declare (ignorable ,env ,this ,@arg-names))
-                  ,return)
+           (let ((func-name (symb :vs- name :- (incf *special-count*))))
+             `(progn
+                (defun ,func-name (,env ,this &rest sargs)
+                  (declare (ignorable ,env ,this))
+                  (handler-case
+                      (destructuring-bind ,args sargs
+                        (declare (ignore ,@(extract-lambda-list-names args))))
+                    (error () (error 'invalid-arguments-for-special-op
+                                     :name ',name
+                                     :args sargs)))
+                  (destructuring-bind ,args sargs
+                    (declare (ignorable ,@arg-names))
+                    ,return))
                 (add-global-form-binding
-                 (make-function-obj ',name :special ',context
-                                    ',(mapcar λ(type-spec->type (second _))
-                                              args)
+                 (make-function-obj ',name :special ',context t
                                     #',func-name
                                     :v-place-index ',v-place-index))
-                ',name)))))))
+                ',name)))
+          (t (let ((func-name (symb :vs- name :- (incf *special-count*))))
+               `(progn
+                  (defun ,func-name ,(append (list env this)
+                                             (mapcar #'first args))
+                    (declare (ignorable ,env ,this ,@arg-names))
+                    ,return)
+                  (add-global-form-binding
+                   (make-function-obj ',name :special ',context
+                                      ',(mapcar λ(type-spec->type (second _))
+                                                args)
+                                      #',func-name
+                                      :v-place-index ',v-place-index))
+                  ',name))))))))
 
 ;;------------------------------------------------------------
 
@@ -416,8 +414,7 @@ however failed to do so when asked."
                       :arguments nil))))))
 
 (defun resolve-func-set (func compiled-args)
-  (let* ((arg-types (map 'list #'primary-type compiled-args))
-         (new-flow-ids (funcall
+  (let* ((new-flow-ids (funcall
                         (if (multi-return-function-p func)
                             #'calc-mfunction-return-ids-given-args
                             #'calc-regular-function-return-ids-given-args)
@@ -433,22 +430,6 @@ however failed to do so when asked."
                (typecase spec
                  (v-type
                   (force-flow-id spec new-flow-id))
-
-                 (ret-gen-superior-type
-                  (or (force-flow-id (apply #'find-mutual-cast-type arg-types)
-                                     new-flow-id)
-                      (error 'unable-to-resolve-func-type
-                             :func-name (name func) :args compiled-args)))
-
-                 (ret-gen-nth-arg-type
-                  (force-flow-id (nth (arg-num spec) arg-types)
-                                 new-flow-id))
-
-                 (ret-gen-element-of-nth-arg-type
-                  (force-flow-id (v-element-type (nth (arg-num spec)
-                                                      arg-types))
-                                 new-flow-id))
-
                  (t (error 'invalid-function-return-spec
                            :func func
                            :spec spec)))))

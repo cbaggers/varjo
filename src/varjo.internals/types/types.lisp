@@ -655,24 +655,18 @@
                                 &optional name)
   (labels ((extract (x)
              (etypecase x
-               (v-type (type->type-spec x))
-               (ret-gen-superior-type :mutual-cast)
-               (ret-gen-nth-arg-type
-                (type->type-spec
-                 (elt argument-spec (arg-num x))))
-               (ret-gen-element-of-nth-arg-type
-                (type->type-spec
-                 (v-element-type
-                  (elt argument-spec (arg-num x))))))))
+               (v-type (type->type-spec x)))))
     (format stream "#<~a~@[ ~s~] ~s -> ~s>"
             header-string
             name
             (if (eq t argument-spec)
                 '(t*)
                 (mapcar #'arg-form->type-spec argument-spec))
-            (if (vectorp return-spec)
-                (map 'list #'extract return-spec)
-                return-spec))))
+            (etypecase return-spec
+              (array (map 'list #'extract return-spec))
+              (function return-spec)
+              ;; this is needed for v-function-type
+              (null nil)))))
 
 (defmethod print-object ((object v-function-type) stream)
   (with-slots (name argument-spec return-spec) object
@@ -689,9 +683,6 @@
   (and (typep type 'v-function-type)
        (ctv type)
        (implicit-args (ctv type))))
-
-(defmethod type->type-spec ((type return-type-generator))
-  type)
 
 (defmethod type->type-spec ((type v-function-type))
   (with-slots (argument-spec return-spec) type
@@ -901,8 +892,7 @@
 ;;------------------------------------------------------------
 
 (defun valid-return-spec-member-p (x)
-  (or (typep x 'return-type-generator)
-      (valid-type-set-member-p x)))
+  (valid-type-set-member-p x))
 
 (defun valid-func-return-spec-p (spec)
   (or (functionp spec)
