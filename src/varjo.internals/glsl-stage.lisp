@@ -79,6 +79,7 @@
             #'gen-in-decl-strings
             #'gen-out-var-strings
             #'final-uniform-strings
+            #'gen-shared-decls
             #'final-string-compose
             #'package-as-final-result-object)))))))
 

@@ -24,7 +24,9 @@
                        primitive)
   (when (and (every #'check-arg-form input-variables)
              (every #'check-arg-form uniform-variables)
-             (check-for-dups input-variables uniform-variables))
+             (check-for-dups input-variables
+                             uniform-variables
+                             shared-variables))
     (labels ((early-qualifier-checks (name vkind whole qualifiers)
                (let* ((is-ubo (find :ubo qualifiers))
                       (is-ssbo (find :ssbo qualifiers))
@@ -142,6 +144,7 @@
   (:method ((stage stage)
             &key (input-variables nil iv-set)
               (uniform-variables nil uv-set)
+              (shared-variables nil sv-set)
               (context nil c-set)
               (lisp-code nil lc-set)
               (previous-stage nil ps-set)
@@ -156,6 +159,9 @@
      :uniform-variables (if uv-set
                             uniform-variables
                             (uniform-variables stage))
+     :shared-variables (if sv-set
+                           shared-variables
+                           (shared-variables stage))
      :context (if c-set
                   context
                   (context stage))
@@ -246,8 +252,10 @@
   t)
 
 ;;{TODO} proper error
-(defun check-for-dups (in-args uniforms)
-  (if (intersection (mapcar #'first in-args) (mapcar #'first uniforms))
+(defun check-for-dups (in-args uniforms shared)
+  (if (intersection (intersection (mapcar #'first in-args)
+                                  (mapcar #'first uniforms))
+                    (mapcar #'first shared))
       (error "Varjo: Duplicates names found between in-args and uniforms")
       t))
 
