@@ -31,6 +31,55 @@
       (add-alt-ephemeral-constructor-function src-type-name alt-type-name)))
   alt-type-name)
 
+(defun remove-alternate-type-name (alt-type-name)
+  (let ((alt-type (type-spec->type alt-type-name))
+        (src-type-name (gethash alt-type-name *alternate-ht*)))
+    (assert src-type-name ()
+            'unknown-alt-type-name
+            :name alt-type-name)
+    ;;
+    ;; Remove all functions & macros that have the type in their signatures
+    (maphash
+     (lambda (k v)
+       (declare (ignore k))
+       (loop :for binding :in v :do
+          (typecase binding
+            ((or v-function external-function)
+             (when (or (argument-spec-includes-type binding alt-type)
+                       (return-spec-includes-type binding alt-type))
+               (remove-global-form-binding binding))))))
+     *global-env-form-bindings*)
+    (maphash
+     (lambda (k v)
+       (declare (ignore k))
+       (loop :for binding :in v :do
+          (when (argument-spec-includes-type binding alt-type)
+            (remove-global-compiler-macro binding))))
+     *global-env-compiler-macros*)
+    ;;
+    ;; And finally remove the alias
+    (remhash alt-type-name *alternate-ht*)
+    (remhash src-type-name *alternate-ht-backward*))
+  nil)
+
+(defun argument-spec-includes-type (func type)
+  (assert (typep func '(or v-function external-function v-compiler-macro)))
+  (assert (typep type 'v-type))
+  (flet ((t-eq (x y)
+           (when (typep y 'v-type)
+             (v-type-eq x y))))
+    (and (listp (v-argument-spec func))
+         (find type (v-argument-spec func) :test #'t-eq))))
+
+(defun return-spec-includes-type (func type)
+  (assert (typep func '(or v-function external-function)))
+  (assert (typep type 'v-type))
+  (flet ((t-eq (x y)
+           (when (typep y 'v-type)
+             (v-type-eq x y))))
+    (and (arrayp (v-return-spec func))
+         (find type (v-return-spec func) :test #'t-eq))))
+
 ;;------------------------------------------------------------
 ;; Type predicate
 

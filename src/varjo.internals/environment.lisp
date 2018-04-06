@@ -529,6 +529,14 @@ For example calling env-prune on this environment..
 (defmethod get-global-compiler-macro (macro-name)
   (gethash macro-name *global-env-compiler-macros*))
 
+(defun remove-global-compiler-macro (binding)
+  (check-type binding v-compiler-macro)
+  (let ((name (name binding)))
+    (assert (gethash name *global-env-compiler-macros*))
+    (setf (gethash name *global-env-compiler-macros*)
+          (delete binding (gethash name *global-env-compiler-macros*)))
+    nil))
+
 ;;-------------------------------------------------------------------------
 
 (defmethod %add-symbol-binding (var-name (val v-value) (env base-environment))
@@ -631,15 +639,23 @@ For example calling env-prune on this environment..
                               current-bindings)))))
   func-obj)
 
-;; Standard Environment
-;;
-(defmethod add-form-binding ((compiled-func compiled-function-result)
-                             (env environment))
-  (let* ((func (function-obj compiled-func)))
-    (when (shadow-global-check (name func))
-      (assert (typep func 'v-function))
-      (setf (compiled-functions env func) compiled-func)
-      (add-form-binding func env))))
+(defun remove-global-form-binding (binding)
+  (check-type binding (or v-function v-regular-macro))
+  (let ((name (name binding)))
+    (assert (gethash name *global-env-form-bindings*))
+    (setf (gethash name *global-env-form-bindings*)
+          (delete binding (gethash name *global-env-form-bindings*)))
+    nil)
+
+  ;; Standard Environment
+  ;;
+  (defmethod add-form-binding ((compiled-func compiled-function-result)
+                               (env environment))
+    (let* ((func (function-obj compiled-func)))
+      (when (shadow-global-check (name func))
+        (assert (typep func 'v-function))
+        (setf (compiled-functions env func) compiled-func)
+        (add-form-binding func env)))))
 
 (defmethod add-form-binding ((func v-function)
                              (env environment))

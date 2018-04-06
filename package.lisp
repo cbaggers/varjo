@@ -356,6 +356,7 @@
            :incorrect-stage-for-shared-variables
            :shared-opaque
            :alt-type-name-already-taken
+           :unknown-alt-type-name
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -582,6 +583,7 @@
            :feedback-group
            :qualify-type
            :raw-out-set
+           :remove-alternate-type-name
            :register-reserved-name
            :replace-flow-id
            :replace-flow-ids-for-single-var
@@ -748,6 +750,7 @@
    :add-equivalent-name
    :define-alternate-type-name
    :add-alternate-type-name
+   :remove-alternate-type-name
    :combine-metadata
    :core-typep
    :def-metadata-infer

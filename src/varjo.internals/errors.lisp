@@ -1276,6 +1276,12 @@ An attempt was found to define '~a' as an alternate type name for '~a' however
 ~a names an existing type.
 " alt-name src-name alt-name)
 
+(define-error unknown-alt-type-name () (name)
+    "
+We were asked to remove the alternate type name '~a' however we are unable
+to find that alias.
+" name)
+
 ;;type->type-spec
 
 ;;
