@@ -13,7 +13,7 @@
     (break (format nil "Varjo compiler breakpoint (~~a):~%~a~%~%~~a"
                    (apply #'format nil (or datum "~{~s~}") args))
            env
-           (mapcar λ(compile-form _ env) args))
+           (mapcar (lambda (x) (compile-form x env)) args))
     (compile-form '(values) env)))
 
 (v-defspecial %peek (form)

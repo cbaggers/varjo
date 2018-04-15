@@ -60,7 +60,7 @@
     (compile-form
      `(let ((,gkey ,key-obj))
         (cond
-          ,@(loop :for (obj primtype body) :in clauses-obj-primtype-body-env
+          ,@(loop :for (obj nil body) :in clauses-obj-primtype-body-env
                :collect `((eql ,gkey ,obj) ,@body))
           ,@(when otherwise
               `((t ,@otherwise)))))

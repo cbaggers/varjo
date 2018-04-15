@@ -702,6 +702,7 @@ For example calling env-prune on this environment..
 
 ;; Base Environment
 (defmethod add-form-binding (anything (env base-environment))
+  (declare (ignore anything env))
   (error "BUG: add-form-binding called on base-environment"))
 
 (defmethod %add-function (func-name (func-spec v-function)

@@ -18,6 +18,7 @@
            ,(if (equal then else)
                 then
                 `(let ((type (varjo:argument-type ',arg-name env)))
+                   (declare (ignorable type))
                    (list 'progn
                          ,arg-name
                          (if (or ,@(loop :for arg :in args :collect

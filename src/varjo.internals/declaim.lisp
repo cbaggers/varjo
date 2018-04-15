@@ -7,9 +7,9 @@
      (apply-declaration-specifiers ',declaration-specifiers)))
 
 (defun apply-declaration-specifiers (specifiers)
-  (let* ((errors (mapcar #'apply-declaration-specifier specifiers))
-         (errors (remove nil errors)))
-    (declare (ignore errors))
+  (let* ((errors-0 (mapcar #'apply-declaration-specifier specifiers))
+         (errors-1 (remove nil errors-0)))
+    (declare (ignore errors-1))
     nil))
 
 (defun apply-declaration-specifier (specifier)

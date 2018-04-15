@@ -23,7 +23,7 @@
   ;; This ↓↓ mutates the env but nothing else
   (compile-declares declarations env)
   ;; This ↓↓ make code objects for the decls and splices them in
-  (let* ((decls (loop :for d :in declarations :collect
+  (let* ((decls (loop :for nil :in declarations :collect
                    (compile-form '(values) env))))
     (compile-form `(progn ,@decls ,@body) env)))
 

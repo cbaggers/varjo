@@ -47,7 +47,7 @@
   ;; - adding a trait has to check for existing functions with that name
   ;;   if they arent functions of that same trait then fail
   (let ((funcs (slot-value spec 'function-signatures)))
-    (loop :for (func-name . arg-types) :in funcs :do
+    (loop :for (func-name . nil) :in funcs :do
        (let* ((bindings (get-global-form-binding func-name))
               (functions (when bindings
                            (remove-if #'trait-function-p
@@ -137,7 +137,7 @@
       (loop :for (name func) :in provided-funcs :do
          (assert
           (loop
-             :for (req-name . req-types) :in required-funcs
+             :for (nil . req-types) :in required-funcs
              :thereis
              (let ((complete-req-types (mapcar #'complete-req-type req-types)))
                (and (func-args-satisfy-p func complete-req-types)
