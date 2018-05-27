@@ -113,11 +113,15 @@
 (defvar *return-var-name-base* "return")
 
 (defvar *type-shorthand*
+  ;; WARNING ORDER SENSITIVE
+  ;; int32 & uint32 must come before :int & :uint otherwise
+  ;; (type->type-spec (type-spec->type :int)) resolves to
+  ;; :int32, when it should be :int
   '((:bool . v-bool)
-    (:int . v-int)
-    (:uint . v-uint)
     (:int32 . v-int)
     (:uint32 . v-uint)
+    (:int . v-int)
+    (:uint . v-uint)
     (:float . v-float)
     (:short-float . v-short-float)
     (:double . v-double)
