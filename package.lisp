@@ -317,6 +317,7 @@
            :v-def-template-arg-mismatch
            :cannot-take-reference-to-&rest-func
            :illegal-&rest-in-args
+           :illegal-&uniform-in-args
            :attempted-transform-feedback-in-fragment-shader
            :transform-feedback-incorrect-stage
            :invalid-feedback-qualifier-form
