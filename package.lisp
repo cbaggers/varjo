@@ -337,6 +337,7 @@
            :opaque-data-found
            :invalid-output-primitive-for-geometry
            :let-or
+           :let-or-functions
            :let-void
            :let-discarded
            :let-returned

@@ -171,7 +171,7 @@
                                       (if value-form
                                           (flow-ids value-obj)
                                           (flow-id!))))))
-    (%validate-var-types name type-obj value-obj)
+    (%validate-var-types name type-obj value-obj value-form)
     (let* ((let-obj
             (cond
               ;; handle unrepresentable values
@@ -227,9 +227,17 @@
           (when (typep value 'v-value)
             (v-read-only value)))))))
 
-(defun %validate-var-types (var-name type code-obj)
+(defun %validate-var-types (var-name type code-obj form)
   (when (and code-obj (v-typep (primary-type code-obj) 'v-or))
-    (error 'let-or :name var-name :type (primary-type code-obj)))
+    (let ((ptype (primary-type code-obj)))
+      (if (and ptype
+               (every (lambda (x) (typep x 'v-function-type))
+                      (v-types ptype)))
+          (error 'let-or-functions
+                 :name var-name
+                 :type ptype
+                 :form form)
+          (error 'let-or :name var-name :type (primary-type code-obj)))))
   (when (and code-obj (v-discarded-p code-obj))
     (error 'let-discarded :name var-name))
   (when (and code-obj (v-returned-p code-obj))

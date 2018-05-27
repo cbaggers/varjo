@@ -1156,6 +1156,31 @@ can't infer a single valid type for this form and this is triggering this
 issue."
   name (type->type-spec type))
 
+(define-error let-or-functions () (name type form)
+    "
+Could not statically resolve function when assigning to ~a
+
+Varjo needs to be able to statically resolve where functions are passed as
+GLSL itself does not support first class functions.
+
+Varjo could of course pass around an object representing the function (such as
+an :int) and add a switch at each call-site, however this would result
+in non-obvious performance characteristics (such as the effect on divergence)
+
+This usually happens due to the use of a conditions (like an 'if') where the
+different branches of the conditional have different types. Due to this CEPL
+can't infer a single valid type for this form and this is triggering this
+issue.
+
+Code:
+~a
+
+Type:
+~a
+"
+  name
+  form
+  (type->type-spec type))
 
 (define-error let-returned () (name)
     "Found an attempt to 'let' a local variable called ~a, however the form
