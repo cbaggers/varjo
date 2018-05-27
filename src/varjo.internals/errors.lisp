@@ -942,6 +942,52 @@ The places where &rest can be used are:
 - glsl-template-functions: Where we can use ~~{...~~} in the format string"
   func-name arg-specs)
 
+(define-error illegal-&uniform-in-args () (func-name arg-specs)
+    "Illegal &uniform found in function called from within stage
+
+The function in question was ~a
+
+TLDR: Vari does not yet support directly calling function taking uniforms.
+
+Arguments: ~a
+
+> The rest of this error report is a discussion of why this feature is not
+> currently supported. Feel free to ignore it.
+
+External functions taking uniforms cannot be called firectly from
+Varjo. This may be surprising as you may have seen that some third
+party libraries that use Varjo (like CEPL) use functions for their
+stages, however that is all handled internally to those systems.
+
+There has been discussion of whether to support this. One possibility
+is to treat them like keyword args, which is nice in that it fits
+with the &key style syntax we use. In that case a external function
+
+    (define-vari-function some-func ((x :float) &uniform (y :int))
+      ..)
+
+Could be called like:
+
+    (some-func 10 :y 20)
+
+However there are issues:
+- keywords are optional, do we then require defaults?
+- how do the third party libs handle defaults? we must not force them to
+  generate slower code (like extra conditionals)
+
+If we dont use the keyword syntax then we could be like &optional,
+however the issue of defaults still remains.
+
+If we require providing all &uniform args then we are diverging further
+from Common Lisp behaviour and so are adding more things for users to
+learn.
+
+Lastly we would have to define how &uniform interacts with &optional.
+
+In all it's not trivial to add without making something rather foreign.
+Suggestions are welcome on github however."
+  func-name arg-specs)
+
 (define-error cannot-take-reference-to-&rest-func () (func-name)
     "Cannot take reference to ~a
 

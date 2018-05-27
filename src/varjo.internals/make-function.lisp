@@ -38,13 +38,18 @@
   ;; type-spec->type take care of this, however this way we get to
   ;; give better error messages (and also impose extra limitations
   (unless (function-raw-args-validp args)
-    (if (some #'&rest-p args)
-        (error 'illegal-&rest-in-args
-               :func-name name
-               :arg-specs args)
-        (error 'bad-make-function-args
-               :func-name name
-               :arg-specs (remove-if #'function-raw-arg-validp args))))
+    (cond
+      ((some #'&rest-p args)
+       (error 'illegal-&rest-in-args
+              :func-name name
+              :arg-specs args))
+      ((some #'&uniform-p args)
+       (error 'illegal-&uniform-in-args
+              :func-name name
+              :arg-specs args))
+      (t (error 'bad-make-function-args
+                :func-name name
+                :arg-specs (remove-if #'function-raw-arg-validp args)))))
   ;;
   ;; Parse the types
   (let* (;; parse the args seperately as this save us doing it twice

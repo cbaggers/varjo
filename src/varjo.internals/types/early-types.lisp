@@ -70,6 +70,11 @@ type-spec trick doesnt"))
 
 ;;------------------------------------------------------------
 
+(defun &uniform-p (x)
+  (and (symbolp x) (string= x :&uniform)))
+
+;;------------------------------------------------------------
+
 (defun &rest-p (x)
   (and (symbolp x) (string= x :&rest)))
 
