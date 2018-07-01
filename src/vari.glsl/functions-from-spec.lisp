@@ -65,3 +65,5 @@
 
 (populate-functions glsl-spec:*functions* nil)
 (populate-functions glsl-spec:*operators* t)
+(populate-functions glsl-spec:*vector-constructors* nil)
+(populate-functions glsl-spec:*matrix-constructors* nil)
