@@ -48,9 +48,32 @@
       (setf woop woop)
       (values))))
 
-;; (5am:def-test assign-3 (:suite assignment-tests)
-;;   (finishes-p
-;;    (compile-vert ((a :int)) :410 nil
-;;      (let ((x 10))
-;;        (decf x 1)
-;;        (v! 0 0 0 0)))))
+(5am:def-test assign-5 (:suite assignment-tests)
+  (compile-vert ((vert :vec3))
+      :450 nil
+    (let ((a vert))
+      (setf a (v! 0 0 0))
+      (v! 1 2 3 4))))
+
+(5am:def-test assign-6 (:suite assignment-tests)
+  (signals varjo-conditions:assigning-to-readonly
+    (compile-vert ((vert :vec3))
+        :450 nil
+      (let ((a vert))
+        (setf vert (v! 0 0 0))
+        (v! 1 2 3 4)))))
+
+(5am:def-test assign-7 (:suite assignment-tests)
+  (signals varjo-conditions:non-place-assign
+    (compile-vert ((vert pos-col))
+        :450 nil
+      (let ((a vert))
+        (setf (col a) (v! 0 0 0 0))
+        (v! 1 2 3 4)))))
+
+(5am:def-test assign-8 (:suite assignment-tests)
+  (finishes-p
+   (compile-vert ((a :int)) :410 nil
+     (let ((x 10))
+       (decf x 1)
+       (v! 0 0 0 0)))))
