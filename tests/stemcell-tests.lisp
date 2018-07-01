@@ -24,3 +24,12 @@
     (finishes-p
      (compile-vert () :410 t
        (v! *some-test-var* 0 0 1)))))
+
+(5am:def-test stemcells-1 (:suite stemcell-tests)
+  (labels ((test-returning-nil (name)
+             (declare (ignore name))
+             nil))
+    (varjo:with-stemcell-infer-hook #'test-returning-nil
+      (signals varjo-conditions:symbol-unidentified
+       (compile-vert () :410 t
+         (v! *some-test-var* 0 0 1))))))

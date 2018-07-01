@@ -6,10 +6,6 @@
             (*stemcell-infer-hook* ,func-name))
        ,@body)))
 
-(defun suitable-symbol-for-stemcellp (symb env)
-  (and (allows-stemcellsp env)
-       (boundp symb)))
-
 (defun add-type-to-stemcell-code (code-obj type-name)
   (assert (stemcellp (primary-type code-obj)))
   (let ((type (type-spec->type type-name (flow-ids code-obj)))

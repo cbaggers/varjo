@@ -900,10 +900,12 @@ See `add-lisp-form-as-uniform` for more details.
       "
 When `translate` is called within the dynamic extern of the body of this form,
 if there is a use of a variable which is not in scope in the Vari code, but
-is `boundp` & not constant in the Common Lisp environment then the user
-provided  function will be called with the symbol naming the variable.
-The user provided function must  return a Vari type-spec or throw an error to
-inform the user of the issue.
+is not constant in the Common Lisp environment then the user provided function
+will be called with the symbol naming the variable.
+The user provided function can:
+- Return a Vari type-spec. This will become the type of the form.
+- Return nil to have Varjo tell the user that the symbol is unbound.
+- Throw an error. If you wish to inform the user that something else is awry.
 ")
   (defmacro with-constant-inject-hook
       "

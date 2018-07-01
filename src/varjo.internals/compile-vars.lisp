@@ -26,12 +26,12 @@
                               (funcall *constant-inject-hook* var-name))))
     (cond
       (constant-to-inject (compile-form constant-to-inject env))
-      ((suitable-symbol-for-stemcellp var-name env)
+      ((allows-stemcellsp env)
        (let ((scell (make-stem-cell var-name env))
              (assumed-type (funcall *stemcell-infer-hook* var-name)))
          (if assumed-type
              (add-type-to-stemcell-code scell assumed-type)
-             scell)))
+             (error 'symbol-unidentified :sym var-name))))
       (t (error 'symbol-unidentified :sym var-name)))))
 
 (defun expand-symbol-macro (binding env)
