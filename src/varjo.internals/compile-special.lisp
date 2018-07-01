@@ -138,17 +138,22 @@
 ;; {TODO} use boundp to error on shadowing specials. Explain that varjo
 ;;        cannot provide dynamic scope so this should be avoided
 (defun compile-let (name type-spec value-form env
-                    &optional glsl-name (assume-bound t))
+                    &optional glsl-name (assume-bound t)
+                      (read-only-from-value-p t))
   (if (and (symbolp value-form) (null type-spec))
       (compile-let-maybe-elide name type-spec value-form env
-                               glsl-name assume-bound)
+                               glsl-name assume-bound
+                               read-only-from-value-p)
       (compile-regular-let name type-spec value-form env
-                           glsl-name assume-bound)))
+                           glsl-name assume-bound
+                           read-only-from-value-p)))
 
 (defun compile-let-maybe-elide (name type-spec value-form env
-                                glsl-name assume-bound)
+                                glsl-name assume-bound
+                                read-only-from-value-p)
   (let ((binding (get-symbol-binding value-form t env)))
     (if (and (typep binding 'v-value)
+             (not (v-read-only binding))
              (not (typep binding 'uninitialized-value)))
         (let ((binding-with-new-scope-id
                (copy-value binding :function-scope (v-function-scope env))))
@@ -160,10 +165,12 @@
                           :pure t)
            (add-symbol-binding name binding-with-new-scope-id env)))
         (compile-regular-let name type-spec value-form env
-                             glsl-name assume-bound))))
+                             glsl-name assume-bound
+                             read-only-from-value-p))))
 
 (defun compile-regular-let (name type-spec value-form env
-                            glsl-name assume-bound)
+                            glsl-name assume-bound
+                            read-only-from-value-p)
   (let* ((value-obj (when value-form (compile-form value-form env)))
          (glsl-name (or glsl-name (lisp-name->glsl-name name env)))
          (type-obj (when type-spec
@@ -214,7 +221,8 @@
             (v-make-value (or type-obj (primary-type value-obj))
                           env
                           :glsl-name glsl-name
-                          :read-only (code-obj-read-only-p value-obj)))
+                          :read-only (when read-only-from-value-p
+                                       (code-obj-read-only-p value-obj))))
         env)))))
 
 (defun code-obj-read-only-p (obj)

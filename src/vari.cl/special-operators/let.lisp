@@ -19,7 +19,7 @@
               (compile-forms-not-propagating-env-returning-list-of-compiled
                (lambda (p-env binding)
                  (with-v-let-spec binding
-                   (compile-let name type-spec value-form p-env nil nil)))
+                   (compile-let name type-spec value-form p-env nil nil nil)))
                p-env bindings)
               (compile-declares declarations p-env)
               (with-fresh-env-scope (based-env p-env :multi-val-base base)
