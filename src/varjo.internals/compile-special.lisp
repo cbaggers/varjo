@@ -139,31 +139,6 @@
 ;;        cannot provide dynamic scope so this should be avoided
 (defun compile-let (name type-spec value-form env
                     &optional glsl-name (assume-bound t))
-  (if (and (symbolp value-form) (null type-spec))
-      (compile-let-maybe-elide name type-spec value-form env
-                               glsl-name assume-bound)
-      (compile-regular-let name type-spec value-form env
-                           glsl-name assume-bound)))
-
-(defun compile-let-maybe-elide (name type-spec value-form env
-                                glsl-name assume-bound)
-  (let ((binding (get-symbol-binding value-form t env)))
-    (if (and (typep binding 'v-value)
-             (not (typep binding 'uninitialized-value)))
-        (let ((binding-with-new-scope-id
-               (copy-value binding :function-scope (v-function-scope env))))
-          ;; {TODO} what is this line for?
-          (v-variable->code-obj value-form binding-with-new-scope-id env)
-          (values
-           (make-compiled :type-set (make-type-set)
-                          :current-line nil
-                          :pure t)
-           (add-symbol-binding name binding-with-new-scope-id env)))
-        (compile-regular-let name type-spec value-form env
-                             glsl-name assume-bound))))
-
-(defun compile-regular-let (name type-spec value-form env
-                            glsl-name assume-bound)
   (let* ((value-obj (when value-form (compile-form value-form env)))
          (glsl-name (or glsl-name (lisp-name->glsl-name name env)))
          (type-obj (when type-spec
