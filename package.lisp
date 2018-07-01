@@ -601,6 +601,7 @@
            :set-flow-id
            :signatures
            :stage
+           :stage-kind
            :stage-where-first-return-is-position-p
            :starting-stage
            :stemcellp
@@ -801,6 +802,7 @@
    ;; stages
    :make-stage
    :create-stage
+   :stage-kind
    :lisp-code
    :input-variables
    :uniform-variables

@@ -188,6 +188,10 @@
         qual-and-maybe-name)))
 
 (defun stage-obj-to-name (stage)
+  (warn "stage-obj-to-name is deprecated, please use stage-kind instead")
+  (stage-kind stage))
+
+(defun stage-kind (stage)
   (etypecase stage
     (vertex-stage :vertex)
     (tessellation-control-stage :tessellation-control)
