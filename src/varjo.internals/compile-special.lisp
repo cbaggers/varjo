@@ -189,7 +189,8 @@
             (v-make-value (or type-obj (primary-type value-obj))
                           env
                           :glsl-name glsl-name
-                          :read-only (code-obj-read-only-p value-obj)))
+                          :read-only (when (and value-obj (ephemeral-p value-obj))
+                                       (code-obj-read-only-p value-obj))))
         env)))))
 
 (defun code-obj-read-only-p (obj)

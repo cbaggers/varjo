@@ -102,7 +102,8 @@
          (glsl-name (if (or ephem-p (typep stage 'vertex-stage))
                         glsl-name
                         (prefix-in-block-to-glsl-name glsl-name))))
-    (values (v-make-value type-for-value env :glsl-name glsl-name)
+    (values (v-make-value type-for-value env :glsl-name glsl-name
+                          :read-only t)
             (list (make-instance 'input-variable
                                  :name (name input-variable)
                                  :glsl-name (glsl-name input-variable)
