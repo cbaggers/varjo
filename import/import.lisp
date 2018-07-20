@@ -220,6 +220,12 @@
            (dispatch-reference primary modifiers))
          (`(conditional (,op ,left ,right) ,then ,else)
            (import-conditional op left right then else))
+         (`(inversion ,form)
+           (import-inversion form))
+         (`(conditional ,test ,then)
+           (import-bool-when test then))
+         (`(conditional ,test ,then ,else)
+           (import-bool-if test then else))
          (`(conditional (,op ,left ,right) ,then)
            (import-conditional op left right then nil))
          (`(negation ,expr) `(- ,(import-form expr)))
@@ -251,6 +257,18 @@
     ;; (logical-xor)
     ;; (logical-or)
     ))
+
+(defun import-bool-when (test then)
+  `(when ,(import-form test)
+     ,(import-form then)))
+
+(defun import-bool-if (test then else)
+  `(if ,(import-form test)
+       ,(import-form then)
+       ,(import-form else)))
+
+(defun import-inversion (form)
+  `(not ,(import-form form)))
 
 (defun import-conditional (op left right then else)
   (if else
@@ -309,26 +327,26 @@
     (or (find-symbol name :varjo)
         (intern name))))
 
-(defvar *binary-op-lookup*
+(defparameter *binary-op-lookup*
   '((addition . +)
     (subtraction . -)
     (division . /)
     (multiplication . *)
     (modulus . mod)
-    (left-shift . foo)
-    (right-shift . foo)
+    (left-shift . <<)
+    (right-shift . >>)
     (less-than . <)
     (greater-than . >)
     (less-equal-than . <=)
     (greater-equal-than . >=)
     (equal . ==)
     (not-equal . !=)
-    (bitwise-and . foo)
-    (exclusive-or . foo)
-    (inclusive-or . foo)
-    (logical-and . foo)
-    (logical-xor . foo)
-    (logical-or . foo)))
+    (bitwise-and . &)
+    (exclusive-or . ^)
+    (inclusive-or . |\||)
+    (logical-and . and)
+    (logical-xor . ^)
+    (logical-or . or)))
 
 (defun import-binary-operator (form)
   (dbind (op left right) form
@@ -394,7 +412,8 @@
 (defun import-place (primary)
   (typecase primary
     (string (import-var-identifier primary))
-    (t (error "not implemented"))))
+    ;;(t (error "not implemented"))
+    (t (import-form primary))))
 
 (defun import-swizzle (primary swizzle)
   `(s~ ,(import-swizzlable-form primary)
