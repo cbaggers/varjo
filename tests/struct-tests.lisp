@@ -26,6 +26,14 @@
        (y position)
        (z position))))
 
+(define-vari-struct plight nil
+  (pos :vec3 :accessor plight-pos)
+  (color :vec3 :accessor plight-color)
+  (strength :float :accessor plight-strength))
+
+(define-vari-struct light-set nil
+  (plights (plight (3)) :accessor light-set-plights))
+
 ;;------------------------------------------------------------
 ;; Tests
 
@@ -132,3 +140,22 @@
                 (pos-rot-pos x))))
        (ham)
        (vec4 0)))))
+
+(5am:def-test structs-16 (:suite struct-tests)
+  (glsl-contains-n-p 1 "struct PLIGHT"
+    (varjo.tests::compile-vert (&uniform (lights light-set :ubo :std-140))
+        :330 t
+      (vec4 1))))
+
+(5am:def-test structs-17 (:suite struct-tests)
+  (glsl-doesnt-contain-p "struct PLIGHT"
+    (varjo.tests::compile-vert (&uniform (light plight :ubo :std-140))
+        :330 t
+      (vec4 1))))
+
+(5am:def-test structs-18 (:suite struct-tests)
+  (glsl-contains-1-of-all-p ("struct LIGHT_SET"
+                             "struct PLIGHT")
+    (varjo.tests::compile-vert (&uniform (lights light-set))
+        :330 t
+      (vec4 1))))
