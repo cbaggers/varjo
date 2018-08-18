@@ -954,7 +954,7 @@ Arguments: ~a
 > The rest of this error report is a discussion of why this feature is not
 > currently supported. Feel free to ignore it.
 
-External functions taking uniforms cannot be called firectly from
+External functions taking uniforms cannot be called directly from
 Varjo. This may be surprising as you may have seen that some third
 party libraries that use Varjo (like CEPL) use functions for their
 stages, however that is all handled internally to those systems.
