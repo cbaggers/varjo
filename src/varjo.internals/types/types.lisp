@@ -561,7 +561,7 @@
       (otherwise
        (let ((no-terminated (remove-if λ(or (v-discarded-p _)
                                             (v-returned-p _))
-                                       types)))
+                                       reduced)))
          (case= (length no-terminated)
            (0 (type-spec->type 'v-discarded flow-id))
            (1 (first no-terminated))
