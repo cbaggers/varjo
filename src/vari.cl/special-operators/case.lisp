@@ -159,7 +159,8 @@
                              (not (v-discarded-p body-obj))
                              (not (v-returned-p body-obj)))
                         (%gen-assignment-string glsl-tmp-var-name current)
-                        current)))))))))
+                        current)))))
+        :line (indent (glsl-line "break;"))))))
 
 (defun gen-chunk-for-default-arm (body-obj glsl-tmp-var-name)
   (let ((to-block (to-block body-obj))
