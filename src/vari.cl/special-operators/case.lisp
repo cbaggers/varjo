@@ -181,7 +181,7 @@
 
 (defun compute-conditional-type-set (body-objs otherwise-body-obj env)
   ;; The type-set needs to include all the results
-  ;; so we need to do two things.
+  ;; so we need to do some things.
   ;; - assert the same number of values returned
   ;; - make v-or types for each pair
   ;; - add logic to multiple-value-bind & co to check
@@ -191,8 +191,7 @@
          (type-sets (if otherwise-body-obj
                         (cons-end (type-set otherwise-body-obj) type-sets)
                         (cons-end (make-type-set) type-sets)))
-         (terminated (mapcar #'v-terminated-p type-sets))
-         (num-terminated (count-if #'identity terminated)))
+         (num-terminated (count-if #'v-terminated-p type-sets)))
     (cond
       ((v-multi-val-base env)
        (assert (loop :for set :in (rest type-sets) :always
@@ -209,7 +208,7 @@
        (find-if-not #'v-terminated-p type-sets))
       (t
        (let ((primary-result-type
-              (gen-or-type (mapcar #'primary-type body-objs) (flow-id!))))
+              (gen-or-type (mapcar #'primary-type type-sets) (flow-id!))))
          (if (v-voidp primary-result-type)
              (make-type-set)
              (make-type-set primary-result-type)))))))
