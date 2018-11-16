@@ -85,3 +85,22 @@
                  (1 3)
                  (otherwise (vec4 4)))))
         (vec4 1)))))
+
+(5am:def-test flow-control-9 (:suite flow-control-tests)
+  (signals varjo-conditions:conditional-multiple-vals-mismatch
+    (compile-vert () :450 nil
+      (case 10
+        (2.2 (vec4 3))
+        (1 (vec4 4))
+        (t (vec4 5))))))
+
+(5am:def-test flow-control-10 (:suite flow-control-tests)
+  ;; makes sure it's ok to have mismatched types in branches
+  ;; if we arent using the expression result
+  (finishes-p
+    (compile-vert () :450 nil
+      (case 10
+        (2.2 (vec4 3))
+        (1 (vec4 4))
+        (t (vec4 5)))
+      (vec4 0))))
