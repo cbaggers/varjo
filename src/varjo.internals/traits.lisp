@@ -5,8 +5,7 @@
 ;; - adding functions needs to check if the name is bound to a trait function
 ;;   if so then fail
 ;; - defining a function that takes or return traits is fine. They will need to
-;;   be monomorphised though. They won't appear in the final glsl as their
-;;   call-count will always be zero.
+;;   be monomorphised though.
 ;; - For now dont allow parametized type names to implement traits (except
 ;;   arrays which will be hacked in the implementation) HMMMMMM
 

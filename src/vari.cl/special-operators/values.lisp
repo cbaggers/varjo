@@ -40,7 +40,8 @@
   (let ((void (make-type-set)))
     (values (make-compiled :type-set void
                            :current-line nil
-                           :pure t)
+                           :pure t
+                           :called-funcs nil)
             env)))
 
 (defun %values-for-multi-value-bind (forms

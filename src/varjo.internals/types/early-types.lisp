@@ -178,3 +178,10 @@ type-spec trick doesnt"))
   alt-type-name)
 
 ;;------------------------------------------------------------
+
+(defun xxbo-p (type)
+  (assert (typep type 'v-user-struct))
+  (intersection '(:ubo :ssbo) (qualifiers type)
+                :test #'varjo.internals::qualifier=))
+
+;;------------------------------------------------------------

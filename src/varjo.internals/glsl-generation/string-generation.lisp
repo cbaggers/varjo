@@ -234,28 +234,27 @@
                 (:ccw "ccw"))))))
 
 (defun gen-shader-string (post-proc-obj)
-  (with-slots (env) post-proc-obj
-    (format
-     nil "// ~a~%#version ~a~%~{~%~{~a~%~}~}"
-     (string-downcase (type-of (stage env)))
-     (get-version-from-context env)
-     (remove nil
-             (list (used-user-structs post-proc-obj)
-                   (in-declarations post-proc-obj)
-                   (input-variable-glsl post-proc-obj)
-                   (out-declarations post-proc-obj)
-                   (output-variable-glsl post-proc-obj)
-                   (shared-decls post-proc-obj)
-                   (remove-empty
-                    (append
-                     (mapcar #'%glsl-decl (uniforms post-proc-obj))
-                     (mapcar #'%glsl-decl (stemcells post-proc-obj))))
-                   (signatures env)
-                   (let* ((funcs (all-functions post-proc-obj))
-                          (funcs (remove-if (lambda (f) (= 0 (call-count f)))
-                                            funcs))
-                          (code (remove nil (mapcar #'glsl-code funcs))))
-                     (reverse code)))))))
+  (let* ((funcs (all-functions post-proc-obj))
+         (func-code (remove nil (mapcar #'glsl-code funcs)))
+         (func-sigs (remove nil (mappend #'signatures funcs))))
+    (with-slots (env) post-proc-obj
+      (format
+       nil "// ~a~%#version ~a~%~{~%~{~a~%~}~}"
+       (string-downcase (type-of (stage env)))
+       (get-version-from-context env)
+       (remove nil
+               (list (used-user-structs post-proc-obj)
+                     (in-declarations post-proc-obj)
+                     (input-variable-glsl post-proc-obj)
+                     (out-declarations post-proc-obj)
+                     (output-variable-glsl post-proc-obj)
+                     (shared-decls post-proc-obj)
+                     (remove-empty
+                      (append
+                       (mapcar #'%glsl-decl (uniforms post-proc-obj))
+                       (mapcar #'%glsl-decl (stemcells post-proc-obj))))
+                     func-sigs
+                     (reverse func-code)))))))
 
 (defmethod out-block-name-for ((stage stage))
   (assert (not (typep stage 'fragment-stage)) ()

@@ -41,16 +41,6 @@
 (defmethod all-cached-compiled-functions ((e environment))
   (hash-table-values (slot-value (get-base-env e) 'compiled-functions)))
 
-(defmethod signatures ((e environment))
-  ;; {TODO} we shouldnt have to remove-duplicates here
-  ;;        find out why this is happening
-  (remove-duplicates
-   (mappend #'signatures
-            (remove-if (lambda (f) (= (call-count f) 0))
-                       (hash-table-values
-                        (slot-value (get-base-env e) 'compiled-functions))))
-   :test #'equal))
-
 (defmethod used-external-functions ((e environment))
   (let (functions)
     (maphash

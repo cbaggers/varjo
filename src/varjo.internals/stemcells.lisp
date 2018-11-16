@@ -41,7 +41,8 @@
      :type-set type-set
      :current-line string-name
      :stemcells `(,(stemcell! original-name string-name :|unknown-type|
-                              flow-id cpu-side-transform)))))
+                              flow-id cpu-side-transform))
+     :called-funcs nil)))
 
 (defun inject-implicit-uniform (symbol type-spec env
                                 &optional cpu-side-transform)

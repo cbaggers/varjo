@@ -15,7 +15,8 @@
    (out-of-scope-args :initarg :out-of-scope-args :initform nil
                       :reader out-of-scope-args)
    (pure :initarg :pure :initform nil :reader pure-p)
-   (place-tree :initarg :place-tree :initform nil :reader place-tree)))
+   (place-tree :initarg :place-tree :initform nil :reader place-tree)
+   (called-funcs :initarg :called-funcs :initform nil :reader called-funcs)))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 
@@ -47,6 +48,13 @@
 (defmethod primitive-in ((pp post-compile-process))
   (primitive-in (stage pp)))
 
+(defun all-called-functions (compiled-func)
+  (remove-duplicates
+   (append (called-funcs compiled-func)
+           (mappend #'all-called-functions
+                    (called-funcs compiled-func)))
+   :test #'eq))
+
 ;;----------------------------------------------------------------------
 
 (defclass compiled-function-result ()
@@ -60,10 +68,10 @@
    (top-level-scoped-metadata :initarg :top-level-scoped-metadata
                               :initform nil
                               :reader top-level-scoped-metadata)
-   (call-count :initform 0 :initarg :call-count :accessor call-count)
    (calls :initform nil :initarg :calls :accessor calls)
    (inline-candidate :initform nil :initarg :inline-candidate
-                     :accessor inline-candidate)))
+                     :accessor inline-candidate)
+   (called-funcs :initarg :called-funcs :initform nil :reader called-funcs)))
 
 (defmethod name ((compiled-func compiled-function-result))
   (let ((func (function-obj compiled-func)))

@@ -16,7 +16,8 @@
      (make-compiled :type-set type-set
                     :current-line "discard"
                     :used-types nil
-                    :pure nil)
+                    :pure nil
+                    :called-funcs nil)
      env)))
 
 ;;------------------------------------------------------------

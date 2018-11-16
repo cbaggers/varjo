@@ -262,7 +262,7 @@
    :stage stage
    :env env
    :used-external-functions (remove-duplicates (used-external-functions env))
-   :all-functions (cons main-func (all-cached-compiled-functions env))
+   :all-functions (cons main-func (all-called-functions main-func));; (cons main-func (all-cached-compiled-functions env))
    :raw-out-set (establish-out-set-for-stage stage main-func)
    :main-metadata (top-level-scoped-metadata main-func)))
 
@@ -382,32 +382,28 @@
 ;;----------------------------------------------------------------------
 
 (defun all-type-from-post-proc (post-proc-obj)
-  (labels ((xxbo-p (obj)
-             (intersection '(:ubo :ssbo) (qualifiers obj)
-                           :test #'varjo.internals::qualifier=)))
-    (let ((types (with-slots (env) post-proc-obj
-                   (normalize-used-types
-                    (append (mapcar #'v-type-of (v-uniforms env))
-                            (mapcar #'v-type-of (v-shared env))
-                            (loop
-                               :for func :in (all-functions post-proc-obj)
-                               :when (> (call-count func) 0)
-                               :append (used-types func)))))))
-      (let ((found nil))
-        (labels ((process (type)
-                   (typecase type
-                     (v-array (process-array type))
-                     (v-user-struct (process-struct type))))
-                 (process-array (type)
-                   (process (v-element-type type)))
-                 (process-struct (type)
-                   (unless (find type found :test #'v-type-eq)
-                     (loop :for slot :in (v-slots type) :do
+  (let ((types (with-slots (env) post-proc-obj
+                 (normalize-used-types
+                  (append (mapcar #'v-type-of (v-uniforms env))
+                          (mapcar #'v-type-of (v-shared env))
+                          (loop
+                             :for func :in (all-functions post-proc-obj)
+                             :append (used-types func)))))))
+    (let ((found nil))
+      (labels ((process (type)
+                 (typecase type
+                   (v-array (process-array type))
+                   (v-user-struct (process-struct type))))
+               (process-array (type)
+                 (process (v-element-type type)))
+               (process-struct (type)
+                 (unless (find type found :test #'v-type-eq)
+                   (loop :for slot :in (v-slots type) :do
                         (process (second slot)))
-                     (unless (xxbo-p type)
-                       (push type found)))))
-          (map nil #'process types))
-        (reverse found)))))
+                   (unless (xxbo-p type)
+                     (push type found)))))
+        (map nil #'process types))
+      (reverse found))))
 
 (defun filter-used-items (post-proc-obj)
   "This changes the code-object so that used-types only contains used

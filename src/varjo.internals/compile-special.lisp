@@ -161,13 +161,15 @@
                  :current-line glsl-name
                  :used-types (append (when type-obj
                                        (list type-obj))
-                                     (used-types value-obj)))
+                                     (used-types value-obj))
+                 :called-funcs (called-funcs value-obj))
                 value-obj))
               ;;
               (t (typify-code
                   (make-compiled :type-set (make-type-set type-obj)
                                  :used-types (list type-obj)
-                                 :current-line glsl-name)))))
+                                 :current-line glsl-name
+                                 :called-funcs nil)))))
            (to-block (when let-obj
                        (glsl-chunk-from-compiled let-obj))))
       (values

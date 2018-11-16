@@ -55,7 +55,8 @@
             (make-compiled :type-set type-set
                            :current-line nil
                            :used-types nil
-                           :pure t)
+                           :pure t
+                           :called-funcs nil)
             env))))))
 
 ;; {TODO} shouldnt this have a new environment?
@@ -75,7 +76,8 @@
      (make-compiled :type-set type-set
                     :current-line nil
                     :used-types nil
-                    :pure t)
+                    :pure t
+                    :called-funcs nil)
      env)))
 
 ;;------------------------------------------------------------

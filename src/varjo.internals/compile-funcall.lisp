@@ -288,7 +288,8 @@
       (values
        (make-compiled :type-set type-set
                       :current-line nil
-                      :used-types (list type))
+                      :used-types (list type)
+                      :called-funcs (list compiled-func))
        env))))
 
 (defun extract-details-from-problematic-closures (closures)
@@ -322,9 +323,6 @@
         (inline-external-function-call compiled-func args-code env)
         (vbind (new-obj new-env expanded-into-new-form)
             (compile-function-call (function-obj compiled-func) args args-code env)
-          (unless expanded-into-new-form
-            ;; track the number of times the function was used
-            (incf (call-count compiled-func)))
           (values new-obj new-env)))))
 
 
@@ -368,8 +366,6 @@
           (when compiled-result
             (push (cons func (mapcar #'primary-type args))
                   (calls compiled-result))))))
-    (when (user-function-p func)
-      (incf (call-count (compiled-result func))))
     (values (merge-compiled
              args
              :type-set type-set
@@ -381,7 +377,11 @@
              :used-types (append
                           (mappend #'used-types args)
                           (coerce type-set 'list)
-                          (coerce emit-set 'list)))
+                          (coerce emit-set 'list))
+             :called-funcs (if (user-function-p func)
+                               (cons (compiled-result func)
+                                     (mappend #'called-funcs args))
+                               (mappend #'called-funcs args)))
             (make-env-with-place-modification-for-funcall func
                                                           args
                                                           env
@@ -429,7 +429,11 @@
                           (mappend #'used-types args)
                           (coerce type-set 'list)
                           (coerce emit-set 'list))
-             :place-tree (calc-place-tree func args)))
+             :place-tree (calc-place-tree func args)
+             :called-funcs (if (user-function-p func)
+                               (cons (compiled-result func)
+                                     (mappend #'called-funcs args))
+                               (mappend #'called-funcs args))))
          (bindings (loop :for i :from 1 :below (length type-set) :collect
                       (let ((mval (aref type-set i)))
                         `((,(gensym "NC")
@@ -450,8 +454,6 @@
                      p-env bindings m-r-names))
                    (compile-form o p-env)))
                env env))))
-    (when (user-function-p func)
-      (incf (call-count (compiled-result func))))
     (values call-obj
             (make-env-with-place-modification-for-funcall func
                                                           args

@@ -62,7 +62,8 @@
                (make-compiled :type-set type-set
                               :current-line glsl
                               :used-types (list array-type element-type)
-                              :pure t)
+                              :pure t
+                              :called-funcs nil)
                env))))))))
 
 (v-defspecial vector (&rest elements)

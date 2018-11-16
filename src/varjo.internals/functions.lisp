@@ -316,7 +316,8 @@ however failed to do so when asked."
         (if wrap-errors-p
             (make-compiled
              :type-set (make-type-set (make-instance 'v-error :payload e))
-             :current-line "")
+             :current-line ""
+             :called-funcs nil)
             (error e))))))
 
 (defun try-compile-args (args-code env)

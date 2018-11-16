@@ -15,6 +15,7 @@
         (values (make-compiled :type-set type-set
                                :current-line (format nil "~au" val)
                                :used-types (list type)
-                               :pure t)
+                               :pure t
+                               :called-funcs nil)
                 env))
       (compile-form `(%uint ,val) env)))

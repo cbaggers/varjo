@@ -196,7 +196,8 @@
                                       :emit-set emit-set
                                       :place-tree nil
                                       :out-of-scope-args implicit-args
-                                      :used-types nil))
+                                      :used-types nil
+                                      :called-funcs nil))
              (inline-candidate (and (not implicit-args)
                                     (not strip-glsl)
                                     (not multi-return-vars)
@@ -205,7 +206,6 @@
                                         (= (length (glsl-chunk-lines (to-block body-obj)))
                                            0)))))
         (let ((res (make-instance 'compiled-function-result
-                                  :call-count (if mainp 1 0)
                                   :function-obj func
                                   :signatures sigs
                                   :used-types (append (used-types body-obj)
@@ -216,7 +216,8 @@
                                   :return-set ret-set
                                   :emit-set emit-set
                                   :top-level-scoped-metadata tl-meta
-                                  :inline-candidate inline-candidate)))
+                                  :inline-candidate inline-candidate
+                                  :called-funcs (called-funcs body-obj))))
           (setf (compiled-result func) res)
           (values res code-obj))))))
 
@@ -242,7 +243,8 @@
                            :emit-set nil)
             (make-compiled :type-set (make-type-set)
                            :current-line nil
-                           :place-tree nil))))
+                           :place-tree nil
+                           :called-funcs nil))))
 
 (defun capture-var (name env)
   (let ((val (get-symbol-binding name t env)))
