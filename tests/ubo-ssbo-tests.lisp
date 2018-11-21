@@ -65,9 +65,8 @@
         (setf (aref ints 1) 10)
         (v! 1 2 3 4)))))
 
-;; this is ok
-(defun foo0 ()
-  (glsl-code
+(5am:def-test ssbo-3 (:suite ubo-ssbo-tests)
+  (glsl-doesnt-contain-p "SOME_DATA"
    (compile-vert ((vert pos-col)
                   &uniform (the-data some-data :ssbo :std-140))
        :450 nil
@@ -76,9 +75,8 @@
                   (setf (aref ints 1) 10))))
        (v! 1 2 3 4)))))
 
-;; this is ok
-(defun foo1 ()
-  (glsl-code
+(5am:def-test ssbo-4 (:suite ubo-ssbo-tests)
+  (glsl-doesnt-contain-p "SOME_DATA"
    (compile-vert ((vert pos-col)
                   &uniform (the-data some-data :ssbo :std-140))
        :450 nil
@@ -88,9 +86,8 @@
        (blah the-data)
        (v! 1 2 3 4)))))
 
-;; this is not ok
-(defun foo2 ()
-  (glsl-code
+(5am:def-test ssbo-5 (:suite ubo-ssbo-tests)
+  (glsl-doesnt-contain-p "SOME_DATA"
    (compile-vert ((vert pos-col)
                   &uniform (the-data some-data :ssbo :std-140))
        :450 nil
@@ -103,10 +100,9 @@
        (blah the-data)
        (v! 1 2 3 4)))))
 
-;; this is not ok
-(defun foo3 ()
-  (glsl-code
-   (compile-vert ((vert pos-col)
+(5am:def-test ssbo-6 (:suite ubo-ssbo-tests)
+  (glsl-doesnt-contain-p "SOME_DATA"
+    (compile-vert ((vert pos-col)
                   &uniform (the-data some-data :ssbo :std-140))
        :450 nil
      (labels ((blah ((x some-data))
@@ -117,9 +113,8 @@
        (ham the-data)
        (v! 1 2 3 4)))))
 
-;; this is not ok
-(defun foo4 ()
-  (glsl-code
+(5am:def-test ssbo-7 (:suite ubo-ssbo-tests)
+  (glsl-doesnt-contain-p "SOME_DATA"
    (compile-vert ((vert pos-col)
                   &uniform (the-data some-data :ssbo :std-140))
        :450 nil
@@ -132,36 +127,4 @@
        (blah the-data)
        (v! 1 2 3 4)))))
 
-;;------------------------------------------------------------
 
-#||
-
-Ok, so the issue is that when the call to blah is made inside another function
-that function is first compiled in issolation. This means that, at this point,
-there is nothing to tell varjo that this will be called with an unrepresentable
-value.
-
-This only happens later.
-
-What we need to do is somehow mark the function so that it is not included in
-the source unless the function that calls it is included.
-
-'all-type-from-post-proc' in translate.lisp does the actual function stripping
-it does it based on #'call-count
-
-hmm gen-shader-string in string-generation.lisp also checks call-count.. I
-wonder under what cases that that would be neccessary
-
-We'd kinda like to store the functiosn that called 'us' instead of call-count,
-then we could check the who called then recurively to find out if we find
-main in there somewhere. If not then dont include the func. However it's the
-compile result that tracks the call-count.
-
-What we need to do instead is collect the compiled-results in the 'compiled'
-result object that is returned through the stack. Then, when we compile
-functions we can push the containing function into those collected
-'compiled-results' objects.
-
-This could work
-
-||#
