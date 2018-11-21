@@ -127,4 +127,32 @@
        (blah the-data)
        (v! 1 2 3 4)))))
 
+(5am:def-test ssbo-8 (:suite ubo-ssbo-tests)
+  (glsl-contains-n-p 1 "BLAH.*();"
+    (compile-vert ((vert pos-col)
+                  &uniform (the-data some-data :ssbo :std-140))
+       :450 nil
+     (labels ((blah ((x some-data))
+                (with-slots (ints) x
+                  (setf (aref ints 1) 10)))
+              (ham ((x some-data))
+                (blah x)))
+       (ham the-data)
+       (blah the-data)
+       (v! 1 2 3 4)))))
 
+(5am:def-test ssbo-9 (:suite ubo-ssbo-tests)
+  (glsl-contains-n-p 1 "BLAH.*();"
+    (compile-vert ((vert pos-col)
+                   &uniform (the-data some-data :ssbo :std-140))
+        :450 nil
+      (labels ((blah ((x some-data))
+                 (with-slots (ints) x
+                   (setf (aref ints 1) 10)))
+               (ham ((x some-data))
+                 (blah x)))
+        (ham the-data)
+        (ham the-data)
+        (ham the-data)
+        (ham the-data)
+        (v! 1 2 3 4)))))
