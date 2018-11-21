@@ -7,6 +7,10 @@
 (v-defstruct some-data ()
   (ints (:int 1000)))
 
+(v-defstruct unsized-tail ()
+  (pos :vec3)
+  (all-the-ints (:int *)))
+
 ;;------------------------------------------------------------
 ;; Tests
 
@@ -128,3 +132,12 @@
        (v! 1 2 3 4)))))
 
 
+
+(5am:def-test ssbo-8 (:suite ubo-ssbo-tests)
+  (finishes-p
+   (compile-vert ((vert pos-col)
+                  &uniform (the-data unsized-tail :ssbo :std-140))
+       :450 nil
+     (with-slots (all-the-ints) the-data
+       (setf (aref all-the-ints 1) 10)
+       (v! 1 2 3 4)))))
