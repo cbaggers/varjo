@@ -7,6 +7,9 @@
 (v-defstruct some-data ()
   (ints (:int 1000)))
 
+(v-defstruct some-unsized ()
+  (ints (:int *)))
+
 ;;------------------------------------------------------------
 ;; Tests
 

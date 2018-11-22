@@ -39,15 +39,43 @@
   ;; int out's should be flat
   (when (typep stage 'fragment-stage)
     (let* ((in-set (input-variables stage))
-           (issues
+           (flat-int-issues
             (loop :for var :in in-set
                :for type = (v-type-of var)
                :when (and (v-typep type 'v-integer)
                           (not (find :flat (qualifiers type) :test #'qualifier=)))
                :collect type)))
-      (assert (null issues) () 'fragment-integer-inputs-not-flat
-              :problem-types issues
+      (assert (null flat-int-issues) () 'fragment-integer-inputs-not-flat
+              :problem-types flat-int-issues
               :inputs (mapcar #'v-type-of in-set))))
+  (let* ((in-plus-uniforms
+          (append (input-variables stage)
+                  (uniform-variables stage)))
+         (illegal-unsized-vars
+          (loop :for var :in in-plus-uniforms
+             :for type = (v-type-of var)
+             :when (v-unsigned-array-p type)
+             :collect var))
+         (illegal-unsized-struct-vars
+          (append
+           (loop :for var :in (input-variables stage)
+              :for type = (v-type-of var)
+              :when (and (typep type 'v-struct)
+                         (has-unsized-slot-p type))
+              :collect var)
+           (loop :for var :in (uniform-variables stage)
+              :for type = (v-type-of var)
+              :when (and (typep type 'v-struct)
+                         (has-unsized-slot-p type)
+                         (not (find :ssbo (qualifiers type)
+                                    :test #'varjo.internals::qualifier=)))
+              :collect var))))
+    (assert (null illegal-unsized-vars) ()
+            'unsized-array-inputs-to-stage
+            :names (mapcar #'name illegal-unsized-vars))
+    (assert (null illegal-unsized-struct-vars) ()
+            'unsized-struct-inputs-to-stage
+            :names (mapcar #'name illegal-unsized-struct-vars)))
   (values stage env))
 
 ;;----------------------------------------------------------------------

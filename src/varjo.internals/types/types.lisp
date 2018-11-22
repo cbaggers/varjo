@@ -327,6 +327,13 @@
                    :element-type element-type
                    :flow-ids flow-id)))
 
+(defun v-unsigned-array-p (type)
+  (and (typep type 'v-array)
+       (find-if (lambda (x)
+                  (and (symbolp x) (string= x "*")))
+                (v-dimensions type))
+       t))
+
 ;;------------------------------------------------------------
 ;; Ephemeral Values
 ;;
@@ -628,7 +635,9 @@
   ((versions :initform nil :initarg :versions :accessor v-versions)
    (signature :initform nil :initarg :signature :accessor v-signature)
    (glsl-string :initform "" :initarg :glsl-string :reader v-glsl-string)
-   (slots :initform nil :initarg :slots :reader v-slots)))
+   (slots :initform nil :initarg :slots :reader v-slots)
+   (has-unsized-slot-p :initform nil :initarg :has-unsized-slot-p
+                       :accessor has-unsized-slot-p)))
 
 ;; Supertype of all structs that are not from the glsl spec
 (define-v-type-class v-user-struct (v-struct) ())
