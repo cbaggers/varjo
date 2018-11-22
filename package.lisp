@@ -360,6 +360,11 @@
            :alt-type-name-already-taken
            :unknown-alt-type-name
            :invalid-arguments-for-special-op
+           :setf-unsign-array-element
+           :illegal-use-of-unsize-in-struct
+           :struct-with-unsized-slot-in-struct
+           :unsized-array-inputs-to-stage
+           :unsized-struct-inputs-to-stage
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -682,6 +687,7 @@
            :v-type-of
            :v-typep
            :v-uniforms
+           :v-unsized-array-p
            :v-value
            :v-versions
            :v-voidp

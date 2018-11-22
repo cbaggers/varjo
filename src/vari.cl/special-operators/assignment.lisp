@@ -46,6 +46,12 @@
                 :code-obj-a place-obj
                 :code-obj-b val-obj
                 :form code)
+        (assert (not (v-unsized-array-p
+                      (v-type-of
+                       (second (last1 (place-tree place-obj))))))
+                ()
+                'setf-unsign-array-element
+                :form code)
         (let* ((modified-env (make-env-with-place-modification
                               place-obj
                               (flow-ids val-obj)

@@ -39,17 +39,42 @@
                         (list name (type-spec->type type) acc tran)))
                     slot-transforms))
            (constructor-name (symb 'make- (or constructor name)))
+           (unsized-array-slots
+            (loop
+               :for (name type) :in slot-transforms-type-obj
+               :for i :from 0
+               :when (v-unsized-array-p type)
+               :collect (list i name type)))
+           (has-unsized (not (null unsized-array-slots)))
            (ephemeral-slots
             (loop
                :for (name type) :in slot-transforms-type-obj
                :when (or (ephemeral-p type)
                          (and (typep type 'v-container)
                               (ephemeral-p (v-element-type type))))
+               :collect (list name type)))
+           (unsized-struct-slots
+            (loop
+               :for (name type) :in slot-transforms-type-obj
+               :when (and (typep type 'v-struct)
+                          (has-unsized-slot-p type))
                :collect (list name type))))
+      (assert (and (<= (length unsized-array-slots) 1)
+                   (or (null unsized-array-slots)
+                       (= (caar unsized-array-slots)
+                          (- (length slots) 1))))
+              () 'illegal-use-of-unsize-in-struct
+              :name name
+              :form `(define-vari-struct ,name ,context ,@slots)
+              :slots (mapcar #'second unsized-array-slots))
       (assert (null ephemeral-slots) ()
               'struct-cannot-hold-ephemeral-types
               :name name
               :slots (mapcar #'first ephemeral-slots))
+      (assert (null unsized-struct-slots) ()
+              'struct-with-unsized-slot-in-struct
+              :slots (mapcar #'first unsized-struct-slots)
+              :form `(define-vari-struct ,name ,context ,@slots))
       `(progn
          (eval-when (:compile-toplevel :load-toplevel :execute)
            (define-v-type-class ,class-name (v-user-struct)
@@ -59,17 +84,21 @@
                                      name-string slots-with-types)
                          :initarg :signature :accessor v-signature)
               (slots :initform ',slot-transforms-type-obj
-                     :reader v-slots))))
+                     :reader v-slots)
+              (has-unsized-slot-p
+               :initform ,has-unsized :initarg :has-unsized-slot-p
+               :accessor has-unsized-slot-p))))
          ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod type->type-spec ((type ,class-name))
            ',name)
-         (v-def-glsl-template-fun ,constructor-name
-                                  ,(append (loop :for slot :in slots :collect (first slot))
-                                           (when context `(&context ,@context)))
-                                  ,(format nil "~a(~{~a~^,~^ ~})" name-string
-                                           (n-of "~a" (length slots)))
-                                  ,(loop :for slot :in slots :collect (second slot))
-                                  ,name :v-place-index nil)
+         ,(unless unsized-array-slots
+            `(v-def-glsl-template-fun ,constructor-name
+                                      ,(append (loop :for slot :in slots :collect (first slot))
+                                               (when context `(&context ,@context)))
+                                      ,(format nil "~a(~{~a~^,~^ ~})" name-string
+                                               (n-of "~a" (length slots)))
+                                      ,(loop :for slot :in slots :collect (second slot))
+                                      ,name :v-place-index nil))
          ,@(make-struct-accessors name  context slot-transforms)
          ,(make-copy-structure name constructor-name slot-transforms)
          ',name))))

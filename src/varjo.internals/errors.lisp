@@ -1360,6 +1360,64 @@ Invalid arguments for special function ~a
 Arguments: ~a
 " name args)
 
+(define-error setf-unsign-array-element () (form)
+    "
+It is not legal in glsl to assign to an unsized array
+
+Form: ~a
+" form)
+
+(define-error illegal-use-of-unsize-in-struct () (name form slots)
+    "
+The struct ~a has an invalid layout due to it's use of
+unsized arrays.
+
+An unsized array is only allowed in the last slot.
+Following from this, there can only be 1 unsized array slot
+in the struct
+
+Struct: ~a
+
+Unsized slot/s: ~{~a~^, ~}
+" name form slots)
+
+(define-error struct-with-unsized-slot-in-struct () (slots form)
+    "
+It is not legal in glsl to have a struct where one of the slots
+is itself a struct with an unsized array slot.
+
+Problematic slot/s: ~{~a~^, ~}
+
+Form: ~a
+
+" slots form)
+
+(define-error struct-with-unsized-slot-in-struct () (slots form)
+    "
+It is not legal in glsl to have a struct where one of the slots
+is itself a struct with an unsized array slot.
+
+Problematic slot/s: ~{~a~^, ~}
+
+Form: ~a
+
+" slots form)
+
+(define-error unsized-array-inputs-to-stage () (names)
+    "
+The following arguments to the stage are unsized arrays which
+is not legal in varjo:
+~{~%- ~a~}
+" names)
+
+(define-error unsized-struct-inputs-to-stage () (names)
+    "
+The following arguments to the stage are structs containing
+unsigned arrays. This is only legal if the argument is an ssbo
+uniform.
+~{~%- ~a~}
+" names)
+
 ;;type->type-spec
 
 ;;
