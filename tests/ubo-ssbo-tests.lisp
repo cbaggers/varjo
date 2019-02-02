@@ -128,3 +128,11 @@
        (v! 1 2 3 4)))))
 
 
+(5am:def-test ssbo-8 (:suite ubo-ssbo-tests)
+  (finishes-p
+   (compile-frag (&uniform (the-data some-data :ssbo :std-140))
+       :450 nil
+     (with-slots (ints) the-data
+       (setf (aref ints 0) 1)
+       (setf (aref ints 1) 1))
+     (v! 1 2 3 4))))

@@ -286,27 +286,29 @@
             :glsl-code (current-line place-obj)
             :lisp-code code))
     (t (destructuring-bind (name value) (last1 (place-tree place-obj))
-         (when (v-read-only value)
-           ;; The one time we can write to a uniform is when
-           ;; it's an ssbo. We do make sure that the place-tree
-           ;; is deeper than 1 though because otherwise we are
-           ;; setting the uniform itself rather than an
-           ;; element/slot
-           (let* ((uniform (find (flow-ids (v-type-of value))
-                                 (v-uniforms env)
-                                 :key λ(flow-ids (v-type-of _))
-                                 :test #'id=))
-                  (is-ssbo (when uniform
-                             (find :ssbo (qualifiers (v-type-of uniform))
-                                   :test #'qualifier=))))
-             (assert (and is-ssbo (> (length (place-tree place-obj)) 1))
-                     () 'assigning-to-readonly :var-name name)))
          (unless (or (= (v-function-scope env) (v-function-scope value))
                      (= (v-function-scope value) 0))
            (error 'cross-scope-mutate :var-name name
                   :code (format nil "(setf (... ~s) ...)" name)))
-         (replace-flow-ids-for-single-var name
-                                          val-flow-ids
-                                          env)))))
+         (if (v-read-only value)
+             (progn
+               ;; The one time we can write to a uniform is when
+               ;; it's an ssbo. We do make sure that the place-tree
+               ;; is deeper than 1 though because otherwise we are
+               ;; setting the uniform itself rather than an
+               ;; element/slot
+               (let* ((uniform (find (flow-ids (v-type-of value))
+                                     (v-uniforms env)
+                                     :key λ(flow-ids (v-type-of _))
+                                     :test #'id=))
+                      (is-ssbo (when uniform
+                                 (find :ssbo (qualifiers (v-type-of uniform))
+                                       :test #'qualifier=))))
+                 (assert (and is-ssbo (> (length (place-tree place-obj)) 1))
+                         () 'assigning-to-readonly :var-name name))
+               env)
+             (replace-flow-ids-for-single-var name
+                                              val-flow-ids
+                                              env))))))
 
 ;;----------------------------------------------------------------------
