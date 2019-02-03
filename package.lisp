@@ -1,5 +1,36 @@
+(uiop:define-package #:%varjo.usings (:use)
+  ;; We use a few symbols from other projects
+  ;; so we just localize that here
+  (:import-from :alexandria
+                :compose
+                :curry
+                :emptyp
+                :ensure-list
+                :flatten
+                :hash-table-keys
+                :hash-table-values
+                :iota
+                :mappend
+                :rcurry
+                :with-gensyms)
+  (:import-from :named-readtables
+                :in-readtable)
+  (:export
+   :compose
+   :curry
+   :emptyp
+   :ensure-list
+   :flatten
+   :hash-table-keys
+   :hash-table-values
+   :in-readtable
+   :iota
+   :mappend
+   :rcurry
+   :with-gensyms))
+
 (uiop:define-package #:varjo.utils
-    (:use #:cl #:alexandria #:named-readtables)
+    (:use #:cl #:%varjo.usings)
   (:export
    :case-member
    :case=
@@ -33,7 +64,7 @@
    :%peek))
 
 (uiop:define-package #:vari.types
-    (:use #:cl #:varjo.utils #:alexandria #:named-readtables)
+    (:use #:cl #:varjo.utils #:%varjo.usings)
   (:export :v-type
            :v-stemcell
            :v-shadow-type
@@ -205,7 +236,7 @@
 
 ;;;; package.lisp
 (uiop:define-package #:varjo-conditions
-    (:use #:cl #:varjo.utils #:alexandria #:named-readtables)
+    (:use #:cl #:varjo.utils #:%varjo.usings)
   (:export :problem-with-the-compiler
            :cannot-compile
            :invalid-form-list
@@ -365,9 +396,8 @@
            :setq-supply-alternate-type))
 
 (uiop:define-package #:varjo.internals
-    (:use #:cl #:varjo.utils #:vari.types #:split-sequence
-          #:alexandria
-          #:cl-ppcre #:named-readtables #:varjo-conditions)
+    (:use #:cl #:varjo.utils #:vari.types #:%varjo.usings
+          #:varjo-conditions)
   (:export :%gen-assignment-string
            :%glsl-decl
            :%merge-multi-env-progn
@@ -702,7 +732,7 @@
            :*out-qualifier*))
 
 (uiop:define-package #:varjo.api
-    (:use #:cl #:varjo.utils #:varjo.internals #:alexandria #:named-readtables)
+    (:use #:cl #:varjo.utils #:varjo.internals #:%varjo.usings)
   (:export
    ;;
    ;; globals
@@ -858,7 +888,7 @@
 
 (uiop:define-package #:vari.glsl
     (:use #:cl #:varjo.utils #:varjo.internals #:vari.types
-          #:named-readtables #:varjo-conditions
+          #:%varjo.usings #:varjo-conditions
           #:glsl-symbols.types
           #:glsl-symbols.functions
           #:glsl-symbols.variables)
@@ -971,5 +1001,5 @@
 
 (uiop:define-package #:varjo
     (:use #:cl #:varjo.utils #:vari.types #:varjo.api
-          #:alexandria #:named-readtables)
+          #:%varjo.usings)
   (:reexport :vari.types :varjo.api))

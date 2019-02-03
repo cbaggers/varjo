@@ -10,7 +10,8 @@
                  #:glsl-toolkit
                  #:optima
                  #:fare-quasiquote-extras
-                 #:rtg-math.vari)
+                 #:rtg-math.vari
+                 #:split-sequence)
     :components ((:file "import/package")
                  (:file "import/readtables")
                  (:file "import/import")))

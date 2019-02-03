@@ -9,7 +9,6 @@
   :depends-on (#:documentation-utils
                #:vas-string-metrics
                #:named-readtables
-               #:split-sequence
                #:glsl-symbols
                #:parse-float
                #:alexandria
