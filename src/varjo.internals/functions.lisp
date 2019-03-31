@@ -44,11 +44,12 @@
     (unless (or (stringp transform) (null transform))
       (error 'invalid-v-defun-template :func-name name :template transform))
     (let ((arg-types (if (listp arg-types)
-                         (mapcar #'arg-form->type arg-types)
+                         (mapcar (lambda (x) `(arg-form->type ',x))
+                                 arg-types)
                          arg-types)))
       `(progn (add-global-form-binding
                (make-function-obj
-                ',name ,transform ',context ',arg-types
+                ',name ,transform ',context ,(cons 'list arg-types)
                 ,(make-template-return-spec-generator return-spec)
                 :v-place-index ',v-place-index :glsl-name ',glsl-name
                 :flow-ids (%gl-flow-id!)
@@ -74,15 +75,21 @@
 
 (defun make-template-return-spec-generator (x)
   (cond
-    ((or (eq x :void) (eq x 'v-void)) (make-type-set))
-    ((functionp x) x)
-    ((null x) (vector (make-instance 'ret-gen-superior-type)))
-    ((numberp x) (vector (make-instance 'ret-gen-nth-arg-type
-                                        :arg-num x)))
-    ((element-spec-p x) (vector (make-instance 'ret-gen-element-of-nth-arg-type
-                                               :arg-num (second x))))
-    ((typep x 'v-type) (make-type-set x))
-    ((type-specp x) (make-type-set (type-spec->type x)))
+    ((or (eq x :void) (eq x 'v-void))
+     '(make-type-set))
+    ((functionp x)
+     x)
+    ((null x)
+     `(vector (make-instance 'ret-gen-superior-type)))
+    ((numberp x)
+     `(vector (make-instance 'ret-gen-nth-arg-type :arg-num ,x)))
+    ((element-spec-p x)
+     `(vector (make-instance 'ret-gen-element-of-nth-arg-type
+                             :arg-num ,(second x))))
+    ((typep x 'v-type)
+     `(make-type-set (type-spec->type ',(type->type-spec x))))
+    ((type-specp x)
+     `(make-type-set (type-spec->type ',x)))
     ;; {TODO} proper error
     (t (error "Varjo: Invalid return-type specifier in template-function ~a"
               x))))
@@ -144,11 +151,12 @@
                   (declare (ignorable ,env ,this ,@arg-names))
                   ,return)
                 (add-global-form-binding
-                 (make-function-obj ',name :special ',context
-                                    ',(mapcar λ(type-spec->type (second _))
-                                              args)
-                                    #',func-name
-                                    :v-place-index ',v-place-index))
+                 (make-function-obj
+                  ',name :special ',context
+                  (list ,@(mapcar λ`(type-spec->type ',(second _))
+                                  args))
+                  #',func-name
+                  :v-place-index ',v-place-index))
                 ',name)))))))
 
 ;;------------------------------------------------------------

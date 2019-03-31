@@ -46,9 +46,8 @@ type-spec trick doesnt"))
   (let* ((name (class-name (class-of type))))
     (alternate-name-for name)))
 
-(defmethod make-load-form ((type v-type) &optional environment)
-  (declare (ignore environment))
-  `(type-spec->type ',(type->type-spec type)))
+(defun dump-type-construction-form (v-type)
+  `(type-spec->type ',(type->type-spec v-type)))
 
 (defmethod post-initialise ((object v-type)))
 
@@ -129,12 +128,6 @@ type-spec trick doesnt"))
 (defmethod type-spec->type (spec &optional flow-id)
   (or (try-type-spec->type spec flow-id)
       (error 'unknown-type-spec :type-spec spec)))
-
-(define-compiler-macro type-spec->type (&whole whole spec &optional flow-id)
-  (if flow-id
-      whole
-      (let ((type (try-type-spec->type spec nil)))
-        (or type whole))))
 
 (defun type-specp (spec)
   (not (null (try-type-spec->type (resolve-name-from-alternative spec) nil))))

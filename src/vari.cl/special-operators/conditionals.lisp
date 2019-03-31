@@ -43,7 +43,7 @@
              (type-set (compute-if-type-set then-obj else-obj starting-env)))
         (vbind (to-block current-line)
             (if (and has-else
-                     (satifies-ternary-style-restrictions-p
+                     (satisfies-ternary-style-restrictions-p
                       test-form test-obj
                       then-form then-obj
                       else-form else-obj))
@@ -100,7 +100,7 @@
              (make-type-set)
              (make-type-set primary-result-type)))))))
 
-(defun satifies-ternary-style-restrictions-p (test-form test-obj
+(defun satisfies-ternary-style-restrictions-p (test-form test-obj
                                               then-form then-obj
                                               else-form else-obj)
   (declare (ignorable test-form test-obj

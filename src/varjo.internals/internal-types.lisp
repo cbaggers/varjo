@@ -407,13 +407,10 @@
   ((lisp-name :initform :patches :reader lisp-name)
    (vertex-count :initarg :vertex-count :reader vertex-count)))
 
-(defmethod make-load-form ((prim primitive) &optional environment)
-  (declare (ignore environment))
-  `(make-instance ',(type-of prim)))
-
-(defmethod make-load-form ((prim patches) &optional environment)
-  (declare (ignore environment))
-  `(make-instance 'patches :vertex-count ,(vertex-count prim)))
+(defun dump-primitive-to-instance (prim)
+  (if (typep prim 'patches)
+      `(make-instance 'patches :vertex-count ,(vertex-count prim))
+      `(make-instance ',(type-of prim))))
 
 (defun primitive-name-to-instance (name)
   (if (listp name)
@@ -503,17 +500,13 @@
             :initarg :arg-num
             :reader arg-num)))
 
-(defmethod make-load-form ((obj ret-gen-superior-type)
-                           &optional environment)
-  (declare (ignore environment))
-  `(make-instance 'ret-gen-superior-type))
-
-(defmethod make-load-form ((obj ret-gen-nth-arg-type)
-                           &optional environment)
-  (declare (ignore environment))
-  `(make-instance 'ret-gen-nth-arg-type :arg-num ,(arg-num obj)))
-
-(defmethod make-load-form ((obj ret-gen-element-of-nth-arg-type)
-                           &optional environment)
-  (declare (ignore environment))
-  `(make-instance 'ret-gen-element-of-nth-arg-type :arg-num ,(arg-num obj)))
+(defun dump-return-type-gen-init-form (obj)
+  (etypecase obj
+    (ret-gen-superior-type
+     `(make-instance 'ret-gen-superior-type))
+    (ret-gen-nth-arg-type
+     `(make-instance 'ret-gen-nth-arg-type
+                     :arg-num ,(arg-num obj)))
+    (ret-gen-element-of-nth-arg-type
+     `(make-instance 'ret-gen-element-of-nth-arg-type
+                     :arg-num ,(arg-num obj)))))

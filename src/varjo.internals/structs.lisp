@@ -38,6 +38,12 @@
                       (dbind (name type acc tran) x
                         (list name (type-spec->type type) acc tran)))
                     slot-transforms))
+           (slot-transform-init-form
+            (mapcar (lambda (x)
+                      (dbind (name type acc tran) x
+                        `(list ',name (type-spec->type ',type) ',acc
+                               ,tran)))
+                    slot-transforms))
            (constructor-name (symb 'make- (or constructor name)))
            (ephemeral-slots
             (loop
@@ -58,7 +64,7 @@
               (signature :initform ,(gen-struct-sig
                                      name-string slots-with-types)
                          :initarg :signature :accessor v-signature)
-              (slots :initform ',slot-transforms-type-obj
+              (slots :initform ,(cons 'list slot-transform-init-form)
                      :reader v-slots))))
          ,(when shadowing `(add-alternate-type-name ',name ',class-name))
          (defmethod type->type-spec ((type ,class-name))

@@ -95,7 +95,7 @@
           (if type
               (if (core-typep type)
                   `(typep ,a ',(slot-value type 'type-name))
-                  `(v-typep ,a ,type))
+                  whole)
               whole))
         whole)))
 

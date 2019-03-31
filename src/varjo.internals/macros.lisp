@@ -5,7 +5,8 @@
 ;; Regular Macros
 
 (defmacro define-vari-macro (name lambda-list &body body)
-  (vbind (func-code context) (gen-macro-function-code name lambda-list body)
+  (vbind (func-code context)
+      (gen-macro-function-code name lambda-list body)
     `(progn
        (add-global-form-binding
         (make-regular-macro ',name ,func-code ',context nil))
@@ -56,10 +57,15 @@
         (let* ((args (nth-value 1 (extract-arg-pair lambda-list :&whole)))
                (args (nth-value 1 (extract-arg-pair args :&environment)))
                (arg-names (mapcar λ(maybe-nth 0 _) args))
-               (arg-types (mapcar λ(arg-form->type (maybe-nth 1 _)) args)))
+               (arg-types (mapcar λ(let ((arg-form (maybe-nth 1 _)))
+                                     (if (&rest-p arg-form)
+                                         `',arg-form
+                                         `(type-spec->type ',arg-form)))
+                                  args)))
           `(progn
              (add-global-compiler-macro
-              (make-compiler-macro ',name ,func-code ',arg-names ',arg-types
+              (make-compiler-macro ',name ,func-code ',arg-names
+                                   (list ,@arg-types)
                                    ',context))
              ',name))))))
 

@@ -21,7 +21,7 @@
           `(progn
              (eval-when (:compile-toplevel :load-toplevel :execute)
                (define-v-type-class ,name (v-shadow-type)
-                 ((shadowed-type :initform ,shadowed-type)
+                 ((shadowed-type :initform (type-spec->type ',type-form))
                   (glsl-string :initform ,(v-glsl-string shadowed-type)))))
              (defmethod meta-kinds-to-infer ((varjo-type ,name))
                (declare (ignore varjo-type))
@@ -34,16 +34,20 @@
 (defmacro define-shadow-type-functions (shadow-type &body function-identifiers)
   (flet ((func-form-p (x)
            (and (listp x) (eq (first x) 'function) (= (length x) 2))))
-    (assert (v-typep (type-spec->type shadow-type) 'v-shadow-type) (shadow-type)
-            'shadowing-funcs-for-non-shadow-type
-            :name 'define-shadow-type-functions
-            :shadow-type shadow-type)
+    (let* ((s-type (type-spec->type shadow-type))
+           (is-type (v-typep s-type 'v-shadow-type)))
+      (assert is-type
+              (shadow-type)
+              'shadowing-funcs-for-non-shadow-type
+              :name 'define-shadow-type-functions
+              :shadow-type shadow-type))
     (assert (every #'func-form-p function-identifiers) ()
             'def-shadow-non-func-identifier
             :name 'def-shadow-non-func-identifier
             :func-ids (remove-if #'func-form-p function-identifiers))
     (let ((function-identifiers (mapcar #'second function-identifiers)))
-      `(shadow-functions ',shadow-type ',function-identifiers))))
+      `(shadow-functions ,(dump-type-construction-form shadow-type)
+                         ',function-identifiers))))
 
 (defmacro define-shadow-type-constructor (shadow-type function-identifier)
   (flet ((func-form-p (x)
