@@ -2,6 +2,8 @@
 
 ;;----------------------------------------------------------------------
 
+;; {TODO} complex to vector
+
 (defun coerce-real (obj dst-type env code)
   (compile-form
    (let ((src-type (primary-type obj)))

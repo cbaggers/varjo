@@ -30,7 +30,7 @@
 (define-type-pred simple-vector-p (x v-type) v-typep v-array)
 (define-type-pred vectorp (x v-type) v-typep v-array)
 (define-type-pred functionp (x v-type) v-typep v-function-type)
-(define-type-pred complexp (x v-type) v-typep v-complex)
+(define-type-pred complexp (x v-type) v-typep (v-single-complex v-double-complex))
 (define-type-pred numberp (x v-type) v-typep v-number)
 (define-type-pred realp (x v-type) v-typep v-real)
 (define-type-pred floatp (x v-type) v-typep (v-float v-double))
@@ -162,10 +162,24 @@ Try qualifying the types in order to pass complement a specific overload."))
                       (i v-int))
   (* f (expt 2f0 i)))
 
+
+(v-defun scale-float ((f v-double)
+                      (i v-int))
+  (* f (expt 2 i)))
+
 ;;------------------------------------------------------------
 
 (v-def-glsl-template-fun float-sign (x) "sign(~a)" (v-float) v-float
                          :pure t)
+
+(v-def-glsl-template-fun float-sign (x) "sign(~a)" (v-double) v-double
+                         :pure t)
+
+(v-defun float-sign ((x v-float) (y v-float))
+  (* (float-sign x) (abs y)))
+
+(v-defun float-sign ((x v-double) (y v-double))
+  (* (float-sign x) (abs y)))
 
 ;;------------------------------------------------------------
 

@@ -96,6 +96,10 @@
            :v-user-struct
            :v-sampler
            :v-complex
+           :v-single-complex
+           :v-double-complex
+           :single-complex
+           :double-complex
            :v-ratio
            ;;
            :v-function-type
