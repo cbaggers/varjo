@@ -350,7 +350,7 @@
       (exp (* power (log base)))))
 
 (v-defun expt ((base v-single-complex) (power v-float))
-  (if (and (zerop base) (plusp (realpart power)))
+  (if (and (zerop base) (plusp power))
       (* base power)
       (exp (* power (log base)))))
 
