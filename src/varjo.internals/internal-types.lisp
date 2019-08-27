@@ -391,7 +391,7 @@
    (glsl-string :initform "triangle_strip" :reader glsl-string)))
 
 (defclass triangles-adjacency (draw-mode geometry-primitive)
-  ((lisp-name :initform :triangle-adjacency :reader lisp-name)
+  ((lisp-name :initform :triangles-adjacency :reader lisp-name)
    (vertex-count :initform 6 :reader vertex-count)
    (glsl-string :initform "triangles_adjacency" :reader glsl-string)))
 
