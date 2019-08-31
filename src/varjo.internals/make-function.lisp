@@ -37,6 +37,7 @@
   ;; Check that the args are correctly formatted, we could just let
   ;; type-spec->type take care of this, however this way we get to
   ;; give better error messages (and also impose extra limitations
+  (check-args-for-constant-names :compiler-macro name args)
   (unless (function-raw-args-validp args)
     (cond
       ((some #'&rest-p args)

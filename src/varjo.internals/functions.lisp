@@ -16,6 +16,7 @@
 ;;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 (defmacro define-vari-function (name args &body body)
+  (check-args-for-constant-names :function name args)
   (destructuring-bind (in-args uniforms context shared)
       (split-arguments args '(&uniform &context &shared))
     (declare (ignore context))
@@ -106,6 +107,7 @@
 ;;[TODO] This is pretty ugly. Let's split this up...or at least document it :)
 ;;{TODO} :return should just be the last form
 (defmacro define-vari-special-operator (name args &body body)
+  (check-args-for-constant-names :special-operator name args)
   (destructuring-bind (in-args uniforms context rest optional shared)
       (split-arguments args '(&uniform &context &rest &optional &shared))
     (declare (ignore context)) ;; ignored as provided from body

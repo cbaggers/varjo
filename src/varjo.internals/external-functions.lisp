@@ -42,6 +42,7 @@
 
 (defmethod add-external-function (name in-args uniforms code
                                   &optional valid-glsl-versions)
+  (check-args-for-constant-names :function name (append in-args uniforms))
   (quick-check-of-arg-type-validity name (append in-args uniforms))
   (multiple-value-bind (body decls doc-string)
       (extract-declares-and-doc-string code code)

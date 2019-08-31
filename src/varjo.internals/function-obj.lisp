@@ -25,6 +25,17 @@
 
 ;;------------------------------------------------------------
 
+(defun check-args-for-constant-names (purpose name args)
+  (let ((problems (remove-if-not
+                   (lambda (x)
+                     (and (listp x) (constantp (first x))))
+                   args)))
+    (when problems
+      (error 'constant-arg-names
+             :purpose purpose :name name :args problems))))
+
+;;------------------------------------------------------------
+
 (defgeneric function-identifier (func)
   ;; account for this
   (:method ((func v-function))

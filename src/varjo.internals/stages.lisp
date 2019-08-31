@@ -243,6 +243,8 @@
       (and
        ;; needs to at least have name and type
        (>= (length arg) 2)
+       ;;
+       (not (constantp (first arg)))
        ;; of the rest of the list it must be keyword qualifiers and optionally
        ;; a string at the end. The string is a declaration of what the name of
        ;; the var will be in glsl. This feature is intended for use only by the
@@ -252,7 +254,7 @@
                               (butlast qualifiers)
                               qualifiers)))
          (every #'keywordp qualifiers)))
-    (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers)" arg))
+    (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant." arg))
   t)
 
 ;;{TODO} proper error

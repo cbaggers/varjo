@@ -5,6 +5,7 @@
 ;; Regular Macros
 
 (defmacro define-vari-macro (name lambda-list &body body)
+  (check-args-for-constant-names :macro name lambda-list)
   (vbind (func-code context) (gen-macro-function-code name lambda-list body)
     `(progn
        (add-global-form-binding
@@ -37,6 +38,7 @@
 ;; Compile Macros
 
 (defmacro define-vari-compiler-macro (name lambda-list &body body)
+  (check-args-for-constant-names :compiler-macro name lambda-list)
   (labels ((namedp (name x)
              (when (symbolp x)
                (string= name x)))

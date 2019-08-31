@@ -1362,6 +1362,22 @@ Invalid arguments for special function ~a
 Arguments: ~a
 " name args)
 
+(define-error constant-arg-names () (purpose name args)
+    "
+Invalid argument names found in ~a ~a ~@[named ~a~]
+
+The following symbols are already defined as constants and so
+cannot be used as argument names: ~{~a~^, ~}
+
+Problematic Arguments: ~a
+"
+  (if name "the" "a")
+  (string-downcase (string purpose))
+  name
+  (remove-duplicates
+   (mapcar (lambda (x) (if (listp x) (first x) x)) args))
+  args)
+
 ;;type->type-spec
 
 ;;

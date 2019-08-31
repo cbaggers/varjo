@@ -391,6 +391,7 @@
            :alt-type-name-already-taken
            :unknown-alt-type-name
            :invalid-arguments-for-special-op
+           :constant-arg-names
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -729,7 +730,8 @@
            :with-v-let-spec
            :parse-qualifier
            :*in-qualifier*
-           :*out-qualifier*))
+           :*out-qualifier*
+           :check-args-for-constant-names))
 
 (uiop:define-package #:varjo.api
     (:use #:cl #:varjo.utils #:varjo.internals #:%varjo.usings)

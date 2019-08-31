@@ -3,6 +3,7 @@
 
 (defmacro define-vari-type (name args type-form
                             &key valid-metadata-kinds)
+  (check-args-for-constant-names :type name args)
   (let ((ephemeral (null type-form))
         (valid-metadata-kinds (listify valid-metadata-kinds)))
     (assert (not args) () "args not supported yet")
