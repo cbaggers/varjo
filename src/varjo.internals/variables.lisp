@@ -71,6 +71,16 @@
        :do (add-vars (assocr kind *glsl-variables*)))
     env))
 
+(defmethod find-stages-that-have-var (name)
+  (let ((stages
+         (loop
+            :for (stage . vars) :in *glsl-variables*
+            :when (find name vars :key #'first)
+            :collect stage)))
+    (if (find t stages)
+        *stage-type-names*
+        stages)))
+
 ;;--------------------------------------------------
 
 (defun postfix-glsl-index (base index)

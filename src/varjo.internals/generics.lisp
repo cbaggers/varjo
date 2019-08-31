@@ -92,3 +92,4 @@
 (defgeneric valid-for-contextp (func env))
 (defgeneric qualifiers (obj))
 (defgeneric copy-value (value &key type glsl-name function-scope read-only))
+(defgeneric find-stages-that-have-var (name))

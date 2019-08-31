@@ -216,7 +216,11 @@ Returned Values: ~a"
   (cons (v-context env-a) (v-context env-b)) env-a env-b)
 
 (define-error symbol-unidentified (:error-type varjo-critical-error) (sym)
-    "Symbol '~s' is unidentified." sym)
+    "Symbol '~s' is unidentified.
+
+~@[However the symbol is valid in these stages: ~{~%- ~a~}~]"
+  sym
+  (mapcar #'string-downcase (mapcar #'string (find-stages-that-have-var sym))))
 
 (define-error if-form-type-mismatch () (test-form then-form then-type
                                               else-form else-type)
