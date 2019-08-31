@@ -41,7 +41,12 @@
     (error (e) e)))
 
 (defun raise-test-translate-error (errors stage-types)
-  (let ((groups (group-by (compose #'princ-to-string #'first)
+  (let ((groups (group-by (lambda (x)
+                            ;; used to use (compose #'princ-to-string #'first)
+                            ;; but alexandria's compute declares to optimize
+                            ;; for speed which raised a type uncertainty note
+                            ;; here on sbcl
+                            (princ-to-string (first x)))
                           (remove-if-not
                            (lambda (x) (typep (first x) 'condition))
                            (mapcar #'list errors stage-types)))))
