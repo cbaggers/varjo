@@ -91,7 +91,9 @@ to the static nature of glsl.
 place: ~a
 value: ~a
 Problematic form: ~s"
-  (primary-type code-obj-a) (primary-type code-obj-b) form)
+  (type->type-spec (primary-type code-obj-a))
+  (type->type-spec (primary-type code-obj-b))
+  form)
 
 (define-error setq-type-match (:error-type varjo-critical-error)
     (var-name old-value new-value)
