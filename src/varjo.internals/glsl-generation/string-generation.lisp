@@ -81,17 +81,17 @@
 (defun gen-bin-op-string (op-symbol place val)
   (assert (symbolp op-symbol))
   ;; {TODO} what logic do we want here?
-  (format nil "~a ~a ~a" (current-line place) op-symbol (current-line val)))
+  (format nil "(~a ~a ~a)" (current-line place) op-symbol (current-line val)))
 
 (defun %gen-assignment-string (lhs rhs)
-  (format nil "~a = ~a" lhs rhs))
+  (format nil "(~a = ~a)" lhs rhs))
 
 (defun gen-setq-assignment-string (old-value new-value-code-obj)
-  (format nil "~a = ~a" (glsl-name old-value)
+  (format nil "(~a = ~a)" (glsl-name old-value)
           (current-line new-value-code-obj)))
 
 (defun gen-out-var-assignment-string (glsl-name val)
-  (format nil "~a = ~a" glsl-name (current-line val)))
+  (format nil "(~a = ~a)" glsl-name (current-line val)))
 
 (defun gen-bool-or-string (objs)
   (format nil "~{~a~^ || ~}" (mapcar #'current-line objs)))
