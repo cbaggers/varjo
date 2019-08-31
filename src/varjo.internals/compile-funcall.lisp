@@ -72,7 +72,7 @@
   ;; will ever take a user defined struct as an argument. This is
   ;; important due to how ephemerals work.
   ;;
-  (typecase func
+  (etypecase func
     (trait-function
      (with-slots (trait) func
        (let* ((arg-type (primary-type (first compiled-args)))
@@ -89,8 +89,8 @@
          (compile-function-call func compiled-args args-code env)
        (declare (ignore expanded-into-new-form))
        (values new-obj new-env)))
-    (external-function (compile-external-function-call func compiled-args args-code env))
-    (t (error 'problem-with-the-compiler :target func))))
+    (external-function
+     (compile-external-function-call func compiled-args args-code env))))
 
 (defvar *allow-call-function-signature* nil)
 
