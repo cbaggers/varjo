@@ -2,7 +2,7 @@
 (in-readtable :fn.reader)
 
 (defun merge-return-sets (sets)
-  (declare (optimize (speed 3)))
+  (declare (optimize (speed 3) (safety 1)))
   (labels ((qualified-eql (ret-a ret-b)
              (declare (type v-type ret-a ret-b))
              (and (v-type-eq ret-a ret-b)
@@ -13,8 +13,9 @@
                          (every #'qualifier= qa qb)))))
 
            (type-sets-equal (set-a set-b)
-             (declare (type vector set-a set-b))
-             (and (= (length set-a) (length set-b))
+             (declare (type (vector v-type *) set-a set-b))
+             (and (= (length set-a)
+                     (length set-b))
                   (every #'qualified-eql set-a set-b)))
 
            (%merge-return-sets (set-a set-b)
