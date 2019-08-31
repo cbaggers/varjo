@@ -76,3 +76,12 @@
      (let ((x 10))
        (decf x 1)
        (v! 0 0 0 0)))))
+
+(5am:def-test assign-9 (:suite assignment-tests)
+  (finishes-p
+   (compile-frag () :410 nil
+     (let ((i (int 0))
+           (v (ivec3 0)))
+       (while (not (= (setf i (+ i 1)) 20))
+         (setf v (ivec3 i i i)))
+       v))))
