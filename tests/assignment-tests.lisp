@@ -85,3 +85,24 @@
        (while (not (= (setf i (+ i 1)) 20))
          (setf v (ivec3 i i i)))
        v))))
+
+(5am:def-test assign-10 (:suite assignment-tests)
+  (finishes-p
+   (compile-frag () :410 nil
+     (let* ((a 0f0))
+       (setf a (+ 2f0 1))
+       0))))
+
+(5am:def-test assign-11 (:suite assignment-tests)
+  (finishes-p
+   (compile-frag () :410 nil
+     (let* ((a 0f0))
+       (setf a (+ 2f0 1))
+       0))))
+
+(5am:def-test assign-12 (:suite assignment-tests)
+  (signals varjo-conditions:assignment-type-match
+   (compile-frag () :410 nil
+     (let* ((a 0f0))
+       (setf a 1)
+       0))))

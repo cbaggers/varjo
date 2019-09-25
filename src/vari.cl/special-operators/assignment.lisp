@@ -8,31 +8,32 @@
 (v-defmacro setf (&rest args)
   (let ((pairs (group args 2)))
     (if (= (length pairs) 1)
-        `(%modify-place setf = ,@(first pairs))
+        `(%modify-place setf = ,@(first pairs) nil)
         `(progn
-           ,@(mapcar λ`(%modify-place setf = ,@_) pairs)))))
+           ,@(mapcar λ`(%modify-place setf = ,@_ nil) pairs)))))
 
 (v-defmacro incf (place &optional (val 1))
   :args-valid t
   :return
-  `(%modify-place incf += ,place ,val))
+  `(%modify-place incf += ,place ,val t))
 
 (v-defmacro decf (place &optional (val 1))
   :args-valid t
   :return
-  `(%modify-place decf -= ,place ,val))
+  `(%modify-place decf -= ,place ,val t))
 
 (v-defmacro multf (place &optional (val 1))
   :args-valid t
   :return
-  `(%modify-place multf *= ,place ,val))
+  `(%modify-place multf *= ,place ,val t))
 
 (v-defmacro divf (place &optional (val 1))
   :args-valid t
   :return
-  `(%modify-place divf /= ,place ,val))
+  `(%modify-place divf /= ,place ,val t))
 
-(v-defspecial %modify-place (lisp-op-name glsl-op-symbol place val)
+(v-defspecial %modify-place (lisp-op-name glsl-op-symbol place val
+                                          allow-casting)
   :args-valid t
   :return
   ;; compile place and val so we can see what we have to work with
@@ -41,11 +42,18 @@
       ;; make sure we in the compiler havent been dumbasses
       (assert (member lisp-op-name '(setf incf decf multf divf)))
       (let ((code (list lisp-op-name place val)))
-        (assert (v-type-eq (primary-type place-obj) (primary-type val-obj)) ()
-                'assignment-type-match
-                :code-obj-a place-obj
-                :code-obj-b val-obj
-                :form code)
+        (if allow-casting
+            (assert (v-casts-to-p (primary-type val-obj) (primary-type place-obj))
+                    ()
+                    'assignment-type-match
+                    :code-obj-a place-obj
+                    :code-obj-b val-obj
+                    :form code)
+            (assert (v-type-eq (primary-type place-obj) (primary-type val-obj)) ()
+                    'assignment-type-match
+                    :code-obj-a place-obj
+                    :code-obj-b val-obj
+                    :form code))
         (let* ((modified-env (make-env-with-place-modification
                               place-obj
                               (flow-ids val-obj)
