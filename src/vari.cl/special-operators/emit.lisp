@@ -67,3 +67,7 @@
      (setf gl-position ,position)
      ,@(when data `((emit-data (values ,@data))))
      (emit-vertex)))
+
+(defmacro emit ((&key point-size) &body position-and-then-user-data)
+  (declare (ignore point-size position-and-then-user-data))
+  (error "Emit is only valid inside shader code"))
