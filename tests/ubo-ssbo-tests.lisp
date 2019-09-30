@@ -275,9 +275,5 @@
     (varjo:create-stage
      :fragment :450
      :uniform-variables '((the-data outer-one :ssbo :std-140))
-     :code '((labels ((blah ()
-                        (with-slots (ints &inline-form t)
-                            (aref (outer-one-data the-data) 0)
-                          (aref ints 1))))
-               (blah)
-               (v! 1 2 3 4)))))))
+     :code '((slot-value the-data 'data)
+             (v! 1 2 3 4))))))

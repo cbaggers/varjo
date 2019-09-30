@@ -1399,6 +1399,14 @@ Problematic form: ~a
 "
   form)
 
+(define-error slot-value-count-not-find-slot () (name type)
+    "Varjo: slot-value could not find a slot named ~a in ~a~@[~%~%~a~]"
+  name
+  (type->type-spec type)
+  (when (and (listp name) (eq (first name) 'quote))
+    "Perhaps because of the quote in-front of the slot-name which is
+unneccesary in Vari"))
+
 ;;type->type-spec
 
 ;;

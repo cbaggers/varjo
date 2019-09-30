@@ -394,6 +394,7 @@
            :constant-arg-names
            :failed-to-inline-with-slots-block-expression
            :with-slots-inline-form-invalid-syntax
+           :slot-value-count-not-find-slot
 
            ;; restarts
            :setq-supply-alternate-type))

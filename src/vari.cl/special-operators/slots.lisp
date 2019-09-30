@@ -9,8 +9,9 @@
   (with-slots ((slots varjo.internals::slots)) struct-type
     (let ((def (find slot-name slots :key #'first)))
       (assert def ()
-              "Varjo: slot-value could not find a slot named ~a in ~a"
-              slot-name (type->type-spec struct-type))
+              'slot-value-count-not-find-slot
+              :name slot-name
+              :type struct-type)
       (destructuring-bind (slot-name struct-type accessor glsl-string) def
         (declare (ignore slot-name struct-type glsl-string))
         accessor))))
