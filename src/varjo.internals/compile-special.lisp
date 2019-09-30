@@ -287,7 +287,8 @@
             :lisp-code code))
     (t (destructuring-bind (name value) (last1 (place-tree place-obj))
          (unless (or (= (v-function-scope env) (v-function-scope value))
-                     (= (v-function-scope value) 0))
+                     (= (v-function-scope value) 0)
+                     (typep (v-type-of value) 'v-block-struct))
            (error 'cross-scope-mutate :var-name name
                   :code (format nil "(setf (... ~s) ...)" name)))
          (if (v-read-only value)

@@ -874,7 +874,8 @@ Problematic Definition:
   code)
 
 (define-error slot-value-on-non-struct () (type slot-name)
-    "Was asked to access the slot ~a on ~a, however this is not a struct"
+    "Was asked to access the slot ~a on ~a,
+however this is not a struct"
   slot-name
   (type->type-spec type))
 
@@ -1381,6 +1382,22 @@ Problematic Arguments: ~a
   (remove-duplicates
    (mapcar (lambda (x) (if (listp x) (first x) x)) args))
   args)
+
+(define-error with-slots-inline-form-invalid-syntax () (form)
+    "
+The only valid thing to follow a :inline-form keyword in with-slots
+is either t or nil.
+
+Problematic form: ~a
+" form)
+
+(define-error failed-to-inline-with-slots-block-expression () (form)
+    "
+We were unable to inline the form in with-slots as it was not pure.
+
+Problematic form: ~a
+"
+  form)
 
 ;;type->type-spec
 

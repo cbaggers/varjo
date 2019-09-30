@@ -392,6 +392,8 @@
            :unknown-alt-type-name
            :invalid-arguments-for-special-op
            :constant-arg-names
+           :failed-to-inline-with-slots-block-expression
+           :with-slots-inline-form-invalid-syntax
 
            ;; restarts
            :setq-supply-alternate-type))

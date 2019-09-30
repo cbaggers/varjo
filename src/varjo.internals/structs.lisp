@@ -94,7 +94,8 @@
        ,slot-transform
        (,name)
        ,slot-type
-       :v-place-index 0)))
+       :v-place-index 0
+       :pure t)))
 
 (defun gen-struct-sig (name-string slots-with-types)
   (format nil "struct ~a {~%~{~a~%~}};"

@@ -34,14 +34,48 @@
 ;;------------------------------------------------------------
 ;; with-slots
 
-(v-defmacro with-slots (slots form &body body)
-  (let* ((name (gensym "with-slots-tmp"))
-         (bindings (mapcar λ(dbind (mname &optional sname) (ensure-list _)
-                              (let ((sname (or sname mname)))
-                                `(,mname (slot-value ,name ,sname))))
-                           slots)))
-    `(let ((,name ,form))
-       (symbol-macrolet ,bindings ,@body))))
+(v-defspecial with-slots (slots form &rest body)
+  :args-valid t
+  :return
+  (vbind (inst-obj inst-env) (compile-form form env)
+    (let* ((inline-key-pos (position-if
+                            λ(and (symbolp _) (string= _ "&INLINE-FORM"))
+                            slots))
+           (inline-form-subseq (when inline-key-pos
+                                 (subseq slots (1+ inline-key-pos))))
+           (inline-form-p (equal inline-form-subseq '(t)))
+           (slots (if inline-key-pos
+                      (subseq slots 0 inline-key-pos)
+                      slots))
+           (place-tree (place-tree inst-obj))
+           (last-pair (last1 place-tree))
+           (last-place (second last-pair))
+           (pure-block-struct-val-p
+            (and (pure-p inst-obj)
+                 (typep last-place 'v-value)))
+           (name
+            (if inline-form-p
+                inst-obj
+                (gensym "with-slots-tmp")))
+           (bindings
+            (mapcar λ(dbind (mname &optional sname) (ensure-list _)
+                       (let ((sname (or sname mname)))
+                         `(,mname (slot-value ,name ,sname))))
+                    slots)))
+      (when inline-key-pos
+        (assert (or (equal inline-form-subseq '(nil))
+                    (equal inline-form-subseq '(t)))
+                () 'with-slots-inline-form-invalid-syntax
+                :form `(with-slots ,slots ,form <body>)))
+      (when (and inline-form-p (and (not pure-block-struct-val-p)))
+        (error 'failed-to-inline-with-slots-block-expression
+               :form form))
+      (compile-form
+       (if inline-form-p
+           `(symbol-macrolet ,bindings ,@body)
+           `(let ((,name ,form))
+              (symbol-macrolet ,bindings ,@body)))
+       inst-env))))
 
 ;;------------------------------------------------------------
 ;; with-accessors

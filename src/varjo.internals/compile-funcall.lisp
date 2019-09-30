@@ -370,7 +370,7 @@
              args
              :type-set type-set
              :current-line (gen-function-call-string func args)
-             :pure (pure-p func)
+             :pure (and (pure-p func) (every #'pure-p args))
              :emit-set emit-set
              :stemcells (mappend #'stemcells args)
              :place-tree (calc-place-tree func args)

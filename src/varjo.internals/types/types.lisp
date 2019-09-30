@@ -871,7 +871,9 @@
 
 (defun find-alternative-types-for-spec (type-spec)
   (find-similarly-named-symbol
-   type-spec (alexandria:hash-table-keys *registered-types*)))
+   type-spec
+   (append (alexandria:hash-table-keys *registered-types*)
+           (mapcar #'car *type-shorthand*))))
 
 ;;------------------------------------------------------------
 
