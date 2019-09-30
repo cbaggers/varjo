@@ -10,6 +10,13 @@
     (v-uint (format nil "~au" number))
     (otherwise (format nil "~a" number))))
 
+(defun add-number-postfix-to-string (string type)
+  (typecase type
+    (v-double (format nil "~alf" string))
+    (v-float (format nil "~af" string))
+    (v-uint (format nil "~au" string))
+    (otherwise (format nil "~a" string))))
+
 (defun gen-variable-string (var-name v-value)
   (let ((type (v-type-of v-value)))
     (if (typep type 'v-block-struct)
@@ -348,9 +355,12 @@
 
 (defun cast-string (type code-obj)
   (when (current-line code-obj)
-    (format nil "~a(~a)"
-            (v-glsl-string type)
-            (current-line code-obj))))
+    (if (and (literal-p code-obj)
+             (typep (primary-type code-obj) 'v-integer))
+        (add-number-postfix-to-string (current-line code-obj) type)
+        (format nil "~a(~a)"
+                (v-glsl-string type)
+                (current-line code-obj)))))
 
 ;;----------------------------------------------------------------------
 

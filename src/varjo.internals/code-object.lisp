@@ -3,7 +3,7 @@
 
 (defun make-compiled (&key (type-set #() set-type-set) (current-line "")
                         to-block emit-set return-set used-types stemcells
-                        out-of-scope-args pure
+                        out-of-scope-args pure literal
                         place-tree
                         (called-funcs nil called-funcs-set))
   (assert called-funcs-set) ;; {TODO} only here to help us update the code. remove asap
@@ -27,6 +27,7 @@
                  :out-of-scope-args out-of-scope-args
                  :place-tree place-tree
                  :pure pure
+                 :literal literal
                  :called-funcs called-funcs))
 
 (defmethod primary-type ((compiled compiled))
@@ -74,6 +75,7 @@
                             (out-of-scope-args nil set-out-of-scope-args)
                             (place-tree nil set-place-tree)
                             (pure nil set-pure)
+                            (literal nil set-literal)
                             (used-types nil set-used-types)
                             (called-funcs nil set-called-funcs))
   (let ((type-set (if set-type-set type-set (type-set code-obj))))
@@ -92,6 +94,7 @@
                             (remove nil (out-of-scope-args code-obj)))
      :place-tree (if set-place-tree place-tree (place-tree code-obj))
      :pure (if set-pure pure (pure-p code-obj))
+     :literal (if set-literal literal (literal-p code-obj))
      :used-types (if set-used-types used-types (used-types code-obj))
      :called-funcs (if set-called-funcs called-funcs (called-funcs code-obj)))))
 
@@ -139,6 +142,7 @@
                         (mappend #'out-of-scope-args objs)))
                    :place-tree place-tree
                    :pure (if set-pure pure (every #'pure-p objs))
+                   :literal nil
                    :called-funcs (if set-called-funcs
                                      called-funcs
                                      (mappend #'called-funcs objs)))))

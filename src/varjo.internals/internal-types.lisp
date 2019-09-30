@@ -16,7 +16,8 @@
                       :reader out-of-scope-args)
    (pure :initarg :pure :initform nil :reader pure-p)
    (place-tree :initarg :place-tree :initform nil :reader place-tree)
-   (called-funcs :initarg :called-funcs :initform nil :reader called-funcs)))
+   (called-funcs :initarg :called-funcs :initform nil :reader called-funcs)
+   (literal :initarg :literal :initform nil :reader literal-p)))
 
 (defgeneric current-line (code-obj &optional even-when-ephemeral))
 

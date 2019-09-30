@@ -22,7 +22,7 @@
 (5am:def-test symbol-macros-2 (:suite symbol-macro-tests)
   (glsl-contains-all-p
       ("vec3\\(float\\(X\\),vec2\\(2.0f,2.0f\\)\\)"
-       "vec4\\(float\\(10\\),float\\(10\\),float\\(0\\),float\\(0\\)\\)")
+       "vec4\\(10f,10f,0f,0f\\)")
     (compile-vert () :410 nil
       (symbol-macrolet ((x 10))
         (let ((x 20))

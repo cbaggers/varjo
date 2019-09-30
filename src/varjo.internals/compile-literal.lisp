@@ -12,13 +12,15 @@
          :current-line "true"
          :used-types (list bool)
          :pure t
-         :called-funcs nil)
+         :called-funcs nil
+         :literal t)
         (make-compiled
          :type-set type-set
          :current-line "false"
          :used-types (list bool)
          :pure t
-         :called-funcs nil))))
+         :called-funcs nil
+         :literal t))))
 
 (defun get-number-type (x)
   ;; [TODO] How should we specify numbers unsigned?
@@ -38,6 +40,7 @@
      :current-line (gen-number-string code num-type)
      :used-types (list num-type)
      :pure t
+     :literal t
      :called-funcs nil)))
 
 (defun compile-array-literal (arr env)
@@ -56,6 +59,7 @@
                    :current-line glsl
                    :used-types (list element-type)
                    :pure t
+                   :literal t
                    :called-funcs nil)))
 
 (defun compile-string-literal (str env)
