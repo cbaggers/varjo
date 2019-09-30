@@ -871,7 +871,7 @@
 
 (defun find-alternative-types-for-spec (type-spec)
   (find-similarly-named-symbol
-   type-spec (alexandria:hash-table-values *registered-types*)))
+   type-spec (alexandria:hash-table-keys *registered-types*)))
 
 ;;------------------------------------------------------------
 
