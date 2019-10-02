@@ -34,6 +34,7 @@
                          :accessor output-variable-glsl)
    (out-set :initarg :out-set :accessor out-set)
    (raw-out-set :initarg :raw-out-set :accessor raw-out-set)
+   (gs-invocations :initform nil :initarg :gs-invocations :accessor gs-invocations)
    (out-decl :initform nil :initarg :out-decl :accessor out-declarations)
    (output-variables :initarg :output-variables :accessor output-variables)
    (uniforms :initarg :uniforms :accessor uniforms)

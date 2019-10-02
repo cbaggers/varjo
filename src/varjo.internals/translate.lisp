@@ -19,6 +19,7 @@
             #'process-shared
             #'compile-pass
             #'make-post-process-obj
+            #'process-gs-invocations
             #'process-output-primitive
             #'make-out-set
             #'check-stemcells
@@ -265,6 +266,25 @@
    :all-functions (cons main-func (all-called-functions main-func));; (cons main-func (all-cached-compiled-functions env))
    :raw-out-set (establish-out-set-for-stage stage main-func)
    :main-metadata (top-level-scoped-metadata main-func)))
+
+;;----------------------------------------------------------------------
+
+(defun process-gs-invocations (post-proc-obj)
+  (with-slots (main-metadata stage) post-proc-obj
+    (let* ((tl (find 'vari.cl:instancing main-metadata :key #'type-of)))
+      (typecase stage
+        (geometry-stage
+         (when tl
+           (let ((count (slot-value tl 'vari.cl:invocations)))
+             (assert (and (integerp count) (>= count 0)) ()
+                     'invalid-gs-invocation-count
+                     :count count)
+             (setf (gs-invocations post-proc-obj)
+                   (list (gen-geom-instancing-string count))))))
+        (t (assert (not tl) ()
+                   'invalid-stage-for-instancing
+                   :stage (stage-kind stage))))))
+  post-proc-obj)
 
 ;;----------------------------------------------------------------------
 

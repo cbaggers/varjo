@@ -12,6 +12,9 @@
   kind
   max-vertices)
 
+(define-metadata-kind instancing (:binds-to :scope)
+  invocations)
+
 ;;------------------------------------------------------------
 ;; Tessellation Control
 

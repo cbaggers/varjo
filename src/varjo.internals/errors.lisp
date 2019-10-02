@@ -1407,6 +1407,19 @@ Problematic form: ~a
     "Perhaps because of the quote in-front of the slot-name which is
 unneccesary in Vari"))
 
+(define-error invalid-gs-invocation-count () (count)
+    "Varjo: Found a declaration specifying that geometry instancing
+is to be used. However the invocation count provided was invalid: ~a
+
+A valid count number be an integer greater to or equal to zero."
+  count)
+
+(define-error invalid-stage-for-instancing () (stage)
+    "Varjo: Found a declaration specifying that geometry instancing
+is to be used. However the decaration was found in the ~a
+stage, which is invalid."
+  stage)
+
 ;;type->type-spec
 
 ;;

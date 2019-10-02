@@ -395,6 +395,8 @@
            :failed-to-inline-with-slots-block-expression
            :with-slots-inline-form-invalid-syntax
            :slot-value-count-not-find-slot
+           :invalid-gs-invocation-count
+           :invalid-stage-for-instancing
 
            ;; restarts
            :setq-supply-alternate-type))
@@ -988,6 +990,8 @@
    :define-metadata-kind
 
    :output-primitive
+   :instancing
+   :invocations
    :kind
    :max-vertices
    :output-patch

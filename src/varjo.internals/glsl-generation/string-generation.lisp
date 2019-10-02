@@ -202,6 +202,9 @@
 (defun gen-geom-input-primitive-string (primitive)
   (format nil "layout (~a) in;" (glsl-string primitive)))
 
+(defun gen-geom-instancing-string (count)
+  (format nil "layout (invocations = ~a) in;" count))
+
 (defun gen-geom-output-primitive-string (metadata)
   (with-slots (vari.cl:kind vari.cl:max-vertices) metadata
     (assert (find vari.cl:kind '(:points :line-strip :triangle-strip)) ()
@@ -252,6 +255,7 @@
                      (in-declarations post-proc-obj)
                      (input-variable-glsl post-proc-obj)
                      (out-declarations post-proc-obj)
+                     (gs-invocations post-proc-obj)
                      (output-variable-glsl post-proc-obj)
                      (shared-decls post-proc-obj)
                      (remove-empty
