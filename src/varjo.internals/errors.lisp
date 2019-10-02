@@ -1385,8 +1385,8 @@ Problematic Arguments: ~a
 
 (define-error with-slots-inline-form-invalid-syntax () (form)
     "
-The only valid thing to follow a :inline-form keyword in with-slots
-is either t or nil.
+The &inline-form slot list keyword is only valid in the final
+position of the slot-list.
 
 Problematic form: ~a
 " form)

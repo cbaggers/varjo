@@ -145,7 +145,7 @@
    (compile-frag (&uniform (the-data some-data :ssbo :std-430))
        :450 nil
      (labels ((blah ((x some-data))
-                (with-slots (ints &inline-form t) x
+                (with-slots (ints &inline-form) x
                   (setf (aref ints 1) 10))))
        (blah the-data)
        (v! 1 2 3 4)))))
@@ -157,7 +157,7 @@
       (values (v! 1 2 3 4) (v! 1 2)))
      (((hmm :vec2))
       (labels ((blah ((x outer-one) (i :int))
-                 (with-slots (ints &inline-form t)
+                 (with-slots (ints &inline-form)
                      (aref (outer-one-data the-data) i)
                    (setf (aref ints 1) 10))))
         (v! 1 2 3 (blah the-data 5)))))))
@@ -224,10 +224,12 @@
       (values (v! 1 2 3 4) (v! 1 2)))
      (((hmm :vec2))
       (labels ((blah ((x outer-one) (i :int))
-                 (with-slots (ints &inline-form t)
+                 (with-slots (ints &inline-form)
                      (aref (outer-one-data x) i)
                    (setf (aref ints 1) 10))))
         (v! 1 2 3 (blah the-data 5)))))))
+
+
 
 (5am:def-test ssbo-17 (:suite ubo-ssbo-tests)
   (finishes-p
@@ -277,3 +279,16 @@
      :uniform-variables '((the-data outer-one :ssbo :std-140))
      :code '((slot-value the-data 'data)
              (v! 1 2 3 4))))))
+
+
+(defun foo ()
+  (glsl-code
+   (translate
+    (create-stage
+     :fragment :450
+     :uniform-variables '((the-data outer-one))
+     :code '((labels ((blah ((x outer-one) (i :int))
+                        (with-slots (ints &inline-form)
+                            (aref (outer-one-data x) i)
+                          (atomic-add (aref ints 1) 10))))
+               (v! 1 2 3 (blah the-data 5))))))))

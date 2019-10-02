@@ -44,7 +44,6 @@
                             slots))
            (inline-form-subseq (when inline-key-pos
                                  (subseq slots (1+ inline-key-pos))))
-           (inline-form-p (equal inline-form-subseq '(t)))
            (slots (if inline-key-pos
                       (subseq slots 0 inline-key-pos)
                       slots))
@@ -55,7 +54,7 @@
             (and (pure-p inst-obj)
                  (typep last-place 'v-value)))
            (name
-            (if inline-form-p
+            (if inline-key-pos
                 inst-obj
                 (gensym "with-slots-tmp")))
            (bindings
@@ -64,15 +63,14 @@
                          `(,mname (slot-value ,name ,sname))))
                     slots)))
       (when inline-key-pos
-        (assert (or (equal inline-form-subseq '(nil))
-                    (equal inline-form-subseq '(t)))
+        (assert (null inline-form-subseq)
                 () 'with-slots-inline-form-invalid-syntax
                 :form `(with-slots ,slots ,form <body>)))
-      (when (and inline-form-p (and (not pure-block-struct-val-p)))
+      (when (and inline-key-pos (and (not pure-block-struct-val-p)))
         (error 'failed-to-inline-with-slots-block-expression
                :form form))
       (compile-form
-       (if inline-form-p
+       (if inline-key-pos
            `(symbol-macrolet ,bindings ,@body)
            `(let ((,name ,form))
               (symbol-macrolet ,bindings ,@body)))
