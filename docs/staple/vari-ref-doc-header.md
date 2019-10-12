@@ -1,6 +1,6 @@
 ## Vari Reference Documentation
 
-This is the documentation for the Vari language. For the reference documentation for Varjo (the compiler that turns Vari into GLSL) please see [here]()
+This is the documentation for the Vari language. For the reference documentation for Varjo (the compiler that turns Vari into GLSL) please see [here](http://techsnuffle.com/varjo/varjo-reference.html)
 
 All text in the various definitions that follow a heading that states "GLSL Documentation" is from the official GLSL documentation and copyright Khronos Group as stated in the following:
 
