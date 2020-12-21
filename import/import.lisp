@@ -30,7 +30,7 @@
 (defmacro assert-match (pattern arg &body body)
   (with-gensyms (form)
     `(let ((,form ,arg))
-       (optima.extra:if-match ,pattern ,form
+       (trivia:if-match ,pattern ,form
          (progn ,@body)
          (error "Match Assertion Failure:~%~%Pattern: ~s~%Form: ~s"
                 ',pattern ,form)))))
@@ -41,7 +41,7 @@
 (defun import-shader (shader-stage-glsl)
   (let* ((glsl shader-stage-glsl)
          (ast (parse glsl)))
-    (match ast
+    (trivia:match ast
       ;;
       (`(shader ,@body)
         (post-process (mapcar #'import-shader-body-element body)))
@@ -52,7 +52,7 @@
 (defun import-glsl-function (function-glsl)
   (let* ((glsl function-glsl)
          (ast (parse glsl)))
-    (match ast
+    (trivia:match ast
       ;;
       (`(shader ,@body)
         (post-process-func (mapcar #'import-shader-body-element body)))
@@ -80,9 +80,9 @@
             `(:defun-g ,name ,args ,@body))))))
 
 (defun code-cleaner (form)
-  (match form
-    ((guard x (constantp x)) x)
-    ((guard x (symbolp x)) x)
+  (trivia:match form
+    ((trivia:guard x (constantp x)) x)
+    ((trivia:guard x (symbolp x)) x)
     (`(let ,@a) (code-cleaner `(let* ,@a)))
     (`(let* (,@a) (let* (,@b) ,@c) ,@d)
       (code-cleaner `(let* (,@a ,@b) ,@c ,@d)))
@@ -109,7 +109,7 @@
     (`(,@a) (mapcar #'code-cleaner a))))
 
 (defun post-process (forms)
-  (labels ((func (x) (match x (`(%label ,@rest) rest))))
+  (labels ((func (x) (trivia:match x (`(%label ,@rest) rest))))
     (let* ((forms (remove nil forms))
            (funcs (remove nil (mapcar #'func forms)))
            (main (find :main funcs :key #'first :test #'string=))
@@ -126,7 +126,7 @@
          version)))))
 
 (defun import-shader-body-element (body)
-  (match body
+  (trivia:match body
     ;;
     (`(preprocessor-directive ,directive)
       (import-directive directive))
@@ -169,7 +169,7 @@
               :initial-value nil)))
 
 (defun import-statement (accum form)
-  (match form
+  (trivia:match form
     (`(variable-declaration ,@decl) (import-variable-declaration decl accum))
     (_ (if accum
            `(progn
@@ -192,7 +192,7 @@
          ,body-form))))
 
 (defun import-initializer (initializer)
-  (ematch initializer
+  (trivia:ematch initializer
     (`(,id ,array-specifier ,form)
       array-specifier ;; {TODO} HACK!
       (list (import-var-identifier id)
@@ -208,8 +208,8 @@
     ;; binary operators
     ((bin-op-form-p form) (import-binary-operator form))
     ;; other
-    (t (match form
-         ((guard x (stringp x))
+    (t (trivia:match form
+         ((trivia:guard x (stringp x))
           (import-var-identifier x))
          (`(return ,form)
            ;;`(varjo::%return ,(import-form form))
@@ -279,7 +279,7 @@
          ,(import-form then))))
 
 (defun import-assignment (form)
-  (ematch form
+  (trivia:ematch form
     (`(,id := ,expr)
       `(setf ,(import-form id) ,(import-form expr)))
     (`(,id :+= ,expr)
@@ -303,7 +303,7 @@
   '<SKIPPED>)
 
 (defun import-function-arg (arg)
-  (ematch arg
+  (trivia:ematch arg
     (`((type-specifier ,type) ,name)
       (list (import-var-identifier name)
             (import-type type)))
@@ -398,8 +398,8 @@
            str))))
 
 (defun import-field (primary args)
-  (match args
-    ((guard `(,field-name) (swizzle-p field-name))
+  (trivia:match args
+    ((trivia:guard `(,field-name) (swizzle-p field-name))
      (import-swizzle primary field-name))
     (`(,field-name)
       (import-field-access primary field-name))
