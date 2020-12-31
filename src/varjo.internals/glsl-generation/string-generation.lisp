@@ -147,7 +147,7 @@
                       (glsl-chunk-splicing
                         :line (glsl-line "case ~a:" key)
                         :chunk (glsl-chunk-from-compiled obj)
-                        :line (glsl-line "break;" key))))))))
+                        :line (glsl-line "break;"))))))))
     (glsl-chunk-splicing
       :chunk (to-block test-obj)
       :line (glsl-line "switch (~a)" (current-line test-obj))
