@@ -8,7 +8,6 @@
     :serial t
     :depends-on (#:varjo
                  #:glsl-toolkit
-                 #:optima
                  #:fare-quasiquote-extras
                  #:rtg-math.vari
                  #:split-sequence)
