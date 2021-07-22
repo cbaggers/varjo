@@ -3,6 +3,7 @@
 
 ;;------------------------------------------------------------
 
+;;{TODO} destructure context into versions, target-env, extensions, includes
 (defun make-stage (kind in-args uniforms context code
                    &optional (stemcells-allowed t) primitive)
   (assert (listp context) ()
@@ -21,9 +22,16 @@
                        shared-variables
                        code
                        (stemcells-allowed t)
-                       primitive)
+                       primitive
+                       (target-environment :opengl)
+                       includes
+                       extensions)
   (when (and (every #'check-arg-form input-variables)
-             (every #'check-arg-form uniform-variables)
+             (every (lambda (arg)
+                      (check-arg-form arg
+                                      :uniformp t
+                                      :target-environment target-environment))
+                    uniform-variables)
              (check-for-dups input-variables
                              uniform-variables
                              shared-variables))
@@ -237,8 +245,24 @@
       raw-context
       (list *default-version*)))
 
+;;{TODO} check if uniform qualifier is valid in target environment
+;; e.g push_constant only in vulkan
+(defun check-uniform-qualifier (qualifier target-environment)
+  t)
+
+(defun check-qualifier (qualifier uniformp target-environment)
+  (or (keywordp qualifier)
+      (and uniformp
+           (listp qualifier)
+           (= (length qualifier) 2)
+           (keywordp (first qualifier))
+           (check-uniform-qualifier qualifier target-environment))))
+
 ;;{TODO} proper error
-(defun check-arg-form (arg)
+(defun check-arg-form (arg
+                       &key
+                         uniformp
+                         (target-environment :opengl))
   (unless
       (and
        ;; needs to at least have name and type
@@ -253,7 +277,9 @@
               (qualifiers (if (stringp (last1 qualifiers))
                               (butlast qualifiers)
                               qualifiers)))
-         (every #'keywordp qualifiers)))
+         (every (lambda (qualifier)
+                  (check-qualifier qualifier uniformp target-environment))
+                qualifiers)))
     (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant." arg))
   t)
 

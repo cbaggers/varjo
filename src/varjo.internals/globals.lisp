@@ -6,6 +6,8 @@
 
 (defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450 :460))
 
+(defvar *target-environments* '(:opengl :vulkan))
+
 (defvar *stage-names*
   '(:vertex
     :tessellation-control
@@ -69,33 +71,45 @@
 (defvar +ascii-alpha-num+
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
+(defparameter *glsl-vulkan-qualifiers*
+  '((:set "set" t)
+    (:constant-id "constant_id" t) ;; only allowed for const qualified
+    (:push-constant "push_constant")
+    (:input_attachmane_index t)
+    (:local_size_x_id t)
+    (:local_size_y_id t)
+    (:local_size_z_id t)))
+
 (defparameter *glsl-qualifiers*
-  '((:attribute "attribute")
-    (:buffer "buffer")
-    (:centroid "centroid")
-    (:coherent "coherent")
-    (:const "const")
-    (:flat "flat")
-    (:highp "highp")
-    (:in "in")
-    (:invariant "invariant")
-    (:lowp "lowp")
-    (:mediump "mediump")
-    (:noperspective "noperspective")
-    (:out "out")
-    (:in/out "inout")
-    (:packed "packed")
-    (:readonly "readonly")
-    (:restrict "restrict")
-    (:sample "sample")
-    (:shared "shared")
-    (:smooth "smooth")
-    (:std-140 "std140")
-    (:std-430 "std430")
-    (:uniform "uniform")
-    (:varying "varying")
-    (:volatile "volatile")
-    (:writeonly "writeonly")))
+  (append
+   *glsl-vulkan-qualifiers*
+   '((:attribute "attribute")
+     (:buffer "buffer")
+     (:centroid "centroid")
+     (:coherent "coherent")
+     (:const "const")
+     (:flat "flat")
+     (:highp "highp")
+     (:in "in")
+     (:invariant "invariant")
+     (:lowp "lowp")
+     (:mediump "mediump")
+     (:noperspective "noperspective")
+     (:out "out")
+     (:in/out "inout")
+     (:packed "packed")
+     (:readonly "readonly")
+     (:restrict "restrict")
+     (:sample "sample")
+     (:shared "shared")
+     (:smooth "smooth")
+     (:std-140 "std140")
+     (:std-430 "std430")
+     (:uniform "uniform")
+     (:varying "varying")
+     (:volatile "volatile")
+     (:writeonly "writeonly")
+     (:binding "binding" t))))
 
 (defparameter *varjo-qualifiers*
   (append

@@ -312,13 +312,17 @@
               "")))
 
 (defun block-memory-layout-string (target-name target-kind layout)
-  (assert (typep layout 'qualifier))
-  (assert (block-memory-layout-qualfier-p layout) ()
+  (assert (every (lambda (q)
+                   (typep q 'qualifier))
+                 (listify layout)))
+  (assert (every #'block-memory-layout-qualifier-p (listify layout)) ()
           'unknown-layout-specifier
           :name target-name
           :target-kind target-kind
           :specifier layout)
-  (glsl-string layout))
+  (if (listp layout)
+      (format nil "~{~a~^, ~}" (mapcar #'glsl-string layout))
+      (glsl-string layout)))
 
 (defun write-ubo-block (storage-qualifier block-name slots layout)
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"

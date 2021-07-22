@@ -18,7 +18,11 @@
         (:feedback (parse-feedback-qualifier name args))
         (otherwise (make-instance 'qualifier
                                   :name name
-                                  :glsl-string (second spec)))))))
+                                  :glsl-string (if (third spec)
+                                                   (format nil "~a = ~a"
+                                                           (second spec)
+                                                           (first args))
+                                                   (second spec))))))))
 
 (defun parse-feedback-qualifier (name args)
   (let ((fb-arg-len (length args))
@@ -50,10 +54,20 @@
     (string= a b)))
 
 
-(defun block-memory-layout-qualfier-p (qualifier)
+(defun block-memory-layout-qualifier-p (qualifier)
   (check-type qualifier qualifier)
   (not (null (member (name qualifier)
-                     '(:std-140 :std-430 :packed :shared)))))
+                     '(:std-140
+                       :std-430
+                       :packed
+                       :shared
+                       :binding
+                       :set
+                       :constant-id
+                       :push-constant
+                       :local_size_x_id
+                       :local_size_y_id
+                       :local_size_z_id)))))
 
 (defmethod qualifiers ((obj shader-variable))
   (qualifiers (v-type-of obj)))

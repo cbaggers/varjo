@@ -616,7 +616,7 @@
          :for glsl-name = (glsl-name uniform)
          :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name)))
-               (layout (find-if #'block-memory-layout-qualfier-p qualifiers)))
+               (layout (remove-if-not #'block-memory-layout-qualifier-p qualifiers)))
            (push (make-instance
                   'uniform-variable
                   :name name
@@ -624,7 +624,9 @@
                   :type type-obj
                   :glsl-decl (cond
                                ((find :ubo qualifiers :test #'qualifier=)
-                                (assert (not (qualifier= layout :std-430)))
+                                (assert (notany (lambda (q)
+                                                  (qualifier= q :std-430))
+                                                (listify layout)))
                                 (write-ubo-block (parse-qualifier :uniform)
                                                  string-name
                                                  (v-slots type-obj)
