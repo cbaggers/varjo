@@ -81,10 +81,7 @@
   '((:set "set" t)
     (:constant-id "constant_id" t) ;; only allowed for const qualified
     (:push-constant "push_constant")
-    (:input_attachmane_index t)
-    (:local_size_x_id t)
-    (:local_size_y_id t)
-    (:local_size_z_id t)))
+    (:input_attachmane_index t)))
 
 (defparameter *glsl-qualifiers*
   (append
@@ -115,7 +112,10 @@
      (:varying "varying")
      (:volatile "volatile")
      (:writeonly "writeonly")
-     (:binding "binding" t))))
+     (:binding "binding" t)
+     (:local_size_x_id t)
+     (:local_size_y_id t)
+     (:local_size_z_id t))))
 
 (defparameter *varjo-qualifiers*
   (append
