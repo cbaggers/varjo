@@ -71,6 +71,12 @@
 (defvar +ascii-alpha-num+
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
+(defvar *glsl-extension-behaviors*
+  '(:require
+    :enable
+    :warn
+    :disable))
+
 (defparameter *glsl-vulkan-qualifiers*
   '((:set "set" t)
     (:constant-id "constant_id" t) ;; only allowed for const qualified

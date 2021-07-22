@@ -234,15 +234,20 @@
                 (:cw "cw")
                 (:ccw "ccw"))))))
 
+(defun format-extensions-from-env (env)
+  (format nil "~{#extension ~a~%~}"
+          (mapcar #'glsl-string (v-extensions env))))
+
 (defun gen-shader-string (post-proc-obj)
   (let* ((funcs (all-functions post-proc-obj))
          (func-code (remove nil (mapcar #'glsl-code funcs)))
          (func-sigs (remove nil (mappend #'signatures funcs))))
     (with-slots (env) post-proc-obj
       (format
-       nil "// ~a~%#version ~a~%~{~%~{~a~%~}~}"
+       nil "// ~a~%#version ~a~%~@[~%~a~]~{~%~{~a~%~}~}"
        (string-downcase (type-of (stage env)))
        (get-version-from-context env)
+       (format-extensions-from-env env)
        (remove nil
                (list (used-user-structs post-proc-obj)
                      (in-declarations post-proc-obj)

@@ -86,6 +86,7 @@
                  :shared-variables (mapcar λ(make-var 'shared-variable _)
                                             shared-variables)
                  :context version/s
+                 :extensions (mapcar #'make-extension extensions)
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
                  :primitive-in (%process-primitive-type stage-type
