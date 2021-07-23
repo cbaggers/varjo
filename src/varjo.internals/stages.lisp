@@ -3,17 +3,40 @@
 
 ;;------------------------------------------------------------
 
-;;{TODO} destructure context into versions, target-env, extensions, includes
+(defun destructure-context (context)
+  (flet ((check-for-key (ctx key)
+           (and (listp ctx)
+                (>= (length ctx) 2)
+                (eq (first ctx) key))))
+    (let ((target-env :opengl)
+          (extensions nil)
+          (includes nil))
+      (loop for ctx in context
+            if (keywordp ctx) collect ctx into version/s
+            if (check-for-key ctx :target-environment) do (setf target-env (second ctx))
+            if (check-for-key ctx :extensions) do (setf extensions (cdr ctx))
+            if (check-for-key ctx :includes) do (setf includes (cdr ctx))
+            finally (return (values version/s
+                                    target-env
+                                    extensions
+                                    includes))))))
+
 (defun make-stage (kind in-args uniforms context code
                    &optional (stemcells-allowed t) primitive)
   (assert (listp context) ()
           "Varjo: The context argument to make-stage must be a list")
-  (create-stage kind context
-                :input-variables in-args
-                :uniform-variables uniforms
-                :code code
-                :stemcells-allowed stemcells-allowed
-                :primitive primitive))
+  (multiple-value-bind (version/s target-env extensions includes)
+      (destructure-context context)
+    (create-stage kind version/s
+                  :input-variables in-args
+                  :uniform-variables uniforms
+                  :code code
+                  :stemcells-allowed stemcells-allowed
+                  :primitive primitive
+                  :target-environment target-env
+                  :extensions extensions
+                  ;; actually includes don't make a lot of sense in Varjo, but who knows...
+                  :includes includes)))
 
 (defun create-stage (kind version/s
                      &key

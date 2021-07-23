@@ -53,6 +53,22 @@
                b)))
     (string= a b)))
 
+(defun constant-memory-layout-qualifier-p (qualifier)
+  (check-type qualifier qualifier)
+  (not (null (member (name qualifier)
+                     '(:constant-id)))))
+
+(defun image-memory-layout-qualifier-p (qualifier)
+  (check-type qualifier qualifier)
+  (not (null (find (name qualifier) *glsl-image-format-qualifiers* :key #'first))))
+
+(defun uniform-memory-layout-qualifier-p (qualifier &optional imagep)
+  (check-type qualifier qualifier)
+  (or (not (null (member (name qualifier)
+                         '(:binding
+                           :set))))
+      (and imagep
+           (image-memory-layout-qualifier-p qualifier))))
 
 (defun block-memory-layout-qualifier-p (qualifier)
   (check-type qualifier qualifier)
@@ -63,11 +79,11 @@
                        :shared
                        :binding
                        :set
-                       :constant-id
-                       :push-constant
-                       :local_size_x_id
-                       :local_size_y_id
-                       :local_size_z_id)))))
+                       :push-constant)))))
+
+(defun memory-layout-qualifier-p (qualifier)
+  (or (block-memory-layout-qualifier-p qualifier)
+      (uniform-memory-layout-qualifier-p qualifier)))
 
 (defmethod qualifiers ((obj shader-variable))
   (qualifiers (v-type-of obj)))

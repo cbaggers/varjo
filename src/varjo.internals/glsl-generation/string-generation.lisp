@@ -184,9 +184,28 @@
           (prefix-type-to-string type glsl-name
                                  (append qualifiers (list *in-qualifier*)))))
 
-(defun gen-uniform-decl-string (glsl-name type qualifiers)
+(defun uniform-memory-layout-string (target-name layout &optional imagep)
+  (let ((qualifiers (listify layout)))
+    (assert (every (lambda (q)
+                     (typep q 'qualifier))
+                   qualifiers))
+    (assert (every (lambda (q)
+                     (uniform-memory-layout-qualifier-p q imagep))
+                   qualifiers)
+            ()
+            'unknown-layout-specifier
+            :name target-name
+            :target-kind :uniform
+            :specifier layout)
+    (format nil "~{~a~^, ~}" (mapcar #'glsl-string layout))))
+
+;;{TODO} check if type is an image type and pass to uniform-memory-layout-string
+(defun gen-uniform-decl-string (glsl-name type qualifiers &optional layout)
   (declare (ignore qualifiers))
-  (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
+  (format nil "~@[layout(~a) ~]uniform ~a;"
+          (when layout
+            (uniform-memory-layout-string glsl-name layout))
+          (prefix-type-to-string type glsl-name)))
 
 (defun gen-shared-decl-string (glsl-name type qualifiers)
   (declare (ignore qualifiers))
@@ -317,17 +336,16 @@
               "")))
 
 (defun block-memory-layout-string (target-name target-kind layout)
-  (assert (every (lambda (q)
-                   (typep q 'qualifier))
-                 (listify layout)))
-  (assert (every #'block-memory-layout-qualifier-p (listify layout)) ()
-          'unknown-layout-specifier
-          :name target-name
-          :target-kind target-kind
-          :specifier layout)
-  (if (listp layout)
-      (format nil "~{~a~^, ~}" (mapcar #'glsl-string layout))
-      (glsl-string layout)))
+  (let ((qualifiers (listify layout)))
+    (assert (every (lambda (q)
+                     (typep q 'qualifier))
+                   qualifiers))
+   (assert (every #'block-memory-layout-qualifier-p qualifiers) ()
+           'unknown-layout-specifier
+           :name target-name
+           :target-kind target-kind
+           :specifier layout)
+    (format nil "~{~a~^, ~}" (mapcar #'glsl-string qualifiers))))
 
 (defun write-ubo-block (storage-qualifier block-name slots layout)
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"

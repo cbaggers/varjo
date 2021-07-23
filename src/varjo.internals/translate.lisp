@@ -616,7 +616,7 @@
          :for glsl-name = (glsl-name uniform)
          :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name)))
-               (layout (remove-if-not #'block-memory-layout-qualifier-p qualifiers)))
+               (layout (remove-if-not #'memory-layout-qualifier-p qualifiers)))
            (push (make-instance
                   'uniform-variable
                   :name name
@@ -638,7 +638,8 @@
                                                   layout))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
-                                                           qualifiers))))
+                                                           qualifiers
+                                                           layout))))
                  final-strings)))
 
       (loop :for s :in (stemcells post-proc-obj) :do
@@ -656,7 +657,8 @@
                                  (gen-uniform-decl-string
                                   (or string-name (error "stem cell without glsl-name"))
                                   type-obj
-                                  nil)))
+                                  nil
+                                  (remove-if-not #'uniform-layout-qualifier-p qualifiers))))
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
