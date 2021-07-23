@@ -88,7 +88,7 @@
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (shared-variables :initarg :shared-variables :accessor shared-variables)
    (context :initarg :context :accessor context)
-   (target-environment :initarg :target-environment :acessor target-environment
+   (target-environment :initarg :target-environment :accessor target-environment
                        :initform :opengl)
    (extensions :initarg :extensions :accessor extensions
                :initform nil)

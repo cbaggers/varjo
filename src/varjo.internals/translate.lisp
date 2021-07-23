@@ -466,7 +466,8 @@
                                       (v-dimensions
                                        (v-type-of
                                         (first expanded-vars))))))))
-           (locations (if (typep (stage post-proc-obj) 'vertex-stage)
+           (locations (if (or (typep (stage post-proc-obj) 'vertex-stage)
+                              (eq :vulkan (target-environment stage)))
                           (calc-locations (mapcar #'v-type-of expanded-vars))
                           (n-of nil (length expanded-vars))))
            (glsl-decls
@@ -500,10 +501,34 @@
 
 ;;----------------------------------------------------------------------
 
+;;{TODO} remove out-var by name instead of order?
+;;{TODO} add other stages if they require this as well
+(defgeneric remove-stage-specific-out-vars (stage out-set)
+
+  (:method ((stage vertex-stage) out-set)
+    (subseq out-set 1))
+  
+  (:method (stage out-set)
+    (declare (ignore stage))
+    out-set))
+
 (defgeneric gen-stage-locations (stage out-set)
   (:method ((stage fragment-stage) out-set)
     (let ((out-types (type-set-to-type-list out-set)))
       (calc-locations out-types)))
+  (:method (stage out-set)
+    (if (eq :vulkan (target-environment stage))
+        (let* ((out-types (type-set-to-type-list
+                           (remove-stage-specific-out-vars stage out-set)))
+               (out-locations (calc-locations out-types)))
+          (if (= (length out-locations)
+                 (length out-set))
+              out-locations)
+          (concatenate 'list
+                       (n-of nil (- (length out-set)
+                                    (length out-locations)))
+                       out-locations))
+        (call-next-method)))
   (:method (stage out-set)
     (declare (ignore stage))
     (n-of nil (length out-set))))
