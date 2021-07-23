@@ -88,7 +88,8 @@
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (shared-variables :initarg :shared-variables :accessor shared-variables)
    (context :initarg :context :accessor context)
-   (extensions :initarg :extensions :accessor extensions)
+   (extensions :initarg :extensions :accessor extensions
+               :initform nil)
    (lisp-code :initarg :lisp-code :accessor lisp-code)
    (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
    (previous-stage :initarg :previous-stage :accessor previous-stage
