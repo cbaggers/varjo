@@ -109,6 +109,7 @@
                  :shared-variables (mapcar λ(make-var 'shared-variable _)
                                             shared-variables)
                  :context version/s
+                 :target-environment target-environment
                  :extensions (mapcar #'make-extension extensions)
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
@@ -178,6 +179,7 @@
               (uniform-variables nil uv-set)
               (shared-variables nil sv-set)
               (context nil c-set)
+              (target-environment nil env-set)
               (extensions nil ext-set)
               (lisp-code nil lc-set)
               (previous-stage nil ps-set)
@@ -198,6 +200,9 @@
      :context (if c-set
                   context
                   (context stage))
+     :target-environment (if env-set
+                             target-environment
+                             (target-environment stage))
      :extensions (if ext-set
                      extensions
                      (extensions stage))
