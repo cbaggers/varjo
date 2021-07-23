@@ -11,6 +11,7 @@
        (uniform-variables nil uniforms-set)
        (implicit-uniforms nil implicit-uniforms-set)
        (context nil context-set)
+       (extensions nil extensions-set)
        (stemcells-allowed nil a-s-set)
        (used-external-functions nil used-external-functions-set)
        (previous-stage nil previous-stage-set)
@@ -42,6 +43,9 @@
    :context (if context-set
                 context
                 (context original))
+   :extensions (if extensions-set
+                   extensions
+                   (extensions original))
    :stemcells-allowed (if a-s-set
                           stemcells-allowed
                           (stemcells-allowed original))

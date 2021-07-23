@@ -178,6 +178,7 @@
               (uniform-variables nil uv-set)
               (shared-variables nil sv-set)
               (context nil c-set)
+              (extensions nil ext-set)
               (lisp-code nil lc-set)
               (previous-stage nil ps-set)
               (stemcells-allowed nil sa-set)
@@ -197,6 +198,9 @@
      :context (if c-set
                   context
                   (context stage))
+     :extensions (if ext-set
+                     extensions
+                     (extensions stage))
      :lisp-code (if lc-set
                     lisp-code
                     (lisp-code stage))
