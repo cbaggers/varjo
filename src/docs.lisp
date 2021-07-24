@@ -519,17 +519,53 @@ specified a struct type the following additional qualifiers are allowed:
 - `:std-140`
 - `:std-430`
 
+When targetting Vulkan the following additional qualifiers are allowed for uniforms:
+
+- `:set`
+- `:binding`
+- `:push-constant` (only for struct types)
+
+`:set` and `:binding` require an argument, so you have to specify them using a list like so:
+
+    (:set 0)
+
+where the second element is the value you want to set.
+
 The result of `make-stage` is an instance of one of the subclasses of the
 `stage` type.
 
 ### context
 
 The context argument must be a list that may contain any number of symbols from
-*supported-versions*. Context is used to specify the GLSL version to compile the
-stage.
+*supported-versions* as well as other lists for other context specific settings.
+Context is used to specify the GLSL version to compile the stage.
 
-NOTE: The name 'context' is legacy at this point as it is only used to specify
-GLSL versions.
+Apart from GLSL versions, context can be used for specifying extension behaviour using a list in the following format:
+
+   (:extension \"GL_ARB_some_extension\")
+
+or:
+
+  (:extension (\"GL_ARB_some_extension1\" :enable) \"GL_ARB_some_extension2\")
+
+So either extensions are enabled by just passing their names as strings or a specific behaviour can be set for an extension using one of the following behaviours:
+
+- `:enable`
+- `:disable`
+- `:require`
+- `:warn`
+
+Furthermore a target environment can be specified using a list in the following format:
+
+  (:target-environment :opengl)
+
+Allowed target environments are
+
+- `:opengl`
+- `:vulkan`
+
+The default is environment is `:opengl`.
+To enable Vulkan features you have to explicitly set `:vulkan` as the stage's target environment.
 
 ### code
 
