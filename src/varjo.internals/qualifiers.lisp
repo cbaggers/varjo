@@ -14,6 +14,9 @@
     (let ((spec (find name *varjo-qualifiers* :key #'first)))
       ;; {TODO} Proper error
       (assert spec () "Varjo: '~a' is not a valid qualifier." name)
+      (when (third spec)
+        (assert (first args) ()
+                "Varjo: Qualifier '~a' requires an argument, but none was specified" (first spec)))
       (case name
         (:feedback (parse-feedback-qualifier name args))
         (otherwise (make-instance 'qualifier
