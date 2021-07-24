@@ -293,3 +293,12 @@ Just with this we already have enough that we could go back to using `define-var
 ### A quick note of v-defstruct
 
 As with `v-defun` there is a `v-defstruct` macro which is still commonly used. I'm trying to move to more consistent naming as we prepare to leave beta and so I advise preferring `define-vari-struct` over `v-defstruct`. It gives you nicer highlighting when using slime and will stay more consistent with the rest of public api as I update them.
+
+### Experimental Vulkan Support
+
+> WIP
+
+* Since Varjo groups shader in/out variables in interface blocks and SPIR-V matches in/out variables by their `location` instead of their names and `location` qualifiers on interface blocks (or their members) are only available in GLSL version >= 440, lower GLSL versions are currently not supported.
+* New types and functions are not yet part of `glsl-spec`.
+* New shader stages (ray tracing and mesh shaders) are not yet supported.
+
