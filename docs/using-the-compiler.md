@@ -344,9 +344,130 @@ This is how extensions look when used in a stage:
 
 ## Experimental Vulkan Support
 
-> WIP
+Varjo offers experimental support for Vulkan (or SPIR-V).
+Currently only new qualifiers added for Vulkan are supported, but new GLSL functions, variables and shader stages (ray tracing and mesh shaders) are still missing.
 
-* Since Varjo groups shader in/out variables in interface blocks and SPIR-V matches in/out variables by their `location` instead of their names and `location` qualifiers on interface blocks (or their members) are only available in GLSL version >= 440, lower GLSL versions are currently not supported.
-* New types and functions are not yet part of `glsl-spec`.
-* New shader stages (ray tracing and mesh shaders) are not yet supported.
+To enable Vulkan specific features you need to pass the target environment `:vulkan` to `make-stage` within the `context` argument.
+E.g. like this:
 
+    '(:440 (:target-environment :vulkan))
+
+This will add `location` qualifiers to members of interface blocks (e.g. `v_out`), since SPIR-V matches in/out variable only by their `location` and not their names.
+Because GLSL versions < 4.40 don't support `location` qualifiers for interface blocks, you must specifiy at least version `:440` when targetting Vulkan.
+E.g.:
+
+    TESTS> (glsl-code
+            (translate
+             (make-stage :fragment '((color :vec4))
+                         nil
+                         '(:440
+                           (:target-environment :vulkan))  
+                         '(color))))
+    "// fragment-stage
+    #version 440
+
+    in _IN_BLOCK_
+    {
+        layout(location = 0)  in vec4 COLOR;
+    } v_in;
+
+    layout(location = 0)  out vec4 _FRAGMENT_STAGE_OUT_0;
+
+    void main()
+    {
+        _FRAGMENT_STAGE_OUT_0 = v_in.COLOR;
+        return;
+    }
+    "
+
+### Descriptor Sets
+
+To specify the descriptor set and binding (within the set) for a uniform, you can pass them as extra qualifiers (`:set` and `:binding`) to the uniform definition.
+Since both qualifiers require a value the qualifiers must be specified as lists where the first element is the qualifier and the second one is the value.
+E.g.:
+
+    '((some-buffer my-uniform-buffer :ubo :std-140 (:set 0) (:binding 0)))
+
+Used in a vertex shader:
+
+    TESTS> (define-vari-struct uniform-buffer ()
+             (mvpc :mat4))
+    UNIFORM-BUFFER
+    TESTS> (glsl-code
+            (translate
+             (make-stage :vertex '((pos :vec4)
+                                   (color :vec4))
+                         '((uniform-buffer uniform-buffer :ubo :std-140 (:set 0) (:binding 0)))
+                         '(:440
+                           (:target-environment :vulkan))
+                         '((with-slots (mvpc) uniform-buffer
+                             (values
+                              (* mvpc pos)
+                              color))))))
+    "// vertex-stage
+    #version 440
+
+    layout(location = 0)  in vec4 POS;
+    layout(location = 1)  in vec4 COLOR;
+
+    out _FROM_VERTEX_STAGE_
+    {
+        layout(location = 0)  out vec4 _VERTEX_STAGE_OUT_1;
+    } v_out;
+
+    layout(std140, set = 0, binding = 0) uniform _UBO_UNIFORM_BUFFER
+    {
+        mat4 MVPC;
+    } UNIFORM_BUFFER;
+
+    void main()
+    {
+        vec4 g_PROG1_TMP1531 = (UNIFORM_BUFFER.MVPC * POS);
+        v_out._VERTEX_STAGE_OUT_1 = COLOR;
+        vec4 g_GEXPR0_1532 = g_PROG1_TMP1531;
+        gl_Position = g_GEXPR0_1532;
+        return;
+    }
+    "
+
+### Push Constants
+
+UBOs can be specified specified as push constants using the `:push-constant` qualifier.
+Like for other UBOs the default layout for push constants is `:std-140`:
+
+    TESTS> (glsl-code
+            (translate
+             (make-stage :vertex '((pos :vec4)
+                                   (color :vec4))
+                         '((uniform-buffer uniform-buffer :ubo :push-constant))
+                         '(:440
+                           (:target-environment :vulkan))
+                         '((with-slots (mvpc) uniform-buffer
+                             (values
+                              (* mvpc pos)
+                              color))))))
+    "// vertex-stage
+    #version 440
+
+    layout(location = 0)  in vec4 POS;
+    layout(location = 1)  in vec4 COLOR;
+
+    out _FROM_VERTEX_STAGE_
+    {
+        layout(location = 0)  out vec4 _VERTEX_STAGE_OUT_1;
+    } v_out;
+
+    layout(std140, push_constant) uniform _UBO_UNIFORM_BUFFER
+    {
+        mat4 MVPC;
+    } UNIFORM_BUFFER;
+
+    void main()
+    {
+        vec4 g_PROG1_TMP1556 = (UNIFORM_BUFFER.MVPC * POS);
+        v_out._VERTEX_STAGE_OUT_1 = COLOR;
+        vec4 g_GEXPR0_1557 = g_PROG1_TMP1556;
+        gl_Position = g_GEXPR0_1557;
+        return;
+    }
+    "
