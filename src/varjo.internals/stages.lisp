@@ -3,24 +3,6 @@
 
 ;;------------------------------------------------------------
 
-(defun destructure-context (context)
-  (flet ((check-for-key (ctx key)
-           (and (listp ctx)
-                (>= (length ctx) 2)
-                (eq (first ctx) key))))
-    (let ((target-env :opengl)
-          (extensions nil)
-          (includes nil))
-      (loop for ctx in context
-            if (keywordp ctx) collect ctx into version/s
-            if (check-for-key ctx :target-environment) do (setf target-env (second ctx))
-            if (check-for-key ctx :extensions) do (setf extensions (cdr ctx))
-            if (check-for-key ctx :includes) do (setf includes (cdr ctx))
-            finally (return (values version/s
-                                    target-env
-                                    extensions
-                                    includes))))))
-
 (defun make-stage (kind in-args uniforms context code
                    &optional (stemcells-allowed t) primitive)
   (assert (listp context) ()
@@ -115,6 +97,10 @@
                  :stemcells-allowed stemcells-allowed
                  :primitive-in (%process-primitive-type stage-type
                                                         primitive))))
+        (when (eq target-environment :vulkan)
+          ;; {TODO} proper error
+          (assert (intersection version/s '(:440 :450 :460)) ()
+                  "Varjo: Target environment Vulkan requires a GLSL version of at least 440."))
         (when (equal kind :geometry)
           ;; {TODO} proper error
           (assert (intersection version/s '(:150 :330 :400 :410 :420 :430 :440 :450 :460)) ()
@@ -220,6 +206,24 @@
                        (primitive-in stage)))))
 
 ;;------------------------------------------------------------
+
+(defun destructure-context (context)
+  (flet ((check-for-key (ctx key)
+           (and (listp ctx)
+                (>= (length ctx) 2)
+                (eq (first ctx) key))))
+    (let ((target-env :opengl)
+          (extensions nil)
+          (includes nil))
+      (loop for ctx in context
+            if (keywordp ctx) collect ctx into version/s
+            if (check-for-key ctx :target-environment) do (setf target-env (second ctx))
+            if (check-for-key ctx :extensions) do (setf extensions (cdr ctx))
+            if (check-for-key ctx :includes) do (setf includes (cdr ctx))
+            finally (return (values version/s
+                                    target-env
+                                    extensions
+                                    includes))))))
 
 (defun extract-glsl-name (qual-and-maybe-name)
   (let ((glsl-name (last1 qual-and-maybe-name)))

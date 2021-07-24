@@ -501,37 +501,20 @@
 
 ;;----------------------------------------------------------------------
 
-;;{TODO} remove out-var by name instead of order?
-;;{TODO} add other stages if they require this as well
-(defgeneric remove-stage-specific-out-vars (stage out-set)
-
-  (:method ((stage vertex-stage) out-set)
-    (subseq out-set 1))
-  
-  (:method (stage out-set)
-    (declare (ignore stage))
-    out-set))
-
 (defgeneric gen-stage-locations (stage out-set)
+
   (:method ((stage fragment-stage) out-set)
     (let ((out-types (type-set-to-type-list out-set)))
       (calc-locations out-types)))
+  
   (:method (stage out-set)
-    (if (eq :vulkan (target-environment stage))
-        (let* ((out-types (type-set-to-type-list
-                           (remove-stage-specific-out-vars stage out-set)))
-               (out-locations (calc-locations out-types)))
-          (if (= (length out-locations)
-                 (length out-set))
-              out-locations)
-          (concatenate 'list
-                       (n-of nil (- (length out-set)
-                                    (length out-locations)))
-                       out-locations))
-        (call-next-method)))
-  (:method (stage out-set)
-    (declare (ignore stage))
-    (n-of nil (length out-set))))
+    (if (and (eq :vulkan (target-environment stage))
+             (stage-where-first-return-is-position-p stage))
+        (concatenate 'list
+                     (nil)
+                     (calc-locations (type-set-to-type-list
+                                      (subseq out-set 1))))
+        (n-of nil (length out-set)))))
 
 (defun gen-out-glsl-decls (stage out-set locations)
   (loop :for out-val :across out-set
@@ -742,6 +725,8 @@
        :uniform-variables (uniforms post-proc-obj)
        :shared-variables (shared-variables (stage post-proc-obj))
        :context context
+       :target-environment (target-environment stage)
+       :extensions (extensions stage)
        :lisp-code (lisp-code stage)
        :stemcells-allowed (allows-stemcellsp env)
        :primitive-in (primitive-in (stage post-proc-obj))
