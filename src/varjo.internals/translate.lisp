@@ -511,7 +511,7 @@
     (if (and (eq :vulkan (target-environment stage))
              (stage-where-first-return-is-position-p stage))
         (concatenate 'list
-                     (nil)
+                     '(nil)
                      (calc-locations (type-set-to-type-list
                                       (subseq out-set 1))))
         (n-of nil (length out-set)))))
@@ -666,7 +666,7 @@
                                   (or string-name (error "stem cell without glsl-name"))
                                   type-obj
                                   nil
-                                  (remove-if-not #'uniform-layout-qualifier-p qualifiers))))
+                                  (remove-if-not #'uniform-memory-layout-qualifier-p (qualifiers type-obj)))))
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
