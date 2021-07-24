@@ -13,7 +13,7 @@ When using `rolling-translate` Varjo will check the data flowing from stage to s
 
 Stages are made using the [make-stage](http://techsnuffle.com/varjo/varjo-reference.html#VARJO.API%3AMAKE-STAGE) function.
 
-Vari supports all of the kinds of GLSL stage. When calling make-stage the stage kind is passed one of the following keywords:
+Vari supports all of the kinds of GLSL stages. When calling make-stage the stage kind is passed one of the following keywords:
 
 - `:vertex`
 - `:tessellation-control`
@@ -294,7 +294,55 @@ Just with this we already have enough that we could go back to using `define-var
 
 As with `v-defun` there is a `v-defstruct` macro which is still commonly used. I'm trying to move to more consistent naming as we prepare to leave beta and so I advise preferring `define-vari-struct` over `v-defstruct`. It gives you nicer highlighting when using slime and will stay more consistent with the rest of public api as I update them.
 
-### Experimental Vulkan Support
+## Extensions
+
+We allow you to enable (or disable) GLSL extensions by passing them to Varjo as a sublist of the `context` argument of `make-stage`.
+While all keywords in the `context` list are interpreted as version specifiers, the last list whose first element is `:extensions` is used to enable or disable extensions.
+
+To enable extensions you can simply add the name of the extension as a string like this:
+
+    '(:400 (:extensions "GL_ARB_separate_shader_objects"))
+
+To specifiy a specific behavior for an extension you can use a list containing the name of the extension as its first element and the behavior as a keyword as the second element:
+
+    '(:400 (:extensions ("GL_ARB_shading_language_420pack" :require)))
+
+Allowed behaviors are `:enable`, `:disable`, `:warn` and `:require`.
+
+This is how extensions look when used in a stage:
+
+    TESTS> (glsl-code
+            (translate
+             (make-stage :fragment '((color :vec4))
+                         nil
+                         '(:400
+                           (:extensions
+                            "GL_ARB_separate_shader_objects"
+                            ("GL_ARB_shading_language_420pack" :require)))  
+                         '(color))))
+                         
+    "// fragment-stage
+    #version 400
+
+    #extension GL_ARB_separate_shader_objects : enable
+    #extension GL_ARB_shading_language_420pack : require
+
+    in _IN_BLOCK_
+    {
+         in vec4 COLOR;
+    } v_in;
+
+    layout(location = 0)  out vec4 _FRAGMENT_STAGE_OUT_0;
+
+    void main()
+    {
+        _FRAGMENT_STAGE_OUT_0 = v_in.COLOR;
+        return;
+    }
+
+    "
+
+## Experimental Vulkan Support
 
 > WIP
 
