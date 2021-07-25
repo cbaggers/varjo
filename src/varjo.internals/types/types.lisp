@@ -206,6 +206,15 @@
   ((shadowed-type :initform nil :reader shadowed-type)))
 
 ;;------------------------------------------------------------
+;; Vulkan-only Type
+;;
+;; The supertype for all types which are only allowed in a
+;; Vulkan/SPIR-V context.
+
+(define-v-type-class v-vulkan-only-type (v-type)
+  ((vulkan-onlyp :initform t :reader vulkan-onlyp)))
+
+;;------------------------------------------------------------
 ;; Sampler
 
 (define-v-type-class v-sampler (v-opaque)
