@@ -282,19 +282,6 @@
       raw-context
       (list *default-version*)))
 
-;;{TODO} check if uniform qualifier is valid in target environment
-;; e.g push_constant only in vulkan
-(defun check-uniform-qualifier (qualifier target-environment)
-  t)
-
-(defun check-qualifier (qualifier uniformp target-environment)
-  (or (keywordp qualifier)
-      (and uniformp
-           (listp qualifier)
-           (= (length qualifier) 2)
-           (keywordp (first qualifier))
-           (check-uniform-qualifier qualifier target-environment))))
-
 ;;{TODO} proper error
 (defun check-arg-form (arg
                        &key
@@ -314,9 +301,16 @@
               (qualifiers (if (stringp (last1 qualifiers))
                               (butlast qualifiers)
                               qualifiers)))
-         (every (lambda (qualifier)
-                  (check-qualifier qualifier uniformp target-environment))
-                qualifiers)))
+         (loop :for qualifier-form :in qualifiers
+               :for qualifier := (first (listify qualifier-form))
+               :do (assert (keywordp qualifier) ()
+                           "Varjo: Qualifier ~a within declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant."
+                           qualifier arg)
+               :when (find qualifier *glsl-vulkan-qualifiers* :key #'first)
+               :do (assert (not (eq :vulkan target-environment)) ()
+                           "Varjo: Qualifier ~a within declaration ~a is only allowed in target environment :vulkan, but not in ~a"
+                           qualifier target-environment))
+         t))
     (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant." arg))
   t)
 
