@@ -939,13 +939,13 @@
 ;;----------------------------------------------------------------------
 ;; Sampler (Vulkan only)
 
-(define-v-type-calss v-sampler-vulkan (v-sampler-type)
+(define-v-type-class v-sampler-vulkan (v-sampler-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "sampler" :reader v-glsl-string)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
-(define-v-type-calss v-sampler-shadow-vulkan (v-sampler-type)
+(define-v-type-class v-sampler-shadow-vulkan (v-sampler-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "samplerShadow" :reader v-glsl-string)
    (tertiary-score :initform 1 :initarg :tertiary-score
@@ -954,42 +954,42 @@
 ;;----------------------------------------------------------------------
 ;; Subpass Input (Vulkan only)
 
-(define-v-type-calss v-subpass-input (v-subpass-input-type)
+(define-v-type-class v-subpass-input (v-subpass-input-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "subpassInput" :reader v-glsl-string)
    (element-type :initform 'v-vec4)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
-(define-v-type-calss v-subpass-input-ms (v-subpass-input-type)
+(define-v-type-class v-subpass-input-ms (v-subpass-input-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "subpassInputMS" :reader v-glsl-string)
    (element-type :initform 'v-vec4)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
-(define-v-type-calss v-isubpass-input (v-subpass-input-type)
+(define-v-type-class v-isubpass-input (v-subpass-input-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "isubpassInput" :reader v-glsl-string)
    (element-type :initform 'v-ivec4)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
-(define-v-type-calss v-isubpass-input-ms (v-subpass-input-type)
+(define-v-type-class v-isubpass-input-ms (v-subpass-input-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "isubpassInputMS" :reader v-glsl-string)
    (element-type :initform 'v-ivec4)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
-(define-v-type-calss v-usubpass-input (v-subpass-input-type)
+(define-v-type-class v-usubpass-input (v-subpass-input-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "usubpassInput" :reader v-glsl-string)
    (element-type :initform 'v-uvec4)
    (tertiary-score :initform 1 :initarg :tertiary-score
                    :reader tertiary-score)))
 
-(define-v-type-calss v-usubpass-input-ms (v-subpass-input-type)
+(define-v-type-class v-usubpass-input-ms (v-subpass-input-type)
   ((core :initform t :reader core-typep)
    (glsl-string :initform "usubpassInputMS" :reader v-glsl-string)
    (element-type :initform 'v-uvec4)

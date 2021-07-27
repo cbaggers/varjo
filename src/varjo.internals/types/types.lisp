@@ -211,20 +211,20 @@
 ;; The supertype for all types which are only allowed in a
 ;; Vulkan/SPIR-V context.
 
-(define-v-type-class v-vulkan-only-type (v-type)
+(define-v-type-class v-opaque-vulkan-type (v-opaque)
   ((vulkan-onlyp :initform t :reader vulkan-onlyp)))
 
 ;;----------------------------------------------------------------------
 ;; Sampler (Vulkan only)
 
-(define-v-type-calss v-sampler-type (v-vulkan-only-type v-opaque)
-  ((element-type :iniform 'v-type)))
+(define-v-type-class v-sampler-type (v-opaque-vulkan-type)
+  ((element-type :initform 'v-type)))
 
 ;;----------------------------------------------------------------------
 ;; Subpass Input (Vulkan only)
 
-(define-v-type-class v-subpass-input-type (v-vulkan-only-type v-opaque)
-  ((element-type :iniform 'v-type)))
+(define-v-type-class v-subpass-input-type (v-opaque-vulkan-type)
+  ((element-type :initform 'v-type)))
 
 (defmethod post-initialise ((object v-subpass-input-type))
   (with-slots (element-type) object
