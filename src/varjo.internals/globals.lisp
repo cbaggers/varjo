@@ -133,7 +133,10 @@
   '((:set "set" t)
     (:constant-id "constant_id" t) ;; only allowed for const qualified
     (:push-constant "push_constant")
-    (:input-attachment-index "input_attachment_index" t)))
+    (:input-attachment-index "input_attachment_index" t) ;; only allowed and required by subpassInput types
+    (:local-size-x-id "local_size_x_id" t)
+    (:local-size-y-id "local_size_y_id" t)
+    (:local-size-z-id "local_size_z_id" t)))
 
 (defparameter *glsl-qualifiers*
   (concatenate 'list
@@ -163,10 +166,7 @@
                  (:varying "varying")
                  (:volatile "volatile")
                  (:writeonly "writeonly")
-                 (:binding "binding" t)
-                 (:local-size-x "local_size_x_id" t)
-                 (:local-size-y "local_size_y_id" t)
-                 (:local-size-z "local_size_z_id" t))
+                 (:binding "binding" t))
                *glsl-vulkan-qualifiers*
                *glsl-image-format-qualifiers*))
 
@@ -321,7 +321,51 @@
     (:ibuffer-image . v-ibuffer-image)
     (:ubuffer-image . v-ubuffer-image)
     (:void . v-void)
-    (:shadow-type . v-shadow-type)))
+    (:shadow-type . v-shadow-type)
+    (:sampler . v-sampler-vulkan)
+    (:sampler-shadow . v-sampler-shadow-vulkan)
+    (:isubpass-input . v-isubpass-input)
+    (:isubpass-input-ms . v-isubpass-input-ms)
+    (:subpass-input . v-subpass-input)
+    (:subpass-input-ms . v-subpass-input-ms)
+    (:usubpass-input . v-usubpass-input)
+    (:usubpass-input-ms . v-usubpass-input-ms)
+    (:itexture-1d . v-itexture-1d)
+    (:itexture-1d-array . v-itexture-1d-array)
+    (:itexture-2d . v-itexture-2d)
+    (:itexture-2d-array . v-itexture-2d-array)
+    (:itexture-2d-ms . v-itexture-2d-ms)
+    (:itexture-2d-ms-array . v-itexture-2d-ms-array)
+    (:itexture-2d-rect . v-itexture-2d-rect)
+    (:itexture-3d . v-itexture-3d)
+    (:itexture-buffer . v-itexture-buffer)
+    (:itexture-cube . v-itexture-cube)
+    (:itexture-cube-array . v-itexture-cube-array)
+    (:texture-1d . v-texture-1d)
+    (:texture-1d-array . v-texture-1d-array)
+    (:texture-2d . v-texture-2d)
+    (:texture-2d-array . v-texture-2d-array)
+    (:texture-2d-ms . v-texture-2d-ms)
+    (:texture-2d-ms-array . v-texture-2d-ms-array)
+    (:texture-2d-rect . v-texture-2d-rect)
+    (:texture-3d . v-texture-3d)
+    (:texture-buffer . v-texture-buffer)
+    (:texture-cube . v-texture-cube)
+    (:texture-cube-array . v-texture-cube-array)
+    (:utexture-1d . v-utexture-1d)
+    (:utexture-1d-array . v-utexture-1d-array)
+    (:utexture-2d . v-utexture-2d)
+    (:utexture-2d-array . v-utexture-2d-array)
+    (:utexture-2d-ms . v-utexture-2d-ms)
+    (:utexture-2d-ms-array . v-utexture-2d-ms-array)
+    (:utexture-2d-rect . v-utexture-2d-rect)
+    (:utexture-3d . v-utexture-3d)
+    (:utexture-buffer . v-utexture-buffer)
+    (:utexture-cube . v-utexture-cube)
+    (:utexture-cube-array . v-utexture-cube-array)
+    (:texture-rect . v-texture-rect)
+    (:itexture-rect . v-itexture-rect)
+    (:utexture-rect . v-utexture-rect)))
 
 (defvar *base-reserved*
   '("active"
@@ -525,3 +569,47 @@
     "volatile"
     "while"
     "writeonly"))
+
+;;{TODO} add this to validation of glsl name strings when target is vulkan
+(defvar *reserved-vulkan*
+  '("isubpassInput"
+    "isubpassInputMS""itexture1D"
+    "itexture1DArray"
+    "itexture2D"
+    "itexture2DArray"
+    "itexture2DMS"
+    "itexture2DMSArray"
+    "itexture2DRect"
+    "itexture3D"
+    "itextureBuffer"
+    "itextureCube"
+    "itextureCubeArray"
+    "sampler"
+    "samplerShadow"
+    "subpassInput"
+    "subpassInputMS"
+    "texture1D"
+    "texture1DArray"
+    "texture2D"
+    "texture2DArray"
+    "texture2DMS"
+    "texture2DMSArray"
+    "texture2DRect"
+    "texture3D"
+    "texture3DRect"
+    "textureBuffer"
+    "textureCube"
+    "textureCubeArray"
+    "usubpassInput"
+    "usubpassInputMS"
+    "utexture1D"
+    "utexture1DArray"
+    "utexture2D"
+    "utexture2DArray"
+    "utexture2DMS"
+    "utexture2DMSArray"
+    "utexture2DRect"
+    "utexture3D"
+    "utextureBuffer"
+    "utextureCube"
+    "utextureCubeArray"))
