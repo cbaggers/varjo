@@ -69,7 +69,8 @@
   (check-type qualifier qualifier)
   (or (not (null (member (name qualifier)
                          '(:binding
-                           :set))))
+                           :set
+                           :input-attachment-index))))
       (and imagep
            (image-memory-layout-qualifier-p qualifier))))
 
