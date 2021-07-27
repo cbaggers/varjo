@@ -937,6 +937,321 @@
                    :reader tertiary-score)))
 
 ;;----------------------------------------------------------------------
+;; Sampler (Vulkan only)
+
+(define-v-type-calss v-sampler-vulkan (v-sampler-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "sampler" :reader v-glsl-string)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-calss v-sampler-shadow-vulkan (v-sampler-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "samplerShadow" :reader v-glsl-string)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+;;----------------------------------------------------------------------
+;; Subpass Input (Vulkan only)
+
+(define-v-type-calss v-subpass-input (v-subpass-input-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "subpassInput" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-calss v-subpass-input-ms (v-subpass-input-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "subpassInputMS" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-calss v-isubpass-input (v-subpass-input-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "isubpassInput" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-calss v-isubpass-input-ms (v-subpass-input-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "isubpassInputMS" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-calss v-usubpass-input (v-subpass-input-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "usubpassInput" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-calss v-usubpass-input-ms (v-subpass-input-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "usubpassInputMS" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+;;----------------------------------------------------------------------
+;; Texture (Vulkan only)
+
+(define-v-type-class v-itexture-1d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture1D" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-1d-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture1DArray" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-2d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture2D" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-2d-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture2DArray" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-2d-ms (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture2DMS" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-2d-ms-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture2DMSArray" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-2d-rect (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture2DRect" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-3d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itexture3D" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-buffer (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itextureBuffer" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-cube (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itextureCube" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-cube-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itextureCubeArray" :reader v-glsl-string)
+   (element-type :initform 'v-ivec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-1d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture1D" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-1d-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture1DArray" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-2d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture2D" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-2d-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture2DArray" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-2d-ms (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture2DMS" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-2d-ms-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture2DMSArray" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-2d-rect (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture2DRect" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-3d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "texture3D" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-buffer (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "textureBuffer" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-cube (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "textureCube" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-cube-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "textureCubeArray" :reader v-glsl-string)
+   (element-type :initform 'v-vec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-1d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture1D" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-1d-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture1DArray" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-2d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture2D" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-2d-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture2DArray" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-2d-ms (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture2DMS" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-2d-ms-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture2DMSArray" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-2d-rect (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture2DRect" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-3d (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utexture3D" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-buffer (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utextureBuffer" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-cube (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utextureCube" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-cube-array (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utextureCubeArray" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-texture-rect (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "textureRect" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-itexture-rect (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "itextureRect" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+(define-v-type-class v-utexture-rect (v-texture)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "utextureRect" :reader v-glsl-string)
+   (element-type :initform 'v-uvec4)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+;;----------------------------------------------------------------------
 ;; Type Stubs
 ;;
 ;; {TODO} look into these

@@ -232,7 +232,55 @@
            :v-uimage-3d
            :v-uimage-cube
            :v-uimage-cube-array
-           :v-uimage-rect))
+           :v-uimage-rect
+           ;;
+           :v-sampler-vulkan
+           :v-sampler-shadow-vulkan
+           ;;
+           :v-subpass-input
+           :v-subpass-input-ms
+           :v-isubpass-input
+           :v-isubpass-input-ms
+           :v-usubpass-input
+           :v-usubpass-input-ms
+           ;;
+           :v-itexture-1d
+           :v-itexture-1d-array
+           :v-itexture-2d
+           :v-itexture-2d-array
+           :v-itexture-2d-ms
+           :v-itexture-2d-ms-array
+           :v-itexture-2d-rect
+           :v-itexture-3d
+           :v-itexture-buffer
+           :v-itexture-cube
+           :v-itexture-cube-array
+           :v-texture-1d
+           :v-texture-1d-array
+           :v-texture-2d
+           :v-texture-2d-array
+           :v-texture-2d-ms
+           :v-texture-2d-ms-array
+           :v-texture-2d-rect
+           :v-texture-3d
+           :v-texture-buffer
+           :v-texture-cube
+           :v-texture-cube-array
+           :v-utexture-1d
+           :v-utexture-1d-array
+           :v-utexture-2d
+           :v-utexture-2d-array
+           :v-utexture-2d-ms
+           :v-utexture-2d-ms-array
+           :v-utexture-2d-rect
+           :v-utexture-3d
+           :v-utexture-buffer
+           :v-utexture-cube
+           :v-utexture-cube-array
+           :v-utexture-rect
+           :v-itexture-rect
+           :v-texture-rect
+           ))
 
 ;;;; package.lisp
 (uiop:define-package #:varjo-conditions
