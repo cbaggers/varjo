@@ -472,6 +472,12 @@ Like for other UBOs the default layout for push constants is `:std-140`:
     }
     "
 
+### Textures & Samplers
+
+Vulkan allows splitting textures and samplers by introducting the new sampler types `:sampler` and `:sampler-shadows` which can be used to sample different texture types (e.g. `:itexture-2d`).
+
+However, the [glsl-spec](https://github.com/cbaggers/glsl-spec) doesn't yet specify the functions needed to construct a texture sampler from a sampler and a texture (e.g. `sampler2D(texture, sampler)`, so you'll have to use combined texture samplers (e.g. `:sampler-2d`) for now.
+
 ### Subpass Inputs
 
 Subpass inputs require `input_attachment_index` to be set. You can specify this qualifier like `set` or `binding`:
