@@ -345,7 +345,7 @@ This is how extensions look when used in a stage:
 ## Experimental Vulkan Support
 
 Varjo offers experimental support for Vulkan (or SPIR-V).
-Currently only new qualifiers added for Vulkan are supported, but new GLSL functions, variables and shader stages (ray tracing and mesh shaders) are still missing.
+Currently only new qualifiers and types added for Vulkan are supported, but new GLSL functions, variables and shader stages (ray tracing and mesh shaders) are still missing.
 
 To enable Vulkan specific features you need to pass the target environment `:vulkan` to `make-stage` within the `context` argument.
 E.g. like this:
@@ -471,3 +471,63 @@ Like for other UBOs the default layout for push constants is `:std-140`:
         return;
     }
     "
+
+### Textures & Samplers
+
+Vulkan allows splitting textures and samplers by introducting the new sampler types `:sampler` and `:sampler-shadows` which can be used to sample different texture types (e.g. `:itexture-2d`).
+
+However, the [glsl-spec](https://github.com/cbaggers/glsl-spec) doesn't yet specify the functions needed to construct a texture sampler from a sampler and a texture (e.g. `sampler2D(texture, sampler)`, so you'll have to use combined texture samplers (e.g. `:sampler-2d`) for now.
+
+### Subpass Inputs
+
+Subpass inputs require `input_attachment_index` to be set. You can specify this qualifier like `set` or `binding`:
+
+    '((albedo :subpass-input (:input-attachment-index 1) (:set 0) (:binding 1))
+
+Since the GLSL functions for reading subpass inputs (i.e. `subpassLoad`) are not yet specified in [glsl-spec](https://github.com/cbaggers/glsl-spec), they are pretty useless at the moment.
+
+### Vulkan Types
+
+The following new types are allowed when targetting Vulkan:
+
+- `:sampler`
+- `:sampler-shadow`
+- `:subpass-input`
+- `:subpass-input-ms`
+- `:isubpass-input`
+- `:isubpass-input-ms`
+- `:usubpass-input`
+- `:usubpass-input-ms`
+- `:texture-1d`
+- `:texture-1d-array`
+- `:texture-2d`
+- `:texture-2d-array`
+- `:texture-2d-ms`
+- `:texture-2d-ms-array`
+- `:texture-2d-rect`
+- `:texture-3d`
+- `:texture-buffer`
+- `:texture-cube`
+- `:texture-cube-array`
+- `:itexture-1d`
+- `:itexture-1d-array`
+- `:itexture-2d`
+- `:itexture-2d-array`
+- `:itexture-2d-ms`
+- `:itexture-2d-ms-array`
+- `:itexture-2d-rect`
+- `:itexture-3d`
+- `:itexture-buffer`
+- `:itexture-cube`
+- `:itexture-cube-array`
+- `:utexture-1d`
+- `:utexture-1d-array`
+- `:utexture-2d`
+- `:utexture-2d-array`
+- `:utexture-2d-ms`
+- `:utexture-2d-ms-array`
+- `:utexture-2d-rect`
+- `:utexture-3d`
+- `:utexture-buffer`
+- `:utexture-cube`
+- `:utexture-cube-array`
