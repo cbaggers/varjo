@@ -573,7 +573,8 @@
 ;;{TODO} add this to validation of glsl name strings when target is vulkan
 (defvar *reserved-vulkan*
   '("isubpassInput"
-    "isubpassInputMS""itexture1D"
+    "isubpassInputMS"
+    "itexture1D"
     "itexture1DArray"
     "itexture2D"
     "itexture2DArray"
