@@ -309,7 +309,13 @@
                :when (find qualifier *glsl-vulkan-qualifiers* :key #'first)
                :do (assert (eq :vulkan target-environment) ()
                            "Varjo: Qualifier ~a within declaration ~a is only allowed in target environment :vulkan, but not in ~a"
-                           qualifier target-environment))
+                           qualifier arg target-environment)
+               :when (eq qualifier :input-attachment-index)
+               :do (assert (member (second arg) '(:subpass-input
+                                                  :subpass-input-ms))
+                           ()
+                           "Varjo: Qualifier ~a within declaration ~a is only allowed for subpass inputs."
+                           qualifier arg target-environment))
          t))
     (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant." arg))
   t)
