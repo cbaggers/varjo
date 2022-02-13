@@ -1252,6 +1252,26 @@
                    :reader tertiary-score)))
 
 ;;----------------------------------------------------------------------
+;; accelerationStructureEXT (Vulkan only)
+
+(define-v-type-class v-acceleration-structure-ext (v-opaque-vulkan-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "accelerationStructureEXT" :reader v-glsl-string)
+   (element-type :initform 'v-type)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+;;----------------------------------------------------------------------
+;; rayQueryEXT (Vulkan only)
+
+(define-v-type-class v-ray-query-ext (v-opaque-vulkan-type)
+  ((core :initform t :reader core-typep)
+   (glsl-string :initform "rayQueryEXT" :reader v-glsl-string)
+   (element-type :initform 'v-type)
+   (tertiary-score :initform 1 :initarg :tertiary-score
+                   :reader tertiary-score)))
+
+;;----------------------------------------------------------------------
 ;; Type Stubs
 ;;
 ;; {TODO} look into these

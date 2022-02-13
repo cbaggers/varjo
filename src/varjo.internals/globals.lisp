@@ -365,7 +365,9 @@
     (:utexture-cube-array . v-utexture-cube-array)
     (:texture-rect . v-texture-rect)
     (:itexture-rect . v-itexture-rect)
-    (:utexture-rect . v-utexture-rect)))
+    (:utexture-rect . v-utexture-rect)
+    (:acceleration-structure-ext . v-acceleration-structure-ext)
+    (:ray-query-ext . v-ray-query-ext)))
 
 (defvar *base-reserved*
   '("active"
@@ -572,7 +574,8 @@
 
 ;;{TODO} add this to validation of glsl name strings when target is vulkan
 (defvar *reserved-vulkan*
-  '("isubpassInput"
+  '("accelerationStructureEXT"
+    "isubpassInput"
     "isubpassInputMS"
     "itexture1D"
     "itexture1DArray"
@@ -585,6 +588,7 @@
     "itextureBuffer"
     "itextureCube"
     "itextureCubeArray"
+    "rayQueryEXT"
     "sampler"
     "samplerShadow"
     "subpassInput"

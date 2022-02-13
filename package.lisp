@@ -280,6 +280,10 @@
            :v-utexture-rect
            :v-itexture-rect
            :v-texture-rect
+           ;;
+           :v-acceleration-structure-ext
+           ;;
+           :v-ray-query-ext
            ))
 
 ;;;; package.lisp
