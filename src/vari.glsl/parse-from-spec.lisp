@@ -2,7 +2,8 @@
 (in-readtable fn:fn-reader)
 
 (defparameter *glsl-type->varjo-type*
-  '(("atomic_uint" v-atomic-uint)
+  '(("accelerationStructureEXT" v-acceleration-structure-ext)
+    ("atomic_uint" v-atomic-uint)
     ("bool" v-bool)
     ("bufferImage" v-buffer-image)
     ("bvec2" v-bvec2)
@@ -90,6 +91,7 @@
     ("mat4x2" v-mat4x2)
     ("mat4x3" v-mat4x3)
     ("mat4x4" v-mat4x4)
+    ("rayQueryEXT" v-ray-query-ext)
     ("sampler" v-sampler-vulkan)
     ("sampler1D" v-sampler-1d)
     ("sampler1DArray" v-sampler-1d-array)
