@@ -1269,7 +1269,8 @@
    (glsl-string :initform "rayQueryEXT" :reader v-glsl-string)
    (element-type :initform 'v-type)
    (tertiary-score :initform 1 :initarg :tertiary-score
-                   :reader tertiary-score)))
+                   :reader tertiary-score)
+   (allow-unboundp :initform t :reader allow-unboundp)))
 
 ;;----------------------------------------------------------------------
 ;; Type Stubs
