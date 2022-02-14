@@ -531,3 +531,22 @@ The following new types are allowed when targetting Vulkan:
 - `:utexture-buffer`
 - `:utexture-cube`
 - `:utexture-cube-array`
+- `:acceleration-structure-ext` (only if `GL_EXT_ray_query` is enabled)
+- `:ray-query-ext` (only if `GL_EXT_ray_query` is enabled)
+
+#### Initializing rayQueryEXT instances (GL_EXT_ray_query extension)
+
+Unlike most types in GLSL, `rayQueryEXT` instances cannot by constructed by calling a GLSL function.
+They are usually declared only in a function's scope and initialized by a call to `rayQueryInitializeEXT`:
+
+    void main() {
+        rayQueryEXT q;
+        rayQueryInitializeEXT(q, ...);
+        ...
+    }
+
+To achieve the same in Vari, we define an uninitialized typed symbol (e.g. using `let`) and the proceed as we normally would:
+
+    (let (((q :ray-query-ext)))
+      (ray-query-initialize-ext q ...))
+
