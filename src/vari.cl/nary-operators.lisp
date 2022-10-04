@@ -28,7 +28,9 @@
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro / ((a t) (b t) (c t) &rest (d t))
-  `(/ ,a (/ ,b (/ ,c ,@d))))
+  (if d
+      `(/ (/ (/ ,a ,b) ,c) ,@d)
+      `(/ (/ ,a ,b) ,c)))
 
 (v-def-glsl-template-fun + (a b c &rest c) "(~a £+£ ~a £+£ ~a ~{ £+£ ~a~})"
                          (t t t &rest t) 0 :pure t)
@@ -40,7 +42,9 @@
                          (t t t &rest t) 0 :pure t)
 
 (v-define-compiler-macro - ((a t) (b t) (c t) &rest (d t))
-  `(- ,a (- ,b (- ,c ,@d))))
+  (if d
+      `(- (- (- ,a ,b) ,c) ,@d)
+      `(- (- ,a ,b) ,c)))
 
 (v-def-glsl-template-fun + () "0" () :int :pure t)
 (v-def-glsl-template-fun + (x &rest y) "(~a~{ + ~a~})" (v-number &rest v-number) nil :pure t)
