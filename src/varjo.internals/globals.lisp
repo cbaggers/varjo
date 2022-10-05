@@ -6,6 +6,8 @@
 
 (defvar *supported-versions* '(:140 :150 :330 :400 :410 :420 :430 :440 :450 :460))
 
+(defvar *target-environments* '(:opengl :vulkan))
+
 (defvar *stage-names*
   '(:vertex
     :tessellation-control
@@ -69,33 +71,104 @@
 (defvar +ascii-alpha-num+
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
+(defvar *glsl-extension-behaviors*
+  '(:require
+    :enable
+    :warn
+    :disable))
+
+(defparameter *glsl-image-float-format-qualifiers*
+  '((:rgba32f "rgba32f")
+    (:rgba16f "rgba16f")
+    (:rg32f "rg32f")
+    (:rg16f "rg16f")
+    (:r11f-g11f-b10f "r11f_g11f_b10f")
+    (:r32f "r32f")
+    (:r16f "r16f")
+    (:rgba16 "rgba16")
+    (:rgb10-a2 "rgb10_a2")
+    (:rgba8 "rgba8")
+    (:rg16 "rg16")
+    (:rg8 "rg8")
+    (:r16 "r16")
+    (:r8 "r8")
+    (:rgba16-snorm "rgba16_snorm")
+    (:rgba8-snorm "rgba8_snorm")
+    (:rg16-snorm "rg16_snorm")
+    (:rg8-snorm "rg8_snorm")
+    (:r16-snorm "r16_snorm")
+    (:r8-snorm "r8_snorm")))
+
+(defparameter *glsl-image-int-format-qualifiers*
+  '((:rgba32i "rgba32i")
+    (:rgba16i "rgba16i")
+    (:rgba8i "rgba8i")
+    (:rg32i "rg32i")
+    (:rg16i "rg16i")
+    (:rg8i "rg8i")
+    (:r32i "r32i")
+    (:r16i "r16i")
+    (:r8i "r8i")
+    (:rgba32ui)))
+
+(defparameter *glsl-image-uint-format-qualifiers*
+  '((:rgba32ui "rgba32ui")
+    (:rgba16ui "rgba16ui")
+    (:rgba10-a2ui "rgb10_a2ui")
+    (:rgba8ui "rgba8ui")
+    (:rg32ui "rg32ui")
+    (:rg16ui "rg16ui")
+    (:rg8ui "rg8ui")
+    (:r32ui "r32ui")
+    (:r16ui "r16ui")
+    (:r8ui "r8ui")))
+
+(defparameter *glsl-image-format-qualifiers*
+  (concatenate 'list
+               *glsl-image-float-format-qualifiers*
+               *glsl-image-int-format-qualifiers*
+               *glsl-image-uint-format-qualifiers*))
+
+(defparameter *glsl-vulkan-qualifiers*
+  '((:set "set" t)
+    (:constant-id "constant_id" t) ;; only allowed for const qualified
+    (:push-constant "push_constant")
+    (:input-attachment-index "input_attachment_index" t) ;; only allowed and required by subpassInput types
+    (:local-size-x-id "local_size_x_id" t)
+    (:local-size-y-id "local_size_y_id" t)
+    (:local-size-z-id "local_size_z_id" t)))
+
 (defparameter *glsl-qualifiers*
-  '((:attribute "attribute")
-    (:buffer "buffer")
-    (:centroid "centroid")
-    (:coherent "coherent")
-    (:const "const")
-    (:flat "flat")
-    (:highp "highp")
-    (:in "in")
-    (:invariant "invariant")
-    (:lowp "lowp")
-    (:mediump "mediump")
-    (:noperspective "noperspective")
-    (:out "out")
-    (:in/out "inout")
-    (:packed "packed")
-    (:readonly "readonly")
-    (:restrict "restrict")
-    (:sample "sample")
-    (:shared "shared")
-    (:smooth "smooth")
-    (:std-140 "std140")
-    (:std-430 "std430")
-    (:uniform "uniform")
-    (:varying "varying")
-    (:volatile "volatile")
-    (:writeonly "writeonly")))
+  (concatenate 'list
+               '((:attribute "attribute")
+                 (:buffer "buffer")
+                 (:centroid "centroid")
+                 (:coherent "coherent")
+                 (:const "const")
+                 (:flat "flat")
+                 (:highp "highp")
+                 (:in "in")
+                 (:invariant "invariant")
+                 (:lowp "lowp")
+                 (:mediump "mediump")
+                 (:noperspective "noperspective")
+                 (:out "out")
+                 (:in/out "inout")
+                 (:packed "packed")
+                 (:readonly "readonly")
+                 (:restrict "restrict")
+                 (:sample "sample")
+                 (:shared "shared")
+                 (:smooth "smooth")
+                 (:std-140 "std140")
+                 (:std-430 "std430")
+                 (:uniform "uniform")
+                 (:varying "varying")
+                 (:volatile "volatile")
+                 (:writeonly "writeonly")
+                 (:binding "binding" t))
+               *glsl-vulkan-qualifiers*
+               *glsl-image-format-qualifiers*))
 
 (defparameter *varjo-qualifiers*
   (append
@@ -248,7 +321,53 @@
     (:ibuffer-image . v-ibuffer-image)
     (:ubuffer-image . v-ubuffer-image)
     (:void . v-void)
-    (:shadow-type . v-shadow-type)))
+    (:shadow-type . v-shadow-type)
+    (:sampler . v-sampler-vulkan)
+    (:sampler-shadow . v-sampler-shadow-vulkan)
+    (:isubpass-input . v-isubpass-input)
+    (:isubpass-input-ms . v-isubpass-input-ms)
+    (:subpass-input . v-subpass-input)
+    (:subpass-input-ms . v-subpass-input-ms)
+    (:usubpass-input . v-usubpass-input)
+    (:usubpass-input-ms . v-usubpass-input-ms)
+    (:itexture-1d . v-itexture-1d)
+    (:itexture-1d-array . v-itexture-1d-array)
+    (:itexture-2d . v-itexture-2d)
+    (:itexture-2d-array . v-itexture-2d-array)
+    (:itexture-2d-ms . v-itexture-2d-ms)
+    (:itexture-2d-ms-array . v-itexture-2d-ms-array)
+    (:itexture-2d-rect . v-itexture-2d-rect)
+    (:itexture-3d . v-itexture-3d)
+    (:itexture-buffer . v-itexture-buffer)
+    (:itexture-cube . v-itexture-cube)
+    (:itexture-cube-array . v-itexture-cube-array)
+    (:texture-1d . v-texture-1d)
+    (:texture-1d-array . v-texture-1d-array)
+    (:texture-2d . v-texture-2d)
+    (:texture-2d-array . v-texture-2d-array)
+    (:texture-2d-ms . v-texture-2d-ms)
+    (:texture-2d-ms-array . v-texture-2d-ms-array)
+    (:texture-2d-rect . v-texture-2d-rect)
+    (:texture-3d . v-texture-3d)
+    (:texture-buffer . v-texture-buffer)
+    (:texture-cube . v-texture-cube)
+    (:texture-cube-array . v-texture-cube-array)
+    (:utexture-1d . v-utexture-1d)
+    (:utexture-1d-array . v-utexture-1d-array)
+    (:utexture-2d . v-utexture-2d)
+    (:utexture-2d-array . v-utexture-2d-array)
+    (:utexture-2d-ms . v-utexture-2d-ms)
+    (:utexture-2d-ms-array . v-utexture-2d-ms-array)
+    (:utexture-2d-rect . v-utexture-2d-rect)
+    (:utexture-3d . v-utexture-3d)
+    (:utexture-buffer . v-utexture-buffer)
+    (:utexture-cube . v-utexture-cube)
+    (:utexture-cube-array . v-utexture-cube-array)
+    (:texture-rect . v-texture-rect)
+    (:itexture-rect . v-itexture-rect)
+    (:utexture-rect . v-utexture-rect)
+    (:acceleration-structure-ext . v-acceleration-structure-ext)
+    (:ray-query-ext . v-ray-query-ext)))
 
 (defvar *base-reserved*
   '("active"
@@ -452,3 +571,50 @@
     "volatile"
     "while"
     "writeonly"))
+
+;;{TODO} add this to validation of glsl name strings when target is vulkan
+(defvar *reserved-vulkan*
+  '("accelerationStructureEXT"
+    "isubpassInput"
+    "isubpassInputMS"
+    "itexture1D"
+    "itexture1DArray"
+    "itexture2D"
+    "itexture2DArray"
+    "itexture2DMS"
+    "itexture2DMSArray"
+    "itexture2DRect"
+    "itexture3D"
+    "itextureBuffer"
+    "itextureCube"
+    "itextureCubeArray"
+    "rayQueryEXT"
+    "sampler"
+    "samplerShadow"
+    "subpassInput"
+    "subpassInputMS"
+    "texture1D"
+    "texture1DArray"
+    "texture2D"
+    "texture2DArray"
+    "texture2DMS"
+    "texture2DMSArray"
+    "texture2DRect"
+    "texture3D"
+    "texture3DRect"
+    "textureBuffer"
+    "textureCube"
+    "textureCubeArray"
+    "usubpassInput"
+    "usubpassInputMS"
+    "utexture1D"
+    "utexture1DArray"
+    "utexture2D"
+    "utexture2DArray"
+    "utexture2DMS"
+    "utexture2DMSArray"
+    "utexture2DRect"
+    "utexture3D"
+    "utextureBuffer"
+    "utextureCube"
+    "utextureCubeArray"))

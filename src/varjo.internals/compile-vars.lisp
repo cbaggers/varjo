@@ -41,7 +41,8 @@
 (defun compile-symbol (symbol env &key allow-unbound)
   (let ((binding (get-symbol-binding symbol t env)))
     (etypecase binding
-      (uninitialized-value (if allow-unbound
+      (uninitialized-value (if (or allow-unbound
+                                   (allow-unboundp (v-type-of binding)))
                                (v-variable->code-obj symbol binding env)
                                (error 'uninitialized-var :name symbol)))
       (v-symbol-macro (expand-symbol-macro binding env))

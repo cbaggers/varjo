@@ -184,9 +184,28 @@
           (prefix-type-to-string type glsl-name
                                  (append qualifiers (list *in-qualifier*)))))
 
-(defun gen-uniform-decl-string (glsl-name type qualifiers)
+(defun uniform-memory-layout-string (target-name layout &optional imagep)
+  (let ((qualifiers (listify layout)))
+    (assert (every (lambda (q)
+                     (typep q 'qualifier))
+                   qualifiers))
+    (assert (every (lambda (q)
+                     (uniform-memory-layout-qualifier-p q imagep))
+                   qualifiers)
+            ()
+            'unknown-layout-specifier
+            :name target-name
+            :target-kind :uniform
+            :specifier layout)
+    (format nil "~{~a~^, ~}" (mapcar #'glsl-string layout))))
+
+;;{TODO} check if type is an image type and pass to uniform-memory-layout-string
+(defun gen-uniform-decl-string (glsl-name type qualifiers &optional layout)
   (declare (ignore qualifiers))
-  (format nil "uniform ~a;" (prefix-type-to-string type glsl-name)))
+  (format nil "~@[layout(~a) ~]uniform ~a;"
+          (when layout
+            (uniform-memory-layout-string glsl-name layout))
+          (prefix-type-to-string type glsl-name)))
 
 (defun gen-shared-decl-string (glsl-name type qualifiers)
   (declare (ignore qualifiers))
@@ -234,15 +253,20 @@
                 (:cw "cw")
                 (:ccw "ccw"))))))
 
+(defun format-extensions-from-env (env)
+  (format nil "~{#extension ~a~%~}"
+          (mapcar #'glsl-string (v-extensions env))))
+
 (defun gen-shader-string (post-proc-obj)
   (let* ((funcs (all-functions post-proc-obj))
          (func-code (remove nil (mapcar #'glsl-code funcs)))
          (func-sigs (remove nil (mappend #'signatures funcs))))
     (with-slots (env) post-proc-obj
       (format
-       nil "// ~a~%#version ~a~%~{~%~{~a~%~}~}"
+       nil "// ~a~%#version ~a~%~@[~%~a~]~{~%~{~a~%~}~}"
        (string-downcase (type-of (stage env)))
        (get-version-from-context env)
+       (format-extensions-from-env env)
        (remove nil
                (list (used-user-structs post-proc-obj)
                      (in-declarations post-proc-obj)
@@ -312,13 +336,16 @@
               "")))
 
 (defun block-memory-layout-string (target-name target-kind layout)
-  (assert (typep layout 'qualifier))
-  (assert (block-memory-layout-qualfier-p layout) ()
-          'unknown-layout-specifier
-          :name target-name
-          :target-kind target-kind
-          :specifier layout)
-  (glsl-string layout))
+  (let ((qualifiers (listify layout)))
+    (assert (every (lambda (q)
+                     (typep q 'qualifier))
+                   qualifiers))
+   (assert (every #'block-memory-layout-qualifier-p qualifiers) ()
+           'unknown-layout-specifier
+           :name target-name
+           :target-kind target-kind
+           :specifier layout)
+    (format nil "~{~a~^, ~}" (mapcar #'glsl-string qualifiers))))
 
 (defun write-ubo-block (storage-qualifier block-name slots layout)
   (format nil "~@[layout(~a) ~]~a ~a~%{~%~{~a~%~}} ~a;"

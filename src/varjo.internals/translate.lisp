@@ -466,7 +466,8 @@
                                       (v-dimensions
                                        (v-type-of
                                         (first expanded-vars))))))))
-           (locations (if (typep (stage post-proc-obj) 'vertex-stage)
+           (locations (if (or (typep (stage post-proc-obj) 'vertex-stage)
+                              (eq :vulkan (target-environment stage)))
                           (calc-locations (mapcar #'v-type-of expanded-vars))
                           (n-of nil (length expanded-vars))))
            (glsl-decls
@@ -501,12 +502,19 @@
 ;;----------------------------------------------------------------------
 
 (defgeneric gen-stage-locations (stage out-set)
+
   (:method ((stage fragment-stage) out-set)
     (let ((out-types (type-set-to-type-list out-set)))
       (calc-locations out-types)))
+  
   (:method (stage out-set)
-    (declare (ignore stage))
-    (n-of nil (length out-set))))
+    (if (and (eq :vulkan (target-environment stage))
+             (stage-where-first-return-is-position-p stage))
+        (concatenate 'list
+                     '(nil)
+                     (calc-locations (type-set-to-type-list
+                                      (subseq out-set 1))))
+        (n-of nil (length out-set)))))
 
 (defun gen-out-glsl-decls (stage out-set locations)
   (loop :for out-val :across out-set
@@ -616,7 +624,7 @@
          :for glsl-name = (glsl-name uniform)
          :do
          (let ((string-name (or glsl-name (safe-glsl-name-string name)))
-               (layout (find-if #'block-memory-layout-qualfier-p qualifiers)))
+               (layout (remove-if-not #'memory-layout-qualifier-p qualifiers)))
            (push (make-instance
                   'uniform-variable
                   :name name
@@ -624,7 +632,9 @@
                   :type type-obj
                   :glsl-decl (cond
                                ((find :ubo qualifiers :test #'qualifier=)
-                                (assert (not (qualifier= layout :std-430)))
+                                (assert (notany (lambda (q)
+                                                  (qualifier= q :std-430))
+                                                (listify layout)))
                                 (write-ubo-block (parse-qualifier :uniform)
                                                  string-name
                                                  (v-slots type-obj)
@@ -636,7 +646,8 @@
                                                   layout))
                                ((ephemeral-p type-obj) nil)
                                (t (gen-uniform-decl-string string-name type-obj
-                                                           qualifiers))))
+                                                           qualifiers
+                                                           layout))))
                  final-strings)))
 
       (loop :for s :in (stemcells post-proc-obj) :do
@@ -654,7 +665,8 @@
                                  (gen-uniform-decl-string
                                   (or string-name (error "stem cell without glsl-name"))
                                   type-obj
-                                  nil)))
+                                  nil
+                                  (remove-if-not #'uniform-memory-layout-qualifier-p (qualifiers type-obj)))))
                    implicit-uniforms)
 
              (when (and (v-typep type-obj 'v-user-struct)
@@ -713,6 +725,8 @@
        :uniform-variables (uniforms post-proc-obj)
        :shared-variables (shared-variables (stage post-proc-obj))
        :context context
+       :target-environment (target-environment stage)
+       :extensions (extensions stage)
        :lisp-code (lisp-code stage)
        :stemcells-allowed (allows-stemcellsp env)
        :primitive-in (primitive-in (stage post-proc-obj))

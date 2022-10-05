@@ -88,6 +88,10 @@
    (uniform-variables :initarg :uniform-variables :accessor uniform-variables)
    (shared-variables :initarg :shared-variables :accessor shared-variables)
    (context :initarg :context :accessor context)
+   (target-environment :initarg :target-environment :accessor target-environment
+                       :initform :opengl)
+   (extensions :initarg :extensions :accessor extensions
+               :initform nil)
    (lisp-code :initarg :lisp-code :accessor lisp-code)
    (stemcells-allowed :initarg :stemcells-allowed :accessor stemcells-allowed)
    (previous-stage :initarg :previous-stage :accessor previous-stage
@@ -162,6 +166,14 @@
 
 ;;----------------------------------------------------------------------
 
+(defclass extension ()
+  ((name :initarg :name :reader name)
+   (behavior
+    :initform :enable :initarg :behavior :reader behavior)
+   (glsl-string :initarg :glsl-string :reader glsl-string)))
+
+;;----------------------------------------------------------------------
+
 (defclass environment ()
   ((base-env
     :initform nil :initarg :base-env)
@@ -173,6 +185,8 @@
     :reader v-previous-env-with-form-bindings)
    (context
     :initform nil :initarg :context :reader v-context)
+   (extensions
+    :initform nil :initarg :extensions :reader v-extensions)
    (symbol-bindings
     :initform nil :initarg :symbol-bindings :reader v-symbol-bindings)
    (form-bindings
@@ -200,6 +214,7 @@
    (uniforms :initform nil :initarg :uniforms :accessor v-uniforms)
    (shared :initform nil :initarg :shared :accessor v-shared)
    (context :initform nil :initarg :context :reader v-context)
+   (extensions :initform nil :initarg :extensions :reader v-extensions)
    (stemcell->flow-id :initform (make-hash-table :test #'eq)
                       :initarg :stemcell->flow-id)
    (name-map :initform (make-hash-table :test #'equal))
