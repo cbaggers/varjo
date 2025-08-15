@@ -1002,6 +1002,9 @@
    :spacing
    :order
 
+   :>>
+   :<<
+
    :vari-describe))
 
 (uiop:define-package #:vari
