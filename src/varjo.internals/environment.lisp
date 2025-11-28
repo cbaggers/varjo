@@ -145,6 +145,7 @@
                                :stage stage
                                :env-depth 0
                                :context (context stage)
+                               :extensions (extensions stage)
                                :stemcells-allowed stemcells-allowed)))
     (setf (slot-value result 'base-env) result)
     result))

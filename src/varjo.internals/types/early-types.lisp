@@ -15,7 +15,9 @@
    (default-value :initarg :default-value)
    (qualifiers :initform nil :initarg :qualifiers :reader qualifiers)
    (tertiary-score :initform 0 :initarg :tertiary-score
-                   :reader tertiary-score)))
+                   :reader tertiary-score)
+   (vulkan-onlyp :initform nil :reader vulkan-onlyp)
+   (allow-unboundp :initform nil :reader allow-unboundp)))
 
 ;;------------------------------------------------------------
 ;; Core type methods

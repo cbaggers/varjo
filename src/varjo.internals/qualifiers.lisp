@@ -14,11 +14,18 @@
     (let ((spec (find name *varjo-qualifiers* :key #'first)))
       ;; {TODO} Proper error
       (assert spec () "Varjo: '~a' is not a valid qualifier." name)
+      (when (third spec)
+        (assert (first args) ()
+                "Varjo: Qualifier '~a' requires an argument, but none was specified" (first spec)))
       (case name
         (:feedback (parse-feedback-qualifier name args))
         (otherwise (make-instance 'qualifier
                                   :name name
-                                  :glsl-string (second spec)))))))
+                                  :glsl-string (if (third spec)
+                                                   (format nil "~a = ~a"
+                                                           (second spec)
+                                                           (first args))
+                                                   (second spec))))))))
 
 (defun parse-feedback-qualifier (name args)
   (let ((fb-arg-len (length args))
@@ -49,11 +56,38 @@
                b)))
     (string= a b)))
 
-
-(defun block-memory-layout-qualfier-p (qualifier)
+(defun constant-memory-layout-qualifier-p (qualifier)
   (check-type qualifier qualifier)
   (not (null (member (name qualifier)
-                     '(:std-140 :std-430 :packed :shared)))))
+                     '(:constant-id)))))
+
+(defun image-memory-layout-qualifier-p (qualifier)
+  (check-type qualifier qualifier)
+  (not (null (find (name qualifier) *glsl-image-format-qualifiers* :key #'first))))
+
+(defun uniform-memory-layout-qualifier-p (qualifier &optional imagep)
+  (check-type qualifier qualifier)
+  (or (not (null (member (name qualifier)
+                         '(:binding
+                           :set
+                           :input-attachment-index))))
+      (and imagep
+           (image-memory-layout-qualifier-p qualifier))))
+
+(defun block-memory-layout-qualifier-p (qualifier)
+  (check-type qualifier qualifier)
+  (not (null (member (name qualifier)
+                     '(:std-140
+                       :std-430
+                       :packed
+                       :shared
+                       :binding
+                       :set
+                       :push-constant)))))
+
+(defun memory-layout-qualifier-p (qualifier)
+  (or (block-memory-layout-qualifier-p qualifier)
+      (uniform-memory-layout-qualifier-p qualifier)))
 
 (defmethod qualifiers ((obj shader-variable))
   (qualifiers (v-type-of obj)))

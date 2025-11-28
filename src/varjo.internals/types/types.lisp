@@ -206,6 +206,59 @@
   ((shadowed-type :initform nil :reader shadowed-type)))
 
 ;;------------------------------------------------------------
+;; Vulkan-only Type
+;;
+;; The supertype for all types which are only allowed in a
+;; Vulkan/SPIR-V context.
+
+(define-v-type-class v-opaque-vulkan-type (v-opaque)
+  ((vulkan-onlyp :initform t :reader vulkan-onlyp)))
+
+;;----------------------------------------------------------------------
+;; Sampler (Vulkan only)
+
+(define-v-type-class v-sampler-type (v-opaque-vulkan-type)
+  ((element-type :initform 'v-type)))
+
+;;----------------------------------------------------------------------
+;; Subpass Input (Vulkan only)
+
+(define-v-type-class v-subpass-input-type (v-opaque-vulkan-type)
+  ((element-type :initform 'v-type)))
+
+(defmethod post-initialise ((object v-subpass-input-type))
+  (with-slots (element-type) object
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-subpass-input-type))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+;;----------------------------------------------------------------------
+;; Texture (Vulkan only)
+
+(define-v-type-class v-texture (v-opaque)
+  ((element-type :initform 'v-type)))
+
+(defmethod post-initialise ((object v-texture))
+  (with-slots (element-type) object
+    (unless (typep element-type 'v-type)
+      (setf element-type (type-spec->type element-type)))))
+
+(defmethod v-element-type ((object v-texture))
+  (let ((result (slot-value object 'element-type)))
+    ;; {TODO} dedicated error
+    (assert (typep result 'v-type) (object)
+            "The element-type of ~a was ~a which is not an instance of a type."
+            object result)
+    result))
+
+;;------------------------------------------------------------
 ;; Sampler
 
 (define-v-type-class v-sampler (v-opaque)

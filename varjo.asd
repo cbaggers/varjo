@@ -24,6 +24,7 @@
                (:file "src/varjo.internals/globals")
                (:file "src/varjo.internals/names")
                (:file "src/varjo.internals/internal-types")
+               (:file "src/varjo.internals/extension")
                (:file "src/varjo.internals/glsl-generation/line-and-chunk")
                (:file "src/varjo.internals/qualifiers")
                (:file "src/varjo.internals/types/def-v-core-type")

@@ -7,12 +7,18 @@
                    &optional (stemcells-allowed t) primitive)
   (assert (listp context) ()
           "Varjo: The context argument to make-stage must be a list")
-  (create-stage kind context
-                :input-variables in-args
-                :uniform-variables uniforms
-                :code code
-                :stemcells-allowed stemcells-allowed
-                :primitive primitive))
+  (multiple-value-bind (version/s target-env extensions includes)
+      (destructure-context context)
+    (create-stage kind version/s
+                  :input-variables in-args
+                  :uniform-variables uniforms
+                  :code code
+                  :stemcells-allowed stemcells-allowed
+                  :primitive primitive
+                  :target-environment target-env
+                  :extensions extensions
+                  ;; actually includes don't make a lot of sense in Varjo, but who knows...
+                  :includes includes)))
 
 (defun create-stage (kind version/s
                      &key
@@ -21,9 +27,16 @@
                        shared-variables
                        code
                        (stemcells-allowed t)
-                       primitive)
+                       primitive
+                       (target-environment :opengl)
+                       includes
+                       extensions)
   (when (and (every #'check-arg-form input-variables)
-             (every #'check-arg-form uniform-variables)
+             (every (lambda (arg)
+                      (check-arg-form arg
+                                      :uniformp t
+                                      :target-environment target-environment))
+                    uniform-variables)
              (check-for-dups input-variables
                              uniform-variables
                              shared-variables))
@@ -78,10 +91,16 @@
                  :shared-variables (mapcar λ(make-var 'shared-variable _)
                                             shared-variables)
                  :context version/s
+                 :target-environment target-environment
+                 :extensions (mapcar #'make-extension extensions)
                  :lisp-code code
                  :stemcells-allowed stemcells-allowed
                  :primitive-in (%process-primitive-type stage-type
                                                         primitive))))
+        (when (eq target-environment :vulkan)
+          ;; {TODO} proper error
+          (assert (intersection version/s '(:440 :450 :460)) ()
+                  "Varjo: Target environment Vulkan requires a GLSL version of at least 440."))
         (when (equal kind :geometry)
           ;; {TODO} proper error
           (assert (intersection version/s '(:150 :330 :400 :410 :420 :430 :440 :450 :460)) ()
@@ -146,6 +165,8 @@
               (uniform-variables nil uv-set)
               (shared-variables nil sv-set)
               (context nil c-set)
+              (target-environment nil env-set)
+              (extensions nil ext-set)
               (lisp-code nil lc-set)
               (previous-stage nil ps-set)
               (stemcells-allowed nil sa-set)
@@ -165,6 +186,12 @@
      :context (if c-set
                   context
                   (context stage))
+     :target-environment (if env-set
+                             target-environment
+                             (target-environment stage))
+     :extensions (if ext-set
+                     extensions
+                     (extensions stage))
      :lisp-code (if lc-set
                     lisp-code
                     (lisp-code stage))
@@ -179,6 +206,24 @@
                        (primitive-in stage)))))
 
 ;;------------------------------------------------------------
+
+(defun destructure-context (context)
+  (flet ((check-for-key (ctx key)
+           (and (listp ctx)
+                (>= (length ctx) 2)
+                (eq (first ctx) key))))
+    (let ((target-env :opengl)
+          (extensions nil)
+          (includes nil))
+      (loop for ctx in context
+            if (keywordp ctx) collect ctx into version/s
+            if (check-for-key ctx :target-environment) do (setf target-env (second ctx))
+            if (check-for-key ctx :extensions) do (setf extensions (cdr ctx))
+            if (check-for-key ctx :includes) do (setf includes (cdr ctx))
+            finally (return (values version/s
+                                    target-env
+                                    extensions
+                                    includes))))))
 
 (defun extract-glsl-name (qual-and-maybe-name)
   (let ((glsl-name (last1 qual-and-maybe-name)))
@@ -238,7 +283,10 @@
       (list *default-version*)))
 
 ;;{TODO} proper error
-(defun check-arg-form (arg)
+(defun check-arg-form (arg
+                       &key
+                         uniformp
+                         (target-environment :opengl))
   (unless
       (and
        ;; needs to at least have name and type
@@ -253,7 +301,22 @@
               (qualifiers (if (stringp (last1 qualifiers))
                               (butlast qualifiers)
                               qualifiers)))
-         (every #'keywordp qualifiers)))
+         (loop :for qualifier-form :in qualifiers
+               :for qualifier := (first (listify qualifier-form))
+               :do (assert (keywordp qualifier) ()
+                           "Varjo: Qualifier ~a within declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant."
+                           qualifier arg)
+               :when (find qualifier *glsl-vulkan-qualifiers* :key #'first)
+               :do (assert (eq :vulkan target-environment) ()
+                           "Varjo: Qualifier ~a within declaration ~a is only allowed in target environment :vulkan, but not in ~a"
+                           qualifier arg target-environment)
+               :when (eq qualifier :input-attachment-index)
+               :do (assert (member (second arg) '(:subpass-input
+                                                  :subpass-input-ms))
+                           ()
+                           "Varjo: Qualifier ~a within declaration ~a is only allowed for subpass inputs."
+                           qualifier arg target-environment))
+         t))
     (error "Declaration ~a is badly formed.~%Should be (-var-name- -var-type- &optional qualifiers) and ~%the arg name may not have the same name as a constant." arg))
   t)
 
